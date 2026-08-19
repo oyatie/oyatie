@@ -21,20 +21,32 @@ import (
 func compositeNode(lit *ast.CompositeLit, ctx *extractCtx) node {
 	fields := compositeStruct(lit, ctx)
 	if fields == nil {
-		// A slice, map or array literal. It reached here as a composite with no struct behind it,
-		// and the previous shape emitted an empty struct literal for it — silently constructing
-		// nothing. Recording it as unsupported refuses it by name instead.
-		return unsupportedNode(lit)
+		// A slice, map or array literal. RECORDED with its type and its elements rather than
+		// refused: what the target spells for a sequence is a pack decision, and a rule cannot
+		// fire on a shape the snapshot never carries. An earlier version emitted an empty struct
+		// literal here, which silently constructed nothing.
+		return sequenceNode(lit, ctx)
 	}
 
+	// A POSITIONAL composite gives its values in FIELD ORDER, and that order is a fact go/types
+	// holds right here — `fields.Field(i)` is the field element `i` fills. Naming them is a proof
+	// rather than a hope, which is what makes it safe: the danger was never the positional form,
+	// it was reproducing an order the target does not guarantee, and a named field reproduces no
+	// order at all.
+	//
+	// The source forbids mixing the two forms in one literal, so a literal is entirely keyed or
+	// entirely positional and there is nothing to reconcile.
 	written := make(map[string]node, len(lit.Elts))
-	for _, element := range lit.Elts {
+	for index, element := range lit.Elts {
 		keyed, ok := element.(*ast.KeyValueExpr)
 		if !ok {
-			// A POSITIONAL composite depends on field order, which the target does not reproduce
-			// for a named struct — and getting it silently wrong swaps two fields of the same type
-			// with no diagnostic anywhere.
-			return unsupportedNode(element)
+			if index >= fields.NumFields() {
+				// More values than the struct has fields. go/types would have rejected this, so
+				// reaching it means the type behind the literal is not the one indexed here.
+				return unsupportedNode(element)
+			}
+			written[fields.Field(index).Name()] = expressionNode(element, ctx)
+			continue
 		}
 		key, ok := keyed.Key.(*ast.Ident)
 		if !ok {
@@ -83,4 +95,32 @@ func compositeType(lit *ast.CompositeLit, ctx *extractCtx) *typeNode {
 		return typeTree(tv.Type)
 	}
 	return nil
+}
+
+// sequenceNode records a slice, array or map literal.
+//
+// Its ELEMENTS are children in source order, which is semantic for a sequence and is the order the
+// target reproduces. A map's entries are `keyed` nodes carrying key and value as two children; a
+// map literal in the source has no order at all, and the target's ordered map imposes one — which
+// is a decision the pack makes and not a fact recorded here.
+//
+// An EMPTY literal keeps its type and gains no children, so the transform can answer it with the
+// type's zero value rather than with an empty construction it would have to invent.
+func sequenceNode(lit *ast.CompositeLit, ctx *extractCtx) node {
+	out := node{Kind: kindComposite, Type: compositeType(lit, ctx)}
+	for _, element := range lit.Elts {
+		keyed, ok := element.(*ast.KeyValueExpr)
+		if !ok {
+			out.Children = append(out.Children, expressionNode(element, ctx))
+			continue
+		}
+		out.Children = append(out.Children, node{
+			Kind: kindKeyed,
+			Children: []node{
+				expressionNode(keyed.Key, ctx),
+				expressionNode(keyed.Value, ctx),
+			},
+		})
+	}
+	return out
 }

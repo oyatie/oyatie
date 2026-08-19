@@ -84,6 +84,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) derives: &'a [DeriveRule],
     /// Idiom rules: spellings the target prefers, which change nothing about the program.
     pub(crate) idioms: &'a [IdiomRule],
+    /// What a SEQUENCE literal becomes, keyed by the type's kind.
+    pub(crate) literal_constructors: &'a BTreeMap<String, String>,
     /// How the source spells failure, when it has a convention for it.
     pub(crate) failure: Option<&'a FailureConvention>,
     /// The kinds the pack DEFERS, so a body can refuse to reference one.

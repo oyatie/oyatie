@@ -41,6 +41,8 @@ pub const ATTR_VALUE: &str = "value";
 pub const ATTR_OP: &str = "op";
 /// The declaration kind of a free function.
 pub const KIND_FUNC: &str = "func";
+/// The type kind of a fixed-length array, whose `name` is its LENGTH rather than an identity.
+pub const TYPE_ARRAY: &str = "array";
 /// The type kind of a pointer.
 pub const TYPE_POINTER: &str = "pointer";
 /// The node kind of a literal.

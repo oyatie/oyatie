@@ -1066,6 +1066,43 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   assert, that a fallible signature becomes a `Result` and that a standard-library call is answered
   by the pack, are unchanged.
 
+- THE `var` DIAGNOSIS WAS WRONG, and measuring the types said so. The deferral had been treated as
+  a TIMING problem — `LazyLock` runs on first use where the source runs before `main` — and the
+  next step looked like proving initializer purity. Then the never-written variables were counted
+  by type: 17 of 45 are `error`, the single largest group, and those cannot be a target static at
+  all. Returning a package-level error moves out of the static, and `Box<dyn Error>` is not
+  duplicable. That is an OWNERSHIP mismatch, not a timing one, and no purity analysis would have
+  touched it. 15 are named structs, which now derive `Clone` and `Default` and are viable; 7 are
+  arrays, 2 bool, 2 slices, 1 func.
+  The idiomatic target form for an error sentinel is a distinct type implementing the error trait,
+  not a boxed trait object in a static — a transformation, not a spelling. Recorded rather than
+  attempted: it is the shape 17 declarations need and it belongs with the error-model decision, not
+  bolted onto the `var` form.
+
+- SEQUENCE LITERALS reached the model as `unsupported` 26 times. Measured before deciding, which
+  changed what got built: the positional-STRUCT literal that the drain had flagged as low-hanging
+  turned out to be none of the 26 — every one is a slice, array or map literal. The positional fix
+  landed anyway because it is correct and universal (the field order is a fact go/types holds right
+  there, so naming the fields is a proof rather than a hope), it just was not what these corpora
+  needed.
+  By shape: 17 arrays, 3 slices, 1 map. And by fill: 11 of the arrays are EMPTY, the single largest
+  group — `[20]byte{}`, which is not an empty array but twenty zero bytes. So an empty sequence
+  literal is answered by the type's ZERO VALUE, which the engine already had machinery for; any
+  other answer would need it to invent a length it already has.
+  `zero_values` held four entries — bool, int, float64, string — so every other scalar had no zero
+  and any construction needing one refused. The same incomplete-list shape `copy_types` had, found
+  the same way. Composite zeros are keyed by KIND because an unnamed type has no name, and `array`
+  carries a template because its zero needs the ELEMENT's zero and the length.
+  A LATENT TRAP surfaced on the way and it was silent: `table_key` fell through to a type's `name`,
+  but an array's `name` is its LENGTH. `[4]int64` looked up the key `4`, so every pack table missed
+  — and a miss is indistinguishable from a type the pack declines to answer for, which means the
+  wrong answer read as a policy decision nobody made. Arrays are keyed by kind now, with the reason
+  written where the key is computed.
+  A map literal is deliberately refused: the source's map has no order and the target's ordered map
+  imposes one, so the entry order becomes observable where it was not. A decision needing its own
+  reason rather than a row in a table.
+  ksuid 36.6% → 38.7%.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

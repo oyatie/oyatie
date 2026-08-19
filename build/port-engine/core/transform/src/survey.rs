@@ -231,6 +231,7 @@ fn survey_declaration<P>(
         doc_convention: pack.doc_convention(),
         derives: pack.derives(),
         idioms: pack.idioms(),
+        literal_constructors: pack.literal_constructors(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,
         unit,

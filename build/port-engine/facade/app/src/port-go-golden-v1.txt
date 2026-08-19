@@ -408,6 +408,28 @@ pub mod scoped {
         0
     }
 }
+pub mod sequence {
+    // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__buffer
+    /// Returns a zeroed buffer of the fixed width the protocol uses.
+    pub fn buffer() -> [i64; 4] {
+        [0; 4]
+    }
+    // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__empty
+    /// Returns no widths at all.
+    pub fn empty() -> Vec<i64> {
+        Vec::new()
+    }
+    // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__seeds
+    /// Returns the fixed seed table.
+    pub fn seeds() -> [i64; 3] {
+        [11, 13, 17]
+    }
+    // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__widths
+    /// Returns the configured widths.
+    pub fn widths() -> Vec<i64> {
+        vec![1, 2, 3]
+    }
+}
 pub mod shapes {
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_interface__named
     /// Anything that can render its own name.

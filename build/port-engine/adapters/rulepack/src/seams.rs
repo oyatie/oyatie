@@ -26,6 +26,9 @@ impl PackSemantics for LoadedRulePack {
         &self.type_map
     }
 
+    fn literal_constructors(&self) -> &BTreeMap<String, String> {
+        &self.literal_constructors
+    }
     fn idioms(&self) -> &[IdiomRule] {
         &self.idioms
     }

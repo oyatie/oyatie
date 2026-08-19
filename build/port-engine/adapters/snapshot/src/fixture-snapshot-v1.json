@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:c80299fc9b4c95df19b8897eefad25a24fec4d2dcc6bcd6fba1be9ea5068fb8a",
+  "snapshot_digest": "sha256:09d5082ccfbaf6b3fdb8f5aa6387ea9543be256eab647c9ea62e63833be24d6a",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -4088,6 +4088,268 @@
                         "lit_kind": "INT",
                         "value": "0"
                       }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/sequence",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Buffer",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Buffer returns a zeroed buffer of the fixed width the protocol uses."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "array",
+                "name": "4",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "array",
+                        "name": "4",
+                        "args": [
+                          {
+                            "kind": "basic",
+                            "name": "int64"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Empty",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Empty returns no widths at all."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "slice",
+                        "args": [
+                          {
+                            "kind": "basic",
+                            "name": "int64"
+                          }
+                        ]
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Seeds",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Seeds returns the fixed seed table."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "array",
+                "name": "3",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "array",
+                        "name": "3",
+                        "args": [
+                          {
+                            "kind": "basic",
+                            "name": "int64"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "11"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "13"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "17"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Widths",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Widths returns the configured widths."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "slice",
+                        "args": [
+                          {
+                            "kind": "basic",
+                            "name": "int64"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "1"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "2"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "3"
+                          }
+                        }
+                      ]
                     }
                   ]
                 }

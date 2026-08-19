@@ -12,6 +12,7 @@ use port_engine_rust_ir::RustExpr;
 use crate::body::{Body, one_child, two_children, unsupported_source};
 use crate::body_index::slice;
 use crate::body_call::call;
+use crate::body_literal::{composite, zero_value};
 use crate::body_idiom::emptiness_test;
 use crate::body_ops::{
     binary_operator, is_receiver, operator_of, own_string_for, reference,
@@ -210,55 +211,4 @@ fn convert(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError
             target.describe()
         ),
     })
-}
-
-/// A struct literal, with every field named.
-///
-/// Go zero-fills the fields a literal omits; the target has no such rule and rejects an incomplete
-/// literal outright. The front end therefore emits one entry per DECLARED field, and the omitted
-/// ones arrive as `zero` nodes carrying the field's type — so the target's zero is a pack answer
-/// rather than something inferred from a spelling here.
-fn composite(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
-    let path = cx.resolver.resolve(&node.type_ref, cx.owner).map_err(|_| {
-        TransformError::MissingDatum {
-            construction: "composite".to_owned(),
-            name: cx.owner.to_owned(),
-            datum: "type",
-        }
-    })?;
-
-    let keyed = node.children_of_kind("keyed");
-    let mut fields = Vec::with_capacity(keyed.len());
-    for entry in keyed {
-        fields.push((
-            to_snake_case(&entry.name),
-            expression(one_child(entry, cx, "keyed")?, cx)?,
-        ));
-    }
-    Ok(RustExpr::StructLiteral {
-        path: path.spelling(),
-        fields,
-    })
-}
-
-/// The target's zero for a source type the literal left out.
-///
-/// Refuses BY NAME rather than reaching for `Default::default()`. That would compile for the types
-/// the corpus has and would silently be a different program for the ones it does not: a type whose
-/// `Default` impl is not its zero value, or one that has no `Default` at all and only fails much
-/// later, in the emitted crate, with the source declaration nowhere in the message.
-fn zero_value(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
-    cx.resolver
-        .zero_value(&node.type_ref)
-        .map(RustExpr::Literal)
-        .ok_or_else(|| TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: format!(
-                "a struct literal omits field `{}` of type `{}`, and the pack declares no zero \
-                 value for it — Go fills the field with that type's zero and the target must \
-                 spell it out",
-                node.name,
-                node.type_ref.describe()
-            ),
-        })
 }

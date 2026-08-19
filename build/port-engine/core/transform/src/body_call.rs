@@ -261,7 +261,7 @@ fn refuse_wrong_argument_shape(
 /// Only the forms whose text is unambiguous are admitted. A template is textual substitution, and
 /// substituting a compound expression into one would need parentheses this cannot see the need for —
 /// so anything else refuses rather than producing text that reassociates.
-fn render_operand(arg: &RustExpr) -> Option<String> {
+pub(crate) fn render_operand(arg: &RustExpr) -> Option<String> {
     match arg {
         RustExpr::Literal(text) | RustExpr::Path(text) => Some(text.clone()),
         _ => None,

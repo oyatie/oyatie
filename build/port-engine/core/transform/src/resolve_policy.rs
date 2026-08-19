@@ -9,9 +9,61 @@
 use port_engine_api::{Declaration, IdiomRule, TypeRef};
 
 use crate::resolve::Resolver;
+use crate::resolve_tables::table_key;
 use crate::vocabulary::SOURCE_STRING;
 
 impl Resolver<'_> {
+    /// Whether converting TO this source type is a plain cast in the target.
+    ///
+    /// The pack says which, keyed by source identity like every other table. Numeric conversion is
+    /// defined to truncate in the source and the target's cast does the same thing; a conversion
+    /// the pack does not list is one where the two languages disagree, and those refuse.
+    pub(crate) fn converts_by_cast(&self, type_ref: &TypeRef) -> bool {
+        self.cast_types.contains(&table_key(type_ref))
+    }
+
+    /// Whether a plain read of this source type COPIES in the target.
+    pub(crate) fn copies(&self, type_ref: &TypeRef) -> bool {
+        self.copy_types.contains(&table_key(type_ref))
+    }
+
+    /// The target expression for this source type's zero value, when the pack declares one.
+    ///
+    /// A COMPOSITE zero is a template, because it cannot be written without the type tree: an
+    /// array's zero is its element's zero repeated to its length, and neither the element nor the
+    /// length is knowable from the kind alone. `{0}` is the element's own zero and `{name}` the
+    /// length the type node carries — the same two substitutions `type_constructors` makes, so a
+    /// reader meets one convention rather than two.
+    ///
+    /// A template whose element has no zero yields `None` rather than a half-substituted string:
+    /// an array of something with no zero has no zero either, and saying so is the point.
+    pub(crate) fn zero_value(&self, type_ref: &TypeRef) -> Option<String> {
+        let template = self.zero_values.get(&table_key(type_ref))?;
+        if !template.contains('{') {
+            return Some(template.clone());
+        }
+        let element = type_ref.args.first()?;
+        Some(
+            template
+                .replace("{0}", &self.zero_value(element)?)
+                .replace("{name}", &element_count(type_ref)),
+        )
+    }
+
+    /// Whether the pack answers for a sequence literal of this type kind.
+    pub(crate) fn is_sequence_literal(&self, kind: &str) -> bool {
+        self.literal_constructors.contains_key(kind)
+    }
+
+    /// The target text for a sequence literal of this kind, given its elements.
+    pub(crate) fn sequence_form(&self, kind: &str, elements: &[String]) -> Option<String> {
+        Some(
+            self.literal_constructors
+                .get(kind)?
+                .replace("{0}", &elements.join(", ")),
+        )
+    }
+
     /// The target spelling an idiom rule declares, if the pack declares that idiom.
     ///
     /// `None` means the pack does not carry the rule, and the source form is emitted unchanged —
@@ -99,4 +151,13 @@ fn mentions_kind(type_ref: &TypeRef, kinds: &std::collections::BTreeSet<String>)
             .args
             .iter()
             .any(|arg| mentions_kind(arg, kinds))
+}
+
+/// The length an array type carries, which the front end records in the type node's `name`.
+///
+/// A type node's `name` is where a non-type datum lives: for a named type it is the identity, and
+/// for an array it is the length. Empty when the source wrote `[...]T{..}` and let the compiler
+/// count, which is a shape the pack has no template for and which yields no zero.
+fn element_count(type_ref: &TypeRef) -> String {
+    type_ref.name.clone()
 }
