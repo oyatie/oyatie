@@ -62,6 +62,13 @@ pub(crate) struct Body<'a> {
     /// rather than as an index into a counter that no longer exists. Scoped to that loop: a nested
     /// loop over a different sequence gets its own answer, and nothing outside is affected.
     pub(crate) walked: Option<Walked>,
+    /// The type this body is a method OF, and `None` for a free function.
+    ///
+    /// The receiver is not a child of the method declaration and carries no type, so a body has no
+    /// way to learn what `self` IS except by being told — which matters because the target's newtype
+    /// carries none of its underlying type's operators and the source's defined type carries all of
+    /// them.
+    pub(crate) receiver_type: Option<&'a str>,
     /// Counter names proven to be used for NOTHING BUT indexing, which are `usize` in the target.
     ///
     /// A property of the enclosing LOOP that only the operands inside it can spend: the range
@@ -96,51 +103,10 @@ impl<'a> Body<'a> {
             results,
             usize_counters: BTreeSet::new(),
             walked: None,
+            receiver_type: None,
         }
     }
 
-    /// The same body, with the parameters the signature already made the target's index type.
-    pub(crate) fn with_usize_parameters(mut self, names: BTreeSet<String>) -> Self {
-        self.usize_counters.extend(names);
-        self
-    }
-
-    /// The same body, inside a loop that WALKS a sequence rather than counting into it.
-    pub(crate) fn with_element(&self, counter: &str, sequence: &str, element: &str) -> Self {
-        Self {
-            owner: self.owner,
-            resolver: self.resolver,
-            fallible: self.fallible,
-            result_is_owned_string: self.result_is_owned_string,
-            borrowed: self.borrowed.clone(),
-            results: self.results.clone(),
-            usize_counters: self.usize_counters.clone(),
-            walked: Some(Walked {
-                counter: counter.to_owned(),
-                sequence: sequence.to_owned(),
-                element: element.to_owned(),
-            }),
-        }
-    }
-
-    /// The same body, translating one more counter as a `usize`.
-    ///
-    /// Scoped to the loop that proved it: a name shadowed by an inner loop with different uses gets
-    /// its own answer, and nothing outside the loop is affected by what happens inside it.
-    pub(crate) fn with_usize_counter(&self, counter: &str) -> Self {
-        let mut usize_counters = self.usize_counters.clone();
-        usize_counters.insert(counter.to_owned());
-        Self {
-            owner: self.owner,
-            resolver: self.resolver,
-            fallible: self.fallible,
-            result_is_owned_string: self.result_is_owned_string,
-            borrowed: self.borrowed.clone(),
-            results: self.results.clone(),
-            usize_counters,
-            walked: self.walked.clone(),
-        }
-    }
 }
 
 /// The one sequence a rewritten loop walks, and what its element is called.
@@ -182,10 +148,17 @@ pub(crate) fn statements(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
     result: ResultShape,
+    // The type a METHOD hangs off, and `None` for a free function. Nothing in the method
+    // declaration says it — the receiver is not a child and carries no type — so it is threaded
+    // from the signature, which is the only place that knows.
+    receiver_type: Option<&str>,
 ) -> Result<Vec<RustStmt>, TransformError> {
-    crate::body_wider::refuse_named_results(declaration)?;
+    // The names a signature's results carry are BINDINGS the body may assign to before returning,
+    // and the target binds nothing from a signature — so they are bound here, ahead of everything
+    // the body does, exactly as the source binds them at entry.
+    let mut bound = crate::body_wider::named_result_bindings(declaration, resolver)?;
     let fallible = crate::failure::is_fallible(declaration, resolver.failure);
-    translate(
+    let mut translated = translate(
         nodes,
         &Body::new(
             &declaration.name,
@@ -198,9 +171,12 @@ pub(crate) fn statements(
         // A parameter the signature made a `usize` is one for the body too, and it reaches the
         // index through the same set a proven loop counter does — so one place decides, and the
         // signature and the body cannot disagree about whether a conversion is needed.
-        .with_usize_parameters(crate::index_params::index_parameters(declaration, resolver)),
+        .with_usize_parameters(crate::index_params::index_parameters(declaration, resolver))
+        .with_receiver_type(receiver_type),
         TailPosition::Yes,
-    )
+    )?;
+    bound.append(&mut translated);
+    Ok(bound)
 }
 
 /// Whether the last statement of this sequence is in TAIL position — the position whose value is
