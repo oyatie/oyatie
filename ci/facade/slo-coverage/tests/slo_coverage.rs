@@ -118,7 +118,12 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///   2026-08-17  773 -> pin 769     RETIREMENT: remove the four deleted-crate catalog rows
 ///                                  oya-cloud-os-{cluster-mgmt,kubernetes,secrets,trustd}-domain;
 ///                                  the same producer now enumerates exactly four fewer rows.
-const SLO_CATALOG_CENSUS: usize = 772;
+///   2026-08-17  772 -> pin 773     Owned ADR-0535 actuator row added: registry/catalog/
+///                                  ci-rust-toolchain-bump-proposer.yaml (the rust toolchain
+///                                  bump proposer crate). Independent of the row movement above:
+///                                  dev reached 772 on its own while this branch adds exactly
+///                                  one row, so the merged face enumerates 772 + 1.
+const SLO_CATALOG_CENSUS: usize = 773;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {

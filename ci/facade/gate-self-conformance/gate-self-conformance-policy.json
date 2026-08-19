@@ -9,6 +9,7 @@
       "crate-registration",
       "inventory-registry-drift",
       "planning-projection",
+      "rust-toolchain-bump-proposer",
       "scm-facts-snapshot"
     ],
     "bespoke_buck2_gate_crates": [
