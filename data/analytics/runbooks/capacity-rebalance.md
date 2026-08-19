@@ -30,7 +30,7 @@ tenant_count / 10000 ≥ 0.7 for 7 d
 
 1. Provision `analytics-clickhouse-2` via Helm:
    ```
-   helm install analytics-clickhouse-2 microservices/analytics/iac/helm/clickhouse-analytics/ \
+   helm install analytics-clickhouse-2 data/analytics/iac/helm/clickhouse-analytics/ \
      --namespace analytics \
      --set cluster.name=analytics-clickhouse-2 \
      -f microservices/analytics/iac/helm/clickhouse-analytics/values-cluster-2.yaml

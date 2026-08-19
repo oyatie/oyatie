@@ -46,10 +46,10 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/ontology/contracts/openapi/ontology.yaml"
+      "data/ontology/contracts/openapi/ontology.yaml"
     ],
     "asyncapi": [
-      "microservices/ontology/contracts/asyncapi/ontology-events.yaml"
+      "data/ontology/contracts/asyncapi/ontology-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
@@ -63,19 +63,19 @@
     {
       "tier": "T1",
       "name": "cedar-evaluate",
-      "file": "microservices/ontology/capabilities/cedar-evaluate.yaml",
+      "file": "data/ontology/capabilities/cedar-evaluate.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "query-execute",
-      "file": "microservices/ontology/capabilities/query-execute.yaml",
+      "file": "data/ontology/capabilities/query-execute.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "type-register",
-      "file": "microservices/ontology/capabilities/type-register.yaml",
+      "file": "data/ontology/capabilities/type-register.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -321,10 +321,10 @@
     }
   ],
   "hyperscaler_inv_coverage": {
-    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
-    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
-    "primary_signals": "INV-FOUR-reference-SIGNALS → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
-    "error_budget_burn": "INV-SLO-ERROR-BUDGET → microservices/observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
+    "circuit_breaker": "INV-CIRCUIT-BREAKER-BULKHEAD → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaCapabilityCircuitOpen",
+    "tenant_rate_limit": "INV-SHUFFLE-SHARDING → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaTenantRateLimit429Surge",
+    "primary_signals": "INV-FOUR-reference-SIGNALS → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaSaturationCpuOver70pct",
+    "error_budget_burn": "INV-SLO-ERROR-BUDGET → observability/iac/helm/observability/templates/hyperscaler-invariants-canonical-prometheusrule.yaml#OyaErrorBudgetFastBurn1h14x"
   },
   "audit_chain": {
     "enabled": true,
@@ -511,11 +511,11 @@
   "pod_runtime_tier": 1,
   "pod_runtime_tier_justification": "Ontology stores tenant entity graphs, links, histories, and agent-facing projections. It does not run tenant code, but it is a tenant-data-touching substrate and therefore requires Tier 1 runtime isolation.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/ontology/PRD.md",
+    "data/ontology/PRD.md",
     "microservices/ontology/ARCHITECTURE.md",
     "microservices/ontology/IP-004-entity-store-rls-citus.md",
     "microservices/ontology/IP-010-audit-chain-merkle-ed25519.md",
-    "microservices/ontology/runbooks/postgres-citus-rebalance.md"
+    "data/ontology/runbooks/postgres-citus-rebalance.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -538,14 +538,14 @@
     ],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/ontology/contracts/openapi/ontology.yaml",
-        "2026-02-21": "microservices/ontology/contracts/openapi/ontology.yaml",
-        "2025-11-21": "microservices/ontology/contracts/openapi/ontology.yaml"
+        "2026-05-21": "data/ontology/contracts/openapi/ontology.yaml",
+        "2026-02-21": "data/ontology/contracts/openapi/ontology.yaml",
+        "2025-11-21": "data/ontology/contracts/openapi/ontology.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml",
-        "2026-02-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml",
-        "2025-11-21": "microservices/ontology/contracts/asyncapi/ontology-events.yaml"
+        "2026-05-21": "data/ontology/contracts/asyncapi/ontology-events.yaml",
+        "2026-02-21": "data/ontology/contracts/asyncapi/ontology-events.yaml",
+        "2025-11-21": "data/ontology/contracts/asyncapi/ontology-events.yaml"
       }
     }
   },

@@ -287,7 +287,7 @@
     "microservices/data-warehouse/PRD.md",
     "microservices/data-warehouse/ARCHITECTURE.md",
     "microservices/data-warehouse/IP-032-apache-iceberg-write-substrate.md",
-    "microservices/data-warehouse/contracts/openapi-v1.yaml"
+    "data/data-warehouse/contracts/openapi-v1.yaml"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -302,10 +302,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/data-warehouse/contracts/openapi-v1.yaml"
+        "2026-05-21": "data/data-warehouse/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/data-warehouse/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "data/data-warehouse/contracts/asyncapi-v1.yaml"
       }
     }
   },
