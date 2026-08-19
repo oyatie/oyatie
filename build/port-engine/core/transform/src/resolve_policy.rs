@@ -13,6 +13,14 @@ use crate::resolve_tables::table_key;
 use crate::vocabulary::SOURCE_STRING;
 
 impl Resolver<'_> {
+    /// Whether this unit DECLARES the named type.
+    ///
+    /// The target's coherence rule forbids putting an inherent method on a type from elsewhere, so
+    /// a constructor for someone else's type stays a free function however it is named.
+    pub(crate) fn declares(&self, type_ref: &TypeRef) -> bool {
+        !type_ref.name.is_empty() && self.scope.contains(&type_ref.name)
+    }
+
     /// Whether converting TO this source type is a plain cast in the target.
     ///
     /// The pack says which, keyed by source identity like every other table. Numeric conversion is

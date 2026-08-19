@@ -213,17 +213,21 @@ pub mod naming {
         named.name()
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newlabel
-    /// Returns a label whose display name is derived from prefix.
-    pub fn new_label(prefix: String) -> Label {
-        Label {
-            prefix: prefix.clone(),
-            text: prefix,
+    impl Label {
+        /// Returns a label whose display name is derived from prefix.
+        pub fn new(prefix: String) -> Label {
+            Label {
+                prefix: prefix.clone(),
+                text: prefix,
+            }
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newtag
-    /// Returns a tag with the given fixed display name.
-    pub fn new_tag(text: String) -> Tag {
-        Tag { text }
+    impl Tag {
+        /// Returns a tag with the given fixed display name.
+        pub fn new(text: String) -> Tag {
+            Tag { text }
+        }
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__label
     /// A display name derived from a prefix.
@@ -338,9 +342,11 @@ pub mod sequence {
 }
 pub mod shapes {
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_func__newpoint
-    /// Returns the point at the given coordinates, labelled for display.
-    pub fn new_point(x: i64, y: i64, label: String) -> Point {
-        Point { x, y, label }
+    impl Point {
+        /// Returns the point at the given coordinates, labelled for display.
+        pub fn new(x: i64, y: i64, label: String) -> Point {
+            Point { x, y, label }
+        }
     }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_interface__named
     /// Anything that can render its own display name.
