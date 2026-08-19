@@ -1,0 +1,21 @@
+rust_library(
+    name = "intelligence-attribution-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_attribution_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/attribution-usecase:intelligence-attribution-usecase",
+    ],
+)
+
+rust_test(
+    name = "intelligence-attribution-adapter-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_attribution_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/attribution-usecase:intelligence-attribution-usecase",
+    ],
+)

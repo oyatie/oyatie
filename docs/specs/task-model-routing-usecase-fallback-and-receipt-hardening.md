@@ -1,7 +1,7 @@
 # Spec: model-routing-usecase-fallback-and-receipt-hardening
 
 **Vertical:** intelligence  
-**Crate:** `oya-intelligence-model-routing-usecase`  
+**Crate:** `intelligence-model-routing-usecase`  
 **Task slug:** `model-routing-usecase-fallback-and-receipt-hardening`  
 **Branch:** `feat/task-model-routing-usecase-fallback-and-receipt-hardening-2026-05-28`  
 **Base:** `origin/dev`
@@ -31,19 +31,19 @@ improvements:
 - No provider calls, credential resolution, network I/O, filesystem access,
   or durable state changes (in-memory only).
 - No new crates, no root `Cargo.toml` edits.
-- No changes to `oya-intelligence-model-routing-domain` or
-  `oya-intelligence-model-routing-kernel`.
+- No changes to `intelligence-model-routing-domain` or
+  `intelligence-model-routing-kernel`.
 
 ---
 
 ## Vertical and Layer Context
 
 ```
-oya-intelligence-model-routing-kernel   (pure value types + decide_route)
+intelligence-model-routing-kernel   (pure value types + decide_route)
         ↑ path-dep
-oya-intelligence-model-routing-domain   (validation + route_validated_request)
+intelligence-model-routing-domain   (validation + route_validated_request)
         ↑ path-dep
-oya-intelligence-model-routing-usecase  ← THIS CRATE (usecase orchestration)
+intelligence-model-routing-usecase  ← THIS CRATE (usecase orchestration)
 ```
 
 The usecase crate is the outermost in this vertical slice. It owns:
@@ -320,9 +320,9 @@ All five existing tests in the crate must pass without modification:
 | No credential resolution | `CandidateDenial` carries only `provider`, `model_id`, `priority`, `reasons`, `evidence_refs`. |
 | Metadata-only audit | `ModelRoutingAuditEvent` and `ModelRoutingUsecaseReceipt` carry only opaque refs. |
 | Panic-free | No `unwrap`/`expect`/`panic` outside `#[cfg(test)]`. |
-| Path-dep inward only | `oya-intelligence-model-routing-usecase` depends only on `oya-intelligence-model-routing-domain`; domain depends only on kernel. |
+| Path-dep inward only | `intelligence-model-routing-usecase` depends only on `intelligence-model-routing-domain`; domain depends only on kernel. |
 | std-only | No async, no tokio, no external dependencies beyond the path-dep chain. |
-| Single crate | All changes in `oya-intelligence-model-routing-usecase/src/lib.rs`. No new crates or workspace edits. |
+| Single crate | All changes in `intelligence-model-routing-usecase/src/lib.rs`. No new crates or workspace edits. |
 | `#![cfg_attr(test, allow(clippy::unwrap_used, ...))]` retained | Existing test-mode clippy allowances unchanged. |
 
 ---
@@ -330,8 +330,8 @@ All five existing tests in the crate must pass without modification:
 ## Verification Commands
 
 ```sh
-cargo check -p oya-intelligence-model-routing-usecase --all-targets
-cargo nextest run -p oya-intelligence-model-routing-usecase
+cargo check -p intelligence-model-routing-usecase --all-targets
+cargo nextest run -p intelligence-model-routing-usecase
 ```
 
 Both must exit 0. Run from the worktree root

@@ -1,0 +1,19 @@
+[package]
+name = "intelligence-dispatch-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-guardrails-domain = { path = "../guardrails-domain" }
+intelligence-model-routing-domain = { path = "../model-routing-domain" }
+
+[lib]
+name = "intelligence_dispatch_usecase"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

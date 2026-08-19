@@ -8,7 +8,7 @@
       "consumer"
     ],
     "stewardship_class_definitions": {
-      "maintainer": "Oyatie has commit + release authority on the upstream. Examples: every oya-* crate; oya-shuffle-sharding; oya-dev-cli; oya-shared-policy-engine-client; internal hooks + tools.",
+      "maintainer": "Oyatie has commit + release authority on the upstream. Examples: every oya-* crate; intelligence-shuffle-sharding; oya-dev-cli; oya-shared-policy-engine-client; internal hooks + tools.",
       "contributor": "Oyatie actively patches upstream + commits staff time. CVE-response SLA: P0 patch within 7 days; P1 patch within 30 days.",
       "consumer": "Oyatie pins + audits without upstream contribution. CVE-response SLA: P0 patch upstream-monitored; pin update within 14 days of public CVE disclosure."
     },
@@ -63,7 +63,7 @@
   },
   "entries": [
     {
-      "dep_name": "oya-shuffle-sharding",
+      "dep_name": "intelligence-shuffle-sharding",
       "stewardship_class": "maintainer",
       "owner_team": "axis-cell",
       "secondary_owner_teams": [
@@ -76,7 +76,7 @@
       "maintainer_engineering_time_percent": 10,
       "audit_subscription_cost_usd": null,
       "license": "Apache-2.0",
-      "source_url": "https://github.com/oyatie/oyatie/tree/main/crates/oya-shuffle-sharding",
+      "source_url": "https://github.com/oyatie/oyatie/tree/main/intelligence/core/shuffle-sharding",
       "adr_provenance": [
         "ADR-0333",
         "ADR-0248"

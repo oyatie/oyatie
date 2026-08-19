@@ -5044,7 +5044,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-assist-draft-adapter",
+      "key": "intelligence-assist-draft-adapter",
       "context": "intelligence",
       "role": "adapter",
       "capability": "assist-draft",
@@ -5062,7 +5062,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-assist-draft-api",
+      "key": "intelligence-assist-draft-api",
       "context": "intelligence",
       "role": "api",
       "capability": "assist-draft",
@@ -5080,7 +5080,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-assist-draft-domain",
+      "key": "intelligence-assist-draft-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "assist-draft",
@@ -5098,7 +5098,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-assist-draft-kernel",
+      "key": "intelligence-assist-draft-kernel",
       "context": "intelligence",
       "role": "kernel",
       "capability": "assist-draft",
@@ -5116,7 +5116,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-assist-draft-rest",
+      "key": "intelligence-assist-draft-rest",
       "context": "intelligence",
       "role": "rest",
       "capability": "assist-draft",
@@ -5134,7 +5134,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-assist-draft-usecase",
+      "key": "intelligence-assist-draft-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "assist-draft",
@@ -5152,7 +5152,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-assist-draft-worker",
+      "key": "intelligence-assist-draft-worker",
       "context": "intelligence",
       "role": "worker",
       "capability": "assist-draft",
@@ -5170,7 +5170,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-attribution-adapter",
+      "key": "intelligence-attribution-adapter",
       "context": "intelligence",
       "role": "adapter",
       "capability": "attribution-citation-planning",
@@ -5188,7 +5188,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-attribution-app",
+      "key": "intelligence-attribution-app",
       "context": "intelligence",
       "role": "app",
       "capability": "attribution-composition-root",
@@ -5220,7 +5220,7 @@
       ]
     },
     {
-      "key": "oya-intelligence-attribution-domain",
+      "key": "intelligence-attribution-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "attribution-citation-planning",
@@ -5238,7 +5238,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-attribution-kernel",
+      "key": "intelligence-attribution-kernel",
       "context": "intelligence",
       "role": "kernel",
       "capability": "attribution-citation-planning",
@@ -5256,7 +5256,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-attribution-usecase",
+      "key": "intelligence-attribution-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "attribution-citation-planning",
@@ -5274,7 +5274,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-attribution-worker",
+      "key": "intelligence-attribution-worker",
       "context": "intelligence",
       "role": "worker",
       "capability": "attribution",
@@ -5292,7 +5292,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-audit-tap-adapter",
+      "key": "intelligence-audit-tap-adapter",
       "context": "intelligence",
       "role": "adapter",
       "capability": "metadata-audit-chain-envelope",
@@ -5311,7 +5311,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-audit-tap-usecase",
+      "key": "intelligence-audit-tap-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "metadata-audit-tap-emission",
@@ -5328,7 +5328,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-audit-tap-worker",
+      "key": "intelligence-audit-tap-worker",
       "context": "intelligence",
       "role": "worker",
       "capability": "metadata-audit-chain-orchestration",
@@ -5346,7 +5346,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-context-aware-retrieval-adapter",
+      "key": "intelligence-context-aware-retrieval-adapter",
       "context": "intelligence",
       "role": "adapter",
       "capability": "context-aware-retrieval",
@@ -5364,7 +5364,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-context-aware-retrieval-domain",
+      "key": "intelligence-context-aware-retrieval-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "context-aware-retrieval",
@@ -5382,7 +5382,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-context-aware-retrieval-kernel",
+      "key": "intelligence-context-aware-retrieval-kernel",
       "context": "intelligence",
       "role": "kernel",
       "capability": "context-aware-retrieval",
@@ -5400,7 +5400,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-context-aware-retrieval-usecase",
+      "key": "intelligence-context-aware-retrieval-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "context-aware-retrieval",
@@ -5418,7 +5418,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-context-aware-retrieval-worker",
+      "key": "intelligence-context-aware-retrieval-worker",
       "context": "intelligence",
       "role": "worker",
       "capability": "context-aware-retrieval",
@@ -5436,7 +5436,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-credential-resolver-adapter",
+      "key": "intelligence-credential-resolver-adapter",
       "context": "intelligence",
       "role": "adapter",
       "capability": "credential-resolver",
@@ -5455,7 +5455,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-credential-resolver-domain",
+      "key": "intelligence-credential-resolver-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "credential-handle-opacity",
@@ -5473,7 +5473,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-credential-resolver-usecase",
+      "key": "intelligence-credential-resolver-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "credential-resolution-cache-and-rotation",
@@ -5491,7 +5491,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-dispatch-usecase",
+      "key": "intelligence-dispatch-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "dispatch-flow",
@@ -5508,7 +5508,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-eval-adapter",
+      "key": "intelligence-eval-adapter",
       "context": "intelligence",
       "role": "adapter",
       "capability": "eval-runner-envelope",
@@ -5526,7 +5526,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-eval-app",
+      "key": "intelligence-eval-app",
       "context": "intelligence",
       "role": "app",
       "capability": "eval-composition-root",
@@ -5558,7 +5558,7 @@
       ]
     },
     {
-      "key": "oya-intelligence-eval-domain",
+      "key": "intelligence-eval-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "eval",
@@ -5576,7 +5576,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-eval-kernel",
+      "key": "intelligence-eval-kernel",
       "context": "intelligence",
       "role": "kernel",
       "capability": "eval",
@@ -5594,7 +5594,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-eval-usecase",
+      "key": "intelligence-eval-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "eval",
@@ -5612,7 +5612,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-eval-worker",
+      "key": "intelligence-eval-worker",
       "context": "intelligence",
       "role": "worker",
       "capability": "eval-job-orchestrator",
@@ -5630,7 +5630,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-guardrails-domain",
+      "key": "intelligence-guardrails-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "guardrails",
@@ -5647,7 +5647,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-guardrails-kernel",
+      "key": "intelligence-guardrails-kernel",
       "context": "intelligence",
       "role": "kernel",
       "capability": "guardrails",
@@ -5664,7 +5664,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-guardrails-usecase",
+      "key": "intelligence-guardrails-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "guardrail-orchestration",
@@ -5681,7 +5681,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-model-routing-domain",
+      "key": "intelligence-model-routing-domain",
       "context": "intelligence",
       "role": "domain",
       "capability": "model-routing",
@@ -5698,7 +5698,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-model-routing-kernel",
+      "key": "intelligence-model-routing-kernel",
       "context": "intelligence",
       "role": "kernel",
       "capability": "model-routing",
@@ -5715,7 +5715,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-model-routing-usecase",
+      "key": "intelligence-model-routing-usecase",
       "context": "intelligence",
       "role": "usecase",
       "capability": "metadata-model-route-selection",
@@ -5733,7 +5733,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-intelligence-providers-adapter-openai",
+      "key": "intelligence-providers-adapter-openai",
       "context": "intelligence",
       "role": "adapter",
       "capability": "openai-provider-envelope",

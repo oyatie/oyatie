@@ -50,6 +50,7 @@
     "audit",
     "cell",
     "ci",
+    "intelligence",
     "messaging",
     "network",
     "observability",
@@ -73,7 +74,6 @@
     "workflow",
     "iam",
     "billing",
-    "intelligence",
     "os",
     "governance",
     "build"

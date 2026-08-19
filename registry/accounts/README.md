@@ -70,11 +70,11 @@ wc -l registry/accounts/*.toml | tail -1 | awk '{print $1}'
 
 ```sh
 # Validate a single file (exit 0 = valid)
-cargo run -p oya-intelligence-supervisor-app -- --validate-accounts registry/accounts/claude.example.toml
+cargo run -p intelligence-supervisor-app -- --validate-accounts registry/accounts/claude.example.toml
 
 # Validate all
 for f in registry/accounts/*.toml; do
-  cargo run -p oya-intelligence-supervisor-app -- --validate-accounts "$f"
+  cargo run -p intelligence-supervisor-app -- --validate-accounts "$f"
 done
 ```
 

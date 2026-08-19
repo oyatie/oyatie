@@ -19,42 +19,42 @@
     ],
     "absorbing_manifest": "$ref:microservices/intelligence/manifest.json",
     "crate_refs_current": [
-      "$ref:registry/catalog/oya-intelligence-model-routing-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-model-routing-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-model-routing-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-assist-draft-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-assist-draft-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-assist-draft-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-assist-draft-adapter.yaml",
-      "$ref:registry/catalog/oya-intelligence-assist-draft-api.yaml",
-      "$ref:registry/catalog/oya-intelligence-assist-draft-rest.yaml",
-      "$ref:registry/catalog/oya-intelligence-assist-draft-worker.yaml",
-      "$ref:registry/catalog/oya-intelligence-guardrails-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-guardrails-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-guardrails-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-adapter.yaml",
-      "$ref:registry/catalog/oya-intelligence-context-aware-retrieval-worker.yaml",
-      "$ref:registry/catalog/oya-intelligence-eval-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-eval-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-eval-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-eval-adapter.yaml",
-      "$ref:registry/catalog/oya-intelligence-eval-worker.yaml",
-      "$ref:registry/catalog/oya-intelligence-attribution-kernel.yaml",
-      "$ref:registry/catalog/oya-intelligence-attribution-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-attribution-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-attribution-adapter.yaml",
-      "$ref:registry/catalog/oya-intelligence-attribution-worker.yaml",
-      "$ref:registry/catalog/oya-intelligence-dispatch-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-providers-adapter-openai.yaml",
-      "$ref:registry/catalog/oya-intelligence-credential-resolver-domain.yaml",
-      "$ref:registry/catalog/oya-intelligence-credential-resolver-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-credential-resolver-adapter.yaml",
-      "$ref:registry/catalog/oya-intelligence-audit-tap-usecase.yaml",
-      "$ref:registry/catalog/oya-intelligence-audit-tap-adapter.yaml",
-      "$ref:registry/catalog/oya-intelligence-audit-tap-worker.yaml"
+      "$ref:registry/catalog/intelligence-model-routing-kernel.yaml",
+      "$ref:registry/catalog/intelligence-model-routing-domain.yaml",
+      "$ref:registry/catalog/intelligence-model-routing-usecase.yaml",
+      "$ref:registry/catalog/intelligence-assist-draft-kernel.yaml",
+      "$ref:registry/catalog/intelligence-assist-draft-domain.yaml",
+      "$ref:registry/catalog/intelligence-assist-draft-usecase.yaml",
+      "$ref:registry/catalog/intelligence-assist-draft-adapter.yaml",
+      "$ref:registry/catalog/intelligence-assist-draft-api.yaml",
+      "$ref:registry/catalog/intelligence-assist-draft-rest.yaml",
+      "$ref:registry/catalog/intelligence-assist-draft-worker.yaml",
+      "$ref:registry/catalog/intelligence-guardrails-kernel.yaml",
+      "$ref:registry/catalog/intelligence-guardrails-domain.yaml",
+      "$ref:registry/catalog/intelligence-guardrails-usecase.yaml",
+      "$ref:registry/catalog/intelligence-context-aware-retrieval-kernel.yaml",
+      "$ref:registry/catalog/intelligence-context-aware-retrieval-domain.yaml",
+      "$ref:registry/catalog/intelligence-context-aware-retrieval-usecase.yaml",
+      "$ref:registry/catalog/intelligence-context-aware-retrieval-adapter.yaml",
+      "$ref:registry/catalog/intelligence-context-aware-retrieval-worker.yaml",
+      "$ref:registry/catalog/intelligence-eval-kernel.yaml",
+      "$ref:registry/catalog/intelligence-eval-domain.yaml",
+      "$ref:registry/catalog/intelligence-eval-usecase.yaml",
+      "$ref:registry/catalog/intelligence-eval-adapter.yaml",
+      "$ref:registry/catalog/intelligence-eval-worker.yaml",
+      "$ref:registry/catalog/intelligence-attribution-kernel.yaml",
+      "$ref:registry/catalog/intelligence-attribution-domain.yaml",
+      "$ref:registry/catalog/intelligence-attribution-usecase.yaml",
+      "$ref:registry/catalog/intelligence-attribution-adapter.yaml",
+      "$ref:registry/catalog/intelligence-attribution-worker.yaml",
+      "$ref:registry/catalog/intelligence-dispatch-usecase.yaml",
+      "$ref:registry/catalog/intelligence-providers-adapter-openai.yaml",
+      "$ref:registry/catalog/intelligence-credential-resolver-domain.yaml",
+      "$ref:registry/catalog/intelligence-credential-resolver-usecase.yaml",
+      "$ref:registry/catalog/intelligence-credential-resolver-adapter.yaml",
+      "$ref:registry/catalog/intelligence-audit-tap-usecase.yaml",
+      "$ref:registry/catalog/intelligence-audit-tap-adapter.yaml",
+      "$ref:registry/catalog/intelligence-audit-tap-worker.yaml"
     ],
     "user_facing_surface": false,
     "microservice": "intelligence",
@@ -66,203 +66,203 @@
       "given": "provider route candidates with different credential modes, capabilities, tenants, audiences, and stable priorities",
       "when": "a dispatch request is routed",
       "then": "the selected provider satisfies tenant, modality, BYOK, audience, and evidence constraints",
-      "test_ref": "crates/oya-intelligence-model-routing-kernel/src/lib.rs::tests::selects_lowest_priority_candidate_deterministically_with_evidence"
+      "test_ref": "intelligence/core/model-routing-kernel/src/lib.rs::tests::selects_lowest_priority_candidate_deterministically_with_evidence"
     },
     {
       "id": "AC-02",
       "given": "high-risk or unsafe content categories",
       "when": "the guardrail stack evaluates the request",
       "then": "the stack fails closed with a stable refusal reason and audit-safe category metadata",
-      "test_ref": "crates/oya-intelligence-guardrails-kernel/src/lib.rs::tests::denies_high_risk_and_preserves_refusal_reason"
+      "test_ref": "intelligence/core/guardrails-kernel/src/lib.rs::tests::denies_high_risk_and_preserves_refusal_reason"
     },
     {
       "id": "AC-03",
       "given": "an Intelligence dispatch, credential, guardrail, or provider event with audit envelope v2 metadata and opaque evidence refs",
       "when": "the audit-tap usecase emits the event through an injected audit-chain emitter port",
       "then": "the usecase validates tenant/trace/HLC/sustainability metadata, rejects raw prompt/output/secret material, preserves idempotency semantics, and accepts only matching Merkle/signature seal refs",
-      "test_ref": "crates/oya-intelligence-audit-tap-usecase/src/lib.rs::tests::emits_metadata_only_audit_tap_record_with_seal_receipt"
+      "test_ref": "intelligence/core/audit-tap-usecase/src/lib.rs::tests::emits_metadata_only_audit_tap_record_with_seal_receipt"
     },
     {
       "id": "AC-04",
       "given": "an Intelligence guardrail request with classifier findings, policy decision evidence, tenant/principal/surface context, and opaque content refs",
       "when": "the guardrails usecase evaluates the request",
       "then": "the usecase validates metadata before side effects, enforces policy drift/surface denials, preserves idempotent receipts, fails closed on missing or high-risk classifier output, and records metadata-only audit events without raw prompt/output/credential material",
-      "test_ref": "crates/oya-intelligence-guardrails-usecase/src/lib.rs::tests::high_risk_guardrail_denial_sorts_metadata_and_records_denial_audit"
+      "test_ref": "intelligence/core/guardrails-usecase/src/lib.rs::tests::high_risk_guardrail_denial_sorts_metadata_and_records_denial_audit"
     },
     {
       "id": "AC-05",
       "given": "opaque query refs, tenant-scoped retrieval candidates, freshness floors, allowed context source kinds, policy evidence, and audience/data-class boundaries",
       "when": "the context-aware retrieval kernel plans context for an Intelligence request",
       "then": "the kernel validates metadata-only refs, filters cross-tenant/stale/unsupported candidates, blocks sensitive context for external audiences, sorts eligible context deterministically, and returns only opaque resource/evidence refs without raw query or document text",
-      "test_ref": "crates/oya-intelligence-context-aware-retrieval-kernel/src/lib.rs::tests::selects_deterministic_tenant_scoped_context_plan"
+      "test_ref": "intelligence/core/context-aware-retrieval-kernel/src/lib.rs::tests::selects_deterministic_tenant_scoped_context_plan"
     },
     {
       "id": "AC-06",
       "given": "a context-aware retrieval request with principal, surface, policy decision evidence, retrieval index snapshot evidence, opaque query refs, allowed source kinds, freshness floors, and candidate metadata",
       "when": "the context-aware retrieval domain validates and plans retrieval",
       "then": "the domain rejects invalid metadata, policy tenant/principal drift, unauthorized surfaces/source kinds, excessive item caps, weak freshness floors, and sensitive external context before returning only metadata-only kernel plans or fail-closed denials",
-      "test_ref": "crates/oya-intelligence-context-aware-retrieval-domain/src/lib.rs::tests::authorized_domain_request_delegates_to_kernel_plan"
+      "test_ref": "intelligence/core/context-aware-retrieval-domain/src/lib.rs::tests::authorized_domain_request_delegates_to_kernel_plan"
     },
     {
       "id": "AC-07",
       "given": "a context-aware retrieval usecase request with idempotency key, domain retrieval request, policy evidence, trace refs, and opaque candidate metadata",
       "when": "the usecase plans context retrieval",
       "then": "the usecase validates metadata before audit side effects, preserves idempotent receipts and conflict denials, records metadata-only request/planned/denied audit events, delegates to the policy-bound domain layer, and never returns raw query/document/model text",
-      "test_ref": "crates/oya-intelligence-context-aware-retrieval-usecase/src/lib.rs::tests::plans_authorized_context_with_metadata_audit"
+      "test_ref": "intelligence/core/context-aware-retrieval-usecase/src/lib.rs::tests::plans_authorized_context_with_metadata_audit"
     },
     {
       "id": "AC-08",
       "given": "an Intelligence eval set with golden, adversarial, linguistic, regression, or safety case metadata, opaque dataset/model/evaluator evidence refs, and pass/safety thresholds",
       "when": "the eval kernel scores the eval set",
       "then": "the kernel validates metadata-only refs, requires configured golden/adversarial/linguistic coverage, computes deterministic pass and safety-violation rates, fails closed on threshold or safety violations, and never carries raw prompt/output/secret material",
-      "test_ref": "crates/oya-intelligence-eval-kernel/src/lib.rs::tests::scores_eval_set_with_quality_and_safety_thresholds"
+      "test_ref": "intelligence/core/eval-kernel/src/lib.rs::tests::scores_eval_set_with_quality_and_safety_thresholds"
     },
     {
       "id": "AC-09",
       "given": "an Intelligence eval set request with tenant, principal, surface, policy decision evidence, allowed model refs, dataset snapshot refs, case kinds, case-count bounds, and threshold floors",
       "when": "the eval domain evaluates the platform request",
       "then": "the domain rejects invalid metadata, policy tenant/principal/evidence drift, unauthorized surfaces/models/datasets/case kinds, weak thresholds, and case-count bound violations before returning only metadata-only eval reports or fail-closed denials",
-      "test_ref": "crates/oya-intelligence-eval-domain/src/lib.rs::tests::authorized_eval_domain_request_scores_kernel_report_with_policy_evidence"
+      "test_ref": "intelligence/core/eval-domain/src/lib.rs::tests::authorized_eval_domain_request_scores_kernel_report_with_policy_evidence"
     },
     {
       "id": "AC-10",
       "given": "an Intelligence eval usecase request with an idempotency key, domain eval set request, request/trace/policy evidence refs, and metadata-only eval set records",
       "when": "the eval usecase evaluates the request",
       "then": "the usecase rejects invalid metadata before audit side effects, preserves idempotent replay and conflict denials, records metadata-only requested/evaluated/denied/conflict audit events, delegates to the policy-bound eval domain, and never carries raw prompt/output/secret material",
-      "test_ref": "crates/oya-intelligence-eval-usecase/src/lib.rs::tests::evaluates_authorized_eval_with_metadata_audit"
+      "test_ref": "intelligence/core/eval-usecase/src/lib.rs::tests::evaluates_authorized_eval_with_metadata_audit"
     },
     {
       "id": "AC-11",
       "given": "an Intelligence eval adapter request with an idempotency key, policy-bound domain eval request, evaluated usecase receipt, opaque credential/audit/runner refs, and metadata-only platform records",
       "when": "the eval adapter dispatches to the future hosted runner seam",
       "then": "the adapter validates HTTPS/non-local endpoint configuration, rejects raw prompt/output/secret material, builds a metadata-only eval-runner envelope, preserves usecase receipt binding, and maps accepted/queued/completed/error runner outcomes distinctly without network execution",
-      "test_ref": "crates/oya-intelligence-eval-adapter/src/lib.rs::tests::builds_metadata_only_hosted_eval_envelope"
+      "test_ref": "intelligence/adapters/eval-adapter/src/lib.rs::tests::builds_metadata_only_hosted_eval_envelope"
     },
     {
       "id": "AC-12",
       "given": "an Intelligence eval worker job with lease metadata, attempt bounds, an eval usecase input, and a configured metadata-only eval runner adapter",
       "when": "the worker processes one source-level job attempt",
       "then": "the worker validates job and eval metadata before side effects, defers not-before jobs without usecase or adapter calls, runs the eval usecase, dispatches evaluated receipts through the adapter, records metadata-only worker events, and computes deterministic retry or exhausted receipts for runner failures without queue or network execution",
-      "test_ref": "crates/oya-intelligence-eval-worker/src/lib.rs::tests::processes_authorized_job_and_dispatches_runner_envelope"
+      "test_ref": "intelligence/core/eval-worker/src/lib.rs::tests::processes_authorized_job_and_dispatches_runner_envelope"
     },
     {
       "id": "AC-13",
       "given": "an Intelligence attribution request with output, policy, trace, answer segment, source/resource, title, data-class, freshness, and evidence refs",
       "when": "the attribution kernel plans citations for an internal or external audience",
       "then": "the kernel validates metadata-only refs, rejects raw prompt/output/document/secret material, denies missing sources, enforces external-audience public-only citations, honors citation limits, and returns deterministic citation metadata without text rendering or retrieval execution",
-      "test_ref": "crates/oya-intelligence-attribution-kernel/src/lib.rs::tests::plans_metadata_only_citations_for_public_external_answer"
+      "test_ref": "intelligence/core/attribution-kernel/src/lib.rs::tests::plans_metadata_only_citations_for_public_external_answer"
     },
     {
       "id": "AC-14",
       "given": "an Intelligence attribution domain request with tenant, principal, surface, policy decision evidence, allowed audiences, allowed source kinds, allowed data classes, citation caps, confidence floors, and metadata-only kernel attribution records",
       "when": "the attribution domain plans citations",
       "then": "the domain rejects invalid metadata, policy tenant/principal/evidence drift, unauthorized surfaces/audiences/source kinds/data classes, weak confidence, and excessive citation caps before returning only metadata-only kernel citation reports or fail-closed denials",
-      "test_ref": "crates/oya-intelligence-attribution-domain/src/lib.rs::tests::authorized_domain_request_delegates_to_kernel_citation_plan"
+      "test_ref": "intelligence/core/attribution-domain/src/lib.rs::tests::authorized_domain_request_delegates_to_kernel_citation_plan"
     },
     {
       "id": "AC-15",
       "given": "an Intelligence attribution usecase request with an idempotency key, domain request, policy evidence, trace refs, and metadata-only citation sources and claims",
       "when": "the attribution usecase plans attribution",
       "then": "the usecase validates metadata before audit side effects, preserves idempotent replay and conflict denials, records metadata-only requested/rendered/denied/conflict audit events, delegates to the policy-bound domain, and never returns raw prompt/output/document/secret material",
-      "test_ref": "crates/oya-intelligence-attribution-usecase/src/lib.rs::tests::renders_authorized_attribution_with_metadata_audit"
+      "test_ref": "intelligence/core/attribution-usecase/src/lib.rs::tests::renders_authorized_attribution_with_metadata_audit"
     },
     {
       "id": "AC-16",
       "given": "an Intelligence attribution adapter request with an idempotency key, policy-bound domain attribution request, rendered usecase receipt, opaque credential/audit/renderer refs, and metadata-only citation source and claim records",
       "when": "the attribution adapter dispatches to the future citation renderer seam",
       "then": "the adapter validates HTTPS/non-local endpoint configuration, rejects raw prompt/output/document/secret material, builds a metadata-only citation-renderer envelope, preserves usecase receipt binding, and maps accepted/queued/completed/error renderer outcomes distinctly without network execution or citation text rendering",
-      "test_ref": "crates/oya-intelligence-attribution-adapter/src/lib.rs::tests::builds_metadata_only_citation_renderer_envelope"
+      "test_ref": "intelligence/adapters/attribution-adapter/src/lib.rs::tests::builds_metadata_only_citation_renderer_envelope"
     },
     {
       "id": "AC-17",
       "given": "an Intelligence context-aware retrieval adapter request with an idempotency key, policy-bound domain retrieval request, planned usecase receipt, opaque credential/audit/executor refs, and metadata-only query candidate records",
       "when": "the retrieval adapter dispatches to the future context retrieval executor seam",
       "then": "the adapter validates HTTPS/non-local endpoint configuration, rejects raw query/document/secret material, builds a metadata-only retrieval-executor envelope, preserves planned usecase receipt binding, and maps accepted/queued/completed/error executor outcomes distinctly without network execution, vector-store calls, embeddings, ontology/KG runtime execution, or document fetch",
-      "test_ref": "crates/oya-intelligence-context-aware-retrieval-adapter/src/lib.rs::tests::builds_metadata_only_retrieval_executor_envelope"
+      "test_ref": "intelligence/adapters/context-aware-retrieval-adapter/src/lib.rs::tests::builds_metadata_only_retrieval_executor_envelope"
     },
     {
       "id": "AC-18",
       "given": "a context-aware retrieval worker job with lease metadata, attempt bounds, retrieval usecase input, and a configured metadata-only retrieval executor adapter",
       "when": "the worker processes one source-level job attempt",
       "then": "the worker validates job and retrieval metadata before side effects, defers not-before jobs without usecase or adapter calls, runs the retrieval usecase, dispatches planned receipts through the adapter, records metadata-only worker events, and computes deterministic retry, exhausted, and nonretry receipts without queue, network, vector-store, embedding, ontology/KG runtime, or document-fetch execution",
-      "test_ref": "crates/oya-intelligence-context-aware-retrieval-worker/src/lib.rs::tests::processes_authorized_job_and_dispatches_executor_envelope"
+      "test_ref": "intelligence/core/context-aware-retrieval-worker/src/lib.rs::tests::processes_authorized_job_and_dispatches_executor_envelope"
     },
     {
       "id": "AC-19",
       "given": "an Intelligence attribution worker job with lease metadata, attempt bounds, attribution usecase input, and a configured metadata-only citation renderer adapter",
       "when": "the worker processes one source-level job attempt",
       "then": "the worker validates job and attribution metadata before side effects, defers not-before jobs without usecase or adapter calls, runs the attribution usecase, dispatches rendered receipts through the adapter, records metadata-only worker events, and computes deterministic retry, exhausted, and nonretry receipts without queue, network, citation text rendering, retrieval execution, or durable audit/idempotency execution",
-      "test_ref": "crates/oya-intelligence-attribution-worker/src/lib.rs::tests::processes_authorized_job_and_dispatches_renderer_envelope"
+      "test_ref": "intelligence/core/attribution-worker/src/lib.rs::tests::processes_authorized_job_and_dispatches_renderer_envelope"
     },
     {
       "id": "AC-20",
       "given": "an assist-draft kernel request with tenant/principal/context, builder surface, draft kind, invocation mode, review gate, prompt/context/output-contract refs, consent/budget/policy/model-route/guardrail evidence, data-class metadata, and requested draft actions",
       "when": "the kernel plans draft assistance for no-code builders",
       "then": "it validates metadata-only refs, requires consent/budget/policy/model/guardrail provenance, refuses hidden or shadow invocations, auto-apply and activation actions, unsupported surface-kind pairs, and sensitive external drafts, returns deterministic advisory draft plan refs only, and performs no model call, provider dispatch, prompt rendering, builder mutation, network, or durable side effect",
-      "test_ref": "crates/oya-intelligence-assist-draft-kernel/src/lib.rs::tests::plans_user_invoked_workflow_draft_with_human_review_and_provenance_refs"
+      "test_ref": "intelligence/core/assist-draft-kernel/src/lib.rs::tests::plans_user_invoked_workflow_draft_with_human_review_and_provenance_refs"
     },
     {
       "id": "AC-21",
       "given": "an assist-draft domain request with tenant/principal policy decision metadata, brand surface ref, locale, prompt-context refs, cost-floor disclosure ref, builder capability scope, and a metadata-only kernel assist-draft request",
       "when": "the domain layer plans no-code builder draft assistance under tenant policy",
       "then": "it validates safe metadata refs, enforces tenant/principal/policy binding, AI-assist enablement, explicit automation policy, no auto-apply or activation, allowed builder surface, draft kind, audience, data classes, requested actions, locale, and prompt-context caps, preserves user locale and cost-floor disclosure refs, maps kernel denials with policy evidence, emits redaction-safe refusal banners, and performs no prompt rendering, model call, provider dispatch, builder mutation, network, durable audit-chain write, or durable side effect",
-      "test_ref": "crates/oya-intelligence-assist-draft-domain/src/lib.rs::tests::plans_policy_bound_workflow_draft_with_locale_cost_disclosure_and_kernel_plan"
+      "test_ref": "intelligence/core/assist-draft-domain/src/lib.rs::tests::plans_policy_bound_workflow_draft_with_locale_cost_disclosure_and_kernel_plan"
     },
     {
       "id": "AC-22",
       "given": "an assist-draft usecase input with an idempotency key and a policy-bound assist-draft domain request",
       "when": "the usecase orchestrates no-code builder draft assistance for later cloud integration",
       "then": "it validates metadata-only refs before side effects, records in-memory metadata-only requested/planned/denied/conflict audit events, returns deterministic idempotent receipts, detects idempotency conflicts without replacing the original receipt, maps domain and kernel denials with refusal banners and policy evidence, preserves cost-floor disclosure and locale metadata, rejects raw prompt/output/document/secret-shaped input without echo, and performs no prompt rendering, model call, provider dispatch, builder mutation, network, durable idempotency storage, durable audit-chain write, queue processing, or durable side effect",
-      "test_ref": "crates/oya-intelligence-assist-draft-usecase/src/lib.rs::tests::plans_authorized_draft_with_metadata_audit_and_cost_disclosure"
+      "test_ref": "intelligence/core/assist-draft-usecase/src/lib.rs::tests::plans_authorized_draft_with_metadata_audit_and_cost_disclosure"
     },
     {
       "id": "AC-23",
       "given": "an assist-draft adapter dispatch request with endpoint config, credential/audit/executor audience refs, a policy-bound domain request, and a planned usecase receipt",
       "when": "the adapter dispatches to the future assist-draft executor seam",
       "then": "it validates HTTPS/non-local endpoint and opaque refs, rejects raw prompt/output/document/secret material, requires a planned usecase receipt bound to the domain request, builds a metadata-only assist-draft executor envelope with prompt/context/builder/cost/action/evidence refs, maps accepted/queued/completed/error statuses distinctly, and performs no network, prompt rendering, model/provider call, builder mutation, durable idempotency, durable audit-chain write, queue processing, or durable side effect",
-      "test_ref": "crates/oya-intelligence-assist-draft-adapter/src/lib.rs::tests::builds_metadata_only_assist_draft_executor_envelope"
+      "test_ref": "intelligence/adapters/assist-draft-adapter/src/lib.rs::tests::builds_metadata_only_assist_draft_executor_envelope"
     },
     {
       "id": "AC-24",
       "given": "an assist-draft REST POST request carrying request id, tenant, idempotency, trace, authenticated principal, authorization decision metadata, and a policy-bound assist-draft domain request body",
       "when": "the source-level API/REST boundary accepts an advisory assist-draft request for later cloud integration",
       "then": "it validates tenant/principal/authorization/policy/request binding before side effects, rejects raw prompt/output/document/secret material with structured redaction-safe errors, preserves in-memory idempotent replay and conflict semantics, delegates planned requests to the metadata-only usecase and executor adapter seam, maps accepted/queued/completed and executor error outcomes to stable HTTP-shaped statuses, exposes a framework-free POST route contract, and performs no HTTP serving, prompt rendering, model/provider call, builder mutation, serialization framework work, network execution, durable idempotency storage, durable audit-chain write, queue processing, or durable side effect",
-      "test_ref": "crates/oya-intelligence-assist-draft-api/src/lib.rs::tests::accepts_authorized_request_and_dispatches_metadata_only_executor"
+      "test_ref": "intelligence/core/assist-draft-api/src/lib.rs::tests::accepts_authorized_request_and_dispatches_metadata_only_executor"
     },
     {
       "id": "AC-25",
       "given": "an assist-draft worker job with lease metadata, attempt bounds, not-before scheduling metadata, an assist-draft usecase input, and a configured metadata-only assist-draft executor adapter",
       "when": "the worker processes one source-level job attempt for later cloud integration",
       "then": "the worker validates job and assist-draft metadata before side effects, defers not-before jobs without usecase or adapter calls, runs the assist-draft usecase, dispatches planned receipts through the adapter, records metadata-only worker events, computes deterministic retry, exhausted, and nonretry receipts for executor outcomes, rejects raw prompt/output/document/secret-shaped metadata without echo, and performs no durable queue processing, HTTP serving, prompt rendering, model/provider call, builder mutation, network execution, durable idempotency storage, durable audit-chain write, or cloud runtime side effect",
-      "test_ref": "crates/oya-intelligence-assist-draft-worker/src/lib.rs::tests::processes_authorized_job_and_dispatches_assist_draft_executor_envelope"
+      "test_ref": "intelligence/core/assist-draft-worker/src/lib.rs::tests::processes_authorized_job_and_dispatches_assist_draft_executor_envelope"
     },
     {
       "id": "AC-26",
       "given": "a credential resolver usecase handle request with tenant, provider, audience, parsed OpenBao or platform-default secret reference metadata, request evidence, and a configured metadata-only credential sidecar adapter",
       "when": "the adapter issues a credential handle for later cloud/provider dispatch integration",
       "then": "it validates sidecar config and request refs before envelope side effects, builds a metadata-only sidecar envelope with channel/signer/audit/audience refs and no credential bytes, maps sidecar issued/denied/rate-limited/error/auth/invalid/timeout outcomes to short-lived opaque handles or sanitized failures, enforces the 60-second handle TTL ceiling, rejects raw secret-shaped metadata without echo, and performs no OpenBao call, Unix socket I/O, network execution, provider SDK work, filesystem access, durable audit-chain write, or cloud runtime side effect",
-      "test_ref": "crates/oya-intelligence-credential-resolver-adapter/src/lib.rs::tests::builds_metadata_only_sidecar_envelope_and_issues_bound_handle"
+      "test_ref": "intelligence/adapters/credential-resolver-adapter/src/lib.rs::tests::builds_metadata_only_sidecar_envelope_and_issues_bound_handle"
     },
     {
       "id": "AC-27",
       "given": "an audit-tap usecase record request with audit envelope v2 metadata, opaque evidence/resource refs, canonical fingerprint, and a configured metadata-only audit-chain adapter",
       "when": "the adapter emits to the future audit-chain sidecar seam for later cloud integration",
       "then": "it validates sidecar config and request/status metadata before envelope side effects, builds a metadata-only audit-chain request envelope with writer/Merkle/signature/outbox/audience refs, maps sealed/denied/rate-limited/error/auth/invalid/timeout outcomes to seal receipts or sanitized failures, rejects raw prompt/output/document/secret/key-shaped metadata without echo, and performs no Ed25519 signing, Merkle construction, network execution, queue processing, durable audit-chain write, filesystem access, or cloud runtime side effect",
-      "test_ref": "crates/oya-intelligence-audit-tap-adapter/src/lib.rs::tests::builds_metadata_only_audit_chain_envelope_and_seal_receipt"
+      "test_ref": "intelligence/adapters/audit-tap-adapter/src/lib.rs::tests::builds_metadata_only_audit_chain_envelope_and_seal_receipt"
     },
     {
       "id": "AC-28",
       "given": "an audit-tap worker job with lease metadata, attempt bounds, not-before scheduling metadata, audit-event envelope v2 input, and a configured metadata-only audit-chain adapter",
       "when": "the worker processes one source-level audit-tap job attempt for later cloud integration",
       "then": "the worker validates job and audit-event metadata before side effects, defers not-before jobs without usecase or adapter calls, runs the audit-tap usecase through the adapter seam, records metadata-only worker events, maps sealed receipts and audit-chain denied/invalid/retryable outcomes to deterministic receipts, computes capped retry and exhaustion metadata, rejects raw prompt/output/document/secret/key-shaped metadata without echo, and performs no durable queue processing, Ed25519 signing, Merkle construction, network execution, filesystem access, durable audit-chain write, or cloud runtime side effect",
-      "test_ref": "crates/oya-intelligence-audit-tap-worker/src/lib.rs::tests::processes_authorized_job_and_seals_audit_chain_record"
+      "test_ref": "intelligence/core/audit-tap-worker/src/lib.rs::tests::processes_authorized_job_and_seals_audit_chain_record"
     },
     {
       "id": "AC-29",
       "given": "a model-routing usecase request with tenant-scoped route metadata, principal, trace, policy decision, route registry snapshot evidence, idempotency key, and a provider catalog snapshot",
       "when": "the usecase selects or denies a route for later provider dispatch integration",
       "then": "it validates metadata before cache or audit side effects, preserves in-memory idempotent replay and conflict denial semantics, delegates route selection to the domain/kernel layers, records metadata-only route requested/selected/denied audit events, rejects raw prompt/output/secret-shaped refs without echo, and performs no provider call, credential resolution, network execution, durable idempotency storage, durable audit-chain write, queue processing, or cloud runtime side effect",
-      "test_ref": "crates/oya-intelligence-model-routing-usecase/src/lib.rs::tests::routes_authorized_request_with_metadata_audit_and_idempotency"
+      "test_ref": "intelligence/core/model-routing-usecase/src/lib.rs::tests::routes_authorized_request_with_metadata_audit_and_idempotency"
     }
   ],
   "implementation_status": {
@@ -301,7 +301,7 @@
     ]
   },
   "data_model": {
-    "primary_crate_ref": "crates/oya-intelligence",
+    "primary_crate_ref": "intelligence",
     "entities_ref": [
       {
         "entity": "Intelligence",

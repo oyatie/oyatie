@@ -22,12 +22,12 @@ oya-check-adr-index = { path = "../../../libs/oya-check-adr-index" }
 check-cedar-fragment-coverage = { path = "../../../governance/check/cedar-fragment-coverage" }
 oya-check-dependency-seam = { path = "../../../libs/oya-check-dependency-seam" }
 check-openapi-rest-route-parity = { path = "../../../governance/check/openapi-rest-route-parity" }
-oya-intelligence-architecture-map-app = { path = "../../../oya/intelligence/crates/oya-intelligence-architecture-map-app" }
+intelligence-architecture-map-app = { path = "../../../intelligence/core/architecture-map-app" }
 intelligence-api-semver-domain = { path = "../../../intelligence/core/api-semver-domain" }
 check-authority-cohesion = { path = "../../../governance/check/authority-cohesion" }
 oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
 check-no-grouping = { path = "../../../governance/check/no-grouping" }
-oya-intelligence-bypass-domain = { path = "../../../oya/intelligence/crates/oya-intelligence-bypass-domain" }
+intelligence-bypass-domain = { path = "../../../intelligence/core/bypass-domain" }
 intelligence-cargo-prefix-domain = { path = "../../../intelligence/core/cargo-prefix-domain" }
 intelligence-catalog-domain = { path = "../../../intelligence/core/catalog-domain" }
 oya-governance-gate-catalog-domain = { path = "../../../libs/oya-governance-gate-catalog-domain" }
@@ -42,7 +42,7 @@ check-data-class = { path = "../../../governance/check/data-class" }
 oya-check-doc-axis = { path = "../../../libs/oya-check-doc-axis" }
 check-doc-catalog = { path = "../../../governance/check/doc-catalog" }
 check-documentation-system = { path = "../../../governance/check/documentation-system" }
-oya-intelligence-evidence-file-adapter = { path = "../../../oya/intelligence/crates/oya-intelligence-evidence-file-adapter" }
+intelligence-evidence-file-adapter = { path = "../../../intelligence/adapters/evidence-file-adapter" }
 check-glossary-coverage = { path = "../../../governance/check/glossary-coverage" }
 check-glossary-vocabulary = { path = "../../../governance/check/glossary-vocabulary" }
 check-honest-claims = { path = "../../../governance/check/honest-claims" }
@@ -74,7 +74,7 @@ check-raci-coverage = { path = "../../../governance/check/raci-coverage" }
 check-readme-coverage = { path = "../../../governance/check/readme-coverage" }
 check-release-pack = { path = "../../../governance/check/release-pack" }
 check-retired-vocabulary = { path = "../../../governance/check/retired-vocabulary" }
-oya-intelligence-run-file-adapter = { path = "../../../oya/intelligence/crates/oya-intelligence-run-file-adapter" }
+intelligence-run-file-adapter = { path = "../../../intelligence/adapters/run-file-adapter" }
 check-runbook-freshness = { path = "../../../governance/check/runbook-freshness" }
 check-runbook-index = { path = "../../../governance/check/runbook-index" }
 intelligence-run-domain = { path = "../../../intelligence/core/run-domain" }
@@ -97,7 +97,7 @@ check-id-discipline = { path = "../../../governance/check/id-discipline" }
 check-image-signing-discipline = { path = "../../../governance/check/image-signing-discipline" }
 check-layered-architecture-discipline = { path = "../../../governance/check/layered-architecture-discipline" }
 check-client-stack-discipline = { path = "../../../governance/check/client-stack-discipline" }
-oya-intelligence-step-file-adapter = { path = "../../../oya/intelligence/crates/oya-intelligence-step-file-adapter" }
+intelligence-step-file-adapter = { path = "../../../intelligence/adapters/step-file-adapter" }
 intelligence-step-domain = { path = "../../../intelligence/core/step-domain" }
 audit-chain-domain = { path = "../../../audit/core/chain-domain" }
 audit-file-adapter = { path = "../../../audit/adapters/file" }

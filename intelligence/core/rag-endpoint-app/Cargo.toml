@@ -1,0 +1,20 @@
+[package]
+name = "intelligence-rag-endpoint-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "intelligence_rag_endpoint_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-rag-endpoint-kernel = { path = "../rag-endpoint-kernel" }
+intelligence-rag-endpoint-domain = { path = "../rag-endpoint-domain" }
+intelligence-capability-registry-kernel = { path = "../capability-registry-kernel" }
+
+[lints]
+workspace = true

@@ -1,0 +1,18 @@
+[package]
+name = "intelligence-model-routing-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-model-routing-kernel = { path = "../model-routing-kernel" }
+
+[lib]
+name = "intelligence_model_routing_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

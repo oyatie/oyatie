@@ -1,6 +1,6 @@
 # Spec: task-pooling-hyper-client-transport
 
-**Crate:** `oya-intelligence-provider-pool-app`
+**Crate:** `intelligence-provider-pool-app`
 **ADR refs:** ADR-0083 (panic-free Tier-3), ADR-0090 (hyper preferred), ADR-0105 (composition root),
 ADR-0506 (aws-lc-rs crypto), ADR-0509 (flat clean-arch)
 
@@ -93,7 +93,7 @@ src/lib.rs
 
 ## Crate Boundary
 
-Only `oya-intelligence-provider-pool-app/Cargo.toml` and `src/lib.rs` are modified.
+Only `intelligence-provider-pool-app/Cargo.toml` and `src/lib.rs` are modified.
 No other crate is touched.
 
 ## Security Notes
