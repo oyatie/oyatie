@@ -1,0 +1,15 @@
+context: testing
+role: test-utility
+capability: scripted-http-server
+plane: offline
+slo: cataloged-no-runtime-claim
+data_classes_owned: []
+operational_classes_owned: []
+api_stability: offline
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  changeset: CS-HTTPMOCK-REMOVAL
+  source_crate: intelligence/testing/scripted-http-server/Cargo.toml
+non_claims:
+  - testing utility only
