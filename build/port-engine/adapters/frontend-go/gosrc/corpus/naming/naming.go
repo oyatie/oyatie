@@ -11,7 +11,7 @@ import "oyatie.example/portengine-fixture/corpus/shapes"
 
 // Label is a display name derived from a prefix.
 type Label struct {
-	// prefix is the source the display name is derived from.
+	// prefix is what the display name is derived from.
 	prefix string
 	// text is the current display name.
 	text string

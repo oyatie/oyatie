@@ -12,9 +12,7 @@ pub mod accumulate {
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__mix
     /// Folds the values together with xor, multiply and or.
     ///
-    /// The three operators are the point rather than the result: each is a compound assignment on the
-    /// same accumulator, and the source spells the read-modify-write once where the target has to decide
-    /// whether the place is read twice.
+    /// Not a hash: the trailing or forces the low bit, so the result is always odd.
     pub fn mix(values: &[i64]) -> i64 {
         let mut acc = 1i64;
         for value in values.iter().copied() {
@@ -242,7 +240,7 @@ pub mod naming {
     /// A display name derived from a prefix.
     #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Label {
-        /// The source the display name is derived from.
+        /// What the display name is derived from.
         prefix: String,
         /// The current display name.
         text: String,

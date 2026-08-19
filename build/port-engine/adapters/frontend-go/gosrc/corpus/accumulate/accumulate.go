@@ -22,11 +22,12 @@ func Total(values []int64) int64 {
 // `^=`, `|=` and `*=` are the three most common compound forms in the surveyed source after `+=`,
 // and all four are the same translation.
 
+// Three compound assignments on one accumulator, which is the read-modify-write shape: the place is
+// named once and read once, and a translation that expanded it would read it twice.
+
 // Mix folds the values together with xor, multiply and or.
 //
-// The three operators are the point rather than the result: each is a compound assignment on the
-// same accumulator, and the source spells the read-modify-write once where the target has to decide
-// whether the place is read twice.
+// Not a hash: the trailing or forces the low bit, so the result is always odd.
 func Mix(values []int64) int64 {
 	acc := int64(1)
 	for i := 0; i < len(values); i++ {
