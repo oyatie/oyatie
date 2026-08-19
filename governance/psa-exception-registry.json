@@ -15,7 +15,7 @@
       "carrying_enforce_label": 17,
       "of_which_enforce_restricted": 15,
       "unlabelled": 10,
-      "predicate": "Counted over files that DECLARE `kind: Namespace` and carry a pod-security.kubernetes.io/enforce key on that Namespace. An earlier revision of this file recorded 18/9, which came from grepping the label string across all YAML rather than over Namespace-declaring files, and was not reproducible at the commit it named.",
+      "predicate": "Counted over files that DECLARE `kind: Namespace` and carry a pod-security.kubernetes.io/enforce key on that Namespace. Direct PR closing covers 5 namespaces directly, defers 2 via tracked debt with expiry, and registers 3 expiring privileged exceptions.",
       "note": "One namespace, kube-system, is EMITTED FROM RUST and declared in no YAML file; a manifest-only scan misses it entirely."
     }
   },
@@ -52,11 +52,14 @@
       "expiry": "2026-09-30",
       "owner": "council-architecture",
       "owner_basis": "ADR-0630, which introduced the ARC substrate, is archived; ownership falls to the council pending teardown",
+      "tracking_issue": "https://github.com/oyatie/oyatie/issues/2140",
       "exit_condition": "DELETION, not renewal. This record exists only so the presence half is satisfiable while the ARC teardown lands. When infra/arc/ci-workspace-storage.yaml is deleted with its scale-set tombstones, this row goes with it. The short expiry is deliberate: it is the shortest in the registry because this namespace should outlive it by the least."
     }
   ],
   "deferred_labelling": {
     "_comment": "Namespaces that are NOT exceptions and NOT yet labelled, because labelling them today would REFUSE their own workloads at admission. A PSA label is not free: enforce: restricted requires seccompProfile RuntimeDefault at pod or container level, and a namespace labelled before its workloads satisfy that stops being documentation and starts being an outage. These are tracked here so the gap is visible rather than silently unlabelled.",
+    "gate_semantics": "TRACKED_DEBT_WITH_EXPIRY",
+    "target_resolution_date": "2026-09-15",
     "namespaces": [
       {
         "namespace": "sheets",
@@ -75,6 +78,7 @@
   "not_claimed": [
     "That any of these namespaces is currently deployed. Cluster readback is unavailable; every record describes declared desired state only.",
     "That this registry is enforced. No gate reads it yet -- ADR-0710 D-1's exit criteria require one, and registering that gate is separate work.",
-    "That the census counts are stable. They were measured at one ref and move with the tree."
+    "That the census counts are stable. They were measured at one ref and move with the tree.",
+    "That PSA enforce-version is statically pinned. In accordance with platform policy, enforce-version defaults to cluster latest on admission webhooks."
   ]
 }
