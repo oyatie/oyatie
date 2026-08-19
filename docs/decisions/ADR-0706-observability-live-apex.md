@@ -43,52 +43,77 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
    ADR-0515 / ADR-0363 / ADR-0562 / ADR-0615 / ADR-0635 / ADR-0637–0639 when applicable.
 4. **Activation-sensitive** items (warm CAS, RE workers) remain fail-closed until explicit go-gate.
 
-## Decision D-5 — AGPL boundary: split by plane, not by component (2026-08-19)
+## Decision D-5 — AGPL boundary in observability: split by plane (2026-08-19)
 
-The observability stack is not licence-homogeneous, and until now nothing recorded which half
-may face a tenant. `observability/iac/helm/` carries **grafana, loki, mimir, pyroscope, alloy and
-oncall — all AGPLv3** since Grafana Labs relicensed in 2021. Its siblings in the same tree —
-**prometheus, clickhouse, opencost, otel-tailsampling-collector, alertmanager — are Apache-2.0**.
-`deny.toml`'s allow-list does not contain AGPL and never reached these anyway: it governs Cargo
-dependencies, and these are charts.
+**This clause AMENDS the product-licence policy carried by [ADR-0705](ADR-0705-product-protocol-live-apex.md)**
+(ADR-0013's three-tier table and its dev-only carve-out). It does not create a second licence
+authority: ADR-0705 remains where product-licence tiers live, and this clause supplies the one
+thing that table cannot express — *where the product boundary runs inside a stack that is not
+licence-homogeneous*. Read the two together.
 
-The boundary is drawn by **plane**, not by component:
+### The stack is mixed, measured 2026-08-19 against upstream repository metadata
 
-1. **Ops console — AGPL permitted.** Grafana, OnCall and Pyroscope may serve internal SRE use.
-   There is no distribution and no network provision to a third party, so AGPL §13 does not
-   engage, and these are the best tools for the job. Removing them would cost real capability for
-   no risk reduction.
+`observability/iac/helm/` holds **15 charts**. Licences below are the UPSTREAM projects', taken
+from each repository's own licence field, not from chart names — every chart in that directory is
+an oyatie-authored wrapper named `oya-observability-*`, so the wrapper name says nothing about
+what it deploys.
 
-2. **Tenant-facing product surface — Apache-2.0 only.** No AGPL component may be embedded in,
-   proxied by, or **queried by** a tenant-facing route: the console, the `observability`
-   capability's public API, per-tenant rollups, tenant SLO dashboards.
+| Upstream | Licence |
+|---|---|
+| Grafana, Loki, Mimir, Pyroscope, **Tempo** | **AGPL-3.0** |
+| Grafana OnCall | **AGPL-3.0**, and the upstream repository is **archived** |
+| **Grafana Alloy** | **Apache-2.0** |
+| Prometheus, Alertmanager, ClickHouse, OpenCost, OTel collector | Apache-2.0 |
+| `statuspage`, `timescaledb-extension`, `axe-pa11y-runner` | oyatie-authored wrappers; upstream images carry their own licences and are not classified here |
 
-3. **The data plane follows the product, not the console.** This is the clause that is easy to get
-   wrong. If a tenant-facing surface **queries** Mimir or Loki, the AGPL program is being provided
-   over a network even though no tenant ever sees a Grafana page. So the metrics and log stores
-   backing the product are Apache-2.0 — Prometheus/Thanos or VictoriaMetrics for metrics,
-   ClickHouse or OpenSearch for logs — and Grafana reads those same stores as an ops client.
+Two corrections to the first draft of this clause are recorded rather than silently fixed, because
+both were the kind of error this ADR exists to prevent. **Alloy was listed as AGPL-3.0 and is
+Apache-2.0** — it is the fleet-wide collector, so the misclassification would have forced a
+needless replacement of the one component that did not need one. **Tempo was omitted entirely**,
+which left the trace pillar unassigned by a clause whose whole purpose is assigning pillars.
 
-**Why not simply accept AGPL tenant-side.** Modification risk is permanent rather than one-off:
-the moment anyone patches Grafana or writes a plugin that is a derivative work, oyatie owes *its*
-source, and that becomes a boundary someone must police forever. AGPL prohibitions are routine in
-the enterprise and public-sector procurement the `kr` / `eu` / `us-healthcare` / `ksa` / `uae`
-packs target. And it would contradict a posture this repository has already taken twice —
-OpenBao instead of Vault, OpenTofu instead of Terraform, both forks chosen to avoid licence risk.
-`.github/CONTRIBUTING.md` already states that AGPL is not permitted in product code; this clause
-says where the product boundary runs.
+### The boundary is by plane, not by component
 
-**Enforcement, because a ruling nothing executes is the failure this clause exists to avoid.**
-The chart/image licence gate carries **two allow-lists keyed by plane** — tenant-facing admits the
-Apache-2.0 family only; ops-internal additionally admits AGPL-3.0. Every chart declares which
+1. **Ops console — AGPL permitted.** Grafana and Pyroscope may serve internal SRE use. There is no
+   distribution and no network provision to a third party, so AGPL §13 does not engage. This is
+   the ADR-0705 dev-only carve-out **extended to ops-internal use**, and naming it as an extension
+   is the point: it is a widening of an existing carve-out, not a new permission invented here.
+2. **Tenant-facing product surface — Tier-1 permissive only**, per ADR-0705. No AGPL component may
+   be embedded in, proxied by, or **queried by** a tenant-facing route.
+3. **The data plane follows the product, not the console.** If a tenant-facing surface *queries*
+   Mimir, Loki or **Tempo**, the AGPL program is provided over a network even though no tenant
+   sees a Grafana page. So the stores backing the product are permissive — Prometheus/Thanos or
+   VictoriaMetrics for metrics, ClickHouse or OpenSearch for logs, **and an equally permissive
+   trace store where traces are tenant-visible** — with Grafana reading those same stores as an
+   ops client.
+4. **Grafana OnCall is a separate problem from its licence.** Its upstream repository is archived,
+   so it fails the maintenance limb of the ADR-0709 D-6 quality bar regardless of plane. Do not
+   resolve it by confining it to ops.
+
+### Why not accept AGPL tenant-side
+
+Modification risk is permanent, not one-off: the moment anyone patches Grafana or writes a plugin
+that is a derivative work, oyatie owes *its* source, and that becomes a boundary someone must
+police forever. AGPL prohibitions are routine in the procurement the `kr` / `eu` / `us-healthcare`
+/ `ksa` / `uae` packs target. And it would contradict a posture this repository has already taken
+twice — OpenBao instead of Vault, OpenTofu instead of Terraform.
+
+### Enforcement, and the gap
+
+The chart/image licence gate carries **two allow-lists keyed by plane**: tenant-facing admits the
+ADR-0705 Tier-1 set only; ops-internal additionally admits AGPL-3.0. Every chart declares which
 plane it serves, and an undeclared chart **fails closed**. A route-level check asserts that no
-tenant-facing ingress path resolves to an ops-internal workload. That gate does not exist yet:
-licence policy today reaches Cargo crates only, never charts or images.
+tenant-facing ingress path resolves to an ops-internal workload.
 
-**Cheap now, expensive later.** The `observability` Argo Application currently points at
-`microservices/observability/iac/k8s/helm`, a path the reorg deleted, so **nothing is deployed
-against this decision today**. Four Apache-2.0 charts are already in the same tree. After tenants
-are on those dashboards the same change is a migration.
+**That gate does not exist.** Licence policy today reaches Cargo crates only — and `deny.toml`
+itself is read by nothing on the merge path. Tracked as `oyatie-f2fg`.
+
+### Not claimed
+
+**Nothing here asserts what is or is not deployed.** Cluster readback is unavailable. What the
+tree shows is narrower and is all that is claimed: the `observability` Argo Application's declared
+source path does not exist on `origin/dev`, so no desired state is rendered from it. Whether a
+workload survives from an earlier sync is unknown, and this clause does not depend on the answer.
 
 ## Preserved member gists
 
