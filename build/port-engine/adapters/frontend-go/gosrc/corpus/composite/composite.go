@@ -57,6 +57,11 @@ type Driver struct {
 	label string
 }
 
+// NewDriver returns a driver labelled for display, driving the given engine.
+func NewDriver(engine Engine, label string) Driver {
+	return Driver{Engine: engine, label: label}
+}
+
 // Describe renders a description.
 func (d *Driver) Describe() string {
 	return d.label

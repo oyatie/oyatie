@@ -17,6 +17,11 @@ type Counter struct {
 
 // MUTATED, does not escape: the body assigns through the receiver and nothing outlives the call.
 
+// NewCounter returns a counter starting at zero, named for display.
+func NewCounter(label string) Counter {
+	return Counter{label: label}
+}
+
 // Add adds n to the counter.
 func (c *Counter) Add(n int) {
 	c.total = c.total + n

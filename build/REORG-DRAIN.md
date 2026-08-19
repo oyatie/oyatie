@@ -1361,6 +1361,35 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   one declaration's output depend on another's, which is the property the region model exists to
   keep. The target allows several inherent impls for a type, so nothing is given up.
 
+- THE MAINTENANCE PROPERTY IS BUILT AND GREEN, and has been for the whole lane — it is worth
+  saying plainly, because "keeps them ported as upstream moves" reads like something still to do
+  and is the one part of the brief that has been proven end to end since R0.
+  `port_go_upstream_drift.rs` holds three properties over a REAL second extraction of one package
+  at two versions, at the same unit id, with the two changes a dependency bump actually makes: a
+  body changed and a declaration appeared. Not a hand-edited receipt, because a hand-edited receipt
+  proves something about the edit.
+  A MOVED UPSTREAM IS GREEN AND EXPLAINED, and explained by EXACTLY the snapshot axis. Green
+  because nothing is wrong; explained because the receipt has to name what changed; exactly that
+  axis because the engine, rules, toolchain and formatter are the same run of the same code across
+  the pair, so any other axis moving would mean the receipt describes something other than what
+  changed. An engine reporting `Unexplained` on every dependency bump would tell its operator it
+  was broken until nobody read the signal again — and that signal is the only thing between a
+  maintained port and a fork nobody dares regenerate.
+  THE CHANGE REACHES THE EMIT, asserted separately, because an engine could satisfy the delta check
+  while emitting something unrelated to what upstream did. `Explained` is about the receipt; this is
+  about the output, and only one of them is what a maintainer cares about.
+  A STILL UPSTREAM STAYS UNCHANGED, and a PLANTED DEFECT comes back Red and Unexplained. The
+  positive and negative halves are both fenced.
+
+- The last actionable finding from the fourth review closed: `Counter` and `Driver` had no
+  constructor, so their accessors were dead by construction for every consumer — the same fixture
+  gap already closed for `Point`, `Label` and `Tag`. Both have one now.
+  A SMALL LESSON IN THE DOING: inserting the constructor above the wrong line attached the NEXT
+  declaration's doc comment to it, and the emitted crate showed both sentences stacked. The doc
+  convention could not strip the item's own name because the block no longer started with it. The
+  emitted output is where a misplaced comment in the input becomes visible, which is an argument
+  for reading it after every corpus change rather than only after every engine change.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

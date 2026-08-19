@@ -60,6 +60,13 @@ pub mod basic {
     }
 }
 pub mod composite {
+    // region: oyatie_example_portengine_fixture_corpus_composite__go_func__newdriver
+    impl Driver {
+        /// Returns a driver labelled for display, driving the given engine.
+        pub fn new(engine: Engine, label: String) -> Driver {
+            Driver { engine, label }
+        }
+    }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_interface__describer
     /// Anything that can describe itself.
     pub trait Describer {
@@ -263,6 +270,13 @@ pub mod naming {
     }
 }
 pub mod pointers {
+    // region: oyatie_example_portengine_fixture_corpus_pointers__go_func__newcounter
+    impl Counter {
+        /// Returns a counter starting at zero, named for display.
+        pub fn new(label: String) -> Counter {
+            Counter { total: 0, label }
+        }
+    }
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__counter
     /// Accumulates a total.
     #[derive(Debug, Clone, Default, PartialEq)]
