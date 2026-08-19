@@ -42,12 +42,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use ci_artifact_inventory_registry::{
-    CrosswalkInputs, DecisionCrosswalkRow, ENVELOPE_PREFIX_OWNERSHIP_SOURCE, ENVELOPES_RELPATH,
-    EnforcementInputs, EnforcementRow, GateInputs, OwnersIntegrity, Policy, ProducerError,
-    RepoInputs, adr_id_from_filename, allocate_next_adr_id, build_decision_crosswalk,
-    build_enforcement_inventory, build_gate_baseline, build_registry, fix_owners, fix_reachability,
-    front_matter_field, load_envelope_prefix_allows, load_reachability_registry,
-    registration_matches, resolve_owners, to_canonical_json,
+    CapabilityPlacement, CrosswalkInputs, DecisionCrosswalkRow, ENVELOPE_PREFIX_OWNERSHIP_SOURCE,
+    ENVELOPES_RELPATH, EnforcementInputs, EnforcementRow, GateInputs, OwnersIntegrity, Policy,
+    ProducerError, RepoInputs, adr_id_from_filename, allocate_next_adr_id,
+    build_decision_crosswalk, build_enforcement_inventory, build_gate_baseline, build_registry,
+    fix_owners, fix_reachability, front_matter_field, load_envelope_prefix_allows,
+    load_reachability_registry, registration_matches, resolve_owners, to_canonical_json,
 };
 use oya_check_brand_residue::forbidden_vocab::{
     CensusDocument, VocabPolicy, census_findings_with, is_path_carved_out_with,
@@ -2530,6 +2530,7 @@ value = "legacy-marker"
             reachability: resolve_reachability(&root, &paths, &cfg).expect("reachability"),
             dup_of: BTreeMap::new(),
             valid_owners_files: resolve_owners(&root, &paths, &cfg).valid_files,
+            placement: CapabilityPlacement::default(),
         };
         let registry = build_registry(&inputs, &policy).expect("build registry");
         let mut producer: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -4576,6 +4577,27 @@ fn front_matter_lines(body: &str) -> Vec<&str> {
 /// Fallible because the reachability registry is fail-loud (ADR-0555): a malformed
 /// registration file must never silently degrade to "everything unreachable" nor "nothing
 /// registered".
+/// Repo-relative path of the closed placement authority (ADR-0562 as amended by ADR-0615).
+const CAPABILITY_REGISTRY_PATH: &str = "governance/capability-registry.json";
+
+/// Load the declared placement authority. Absent or malformed yields an EMPTY placement, which
+/// makes every destination `None` and every disposition `unclassified` — the registry cannot be
+/// silently ignored into a permissive result.
+///
+/// Cheap enough to run on the author-side partial-set path too: unlike owner resolution (which
+/// is full-tree and unsound on a subset), this is one whole-file read, so the pre-push check
+/// stays byte-identical to CI.
+fn load_capability_placement(repo_root: &Path) -> CapabilityPlacement {
+    let path = repo_root.join(CAPABILITY_REGISTRY_PATH);
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        return CapabilityPlacement::default();
+    };
+    match serde_json::from_str::<Value>(&text) {
+        Ok(value) => CapabilityPlacement::from_registry_value(&value),
+        Err(_) => CapabilityPlacement::default(),
+    }
+}
+
 fn collect_repo_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
@@ -4599,6 +4621,7 @@ fn collect_repo_inputs(
             reachability,
             dup_of: BTreeMap::new(),
             valid_owners_files: owners_resolution.valid_files,
+            placement: load_capability_placement(repo_root),
         },
         owners_resolution.integrity,
     ))
@@ -4911,6 +4934,7 @@ fn check_added_paths(
         reachability: reachability.clone(),
         dup_of: BTreeMap::new(),
         valid_owners_files,
+        placement: load_capability_placement(repo_root),
     };
     let registry = build_registry(&inputs, policy)?;
     let mut codes_by_key: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
