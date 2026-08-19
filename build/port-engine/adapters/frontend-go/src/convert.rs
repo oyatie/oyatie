@@ -7,7 +7,7 @@ use port_engine_api::{Declaration, TypeRef};
 use crate::error::SnapshotError;
 use crate::vocabulary::{
     KNOWN_ATTR_KEYS, KNOWN_DECLARATION_KINDS, KNOWN_FLAGS, KNOWN_MEMBER_KINDS, KNOWN_TYPE_KINDS,
-    NAMESPACE_KINDS,
+    NAMESPACE_KINDS, NON_BINDING_DECLARATION_KINDS,
 };
 use crate::wire::DeclarationEntry;
 use crate::wire::TypeEntry;
@@ -80,6 +80,7 @@ fn convert_level(
             });
         }
         if namespace == Namespace::Yes
+            && !NON_BINDING_DECLARATION_KINDS.contains(&entry.kind.as_str())
             && !entry.name.is_empty()
             && entry.name != "_"
             && !named.insert(entry.name.clone())

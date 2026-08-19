@@ -64,3 +64,17 @@ rust_test(
         "//build/port-engine/ports/api:port-engine-api",
     ],
 )
+
+# A foreign satisfaction observes a type another package declares; it binds no name here.
+rust_test(
+    name = "port-engine-snapshot-foreign-satisfaction",
+    srcs = glob(["tests/foreign_satisfaction.rs", "src/**/*.json"]),
+    crate = "port_engine_snapshot_foreign_satisfaction",
+    crate_root = "tests/foreign_satisfaction.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-snapshot",
+        "//build/port-engine/adapters/frontend-go:port-engine-frontend-go",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)

@@ -20,6 +20,7 @@ sources may not spawn `go` or import `std::process::Command`, and may not name t
 | `corpus/shapes/` | A struct with fields and methods, an interface with a method set. |
 | `corpus-refused/hard/` | A `for` loop and a `defer` — the fixture the engine must REFUSE. |
 | `corpus-buildtags/tagged/` | Files selected by `//go:build`, `// +build`, and filename. |
+| `corpus-foreign/foreign/` | One foreign type satisfying two interfaces. |
 
 The corpus is deliberately small, hermetic, and **not Kubernetes**. Kubernetes is the
 program's W1 corpus and admitting it is a separate decision; this fixture exists to prove

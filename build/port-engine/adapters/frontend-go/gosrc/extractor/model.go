@@ -243,6 +243,10 @@ const (
 	attrCalleeKind = "callee_kind"
 	// calleeKindMethod is the one value attrCalleeKind takes; its absence means a free function.
 	calleeKindMethod = "method"
+	// attrInterface is the package-qualified identity of the interface a satisfaction satisfies.
+	// Structured rather than folded into attrGoNode's sentence: one concrete type may satisfy
+	// several interfaces, and those facts are only distinguishable if the interface is a field.
+	attrInterface = "interface"
 	// attrSite records HOW an interface satisfaction was observed. A declared assertion is
 	// compile-checked by Go; a flow-derived one is this extractor's inference. An impl emitted
 	// from either looks identical, so a reviewer needs the distinction recorded rather than

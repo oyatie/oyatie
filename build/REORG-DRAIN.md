@@ -637,6 +637,41 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   rest of the corpus still measures. Left open deliberately: it is a second schema-touching
   decision and belongs beside the build-configuration record rather than bolted on before it.
 
+- A foreign satisfaction is an OBSERVATION about a type, not a declaration of one — and reading it
+  as a declaration rejected two whole snapshots the moment one foreign type satisfied two
+  interfaces. `os.File` is a reader and a writer; so is `bytes.Buffer`. Ordinary Go, and `xxhash`
+  and `ksuid` produced no measurement at all because of it. That is the THIRD time in this lane
+  that a local fact escalated to whole-corpus rejection, after `unsupported` at package scope and
+  the unresolvable import in `ulid` — the pattern is worth naming, because each instance looked
+  like a different bug.
+  Go's package scope is a namespace and one name means one thing. That rule is right and is now
+  qualified rather than weakened: `NON_BINDING_DECLARATION_KINDS` is a closed set of kinds whose
+  `name` is a name the package does not bind, and a foreign satisfaction's name belongs to another
+  package entirely. It lives beside `NAMESPACE_KINDS` in the vocabulary rather than as an exemption
+  at the call site, so a kind that stops binding has to say so where the reason is written down.
+  The deeper half was invisible while the first half was breaking things: the interface being
+  satisfied existed only inside an English sentence in `go_node`. The two facts about `bytes.Buffer`
+  were therefore indistinguishable to anything but a prose reader, and a rule keyed on what
+  satisfies `io.Reader` would have had to parse the message. `interface` is a structured attribute
+  now. The sentence stays, because it is what the refusal says.
+  `corpus-foreign/` is new and fences all of it: the fixture cannot be admitted at all under the
+  old rule, both facts name their interface, and `Sink`/`Source`/`Drive` still bind exactly once
+  each — the qualification is narrow, and the namespace is not looser for anything that enters it.
+
+- The ranking was REGENERATED rather than trusted, and it moved. Seven of eight corpora now
+  measure; `ulid` remains blocked on the unresolvable import recorded above.
+  Coverage: xxhash 61.8%, ksuid 40.9%, uuid 43.3%, xid 38.5%, errors 26.3%, semver 25.9%,
+  go-multierror 0.0%. xxhash previously read 69.0% and xid 41.7% — both were measured over the
+  union of every build configuration, which is not a program, so the new numbers are corrections
+  rather than regressions. A ratchet that only rises is measuring the wrong thing.
+  Ranked by PACKAGES blocked: `IfStmt` variants (6), unary `&` (5), transform ownership (5), the
+  carried-value failing return (4), `AssignStmt` forms (4), `panic` (4), `unmapped type interface`
+  (4), variadic signatures (3), `ArrayType` (3).
+  `var` at package scope is no longer at the top. It has folded into "deferred by policy" (5
+  packages, 76 declarations), which is the pack declining rather than the engine failing — so the
+  top CAPABILITY blocker is now `IfStmt` at six of seven packages, and the largest single number on
+  the board is a decision nobody has made rather than a construct nobody has written.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

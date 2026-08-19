@@ -79,6 +79,19 @@ pub const KNOWN_DECLARATION_KINDS: &[&str] = &[
     "var",
 ];
 
+/// Kinds whose own `name` is NOT a name the enclosing package binds.
+///
+/// The namespace rule — one name means one thing — is a fact about Go's package scope and stays
+/// exactly as strict for everything that enters it. A foreign satisfaction does not enter it: the
+/// name is a type ANOTHER package declares, and the entry is an observation ABOUT that type rather
+/// than a declaration OF it. `os.File` satisfying both `io.Reader` and `io.Writer` is two facts
+/// about one foreign type, and reading them as two declarations of one name rejected an entire
+/// snapshot over something Go permits everywhere.
+///
+/// Closed, and here rather than as an exemption at the call site: a kind that stops binding a name
+/// has to say so where the reason is written down.
+pub const NON_BINDING_DECLARATION_KINDS: &[&str] = &["foreign_satisfaction"];
+
 /// The kinds whose children form a NAMESPACE — a scope in which one name means one thing.
 ///
 /// Package scope, a struct's fields, a signature's parameters. Below these the tree is SYNTAX, and
@@ -191,6 +204,7 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_CALLEE_KIND,
     ATTR_DOC,
     ATTR_GO_NODE,
+    ATTR_INTERFACE,
     ATTR_LIT_KIND,
     ATTR_OP,
     ATTR_RANGE_KEY,
@@ -254,6 +268,14 @@ pub const ATTR_OP: &str = "op";
 /// Attribute key naming the source AST node an `unsupported` placeholder stands for, so a refusal
 /// can say WHAT it refused rather than only that it refused.
 pub const ATTR_GO_NODE: &str = "go_node";
+
+/// Attribute key naming the INTERFACE a foreign satisfaction satisfies.
+///
+/// Structured rather than folded into [`ATTR_GO_NODE`]'s sentence. One concrete type may satisfy
+/// several interfaces, and while the identity lived only in prose those facts differed nowhere a
+/// rule could read — `os.File` satisfying `io.Reader` and `os.File` satisfying `io.Writer` were
+/// the same entry twice.
+pub const ATTR_INTERFACE: &str = "interface";
 
 /// Attribute key classifying what an identifier resolves to — a constant, a function, a local.
 /// The target cases each differently, and the identifier alone cannot say which it is.
