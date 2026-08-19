@@ -110,10 +110,17 @@ pub fn port_snapshot(path: &Path) -> Result<PortedPackage, PipelineError> {
         // nothing between them. A reviewer reading a real ported package said that is not how
         // authored code is laid out and that the seven near-identical blocks were unscannable
         // because of it. They were right, and no rule about the CODE would ever have fixed it.
+        // An EMPTY region contributes nothing, not even a break. A declaration whose output lives
+        // in a unit-level item — every sentinel but the one carrying the grouped enum — renders to
+        // nothing, and giving each of those a blank line put five of them in a row.
+        let rendered = String::from_utf8_lossy(bytes);
+        if rendered.trim().is_empty() {
+            continue;
+        }
         if !into.is_empty() {
             into.push('\n');
         }
-        for line in String::from_utf8_lossy(bytes).lines() {
+        for line in rendered.lines() {
             into.push_str(line);
             into.push('\n');
         }
