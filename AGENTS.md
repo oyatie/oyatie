@@ -52,8 +52,11 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 An owned, cloud-native, hyperscale platform built in Rust — a unified **delivery fabric**
 (SCM + CI + CD) plus the products that run on it; full identity in [`README.md`](README.md).
-Hard invariants every change respects: the whole stack is owned Rust — kuberos kernel → cloud-os →
-cloud-k8s → cloud services → oyatie products (founder directive 2026-06-09); automation
+Hard invariants every change respects: the whole stack is owned Rust — kernel → os → k8s → cloud
+services → oyatie products (founder directive 2026-06-09; the rung-0 floor is no longer kuberos,
+retired by founder decision 2026-08-02 and executed by commit `c2ee2631a` — the node kernel is
+Linux via upstream Talos today and the Asterinas-vs-Linux choice is deferred behind the
+`os/ports/kernel-abi` seam); automation
 deliverables are Rust, never shell/Python/Node (rust-first automation-hygiene gate); ALL CLI
 surfaces are retirement-marked — new capabilities ship as APIs + declarative state + reconcilers;
 nothing merges except a protected PR against `dev` behind the single required `oya-ci-required`
