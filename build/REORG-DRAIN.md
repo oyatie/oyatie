@@ -2680,3 +2680,34 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - The coverage numbers halved and they are now worth something. Every point removed was a
   declaration counted as translated while emitting a name that resolves to nothing — which is not a
   translation, it is a claim.
+
+## Two bugs in the doc-rename rule, found by looking at a real package
+
+- Putting `semver`'s ported output in front of a reader — 62 lines that compile with zero errors —
+  found two defects in the rename rule added three commits earlier, neither of which the hermetic
+  corpus could show.
+
+- `r#true`. The map recorded every CHILD of a declaration as a member, and a declaration's children
+  are its whole tree: the initialiser `= true` registered as a name, so a doc comment saying "when
+  set to true" came out saying `r#true`. A name is a member only if it is DECLARED as one — a field
+  or a method — and that is what it records now.
+
+- `Allowed`. The target's name for a declaration depends on its KIND, and the rule used one casing
+  for all of them: a constant came out in a type's casing, `allowed` → `Allowed` where the emitted
+  constant is `ALLOWED`. Naming it wrong is worse than not naming it. It now uses the same rule that
+  emits the name — shouted for a value, snake for a function, pascal for a type.
+
+- AND THEN THE REAL BOUND, which the first fix only exposed: `allowed` is an ENGLISH WORD, and the
+  package has a private constant of that name, so "not allowed in a valid semantic version" became
+  "not ALLOWED". The rule now renames only what the source EXPORTS — the source capitalises what it
+  exports, so a capitalised word in prose matching an exported name is a reference to it far more
+  often than not, and that is the case the rule was built for. An unexported name is lower-case and
+  indistinguishable from English.
+
+  What is left is bounded and small, and worth stating: even a false positive changes the CASING of
+  a word and never its meaning, because the rename is always the same word in the target's own
+  convention.
+
+- The lesson is the one the whole session keeps teaching: a rule that looks obviously right on a
+  corpus built to exercise it can be obviously wrong on the first real package it meets. Three
+  commits of confidence, and sixty-two lines of real output to correct it.

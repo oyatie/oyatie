@@ -24,9 +24,9 @@ use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
 use crate::signature_table::SignatureTable;
-use crate::naming::{module_path, to_pascal_case};
+use crate::naming::{module_path, to_pascal_case, to_screaming_snake, to_snake_case};
 use crate::ownership::OwnershipContext;
-use crate::vocabulary::TYPE_NAMED_INTERFACE;
+use crate::vocabulary::{CHILD_FIELD, CHILD_METHOD, FLAG_EXPORTED, TYPE_NAMED_INTERFACE};
 
 /// The type names one unit declares, and the target spelling each resolves to.
 pub struct LocalScope {
@@ -74,14 +74,27 @@ impl LocalScope {
                 continue;
             }
             types.insert(declaration.name.clone(), to_pascal_case(&declaration.name));
-            record_rename(&mut renames, &declaration.name, to_pascal_case(&declaration.name));
+            // The target's name for a declaration depends on its KIND, and a rename that ignored
+            // that renamed a constant into a type's casing: `allowed` came out as `Allowed` in the
+            // prose and `ALLOWED` in the code. Naming it wrong is worse than not naming it.
+            if let Some(target) = emitted_name(declaration) {
+                record_rename(&mut renames, &declaration.name, target);
+            }
             // A METHOD and a FIELD are named inside a declaration and are cased like a binding.
             // Both are what documentation refers to most, and neither is in package scope.
+            //
+            // ONLY those two. A declaration's children are its whole tree — an initialiser, a body,
+            // every expression in it — and recording all of them put the initialiser `= true` into
+            // the map, so a doc comment saying "when set to true" came out saying `r#true`. A name
+            // is a member only if it is declared as one.
             for member in &declaration.children {
-                if !member.name.is_empty() {
-                    let target = crate::naming::to_snake_case(&member.name);
-                    record_rename(&mut renames, &member.name, target);
+                if member.name.is_empty()
+                    || !matches!(member.kind.as_str(), CHILD_FIELD | CHILD_METHOD)
+                {
+                    continue;
                 }
+                let target = to_snake_case(&member.name);
+                record_rename(&mut renames, &member.name, target);
             }
         }
         Self {
@@ -97,6 +110,33 @@ impl LocalScope {
     /// Whether the unit declares this source name.
     pub(crate) fn contains(&self, name: &str) -> bool {
         self.types.contains_key(name)
+    }
+}
+
+/// The name the target gives this declaration, by the same rule that emits it.
+///
+/// `None` for a kind whose emitted name this cannot state — which is not the same as a kind that is
+/// not emitted, and is deliberately the conservative reading: a rename it cannot be sure of is one
+/// it does not make.
+fn emitted_name(declaration: &Declaration) -> Option<String> {
+    // EXPORTED only, and this is the rule's bound rather than a convenience. The source capitalises
+    // what it exports, so a capitalised word in prose matching an exported name is a reference to
+    // it far more often than not — which is the case this rule was built for, `Run` and `Refresh`
+    // and `NewVersion`. An UNEXPORTED name is lower-case and indistinguishable from English: a
+    // private constant named `allowed` turned the sentence "not allowed in a valid semantic
+    // version" into "not ALLOWED", which is a real package's doc comment made worse.
+    //
+    // What is left is bounded and small: even a false positive changes the CASING of a word and
+    // never its meaning, because the rename is always the same word in the target's convention.
+    if !declaration.flags.iter().any(|flag| flag == FLAG_EXPORTED) {
+        return None;
+    }
+    match declaration.kind.as_str() {
+        // A VALUE, whose name the target shouts.
+        "const" | "var" => Some(to_screaming_snake(&declaration.name)),
+        "func" => Some(to_snake_case(&declaration.name)),
+        "struct" | "named" | "alias" | "interface" => Some(to_pascal_case(&declaration.name)),
+        _ => None,
     }
 }
 
