@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sort"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -128,6 +129,15 @@ func extractPackage(
 
 	scope := tpkg.Scope()
 	objNames := scope.Names() // go/types returns these sorted
+	// The scope's own order is alphabetical, and a package emitted in it reads like a symbol table
+	// rather than like something someone wrote: the constructor lands wherever its name falls, and
+	// two reviewers named that as a tell. SOURCE ORDER is what an author chose, and it is just as
+	// deterministic here — the files are parsed in sorted order and each file's declarations are
+	// walked in the order they appear.
+	rank := sourceOrder(files)
+	sort.SliceStable(objNames, func(i, j int) bool {
+		return rank(objNames[i]) < rank(objNames[j])
+	})
 	decls := make([]node, 0, len(objNames))
 	for _, name := range objNames {
 		decl, err := declFor(scope.Lookup(name), ctx)
@@ -140,6 +150,58 @@ func extractPackage(
 		decls = append(decls, *initializer)
 	}
 	return decls, collectSatisfactions(files, info, unitID), tpkg, nil
+}
+
+// sourceOrder ranks each package-scope name by where the source DECLARES it.
+//
+// Files first, in the sorted order they were parsed in, then declarations within a file in the
+// order they appear. A name the walk never reaches — one go/types synthesises — ranks last, and
+// the caller's stable sort leaves those in the alphabetical order they arrived in, so the result is
+// total and deterministic either way.
+func sourceOrder(files []*ast.File) func(string) int {
+	order := map[string]int{}
+	next := 0
+	record := func(name string) {
+		if name == "" || name == "_" {
+			return
+		}
+		if _, seen := order[name]; !seen {
+			order[name] = next
+			next++
+		}
+	}
+	for _, file := range files {
+		for _, decl := range file.Decls {
+			switch typed := decl.(type) {
+			case *ast.FuncDecl:
+				// A METHOD is not a package-scope name; it is carried by the type it is on, and
+				// ranking by its own position would move the type.
+				if typed.Recv == nil && typed.Name != nil {
+					record(typed.Name.Name)
+				}
+			case *ast.GenDecl:
+				for _, spec := range typed.Specs {
+					switch s := spec.(type) {
+					case *ast.TypeSpec:
+						record(s.Name.Name)
+					case *ast.ValueSpec:
+						for _, name := range s.Names {
+							record(name.Name)
+						}
+					}
+				}
+			}
+		}
+	}
+	// A name the walk never reached ranks AFTER everything it did. A bare map lookup would answer
+	// zero and sort it first, which is the opposite.
+	unreached := next
+	return func(name string) int {
+		if rank, seen := order[name]; seen {
+			return rank
+		}
+		return unreached
+	}
 }
 
 // packageInit records every `func init()` in the package as ONE declaration.

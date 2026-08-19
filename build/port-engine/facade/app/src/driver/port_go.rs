@@ -95,6 +95,7 @@ pub fn port_go_from(admitted: AdmittedSnapshot) -> Result<PipelineReport, Pipeli
         plan_steps: plan.steps.len(),
         emit_regions: emitted.len(),
         emit_digest: emit_tree_digest(&emitted),
+        region_order: transformed.ir.regions(),
         region_units: transformed.region_units,
         dispositions: transformed.dispositions,
         emitted,
@@ -182,7 +183,10 @@ fn refuse(admitted: AdmittedSnapshot) -> Result<usize, PipelineError> {
 #[must_use]
 pub fn assemble_modules(report: &PipelineReport) -> String {
     let mut by_unit: BTreeMap<String, Vec<&RegionId>> = BTreeMap::new();
-    for region in report.emitted.keys() {
+    // PLAN ORDER, not map order. The map is keyed by region id, and iterating it groups every
+    // alias, then every constant, then every function, alphabetically inside each — which reads as
+    // a symbol table rather than as a module someone wrote.
+    for region in &report.region_order {
         let module = report
             .region_units
             .get(region)

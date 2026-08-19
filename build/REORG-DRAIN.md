@@ -2210,3 +2210,39 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
   Worth recording as a shape rather than as an incident: every result idiom this engine adds will
   hit the same splice, and the parameter is now there for the next one.
+
+## Source order, because a symbol table is not a module
+
+- Both reviewers read the ORDER as a machine's: "strict alphabetical member ordering... Humans order
+  code by importance and call sequence — the constructor first, the primary operation next.
+  Alphabetical ordering is what an emitter produces from a symbol table." It was, three times over,
+  and each layer had to be fixed for the one below it to show.
+
+  1. The FRONT END sorted package-scope declarations by name, because go/types' scope order is
+     alphabetical and something had to make it deterministic. It now ranks them by where the source
+     DECLARES them — files in the sorted order they are parsed in, declarations in the order they
+     appear within a file — which is just as deterministic and is what an author chose. A name the
+     walk never reaches ranks after everything it does, and the stable sort leaves those in the
+     order they arrived, so the result is total either way.
+
+  2. The FACADE assembled from a map keyed by region id, so even a correctly ordered snapshot came
+     out alphabetical again. It now assembles in the order the transform produced.
+
+  3. The TRANSFORM produced regions rule-major, which puts every struct before every constructor and
+     separates a type from the functions that build it. Regions are now ordered by the DECLARATION's
+     own position first and the rule's precedence second, so the several regions one declaration
+     owns stay adjacent and a unit-level region sorts first, which is where a prelude belongs.
+
+- The rule ORDER itself is pack data and it was arbitrary. Reordered to `const, var, alias,
+  defined_type, interface, struct, struct_body, func` — values, then types, then the bodies that
+  fill them, then functions, which is how a module is laid out. `struct_body` stays after `struct`
+  because the later rule is the more specific one and the survey picks the last match.
+
+- What it buys, read side by side: `MAX_RETRIES, DEFAULT_NAME, ENABLED, THRESHOLD, ID, Celsius, add,
+  scale, unexported` — the source's own order — where it read `ID, DEFAULT_NAME, MAX_RETRIES,
+  Celsius, add, scale, unexported, ENABLED, THRESHOLD` before. And `struct Counter`, its methods,
+  its constructor, then `struct Tally` and its constructor, where the constructors used to sit in a
+  block above the type they build.
+
+- Nothing about the program changed, and that is the point: order is the last thing a reader
+  notices consciously and the first thing that tells them who wrote it.

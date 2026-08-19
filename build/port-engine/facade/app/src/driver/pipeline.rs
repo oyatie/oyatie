@@ -78,6 +78,7 @@ pub fn smoke_pipeline() -> Result<PipelineReport, PipelineError> {
         plan_steps: plan.steps.len(),
         emit_regions: emitted.len(),
         emit_digest: emit_tree_digest(&emitted),
+        region_order: transformed.ir.regions(),
         region_units: transformed.region_units,
         dispositions: transformed.dispositions,
         emitted,

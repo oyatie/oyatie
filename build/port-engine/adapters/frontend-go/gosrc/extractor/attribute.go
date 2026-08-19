@@ -50,9 +50,9 @@ func attributeSatisfactions(
 		}
 	}
 
-	for index := range model.Packages {
-		sortNodes(model.Packages[index].Declarations)
-	}
+	// NOT re-sorted. The declarations arrive in the order the source declares them, which is what
+	// an author chose and what a reader expects; sorting by name here would put them back into the
+	// symbol-table order the package walk deliberately left behind.
 }
 
 // receiverModes derives, for every observed (interface, method) pair, whether the receiver must be

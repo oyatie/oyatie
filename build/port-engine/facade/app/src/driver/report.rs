@@ -23,6 +23,13 @@ pub struct PipelineReport {
     pub emit_regions: usize,
     /// Emitted region tree (for verify/delta / determinism).
     pub emitted: BTreeMap<RegionId, Vec<u8>>,
+    /// The regions in the order the plan produced them, which is the order they are ASSEMBLED in.
+    ///
+    /// Kept beside the map rather than derived from it, because the map is keyed by region id and
+    /// sorting by that id is what made an emitted module read like a symbol table: every alias,
+    /// then every constant, then every function, each group alphabetical. Plan order is rule order
+    /// and then SOURCE order within a rule, which is what someone chose.
+    pub region_order: Vec<RegionId>,
     /// Content digest of [`Self::emitted`].
     pub emit_digest: Digest,
     /// Every ownership decision the run made, with its justification.
