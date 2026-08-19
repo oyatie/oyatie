@@ -10,7 +10,8 @@ use quote::{ToTokens, quote};
 
 use port_engine_api::PortError;
 
-use crate::expr::{MatchArm, RustExpr, RustStmt};
+use crate::expr::{MatchArm, RustExpr};
+use crate::stmt::{RustStmt};
 use crate::lower_body::lower_block;
 use crate::lower_parts::{parse_expr, parse_ident, parse_type};
 use crate::ops::BinaryOp;

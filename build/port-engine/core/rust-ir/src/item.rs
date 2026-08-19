@@ -6,7 +6,8 @@
 //! receiver rendered as the literal `&self` made an interface's mutating method unimplementable
 //! while the concrete path refused the same guess.
 
-use crate::expr::{RustExpr, RustStmt};
+use crate::expr::RustExpr;
+use crate::stmt::RustStmt;
 use crate::ty::RustType;
 
 /// Whether an item is part of the emitted crate's public surface.

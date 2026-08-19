@@ -9,6 +9,9 @@ use crate::error::TransformError;
 use crate::impls::trait_impls;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
 use crate::params::{params, results};
+use crate::items_types::{
+    blanket_impl, build_newtype, build_struct, build_trait, build_type_alias,
+};
 use crate::resolve::Resolver;
 use crate::items_self::rename_own_type;
 use crate::signature::{Body, inherent_methods, trait_methods};
@@ -72,135 +75,6 @@ fn build_const(
         ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
         value: value.to_owned(),
     })
-}
-
-fn build_type_alias(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> Result<RustItem, TransformError> {
-    Ok(RustItem::TypeAlias {
-        docs: docs_of(declaration, resolver.doc_convention),
-        vis: visibility(declaration),
-        name: to_pascal_case(&declaration.name),
-        ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
-    })
-}
-
-/// A defined type over an underlying type becomes a newtype, never an alias.
-///
-/// The distinction is the whole point of the source construct: a defined type is a DISTINCT type
-/// that does not interchange with its underlying one, and rendering it as an alias would erase
-/// exactly the property it was declared for. A newtype keeps the distinction in the target's own
-/// type system.
-fn build_newtype(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> Result<RustItem, TransformError> {
-    let vis = visibility(declaration);
-    Ok(RustItem::Struct {
-        docs: docs_of(declaration, resolver.doc_convention),
-        vis,
-        name: to_pascal_case(&declaration.name),
-        shape: StructShape::Tuple(vec![RustField {
-            docs: Vec::new(),
-            vis,
-            name: String::new(),
-            ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
-        }]),
-        // A newtype's one field is the source type itself, so the same rule answers for it.
-        derives: resolver.derives_for(std::slice::from_ref(&declaration.type_ref)),
-        methods: inherent_methods(declaration, resolver, Body::Stub)?,
-    })
-}
-
-fn build_struct(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-    body: Body,
-) -> Result<RustItem, TransformError> {
-    let mut fields = Vec::new();
-    // The SOURCE types, kept alongside the resolved ones: a derive is decided by what the source
-    // guarantees about a field, and the target spelling has already lost that.
-    let mut field_types = Vec::new();
-    for field in declaration.children_of_kind(CHILD_FIELD) {
-        field_types.push(field.type_ref.clone());
-        fields.push(RustField {
-            docs: docs_of(field, resolver.doc_convention),
-            vis: visibility(field),
-            name: to_snake_case(&field.name),
-            ty: resolver.resolve_in(&field.type_ref, &field.name, POSITION_FIELD)?,
-        });
-    }
-
-    Ok(RustItem::Struct {
-        docs: docs_of(declaration, resolver.doc_convention),
-        vis: visibility(declaration),
-        name: to_pascal_case(&declaration.name),
-        shape: if fields.is_empty() {
-            StructShape::Unit
-        } else {
-            StructShape::Named(fields)
-        },
-        derives: resolver.derives_for(&field_types),
-        methods: inherent_methods(declaration, resolver, body)?,
-    })
-}
-
-fn build_trait(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> Result<RustItem, TransformError> {
-    Ok(RustItem::Trait {
-        docs: docs_of(declaration, resolver.doc_convention),
-        vis: visibility(declaration),
-        name: to_pascal_case(&declaration.name),
-        supertraits: supertraits(declaration, resolver)?,
-        methods: trait_methods(declaration, resolver)?,
-    })
-}
-
-/// The blanket impl a pure SUPERTRAIT BUNDLE earns, if this interface is one.
-///
-/// A source interface that embeds others and declares no method of its own is satisfied
-/// STRUCTURALLY: a type with both method sets has it, and there is nothing to declare. The target
-/// is nominal, so saying the same thing takes `impl<T: A + B> Job for T {}`.
-///
-/// That is not merely tidier than one empty impl per observed type — it is what the source MEANS.
-/// The per-type form gives the trait only to types the engine saw asserted, and the source gives it
-/// to every type that qualifies. A caller writing a generic function over `Job` would find their
-/// own type rejected under the per-type form and accepted under this one, which is the difference
-/// between a translation and an approximation.
-///
-/// `None` for an interface that declares any method of its own: a blanket impl would have to supply
-/// bodies for them, and there are none to supply.
-fn blanket_impl(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> Result<Option<RustItem>, TransformError> {
-    let bounds = supertraits(declaration, resolver)?;
-    if bounds.is_empty() || !trait_methods(declaration, resolver)?.is_empty() {
-        return Ok(None);
-    }
-    Ok(Some(RustItem::BlanketImpl {
-        name: to_pascal_case(&declaration.name),
-        bounds,
-    }))
-}
-
-/// The traits an interface's embedded interfaces require.
-///
-/// A supertrait is a REQUIREMENT: an implementor must implement these too. Flattening them into the
-/// outer trait's method list would compile and would mean something weaker — a type could satisfy
-/// the outer trait without satisfying the embedded ones, which the source does not allow.
-fn supertraits(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> Result<Vec<RustType>, TransformError> {
-    declaration
-        .children_of_kind(CHILD_EMBEDS)
-        .into_iter()
-        .map(|embed| resolver.resolve_in(&embed.type_ref, &declaration.name, POSITION_SUPERTRAIT))
-        .collect()
 }
 
 fn build_fn(
