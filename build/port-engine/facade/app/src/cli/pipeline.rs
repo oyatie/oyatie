@@ -244,7 +244,12 @@ pub(crate) fn cmd_port(path: Option<&str>) -> ExitCode {
     };
     match driver::port_snapshot(std::path::Path::new(path)) {
         Ok(ported) => {
-            print!("{}", ported.source);
+            // One file per unit, and the header says which — a crate laid out this way puts each
+            // in its own file, and printing them to one stream is how a reader sees them here.
+            for file in &ported.files {
+                println!("// {}.rs", file.module);
+                print!("{}", file.source);
+            }
             eprintln!(
                 "port=ok translated={} refused={} deferred={} uncaptured={}",
                 ported.report.translated.len(),

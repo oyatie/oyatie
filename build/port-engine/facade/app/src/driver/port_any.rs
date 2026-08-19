@@ -22,12 +22,20 @@ use port_engine_transform::{SurveyReport, module_name, survey};
 
 use crate::driver::report::PipelineError;
 
+/// One emitted file, which is one unit of the source.
+pub struct PortedFile {
+    /// The module's name, which is the file's name and needs no `mod` block inside it.
+    pub module: String,
+    /// Its contents.
+    pub source: String,
+}
+
 /// A real package, emitted as far as the engine can take it.
 pub struct PortedPackage {
     /// What the survey found, so a reader knows what is NOT in the source below.
     pub report: SurveyReport,
-    /// The emitted Rust, one module per unit.
-    pub source: String,
+    /// The emitted Rust, one FILE per unit — which is what a crate laid out this way is.
+    pub files: Vec<PortedFile>,
     /// Regions the transform built and the renderer would not take, with what it said.
     ///
     /// A refusal discovered LATE. The transform counted these as translated, and they are not —
@@ -74,36 +82,34 @@ pub fn port_snapshot(path: &Path) -> Result<PortedPackage, PipelineError> {
             Err(error) => unrenderable.push(format!("{}: {error}", region.region)),
         }
     }
-    let mut source = String::from(
-        "// PARTIAL. Emitted by port-engine from a package it had never seen; the declarations it\n\
-         // could not translate are absent, and the survey says which and why.\n",
-    );
+    // ONE FILE PER UNIT, which is what a crate laid out this way IS. Wrapping each unit in
+    // `pub mod X { .. }` inside one file is the source's `package X` header transliterated into a
+    // block, and a reviewer ranked it fourth among the reasons the output reads as translated: an
+    // author writing `semver.rs` never opens it with `pub mod semver`. The module is the FILE.
+    let mut files: Vec<PortedFile> = Vec::new();
     let mut current = String::new();
     for region in &regions {
         let module = module_name(&region.unit.0);
         if module != current {
-            if !current.is_empty() {
-                source.push_str("}\n");
-            }
-            source.push_str(&format!("pub mod {module} {{\n"));
+            files.push(PortedFile {
+                module: module.clone(),
+                source: String::new(),
+            });
             current = module;
         }
         let Some(bytes) = emitted.get(&port_engine_api::RegionId(region.region.clone())) else {
             continue;
         };
+        let into = &mut files.last_mut().unwrap_or_else(|| unreachable!()).source;
         for line in String::from_utf8_lossy(bytes).lines() {
-            match line.is_empty() {
-                true => source.push('\n'),
-                false => source.push_str(&format!("    {line}\n")),
-            }
+            into.push_str(line);
+            into.push('\n');
         }
     }
-    if !current.is_empty() {
-        source.push_str("}\n");
-    }
+
     Ok(PortedPackage {
         report,
-        source,
+        files,
         unrenderable,
     })
 }

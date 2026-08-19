@@ -2850,3 +2850,36 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - Every one of those pairs was one file until a rule arrived that needed only half of it. That is
   what the size bar is actually for: it does not make the code smaller, it makes the second question
   visible when it turns up.
+
+## The module is the FILE, and the prose names types as the target does
+
+- The seventh review ranked `pub mod semver { .. }` wrapping the whole output fourth among the
+  reasons it reads as translated: "Go's `package semver` header transliterated into a Rust block. A
+  Rust author writing `semver.rs` never adds this; a translator that maps Go package → Rust module
+  always does." Right — and it was an artifact of the FACADE, which assembled every unit into one
+  stream because that was all it had ever needed to do.
+
+  `port` now emits one FILE per unit, which is what a crate laid out this way is. No wrapper, no
+  block, no header. The module is the file.
+
+  The hermetic pipeline keeps its single-stream assembly, and should: it exists so a golden can be
+  diffed and a compile proof can run on one input, and neither wants a directory.
+
+- AND THE PROSE NAMES TYPES AS THE TARGET DOES. The reviewer found "the maximum value of a `uint64`"
+  in a doc comment beside a signature that correctly said `u64`, and said the code was translated
+  and the documentation was not. Exactly right, and it is the same rule as the identifier rename one
+  step further: a doc word matching a source TYPE name gets the target's spelling.
+
+  A DELIBERATELY SMALL SET, and the bound is the substance: `uint64`, `int32`, `float64` and their
+  kin are unambiguous in English, so a word matching one is naming a type. `string`, `bool`, `byte`,
+  `int` and `error` are ABSENT for the opposite reason — each is an ordinary English word, and
+  rewriting "returns a string of characters" into "returns a String of characters" would make the
+  prose worse to fix nothing.
+
+  The full type map is NOT used for this and must not be: it answers what a declaration's type
+  BECOMES, where every entry is correct, and prose is not a declaration.
+
+- NOT DONE, and recorded as unprovable rather than skipped: `ERR_INVALID_SEM_VER` should be
+  `ERR_INVALID_SEMVER`, because `SemVer` is one word. The engine cannot know that. `SemVer` and
+  `MaxLen` are the same shape — two capitalised runs — and one is a single concept while the other
+  is two words. There is no fact in the source that separates them, so the split stays.

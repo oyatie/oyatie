@@ -124,6 +124,7 @@ impl SignatureTable {
                 receiver: semantics.trait_receiver(),
                 deferred: semantics.deferred_kinds(),
                 constant_map: semantics.constant_map(),
+                prose_type_names: semantics.prose_type_names(),
                 length_functions: semantics.length_functions(),
                 undecided_forms: semantics.undecided_forms(),
                 ownership,

@@ -148,6 +148,22 @@
     },
     "reason": "The source's PREDECLARED constants, which are identifiers rather than literals: `true` reaches the model as an ident referring to a universe-scope constant, not as a literal, so nothing in the literal path answers for it. Declared here rather than recognised in code for the same reason `type_map` is data: a source vocabulary the engine reads, not a decision the engine makes. `iota` is absent deliberately -- it is meaningful only inside a const declaration, where its value depends on position, and a table of names cannot say what it is. A predeclared constant the pack does not list refuses by name."
   },
+  "prose_type_names": {
+    "names": {
+      "uint64": "u64",
+      "uint32": "u32",
+      "uint16": "u16",
+      "uint8": "u8",
+      "int64": "i64",
+      "int32": "i32",
+      "int16": "i16",
+      "int8": "i8",
+      "float64": "f64",
+      "float32": "f32",
+      "uintptr": "usize"
+    },
+    "reason": "Source TYPE names that a doc comment may name, and the target's spelling for each. A reviewer reading a real ported package found 'the maximum value of a uint64' in prose beside a signature that correctly said `u64`, and said the code was translated and the documentation was not -- which was exactly right. A DELIBERATELY SMALL SET, and the bound is the substance: every name here is unambiguous in English, so a word matching one is naming a type. `string`, `bool`, `byte`, `int` and `error` are ABSENT for the opposite reason -- each is an ordinary English word, and rewriting 'returns a string of characters' into 'returns a String of characters' would make the prose worse to fix nothing. The full type map is not used for this and must not be: it exists to answer what a declaration's type BECOMES, where every entry is correct, and prose is not a declaration."
+  },
   "type_map_overrides": {
     "rust_const": {
       "string": "&str"

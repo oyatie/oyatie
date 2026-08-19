@@ -109,6 +109,10 @@ impl LoadedRulePack {
             rules,
             loaded_rules,
             applies,
+            prose_type_names: doc
+                .prose_type_names
+                .map(|table| table.names)
+                .unwrap_or_default(),
             length_functions: doc
                 .length_functions
                 .map(|table| table.names)

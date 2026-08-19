@@ -24,6 +24,8 @@ pub struct LoadedRulePack {
     pub(crate) constant_map: BTreeMap<String, String>,
     /// Callee identities whose value is a length.
     pub(crate) length_functions: BTreeSet<String>,
+    /// Source type name → target spelling, for the names a doc comment may use.
+    pub(crate) prose_type_names: BTreeMap<String, String>,
     pub(crate) type_constructors: BTreeMap<String, String>,
     pub(crate) copy_types: BTreeSet<String>,
     pub(crate) cast_types: BTreeSet<String>,

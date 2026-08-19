@@ -175,6 +175,7 @@ pub(crate) fn survey_declaration<P>(
         failure: pack.failure_convention(),
         deferred: pack.deferred_kinds(),
         constant_map: pack.constant_map(),
+        prose_type_names: pack.prose_type_names(),
         length_functions: pack.length_functions(),
         undecided_forms: pack.undecided_forms(),
         signatures,
