@@ -151,9 +151,9 @@ pub mod fallible {
     ///
     /// The no-value shape: `error` alone. The target has to invent the success value here, because a
     /// function that returns only a failure still has to say it succeeded.
-    pub fn check(s: String) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn check(s: String) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if s.is_empty() {
-            return Err(Box::<dyn std::error::Error>::from("empty"));
+            return Err(Box::<dyn std::error::Error + Send + Sync>::from("empty"));
         }
         Ok(())
     }
@@ -162,9 +162,9 @@ pub mod fallible {
     ///
     /// The one-value-and-a-failure shape: `(int, error)`, which is what most of a real package looks
     /// like.
-    pub fn length(s: String) -> Result<i64, Box<dyn std::error::Error>> {
+    pub fn length(s: String) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         if s.is_empty() {
-            return Err(Box::<dyn std::error::Error>::from("empty"));
+            return Err(Box::<dyn std::error::Error + Send + Sync>::from("empty"));
         }
         Ok(s.len() as i64)
     }
@@ -175,7 +175,7 @@ pub mod fallible {
     /// `if err != nil { return 0, err }` is two statements the caller could simply not have written.
     /// The target spells it as one operator on a value that cannot be used without addressing the
     /// failure.
-    pub fn twice(s: String) -> Result<i64, Box<dyn std::error::Error>> {
+    pub fn twice(s: String) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         let n = length(s)?;
         Ok(n.wrapping_add(n))
     }
@@ -184,7 +184,7 @@ pub mod fallible {
     ///
     /// Propagation with NO value bound: the call is run for its failure alone, so there is nothing to
     /// name and the target keeps it as a statement.
-    pub fn validate(s: String) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn validate(s: String) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         check(s)?;
         Ok(())
     }

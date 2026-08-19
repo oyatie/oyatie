@@ -493,13 +493,14 @@
   },
   "failure_convention": {
     "source_type": "error",
-    "target_type": "Box<dyn std::error::Error>",
-    "absent": "nil"
+    "target_type": "Box<dyn std::error::Error + Send + Sync>",
+    "absent": "nil",
+    "reason": "The source's error is an interface value; the target's is a trait object, and a trait object needs an owner because it has no size. Boxed rather than borrowed: a failure outlives the call that produced it, so a reference would need a lifetime the caller cannot supply. SEND + SYNC IS NOT DECORATION. Without them the ported error cannot cross a thread boundary or enter any async runtime, which does not merely inconvenience a caller -- it makes the emitted crate unusable in concurrent code, where the source's error had no such limit. A reviewer reading the emitted API named this as breaking the crate for concurrent use, and they were right: the bound was missing, not declined. The source's own error values are ordinary data and satisfy both bounds; a source error that did not would not be shareable across the source's goroutines either."
   },
   "function_map": {
     "errors.New": {
-      "form": "Box::<dyn std::error::Error>::from({0})",
-      "reason": "The source's error is an interface value carrying a message; the target's is a boxed trait object. `from` on a string is the constructor that exists for it, and boxing is what gives the trait object a size. The alternative -- a concrete error type per call site -- would invent a type the source does not have."
+      "form": "Box::<dyn std::error::Error + Send + Sync>::from({0})",
+      "reason": "The source's error is an interface value carrying a message; the target's is a boxed trait object. `from` on a string is the constructor that exists for it, and boxing is what gives the trait object a size. The alternative -- a concrete error type per call site -- would invent a type the source does not have. The turbofish is explicit rather than `.into()`: this mapping fires in any position, and `.into()` only infers where the destination type is already known -- correct inside `Err(..)` and ambiguous inside a `let`."
     },
     "len": {
       "form": "{0}.len() as i64",

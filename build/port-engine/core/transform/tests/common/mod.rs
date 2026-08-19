@@ -146,6 +146,7 @@ impl Pack {
     pub fn with_failure(mut self, source: &str, target: &str) -> Self {
         self.failure = Some(FailureConvention {
             source_type: source.to_owned(),
+            reason: "fixture decision".to_owned(),
             target_type: target.to_owned(),
             absent: "nil".to_owned(),
         });
