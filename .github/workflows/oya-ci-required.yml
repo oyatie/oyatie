@@ -130,6 +130,25 @@ jobs:
       # incremental compilation.
       RUSTC_WRAPPER: sccache
       SCCACHE_GHA_ENABLED: "true"
+      # This lane links ~1,535 units (872 lib-test + 534 integration-test + 129 bin targets
+      # across 887 packages). sccache is content-addressed per COMPILATION unit and does not
+      # cache LINKING, so with a warm cache the residual is almost entirely link time: the
+      # "Materialize generated faces" step measured 275s while its own log spanned 64s, the
+      # other ~211s being the silent `wait` on the backgrounded `cargo build --tests`.
+      #
+      # .cargo/config.toml deliberately ships NO linker override so a clean checkout builds
+      # with the stock toolchain (ADR-0488 supersession: a committed -fuse-ld=mold breaks any
+      # box without mold). This is precisely the opt-in escape that file documents -- set in
+      # the CI environment, where mold is installed above, never committed to the config.
+      #
+      # Job-scoped, not workflow-scoped: the macOS/Windows smoke lanes have no mold. Safe for
+      # the buck2 sub-build the materializer shells into, because RUSTFLAGS is read by CARGO,
+      # not by rustc, and buck2 invokes rustc directly.
+      #
+      # Must stay identical across every cargo invocation in this job -- RUSTFLAGS is part of
+      # the fingerprint, so a mismatch between the background build and the nextest runs would
+      # rebuild the whole workspace instead of reusing it.
+      RUSTFLAGS: "-C linker=clang -C link-arg=-fuse-ld=mold"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -142,6 +161,11 @@ jobs:
       - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
         with:
           tool: nextest
+      # mold, from its own author's action, SHA-pinned like every other action here.
+      # taiki-e/install-action cannot supply it -- it reports "does not support mold" and
+      # falls back to cargo-binstall, which fails since mold is not a cargo crate
+      # ("no binaries specified nor inferred").
+      - uses: rui314/setup-mold@9c9c13bf4c3f1adef0cc596abc155580bcb04444
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           # Its OWN key, not the shared cargo-ci-linux one. The live-postgres lanes compile a
