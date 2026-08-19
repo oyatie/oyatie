@@ -1,0 +1,333 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:e9ff8271e8d6ed6e72d12275f73cbdcebf1942c9d200a8c82bce2fc65f6a6406",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Drive",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Drive makes one FOREIGN type satisfy two interfaces.\n\n`bytes.Buffer` belongs to neither this corpus nor the crate the engine emits, so there is\nnowhere to put an impl for it — both facts are recorded as foreign satisfactions and deferred.\nThey share a name and are not the same fact, which is the shape that used to reject a whole\nsnapshot: two entries named `bytes.Buffer` read as two declarations of one package-scope name."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "buf",
+                  "type": {
+                    "kind": "named",
+                    "name": "Buffer",
+                    "package": "bytes"
+                  },
+                  "flags": [
+                    "mutated"
+                  ]
+                },
+                {
+                  "kind": "expr_stmt",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign.Sink"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Sink",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "unary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u0026"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "buf",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign.Source"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Source",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "unary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u0026"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "buf",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Sink",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Sink accepts anything that can be written to."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "w",
+              "type": {
+                "kind": "named_interface",
+                "name": "Writer",
+                "package": "io"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "unsupported",
+                  "name": "",
+                  "attrs": {
+                    "go_node": "AssignStmt"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Source",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Source accepts anything that can be read from."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "r",
+              "type": {
+                "kind": "named_interface",
+                "name": "Reader",
+                "package": "io"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let_tuple",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "bind",
+                      "name": "_"
+                    },
+                    {
+                      "kind": "bind",
+                      "name": "err"
+                    },
+                    {
+                      "kind": "value",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "call",
+                          "name": "",
+                          "attrs": {
+                            "callee": "",
+                            "callee_kind": "method"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "Read",
+                              "type": {
+                                "kind": "func",
+                                "args": [
+                                  {
+                                    "kind": "tuple",
+                                    "args": [
+                                      {
+                                        "kind": "slice",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "byte"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "kind": "tuple",
+                                    "args": [
+                                      {
+                                        "kind": "basic",
+                                        "name": "int"
+                                      },
+                                      {
+                                        "kind": "named_interface",
+                                        "name": "error"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "r",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "make"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "make",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "unsupported",
+                                  "name": "",
+                                  "attrs": {
+                                    "go_node": "ArrayType"
+                                  }
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "INT",
+                                    "value": "1"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "err",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "foreign_satisfaction",
+          "name": "bytes.Buffer",
+          "attrs": {
+            "go_node": "satisfaction of io.Reader by bytes.Buffer, which this corpus does not declare",
+            "interface": "io.Reader",
+            "site": "argument"
+          }
+        },
+        {
+          "kind": "foreign_satisfaction",
+          "name": "bytes.Buffer",
+          "attrs": {
+            "go_node": "satisfaction of io.Writer by bytes.Buffer, which this corpus does not declare",
+            "interface": "io.Writer",
+            "site": "argument"
+          }
+        }
+      ]
+    }
+  ]
+}

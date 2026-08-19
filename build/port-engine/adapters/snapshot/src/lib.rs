@@ -18,7 +18,7 @@ mod preimage;
 pub use admit::{
     admit_embedded_fixture, admit_embedded_fixture_drift_after_v1,
     admit_embedded_fixture_buildtags_v1, admit_embedded_fixture_drift_before_v1,
-    admit_embedded_fixture_failure_v1,
+    admit_embedded_fixture_failure_v1, admit_embedded_fixture_foreign_v1,
     admit_embedded_fixture_interface_v1, admit_embedded_fixture_ownership_v1,
     admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1, admit_reproducible_pair,
 };
@@ -63,6 +63,15 @@ pub(crate) const FIXTURE_SNAPSHOT_FAILURE_V1_JSON: &str =
 /// release tags from the host toolchain would admit `Unreleased` on a future Go.
 pub(crate) const FIXTURE_SNAPSHOT_BUILDTAGS_V1_JSON: &str =
     include_str!("fixture-snapshot-buildtags-v1.json");
+
+/// Embedded fixture in which one FOREIGN type satisfies two interfaces.
+///
+/// `bytes.Buffer` belongs to neither the corpus nor the emitted crate, so both satisfactions are
+/// recorded with nowhere to host an impl. They share a name and are not the same fact — the shape
+/// that used to reject an entire snapshot, because two entries named `bytes.Buffer` read as two
+/// declarations of one package-scope name.
+pub(crate) const FIXTURE_SNAPSHOT_FOREIGN_V1_JSON: &str =
+    include_str!("fixture-snapshot-foreign-v1.json");
 
 /// The UPSTREAM DRIFT pair: one package at two versions, at the SAME unit id.
 ///

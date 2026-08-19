@@ -137,6 +137,11 @@ func recordUnattributable(observer *pkgNode, fact satisfaction) {
 		Kind: kindForeignSatisfaction,
 		Name: typeKey(fact.concrete),
 		Attrs: map[string]string{
+			// The INTERFACE is a fact, and it used to exist only inside the sentence below. Two
+			// satisfactions of one concrete type were then indistinguishable to everything but a
+			// prose reader, and any rule keyed on what satisfies a given interface would have had
+			// to parse English. The sentence stays because it is what the refusal says.
+			attrInterface: typeKey(fact.iface),
 			attrGoNode: fmt.Sprintf(
 				"satisfaction of %s by %s, which this corpus does not declare",
 				typeKey(fact.iface), typeKey(fact.concrete),
