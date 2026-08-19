@@ -289,6 +289,38 @@ pub mod pointers {
         }
     }
 }
+pub mod scoped {
+    // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__span
+    /// Span reports the width of s, counting a short string as one wider than it is.
+    ///
+    /// The binding is read in BOTH branches, which is what makes the block the only faithful shape: a
+    /// name hoisted out of the `if` would still be live after it, and this one must not be.
+    pub fn span(s: String) -> i64 {
+        let mut result = 0;
+        {
+            let size = s.len() as i64;
+            if size > 4 {
+                result = size;
+            } else {
+                result = size + 1;
+            };
+        };
+        result
+    }
+    // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__width
+    /// Width reports the width of s once it clears the minimum, and zero otherwise.
+    ///
+    /// The plain shape: bound in the init clause, read in the condition and the branch.
+    pub fn width(s: String) -> i64 {
+        {
+            let size = s.len() as i64;
+            if size > 4 {
+                return size;
+            }
+        };
+        0
+    }
+}
 pub mod shapes {
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_interface__named
     /// Named is anything that can render its own name.

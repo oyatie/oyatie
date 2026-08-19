@@ -11,13 +11,27 @@
 use crate::ops::{BinaryOp, Precedence, UnaryOp};
 use crate::ty::RustType;
 
+/// One name a destructuring bind introduces.
+///
+/// Mutability is PER NAME rather than per statement. The source binds each name independently, and
+/// in `v, err := f()` it is routinely `err` that is written again while `v` is not — so a single
+/// flag for the pair would have to be the disjunction of both, and every value binding would come
+/// out mutable to serve the failure beside it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct TupleBind {
+    /// The bound name, already cased for the target.
+    pub name: String, // data_class: INTERNAL_ONLY
+    /// Whether the body writes this name after binding it.
+    pub mutable: bool,
+}
+
 /// A statement in an emitted body.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RustStmt {
     /// `let (a, b) = value;` — a destructuring bind.
     LetTuple {
         /// The names bound, in order.
-        names: Vec<String>, // data_class: INTERNAL_ONLY
+        names: Vec<TupleBind>, // data_class: INTERNAL_ONLY
         /// What they are bound from.
         value: RustExpr,
     },

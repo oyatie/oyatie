@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:d78e47ea01fb87a27463baa92ef3cec112e6e8a7454cf040c58a04f111b4dc03",
+  "snapshot_digest": "sha256:5d684ffaddbcca020e20ab3658248f5ce6ec788f89e8cc45a79767c220293d8e",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
@@ -2413,6 +2413,366 @@
                           ]
                         }
                       ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/scoped",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Span",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Span reports the width of s, counting a short string as one wider than it is.\n\nThe binding is read in BOTH branches, which is what makes the block the only faithful shape: a\nname hoisted out of the `if` would still be live after it, and this one must not be."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "result",
+                  "flags": [
+                    "mutated"
+                  ],
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "init",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "let",
+                          "name": "size",
+                          "children": [
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "len"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "len",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "s",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u003e"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "size",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "4"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "assign",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "result",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "size",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "else",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "block",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "assign",
+                              "name": "",
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "result",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                },
+                                {
+                                  "kind": "binary",
+                                  "name": "",
+                                  "attrs": {
+                                    "op": "+"
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "ident",
+                                      "name": "size",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    },
+                                    {
+                                      "kind": "literal",
+                                      "name": "",
+                                      "attrs": {
+                                        "lit_kind": "INT",
+                                        "value": "1"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "result",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Width",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Width reports the width of s once it clears the minimum, and zero otherwise.\n\nThe plain shape: bound in the init clause, read in the condition and the branch."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "init",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "let",
+                          "name": "size",
+                          "children": [
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "len"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "len",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "s",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u003e"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "size",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "4"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "size",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
                     }
                   ]
                 }

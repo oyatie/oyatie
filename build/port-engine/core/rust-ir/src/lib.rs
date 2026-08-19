@@ -38,7 +38,7 @@ mod ops;
 mod render;
 mod ty;
 
-pub use expr::{MatchArm, RustExpr, RustStmt};
+pub use expr::{MatchArm, RustExpr, RustStmt, TupleBind};
 pub use item::{Receiver, RustField, RustFn, RustItem, RustParam, StructShape, Visibility};
 pub use lower::lower_file;
 pub use ops::{BinaryOp, Precedence, UnaryOp};

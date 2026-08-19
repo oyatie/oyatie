@@ -47,13 +47,22 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             }
         }
         RustStmt::LetTuple { names, value } => {
-            let names = names
+            // `mut` binds to the NAME inside a tuple pattern, not to the pattern, so each element
+            // carries its own — which is also what lets one name be written again while its
+            // neighbour stays immutable.
+            let bound = names
                 .iter()
-                .map(String::as_str)
-                .map(parse_ident)
+                .map(|bind| {
+                    let name = parse_ident(&bind.name)?;
+                    let mutability = match bind.mutable {
+                        true => quote! { mut },
+                        false => quote! {},
+                    };
+                    Ok(quote! { #mutability #name })
+                })
                 .collect::<Result<Vec<_>, _>>()?;
             let value = lower_expr(value)?;
-            Ok(quote! { let ( #(#names),* ) = #value; })
+            Ok(quote! { let ( #(#bound),* ) = #value; })
         }
         RustStmt::Semi(expr) => {
             let expr = lower_expr(expr)?;
