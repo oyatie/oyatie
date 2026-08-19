@@ -118,6 +118,8 @@ pub const POSITION_TRAIT: &str = "trait";
 /// Distinguished from a plain named type because the target holds the two differently — a struct
 /// is a value and a trait has no size.
 pub const TYPE_NAMED_INTERFACE: &str = "named_interface";
+/// The type kind of the source's BARE interface, which names no methods.
+pub const TYPE_INTERFACE: &str = "interface";
 
 /// Attribute key classifying what an identifier resolves to.
 pub const ATTR_REF: &str = "ref";
