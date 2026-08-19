@@ -50,14 +50,14 @@ capabilities:
       primary: rule-based (deterministic slot-finder)
       fallback: no fallback needed
       private_inference: n/a
-    latency_budget_p99_ms: per-tick: 5000 (background; not user-facing)
+    latency_budget_p99_ms: "per-tick: 5000 (background; not user-facing)"
     audit_event:
       - CalendarFocusBlockPolicyEnabled (one-shot; Ed25519-sealed)
       - CalendarFocusBlockCreated (per-block; Ed25519-sealed)
       - CalendarFocusBlockAdjusted (per-adjustment; Ed25519-sealed)
       - CalendarFocusBlockPolicyDisabled (one-shot; Ed25519-sealed)
     risk_classification: minimal-risk (deterministic logic; no LLM)
-    user_label: "Focus time auto-protected by AI" (Art. 50)
+    user_label: '"Focus time auto-protected by AI" (Art. 50)'
     cedar_admission_path: |
       tenant-scope.cedar :: action::CalendarT2EnablePolicy admits when
       tenant.tier >= pro AND user.has_opted_in_to_t2_calendar_policies.
@@ -124,13 +124,13 @@ capabilities:
       primary: tenant-default-llm + linear-programming optimiser (constraint solver)
       fallback: rule-based heuristic (highest-utilisation-first)
       private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
-    latency_budget_p99_ms: per-daily-tick: 60000 (60s; background; not user-facing)
+    latency_budget_p99_ms: "per-daily-tick: 60000 (60s; background; not user-facing)"
     audit_event:
       - CalendarRoomRebalancePolicyEnabled (Ed25519-sealed)
       - CalendarRoomRebalanceRunCompleted (per-run; Ed25519-sealed; payload — # swaps + utilisation delta)
       - CalendarRoomRebalanceBookingSwapped (per-swap; Ed25519-sealed; payload — booking id hash + old room + new room)
     risk_classification: limited-risk (Annex III §3 may apply for hiring-room rebalancing in pack-eu HR overlays — DEFER to a future ADR for the conformity assessment; until then, pack-eu refuses T2-cal-auto-room-rebalance for hiring contexts at the Cedar layer)
-    user_label: "Rooms auto-rebalanced by AI overnight" (per-affected-attendee notification + Art. 50)
+    user_label: '"Rooms auto-rebalanced by AI overnight" (per-affected-attendee notification + Art. 50)'
     cedar_admission_path: |
       tenant-scope.cedar :: action::CalendarT2RebalanceRooms admits when
       tenant.tier >= enterprise AND tenant_admin.has_opted_in_to_t2_room_rebalance.
