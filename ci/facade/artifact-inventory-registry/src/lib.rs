@@ -122,6 +122,9 @@ pub struct RepoInputs {
     pub reachability: BTreeMap<String, Vec<String>>,
     /// path -> canonical path it duplicates (drives the MERGE verdict). Absent ⇒ not a dup.
     pub dup_of: BTreeMap<String, String>,
+    /// The DECLARED placement authority, parsed from `governance/capability-registry.json`.
+    /// Empty ⇒ every destination is `None` ⇒ every disposition is `unclassified` (fail-closed).
+    pub placement: CapabilityPlacement,
     /// The OWNERS files (repo-relative) that PARSE against the ADR-0555 schema — the
     /// `valid_files` half of [`resolve_owners`]'s outcome. Membership here is the ONLY
     /// signal `build_registry` accepts for the [`OWNERS_SCHEMA_ANCHOR`] accounting floor,
@@ -259,6 +262,18 @@ pub struct AccountingRecord {
     pub ttl: TtlRecord,
     pub tracked: bool,
     pub verdict: String,
+    /// Where this path BELONGS, from the closed capability registry (or the owner root).
+    /// `None` ⇒ no declared home; the disposition is then `unclassified` and blocks.
+    pub destination: Option<String>,
+    /// How this path TERMINATES. Derivable TODAY from row facts alone:
+    /// `retain | move | generate | externalize | delete | unclassified`.
+    ///
+    /// `refactor` and `rewrite` are deliberately NOT emitted: distinguishing "move it" from
+    /// "rewrite it on arrival" needs a CONTENT signal (e.g. the 216 `docs/runbooks/` files that
+    /// are `Stub` templates carrying `TODO — fill at …`), and [`derive_disposition`] is pure
+    /// over the row. Emitting a variant no rule can produce would be a lie in the schema, so
+    /// they wait for the content pass rather than being declared and never reached.
+    pub disposition: String,
     pub dup_of: Option<String>,
     #[serde(rename = "_provenance")]
     pub provenance: RecordProvenance,
@@ -307,6 +322,162 @@ fn derive_verdict(
         return "ARCHIVE".into();
     }
     "KEEP".into()
+}
+
+/// The DECLARED placement authority: `governance/capability-registry.json` (ADR-0562 as
+/// amended by ADR-0615). This is a closed registry — capability roots, the five faces, and the
+/// meta directories are enumerated there, so destination is a LOOKUP over declared data and
+/// never a heuristic over path shape.
+///
+/// Deliberately NOT a new DATA table. An earlier draft of this work proposed seeding a
+/// destination table from `specs/integ-branch-envelopes.json#reorg_debt_freeze`; that would
+/// have added a file under `libs/` (which ADR-0562 dissolves) to restate a mapping the
+/// capability registry already declares — and `reorg_debt_freeze` still carries 90 of 171 rows
+/// at `judgment_status: pending`, so it is a worse source than the registry it was derived from.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct CapabilityPlacement {
+    /// current dir prefix -> capability name. From `capabilities[].absorbs_current_dirs`.
+    /// Longest-prefix wins, so `iam/cloud-iam` beats `iam`.
+    pub absorbs: BTreeMap<String, String>,
+    /// Meta directories that are their own destination (`kernel/`, `governance/`, `app/`, ...).
+    pub meta_dirs: Vec<String>,
+}
+
+impl CapabilityPlacement {
+    /// Parse the closed registry. A malformed or absent registry yields an EMPTY placement,
+    /// which makes every destination `None` and therefore every disposition `unclassified` —
+    /// fail-closed, never a silent fallback to "looks fine where it is".
+    pub fn from_registry_value(value: &Value) -> Self {
+        let mut absorbs = BTreeMap::new();
+        if let Some(caps) = value.get("capabilities").and_then(Value::as_array) {
+            for cap in caps {
+                let Some(name) = cap.get("name").and_then(Value::as_str) else {
+                    continue;
+                };
+                for dir in cap
+                    .get("absorbs_current_dirs")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_str)
+                {
+                    let key = dir.trim_end_matches('/').to_owned();
+                    if !key.is_empty() {
+                        absorbs.insert(key, name.to_owned());
+                    }
+                }
+            }
+        }
+        let meta_dirs = value
+            .get("meta_directories")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(|m| m.get("dir").and_then(Value::as_str))
+            .map(|d| d.trim_end_matches('/').to_owned())
+            .filter(|d| !d.is_empty())
+            .collect();
+        Self { absorbs, meta_dirs }
+    }
+
+    /// Longest declared prefix that owns `path`, if any.
+    fn capability_for(&self, path: &str) -> Option<&str> {
+        let mut best: Option<(usize, &str)> = None;
+        for (dir, name) in &self.absorbs {
+            let owns = path == dir || path.starts_with(&format!("{dir}/"));
+            if owns && best.is_none_or(|(len, _)| dir.len() > len) {
+                best = Some((dir.len(), name.as_str()));
+            }
+        }
+        best.map(|(_, name)| name)
+    }
+
+    fn meta_dir_for(&self, path: &str) -> Option<&str> {
+        self.meta_dirs
+            .iter()
+            .find(|d| path.starts_with(&format!("{d}/")))
+            .map(String::as_str)
+    }
+}
+
+/// Where this path BELONGS, derived from declared authority only.
+///
+/// Order is load-bearing and mirrors the authority chain: a meta directory is its own
+/// destination (it is enumerated in the registry as such); otherwise the capability that
+/// declares it absorbed; otherwise the owner's root, because an owned tree has a defined home
+/// even when the capability registry has not yet absorbed it. A path with none of the three has
+/// NO derivable destination and must not be given one by guessing.
+fn derive_destination(
+    path: &str,
+    placement: &CapabilityPlacement,
+    owner: &Option<String>,
+) -> Option<String> {
+    if let Some(meta) = placement.meta_dir_for(path) {
+        return Some(format!("{meta}/"));
+    }
+    if let Some(capability) = placement.capability_for(path) {
+        return Some(format!("{capability}/"));
+    }
+    // The owner root is a weaker but still DECLARED signal: `resolve_owners` resolved it from a
+    // schema-valid OWNERS file, so the tree has an accountable home.
+    owner
+        .as_deref()
+        .and_then(|o| o.strip_prefix("OWNERS:"))
+        .filter(|root| !root.is_empty())
+        .map(|root| format!("{}/", root.trim_end_matches('/')))
+}
+
+/// How this path TERMINATES. Total and order-sensitive, exactly like [`derive_verdict`], and
+/// PURE over facts the row already carries — no file reads, no clock.
+///
+/// `unclassified` is the fail-closed outcome and BLOCKS its domain's cutover. It is never a
+/// silent default: every other arm requires a positive signal.
+///
+/// Measured on the live tree at the time of writing (16,643 rows):
+/// `retain 10,276 · unclassified 5,401 · move 940 · generate 26`. `delete` and `externalize`
+/// have rules here but do not fire on this corpus — `dup_of` is empty in the producer path and
+/// `third-party/` is excluded from the registry by config — so they are reachable by
+/// construction, not dead. `refactor`/`rewrite` have NO rule and are not emitted; see the
+/// `disposition` field doc for why.
+fn derive_disposition(
+    verdict: &str,
+    unit_class: &str,
+    destination: &Option<String>,
+    path: &str,
+    dup_of: &Option<String>,
+) -> String {
+    // A duplicate terminates by merging into its canonical twin, whatever else is true of it.
+    if dup_of.is_some() {
+        return "delete".into();
+    }
+    // Generated output is not authored and not moved: it terminates by being regenerated at its
+    // declared path. Its class already proves a producer owns it.
+    if unit_class == "generated" {
+        return "generate".into();
+    }
+    // Vendored code is owned elsewhere by definition.
+    if unit_class == "vendor" {
+        return "externalize".into();
+    }
+    // Scratch has a delete TTL by class; nothing is extracted from it.
+    if unit_class == "scratch" {
+        return "delete".into();
+    }
+    // Reached by nothing and justified by nothing. The tree does not know why this exists, so
+    // no destination can be honest about where it should go.
+    if verdict == "RED" {
+        return "unclassified".into();
+    }
+    let Some(destination) = destination else {
+        // Owned or reached, but no declared home. This is the NEEDS-OWNER / unabsorbed
+        // population; it blocks rather than defaulting to "leave it".
+        return "unclassified".into();
+    };
+    // Already inside its declared destination ⇒ it stays.
+    if path.starts_with(destination.as_str()) {
+        return "retain".into();
+    }
+    "move".into()
 }
 
 /// Build the full registry (rows + provenance) from repo inputs + policy.
@@ -389,6 +560,8 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
         let dup_of = inputs.dup_of.get(path).cloned();
 
         let verdict = derive_verdict(&owner, &justification_ref, &reachable_from, &ttl, &dup_of);
+        let destination = derive_destination(path, &inputs.placement, &owner);
+        let disposition = derive_disposition(&verdict, &unit_class, &destination, path, &dup_of);
 
         records.push(AccountingRecord {
             path: path.clone(),
@@ -399,6 +572,8 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
             ttl,
             tracked: true,
             verdict,
+            destination,
+            disposition,
             dup_of,
             provenance: RecordProvenance {
                 producer_target: PRODUCER_TARGET.into(),
@@ -1733,6 +1908,140 @@ pub fn fix_reachability(
 mod tests {
     use super::*;
 
+    /// A placement fixture mirroring the real registry's shape: one capability that absorbs a
+    /// legacy dir, and one meta directory.
+    fn sample_placement() -> CapabilityPlacement {
+        CapabilityPlacement::from_registry_value(&serde_json::json!({
+            "capabilities": [
+                {"name": "iam", "absorbs_current_dirs": ["iam", "iam/cloud-iam", "oya/identity"]},
+                {"name": "data", "absorbs_current_dirs": ["data"]}
+            ],
+            "meta_directories": [{"dir": "governance/"}, {"dir": "app/"}]
+        }))
+    }
+
+    #[test]
+    fn destination_prefers_the_longest_declared_absorb() {
+        let placement = sample_placement();
+        // `iam/cloud-iam` and `iam` both match; the longer declaration wins, so a path is never
+        // credited to a broader capability than the one that actually declared it.
+        assert_eq!(
+            derive_destination("iam/cloud-iam/src/lib.rs", &placement, &None).as_deref(),
+            Some("iam/")
+        );
+        assert_eq!(
+            derive_destination("oya/identity/src/lib.rs", &placement, &None).as_deref(),
+            Some("iam/"),
+            "a legacy dir absorbed by a capability resolves to that capability, not to oya/"
+        );
+    }
+
+    #[test]
+    fn destination_falls_back_to_the_owner_root_then_to_none() {
+        let placement = sample_placement();
+        assert_eq!(
+            derive_destination(
+                "tools/thing/src/lib.rs",
+                &placement,
+                &Some("OWNERS:tools".into())
+            )
+            .as_deref(),
+            Some("tools/"),
+            "an owned tree has a declared home even before its capability absorbs it"
+        );
+        assert_eq!(
+            derive_destination("nowhere/thing.md", &placement, &None),
+            None,
+            "no meta dir, no absorb, no owner ⇒ NO destination may be invented"
+        );
+    }
+
+    #[test]
+    fn disposition_is_unclassified_without_a_declared_home() {
+        // This is the fail-closed property the whole design rests on: a path the tree cannot
+        // place must BLOCK its domain, never default to `retain` (leave it) or `delete`.
+        assert_eq!(
+            derive_disposition("KEEP", "doc", &None, "nowhere/thing.md", &None),
+            "unclassified"
+        );
+        assert_eq!(
+            derive_disposition("RED", "doc", &Some("docs/".into()), "docs/x.md", &None),
+            "unclassified",
+            "RED means the tree does not know why this exists; no destination can be honest"
+        );
+    }
+
+    #[test]
+    fn disposition_separates_staying_from_moving() {
+        assert_eq!(
+            derive_disposition("KEEP", "doc", &Some("iam/".into()), "iam/docs/x.md", &None),
+            "retain"
+        );
+        assert_eq!(
+            derive_disposition(
+                "KEEP",
+                "doc",
+                &Some("iam/".into()),
+                "oya/identity/x.md",
+                &None
+            ),
+            "move"
+        );
+    }
+
+    #[test]
+    fn disposition_terminals_come_from_class_and_duplication() {
+        assert_eq!(
+            derive_disposition(
+                "KEEP",
+                "generated",
+                &Some("ci/".into()),
+                "ci/x.generated.json",
+                &None
+            ),
+            "generate",
+            "generated output terminates by regeneration, not by being moved"
+        );
+        assert_eq!(
+            derive_disposition(
+                "KEEP",
+                "vendor",
+                &Some("third-party/".into()),
+                "third-party/x.rs",
+                &None
+            ),
+            "externalize"
+        );
+        assert_eq!(
+            derive_disposition("KEEP", "scratch", &Some("x/".into()), "x/tmp.txt", &None),
+            "delete"
+        );
+        assert_eq!(
+            derive_disposition(
+                "MERGE",
+                "doc",
+                &Some("iam/".into()),
+                "iam/dup.md",
+                &Some("iam/canon.md".into())
+            ),
+            "delete",
+            "a duplicate terminates into its canonical twin whatever else is true of it"
+        );
+    }
+
+    #[test]
+    fn an_absent_or_malformed_registry_fails_closed() {
+        // The registry cannot be silently ignored into a permissive result: an empty placement
+        // must yield NO destinations, hence `unclassified`, hence a blocked domain.
+        let empty = CapabilityPlacement::default();
+        assert_eq!(derive_destination("iam/src/lib.rs", &empty, &None), None);
+        let garbage = CapabilityPlacement::from_registry_value(&serde_json::json!({"nope": 1}));
+        assert_eq!(
+            garbage, empty,
+            "a registry missing its keys yields an empty placement"
+        );
+    }
+
     fn sample_inputs() -> RepoInputs {
         let mut owners = BTreeMap::new();
         owners.insert(
@@ -1757,6 +2066,7 @@ mod tests {
             reachability,
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::new(),
+            placement: CapabilityPlacement::default(),
         }
     }
 
@@ -2378,6 +2688,7 @@ mod tests {
             reachability: BTreeMap::new(),
             dup_of: BTreeMap::new(),
             valid_owners_files: resolution.valid_files,
+            placement: CapabilityPlacement::default(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = |path: &str| -> Value {
@@ -2450,6 +2761,7 @@ mod tests {
             )]),
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
+            placement: CapabilityPlacement::default(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = &registry["rows"].as_array().expect("rows")[0];
@@ -2479,6 +2791,7 @@ mod tests {
             )]),
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
+            placement: CapabilityPlacement::default(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = &registry["rows"].as_array().expect("rows")[0];
