@@ -96,7 +96,12 @@ pub(crate) fn params(
             };
             Ok(RustParam {
                 name,
-                rebound: param.has_flag(FLAG_REBOUND),
+                // NOT rebound where the body FOLDS it: an accumulator becomes one expression, so
+                // the binding it was assigned through is gone and a `mut` on it would be a
+                // mutability nothing uses. One fact, read by the signature and the body alike.
+                rebound: param.has_flag(FLAG_REBOUND)
+                    && crate::accumulator::folded_parameter(declaration).as_deref()
+                        != Some(param.name.as_str()),
                 unread: param.has_flag(FLAG_UNREAD),
                 ty,
             })

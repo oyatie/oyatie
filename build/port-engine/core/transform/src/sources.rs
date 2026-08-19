@@ -6,6 +6,7 @@
 
 /// Crate-relative path and contents of each source this crate owns, sorted by path.
 pub const CRATE_SOURCES: &[(&str, &str)] = &[
+    ("accumulator.rs", include_str!("accumulator.rs")),
     ("apply.rs", include_str!("apply.rs")),
     ("body.rs", include_str!("body.rs")),
     ("body_argument.rs", include_str!("body_argument.rs")),

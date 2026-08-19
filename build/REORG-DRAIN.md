@@ -3772,3 +3772,50 @@ What the measurement did change is a warning worth recording: **a doc refusal MA
 underneath it.** `xid.ID` reports the doc as its cause and still refuses with both halves off, so
 something else is wrong there too and the survey will not say what until the doc reason is gone.
 Anyone chasing a cascade root should disable these two first and re-read the reasons.
+
+## R1v — an accumulator is one expression, not four statements
+
+Both `xxhash` reviews named the same shape as a transliteration of the source's statement style:
+
+```rust
+fn round(mut acc: u64, input: u64) -> u64 {
+    acc = acc.wrapping_add(input.wrapping_mul(PRIME2));
+    acc = rol31(acc);
+    acc = acc.wrapping_mul(PRIME1);
+    acc
+}
+```
+
+Four statements holding one computation, and a `mut` in the signature that exists only to allow the
+rewriting. The target spells that computation as itself:
+
+```rust
+fn round(acc: u64, input: u64) -> u64 {
+    rol31(acc.wrapping_add(input.wrapping_mul(PRIME2))).wrapping_mul(PRIME1)
+}
+```
+
+**Every condition on the fold is load-bearing**, and each is a way the substitution could be wrong:
+
+- every statement but the last assigns to ONE name, and that name is a parameter — so there is a
+  single chain and nothing else in the body to reorder around;
+- each assigned value mentions the name EXACTLY once, counting the implicit read a
+  read-modify-write performs. `acc += x` means `acc = acc + x` and the implicit read IS the chain's
+  link; `acc += acc` would read it twice and is not a chain;
+- the last statement returns that name and nothing else.
+
+`merge_round` next to it does not fold, and that is the rule working: it assigns to two names, so
+there is no single chain, and it keeps its statements.
+
+**Recognised on the SOURCE and spent in two places, because both have to agree.** The body folds and
+the signature drops the `mut`, from one fact — a disagreement is either a mutable binding nothing
+writes, which the target warns about, or a write to an immutable one, which does not compile.
+
+**Substitution refuses shapes it was not promised.** It rebuilds only the expression forms a chain
+can be made of, and returns nothing for anything else rather than moving a subexpression somewhere
+its evaluation order is not the source's. The recogniser already proved the shape; the substituter
+checks anyway.
+
+Coverage is unchanged across all seven packages, and that is the point: this changes how the same
+translated declarations are SPELLED, and the compile proof holds at zero rustc errors and zero
+clippy warnings.

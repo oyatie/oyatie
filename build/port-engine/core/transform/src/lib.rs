@@ -21,6 +21,7 @@
 mod sources;
 pub use sources::CRATE_SOURCES;
 
+mod accumulator;
 mod apply;
 mod body;
 mod body_argument;
