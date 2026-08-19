@@ -14,9 +14,11 @@ mod sources;
 pub use sources::CRATE_SOURCES;
 
 mod error;
+mod load;
 mod pack;
 mod policy;
 mod rule;
+mod rules;
 mod seams;
 mod wire;
 

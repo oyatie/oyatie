@@ -1791,3 +1791,30 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - Verify: 49 test binaries green including the compile proof — `Err(Box::<dyn Error + Send + Sync>
   ::from(ERR_EMPTY))` compiles; port-engine clippy `-D warnings` clean; `delta` Green/Unchanged;
   golden refreshed.
+
+## Holding the 100–300 line bar, and the one file that cannot hold it
+
+- Four files had crossed 300 during this lane's work and one was already over. Split along real
+  seams rather than at convenient line numbers, because a cut that does not follow a question
+  boundary makes two files nobody can hold in their head instead of one:
+
+  - `rulepack/pack.rs` 380 → `pack.rs` 101 (what a loaded pack IS and what it can be asked),
+    `load.rs` 204 (what a document must SATISFY to become one), `rules.rs` 131 (one rule document
+    into one loaded rule — the one part of loading with a single input and a single output);
+  - `transform/resolve_tables.rs` 320 → `resolve_tables.rs` 203 (asking the pack's flat tables what
+    a name means), `resolve_types.rs` 139 (walking a type built out of other types);
+  - `transform/body.rs` 345 → `body.rs` 272 (the statement translator), `body_parts.rs` 85 (the
+    accessors that ask a node for a part it must have and NAME the owner when it does not);
+  - `frontend-go/vocabulary.rs` 311 → `vocabulary.rs` 186 (what a node IS — kinds), and
+    `vocabulary_facts.rs` 132 (what was OBSERVED about it — flags and attribute keys).
+
+- `core/kernel/lib.rs` is 520 and STAYS ONE FILE. Not an exception granted, an exception the design
+  requires: the neutrality claim is a `const` assertion that reads the file's own bytes at compile
+  time, and `UNSCANNED_CODE_KEYWORDS` refuses the word `mod` precisely so kernel code cannot end up
+  in a file the scan never reads. Splitting it would make the fence smaller than the thing it
+  fences, which is the failure the fence exists to prevent. It was already over the bar before this
+  lane and is not this lane's to move.
+
+- TWO FENCES CAUGHT THE SPLIT, which is what they are for: `frontend-go`'s firewall and `rulepack`'s
+  neutrality test each enumerate their crate's sources and assert the enumeration IS the directory.
+  Both failed on the new files rather than quietly covering less than before.

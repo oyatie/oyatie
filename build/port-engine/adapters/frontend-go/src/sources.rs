@@ -12,5 +12,6 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("model.rs", include_str!("model.rs")),
     ("sources.rs", include_str!("sources.rs")),
     ("vocabulary.rs", include_str!("vocabulary.rs")),
+    ("vocabulary_facts.rs", include_str!("vocabulary_facts.rs")),
     ("wire.rs", include_str!("wire.rs")),
 ];

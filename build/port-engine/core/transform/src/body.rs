@@ -18,6 +18,7 @@ use crate::body_expr::{Position, expression, in_position};
 use crate::body_ops::{binary_operator, returns_owned_string};
 use crate::body_failure::{propagate, translated_return};
 use crate::body_loops::{counted_loop, range_loop, switch};
+use crate::body_parts::{branch, named_child, one_child, two_children, unsupported_source};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::resolve::Resolver;
@@ -268,78 +269,5 @@ fn reads_once(place: &RustExpr) -> bool {
         RustExpr::Field { base, .. } => reads_once(base),
         RustExpr::Index { base, index } => reads_once(base) && reads_once(index),
         _ => false,
-    }
-}
-
-/// A named child holding a statement list.
-pub(crate) fn branch<'a>(
-    node: &'a Declaration,
-    kind: &str,
-    cx: &Body<'_>,
-) -> Result<&'a Declaration, TransformError> {
-    node.children_of_kind(kind)
-        .first()
-        .copied()
-        .ok_or_else(|| TransformError::MissingDatum {
-            construction: node.kind.clone(),
-            name: cx.owner.to_owned(),
-            datum: "body",
-        })
-}
-
-/// The one child of a given kind, named in the refusal when it is absent.
-pub(crate) fn named_child<'a>(
-    node: &'a Declaration,
-    kind: &'static str,
-    cx: &Body<'_>,
-    construction: &str,
-) -> Result<&'a Declaration, TransformError> {
-    node.children_of_kind(kind)
-        .first()
-        .copied()
-        .ok_or_else(|| TransformError::MissingDatum {
-            construction: construction.to_owned(),
-            name: cx.owner.to_owned(),
-            datum: kind,
-        })
-}
-
-pub(crate) fn unsupported_source(node: &Declaration, cx: &Body<'_>) -> TransformError {
-    let source_node = node
-        .attr(ATTR_SOURCE_NODE)
-        .unwrap_or("an unnamed construct");
-    TransformError::Unsupported {
-        name: cx.owner.to_owned(),
-        detail: format!(
-            "source construct `{source_node}` has no translation yet — a rule for it belongs in \
-             the pack, and the analysis in docs/programs/k8s-port/census/"
-        ),
-    }
-}
-
-pub(crate) fn one_child<'a>(
-    node: &'a Declaration,
-    cx: &Body<'_>,
-    what: &str,
-) -> Result<&'a Declaration, TransformError> {
-    node.children
-        .first()
-        .ok_or_else(|| TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: format!("`{what}` node carries no operand"),
-        })
-}
-
-pub(crate) fn two_children<'a>(
-    node: &'a Declaration,
-    cx: &Body<'_>,
-    what: &str,
-) -> Result<(&'a Declaration, &'a Declaration), TransformError> {
-    match node.children.as_slice() {
-        [lhs, rhs] => Ok((lhs, rhs)),
-        other => Err(TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: format!("`{what}` node needs two operands, got {}", other.len()),
-        }),
     }
 }
