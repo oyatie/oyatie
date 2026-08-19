@@ -22,6 +22,10 @@
       "prefix": ".cursor/rules/"
     },
     {
+      "anchor": "ADR-0555: GitHub-native review routing for the protected base. Reached by DOC-CATALOG until this PR retired that index; the file is live (referenced by 17 tracked files) and its authority is GitHub's own CODEOWNERS contract, not a docs row.",
+      "prefix": ".github/CODEOWNERS"
+    },
+    {
       "anchor": "ADR-0600 addendum 2026-07-02: GitHub community-health code of conduct (tool-mandated GitHub special file under the .github meta home).",
       "prefix": ".github/CODE_OF_CONDUCT.md"
     },
@@ -36,6 +40,10 @@
     {
       "anchor": "ADR-0600 addendum 2026-07-02: GitHub PR-body prefill mirroring templates/pull-request-template.md (TPL-PR).",
       "prefix": ".github/PULL_REQUEST_TEMPLATE.md"
+    },
+    {
+      "anchor": "ADR-0716: weekly non-blocking buck2 build //... honesty smoke keeping the local hermetic graph from rotting; never merge authority.",
+      "prefix": ".github/workflows/buck2-weekly-smoke.yml"
     },
     {
       "anchor": "Phase0 dual-emit / naming_sweep: domain-stabilize workflow callable/entry surface under integ/ci; local bridge feedback only — merge authority remains oya-ci-required until PAUSE-AND-PAIR forever-name flip to merge-admission-required (ADR-0515).",
@@ -206,6 +214,10 @@
       "prefix": "data/ops/"
     },
     {
+      "anchor": "ADR-0555: documentation entry hub. Registered directly now that DOC-CATALOG is no longer an index; the hub survives on its own terms rather than by an index row that must be maintained.",
+      "prefix": "docs/DOCUMENTATION.md"
+    },
+    {
       "anchor": "ADR-0700..ADR-0709 disposition E4: historical ADR archive under docs/adr-archive/ (Rejected + Superseded members; not live law). Owned by docs/adr-archive/OWNERS (council-architecture). Reachability is corpus-level for provenance; live resolution is apex files under docs/decisions/ADR-070x.",
       "prefix": "docs/adr-archive/"
     },
@@ -278,12 +290,24 @@
       "prefix": "docs/security-program/security-program.json"
     },
     {
+      "anchor": "ADR-0555 + ADR-0716: the CI lane standard describing the cargo merge path. Live (referenced by 20 tracked files); registered directly rather than through the retired catalog.",
+      "prefix": "docs/standards/ci-lanes.md"
+    },
+    {
       "anchor": "ADR-0515 cloud-native posture projection: the reviewer-facing standards doc is the accepted no-CLI/no-shell infrastructure automation review surface, linked from the standards index and docs hub; exact path keeps the new prose artifact born-reachable under ADR-0555.",
       "prefix": "docs/standards/cloud-native-infrastructure-automation.md"
     },
     {
+      "anchor": "ADR-0555: the crate naming standard the cloud-/oya- prefix ratchet enforces. Live (referenced by 14 tracked files); registered directly rather than through the retired catalog.",
+      "prefix": "docs/standards/crate-naming-convention.md"
+    },
+    {
       "anchor": "ADR-0339 IAC-001: reviewer-facing catalog documentation for the first shared OpenTofu module-library fixture, linked by iac/modules/catalog.json and scoped to aws-guest/sg-baseline only.",
       "prefix": "docs/standards/iac-module-catalog.md"
+    },
+    {
+      "anchor": "ADR-0555: sole surviving file under docs/wiki/. Registered to keep the firewall honest while it exists. NOTE: the agent-scale north star prohibits a Wiki authority class, so this path is a retirement candidate, not a permanent registration — see the disposition work on the accounting registry.",
+      "prefix": "docs/wiki/quickref/README.md"
     },
     {
       "anchor": "ADR-0555 D3: gate/agent evidence corpus — TTL-accounted decay (staleness-reaper budgets); evidence is reached by the gate runs that produced it",
@@ -844,10 +868,6 @@
     {
       "anchor": "ADR-0555 + capability-interior stale-path hygiene (oyatie-0s8 / #1651): Accepted JudgmentNote documenting verified in-tree retargets under workflow/**. Exact path; process evidence only — not merge authority.",
       "prefix": "workflow/stale-path-hygiene-note.md"
-    },
-    {
-      "anchor": "ADR-0716: weekly non-blocking buck2 build //... honesty smoke keeping the local hermetic graph from rotting; never merge authority.",
-      "prefix": ".github/workflows/buck2-weekly-smoke.yml"
     }
   ]
 }
