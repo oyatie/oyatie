@@ -56,6 +56,13 @@ pub(crate) struct Body<'a> {
     /// string literal being returned is a `&'static str` in the target and a `string` in the
     /// source, and nothing inside the `return` says which the destination wants.
     pub(crate) result_is_owned_string: bool,
+    /// Counter names proven to be used for NOTHING BUT indexing, which are `usize` in the target.
+    ///
+    /// A property of the enclosing LOOP that only the operands inside it can spend: the range
+    /// builds the counter and the index reads it, and neither one alone can see that the signed
+    /// value is never observed. Both read this rather than each deciding, because they must agree
+    /// or the loop does not compile.
+    pub(crate) usize_counters: BTreeSet<String>,
     /// Result positions whose `*T` the signature proved is NEVER ABSENT, so it renders as `T`.
     ///
     /// A property of the signature that only the body can spend, exactly like `fallible`: the
@@ -81,6 +88,25 @@ impl<'a> Body<'a> {
             result_is_owned_string,
             borrowed,
             bare_pointer_results,
+            usize_counters: BTreeSet::new(),
+        }
+    }
+
+    /// The same body, translating one more counter as a `usize`.
+    ///
+    /// Scoped to the loop that proved it: a name shadowed by an inner loop with different uses gets
+    /// its own answer, and nothing outside the loop is affected by what happens inside it.
+    pub(crate) fn with_usize_counter(&self, counter: &str) -> Self {
+        let mut usize_counters = self.usize_counters.clone();
+        usize_counters.insert(counter.to_owned());
+        Self {
+            owner: self.owner,
+            resolver: self.resolver,
+            fallible: self.fallible,
+            result_is_owned_string: self.result_is_owned_string,
+            borrowed: self.borrowed.clone(),
+            bare_pointer_results: self.bare_pointer_results.clone(),
+            usize_counters,
         }
     }
 }

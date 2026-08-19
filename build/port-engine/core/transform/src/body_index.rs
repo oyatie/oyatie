@@ -29,6 +29,12 @@ pub(crate) fn index_operand(node: &Declaration, cx: &Body<'_>) -> Result<RustExp
     if node.kind == "literal" {
         return Ok(operand);
     }
+    // A proven index-only COUNTER is already a `usize`, because the range that built it dropped its
+    // own conversion. Both ends read the same proof; converting here would convert a `usize` to a
+    // `usize` and say something about the value that is not true.
+    if node.kind == "ident" && cx.usize_counters.contains(&node.name) {
+        return Ok(operand);
+    }
     Ok(RustExpr::Cast {
         expr: Box::new(operand),
         ty: port_engine_rust_ir::RustType::path("usize"),

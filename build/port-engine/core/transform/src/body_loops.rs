@@ -12,7 +12,9 @@ use crate::body_parts::{branch, named_child, one_child, two_children};
 use crate::body_expr::expression;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::vocabulary::{ATTR_OP, ATTR_SOURCE_NODE};
+use crate::vocabulary::{
+    ATTR_OP, ATTR_SOURCE_NODE, IDIOM_INDEX_COUNTER,
+};
 
 /// A three-clause or condition-only `for`.
 ///
@@ -85,13 +87,30 @@ fn counted_range(
         return Err(refuse("the post clause is not an increment"));
     }
 
+    // The counter is a `usize` when the loop uses it for NOTHING BUT indexing, and then the range
+    // needs no conversion and neither does the index. See the pack's `index_counter_is_usize`.
+    let indexes_only = cx.resolver.idiom_method(IDIOM_INDEX_COUNTER).is_some()
+        && crate::counters::indexes_only(body, counter);
+    let widened;
+    let inner: &Body<'_> = match indexes_only {
+        true => {
+            widened = cx.with_usize_counter(counter);
+            &widened
+        }
+        false => cx,
+    };
+    let end = match indexes_only {
+        true => crate::counters::unsigned_bound(rhs, inner)?,
+        false => expression(rhs, inner)?,
+    };
+
     Ok(RustStmt::ForIn {
         binding: to_snake_case(counter),
         iter: RustExpr::Range {
-            start: Box::new(expression(one_child(init, cx, "let")?, cx)?),
-            end: Box::new(expression(rhs, cx)?),
+            start: Box::new(expression(one_child(init, cx, "let")?, inner)?),
+            end: Box::new(end),
         },
-        body: translate(&body.children, cx, TailPosition::No)?,
+        body: translate(&body.children, inner, TailPosition::No)?,
     })
 }
 

@@ -33,6 +33,7 @@ mod body_failure;
 mod body_index;
 mod body_loops;
 mod body_ops;
+mod counters;
 mod docs;
 mod error;
 mod failure;
