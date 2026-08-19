@@ -2340,3 +2340,34 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
   Fires only where every element COPIES, where the bound is the sequence's own length, and where one
   counter indexes exactly one sequence. Two sequences indexed by one counter is a walk of neither.
+
+## Structural satisfaction, answered where the answer is sound
+
+- Three reviews raised observed-vs-structural and the third made it concrete: `Engine` has a `run`
+  method with the exact signature `Runner` requires and does not implement `Runner`. "Anything
+  generic over `Runner` rejects `Engine` despite `Engine` having the exact method. This is the
+  single most likely thing to bite a user of this crate." That is right, and it is not a matter of
+  taste: in the source `Engine` IS a `Runner`, everywhere, with nothing declared.
+
+- The engine emitted an impl only where it SAW the pair used, which produces a crate strictly less
+  capable than the source. Now the type-checker is asked directly — `types.Implements`, for the
+  pointer as well as the value, because the source's method set for `*T` includes `T`'s and a
+  mutating method is only ever in the pointer's.
+
+- SCOPED to interfaces the package DECLARES, and the bound is the decision rather than a
+  convenience. Those are the interfaces the package's own author designed, so an accidental match
+  against one is that author's own design — and the target's coherence rule allows the impl, because
+  the trait is emitted from the same unit. A structural match against an interface from elsewhere is
+  a `foreign_satisfaction`, which has its own recorded answer. The empty interface is skipped: it is
+  satisfied by everything, which is true and says nothing the target does not already allow.
+
+  This is what makes the census's 80,042-vs-1,316 gap tractable rather than terrifying. Most of that
+  gap is matches against interfaces from other packages, which this does not touch.
+
+- STRUCTURAL ranks last among sites, so a pair the source also USES keeps the site that proves the
+  most. The impl is identical either way; what differs is only how it came to be known — and the
+  receiver-mode union now runs over more implementors, which is correct rather than incidental.
+
+- The standing disagreement is now answered in two places and open in one: a pure supertrait bundle
+  gets a blanket impl, a same-package structural match gets a real impl, and a cross-package one
+  stays deferred with its reason.

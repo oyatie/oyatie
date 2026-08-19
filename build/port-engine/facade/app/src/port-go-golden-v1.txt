@@ -85,9 +85,8 @@ pub mod composite {
         /// How many times Run has been called.
         calls: i64,
     }
-    impl Engine {
-        /// Performs one unit of work and reports the running count.
-        pub fn run(&mut self) -> i64 {
+    impl Runner for Engine {
+        fn run(&mut self) -> i64 {
             self.calls = self.calls.wrapping_add(1);
             self.calls
         }
