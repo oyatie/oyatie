@@ -146,7 +146,13 @@ const (
 	// kindBind is one name a destructuring bind introduces.
 	kindBind = "bind"
 	// kindValue is the expression a destructuring bind takes its values from.
-	kindValue    = "value"
+	kindValue = "value"
+	// kindAssignTuple is a PARALLEL assignment — `a, b = b, a` and `x, err = f()`. Its children
+	// are the places it assigns, in order, then the values it assigns from. Distinct from
+	// kindLetTuple because those are places rather than new names: nothing is introduced.
+	kindAssignTuple = "assign_tuple"
+	// kindPlace is one place a parallel assignment writes to.
+	kindPlace    = "place"
 	kindExprStmt = "expr_stmt"
 
 	kindLiteral  = "literal"

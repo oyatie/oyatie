@@ -165,6 +165,11 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "bind",
     "let",
     "let_tuple",
+    // A PARALLEL assignment and the place kind it carries. Distinct from a destructuring bind
+    // because these are places rather than new names: nothing is introduced, and what the source
+    // guarantees is that every operand on both sides is evaluated BEFORE any of them is assigned.
+    "assign_tuple",
+    "place",
     "literal",
     "method",
     "paren",

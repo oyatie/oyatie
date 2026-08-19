@@ -35,6 +35,18 @@ pub enum RustStmt {
         /// What they are bound from.
         value: RustExpr,
     },
+    /// `(<place>, <place>) = <value>;` — the target's destructuring assignment.
+    ///
+    /// Distinct from a sequence of [`RustStmt::Assign`] because the ORDER is the whole content of
+    /// the source construct: `a[i], a[j] = a[j], a[i]` is a swap only because every operand on both
+    /// sides is evaluated before any of them is assigned. Two separate assignments would write the
+    /// first place and then read it back, which is a different program.
+    AssignTuple {
+        /// The places written, in order.
+        places: Vec<RustExpr>,
+        /// What they are assigned from — one expression per place, or a single tuple-valued one.
+        values: Vec<RustExpr>,
+    },
     /// `let [mut] <name>[: <ty>] [= <value>];`
     Let {
         /// The bound name, already cased for the target.
