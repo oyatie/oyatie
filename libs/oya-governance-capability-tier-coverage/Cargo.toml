@@ -10,5 +10,4 @@ path = "src/lib.rs"
 [dependencies]
 anyhow = { workspace = true }
 serde = { workspace = true }
-serde_yaml = { workspace = true }
 walkdir = { workspace = true }
