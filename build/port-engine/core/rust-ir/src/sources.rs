@@ -16,5 +16,6 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("ops.rs", include_str!("ops.rs")),
     ("render.rs", include_str!("render.rs")),
     ("sources.rs", include_str!("sources.rs")),
+    ("stmt.rs", include_str!("stmt.rs")),
     ("ty.rs", include_str!("ty.rs")),
 ];

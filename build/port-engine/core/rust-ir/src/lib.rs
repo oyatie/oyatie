@@ -30,6 +30,7 @@ mod sources;
 pub use sources::CRATE_SOURCES;
 
 mod expr;
+mod stmt;
 mod item;
 mod lower;
 mod lower_body;
@@ -39,7 +40,8 @@ mod ops;
 mod render;
 mod ty;
 
-pub use expr::{MatchArm, RustExpr, RustStmt, TupleBind};
+pub use expr::{MatchArm, RustExpr};
+pub use stmt::{RustStmt, TupleBind};
 pub use item::{Receiver, RustField, RustFn, RustItem, RustParam, StructShape, Visibility};
 pub use lower::lower_file;
 pub use ops::{BinaryOp, Precedence, UnaryOp};

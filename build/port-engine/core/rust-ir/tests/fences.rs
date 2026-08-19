@@ -34,6 +34,7 @@ const PRODUCTION_SOURCES: &[(&str, &str)] = &[
     ("ops.rs", include_str!("../src/ops.rs")),
     ("render.rs", include_str!("../src/render.rs")),
     ("sources.rs", include_str!("../src/sources.rs")),
+    ("stmt.rs", include_str!("../src/stmt.rs")),
     ("ty.rs", include_str!("../src/ty.rs")),
 ];
 
