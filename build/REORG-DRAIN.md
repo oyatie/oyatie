@@ -2792,3 +2792,42 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   corpus were obviously wrong on the first real package they met — the doc rename twice, the
   package-variable constant, and the cast under a method call — and in each case what found it was
   reading sixty lines of emitted output rather than reading a number.
+
+## MERGE WITH CHANGES — the first non-rejection in seven reviews
+
+- The seventh blind review, on the ported `semver` rather than on the hermetic corpus, returned
+  **MERGE WITH CHANGES**. Six reviews before it returned DO NOT MERGE. Nothing about the bar moved;
+  the SUBJECT did, from a construct-coverage fixture to a real package.
+
+- And the reviewer wrote, unprompted, the sentence this lane exists to earn:
+
+  > "`is_x` uses `matches!(x, "x" | "*" | "X")`, which is genuinely idiomatic Rust and is NOT what a
+  > naive transliteration of Go's switch produces. Either the translator has a switch-to-`matches!`
+  > rule, or a human touched that function specifically. It is the only construct in the file that
+  > reads as native."
+
+  It has the rule. That is what an engine rule is FOR, and it is the first time a reviewer has said
+  so of anything the engine emits.
+
+- THE EVIDENCE LIST HAS CHANGED SHAPE, which is the more useful signal. Of their ten items, four are
+  the SOURCE'S OWN PROSE carried faithfully — `errors.Is` in a doc comment, `uint64` in a doc
+  comment, the `_e` suffix on method names, the upstream typo in a sentence — and one is the sentinel
+  decision with its cost already recorded. Those are not translation defects; a hand port that
+  preserved the source's documentation would have every one of them.
+
+  What is left as ENGINE work is three things: `i64` for length constants, the `pub mod` wrapper, and
+  item ordering across a package that was several files.
+
+- THE LADDER GOES WITH THE ORDERING. `if v < o { -1 } if v > o { 1 } 0` is how the source spells
+  `cmp`, and it spells it that way because it has no such method — the reviewer put it exactly, "the
+  ladder is NECESSARY there and dead here". Recognised strictly: two `if`s over the SAME pair in the
+  same order, one `<` and one `>`, each returning the matching extreme, and a trailing equal.
+  `fn compare_segment(v: u64, o: u64) -> std::cmp::Ordering { v.cmp(&o) }`.
+
+- AND AN UNTYPED CONSTANT TAKES ITS DEFAULT TYPE. `const magic = "xxh"` is `untyped string` in the
+  source and matched nothing in the pack, so it emitted `const MAGIC: String` — which does not
+  compile. `types.Default` is the source's own answer to "what type does this take when it must have
+  one", which is exactly the question a target declaration asks.
+
+- TWO REAL PACKAGES now compile with zero rustc errors AND pass clippy with zero warnings: `semver`
+  and `xid`. Total across all six: 23 errors, down from 243 when `port` first ran.
