@@ -19,6 +19,14 @@
 # Authority: deny.toml (the allow-list + dated per-crate exceptions);
 # ci/facade/dependency-automation `[supply_chain] license_policy = "deny.toml"`;
 # .github/CONTRIBUTING.md, which already documents `cargo deny check` as advisory.
+#
+# ZERO inline `run:` steps. The shrink-only workflow_inline_shell baseline is keyed
+# per (workflow, job, required unique run-step name); new run: keys are
+# born-blocking. Checkout is the same SHA-pinned actions/checkout as every other
+# workflow. The check is EmbarkStudios/cargo-deny-action@v2.1.1 (commit
+# 3c6349835b2b7b196a839186cb8b78e02f7b5f25), which ships cargo-deny 0.20.2 and
+# provisions Rust 1.97.1 — the workspace rust-toolchain.toml pin — so this advisory
+# lane adds no unbaselined shell.
 
 name: license-weekly-advisory
 
@@ -39,14 +47,8 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-      - name: Provision pinned Rust toolchain
-        run: rustup toolchain install && rustc --version
-      # Version-pinned and --locked so the build resolves cargo-deny's own lockfile
-      # rather than whatever is newest. A digest-verified prebuilt binary, matching
-      # the infra/ci/install-buck2.sh pattern, is the better form and is deliberately
-      # NOT faked here: it requires a recorded sha256 that nobody has published into
-      # this repo yet. Weekly cadence makes the source build affordable in the interim.
-      - name: Install pinned cargo-deny
-        run: cargo install --locked cargo-deny --version 0.20.2
-      - name: License policy over the resolved dependency graph
-        run: cargo deny --all-features check licenses
+      - uses: EmbarkStudios/cargo-deny-action@3c6349835b2b7b196a839186cb8b78e02f7b5f25
+        with:
+          command: check
+          command-arguments: licenses
+          rust-version: "1.97.1"
