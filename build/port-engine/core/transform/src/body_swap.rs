@@ -10,9 +10,10 @@
 //! idiom firing, and nothing would say so.
 
 use port_engine_api::Declaration;
-use port_engine_rust_ir::RustExpr;
+use port_engine_rust_ir::{MatchArm, RustExpr, RustStmt};
 
 use crate::body::Body;
+use crate::body_call::render_operand;
 use crate::body_expr::expression;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
@@ -96,4 +97,45 @@ fn place_index(place: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transform
         Some(operand) => crate::body_index::index_operand(operand, cx),
         None => expression(node, cx),
     }
+}
+
+/// A match that only answers YES or NO, as the membership test it is.
+///
+/// `match x { "x" | "*" | "X" => true, _ => false }` is a test of whether `x` is one of three
+/// things, and the target has a macro that is exactly that. The source has to spell it as a switch
+/// because its switch is the only multi-pattern form it has.
+///
+/// Recognised from the ARMS AS BUILT rather than from the source shape, so it cannot fire on a match
+/// that merely looks like one — what matters is what the arms yield, and that is known only after
+/// they are translated.
+///
+/// `None` unless the default arm yields `false` and every other yields `true`. The reverse is a
+/// NEGATED membership test and needs its own form; inverting it silently would be a different
+/// expression wearing this one's shape.
+pub(crate) fn membership(arms: &[MatchArm], scrutinee: &RustExpr) -> Option<RustExpr> {
+    let (default, tested) = arms.split_last()?;
+    if !default.patterns.is_empty() || !yields(&default.body, "false") {
+        return None;
+    }
+    let mut patterns = Vec::new();
+    for arm in tested {
+        if arm.patterns.is_empty() || !yields(&arm.body, "true") {
+            return None;
+        }
+        patterns.extend(arm.patterns.iter().map(render_operand).collect::<Option<Vec<_>>>()?);
+    }
+    if patterns.is_empty() {
+        return None;
+    }
+    Some(RustExpr::Literal(format!(
+        "matches!({}, {})",
+        render_operand(scrutinee)?,
+        patterns.join(" | ")
+    )))
+}
+
+/// Whether this arm body is exactly the given boolean literal.
+fn yields(body: &[RustStmt], literal: &str) -> bool {
+    matches!(body, [RustStmt::Tail(RustExpr::Path(value) | RustExpr::Literal(value))]
+        if value == literal)
 }
