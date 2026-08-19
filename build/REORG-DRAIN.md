@@ -2463,3 +2463,41 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   nothing. A success carrying a value is a different function from the one it called; a bound value
   means the body used it. And it must run BEFORE the propagation matcher, which would otherwise
   consume the pair and leave the `Ok(())` standing — which is how it was found.
+
+## The engine can now EMIT a package it has never seen
+
+- Five blind reviews have judged the same subject: the hermetic corpus. The fifth named why that is
+  the wrong subject — "the module exists to demonstrate scoping rules rather than to do anything",
+  "module names describe memory mechanics rather than domain concepts", "the crate uses none of the
+  features that distinguish Rust from Go". All true, and all properties of a CONSTRUCT-COVERAGE
+  FIXTURE rather than of the translation. A corpus built to exercise constructs necessarily reads
+  as one, however good the engine is.
+
+- The goal says the engine ports REAL repos. It could measure one and not emit one: `survey` counted
+  what a snapshot would translate to and threw the result away. Now `port <snapshot>` keeps it.
+
+  PARTIAL on purpose. The declarations that refused are absent and the report says how many — a real
+  package always has some, and refusing the whole package would leave the engine unable to show its
+  work until it was finished. Distinct from `port-go-source`, which runs the strict pipeline over
+  the hermetic corpus and refuses if anything in it fails; that strictness is right there, because
+  the corpus is the engine's own and a refusal in it is a regression.
+
+- IT PAID IMMEDIATELY. `xxhash` emits, and the first forty lines carry defects the hermetic corpus
+  could not have surfaced:
+
+  - `const MAGIC: String = "xxh\x06";` — a `String` const, which does not compile. The override that
+    makes a string constant a `&str` is keyed on the source type `string`, and an UNTYPED string
+    constant is not that;
+  - `fn u64(b: &[u8]) -> u64` — a function whose name shadows a primitive, with a body of
+    `binary.little_endian.uint64(b)`: an unresolved selector into a package the emitted crate does
+    not have, emitted as a path rather than refused;
+  - `fn consume_uint64(..) -> (Vec<u8>, u64)` returning `(&b[8..], x)` — a borrowed subrange where
+    the signature says owned.
+
+  Every one of those was counted as TRANSLATED. Which is the finding: the survey's "translated"
+  means "the transform produced an item", and nothing compiles it. The hermetic corpus has a compile
+  proof and the third-party surveys have none, so the number they report is an upper bound.
+
+- That is the next thing to fix, and it is worth more than any single rule: compile-proof the ported
+  third-party output. It will reclassify a chunk of every coverage number downward, which is the
+  sixth honest correction of the lane and the one that makes the rest of them trustworthy.

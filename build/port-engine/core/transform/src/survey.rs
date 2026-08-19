@@ -31,6 +31,17 @@ use crate::resolve::{LocalScope, Resolver};
 
 /// What a survey found, per declaration.
 #[derive(Clone, Debug)]
+pub struct PortedRegion {
+    /// The unit the declaration belongs to, which decides the module it is emitted into.
+    pub unit: UnitId,
+    /// The region this declaration owns.
+    pub region: String,
+    /// Where the declaration sits in its unit, so the emit can follow the source's order.
+    pub position: usize,
+    /// What it translated to.
+    pub items: Vec<port_engine_rust_ir::RustItem>,
+}
+
 pub struct SurveyReport {
     /// Declarations the engine translated.
     pub translated: Vec<SurveyEntry>,
@@ -48,6 +59,12 @@ pub struct SurveyReport {
     /// somebody made and wrote down; an uncaptured kind is a hole nobody has looked at. Counting
     /// them together understates how finished the engine is and hides the decision.
     pub deferred: Vec<SurveyEntry>,
+    /// What the translated declarations BECAME, in the order a reader should meet them.
+    ///
+    /// A survey that only counts can say a package is 70% translated and show nobody what the 70%
+    /// looks like — and what it looks like is the bar this engine is held to. Carried here so the
+    /// same pass that measures a real package can also emit it.
+    pub ported: Vec<PortedRegion>,
 }
 
 /// One declaration's outcome.
@@ -134,6 +151,7 @@ where
         refused: Vec::new(),
         uncaptured: Vec::new(),
         deferred: Vec::new(),
+        ported: Vec::new(),
     };
 
     let rules = pack.rules();
@@ -151,11 +169,14 @@ where
             continue;
         };
         let scope = LocalScope::with_failure(&declarations, pack.failure_convention());
-        for declaration in &declarations {
+        for (position, declaration) in declarations.iter().enumerate() {
             survey_declaration(
-                &unit,
+                &Site {
+                    unit: &unit,
+                    position,
+                    scope: &scope,
+                },
                 declaration,
-                &scope,
                 &rules,
                 pack,
                 &signatures,
@@ -166,10 +187,19 @@ where
     report
 }
 
+/// Where one declaration SITS: which unit, which position in it, and what names that unit has.
+///
+/// One value rather than three parameters, because they travel together and always will: a
+/// declaration is only ever surveyed in the context of the unit it belongs to.
+struct Site<'a> {
+    unit: &'a UnitId,
+    position: usize,
+    scope: &'a LocalScope,
+}
+
 fn survey_declaration<P>(
-    unit: &UnitId,
+    site: &Site<'_>,
     declaration: &Declaration,
-    scope: &LocalScope,
     rules: &[port_engine_api::RuleId],
     pack: &P,
     // Built once for the whole model, not per declaration: it is a translation of every signature
@@ -180,7 +210,7 @@ fn survey_declaration<P>(
     P: RulePack + PackSemantics,
 {
     let entry = |reason: Option<String>| SurveyEntry {
-        unit: unit.0.clone(),
+        unit: site.unit.0.clone(),
         name: declaration.name.clone(),
         kind: declaration.kind.clone(),
         reason,
@@ -189,13 +219,13 @@ fn survey_declaration<P>(
     // The LAST rule in pack order that captures this kind. Pack order is precedence order, so the
     // later rule is the more specific one — `rust_struct_body` over `rust_struct`, which is the
     // difference between measuring what the engine can do and what it could do before bodies.
-    let Some(construction) = rules
+    let Some((rule, construction)) = rules
         .iter()
         .filter(|rule| {
             pack.captures(rule)
                 .is_some_and(|kinds| kinds.iter().any(|kind| kind == &declaration.kind))
         })
-        .filter_map(|rule| pack.construction(rule))
+        .filter_map(|rule| Some((rule, pack.construction(rule)?)))
         .next_back()
     else {
         if pack.deferred_kinds().contains(&declaration.kind) {
@@ -215,7 +245,7 @@ fn survey_declaration<P>(
         log: &log,
     };
     let resolver = Resolver {
-        scope,
+        scope: site.scope,
         type_map: pack.type_map(),
         overrides: pack.type_map_overrides(construction),
         constructors: pack.type_constructors(),
@@ -237,11 +267,22 @@ fn survey_declaration<P>(
         literal_constructors: pack.literal_constructors(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,
-        unit,
+        unit: site.unit,
     };
 
     match build_item(construction, declaration, &resolver) {
-        Ok(_) => report.translated.push(entry(None)),
+        Ok(items) => {
+            // KEPT, not counted and discarded. A survey that only counts can say a package is 70%
+            // translated and show nobody what the 70% looks like — and what it looks like is the
+            // bar this engine is actually held to.
+            report.ported.push(PortedRegion {
+                unit: site.unit.clone(),
+                region: crate::naming::region_id_for_declaration(site.unit, rule, &declaration.name),
+                position: site.position,
+                items,
+            });
+            report.translated.push(entry(None));
+        }
         Err(error) => report.refused.push(entry(Some(refusal_of(&error)))),
     }
 }
