@@ -1,0 +1,41 @@
+[package]
+name = "intelligence-credential-resolver-adapter"
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+edition.workspace = true
+
+# Live OpenBao KV-v2 secret-fetch adapter for the intelligence credential-resolver
+# (ADR-0509 flat-clean-arch, ADR-0090 hyper preferred).
+#
+# Implements `CredentialHandleIssuerPort` via direct HTTP to OpenBao
+# `/v1/secret/data/<seat-path>`. No vault SDK — the KV-v2 REST surface is stable
+# and identical to HashiCorp Vault KV-v2 (OpenBao is the CNCF fork).
+#
+# ADR citations: ADR-0083 (Tier-3 panic-free), ADR-0090 (hyper preferred),
+#                ADR-0509 (flat-clean-arch), ADR-0131.
+
+[lib]
+name = "intelligence_credential_resolver_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-credential-resolver-domain = { path = "../../core/credential-resolver-domain" }
+intelligence-credential-resolver-usecase = { path = "../../core/credential-resolver-usecase" }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

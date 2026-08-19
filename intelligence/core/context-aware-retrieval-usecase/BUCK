@@ -1,0 +1,21 @@
+rust_library(
+    name = "intelligence-context-aware-retrieval-usecase",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_context_aware_retrieval_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/context-aware-retrieval-domain:intelligence-context-aware-retrieval-domain",
+    ],
+)
+
+rust_test(
+    name = "intelligence-context-aware-retrieval-usecase-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_context_aware_retrieval_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/context-aware-retrieval-domain:intelligence-context-aware-retrieval-domain",
+    ],
+)

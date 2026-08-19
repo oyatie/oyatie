@@ -1,0 +1,36 @@
+[package]
+name = "intelligence-attribution-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Attribution composition root (usecase layer per ADR-0105). Wires the pure `oya-intelligence-attribution-kernel::plan_attribution` metadata-only citation planner through the `-domain` policy-binding layer, the `-usecase` idempotent + audit-event layer, the `-worker` job lifecycle layer, and the `-adapter` citation-renderer envelope adapter into an end-to-end `dispatch_attribution` use-case. Owns the ports the runtime must satisfy: `AttributionRepository` (idempotency persistence), `AttributionPolicyStore` (tenant policy decisions), `AttributionAuditSink` (audit-event tap), `CitationRendererTransport` (async renderer invocation), plus in-memory reference adapters for tests / single-node bring-up. Surfaces typed `Unimplemented::*` honest boundaries for the OpenBao credential resolution + Bedrock-shape audit-chain emission downstreams. Path-deps on the 5 sibling attribution crates only; no NEW external workspace dependency seam (mirrors `intelligence-provider-pool-app` composition pattern; ADR-0083 Tier-3 panic-free; default-deny on error)."
+
+# INVARIANT: path-deps on the 5 sibling attribution crates only. The composition
+# layer adds tokio/futures-util/bytes/tracing/serde/serde_json for the production
+# transport scaffold (mirroring the provider-pool-app composition pattern).
+# No NEW external workspace dependency seam.
+[dependencies]
+intelligence-attribution-kernel = { path = "../attribution-kernel" }
+intelligence-attribution-domain = { path = "../attribution-domain" }
+intelligence-attribution-usecase = { path = "../attribution-usecase" }
+intelligence-attribution-worker = { path = "../attribution-worker" }
+intelligence-attribution-adapter = { path = "../../adapters/attribution-adapter" }
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "sync", "time"] }
+futures-util = { version = "0.3", default-features = false }
+bytes = { version = "1", default-features = false }
+tracing = { version = "0.1", default-features = false, features = ["std", "attributes"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "sync", "time"] }
+
+[lib]
+name = "intelligence_attribution_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

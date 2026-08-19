@@ -10,7 +10,7 @@ rather than a success, with cooldown expiry computed from provider-supplied
 
 ## Crate boundary
 
-`oya-intelligence-provider-pool-app` only. No changes to any other crate.
+`intelligence-provider-pool-app` only. No changes to any other crate.
 
 ## Mod layout (flat-clean-arch, ADR-0509)
 

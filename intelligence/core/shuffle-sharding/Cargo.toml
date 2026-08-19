@@ -1,0 +1,12 @@
+[package]
+name = "intelligence-shuffle-sharding"
+edition = "2024"
+version = "0.1.0"
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Pure deterministic shuffle-sharding cell selection for Oyatie tenant placement."
+
+[lib]
+name = "intelligence_shuffle_sharding"
+path = "src/lib.rs"

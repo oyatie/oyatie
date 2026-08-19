@@ -1,0 +1,44 @@
+# Naming: oya-<product>-<feature>-<layer> per v4 BNF.
+#         product=foundry; feature=supervisor; layer=app (12-layer-enum L5).
+#         Justification: daemon binary — composes supervisor-kernel port traits with
+#         jsonl-supervisor-adapter I/O seam; exposes hyper webhook endpoint; owns
+#         tick_once call chain and max_in_flight enforcement (M02-P06).
+
+[package]
+name = "intelligence-supervisor-app"
+version = "0.1.0"
+edition.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "intelligence-supervisor"
+path = "src/main.rs"
+
+[lib]
+name = "intelligence_supervisor_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bench]]
+name = "heartbeat"
+path = "benches/heartbeat.rs"
+harness = false
+
+[dependencies]
+intelligence-supervisor-kernel = { path = "../supervisor-kernel" }
+intelligence-jsonl-supervisor-adapter = { path = "../../adapters/jsonl-supervisor-adapter" }
+intelligence-cli-session-driver = { path = "../../adapters/cli-session-driver" }
+intelligence-route-policy-kernel = { path = "../route-policy-kernel" }
+intelligence-account-domain = { path = "../account-domain" }
+tokio = { workspace = true, features = ["sync"] }
+tracing.workspace = true
+tracing-subscriber = { version = "0.3", features = ["env-filter", "json"] }
+intelligence-settings-template-kernel = { version = "0.1.0", path = "../settings-template-kernel" }
+intelligence-settings-template-adapter = { version = "0.1.0", path = "../../adapters/settings-template-adapter" }
+intelligence-autonomy-ceiling-domain = { version = "0.1.0", path = "../autonomy-ceiling-domain" }
+intelligence-supervisor-security-adapter = { version = "0.1.0", path = "../../adapters/supervisor-security-adapter" }
+intelligence-account-adapter-inmemory = { version = "0.1.0", path = "../../adapters/account-adapter-inmemory" }
+
+[lints]
+workspace = true

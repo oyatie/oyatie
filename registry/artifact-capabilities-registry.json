@@ -2441,8 +2441,8 @@
       }
     },
     {
-      "artifact_id": "oya-intelligence-architecture-map-app-manifest",
-      "artifact_path": "oya/intelligence/crates/oya-intelligence-architecture-map-app/Cargo.toml",
+      "artifact_id": "intelligence-architecture-map-app-manifest",
+      "artifact_path": "intelligence/core/architecture-map-app/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",

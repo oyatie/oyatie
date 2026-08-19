@@ -1,0 +1,22 @@
+[package]
+name = "intelligence-codeview-cli"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+
+[[bin]]
+name = "intelligence-codeview-cli"
+path = "src/main.rs"
+
+[dependencies]
+clap = { workspace = true }
+anyhow = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+walkdir = { workspace = true }
+regex = { workspace = true }
+chrono = { version = "0.4", features = ["serde"] }
+
+[lints]
+workspace = true

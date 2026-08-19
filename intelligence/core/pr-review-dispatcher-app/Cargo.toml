@@ -1,0 +1,63 @@
+[package]
+# Naming justification (per feedback_naming_justification memory):
+#   - BNF v4.1 grammar:   oya - foundry - pr-review-dispatcher - app
+#   - slot-2 µservice:    `foundry` (registered; this is internal engineering
+#                         platform tooling — same family as the other
+#                         `oya-foundry-*` fitness/gate apps in tools/).
+#   - bc-tokens:          `pr-review-dispatcher` (3 kebab tokens; describes
+#                         the bounded-context concept — the dispatcher that
+#                         fans out the multispectrum review panel on PR).
+#   - layer (slot-N):     `app` — 12-value layer enum (per ADR-0056 amended
+#                         by ADR-0105 + ADR-0106 + ADR-0565). Bin-only tool that
+#                         orchestrates kernels per ADR-0107 §"tools/ binding"
+#                         (no implicit-app exception; every tools/ crate
+#                         carries a canonical layer suffix; binary tools use
+#                         `-app`).
+#   - 12-layer-enum conformance: `app` ∈ {kernel, domain, usecase, app,
+#                         adapter, infrastructure, cli, rest, grpc,
+#                         worker, sdk, api}. ✓
+#   - Sibling pattern:    matches every other tools/oya-foundry-*-app crate
+#                         (banned-primitives, adr-shape, authoritative-tracked,
+#                         supply-chain gates, etc.; archive-orphan retired by ADR-0118).
+#
+# IP plan symbol-claims listed `tools/oya-pr-review-dispatcher` literally
+# (.omc/plans/milestones/M01-foundation/phases/P10-pipeline-maturity-glue/
+# IP-004-reviewer-agent-auto-dispatch.md §"Symbols to grit-claim"). That
+# literal predates the BNF v4.1 finalization and would fail constraint 1
+# (segment count ≥ 3, microservice + layer minimum) AND constraint 2
+# (slot-2 µservice registry) AND the closed layer enum. The canonical form
+# below is the conforming rename.
+name = "intelligence-pr-review-dispatcher-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "intelligence-pr-review-dispatcher-app"
+path = "src/main.rs"
+
+[lib]
+name = "intelligence_pr_review_dispatcher_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-account-kernel = { path = "../account-kernel" }
+intelligence-subagent-runtime-kernel = { path = "../subagent-runtime-kernel" }
+intelligence-subagent-runtime-usecase = { path = "../subagent-runtime-usecase" }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[lints]
+workspace = true
+
+[package.metadata.oya]
+context     = "foundry"
+role        = "app"
+feature     = "pr-review-dispatcher"
+capability  = ""
+layer       = "app"
+audit_chain = true

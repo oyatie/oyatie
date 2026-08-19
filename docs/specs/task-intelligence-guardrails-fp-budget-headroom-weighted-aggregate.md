@@ -2,7 +2,7 @@
 
 ## Crate
 
-`oya-intelligence-guardrails-kernel`
+`intelligence-guardrails-kernel`
 
 ## Purpose
 

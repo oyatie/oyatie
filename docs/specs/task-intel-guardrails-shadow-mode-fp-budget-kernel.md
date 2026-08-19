@@ -1,7 +1,7 @@
 # Spec: intel-guardrails-shadow-mode-fp-budget-kernel
 
 **Vertical**: intelligence  
-**Crate**: `oya-intelligence-guardrails-kernel`  
+**Crate**: `intelligence-guardrails-kernel`  
 **Task slug**: `intel-guardrails-shadow-mode-fp-budget-kernel`  
 **ADR authority**: ADR-0509 (single-crate-per-service, mod-based subsystems)  
 **Layout authority**: ADR-0131 (per-microservice flat layout)
@@ -19,7 +19,7 @@ The enforced (`decide_guardrail`) path remains fail-closed and unchanged.
 
 ## Crate boundary
 
-All changes live in `microservices/intelligence/crates/oya-intelligence-guardrails-kernel/src/lib.rs`.
+All changes live in `intelligence/guardrails-kernel/src/lib.rs`.
 No new workspace member. No root `Cargo.toml` edit. No classifier SDK dependency.
 
 ---

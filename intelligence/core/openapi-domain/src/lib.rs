@@ -731,6 +731,30 @@ where
     Ok(map)
 }
 
+/// Whether a binding `source_path`/`test_path` lives in the crate directory of
+/// `runtime_crate`. Two layouts are accepted:
+/// - the legacy flat layout `crates/<crate>/...`;
+/// - the canonical capability-face layout `<capability>/<face>/<crate>/...`
+///   (ADR-0562), where the package name is `<capability>-<crate>` — e.g.
+///   `intelligence/core/api` hosts the `intelligence-api` package.
+///
+/// The canonical check is shape-only (path component arithmetic); it does not
+/// read the crate manifest, keeping this kernel filesystem-free.
+fn path_lives_in_crate(path: &str, runtime_crate: &str) -> bool {
+    if let Some(rest) = path.strip_prefix("crates/") {
+        return rest.starts_with(&format!("{runtime_crate}/"));
+    }
+    // Canonical: <capability>/<face>/<crate>/... where `<capability>-<crate>`
+    // is the package name. The crate dir is the third path component.
+    let mut parts = path.split('/');
+    let (Some(capability), Some(_face), Some(crate_dir)) =
+        (parts.next(), parts.next(), parts.next())
+    else {
+        return false;
+    };
+    format!("{capability}-{crate_dir}") == runtime_crate
+}
+
 fn validate_schema_binding_shape(binding: &OpenApiSchemaBinding) -> Result<(), OpenApiSourceError> {
     require_schema_non_empty(&binding.schema_name, "schema_name", &binding.schema_name)?;
     validate_document_path(&binding.contract_path)?;
@@ -742,12 +766,14 @@ fn validate_schema_binding_shape(binding: &OpenApiSchemaBinding) -> Result<(), O
     validate_relative_schema_path(&binding.source_path, "source_path", &binding.schema_name)?;
     require_schema_non_empty(&binding.rust_struct, "rust_struct", &binding.schema_name)?;
 
-    let crate_prefix = format!("crates/{}/", binding.runtime_crate);
-    if !binding.source_path.starts_with(&crate_prefix) {
+    if !path_lives_in_crate(&binding.source_path, &binding.runtime_crate) {
         return Err(OpenApiSourceError::InvalidSchemaBinding {
             schema_name: binding.schema_name.clone(),
             field: "source_path",
-            reason: format!("source path must live under {crate_prefix}"),
+            reason: format!(
+                "source path must live in the crate dir of `{}` (legacy `crates/<crate>/` or canonical `<capability>/<face>/<crate>/` layout)",
+                binding.runtime_crate
+            ),
         });
     }
     Ok(())
@@ -837,19 +863,24 @@ fn validate_runtime_binding_shape(
         require_non_empty(schema_name, "response_schemas", &binding.operation_id)?;
     }
 
-    let crate_prefix = format!("crates/{}/", binding.runtime_crate);
-    if !binding.source_path.starts_with(&crate_prefix) {
+    if !path_lives_in_crate(&binding.source_path, &binding.runtime_crate) {
         return Err(OpenApiSourceError::InvalidRuntimeBinding {
             operation_id: binding.operation_id.clone(),
             field: "source_path",
-            reason: format!("source path must live under {crate_prefix}"),
+            reason: format!(
+                "source path must live in the crate dir of `{}` (legacy `crates/<crate>/` or canonical `<capability>/<face>/<crate>/` layout)",
+                binding.runtime_crate
+            ),
         });
     }
-    if !binding.test_path.starts_with(&crate_prefix) {
+    if !path_lives_in_crate(&binding.test_path, &binding.runtime_crate) {
         return Err(OpenApiSourceError::InvalidRuntimeBinding {
             operation_id: binding.operation_id.clone(),
             field: "test_path",
-            reason: format!("test path must live under {crate_prefix}"),
+            reason: format!(
+                "test path must live in the crate dir of `{}` (legacy `crates/<crate>/` or canonical `<capability>/<face>/<crate>/` layout)",
+                binding.runtime_crate
+            ),
         });
     }
     Ok(())
@@ -4693,6 +4724,45 @@ components:
                 )],
                 [runtime_source(
                     "crates/oya-intelligence-api/tests/capability_invoke_api.rs",
+                    RUNTIME_API_TEST,
+                )],
+            ),
+            Ok(OpenApiRuntimeParityReport {
+                operations_checked: 1,
+                bindings_checked: 1,
+                sources_checked: 1,
+                tests_checked: 1,
+                response_statuses_checked: 3,
+                response_schemas_checked: 3,
+            })
+        );
+    }
+
+    #[test]
+    fn accepts_openapi_runtime_binding_at_canonical_capability_face_paths() {
+        // ADR-0562 canonical capability-face layout: `<capability>/<face>/<crate>`
+        // with the package named `<capability>-<crate>` (intelligence/core/api
+        // hosts intelligence-api). The shape validator must accept these paths
+        // just like the legacy `crates/<crate>/` layout.
+        let canonical = OpenApiRuntimeBinding {
+            runtime_crate: "intelligence-api".into(),
+            source_path: "intelligence/core/api/src/lib.rs".into(),
+            test_path: "intelligence/core/api/tests/capability_invoke_api.rs".into(),
+            ..runtime_binding()
+        };
+        assert_eq!(
+            validate_openapi_runtime_parity(
+                [document(
+                    "contracts/openapi/foundry/capability-v1.yaml",
+                    VALID,
+                )],
+                [canonical],
+                [runtime_source(
+                    "intelligence/core/api/src/lib.rs",
+                    RUNTIME_API
+                )],
+                [runtime_source(
+                    "intelligence/core/api/tests/capability_invoke_api.rs",
                     RUNTIME_API_TEST,
                 )],
             ),

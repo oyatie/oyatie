@@ -1,7 +1,7 @@
 # Spec: subscription-pool-proxy-sse-openbao-metrics
 
 **Vertical:** intelligence
-**Crate:** `oya-intelligence-provider-pool-app`
+**Crate:** `intelligence-provider-pool-app`
 **ADR anchors:** ADR-0083 (Tier-3 panic-free), ADR-0105 (usecase/composition root),
 ADR-0131 (per-microservice flat layout), ADR-0374 (placeholder-debt registry)
 
@@ -28,7 +28,7 @@ streaming-capable proxy with three orthogonal capabilities:
 ## Vertical and layering
 
 ```
-oya-intelligence-provider-pool-app   ← this crate (usecase / composition root)
+intelligence-provider-pool-app   ← this crate (usecase / composition root)
   ├── [inward] oya-intelligence-provider-pool-kernel  (pure routing kernel)
   └── [inward] oya-intelligence-account-kernel        (value types)
 ```
@@ -246,7 +246,7 @@ pub enum DispatchError {
 
 This crate is the usecase layer; it does not own an HTTP listener. The OpenAPI
 surface for the streaming proxy is owned by the REST adapter crate
-(`oya-intelligence-api-rest-adapter` or a future streaming-specific adapter).
+(`intelligence-api-rest-adapter` or a future streaming-specific adapter).
 The contracts this spec defines are the Rust port traits and function signatures
 above, not HTTP endpoints.
 

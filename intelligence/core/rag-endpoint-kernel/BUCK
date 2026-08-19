@@ -1,0 +1,21 @@
+rust_library(
+    name = "intelligence-rag-endpoint-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_rag_endpoint_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/capability-registry-kernel:intelligence-capability-registry-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-rag-endpoint-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_rag_endpoint_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/capability-registry-kernel:intelligence-capability-registry-kernel",
+    ],
+)

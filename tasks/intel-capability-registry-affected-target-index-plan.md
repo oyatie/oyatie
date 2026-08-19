@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya-intelligence-capability-registry-app` with a pure deterministic
+Extend `intelligence-capability-registry-app` with a pure deterministic
 `affected_set` use-case: given a set of changed capability IDs, return the
 transitive set of impacted capability IDs via declared `owner_capability_id`
 dependency edges on `Capability`.
@@ -44,7 +44,7 @@ When a capability changes, all direct and transitive dependents are affected.
 
 1. [x] Write plan (this file)
 2. [x] Write spec (docs/specs/task-intel-capability-registry-affected-target-index.md)
-3. [x] Write failing tests in oya-intelligence-capability-registry-app
+3. [x] Write failing tests in intelligence-capability-registry-app
 4. [x] Implement `CapabilityRegistry::affected_set` (minimum code to pass)
 5. [x] Verify green: cargo check + cargo nextest run
 6. [x] Self-review (correctness / architecture / security / performance / cloud-native)

@@ -8,13 +8,13 @@ capability IDs by following `owner_capability_id` dependency edges in reverse.
 
 ## Crate boundary
 
-Touches **only** `microservices/intelligence/crates/oya-intelligence-capability-registry-app`.
+Touches **only** `intelligence/capability-registry-app`.
 No new workspace member. No kernel or domain changes required.
 
 ## Flat-clean-arch mod layout (ADR-0509)
 
 ```
-oya-intelligence-capability-registry-app/src/
+intelligence-capability-registry-app/src/
   lib.rs          ← existing: Register / List / Get + new affected_set method
 ```
 

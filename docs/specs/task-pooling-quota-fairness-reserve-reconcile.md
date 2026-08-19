@@ -3,7 +3,7 @@
 ## Objective
 
 Implement per-AGENT-TOKEN reserve-then-reconcile quota in the dispatch path of
-`oya-intelligence-provider-pool-app` to prevent a single swarm agent from
+`intelligence-provider-pool-app` to prevent a single swarm agent from
 draining the shared provider subscription pool.
 
 Re-key quota attribution on `(TenantId, AgentToken)` identity — NOT source IP —
@@ -86,7 +86,7 @@ DispatchError::QuotaBudgetExceeded {
 
 ## Mod Layout (flat clean-arch, ADR-0509)
 
-All code lives inside `oya-intelligence-provider-pool-app/src/`:
+All code lives inside `intelligence-provider-pool-app/src/`:
 
 ```
 src/
@@ -136,6 +136,6 @@ can record `provider_pool.quota.budget_exceeded` counter as a follow-up.
 
 ## Crate Boundary
 
-All changes confined to `microservices/intelligence/crates/oya-intelligence-provider-pool-app/`.
+All changes confined to `intelligence/core/provider-pool-app/`.
 No changes to `Cargo.toml` (no new external deps: uses only `std`, `BTreeMap`, `Arc<Mutex>`).
 No changes to root `Cargo.toml` or any other workspace member.

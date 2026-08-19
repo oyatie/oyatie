@@ -1,0 +1,18 @@
+[package]
+name = "intelligence-guardrails-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-guardrails-domain = { path = "../guardrails-domain" }
+
+[lib]
+name = "intelligence_guardrails_usecase"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

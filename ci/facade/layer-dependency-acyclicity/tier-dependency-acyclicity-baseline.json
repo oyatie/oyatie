@@ -1,5 +1,5 @@
 {
-  "_comment": "FROZEN known-debt baseline for the cloud-ci-tier-dependency-acyclicity gate (Phase-0 capability-first reorg; ADR-0245/0280/0562). The set of PRE-EXISTING tier-dependency violations captured on the live tree at the gate's birth — the substrate-inversions the reorg exists to fix (substrate->product upward edges + intra-substrate S-rank inversions). The gate reports these ADVISORY-only and blocks ONLY on a NEW regression (a code|subject NOT in this set). The baseline BURNS DOWN as the strangler moves fix inversions; removing an entry is always allowed. When violations reaches zero, flip the policy enforcement to \"blocking\". DATA, not code: canonical-json governed. Each entry's `code|subject` is the membership identity; subject is the crate edge `from -> to`. Regenerate via `oya-cloud-ci-tier-dependency-acyclicity --repo-root . --emit-baseline`. TWO ROW FAMILIES, deliberately different: (a) EDGE rows (`subject` = `from -> to`), which --emit-baseline re-derives from the live violation set; (b) ROOT rows (`subject` = a top-level root), currently the 21 TDA-UNCLASSIFIED-ROOT-NOT-META entries, which --emit-baseline never MINTS — a structural exemption must never be re-freezable by re-running the tool, or the remedy for \"you exempted a capability root\" becomes \"re-emit\", which is the laundering path that let unclassified_roots grow 3 -> 27. A root row is added only by a hand edit, visible in review. --emit-baseline does CARRY FORWARD the root rows already committed here, filtered to those still live, so regenerating drops a burned-down root row without destroying the other 20; it once dropped all 21 at once, which turned the documented remedy into 21 blocking regressions. The 9 TDA-S-RANK-INVERSION rows are NOT new debt: they are pre-existing ADR-0280 inversions that the capability moves had HIDDEN by relocating one endpoint into an unenforced root — e.g. the 3 `-> network/core/residency` edges that #764 (move-19, \"residency inversion hub\") made vanish and that this gate's own test recorded as \"burned down\".",
+  "_comment": "FROZEN known-debt baseline for the cloud-ci-tier-dependency-acyclicity gate (Phase-0 capability-first reorg; ADR-0245/0280/0562). The set of PRE-EXISTING tier-dependency violations captured on the live tree at the gate's birth \u2014 the substrate-inversions the reorg exists to fix (substrate->product upward edges + intra-substrate S-rank inversions). The gate reports these ADVISORY-only and blocks ONLY on a NEW regression (a code|subject NOT in this set). The baseline BURNS DOWN as the strangler moves fix inversions; removing an entry is always allowed. When violations reaches zero, flip the policy enforcement to \"blocking\". DATA, not code: canonical-json governed. Each entry's `code|subject` is the membership identity; subject is the crate edge `from -> to`. Regenerate via `oya-cloud-ci-tier-dependency-acyclicity --repo-root . --emit-baseline`. TWO ROW FAMILIES, deliberately different: (a) EDGE rows (`subject` = `from -> to`), which --emit-baseline re-derives from the live violation set; (b) ROOT rows (`subject` = a top-level root), currently the 16 TDA-UNCLASSIFIED-ROOT-NOT-META entries, which --emit-baseline never MINTS \u2014 a structural exemption must never be re-freezable by re-running the tool, or the remedy for \"you exempted a capability root\" becomes \"re-emit\", which is the laundering path that let unclassified_roots grow 3 -> 27. A root row is added only by a hand edit, visible in review. --emit-baseline does CARRY FORWARD the root rows already committed here, filtered to those still live, so regenerating drops a burned-down root row without destroying the other 20; it once dropped all 21 at once, which turned the documented remedy into 21 blocking regressions. The 9 TDA-S-RANK-INVERSION rows are NOT new debt: they are pre-existing ADR-0280 inversions that the capability moves had HIDDEN by relocating one endpoint into an unenforced root \u2014 e.g. the 3 `-> network/core/residency` edges that #764 (move-19, \"residency inversion hub\") made vanish and that this gate's own test recorded as \"burned down\".",
   "gate_id": "cloud-ci-tier-dependency-acyclicity",
   "frozen_at_ref": "agent/p0-acyclicity-lint @ origin/dev 54203ddb0",
   "burn_down_target": 0,
@@ -42,35 +42,35 @@
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "oya/intelligence/crates/oya-intelligence-api -> oya/application/crates/oya-application-app"
+      "subject": "intelligence/core/api -> oya/application/crates/oya-application-app"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "oya/intelligence/crates/oya-intelligence-backbone-workload-live-app -> oya/community/crates/oya-community-post-store-adapter-postgres"
+      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-post-store-adapter-postgres"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "oya/intelligence/crates/oya-intelligence-backbone-workload-live-app -> oya/community/crates/oya-community-post-store-api"
+      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-post-store-api"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "oya/intelligence/crates/oya-intelligence-backbone-workload-live-app -> oya/community/crates/oya-community-post-store-domain"
+      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-post-store-domain"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "oya/intelligence/crates/oya-intelligence-backbone-workload-live-app -> oya/community/crates/oya-community-post-store-usecase"
+      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-post-store-usecase"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "oya/intelligence/crates/oya-intelligence-backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-adapter-postgres"
+      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-adapter-postgres"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "oya/intelligence/crates/oya-intelligence-backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-api"
+      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-api"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "oya/intelligence/crates/oya-intelligence-backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-usecase"
+      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-usecase"
     },
     {
       "code": "TDA-UNCLASSIFIED-ROOT-NOT-META",
@@ -111,10 +111,6 @@
     {
       "code": "TDA-UNCLASSIFIED-ROOT-NOT-META",
       "subject": "iam"
-    },
-    {
-      "code": "TDA-UNCLASSIFIED-ROOT-NOT-META",
-      "subject": "intelligence"
     },
     {
       "code": "TDA-UNCLASSIFIED-ROOT-NOT-META",

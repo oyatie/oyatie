@@ -330,7 +330,6 @@
       ],
       "absorbs_current_dirs": [
         "intelligence",
-        "oya/intelligence",
         "intelligence/detection"
       ],
       "dag_node": "intelligence"

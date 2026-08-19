@@ -164,7 +164,7 @@ doc_status: published
 6. Patch citation freshness if answers cited old corpus version.
 7. Add regression fixture for stale policy document citation.
 8. Add regression fixture for adversarial RAG instruction chunk.
-9. Run RAG tests: `cargo test -p oya-intelligence-rag-api rag_corpus -- --nocapture`.
+9. Run RAG tests: `cargo test -p intelligence-rag-api rag_corpus -- --nocapture`.
 10. Run eval tests: `cargo test -p oya-governance-eval-domain rag_retrieval -- --nocapture`.
 11. Run production gate: `cargo run -p oya-dev-cli -- gate validate intelligence-rag-corpus --production-snapshot --cell $CELL`.
 12. Verify retrieval eval: `oya ops intelligence eval run --pack $PACK --suite rag-retrieval-quality --tenant $TENANT --expect pass`.

@@ -1,10 +1,10 @@
 # Spec: intel-attribution-claim-fanout-cap
 
 ## Summary
-Extend `plan_attribution` in `oya-intelligence-attribution-kernel` with deterministic per-claim citation fanout control.
+Extend `plan_attribution` in `intelligence-attribution-kernel` with deterministic per-claim citation fanout control.
 
 ## Slice
-Pure std-only, no I/O. All changes inside `oya-intelligence-attribution-kernel`.
+Pure std-only, no I/O. All changes inside `intelligence-attribution-kernel`.
 
 ## New Behavior
 

@@ -1,6 +1,6 @@
 # Spec: pooling-anthropic-oauth-refresh-runtime
 
-**Crate**: `oya-intelligence-adapter-anthropic-subscription-adapter`
+**Crate**: `intelligence-anthropic-subscription-adapter`
 **ADRs**: ADR-0083 (panic-free), ADR-0090 (hyper HTTP stack), ADR-0506 (aws-lc-rs crypto),
           ADR-0509 (flat clean arch), ADR-0130 (SLO), ADR-0043 (no raw tokens)
 
@@ -89,7 +89,7 @@ All tests are hermetic. No real Anthropic calls. In-process mock OAuth token ser
 
 ## Crate Boundary
 
-Only `oya-intelligence-adapter-anthropic-subscription-adapter` is modified. No new workspace members.
+Only `intelligence-anthropic-subscription-adapter` is modified. No new workspace members.
 `Cargo.toml` gains:
 - `tokio` (workspace, features: sync, time, net)
 - `hyper` (workspace)
