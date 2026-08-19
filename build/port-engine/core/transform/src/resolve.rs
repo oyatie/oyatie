@@ -42,6 +42,12 @@ pub struct LocalScope {
     /// source name — is absent, because rewriting it would have to pick one and the prose does not
     /// say which.
     pub(crate) renames: BTreeMap<String, String>,
+    /// The unit's constants that are LENGTHS, proved from what the unit compares them against.
+    ///
+    /// Held here because the declaration and every comparison need the same answer: the constant
+    /// renders as the target's index type, and the length beside it drops the conversion the call's
+    /// mapping adds. Deriving it twice would let a guard compare two different types.
+    pub(crate) length_constants: BTreeSet<String>,
     /// The unit's SENTINEL failures, by source name, with the message each carries.
     ///
     /// Held here because three places need the same answer — what the declaration emits, what a
@@ -66,6 +72,16 @@ impl LocalScope {
         declarations: &[Declaration],
         failure: Option<&port_engine_api::FailureConvention>,
     ) -> Self {
+        Self::with_lengths(declarations, failure, &BTreeSet::new())
+    }
+
+    /// The same, plus the constants that are lengths, which needs the pack's length callees.
+    pub fn with_lengths(
+        declarations: &[Declaration],
+        failure: Option<&port_engine_api::FailureConvention>,
+        lengths: &BTreeSet<String>,
+    ) -> Self {
+        let length_constants = crate::length_consts::length_constants(declarations, lengths);
         let sentinels = crate::sentinel::sentinels(declarations, failure);
         let mut types = BTreeMap::new();
         let mut renames: BTreeMap<String, Option<String>> = BTreeMap::new();
@@ -100,6 +116,7 @@ impl LocalScope {
         Self {
             types,
             sentinels,
+            length_constants,
             renames: renames
                 .into_iter()
                 .filter_map(|(source, target)| Some((source, target?)))

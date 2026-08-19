@@ -40,6 +40,23 @@ pub(crate) fn is_receiver(node: &Declaration) -> bool {
     node.attr(ATTR_REF) == Some("receiver")
 }
 
+/// Whether this binary node compares a LENGTH CONSTANT against a length.
+///
+/// Both sides are then the target's index type, so the conversion the length call's mapping adds is
+/// what is wrong — the same question the loop counter asks, at the one other place two values of
+/// that type meet. The constant and the comparison read the SAME proof, so a guard cannot end up
+/// comparing two different types.
+pub(crate) fn compares_lengths(node: &Declaration, cx: &Body<'_>) -> bool {
+    let [left, right] = node.children.as_slice() else {
+        return false;
+    };
+    [(left, right), (right, left)].iter().any(|(a, b)| {
+        a.kind == crate::vocabulary::KIND_IDENT
+            && cx.resolver.scope.length_constants.contains(&a.name)
+            && b.kind == crate::vocabulary::KIND_CALL
+    })
+}
+
 pub(crate) fn binary_operator(spelling: &str) -> Option<BinaryOp> {
     Some(match spelling {
         "+" => BinaryOp::Add,

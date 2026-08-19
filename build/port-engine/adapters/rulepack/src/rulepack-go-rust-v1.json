@@ -441,6 +441,7 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/scoped": [
+      "go_const",
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/accumulate": [

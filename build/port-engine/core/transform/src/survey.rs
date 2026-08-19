@@ -82,7 +82,11 @@ where
         let Some(declarations) = model.declarations(&unit) else {
             continue;
         };
-        let scope = LocalScope::with_failure(&declarations, pack.failure_convention());
+        let scope = LocalScope::with_lengths(
+            &declarations,
+            pack.failure_convention(),
+            pack.length_functions(),
+        );
         for (position, declaration) in declarations.iter().enumerate() {
             survey_declaration(
                 &Site {

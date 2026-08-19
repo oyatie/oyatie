@@ -98,7 +98,11 @@ impl SignatureTable {
             let Some(declarations) = model.declarations(&unit) else {
                 continue;
             };
-            let scope = LocalScope::with_failure(&declarations, semantics.failure_convention());
+            let scope = LocalScope::with_lengths(
+            &declarations,
+            semantics.failure_convention(),
+            semantics.length_functions(),
+        );
             // Every name: a SIGNATURE names no body, so nothing here can depend on whether another
             // declaration's body translated.
             let declared: BTreeSet<String> = declarations

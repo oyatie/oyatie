@@ -2883,3 +2883,43 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   `ERR_INVALID_SEMVER`, because `SemVer` is one word. The engine cannot know that. `SemVer` and
   `MaxLen` are the same shape — two capitalised runs — and one is a single concept while the other
   is two words. There is no fact in the source that separates them, so the split stays.
+
+## A constant that is a LENGTH, and where the evidence list finally stands
+
+- `const maxVersionLen = 256` is the source's own integer and the type map sends it to the target's
+  signed one — right for a value the source typed that way, wrong for a bound on a length. Every
+  guard then reads `s.len() as i64 > MAX_VERSION_LEN`: a cast per call site, one chance each to get
+  the direction wrong, and because the constant is public the casts leak to every caller. Two
+  reviewers called it the most consequential finding in the file.
+
+- Proved from the WHOLE UNIT rather than from the declaration: a constant is a length when
+  everything that reads it compares it against one. One read that is anything else — arithmetic, an
+  argument, a return — and the signed value IS observed somewhere, so it keeps its type.
+
+  AT LEAST ONE READ IS REQUIRED, and that guard is doing real work rather than being defensive: in
+  the surveyed packages every guard that reads those constants currently refuses, so the rule sees
+  no reads and correctly declines. "Every read qualifies" over none of them is vacuously true and
+  would retype constants on no evidence at all. The rule is latent there and proven in the corpus —
+  `pub const MAX_WIDTH: usize = 8;` with `s.len() < MAX_WIDTH`, no cast on either side.
+
+  The constant's declaration and every comparison read the SAME proof, so a guard cannot end up
+  comparing two different types.
+
+- WHERE THE EVIDENCE LIST STANDS, after the eighth review — the second consecutive MERGE WITH
+  CHANGES, on a FILE rather than a module block. Eight items, and the reviewer marks five of them
+  "plausibly human" themselves. Of the three they call conclusive:
+
+  - `errors.Is` and `inc_major_e` in a doc comment. The SOURCE'S OWN PROSE, and their argument is
+    that a human would have stopped there — which is right, and it is an argument about the ERROR
+    MODEL rather than about the prose. The engine substitutes names; it does not rewrite claims. A
+    claim that is false of the emitted code is a consequence of a decision recorded in the pack, and
+    the honest fix is that decision.
+  - The doc-prefix strip leaving a grammar break. The source's sentence is "ErrInvalidSemVer is
+    returned a version is found to be invalid when being parsed" — it is missing a "when" upstream.
+    Removing "X is" leaves it no more broken than it was. The strip is the right translation of a
+    convention the target inverts, and this example is the source's own defect travelling.
+  - `i64` for the limits. Answered above.
+
+- What that leaves as open ENGINE work is one thing: the error model. Everything else on the list is
+  either the source's own text carried faithfully, a decision already recorded with its reason, or
+  something the reviewer marks as a choice a human porter would make too.
