@@ -52,7 +52,7 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		if body != nil {
 			assigned = assignedLocals(body, ctx)
 		}
-		annotateParameterFacts(base.Children, body, reboundParameters(assigned))
+		annotateParameterFacts(base.Children, body, reboundParameters(assigned), ctx)
 		if body != nil {
 			inner := *ctx
 			inner.assigned = assigned
@@ -180,7 +180,7 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 		}
 		// A method's parameters were never annotated at all — the function path did this and the
 		// method path did not, so a method parameter carried no ownership facts and no rebinding.
-		annotateParameterFacts(children, body, reboundParameters(assigned))
+		annotateParameterFacts(children, body, reboundParameters(assigned), ctx)
 		if body != nil {
 			// The body walk needs the receiver's NAME: `c.total` becomes `self.total` only if
 			// something knows that `c` is the receiver and `other` is not.
@@ -191,7 +191,7 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 		}
 
 		flags := flagsFor(method.Exported(), sig.Variadic(), false, isPointerReceiver(sig))
-		flags = append(flags, ownershipFacts(ctx.bodies[method], receiverName)...)
+		flags = append(flags, ownershipFacts(ctx.bodies[method], receiverName, ctx)...)
 		sort.Strings(flags)
 
 		methods = append(methods, node{

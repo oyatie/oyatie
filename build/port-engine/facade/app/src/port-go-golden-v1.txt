@@ -14,13 +14,6 @@ pub mod accumulate {
         }
         acc
     }
-    // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__shift
-    /// Scales n by a power of two, in place.
-    pub fn shift(mut n: i64, by: i64) -> i64 {
-        n <<= by;
-        n = n.wrapping_sub(1);
-        n
-    }
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__total
     /// Sums the values, accumulating in place.
     pub fn total(values: Vec<i64>) -> i64 {
@@ -262,10 +255,10 @@ pub mod invariant {
     /// The invariant shape: a condition the caller is required to have met, and a literal message
     /// naming what it was.
     pub fn half(n: i64) -> i64 {
-        if n.wrapping_rem(2) != 0 {
+        if n % 2 != 0 {
             panic!("Half requires an even argument");
         }
-        n.wrapping_div(2)
+        n / 2
     }
 }
 pub mod naming {

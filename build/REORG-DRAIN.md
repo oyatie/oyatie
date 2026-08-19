@@ -1103,6 +1103,53 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   reason rather than a row in a table.
   ksuid 36.6% → 38.7%.
 
+- FOLLOWING CALLS, which the `unproven_owned` disposition's own reason had been asking for. Passing
+  a pointer to any call made every fact about it unproven, so most methods carried `effect_unknown`
+  and nothing else — the analysis reporting that a call happened rather than reporting anything
+  about the pointer. `unproven_owned` has no receiver form, so each of those refused.
+  Three ways a pointer reaches a call, and only one is a positional argument. The ARGUMENT case is
+  answered by what the callee does to the parameter it lands in. The RECEIVER case is not in `Args`
+  at all — `s.helper()` reached the argument loop with nothing rooted at `s`, so it was silently
+  treated as though the pointer had not been passed anywhere. And a BUILTIN or a CONVERSION has no
+  body to read: what `len` does is a property of the source language rather than a decision, and a
+  conversion reads its operand and does nothing else — the same "a call is not always a call"
+  confusion that once emitted a conversion as a call to a function with no name, met from the other
+  side. The WRITING builtins are deliberately absent from the read-only set and keep leaving the
+  facts unproven.
+  Recursion is guarded by the objects already on the stack, and a cycle yields `effect_unknown`
+  rather than a fixpoint: the honest answer for a pointer whose fate depends on itself is that
+  nothing was proven, and iterating would claim more than this pass can defend.
+  98 methods now carry clean facts and 21 an exclusive borrow, where before almost all were
+  unproven. `errors` 26.3% → 31.6%.
+
+- THE SECOND BLIND REVIEW was run against the changed output, and it is more rigorous than the
+  first: the reviewer compiled the crate AND probed it from an external consumer, so every claim it
+  makes was executed rather than inferred. Verdict is still DO NOT MERGE.
+  IT FOUND A DEFECT I KNOWINGLY LEFT. The wrapping-arithmetic phase excluded shifts and said so —
+  the source defines a shift at or beyond the operand width as ZERO and panics on a negative count,
+  the target panics on the first in debug and masks the count in release. Three behaviours where
+  the source has two, none matching. But excluding them from the POLICY left them emitting the
+  plain operator, so `shift(n, by)` aborts for `by >= 64` and for any negative `by` where the
+  source returns zero and panics respectively. A gap that emits is not a gap, it is a defect.
+  Refused by name now until the pack declares a form: `checked_shl(..).unwrap_or(0)` is the zero
+  half and says nothing about the negative half. Second time `census/` sizing no numeric family has
+  cost something.
+  IT WAS ALSO RIGHT ABOUT OVER-APPLICATION. `n.wrapping_div(2)` cannot wrap: integer division
+  overflows in exactly one case, the minimum value over negative one, so a literal divisor that is
+  not `-1` cannot reach it. The wrapping form there carried no rule the target lacks, which reads
+  as mechanical rather than reasoned — and the point of spelling arithmetic that way is to carry a
+  rule, so where the target already agrees the spelling says nothing. A negative literal arrives as
+  a unary minus rather than a literal and keeps the wrapping form, which is the conservative
+  direction.
+  MOST OF THE REST IS THE CORPUS, and the split is worth keeping straight. `Point` unconstructible,
+  `lookup` ignoring its table, `Point::shift` dropping a field, `Tag::rename` doing nothing: every
+  one is a faithful port of a fixture written to exercise a construct, and the Go source has the
+  same property. They say the corpus is not a library, which is true and was never the claim.
+  ONE OF THEM IS FAIR AND IS OURS: the emitted rustdoc narrates an internal exercise, because the
+  corpus's own doc comments are written for readers of the engine. The corpus is a port INPUT and
+  its prose becomes public API documentation, so fixture docs need writing as API docs — which is
+  not hand-tuning output, it is fixing the input.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:538e6d27d1aad25af394d129dcdcdbe82619756f029ccb203a834f41670b1730",
+  "snapshot_digest": "sha256:bf2f869779c9f750f0ed3642d97cfb110bd8bb27fe24088da652f1d6eb1381dd",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-interface/corpus-interface/positions",
@@ -217,10 +217,7 @@
                     "package": "oyatie.example/portengine-fixture-interface/corpus-interface/positions"
                   }
                 ]
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",

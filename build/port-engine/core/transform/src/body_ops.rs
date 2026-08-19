@@ -48,8 +48,22 @@ pub(crate) fn binary_operator(spelling: &str) -> Option<BinaryOp> {
         "&" => BinaryOp::BitAnd,
         "|" => BinaryOp::BitOr,
         "^" => BinaryOp::BitXor,
-        "<<" => BinaryOp::Shl,
-        ">>" => BinaryOp::Shr,
+        // `<<` and `>>` are DELIBERATELY ABSENT, and this is the one place the absence is
+        // visible. The source defines a shift at or beyond the operand width as ZERO and panics on
+        // a negative count; the target panics on the first in a debug build and masks the count in
+        // a release one. Three behaviours where the source has two, none of them matching — output
+        // that compiles and means something different, which is the failure this engine exists to
+        // prevent.
+        //
+        // Emitting the plain operator was a knowing gap while the wrapping policy was written, and
+        // a reviewer reading the emitted crate found it by executing it: a public `shift(n, by)`
+        // aborts for `by >= 64` and for any negative `by`, where the source returns zero and
+        // panics respectively. A gap that emits is not a gap, it is a defect.
+        //
+        // Refused by name until the pack declares the form. `checked_shl(..).unwrap_or(0)` is the
+        // zero half and says nothing about the negative half, and `census/` sizes no numeric
+        // family at all — which the standing brief already says, and which is now the second time
+        // it has cost something.
         // `&^` (AND NOT) has no single-operator target form. It is spellable as `& !`, but the
         // operand widths differ between the languages and a silent rewrite of a bit operation is
         // exactly the class of change nobody reviews.

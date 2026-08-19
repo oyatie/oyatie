@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:09d5082ccfbaf6b3fdb8f5aa6387ea9543be256eab647c9ea62e63833be24d6a",
+  "snapshot_digest": "sha256:f786ad7640a5ab46137ed93ff279a42dd63c26650a1ba6fdd99477b417412fd0",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -28,10 +28,7 @@
                     "name": "int64"
                   }
                 ]
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -284,123 +281,6 @@
         },
         {
           "kind": "func",
-          "name": "Shift",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Shift scales n by a power of two, in place."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "n",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              },
-              "flags": [
-                "escapes",
-                "rebound"
-              ]
-            },
-            {
-              "kind": "param",
-              "name": "by",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              },
-              "flags": [
-                "escapes"
-              ]
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "assign",
-                  "name": "",
-                  "type": {
-                    "kind": "basic",
-                    "name": "int64"
-                  },
-                  "attrs": {
-                    "op": "\u003c\u003c"
-                  },
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "n",
-                      "attrs": {
-                        "ref": "local"
-                      }
-                    },
-                    {
-                      "kind": "ident",
-                      "name": "by",
-                      "attrs": {
-                        "ref": "local"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "kind": "assign",
-                  "name": "",
-                  "type": {
-                    "kind": "basic",
-                    "name": "int64"
-                  },
-                  "attrs": {
-                    "op": "-"
-                  },
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "n",
-                      "attrs": {
-                        "ref": "local"
-                      }
-                    },
-                    {
-                      "kind": "literal",
-                      "name": "",
-                      "attrs": {
-                        "lit_kind": "INT",
-                        "value": "1"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "n",
-                      "attrs": {
-                        "ref": "local"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "func",
           "name": "Total",
           "flags": [
             "exported"
@@ -420,10 +300,7 @@
                     "name": "int64"
                   }
                 ]
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -1646,10 +1523,7 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -1840,10 +1714,7 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -2034,10 +1905,7 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -3745,10 +3613,7 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -3966,10 +3831,7 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
