@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:e28c822b214adfb7b3ce3f5d5d6cccc5aa01123cac20c5c67df544c0bf4e2dec",
+  "snapshot_digest": "sha256:50e0a4b8bef07e0d4f7c72ea2feff9f1ae0476a93c0eec172e61f2be3e202cb5",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -685,16 +685,13 @@
         },
         {
           "kind": "var",
-          "name": "Enabled",
+          "name": "enabled",
           "type": {
             "kind": "basic",
             "name": "bool"
           },
-          "flags": [
-            "exported"
-          ],
           "attrs": {
-            "doc": "Enabled reports whether the fixture feature is on by default."
+            "doc": "enabled reports whether the fixture feature is on by default."
           },
           "children": [
             {
@@ -708,16 +705,13 @@
         },
         {
           "kind": "var",
-          "name": "Threshold",
+          "name": "threshold",
           "type": {
             "kind": "basic",
             "name": "float64"
           },
-          "flags": [
-            "exported"
-          ],
           "attrs": {
-            "doc": "Threshold is the default cutoff."
+            "doc": "threshold is the default cutoff."
           },
           "children": [
             {
@@ -2655,16 +2649,13 @@
       "declarations": [
         {
           "kind": "var",
-          "name": "Prefix",
+          "name": "prefix",
           "type": {
             "kind": "basic",
             "name": "string"
           },
-          "flags": [
-            "exported"
-          ],
           "attrs": {
-            "doc": "Prefix is the identity prefix every generated name starts with."
+            "doc": "prefix is the identity prefix every generated name starts with."
           },
           "children": [
             {
@@ -2679,16 +2670,13 @@
         },
         {
           "kind": "var",
-          "name": "Limit",
+          "name": "limit",
           "type": {
             "kind": "basic",
             "name": "int64"
           },
-          "flags": [
-            "exported"
-          ],
           "attrs": {
-            "doc": "Limit is the ceiling this component will not exceed. Zero means unbounded."
+            "doc": "limit is the ceiling this component will not exceed. Zero means unbounded."
           }
         },
         {
@@ -6129,17 +6117,14 @@
         },
         {
           "kind": "var",
-          "name": "Origin",
+          "name": "origin",
           "type": {
             "kind": "named",
             "name": "Point",
             "package": "oyatie.example/portengine-fixture/corpus/shapes"
           },
-          "flags": [
-            "exported"
-          ],
           "attrs": {
-            "doc": "Origin is the point at the coordinate origin."
+            "doc": "origin is the point at the coordinate origin."
           },
           "children": [
             {

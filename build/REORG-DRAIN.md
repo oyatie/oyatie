@@ -2711,3 +2711,36 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - The lesson is the one the whole session keeps teaching: a rule that looks obviously right on a
   corpus built to exercise it can be obviously wrong on the first real package it meets. Three
   commits of confidence, and sixty-two lines of real output to correct it.
+
+## "Never written" is a fact about ONE package
+
+- A reviewer reading the ported `semver` found `pub const COERCE_NEW_VERSION: bool = true` under a
+  doc comment saying "when set to true, new_version will coerce" and "this is used when
+  COERCE_NEW_VERSION is set to false". A `const` cannot be set by anyone, ever. They called it a
+  translation that preserved syntax and dropped semantics, and they were right.
+
+- The rule said a package variable NOTHING WRITES is a constant, and "nothing writes it" was a fact
+  about the package's OWN code. An EXPORTED package variable is part of the source's API: anything
+  that imports the package may assign to it, the package's own documentation frequently tells you
+  to, and the engine cannot see any of it. So it is the mutable global the undecided form is about,
+  arrived at from outside rather than from within — and it refuses, with that said.
+
+  Unexported, the fact holds: nothing outside the package can name it, so "this package does not
+  write it" IS "nothing writes it".
+
+- A SENTINEL is exempt, and the exemption is the sentinel decision rather than a new one. It becomes
+  its MESSAGE, and the message is constant however the variable is reassigned: reassignment changes
+  which failure value the NAME holds, which is identity — and identity is what the sentinel decision
+  already records as lost, with its cost written down.
+
+- The corpus moved with the rule: the package variables that demonstrate the const form are
+  unexported now, which also proves the second half — a private source variable does not become
+  public API — and an exported one sits in the refusal corpus.
+
+- semver 32.8 → 29.3, and its ported output still compiles with zero errors. The other five are
+  unchanged, because none of them has an exported never-written non-sentinel variable.
+
+- This is the fourth time a rule that was obviously right on the hermetic corpus has been obviously
+  wrong on the first real package it met, and the third time the correction came from LOOKING at
+  emitted output rather than from a count. The corpus proves a rule fires; only a real package
+  proves it should.
