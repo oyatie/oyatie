@@ -8,7 +8,7 @@ use port_engine_rust_ir::{
 use crate::error::TransformError;
 use crate::impls::trait_impls;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
-use crate::params::{params, refuse_variadic, results};
+use crate::params::{params, results};
 use crate::resolve::Resolver;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{
@@ -183,7 +183,6 @@ fn build_fn(
             name: declaration.name.clone(),
         });
     }
-    refuse_variadic(declaration)?;
 
     let body = if translate_body {
         let source = declaration

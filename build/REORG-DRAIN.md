@@ -1194,6 +1194,43 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   that remain are a dead initializer the source requires, an unused private function, and one more
   — all cases where the source tolerates what the target warns about.
 
+- A VARIADIC SIGNATURE NEEDED NO DECISION, and had been refused for six declarations across three
+  packages. The source records `func f(args ...T)` with its last parameter typed `[]T` — that is
+  what `args` IS inside the function, go/types says so, and the snapshot has carried it all along.
+  So the signature translates through the ordinary slice rule with nothing new to decide.
+  What DOES need a decision is the CALL: `f(a, b, c)` passes three arguments to a target signature
+  with two parameters, and the trailing ones have to be collected. Which sequence form, and what
+  `f(xs...)` does when the caller forwards a slice it already has, are both undecided — so the call
+  refuses by name, where it happens rather than one level up. A package that DECLARES a variadic
+  function now ports it; only one that CALLS a variadic function is held back.
+  The refusal reads the SIGNATURE TABLE, which is the third use of it and the first where it
+  answers a question about the callee rather than about a destination.
+  uuid 36.1 → 35.1 and xid 30.8 → 26.9: those declarations were reaching the emit while calling a
+  function whose target signature takes a slice, which would not have compiled. Coverage falling
+  because a refusal became reachable is the same correction the dependency refusal made.
+
+- THE THIRD BLIND REVIEW. Still DO NOT MERGE, and the composition has moved: the first was mostly
+  fixture artifacts, this one is mostly engine rules, which is the direction that matters.
+  WHAT IT FOUND THAT IS REAL AND NEW: `size(table: BTreeMap<..>)` takes the caller's map BY VALUE
+  and drops it. That is not a style point — Go's map is a REFERENCE type, so a map parameter shares
+  the caller's map and a mutation through it is visible to the caller. Emitting an owned parameter
+  both consumes the caller's value and loses the sharing, which is output that means something
+  different. Slices are the same shape: passing `[]T` copies the header and shares the backing.
+  This is the ownership-disposition machinery applied to a type kind it has never been applied to,
+  and it is the largest correctness item outstanding.
+  WHAT IT CONFIRMED FOR THE THIRD TIME: the inherent method beside the trait impl that forwards to
+  it. Deleting the inherent one silently turns the forward into infinite recursion — a stack
+  overflow introduced by REMOVING code. Named a blocker in all three reviews. Still owed, still on
+  `use` emission, and the repetition is the argument for stopping to do it.
+  WHAT IT SHARPENED: `Label { prefix: prefix.clone(), text: prefix.clone() }` clones once too
+  often. Within a single literal the LAST read of a binding can move, provided the body does not
+  read it again afterwards — which is a count comparison rather than liveness, and the front end
+  already counts. Recording the count instead of a boolean is the fix.
+  WHAT IT PUSHED BACK ON AND I AM HOLDING: `wrapping_*` on `add` under a doc that says "returns the
+  sum". Raised in two reviews now. The doc is the SOURCE's doc and the source's `add` wraps too, so
+  the port is faithful and the mismatch is inherited rather than introduced. Held, and recorded as
+  held rather than as unnoticed.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

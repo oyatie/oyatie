@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:8d86d9223ae1c1896b981f292381f5979787e900b577bb0ba8b9da9294f58d56",
+  "snapshot_digest": "sha256:209f9bda6cf509c9d7c196557c34bfbb771f57545c8c8288314728f6bc6dd867",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -508,6 +508,73 @@
         },
         {
           "kind": "func",
+          "name": "Join",
+          "flags": [
+            "exported",
+            "variadic"
+          ],
+          "attrs": {
+            "doc": "Join concatenates the given counts into a total.\n\nThe SIGNATURE ports: `counts` is a slice inside the function, which is what the source records\nand what the target's slice rule already answers."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "base",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "counts",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              },
+              "flags": [
+                "unread"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "base",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
           "name": "Rethrow",
           "flags": [
             "exported"
@@ -695,6 +762,88 @@
                       "attrs": {
                         "ref": "local"
                       }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Total",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Total joins two counts onto a base.\n\nREFUSED, and at the CALL rather than at the declaration above it. The target has no variadic\ncall, so the trailing arguments need collecting into a sequence — and neither which sequence\nform that is, nor what a forwarded slice becomes, has been decided."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "base",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture-refused/corpus-refused/hard.Join"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Join",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "base",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "1"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "2"
+                          }
+                        }
+                      ]
                     }
                   ]
                 }

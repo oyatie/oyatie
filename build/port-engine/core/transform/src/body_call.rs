@@ -121,6 +121,20 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
     // table is keyed by, and a call carrying none — a method — gets no destinations at all, which
     // the argument path reads as "cannot say" rather than as "no conversion needed".
     let callee_id = node.attr(ATTR_CALLEE).unwrap_or_default();
+    // A VARIADIC callee needs its trailing arguments collected into a sequence, and which of the
+    // target's sequence forms that is has not been decided — nor what `f(xs...)` does when the
+    // caller forwards a slice it already has. Refused here rather than at the declaration: the
+    // signature is an ordinary slice and ports fine, and only a CALL needs the answer.
+    if cx.resolver.signatures.is_variadic(callee_id) {
+        return Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!(
+                "`{callee_id}` is variadic, and the target has no variadic call: the trailing \
+                 arguments need collecting into a sequence, and the pack declares neither which \
+                 sequence form nor what a forwarded slice becomes"
+            ),
+        });
+    }
     let args = node.children[1..]
         .iter()
         .enumerate()
