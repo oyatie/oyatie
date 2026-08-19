@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:33e7bff670f25b3be4611a6caa88b1c456c554d5f378aaa519d06041b62b0241",
+  "snapshot_digest": "sha256:40720a56b5ee89760d7c25d6b9f873ddcbd9ff78f7fe76b47961f4b0f7f0820a",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -2451,7 +2451,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Limit is declared with no initialiser and never written, so it is only ever read as its zero\nvalue."
+            "doc": "Limit is declared with no initialiser and never written, so it is only ever read as its zero\nvalue — and a zero is a value rather than work, so nothing about it happens at a time."
           }
         },
         {
@@ -2465,7 +2465,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Prefix is initialised and never written. A constant with a computed value."
+            "doc": "Prefix is initialised from a literal and never written. A string literal is a BORROW in the\ntarget, and the owned form cannot be built by a constant expression at all."
           },
           "children": [
             {

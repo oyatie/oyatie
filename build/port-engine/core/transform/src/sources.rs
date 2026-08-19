@@ -23,6 +23,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("impls.rs", include_str!("impls.rs")),
     ("items.rs", include_str!("items.rs")),
     ("items_self.rs", include_str!("items_self.rs")),
+    ("items_static.rs", include_str!("items_static.rs")),
     ("lib.rs", include_str!("lib.rs")),
     ("naming.rs", include_str!("naming.rs")),
     ("ownership.rs", include_str!("ownership.rs")),

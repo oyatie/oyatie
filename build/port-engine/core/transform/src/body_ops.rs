@@ -10,15 +10,25 @@ use crate::body::Body;
 use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case};
 use crate::resolve::Resolver;
-use crate::vocabulary::{ATTR_OP, ATTR_REF, CHILD_RESULT, SOURCE_STRING};
+use crate::vocabulary::{
+    ATTR_OP, ATTR_REF, CHILD_RESULT, REF_CONST, SOURCE_STRING,
+};
 
 /// Case an identifier by what it REFERS to.
 ///
 /// A reference to a constant must render in the target's constant casing or it names nothing at
 /// all, so the front end's classification is used rather than one default applied to everything.
-pub(crate) fn reference(node: &Declaration) -> String {
+///
+/// A PREDECLARED constant is the exception, and it is not a casing question: `true` is a
+/// universe-scope constant of the source, so it arrives classified as a constant, and casing it
+/// would emit `TRUE` — a name nothing declares. The pack's constant map is consulted first, which
+/// is also where a predeclared constant the pack does not list refuses instead of being invented.
+pub(crate) fn reference(node: &Declaration, resolver: &Resolver<'_>) -> String {
     match node.attr(ATTR_REF) {
-        Some("const") => to_screaming_snake(&node.name),
+        Some(REF_CONST) => match resolver.constant_map.get(&node.name) {
+            Some(spelling) => spelling.clone(),
+            None => to_screaming_snake(&node.name),
+        },
         Some("type") => to_pascal_case(&node.name),
         _ => to_snake_case(&node.name),
     }

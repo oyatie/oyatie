@@ -1625,3 +1625,67 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   `sha256:e12aa8cf…`. buck2 `Pass 29, Build failure 20` — the known third-party export gap recorded
   above (prettyplease/proc-macro2 carry `visibility = []` and have no PUBLIC alias), unchanged by
   this work and still outside this lane.
+
+## A package variable nothing writes is a `static`
+
+- Top of the board by a wide margin: `deferred by policy: var`, 67 declarations across 5 of the 7
+  surveyed corpora. The pack's own reason already said what remained — the synchronization argument
+  is TRUE, and it bites only for a variable something assigns to, which most package variables are
+  not. What was left undecided was the FORM.
+
+- THE DECISION. `static`, not `const`, and that is the whole of it. A source package variable has
+  ONE storage location and one address for the life of the program; `&X` gives the same pointer
+  every time. A target `const` is materialised afresh at every use and has no stable address, so
+  `&X` would differ per use — observable for a variable whose address the source can take. A target
+  `static` has exactly that storage identity, and being immutable it raises no synchronization
+  question at all: there is nothing to synchronize when nothing writes.
+
+- THE PRICE, and why it is not a heuristic: a `static`'s initialiser must be a CONSTANT EXPRESSION.
+  That is the target's own rule, not a proxy for one — an initialiser failing it fails to COMPILE
+  rather than meaning something different. So the admitted shapes are closed (a literal, an absent
+  initialiser, an ident naming a constant, a composite whose every element is one) and everything
+  else refuses by name. The common refusal is a CALL: `errors.New("..")` and `regexp.MustCompile`
+  allocate, and reaching for `LazyLock` instead would run the initialiser on FIRST USE rather than
+  before it — the same when-does-the-work-happen question that defers `package_init`, and not one
+  this rule may answer on its own.
+
+- WHAT STAYS UNDECIDED needed a new home, and the pack's own validator is what said so: it refuses a
+  kind that is both deferred and captured, which is right — the pack cannot both translate a kind
+  and record it as untranslated. But a written package variable and an unwritten one are the same
+  KIND and reach the same rule; only the first is undecided. So `undecided_forms` was added beside
+  `deferred_kinds`: a SHAPE within a kind, keyed by an id the engine names when it declines, with a
+  required reason that the refusal QUOTES. The reason a reader sees and the reason the digest
+  carries are now one text rather than two that can drift.
+
+- The value is produced by the SAME translator a body uses, and the constant test is a separate
+  question asked of the source nodes. One translator means a value in a static and the same value in
+  a function cannot come out differently; asking the question of the nodes rather than of the
+  rendered text means it is exact.
+
+- Two things fell out of it that were wrong before and are not about statics at all:
+
+  - `true` reaches the model as an IDENT referring to a universe-scope constant, not as a literal.
+    The body translator cased every constant reference, so `x == true` was emitting `x == TRUE` — a
+    name nothing declares. Fixed at the one place identifiers are cased, via a new `constant_map`
+    holding the source's predeclared constants. `iota` is deliberately absent: it is meaningful only
+    inside a const declaration where its value depends on position, and a table of names cannot say
+    what it is.
+
+  - A static of a source `string` initialised from a literal takes `&'static str`. Not a preference:
+    `"id-"` HAS that type, and the owned `String` cannot be built by a constant expression at all,
+    so the owned form does not exist here. It is also what every reader wants, since this rule only
+    ever applies to a variable nothing writes.
+
+- Ratchet, five of seven packages up: uuid 37.1 → 49.5, ksuid 38.7 → 45.2, semver 34.5 → 41.4, xid
+  23.1 → 30.8, xxhash 70.6 → 73.5. errors and go-multierror unmoved. The largest single move of the
+  lane so far.
+
+- Verify: 49 test binaries green, including the compile proof — the emitted crate with four statics
+  in it compiles under rustc, which is what makes `Point { x: 0, y: 0, label: String::new() }` a
+  claim rather than a hope. Port-engine clippy `-D warnings` clean; `delta` Green/Unchanged; golden
+  refreshed; transform manifest regenerated for the new file. buck2 `Pass 29, Build failure 20` —
+  the known third-party export gap, unchanged.
+
+- NOTED, not fixed: `adapters/rulepack/src/pack.rs` is 376 lines, over the 300-line bar. It was
+  already 363 before this work and this added 13; splitting it belongs in its own commit rather than
+  as noise inside a semantically dense one.

@@ -114,6 +114,8 @@ impl SignatureTable {
                 literal_constructors: semantics.literal_constructors(),
                 receiver: semantics.trait_receiver(),
                 deferred: semantics.deferred_kinds(),
+                constant_map: semantics.constant_map(),
+                undecided_forms: semantics.undecided_forms(),
                 ownership,
                 unit: &unit,
                 signatures: &Self::default(),

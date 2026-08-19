@@ -13,7 +13,7 @@ use crate::resolve::Resolver;
 use crate::items_self::rename_own_type;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{
-    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, IDIOM_SELF_IN_IMPL, POSITION_FIELD, POSITION_SUPERTRAIT, TYPE_POINTER,
+    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STATIC, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, IDIOM_SELF_IN_IMPL, POSITION_FIELD, POSITION_SUPERTRAIT, TYPE_POINTER,
 };
 use crate::{body, docs::docs_of};
 
@@ -30,6 +30,7 @@ pub(crate) fn build_item(
 ) -> Result<Vec<RustItem>, TransformError> {
     let item = match construction {
         CONSTRUCTION_RUST_CONST => build_const(declaration, resolver),
+        CONSTRUCTION_RUST_STATIC => crate::items_static::build_static(declaration, resolver),
         CONSTRUCTION_RUST_TYPE_ALIAS => build_type_alias(declaration, resolver),
         CONSTRUCTION_RUST_NEWTYPE => build_newtype(declaration, resolver),
         CONSTRUCTION_RUST_STRUCT => build_struct(declaration, resolver, Body::Stub),
