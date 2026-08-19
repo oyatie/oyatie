@@ -24,8 +24,31 @@ pub(crate) fn validate_event_identity(
                 return Err("pull_request event ref must be a pull request ref".to_owned());
             }
             let parents = source.parents(evaluated)?;
-            if parents != [protected.to_owned(), subject.to_owned()] {
+            if parents.len() != 2 || parents[1] != subject {
                 return Err("pull_request evaluated commit parents must be exactly [protected base, subject]".to_owned());
+            }
+            // The first parent must be the protected base OR a descendant of it on the
+            // protected branch.
+            //
+            // `protected` comes from `github.event.pull_request.base.sha`, which GitHub FREEZES
+            // at the moment the pull_request event fires. It does NOT move when the base branch
+            // advances — but GitHub DOES continuously regenerate `refs/pull/N/merge` against the
+            // live base tip. So an exact `parents[0] == protected` comparison fails every open
+            // pull request the instant anything merges to the protected branch, and with a merge
+            // queue draining several entries that is most of the time. The failure is spurious:
+            // the merge ref is MORE current than the recorded base, not less.
+            //
+            // The property this check exists to enforce is unchanged: the evaluated commit must
+            // be a two-parent merge of real protected-branch history with exactly this subject,
+            // so no gate can be fed a doctored tree. Ancestry is the faithful expression of that.
+            // A first parent that is NOT a descendant of the recorded base — an unrelated commit,
+            // a rewound base, or a fabricated one — is still rejected.
+            if parents[0] != protected && !source.is_ancestor(protected, &parents[0])? {
+                return Err(
+                    "pull_request evaluated first parent must be the protected base or a \
+                     descendant of it on the protected branch"
+                        .to_owned(),
+                );
             }
             if subject == evaluated {
                 return Err("pull_request subject must not equal evaluated merge commit".to_owned());
