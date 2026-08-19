@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:209f9bda6cf509c9d7c196557c34bfbb771f57545c8c8288314728f6bc6dd867",
+  "snapshot_digest": "sha256:ec7c139b4b3f18f2721f71d9dd46918b4c4c27761a7c24e3a864cbd309d8188f",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -844,6 +844,66 @@
                           }
                         }
                       ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Widths",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Widths returns the horizontal extents it was given, unchanged.\n\nREFUSED. The source's slice parameter SHARES the caller's backing array, so it is a reference\nthe caller keeps — and returning it hands that share out past the call. A borrow would need a\nlifetime the caller cannot supply, and an owned parameter would consume the caller's slice,\nwhich the source never does. What an escaping sequence becomes has not been decided."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "counts",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "counts",
+                      "attrs": {
+                        "ref": "local"
+                      }
                     }
                   ]
                 }

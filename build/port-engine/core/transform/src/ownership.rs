@@ -123,6 +123,49 @@ pub(crate) fn parameter_target(
     Ok(target)
 }
 
+/// The target form for a REFERENCE-typed parameter — a map or a slice.
+///
+/// The source shares those with the caller exactly as it shares a pointer: a map parameter IS the
+/// caller's map, and writing an element of a slice parameter is visible through the shared
+/// backing. So the same rules answer on the same observed facts, and only the FORM differs — which
+/// is why the disposition carries a separate one rather than a second table carrying a second copy
+/// of the fact matching.
+///
+/// # Errors
+/// [`TransformError::Ownership`] when the matched disposition declines the reference position,
+/// which is the honest answer for one that escapes: what an escaping sequence becomes has not been
+/// decided.
+pub(crate) fn reference_target(
+    parameter: &Declaration,
+    resolved: &str,
+    site: &str,
+    context: &OwnershipContext<'_>,
+) -> Result<String, TransformError> {
+    let facts = facts_of(parameter);
+    let decision = decision_for(site, facts, context)?;
+    let Some(template) = decision.reference_target.as_ref() else {
+        return Err(TransformError::Ownership {
+            detail: format!(
+                "disposition `{}` has no reference form, so `{site}` cannot hold a map or a slice \
+                 the caller keeps: {}",
+                decision.rule_id, decision.reason
+            ),
+        });
+    };
+    let target = template.replace("{0}", resolved);
+    context.log.record(DispositionRecord {
+        site: site.to_owned(),
+        rule_id: decision.rule_id.clone(),
+        form: target.clone(),
+        unproven: decision.rests_on_unproven_facts(),
+        reason: decision
+            .reference_reason
+            .clone()
+            .unwrap_or_else(|| decision.reason.clone()),
+    });
+    Ok(target)
+}
+
 fn decision_for(
     site: &str,
     facts: OwnershipFacts,

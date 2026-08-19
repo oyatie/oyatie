@@ -47,6 +47,14 @@ pub struct Decision {
     pub target: String,
     /// Target form for a receiver, when the rule has one.
     pub receiver: Option<String>,
+    /// Target form for a REFERENCE-typed parameter — a map or a slice — when the rule has one.
+    ///
+    /// `None` is a refusal rather than a fallback. A pointer's owned form wraps a pointee in
+    /// `Option<Box<..>>` because the source's pointer can be nil and the pointee needs an owner,
+    /// and none of that is true of a sequence that is already owned.
+    pub reference_target: Option<String>,
+    /// Why a reference takes that form, when the rule says.
+    pub reference_reason: Option<String>,
     /// Why these facts deserve this form.
     pub reason: String,
     /// The facts the decision was made on.
@@ -131,6 +139,8 @@ pub fn decide(
             rule_id: rule.id.clone(),
             target: rule.target.clone(),
             receiver: rule.receiver.clone(),
+            reference_target: rule.reference_target.clone(),
+            reference_reason: rule.reference_reason.clone(),
             reason: rule.reason.clone(),
             facts,
         })

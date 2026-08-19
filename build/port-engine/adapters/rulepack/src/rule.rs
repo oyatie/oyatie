@@ -63,6 +63,13 @@ pub struct DispositionRule {
     /// The same decision seen from the other end: the target says what `*T` becomes in a
     /// parameter, and this says what `&x` becomes when handed to one.
     pub construction: ConstructionRule,
+    /// Target form for a REFERENCE-typed parameter — a map or a slice — with `{0}` for the
+    /// resolved type itself. Absent means this disposition declines the reference position.
+    #[serde(default)]
+    pub reference_target: Option<String>,
+    /// Why a reference takes that form, and what it costs.
+    #[serde(default)]
+    pub reference_reason: Option<String>,
     /// Why these facts deserve this form, and what it costs.
     pub reason: String,
 }

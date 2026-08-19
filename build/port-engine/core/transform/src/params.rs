@@ -10,7 +10,7 @@ use port_engine_rust_ir::{RustParam, RustType};
 
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::ownership::{binds_by_pointer, parameter_target};
+use crate::ownership::{binds_by_pointer, parameter_target, reference_target};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
     CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, POSITION_PARAM,
@@ -44,7 +44,21 @@ pub(crate) fn params(
             // A POINTER parameter is an ownership question and gets a decision; anything else is
             // just a type. The split is deliberate: a pointer inside a field or a result has no
             // call site to borrow across, so it stays a plain type-map answer.
-            let ty = if param.type_ref.kind == "pointer" {
+            let site = format!("{owner}::{}({})", declaration.name, param.name);
+            // A REFERENCE parameter — a map or a slice — is shared with the caller in the source
+            // exactly as a pointer is, so it gets the same decision on the same observed facts.
+            // Emitting it owned would consume the caller's value and lose the sharing, which is
+            // what a reviewer probing the emitted crate found: `size(my_table)` lost `my_table`.
+            let ty = if is_reference_kind(&param.type_ref.kind) {
+                let resolved =
+                    resolver.resolve_in(&param.type_ref, &declaration.name, POSITION_PARAM)?;
+                RustType::path(reference_target(
+                    param,
+                    &resolved.spelling(),
+                    &site,
+                    resolver.ownership,
+                )?)
+            } else if param.type_ref.kind == "pointer" {
                 let pointee =
                     param
                         .type_ref
@@ -57,7 +71,6 @@ pub(crate) fn params(
                             ),
                         })?;
                 let resolved = resolver.resolve(pointee, &declaration.name)?;
-                let site = format!("{owner}::{}({})", declaration.name, param.name);
                 RustType::path(parameter_target(
                     param,
                     &resolved.spelling(),
@@ -132,4 +145,13 @@ pub(crate) fn results(
         ok.spelling(),
         error
     ))))
+}
+
+/// Whether this source type kind is a REFERENCE the caller keeps.
+///
+/// A map is shared outright; a slice shares its backing array, so writing an element is visible to
+/// the caller while re-slicing is not. Both are the ownership question a pointer is, which is why
+/// they are answered by the same dispositions.
+fn is_reference_kind(kind: &str) -> bool {
+    matches!(kind, "map" | "slice")
 }

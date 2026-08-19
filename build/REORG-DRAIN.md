@@ -1231,6 +1231,32 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   the port is faithful and the mismatch is inherited rather than introduced. Held, and recorded as
   held rather than as unnoticed.
 
+- A MAP OR SLICE PARAMETER IS A REFERENCE IN THE SOURCE, AND WAS EMITTED OWNED. The third review
+  found it by probing the emitted crate from a consumer: `size(table: BTreeMap<..>)` takes the
+  caller's map by value and drops it, so `size(my_table)` loses `my_table`. That is not a style
+  point. The source's map is a REFERENCE type — a map parameter shares the caller's map and a
+  mutation through it is visible to the caller — so an owned parameter both consumes the caller's
+  value and loses the sharing. Output that means something different.
+  A slice is the same shape from the other end: passing `[]T` copies the header and SHARES the
+  backing array, so writing an element is visible to the caller while re-slicing is not.
+  So a reference parameter is the ownership question a pointer parameter is, decided by the SAME
+  rules on the SAME observed facts. Only the FORM differs, which is why each disposition gained an
+  optional reference form rather than a second table carrying a second copy of the fact matching: a
+  pointer's owned form wraps a pointee in `Option<Box<..>>` because the source's pointer can be nil
+  and the pointee needs an owner, and none of that is true of a sequence that is already owned.
+  A disposition with NO reference form refuses, which is the honest answer for one that escapes:
+  what an escaping sequence becomes has not been decided, and a borrow would need a lifetime the
+  caller cannot supply. `Widths(counts []int) []int { return counts }` is exactly that shape and
+  moved to the refusal corpus.
+  COVERAGE FELL AGAIN AND IT IS THE FOURTH TIME: xxhash 70.6 → 61.8, ksuid 38.7 → 35.5, uuid
+  35.1 → 32.0. Eleven declarations newly refuse, and every one of them was previously counted as
+  translated while emitting a parameter that consumed the caller's value. `transform ownership` is
+  now the top cause at 7 packages and 17 declarations, which is the engine having moved a whole
+  class of silent wrongness into the open where it can be answered.
+  Still owed on this: the emitted form is `&Vec<T>` where `&[T]` is what a reader expects — clippy
+  calls that `ptr_arg`. An idiom rather than a correctness question, and it needs the reference
+  form to be per-KIND rather than one template for both.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

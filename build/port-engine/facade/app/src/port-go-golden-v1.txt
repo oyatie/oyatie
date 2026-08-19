@@ -2,7 +2,7 @@
 pub mod accumulate {
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__mix
     /// Folds the values together with the operators a hash uses.
-    pub fn mix(values: Vec<i64>) -> i64 {
+    pub fn mix(values: &Vec<i64>) -> i64 {
         let mut acc = 1i64;
         for i in 0..values.len() as i64 {
             acc ^= values[i as usize];
@@ -13,7 +13,7 @@ pub mod accumulate {
     }
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__total
     /// Sums the values, accumulating in place.
-    pub fn total(values: Vec<i64>) -> i64 {
+    pub fn total(values: &Vec<i64>) -> i64 {
         let mut sum = 0i64;
         for i in 0..values.len() as i64 {
             sum = sum.wrapping_add(values[i as usize]);
@@ -159,13 +159,8 @@ pub mod geometry {
     pub type Origin = crate::shapes::Point;
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_func__size
     /// Reports how many labelled counts the table holds.
-    pub fn size(table: std::collections::BTreeMap<String, i64>) -> i64 {
+    pub fn size(table: &std::collections::BTreeMap<String, i64>) -> i64 {
         table.len() as i64
-    }
-    // region: oyatie_example_portengine_fixture_corpus_geometry__go_func__widths
-    /// Returns the horizontal extents it was given, unchanged.
-    pub fn widths(counts: Vec<i64>) -> Vec<i64> {
-        counts
     }
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_struct__bounds
     /// A rectangle described by its two opposite corners.

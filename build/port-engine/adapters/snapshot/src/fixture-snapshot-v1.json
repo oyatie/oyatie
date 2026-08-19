@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:75f0c99fd2caacdf058c7a3e6cfcbb67be1c29f274b00d863f13c868b7c380b3",
+  "snapshot_digest": "sha256:6327850fbef0904859c63612db9e85cb2ae0e1ca4e7cad1e252fad96a9abae25",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -2408,66 +2408,6 @@
                           }
                         }
                       ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "func",
-          "name": "Widths",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Widths returns the horizontal extents it was given, unchanged."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "counts",
-              "type": {
-                "kind": "slice",
-                "args": [
-                  {
-                    "kind": "basic",
-                    "name": "int"
-                  }
-                ]
-              },
-              "flags": [
-                "escapes"
-              ]
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "slice",
-                "args": [
-                  {
-                    "kind": "basic",
-                    "name": "int"
-                  }
-                ]
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "counts",
-                      "attrs": {
-                        "ref": "local"
-                      }
                     }
                   ]
                 }
