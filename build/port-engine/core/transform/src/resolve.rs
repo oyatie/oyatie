@@ -77,6 +77,12 @@ pub(crate) struct Resolver<'a> {
     pub(crate) function_map: &'a BTreeMap<String, String>,
     /// How the source spells failure, when it has a convention for it.
     pub(crate) failure: Option<&'a FailureConvention>,
+    /// The kinds the pack DEFERS, so a body can refuse to reference one.
+    ///
+    /// What the engine emits has to be self-contained: a body referring to a declaration the pack
+    /// declined to emit produces a crate with a dangling name. Read from the pack rather than
+    /// listed here, so a kind that stops being deferred stops causing refusals with no code change.
+    pub(crate) deferred: &'a BTreeSet<String>,
     /// The target form a trait takes in each position, keyed by position.
     pub(crate) trait_object_forms: &'a BTreeMap<String, String>,
     /// Source type identity → the target expression for that type's zero value.

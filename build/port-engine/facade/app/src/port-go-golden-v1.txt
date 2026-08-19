@@ -216,6 +216,14 @@ pub mod geometry {
         pub max: crate::shapes::Point,
     }
 }
+pub mod globals {
+    // region: oyatie_example_portengine_fixture_corpus_globals__go_func__describe
+    /// Describe names the package. It touches no package variable, which is what lets it be emitted
+    /// beside two that are deferred.
+    pub fn describe() -> String {
+        "globals".to_owned()
+    }
+}
 pub mod naming {
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__describe
     /// Describe renders anything that can name itself.

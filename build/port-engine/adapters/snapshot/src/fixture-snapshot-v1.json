@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:30e7cceb26eb4cba8b463656306b2640dcbca8b3327c272e7563ff49107e8daf",
+  "snapshot_digest": "sha256:7be60892873e495dad2fce340e9aee5408a38d1e3ad2a7d2f16d0a6c85c1d5a2",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -704,7 +704,16 @@
           ],
           "attrs": {
             "doc": "Enabled reports whether the fixture feature is on by default."
-          }
+          },
+          "children": [
+            {
+              "kind": "ident",
+              "name": "true",
+              "attrs": {
+                "ref": "const"
+              }
+            }
+          ]
         },
         {
           "kind": "alias",
@@ -935,7 +944,17 @@
           ],
           "attrs": {
             "doc": "Threshold is the default cutoff."
-          }
+          },
+          "children": [
+            {
+              "kind": "literal",
+              "name": "",
+              "attrs": {
+                "lit_kind": "FLOAT",
+                "value": "0.75"
+              }
+            }
+          ]
         },
         {
           "kind": "func",
@@ -2261,6 +2280,90 @@
       ]
     },
     {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/globals",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Describe",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Describe names the package. It touches no package variable, which is what lets it be emitted\nbeside two that are deferred."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "STRING",
+                        "value": "\"globals\""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Limit",
+          "type": {
+            "kind": "basic",
+            "name": "int64"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Limit is declared with no initialiser and never written, so it is only ever read as its zero\nvalue."
+          }
+        },
+        {
+          "kind": "var",
+          "name": "Prefix",
+          "type": {
+            "kind": "basic",
+            "name": "string"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Prefix is initialised and never written. A constant with a computed value."
+          },
+          "children": [
+            {
+              "kind": "literal",
+              "name": "",
+              "attrs": {
+                "lit_kind": "STRING",
+                "value": "\"id-\""
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "unit_id": "oyatie.example/portengine-fixture/corpus/naming",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
@@ -3441,7 +3544,62 @@
           ],
           "attrs": {
             "doc": "Origin is the zero point."
-          }
+          },
+          "children": [
+            {
+              "kind": "composite",
+              "name": "",
+              "type": {
+                "kind": "named",
+                "name": "Point",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "children": [
+                {
+                  "kind": "keyed",
+                  "name": "X",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyed",
+                  "name": "Y",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyed",
+                  "name": "label",
+                  "children": [
+                    {
+                      "kind": "zero",
+                      "name": "label",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         },
         {
           "kind": "struct",

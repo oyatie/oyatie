@@ -78,3 +78,16 @@ rust_test(
         "//build/port-engine/ports/api:port-engine-api",
     ],
 )
+
+# What is observed about a package-scope variable: its initialiser, and whether anything writes it.
+rust_test(
+    name = "port-engine-snapshot-package-variables",
+    srcs = glob(["tests/package_variables.rs", "src/**/*.json"]),
+    crate = "port_engine_snapshot_package_variables",
+    crate_root = "tests/package_variables.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-snapshot",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)

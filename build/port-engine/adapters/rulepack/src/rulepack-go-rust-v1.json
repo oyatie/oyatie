@@ -149,7 +149,7 @@
   "deferred_kinds": [
     {
       "kind": "var",
-      "reason": "A package-level var is a MUTABLE global. Rust's `static` is immutable, so emitting one would silently drop the mutability the declaration exists for; `static mut` is unsafe and `OnceLock`/`Mutex` each pick a synchronization policy the source never stated. Choosing among those is a rule decision, not a default. See docs/programs/k8s-port/census/ownership-escape.md and concurrency.md."
+      "reason": "A package-level var is a MUTABLE global. Rust's `static` is immutable, so emitting one would silently drop the mutability the declaration exists for; `static mut` is unsafe and `OnceLock`/`Mutex` each pick a synchronization policy the source never stated. Choosing among those is a rule decision, not a default. SCOPE OF THAT ARGUMENT, now that it can be measured: it bites only for a variable the program assigns to, and across the seven surveyed corpora 45 of 67 package variables are never written anywhere in their own package -- so the hardest case's reason was being applied to two thirds of the variables that do not have the problem. The front end now records both facts a decision needs: the initialising expression, and whether anything writes the variable (`rebound`). What remains undecided for the unwritten ones is the FORM, and that is a real decision rather than missing data: `static X: T = ..` needs a const-evaluable initialiser, which `errors.New(\"..\")` is not, and `LazyLock` runs the initialiser on first use rather than before it -- the same when-does-the-work-happen question that defers `package_init`. Deferred until that form is chosen, not until more is observed. See docs/programs/k8s-port/census/ownership-escape.md and concurrency.md."
     },
     {
       "kind": "foreign_satisfaction",
@@ -383,6 +383,9 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/accumulate": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/globals": [
       "go_func"
     ]
   },

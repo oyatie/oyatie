@@ -13,7 +13,7 @@ use port_engine_rust_ir::RustType;
 use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case, to_snake_case};
 use crate::resolve::Resolver;
-use crate::vocabulary::TYPE_NAMED_INTERFACE;
+use crate::vocabulary::{SOURCE_STRING, TYPE_NAMED_INTERFACE};
 
 impl Resolver<'_> {
     /// The target type a failure value becomes.
@@ -145,6 +145,19 @@ impl Resolver<'_> {
     ///
     /// # Errors
     /// [`TransformError::UnmappedType`] when nothing answers for the type or for its position.
+    /// Whether this construction holds a source `string` as an OWNED target value.
+    ///
+    /// Asked of the same table the type resolution uses, so a literal and the position it lands in
+    /// cannot disagree about who owns the text. `rust_const` overrides `string` to `&str`, and a
+    /// constant's literal therefore stays borrowed.
+    pub(crate) fn owns_strings(&self) -> bool {
+        let borrowed = self
+            .overrides
+            .and_then(|overrides| overrides.get(SOURCE_STRING))
+            .or_else(|| self.type_map.get(SOURCE_STRING));
+        borrowed.is_some_and(|target| !target.starts_with('&'))
+    }
+
     pub(crate) fn resolve_in(
         &self,
         type_ref: &TypeRef,

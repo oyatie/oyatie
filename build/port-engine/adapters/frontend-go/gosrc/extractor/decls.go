@@ -25,6 +25,18 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 	case *types.Var:
 		base.Kind = kindVar
 		base.Type = typeTree(typed.Type())
+		// ABSENT means the source wrote no initialiser and the zero value applies — a different
+		// fact from one the front end could not attribute, which arrives as an `unsupported`
+		// child instead of as silence.
+		if init, ok := ctx.varInits[typed]; ok {
+			base.Children = []node{initializerNode(init, ctx)}
+		}
+		// Written somewhere in the package, so the mutability the deferral is about is real here
+		// and absent elsewhere. Observed rather than assumed, in both directions.
+		if ctx.varWrites[typed] {
+			base.Flags = append(base.Flags, flagRebound)
+			sort.Strings(base.Flags)
+		}
 		return base, nil
 
 	case *types.Func:

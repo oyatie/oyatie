@@ -784,6 +784,60 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   transform ownership (5), the carried-value failing return (4), `panic` (4), unmapped type
   `interface` (4), variadic signatures (3), `AssignStmt`/parallel (3), `ArrayType` (3).
 
+- The `var` deferral was one label over three stacked gaps. `init` indexing closed the third
+  earlier; this closes the other two, and what they revealed changes the shape of the decision.
+  THE DATA GAP. A `const` recorded its value and a `var` recorded NOTHING — type and documentation
+  only. So all 67 package variables across the surveyed corpora reached the engine as names with no
+  content, and no rule could have emitted anything for them whatever the policy turned out to be.
+  The initialiser is now a CHILD EXPRESSION rather than a source-text attribute like a constant's:
+  a constant's value is a literal the target can re-parse, a variable's is arbitrary code
+  (`errors.New(..)`, a call into another package) and flattening it to text would hand the
+  transform a string no rule can inspect and no resolver can qualify.
+  ABSENT means the source wrote no initialiser and the zero value applies. That is a different fact
+  from one the front end could not attribute, so `var a, b = f()` records an `unsupported` child
+  instead of nothing — otherwise the pair would be indistinguishable from `var a, b T`. Measured
+  first: no package in the seven writes that shape, which is exactly why it must be recorded rather
+  than assumed away.
+  THE PROVABILITY GAP. Nothing computed whether a package variable is ever written, so every one of
+  them was deferred on the hardest case. Package-WIDE analysis, because a package variable is
+  visible to every function in it. The result: 45 of 67 are NEVER WRITTEN anywhere in their own
+  package. The deferral's synchronization argument — `static` is immutable, `static mut` is unsafe,
+  `OnceLock`/`Mutex` each pick a policy the source never stated — is true and bites only for a
+  variable something assigns to, so it was being applied to two thirds of the variables that do not
+  have the problem. The pack's reason now says so, and says what remains genuinely undecided: the
+  FORM. `static X: T = ..` needs a const-evaluable initialiser, which `errors.New("..")` is not,
+  and `LazyLock` runs the initialiser on first use rather than before it — the same
+  when-does-the-work-happen question that defers `package_init`. Deferred until that form is
+  chosen, not until more is observed.
+
+- WHAT THE ENGINE EMITS HAS TO BE SELF-CONTAINED, and nothing said so. The compile proof caught it
+  the moment a fixture put a function and a deferred package variable in one package: `cannot find
+  value `counter` in this scope`. The engine translated a body referring to a declaration it had
+  itself declined to emit and produced a crate with a dangling name. Latent everywhere until now
+  only because no emitted corpus package read a package variable — it is the general shape of the
+  defect, not a property of the fixture: ANY deferral creates it.
+  Refused PER DECLARATION, keyed on the pack's own deferred set so the refusal disappears by itself
+  the day `var` stops being deferred. The alternative — a whole-plan proof — would fail an entire
+  package over one function, which is the escalation this lane has already had to undo three times.
+  THE RATCHET WENT DOWN AND THAT IS THE POINT: ksuid 40.9→36.6, uuid 43.3→36.1, xid 38.5→30.8,
+  semver 25.9→20.7. Those declarations were being counted as translated while their output would
+  not have compiled. Second time this lane has had coverage fall because the engine stopped
+  claiming something it could not do; a ratchet that only rises is measuring the wrong thing.
+
+- A source string literal is a `string` VALUE and the pack maps `string` to an owned `String`, so
+  `fn describe() -> String { "globals" }` does not compile. Caught by the compile proof.
+  THE FIRST FIX WAS WORSE THAN THE BUG. Owning every string literal compiles and produces
+  `s == "".to_owned()` and `Box::<dyn Error>::from("empty".to_owned())` — output no reviewer would
+  accept, and two existing tests said so immediately. That is the goal's own bar working as a
+  check: the emitted Rust has to read as hand-written, and "it compiles" is not that bar.
+  Narrowed to where the destination is actually KNOWN: a function whose single result resolves to
+  the owned target, returning a bare literal. The signature is in hand at `Body::new`, so that one
+  is answered. Everywhere else the destination is a parameter or a comparison operand — the same
+  question unary `&` is blocked on, needing the signature table rather than a guess. A borrowed
+  literal in a borrowed position was already right; only the owned positions were ever wrong.
+  The owning SPELLING (`.to_owned()` over `.to_string()`) is an idiom decision sitting in code. It
+  belongs in pack data with the rest of the idiom rules at R7 — recorded rather than left implicit.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

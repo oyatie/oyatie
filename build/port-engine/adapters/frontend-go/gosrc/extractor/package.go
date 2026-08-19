@@ -122,6 +122,8 @@ func extractPackage(
 		bodies:    bodies,
 		docs:      docs,
 		fieldDocs: fieldDocs,
+		varInits:  indexVarInitializers(files, tpkg),
+		varWrites: packageVarWrites(files, info, tpkg),
 	}
 
 	scope := tpkg.Scope()
@@ -183,6 +185,14 @@ type extractCtx struct {
 	// refers to it can be marked as such. Without it `c.total` and `other.total` are the same
 	// shape and only one of them is `self`.
 	receiver string
+	// varInits is what each package-scope variable is initialised to, keyed by object. A `const`
+	// records its value and a `var` recorded nothing, so every package variable reached the engine
+	// as a name with no content.
+	varInits map[types.Object]varInit
+	// varWrites names the package-scope variables some function in the package assigns to. A
+	// variable that is initialised and never written again is a constant with a computed value;
+	// only the ones that ARE written need the synchronization policy the deferral is about.
+	varWrites map[types.Object]bool
 	// fieldDocs is keyed by "TypeName.FieldName": a struct field is not a package-scope object, so
 	// it has no types.Object to index by, and matching by position would break the moment a field
 	// moves.

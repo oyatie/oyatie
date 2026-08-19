@@ -146,6 +146,7 @@ pub fn apply_with_provenance(
                     zero_values: semantics.zero_values(),
                     trait_object_forms: semantics.trait_object_forms(),
                     failure: semantics.failure_convention(),
+                    deferred: semantics.deferred_kinds(),
                     function_map: semantics.function_map(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,
