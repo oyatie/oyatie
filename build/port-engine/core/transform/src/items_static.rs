@@ -29,7 +29,8 @@ use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, visibility};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    ATTR_REF, CONSTRUCTION_RUST_STATIC, FLAG_EXPORTED, FLAG_REBOUND, FORM_WRITTEN_PACKAGE_VAR, KIND_COMPOSITE, KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING, TARGET_STR,
+    ATTR_REF, CONSTRUCTION_RUST_STATIC, FLAG_EXPORTED, FLAG_INIT_WRITTEN, FLAG_REBOUND, FORM_INIT_WRITTEN_PACKAGE_VAR,
+    FORM_WRITTEN_PACKAGE_VAR, KIND_COMPOSITE, KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING, TARGET_STR,
 };
 
 /// `static NAME: T = value;` for a package variable nothing writes.
@@ -46,12 +47,21 @@ pub(crate) fn build_static(
     // WRITTEN is the case the deferral's argument is actually about, and the reason comes from the
     // pack so the refusal a reader sees and the reason the digest carries are one text.
     if declaration.flags.iter().any(|flag| flag == FLAG_REBOUND) {
+        // WHERE the writes are decides WHICH question is open. A variable the package initialiser
+        // alone writes has no synchronization question — it is computed once before anything runs —
+        // and what it lacks is the initialising expression rather than a decision. Naming both with
+        // one reason told a reader the engine was weighing a concurrency policy for a compiled
+        // constant, which is not what is missing.
+        let form = match declaration.flags.iter().any(|flag| flag == FLAG_INIT_WRITTEN) {
+            true => FORM_INIT_WRITTEN_PACKAGE_VAR,
+            false => FORM_WRITTEN_PACKAGE_VAR,
+        };
         return Err(TransformError::UndecidedForm {
-            form: FORM_WRITTEN_PACKAGE_VAR.to_owned(),
+            form: form.to_owned(),
             name: declaration.name.clone(),
             reason: resolver
                 .undecided_forms
-                .get(FORM_WRITTEN_PACKAGE_VAR)
+                .get(form)
                 .cloned()
                 .unwrap_or_default(),
         });

@@ -107,7 +107,7 @@ fn embedded_go_rust_pack_loads_with_captures_types_and_deferrals() {
         pack.undecided_forms().keys().map(String::as_str).collect();
     assert_eq!(
         forms,
-        std::collections::BTreeSet::from(["written_package_var"]),
+        std::collections::BTreeSet::from(["init_written_package_var", "written_package_var"]),
     );
     for reason in pack.undecided_forms().values() {
         assert!(

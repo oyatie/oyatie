@@ -41,6 +41,12 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		// and absent elsewhere. Observed rather than assumed, in both directions.
 		if ctx.varWrites[typed] {
 			base.Flags = append(base.Flags, flagRebound)
+			// WHERE, not only whether. A variable written only by the package initialiser is
+			// computed once and never changes; one an ordinary function assigns to is a mutable
+			// global. Same write flag, different fact, different target form.
+			if ctx.varInitOnly[typed] {
+				base.Flags = append(base.Flags, flagInitWritten)
+			}
 			sort.Strings(base.Flags)
 		}
 		return base, nil

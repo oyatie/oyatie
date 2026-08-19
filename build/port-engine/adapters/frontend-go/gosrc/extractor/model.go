@@ -236,6 +236,13 @@ const (
 	// carrying both would make every rebound parameter demand an exclusive borrow.
 	flagRebound = "rebound"
 
+	// flagInitWritten records that EVERY write to this package variable is in the package
+	// initialiser. Such a variable is computed once before anything runs and never changes after,
+	// which is not the mutable global the write flag alone describes -- and the two need different
+	// target forms, so they need different facts. go/types omits `init` from package scope, so this
+	// can only be observed by walking the declarations.
+	flagInitWritten = "init_written"
+
 	// Ownership facts, observed intra-procedurally. See ownershipFacts for what each means and
 	// why the third one exists.
 	flagMutated       = "mutated"

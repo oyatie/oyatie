@@ -24,6 +24,11 @@ pub const KNOWN_FLAGS: &[&str] = &[
     // The body reads this binding more than once. The source copies on read and the target moves,
     // so a second read of a non-copying binding is a use after move.
     "inferred",
+    // EVERY write to this package variable is in the package initialiser. Distinct from `rebound`,
+    // which says only that some write exists: a variable the initialiser alone writes is computed
+    // once before anything runs and never changes after, so it has no synchronization question at
+    // all — and the two need different target forms, so they cannot share one flag.
+    "init_written",
     "reread",
     // The body never mentions the parameter. Ordinary in the source and a warning in the target,
     // which the leading underscore answers without changing the signature.

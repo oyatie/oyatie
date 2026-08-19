@@ -14,6 +14,15 @@ pub const CONSTRUCTION_RUST_CONST: &str = "rust_const";
 pub const CONSTRUCTION_RUST_STATIC: &str = "rust_static";
 /// The pack form id for a package variable something writes.
 pub const FORM_WRITTEN_PACKAGE_VAR: &str = "written_package_var";
+/// The form id for a package variable written ONLY by the package initialiser.
+///
+/// Its own form because it is its own question. The written one is deferred over concurrency —
+/// what synchronizes a mutable global — and this one has no concurrency question at all: it is
+/// computed once before anything runs. What it lacks is the initialising expression, which the
+/// front end cannot see.
+pub const FORM_INIT_WRITTEN_PACKAGE_VAR: &str = "init_written_package_var";
+/// The flag saying every write to a package variable is in the package initialiser.
+pub const FLAG_INIT_WRITTEN: &str = "init_written";
 /// Declaration-level construction: a transparent type alias.
 pub const CONSTRUCTION_RUST_TYPE_ALIAS: &str = "rust_type_alias";
 /// Declaration-level construction: a single-field tuple struct over the underlying type.

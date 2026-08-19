@@ -3409,3 +3409,37 @@ consecutive `use` lines, which nobody writes. The rule now knows that much about
 
 All seven real packages compile with zero rustc errors and zero clippy warnings; all five corpora
 compile as crates.
+
+## R1m — where a package variable is written, which is not the same question as whether
+
+The largest single refusal cause across the corpus is a package-level `var` something writes: 22 of
+them, and the reason the engine gave was a paragraph about concurrency policy — what synchronizes a
+mutable global, and why none of `static`, `static mut`, `Mutex`, `RwLock` or an atomic is a default
+the engine may pick. That reason is right for some of them and wrong for the rest, and the engine
+could not tell which because it only knew THAT a write existed.
+
+**Walking per declaration instead of per file.** `go/types` omits `init` from package scope, so the
+package initialiser can only be recognised in the syntax: named `init`, no receiver, no parameters,
+no results — all four, because a method called `init` is an ordinary method. The write analysis now
+records where each write was, and a variable every write to which is in the initialiser carries its
+own flag.
+
+**Measured: 12 of the 22 are that shape.** Those have no synchronization question at all — computed
+once before anything runs, never changed after. What they lack is not a decision but a FACT: the
+initialising expression, which lives in the `init` body the front end still does not index. So the
+engine can see THAT such a variable is computed and not WITH WHAT, and the refusal now says exactly
+that instead of describing a concurrency trade nobody is making.
+
+**And it names the cost of the form it wants, before anyone reaches for it.** A lazily-initialised
+global computes at first use where the source computed before `main`. For a compiled pattern that is
+invisible; for an initialiser with side effects it is a different program, and nothing here proves
+which. Also measured and recorded: 6 of those 12 are compiled regular expressions whose type does
+not come along either, so finishing this rule would unblock about five declarations across seven
+packages — worth writing down, and not worth doing before the causes that block more.
+
+**Three gates fired on the regeneration, each correctly.** The closed FLAG vocabulary refused
+`init_written` until the Rust side declared it, which is what a closed vocabulary is for. The pack
+load's deferral set is asserted exactly and caught the new form. And the upstream-drift pair went
+`Unchanged` because I regenerated it under a different module id — the unit stopped being one the
+plan selects, so nothing was emitted at all. The pair is the invariant that proves a moved upstream
+is Explained by exactly the snapshot axis, and it did its job by failing.
