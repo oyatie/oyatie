@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:10bcf616bb13f795e4a5ac51b3efa324bcde7413cdc01a94a92398851844305d",
+  "snapshot_digest": "sha256:ec935310b73ce2f7468e90d2350677adc6227a36f3999a5d2536a3ad6d2aa1e1",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -958,7 +958,8 @@
                 "exported"
               ],
               "attrs": {
-                "doc": "Run performs one unit of work and reports the running count."
+                "doc": "Run performs one unit of work and reports the running count.",
+                "receiver": "exclusive"
               },
               "children": [
                 {
@@ -1210,6 +1211,40 @@
                   ]
                 }
               ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Runner",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "attrs": {
+                "site": "structural"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Run",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "exclusive"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int"
+                      }
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -1388,6 +1423,9 @@
                   "flags": [
                     "exported"
                   ],
+                  "attrs": {
+                    "receiver": "exclusive"
+                  },
                   "children": [
                     {
                       "kind": "result",

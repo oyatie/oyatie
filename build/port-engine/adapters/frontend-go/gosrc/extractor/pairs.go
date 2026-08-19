@@ -69,7 +69,11 @@ func implementsNodes(facts []satisfaction, qualify types.Qualifier) []node {
 // dedupeSatisfactions collapses repeated observations of one pair, keeping the site that proves
 // the most, and orders the result so the snapshot is stable.
 func dedupeSatisfactions(facts []satisfaction) []satisfaction {
-	rank := map[string]int{siteAssertion: 0, siteAssign: 1, siteArgument: 2, siteResult: 3}
+	// STRUCTURAL ranks last, so a pair the source also USES keeps the site that proves the most.
+	// The impl is identical either way; what differs is only how it came to be known.
+	rank := map[string]int{
+		siteAssertion: 0, siteAssign: 1, siteArgument: 2, siteResult: 3, siteStructural: 4,
+	}
 	best := map[[2]string]satisfaction{}
 	for _, fact := range facts {
 		key := [2]string{typeKey(fact.concrete), typeKey(fact.iface)}

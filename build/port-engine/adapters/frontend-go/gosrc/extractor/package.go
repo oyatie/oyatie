@@ -149,7 +149,9 @@ func extractPackage(
 	if initializer := packageInit(files, ctx); initializer != nil {
 		decls = append(decls, *initializer)
 	}
-	return decls, collectSatisfactions(files, info, unitID), tpkg, nil
+	satisfactions := collectSatisfactions(files, info, unitID)
+	satisfactions = append(satisfactions, structuralSatisfactions(tpkg, unitID)...)
+	return decls, satisfactions, tpkg, nil
 }
 
 // sourceOrder ranks each package-scope name by where the source DECLARES it.

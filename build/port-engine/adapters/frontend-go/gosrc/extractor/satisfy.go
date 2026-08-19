@@ -48,7 +48,69 @@ const (
 	siteAssign    = "assign"
 	siteArgument  = "argument"
 	siteResult    = "result"
+	// siteStructural is neither an assertion nor a use: the type-checker says the concrete type
+	// HAS the interface's method set, so in the source it satisfies the interface everywhere,
+	// with nothing to declare and nothing to observe. The target is nominal and needs the impl
+	// written or the type does not have the interface at all.
+	siteStructural = "structural"
 )
+
+// structuralSatisfactions pairs every concrete type this package declares with every interface this
+// package declares that it satisfies.
+//
+// The source's interfaces are STRUCTURAL: a type with the method set has the interface, and no
+// declaration says so anywhere. An engine that emitted an impl only where it saw the pair USED
+// produces a crate that is strictly less capable than the source — a caller writing a generic
+// function over the interface finds their own type rejected, which is the difference between a
+// translation and an approximation. A reviewer reading the emitted crate found exactly that and
+// called it the single most likely thing to bite a user of it.
+//
+// SCOPED to interfaces this package DECLARES, and that bound is the decision rather than a
+// convenience. Those are the interfaces the package's own author designed, so an accidental match
+// against one is that author's own design — and the target's coherence rule allows the impl,
+// because the trait is emitted from this same unit. A structural match against an interface from
+// somewhere else is a `foreign_satisfaction`, which has its own recorded answer.
+func structuralSatisfactions(tpkg *types.Package, unitID string) []satisfaction {
+	scope := tpkg.Scope()
+	var ifaces []*types.Named
+	var concretes []*types.Named
+	for _, name := range scope.Names() {
+		named, ok := scope.Lookup(name).Type().(*types.Named)
+		if !ok {
+			continue
+		}
+		if _, isIface := named.Underlying().(*types.Interface); isIface {
+			ifaces = append(ifaces, named)
+			continue
+		}
+		concretes = append(concretes, named)
+	}
+
+	found := []satisfaction{}
+	for _, concrete := range concretes {
+		for _, named := range ifaces {
+			iface, ok := named.Underlying().(*types.Interface)
+			// An EMPTY interface is satisfied by everything, which is true and useless: emitting
+			// one impl per type in the package says nothing the target does not already allow.
+			if !ok || iface.NumMethods() == 0 {
+				continue
+			}
+			// The POINTER too, because the source's method set for `*T` includes `T`'s and a
+			// mutating method is only ever in the pointer's.
+			if !types.Implements(concrete, iface) &&
+				!types.Implements(types.NewPointer(concrete), iface) {
+				continue
+			}
+			found = append(found, satisfaction{
+				concrete:   concrete,
+				iface:      named,
+				site:       siteStructural,
+				observedIn: unitID,
+			})
+		}
+	}
+	return found
+}
 
 // collectSatisfactions walks a type-checked package for every position where a concrete type
 // becomes an interface.
