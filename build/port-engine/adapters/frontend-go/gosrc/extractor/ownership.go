@@ -24,6 +24,11 @@ func annotateParameterFacts(children []node, body *ast.BlockStmt, rebound map[st
 		if rebound[children[i].Name] {
 			facts = append(facts, flagRebound)
 		}
+		// Never mentioned at all. Claimed only where a body exists: without one, "not read" would
+		// mean "not looked at".
+		if body != nil && children[i].Name != "_" && !mentions(body, children[i].Name) {
+			facts = append(facts, flagUnread)
+		}
 		if len(facts) == 0 {
 			continue
 		}

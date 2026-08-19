@@ -13,7 +13,8 @@ use crate::naming::to_snake_case;
 use crate::ownership::{binds_by_pointer, parameter_target};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_VARIADIC, POSITION_PARAM, POSITION_RESULT,
+    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, POSITION_PARAM,
+    POSITION_RESULT,
 };
 
 pub(crate) fn refuse_variadic(declaration: &Declaration) -> Result<(), TransformError> {
@@ -75,6 +76,7 @@ pub(crate) fn params(
             Ok(RustParam {
                 name,
                 rebound: param.has_flag(FLAG_REBOUND),
+                unread: param.has_flag(FLAG_UNREAD),
                 ty,
             })
         })

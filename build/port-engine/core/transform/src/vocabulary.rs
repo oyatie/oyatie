@@ -112,6 +112,13 @@ pub const FLAG_POINTER_RECEIVER: &str = "pointer_receiver";
 /// the callee's copy is the opposite claim — the caller sees nothing — so one flag carrying both
 /// would demand a borrow for every parameter a body happens to reassign.
 pub const FLAG_REBOUND: &str = "rebound";
+/// The body never mentions this parameter.
+///
+/// Ordinary in the source — it is how a function satisfies an interface it does not need every
+/// argument of — and a WARNING in the target. The leading underscore says the same thing the
+/// source left implicit, and a parameter's name is not part of a function's type, so the signature
+/// is unchanged.
+pub const FLAG_UNREAD: &str = "unread";
 /// Ownership fact: the body provably assigns through this pointer.
 pub const FLAG_MUTATED: &str = "mutated";
 /// Ownership fact: this pointer provably outlives the call.

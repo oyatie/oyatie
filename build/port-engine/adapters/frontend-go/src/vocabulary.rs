@@ -200,6 +200,9 @@ pub const KNOWN_FLAGS: &[&str] = &[
     // the callee's copy is the opposite claim, and one flag carrying both would make every
     // rebound parameter demand an exclusive borrow.
     "rebound",
+    // The body never mentions the parameter. Ordinary in the source and a warning in the target,
+    // which the leading underscore answers without changing the signature.
+    "unread",
     "variadic",
 ];
 
