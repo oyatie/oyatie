@@ -13,13 +13,17 @@ use std::path::{Path, PathBuf};
 fn repo_root() -> PathBuf {
     let mut root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
     while !root.join("governance/capability-registry.json").is_file() {
-        assert!(root.pop(), "repository root not found above the manifest dir");
+        assert!(
+            root.pop(),
+            "repository root not found above the manifest dir"
+        );
     }
     root
 }
 
 fn frozen(root: &Path) -> serde_json::Value {
-    let path = root.join("libs/oya-governance-no-template-stamping/template-stamping-baseline.json");
+    let path =
+        root.join("libs/oya-governance-no-template-stamping/template-stamping-baseline.json");
     serde_json::from_str(&std::fs::read_to_string(&path).expect("read the frozen baseline"))
         .expect("parse the frozen baseline")
 }
@@ -87,12 +91,13 @@ fn live_template_stamping_matches_the_frozen_baseline() {
 
     let stale: Vec<_> = baseline
         .iter()
-        .filter(|(dir, frozen_sizes)| {
-            observed
-                .get(*dir)
-                .is_none_or(|sizes| sizes < *frozen_sizes)
+        .filter(|(dir, frozen_sizes)| observed.get(*dir).is_none_or(|sizes| sizes < *frozen_sizes))
+        .map(|(dir, frozen_sizes)| {
+            format!(
+                "{dir}: frozen {frozen_sizes:?}, now {:?}",
+                observed.get(dir)
+            )
         })
-        .map(|(dir, frozen_sizes)| format!("{dir}: frozen {frozen_sizes:?}, now {:?}", observed.get(dir)))
         .collect();
     assert!(
         stale.is_empty(),
