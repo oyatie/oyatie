@@ -7170,7 +7170,7 @@
         "id": "P-OWNED-STACK-KERNEL",
         "program_class": "owned-stack",
         "owned_stack_layer": "cloud-kernel",
-        "scope": "kuberos no_std kernel and sysroot recursion floor (kernel/, ADR-0512 carve-out workspace), ADR-0537 ladder rung 0 beneath cloud-os.",
+        "scope": "Rung-0 kernel floor (kernel/, ADR-0512 carve-out workspace) beneath the os rung. The kuberos no_std framekernel that formerly occupied this rung was retired by founder decision 2026-08-02 and deleted by commit c2ee2631a; kernel/ now holds the Asterinas evaluation as a black-box upstream pin, and the Asterinas-vs-Linux selection is deferred behind the os/ports/kernel-abi seam.",
         "owner": "cloud-platform",
         "hyperscaler_bar_exit_criteria": [
           "Kernel and sysroot changes carry hermetic carve-out build/test evidence before any status advances.",
@@ -7390,7 +7390,7 @@
           "ADR-0536",
           "ADR-0537"
         ],
-        "ladder_statement": "kuberos kernel (kernel) -> cloud-os (os) -> cloud-k8s -> cloud services -> oyatie products (ADR-0537 §3; ADR-0510 transitional implementations stay behind stable owned interfaces).",
+        "ladder_statement": "kernel -> os -> k8s -> cloud services -> oyatie products (the rung-0 floor is no longer kuberos: retired by founder decision 2026-08-02, deleted by commit c2ee2631a; Linux via upstream Talos is the node kernel today) (ADR-0537 §3; ADR-0510 transitional implementations stay behind stable owned interfaces).",
         "rungs": [
           {
             "rung": 0,
