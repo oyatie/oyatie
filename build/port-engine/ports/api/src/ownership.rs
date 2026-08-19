@@ -32,6 +32,32 @@ impl OwnershipFacts {
     }
 }
 
+/// How an argument reaches a parameter holding a given disposition.
+///
+/// STRUCTURE rather than a text template. `Some(Box::new({0}))` would have to be substituted into
+/// and re-parsed, which is the string-splicing the typed IR exists to replace: the engine builds an
+/// expression tree and lets the formatter render it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub enum PointerConstruction {
+    /// The argument lends. `mutable` is `&mut` rather than `&`.
+    Borrow {
+        /// Whether the borrow is exclusive.
+        mutable: bool,
+        /// Why an argument lends here, and what it costs the caller.
+        reason: String, // data_class: INTERNAL_ONLY
+    },
+    /// The argument is wrapped by each path in turn, INNERMOST FIRST.
+    ///
+    /// `["Box::new", "Some"]` reads in the order the value passes through it, which is also the
+    /// order it is built.
+    Wrap {
+        /// The wrapping paths, innermost first.
+        paths: Vec<String>, // data_class: INTERNAL_ONLY
+        /// Why an argument takes this form, and what it costs the caller.
+        reason: String, // data_class: INTERNAL_ONLY
+    },
+}
+
 /// A rule mapping observed facts onto a target ownership form.
 ///
 /// Rules are DATA and are evaluated in declared order, first match winning, because which
@@ -54,6 +80,13 @@ pub struct PointerDisposition {
     /// `None` means this disposition has no receiver form, which is a refusal rather than a
     /// fallback — a pointer that escapes cannot be handed out as any borrow of `self`.
     pub receiver: Option<String>, // data_class: INTERNAL_ONLY
+    /// How an ARGUMENT reaches a parameter holding this form.
+    ///
+    /// The same decision seen from the other end. A disposition says what `*T` becomes in a
+    /// parameter; this says what `&x` becomes when handed to one. They are one decision, so they
+    /// share an id and a rule — and keying the construction by id rather than by matching the
+    /// target spelling is what keeps a re-spelled target from silently changing it.
+    pub construction: PointerConstruction,
     /// Why these facts deserve this form, and what it costs.
     pub reason: String, // data_class: INTERNAL_ONLY
 }

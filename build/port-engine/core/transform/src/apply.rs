@@ -8,6 +8,7 @@ use port_engine_api::{
 use port_engine_rust_ir::{RustIr, RustItem};
 
 use crate::error::TransformError;
+use crate::signature_table::SignatureTable;
 use crate::items::{build_item, build_unit_item};
 use crate::naming::{region_id_for, region_id_for_declaration};
 use crate::ownership::{DispositionLog, DispositionRecord, OwnershipContext};
@@ -77,6 +78,10 @@ pub fn apply_with_provenance(
     // and the trait impls its observed satisfactions call for.
     let log = DispositionLog::new();
     let ownership = OwnershipContext::new(semantics.pointer_dispositions(), &log);
+    // Every signature the engine can translate, once, so an argument site can ask what its
+    // destination wants instead of guessing. A signature that does not translate is omitted, and
+    // the declaration owning it refuses on its own terms when its turn comes.
+    let signatures = SignatureTable::build(model, semantics, &ownership);
     // unit → the declaration kinds some applied rule captured, for the coverage check below.
     let mut captured_kinds: BTreeMap<UnitId, BTreeSet<String>> = BTreeMap::new();
 
@@ -147,6 +152,7 @@ pub fn apply_with_provenance(
                     trait_object_forms: semantics.trait_object_forms(),
                     failure: semantics.failure_convention(),
                     deferred: semantics.deferred_kinds(),
+                    signatures: &signatures,
                     function_map: semantics.function_map(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,

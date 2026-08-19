@@ -6,17 +6,22 @@
 //! must name every field in Rust.
 
 use port_engine_api::{Declaration, TypeRef};
+use port_engine_api::PointerConstruction;
 use port_engine_rust_ir::RustExpr;
 
 use crate::body::{Body, one_child, two_children, unsupported_source};
 use crate::body_index::slice;
+use crate::body_call::call;
 use crate::body_ops::{
-    binary_operator, is_receiver, operator_of, reference, refuse_deferred_reference,
-    unary_operator, unary_refusal,
+    binary_operator, is_receiver, operator_of, own_string_for, reference,
+    refuse_deferred_reference, unary_operator, unary_refusal,
 };
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::vocabulary::{ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_VALUE, CALLEE_KIND_METHOD};
+use crate::vocabulary::{
+    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, KIND_UNARY,
+    OPERATOR_ADDRESS_OF,
+};
 
 /// Where an expression appears: a value is READ, a place is WRITTEN TO.
 ///
@@ -229,112 +234,4 @@ fn zero_value(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformEr
                 node.type_ref.describe()
             ),
         })
-}
-
-/// A call, which is a method call when its callee is a field access.
-///
-/// The source spells both as one form and distinguishes them by what the callee resolves to; the
-/// target spells them differently. A field access in callee position is a method call — a plain
-/// field holding a function is a shape the corpus does not have and that refuses rather than being
-/// silently rewritten into a method.
-fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
-    let callee = node
-        .children
-        .first()
-        .ok_or_else(|| TransformError::MissingDatum {
-            construction: "call".to_owned(),
-            name: cx.owner.to_owned(),
-            datum: "callee",
-        })?;
-    let args = node.children[1..]
-        .iter()
-        .map(|arg| expression(arg, cx))
-        .collect::<Result<Vec<_>, _>>()?;
-
-    // The pack answers for the callee FIRST, by identity. A call it answers for is one the target
-    // has no name of its own for — a builtin, or something from a standard library that does not
-    // come along — and emitting the source's spelling would name nothing.
-    if let Some(rendered) = mapped_call(node, &args, cx)? {
-        return Ok(rendered);
-    }
-
-    // A call through a RECEIVER, as the type-checker saw it — not as the syntax looked. The
-    // source spells `value.Method()` and `package.Function()` the same way, and deciding by shape
-    // emitted a method call on a package name.
-    if node.attr(ATTR_CALLEE_KIND) == Some(CALLEE_KIND_METHOD) {
-        return Ok(RustExpr::MethodCall {
-            // The receiver of a method call is a PLACE, not a value: `x.m()` borrows `x` rather
-            // than reading it, so cloning here would call the method on a temporary.
-            receiver: Box::new(in_position(
-                one_child(callee, cx, "selector")?,
-                cx,
-                Position::Place,
-            )?),
-            method: to_snake_case(&callee.name),
-            args,
-        });
-    }
-
-    // A free function, named by the path its identity resolves to. A local one keeps its bare
-    // name; one from another unit is reached through that unit's emitted module, the same way a
-    // type from another unit is.
-    let path = cx
-        .resolver
-        .function_path(node.attr(ATTR_CALLEE), cx.owner)?;
-    Ok(RustExpr::Call {
-        callee: Box::new(RustExpr::Path(path)),
-        args,
-    })
-}
-
-/// A call the pack answers for by the callee's IDENTITY, rendered from its declared template.
-///
-/// Arity is checked rather than assumed: a template that expects an argument the call does not have
-/// would leave its own placeholder in the output, which parses as nothing and would be discovered
-/// far from its cause.
-fn mapped_call(
-    node: &Declaration,
-    args: &[RustExpr],
-    cx: &Body<'_>,
-) -> Result<Option<RustExpr>, TransformError> {
-    let Some(identity) = node.attr(ATTR_CALLEE) else {
-        return Ok(None);
-    };
-    let Some(template) = cx.resolver.function_map.get(identity) else {
-        return Ok(None);
-    };
-
-    let mut rendered = template.clone();
-    for (index, arg) in args.iter().enumerate() {
-        let operand = render_operand(arg).ok_or_else(|| TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: format!(
-                "an argument to `{identity}` is a compound expression, and the pack answers for \
-                 that call with a TEXT template — substituting one would need parentheses the \
-                 template cannot ask for"
-            ),
-        })?;
-        rendered = rendered.replace(&format!("{{{index}}}"), &operand);
-    }
-    if rendered.contains('{') {
-        return Err(TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: format!(
-                "the pack's template for `{identity}` expects more arguments than the call has"
-            ),
-        });
-    }
-    Ok(Some(RustExpr::Literal(rendered)))
-}
-
-/// An argument, as target text for a template to interpolate.
-///
-/// Only the forms whose text is unambiguous are admitted. A template is textual substitution, and
-/// substituting a compound expression into one would need parentheses this cannot see the need for —
-/// so anything else refuses rather than producing text that reassociates.
-fn render_operand(arg: &RustExpr) -> Option<String> {
-    match arg {
-        RustExpr::Literal(text) | RustExpr::Path(text) => Some(text.clone()),
-        _ => None,
-    }
 }

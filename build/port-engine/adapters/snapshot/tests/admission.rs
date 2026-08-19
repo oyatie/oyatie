@@ -68,6 +68,7 @@ fn v1_fixture_admits_and_carries_declarations() {
             "fallible",
             "geometry",
             "globals",
+            "handoff",
             "naming",
             "pointers",
             "scoped",

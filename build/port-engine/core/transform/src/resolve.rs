@@ -23,6 +23,7 @@ use port_engine_api::{Declaration, FailureConvention, TypeRef, UnitId};
 use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
+use crate::signature_table::SignatureTable;
 use crate::naming::{module_path, to_pascal_case};
 use crate::ownership::OwnershipContext;
 use crate::vocabulary::TYPE_NAMED_INTERFACE;
@@ -83,6 +84,13 @@ pub(crate) struct Resolver<'a> {
     /// declined to emit produces a crate with a dangling name. Read from the pack rather than
     /// listed here, so a kind that stops being deferred stops causing refusals with no code change.
     pub(crate) deferred: &'a BTreeSet<String>,
+    /// What a call's DESTINATION wants, keyed by callee identity.
+    ///
+    /// The body translator knows what an expression is and not where it is going. `&x` and a bare
+    /// string literal both need the second, and both destinations are signatures the engine has
+    /// already translated — see `signatures.rs` for what this cannot answer and why it refuses
+    /// rather than approximating.
+    pub(crate) signatures: &'a SignatureTable,
     /// The target form a trait takes in each position, keyed by position.
     pub(crate) trait_object_forms: &'a BTreeMap<String, String>,
     /// Source type identity → the target expression for that type's zero value.

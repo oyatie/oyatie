@@ -9,6 +9,8 @@ use std::cell::RefCell;
 use port_engine_analysis::{Decision, decide, receiver_form};
 use port_engine_api::{Declaration, OwnershipFacts};
 
+use port_engine_api::PointerConstruction;
+
 use crate::error::TransformError;
 use crate::vocabulary::{FLAG_EFFECT_UNKNOWN, FLAG_ESCAPES, FLAG_MUTATED, FLAG_POINTER_RECEIVER};
 
@@ -129,6 +131,31 @@ fn decision_for(
     decide(site, facts, context.rules).map_err(|err| TransformError::Ownership {
         detail: err.to_string(),
     })
+}
+
+/// Which disposition was chosen at a site, and how an argument reaches it.
+impl OwnershipContext<'_> {
+    /// The disposition id chosen at `site`, if one was.
+    ///
+    /// Read back from the LOG rather than recomputed, so the argument site and the parameter site
+    /// are answered by the same decision rather than by two evaluations that could diverge. Linear
+    /// in the log, which is affordable because the signature table is built once.
+    pub(crate) fn decided_for(&self, site: &str) -> Option<String> {
+        self.log
+            .records()
+            .into_iter()
+            .rev()
+            .find(|record| record.site == site)
+            .map(|record| record.rule_id)
+    }
+
+    /// How an argument reaches a parameter holding the disposition `id`.
+    pub(crate) fn construction_for(&self, id: &str) -> Option<&PointerConstruction> {
+        self.rules
+            .iter()
+            .find(|rule| rule.id == id)
+            .map(|rule| &rule.construction)
+    }
 }
 
 /// What the ownership pass needs: the pack's rules and somewhere to record what it decided.

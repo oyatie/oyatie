@@ -1,7 +1,7 @@
 //! Deciding ownership: order, refusal, and the record that makes a decision auditable.
 
 use port_engine_analysis::{AnalysisError, decide, receiver_form, w0_ready};
-use port_engine_api::{OwnershipFacts, PointerDisposition};
+use port_engine_api::{OwnershipFacts, PointerConstruction, PointerDisposition};
 
 fn rule(
     id: &str,
@@ -17,6 +17,12 @@ fn rule(
         when_effect_unknown: effect_unknown,
         target: format!("{id}<{{0}}>"),
         receiver: receiver.map(ToOwned::to_owned),
+        // These tests are about which rule MATCHES, not about what an argument becomes under it,
+        // so the construction is the neutral borrow.
+        construction: PointerConstruction::Borrow {
+            mutable: mutated.unwrap_or(false),
+            reason: format!("because {id}"),
+        },
         reason: format!("because {id}"),
     }
 }

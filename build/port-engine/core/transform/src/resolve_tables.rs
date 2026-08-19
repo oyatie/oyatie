@@ -158,6 +158,21 @@ impl Resolver<'_> {
         borrowed.is_some_and(|target| !target.starts_with('&'))
     }
 
+    /// What the pack maps a source `string` to in this construction, when it is OWNED.
+    ///
+    /// `None` when the construction holds a borrowed spelling — `rust_const` overrides `string` to
+    /// `&str`, and a constant's literal must stay borrowed.
+    pub(crate) fn owned_string_target(&self) -> Option<&str> {
+        let target = self
+            .overrides
+            .and_then(|overrides| overrides.get(SOURCE_STRING))
+            .or_else(|| self.type_map.get(SOURCE_STRING))?;
+        match target.starts_with('&') {
+            true => None,
+            false => Some(target),
+        }
+    }
+
     pub(crate) fn resolve_in(
         &self,
         type_ref: &TypeRef,

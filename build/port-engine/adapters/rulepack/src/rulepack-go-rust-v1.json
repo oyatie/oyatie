@@ -104,7 +104,8 @@
     "redundant on its own: `return len(s)` wants the source's int, and `v[i]` wants the target's",
     "usize, and the same value reaches both. Where a counter makes the round trip the pair is visible",
     "and removable — which is why a cast is an IR node rather than text, so the right-sizing analysis",
-    "can see it and delete it rather than parse it out of a string."
+    "can see it and delete it rather than parse it out of a string.",
+    "copy_types names every source scalar whose target counterpart is Copy, so reading one is a read rather than a clone. It held only bool/int/float64, which is not a decision but an incomplete list: every other numeric width emitted a `.clone()` on a Copy value -- output that compiles and that no reviewer would accept. `string` is deliberately absent: it maps to an owned String, which is not Copy, so reading one really does clone."
   ],
   "pair": {
     "source": "go",
@@ -387,6 +388,10 @@
     ],
     "oyatie.example/portengine-fixture/corpus/globals": [
       "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/handoff": [
+      "go_func",
+      "go_struct_body"
     ]
   },
   "type_constructors": {
@@ -400,14 +405,30 @@
       "id": "escaping_owned",
       "escapes": true,
       "target": "Option<Box<{0}>>",
-      "reason": "The pointer outlives the call — it is returned or captured — so no borrow can be handed out: a reference would need a lifetime the caller cannot supply. Owned is the form that is always available, and `Option` carries the nil the source could hold. NO RECEIVER FORM: a method whose receiver escapes cannot be a borrow of self, and refusing is better than picking a borrow that will not hold."
+      "reason": "The pointer outlives the call — it is returned or captured — so no borrow can be handed out: a reference would need a lifetime the caller cannot supply. Owned is the form that is always available, and `Option` carries the nil the source could hold. NO RECEIVER FORM: a method whose receiver escapes cannot be a borrow of self, and refusing is better than picking a borrow that will not hold.",
+      "construction": {
+        "kind": "wrap",
+        "paths": [
+          "Box::new",
+          "Some"
+        ],
+        "reason": "The parameter owns the value, so the argument hands ownership over. `Box::new` because taking the address in the source is what allocated it, and `Some` because the parameter carries the nil the source could hold. This MOVES the argument, which the source does not do -- and it is the cost the owned form already pays at the parameter. The argument site cannot pay a different one without the two disagreeing."
+      }
     },
     {
       "id": "unproven_owned",
       "escapes": false,
       "effect_unknown": true,
       "target": "Option<Box<{0}>>",
-      "reason": "The pointer reached a call the front end did not analyse, so 'not mutated' and 'does not escape' are UNPROVEN rather than false. A borrow chosen on unproven facts is a guess; the owned form costs a move and cannot be wrong. Revisit when the analysis follows calls."
+      "reason": "The pointer reached a call the front end did not analyse, so 'not mutated' and 'does not escape' are UNPROVEN rather than false. A borrow chosen on unproven facts is a guess; the owned form costs a move and cannot be wrong. Revisit when the analysis follows calls.",
+      "construction": {
+        "kind": "wrap",
+        "paths": [
+          "Box::new",
+          "Some"
+        ],
+        "reason": "The same construction as `escaping_owned`, for a different reason: the facts are UNPROVEN rather than known, and the owned form was chosen because it cannot be wrong. The argument must match the parameter it feeds, so it moves too. Revisit when the analysis follows calls."
+      }
     },
     {
       "id": "exclusive_borrow",
@@ -416,7 +437,12 @@
       "mutated": true,
       "target": "&mut {0}",
       "receiver": "&mut self",
-      "reason": "The body provably assigns through this pointer and nothing outlives the call, so an exclusive borrow is what the code does. This is a HYPOTHESIS about aliasing, not a proof: escape analysis shows lifetime compatibility and not the exclusivity a borrow needs, because a Go caller may pass one pointer as two arguments. What makes it safe to emit is that the target checks it — an unsatisfiable `&mut` is a borrow-check error the compile proof catches, which is a red build rather than silent corruption. See docs/programs/k8s-port/census/ownership-escape.md."
+      "reason": "The body provably assigns through this pointer and nothing outlives the call, so an exclusive borrow is what the code does. This is a HYPOTHESIS about aliasing, not a proof: escape analysis shows lifetime compatibility and not the exclusivity a borrow needs, because a Go caller may pass one pointer as two arguments. What makes it safe to emit is that the target checks it — an unsatisfiable `&mut` is a borrow-check error the compile proof catches, which is a red build rather than silent corruption. See docs/programs/k8s-port/census/ownership-escape.md.",
+      "construction": {
+        "kind": "borrow",
+        "mutable": true,
+        "reason": "The parameter is an exclusive borrow, so the argument lends exclusively. Nothing moves and the caller keeps the value, which is what the source does."
+      }
     },
     {
       "id": "shared_borrow",
@@ -425,13 +451,31 @@
       "mutated": false,
       "target": "&{0}",
       "receiver": "&self",
-      "reason": "Nothing mutates through it and nothing outlives the call, so a shared borrow is both sufficient and the cheapest form. Same aliasing caveat as the exclusive case, and much weaker: a shared borrow coexists with other shared borrows, so caller-side aliasing does not invalidate it."
+      "reason": "Nothing mutates through it and nothing outlives the call, so a shared borrow is both sufficient and the cheapest form. Same aliasing caveat as the exclusive case, and much weaker: a shared borrow coexists with other shared borrows, so caller-side aliasing does not invalidate it.",
+      "construction": {
+        "kind": "borrow",
+        "mutable": false,
+        "reason": "The parameter is a shared borrow, so the argument lends. Nothing moves and the caller keeps the value."
+      }
     }
   ],
   "copy_types": [
     "bool",
+    "byte",
+    "float32",
     "float64",
-    "int"
+    "int",
+    "int8",
+    "int16",
+    "int32",
+    "int64",
+    "rune",
+    "uint",
+    "uint8",
+    "uint16",
+    "uint32",
+    "uint64",
+    "uintptr"
   ],
   "zero_values": {
     "bool": "false",

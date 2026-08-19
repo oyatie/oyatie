@@ -8,6 +8,7 @@
 pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("apply.rs", include_str!("apply.rs")),
     ("body.rs", include_str!("body.rs")),
+    ("body_call.rs", include_str!("body_call.rs")),
     ("body_cond.rs", include_str!("body_cond.rs")),
     ("body_expr.rs", include_str!("body_expr.rs")),
     ("body_failure.rs", include_str!("body_failure.rs")),
@@ -27,6 +28,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("resolve.rs", include_str!("resolve.rs")),
     ("resolve_tables.rs", include_str!("resolve_tables.rs")),
     ("signature.rs", include_str!("signature.rs")),
+    ("signature_table.rs", include_str!("signature_table.rs")),
     ("sources.rs", include_str!("sources.rs")),
     ("survey.rs", include_str!("survey.rs")),
     ("vocabulary.rs", include_str!("vocabulary.rs")),

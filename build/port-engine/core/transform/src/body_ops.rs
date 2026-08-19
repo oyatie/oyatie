@@ -104,10 +104,30 @@ pub(crate) fn returns_owned_string(declaration: &Declaration, resolver: &Resolve
 /// conversion rather than a formatting call. That spelling is an IDIOM decision living in code for
 /// now and belongs in pack data with the rest of the idiom rules.
 pub(crate) fn own_returned_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
+    match cx.result_is_owned_string {
+        true => own_string(expr),
+        false => expr,
+    }
+}
+
+/// Own a bare string literal whose destination is the owned string target.
+///
+/// The destination comes from the signature table, and the comparison is spelling EQUALITY against
+/// what the pack maps `string` to — never a pattern match on the spelling, because `Option<Box<T>>`
+/// and `String` are strings today and deciding by their shape would break the moment a form is
+/// spelled differently for the same decision.
+pub(crate) fn own_string_for(expr: RustExpr, wanted: &str, cx: &Body<'_>) -> RustExpr {
+    match cx.resolver.owned_string_target().is_some_and(|owned| owned == wanted) {
+        true => own_string(expr),
+        false => expr,
+    }
+}
+
+fn own_string(expr: RustExpr) -> RustExpr {
     let RustExpr::Literal(text) = &expr else {
         return expr;
     };
-    if !cx.result_is_owned_string || !text.starts_with('"') {
+    if !text.starts_with('"') {
         return expr;
     }
     RustExpr::Literal(format!("{text}.to_owned()"))
@@ -162,9 +182,10 @@ pub(crate) fn refuse_deferred_reference(
 pub(crate) fn unary_refusal(spelling: &str) -> String {
     match spelling {
         "&" | "*" => format!(
-            "unary `{spelling}` needs the DESTINATION's ownership disposition, which is decided \
-             per position and is not known at an expression site; it needs the signature table, \
-             not a new rule"
+            "unary `{spelling}` in a non-argument position: an ARGUMENT is answered by the \
+             signature table, which gives the parameter's disposition and the construction that \
+             feeds it. A `let`, a `return` or an assignment is not — the local's or the result's \
+             target type has to reach the expression walk first"
         ),
         other => format!("unary operator `{other}` has no target form"),
     }

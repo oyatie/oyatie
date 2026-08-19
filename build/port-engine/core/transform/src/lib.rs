@@ -23,6 +23,7 @@ pub use sources::CRATE_SOURCES;
 
 mod apply;
 mod body;
+mod body_call;
 mod body_cond;
 mod body_expr;
 mod body_failure;
@@ -39,6 +40,7 @@ mod ownership;
 mod params;
 mod promote;
 mod resolve;
+mod signature_table;
 mod resolve_tables;
 mod signature;
 mod survey;

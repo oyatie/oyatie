@@ -838,6 +838,42 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   The owning SPELLING (`.to_owned()` over `.to_string()`) is an idiom decision sitting in code. It
   belongs in pack data with the rest of the idiom rules at R7 — recorded rather than left implicit.
 
+- THE SIGNATURE TABLE (R6). The body translator knows what an expression IS and not where it is
+  going, and several translations need the second. Measured over the seven corpora: of 33 `&` sites,
+  11 are `f(&x)` — the largest single group — and every one of those destinations is a signature the
+  engine has already translated. The answer was always available; it had nowhere to be asked from.
+  One translation of every free function in the model, keyed by the identity a call already records
+  (`<unit_id>.<Name>`, which is exactly what the extractor writes). Built with NO construction
+  overrides: the pack's one override maps `string` to `&str` for `rust_const`, and a function
+  parameter is never inside a constant.
+  A signature the engine cannot translate is OMITTED rather than fatal, and `None` from the table is
+  "cannot say" rather than "no conversion needed" — the difference matters, because reading the
+  second as the first is how a missing answer becomes a silent wrong one.
+  What it does NOT answer, and refuses by name: a METHOD (52 of the calls in uuid — a method's key
+  is its receiver type, not a path) and a FOREIGN function (`fmt.Sprintf`), whose signature is not
+  in the snapshot at all.
+  ARGUMENT CONSTRUCTION IS THE SAME DECISION SEEN FROM THE OTHER END. A disposition already said
+  what `*T` becomes in a parameter; it now also says what `&x` becomes when handed to one. One id,
+  one rule, one reason — rather than a second table that could disagree with the first. Found by the
+  id the parameter RECORDED, never by matching the spelling that decision produced.
+  Declared as STRUCTURE, not as a text template. `Some(Box::new({0}))` would have to be substituted
+  into and re-parsed, which is the string-splicing the typed IR exists to replace; the pack says
+  `borrow` or `wrap: [paths]` and the transform builds `RustExpr::Reference` / `RustExpr::Call`.
+  Proven end to end by `corpus/handoff`: `bump(&mut c)` and `read(&c)` each match their parameter,
+  and `let mut c` follows because taking the address rebinds it.
+  Coverage on the real corpora did NOT move, and that is honest rather than disappointing: their `&`
+  sites are `x := &T{..}` (7), `return &T{..}` (4), `x = &T{..}` (3), `return &x` (3) — 17 of 33 —
+  whose destinations are a local's inferred type and a function's result. Both are known to the
+  engine and neither reaches the expression walk yet. The refusal now names the position instead of
+  claiming the target has no form for `&`.
+
+- `copy_types` held `bool`, `int`, `float64` and nothing else, so every other numeric width emitted
+  `.clone()` on a Copy value. Not a decision — an incomplete list. Output that compiles and that no
+  reviewer would accept, which is the bar this engine is held to and not the same bar as compiling.
+  All sixteen source scalars now, `string` deliberately absent: it maps to an owned `String`, which
+  is not Copy, so reading one really does clone. The four remaining clones in the golden are all
+  `String` fields, which is correct.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil
