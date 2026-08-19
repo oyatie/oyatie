@@ -204,15 +204,17 @@ pub fn apply_with_provenance(
 
     prove_every_declaration_is_accounted_for(plan, semantics, model, &captured_kinds)?;
 
-    // The unit's PRELUDE: names the unit gives itself, which no declaration owns. Synthesised after
-    // the loop because it is a property of the whole unit — whether anything in it can fail — and
-    // placed at position -1 so a reader meets it before the declarations that use it.
-    for (unit, item) in crate::prelude::preludes(plan, semantics, model) {
-        let region = crate::naming::region_id_for_unit(&unit, "prelude");
-        provenance.insert(RegionId(region.clone()), unit);
-        region_order.push((-1, 0, region.clone()));
-        items.push((region, item));
-    }
+    // The names each unit gives ITSELF, which no declaration owns: its prelude and its imports.
+    // Synthesised after the loop because both are properties of the whole unit, and ordered ahead
+    // of every declaration so a reader meets them first.
+    crate::prelude::assemble(
+        plan,
+        semantics,
+        model,
+        &mut items,
+        &mut provenance,
+        &mut region_order,
+    );
 
     region_order.sort_by_key(|(position, step, _)| (*position, *step));
     let region_names: Vec<String> = region_order.into_iter().map(|(_, _, name)| name).collect();

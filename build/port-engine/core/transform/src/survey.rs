@@ -104,6 +104,38 @@ where
             );
         }
     }
+
+    // The unit's PRELUDE and its IMPORTS, which belong to no declaration. The survey emits real
+    // packages, so it needs both exactly as the assembly path does — and it had neither, which is
+    // why every package `port` emitted spelled the failure type out in full and named `std::fmt`
+    // three times per sentinel.
+    for unit in model.units() {
+        if let Some(item) = crate::prelude::prelude_item(&unit, pack, model) {
+            report.ported.push(PortedRegion {
+                region: crate::naming::region_id_for_unit(&unit, "prelude"),
+                unit: unit.clone(),
+                position: -1,
+                items: vec![item],
+            });
+        }
+        // Read from what this unit ACTUALLY emitted, which is the only evidence that cannot produce
+        // an import nothing uses.
+        let emitted: Vec<port_engine_rust_ir::RustItem> = report
+            .ported
+            .iter()
+            .filter(|region| region.unit == unit)
+            .flat_map(|region| region.items.clone())
+            .collect();
+        let imports = crate::prelude::import_items(&emitted);
+        if !imports.is_empty() {
+            report.ported.push(PortedRegion {
+                region: crate::naming::region_id_for_unit(&unit, "imports"),
+                unit,
+                position: -2,
+                items: imports,
+            });
+        }
+    }
     report
 }
 
@@ -204,7 +236,7 @@ pub(crate) fn survey_declaration<P>(
             report.ported.push(PortedRegion {
                 unit: site.unit.clone(),
                 region: crate::naming::region_id_for_declaration(site.unit, rule, &declaration.name),
-                position: site.position,
+                position: isize::try_from(site.position).unwrap_or(isize::MAX),
                 items,
             });
             report.translated.push(entry(None));

@@ -13,7 +13,7 @@ use port_engine_api::PortError;
 
 use crate::item::{RustField, RustFn, RustItem, RustParam, StructShape};
 use crate::lower_body::lower_block;
-use crate::lower_parts::{lower_docs, lower_vis, parse_expr, parse_ident, parse_type};
+use crate::lower_parts::{lower_docs, lower_vis, parse_expr, parse_ident, parse_path, parse_type};
 
 /// Lower a whole region's items into a parsed `syn::File`.
 ///
@@ -46,6 +46,11 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             Ok(quote! { #docs #vis const #name: #ty = #value; })
         }
 
+        RustItem::Use { path } => {
+            let path = parse_path(path)?;
+            Ok(quote! { use #path; })
+        }
+
         RustItem::SentinelError {
             docs,
             vis,
@@ -62,8 +67,8 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
                 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
                 #vis struct #name;
 
-                impl std::fmt::Display for #name {
-                    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+                impl fmt::Display for #name {
+                    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
                         f.write_str(#message)
                     }
                 }

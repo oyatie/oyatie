@@ -21,6 +21,13 @@ pub(crate) fn parse_ident(name: &str) -> Result<syn::Ident, PortError> {
     })
 }
 
+/// A `use` path, parsed so an unparseable one refuses here rather than in the emitted file.
+pub(crate) fn parse_path(source: &str) -> Result<syn::Path, PortError> {
+    syn::parse_str(source).map_err(|err| PortError::Render {
+        detail: format!("`{source}` is not a valid target import path: {err}"),
+    })
+}
+
 pub(crate) fn parse_expr(source: &str, what: &str) -> Result<syn::Expr, PortError> {
     syn::parse_str(source).map_err(|err| PortError::Render {
         detail: format!("`{source}` is not a valid target {what}: {err}"),

@@ -3024,3 +3024,52 @@ workspace dependency (root `Cargo.toml`), so reindeer would mark it public; `thi
 simply stale. The fix is `scripts/ci/regen-third-party.sh`, which needs a reindeer binary this
 machine does not have, and which rewrites a generated face owned by another lane. Not hand-edited:
 patching a generated file is the same mistake as hand-tuning emitted output.
+
+## R1d — two of the review's findings became rules, two became written reasons
+
+A ninth blind review of the ported `semver` returned DO NOT MERGE with four new items. Two are real
+engine rules and are now in. Two are not, and the reason each is not is written here rather than
+re-derived next time.
+
+**The `Err` prefix is a workaround for a problem the target does not have.** The source names a
+sentinel `ErrEmptyString` because it has no namespacing inside a package; the target has modules, so
+`semver::EmptyString` says everything `semver::ErrEmptyString` does. And the prefix costs something
+there that it does not cost in the source: the target's failure arm is literally called `Err`, so
+`Err(ErrEmptyString)` stutters at every single return. Dropped under three conditions, each one a
+case where dropping it would guess or lose: the pack declares a prefix, what remains is not empty,
+and no other declaration in the unit already emits that name. Three sites needed the same answer —
+the declaration, the return that constructs one, and the downcast that tests identity — so it is
+answered once on the resolver. Two of them agreeing on a rename the third missed would not compile.
+
+**A module that names one std module twenty-one times imports it once.** Seven sentinels spelling
+`std::fmt::Display`, `std::fmt::Formatter` and `std::fmt::Result` is what the reviewer meant by "what
+a code generator emits, not what a person types nine times." The import is derived from the items the
+unit ACTUALLY EMITTED, never from what it declared, and that distinction is load-bearing: an unused
+type alias is dead code, which the compile proof allows, and an unused import is a warning, which it
+denies. A unit whose sentinels all refused must not gain an import for them.
+
+**And the gap that finding uncovered, which is larger than the finding.** There are two emission
+paths — the plan-driven assembly and the survey — and only the assembly had a prelude at all. Every
+package `port` has ever emitted was missing it: no `Result` alias, so every fallible signature spelled
+`Box<dyn std::error::Error + Send + Sync>` in full, which two earlier reviewers named and which the
+engine had already fixed on the other path. The prelude is now one per-unit decision both paths ask.
+`PortedRegion::position` became signed to hold it, which is what the assembly path had always done
+and the survey path could not express.
+
+**Declined: Go's package visibility is wider than Rust's module visibility.** The reviewer ranked this
+second and reasoned correctly from what they were shown — a bare `fn` is visible to one module and
+its descendants, a lowercase Go identifier to every file in the package, so mapping unexported to
+private looks strictly narrowing. It is not, here: this engine emits one module per PACKAGE, never
+per file, so an unexported name is private to exactly the scope it was package-visible in. The
+finding is an artifact of how the file was framed to the reviewer, not of the output. No rule.
+
+**Declined: `uint64` inside a `Display` string.** `f.write_str("version increment would overflow
+uint64")` names a type the target does not have — true, and it is not a translation defect, because
+that string is the program's OUTPUT. Rewriting what a program prints is changing the program, not
+porting it. The line is clean and worth stating once: the prose type-name rule rewrites DOC COMMENTS,
+which describe the code, and never string literals, which the code emits. A caller matching on that
+message would break, and this engine's whole purpose is not to produce output that means something
+different.
+
+All seven real packages still compile with zero rustc errors and zero clippy warnings, per file:
+semver, xid (2 files), xxhash (2 files), ksuid, uuid, errors, multierror.

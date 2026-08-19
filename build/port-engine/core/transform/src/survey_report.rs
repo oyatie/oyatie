@@ -14,8 +14,12 @@ pub struct PortedRegion {
     pub unit: UnitId,
     /// The region this declaration owns.
     pub region: String,
-    /// Where the declaration sits in its unit, so the emit can follow the source's order.
-    pub position: usize,
+    /// Where the region sits in its unit, so the emit can follow the source's order.
+    ///
+    /// SIGNED, because a unit's prelude and its imports sit before its first declaration and belong
+    /// to no declaration at all. The assembly path already ordered them this way; the survey path
+    /// could not express it, which is why the packages it emitted had neither.
+    pub position: isize,
     /// What it translated to.
     pub items: Vec<port_engine_rust_ir::RustItem>,
 }

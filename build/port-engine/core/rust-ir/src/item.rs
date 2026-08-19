@@ -128,6 +128,20 @@ pub enum RustItem {
         /// Its value, carried as a source spelling.
         value: String, // data_class: INTERNAL_ONLY
     },
+    /// An IMPORT the module makes, so a path it names repeatedly is named once.
+    ///
+    /// A module that spells `std::fmt::Display`, `std::fmt::Formatter` and `std::fmt::Result` in
+    /// every one of its seven sentinels names one std module twenty-one times. A person writing
+    /// that writes `use std::fmt;` and then `fmt::Display` — which is what a reviewer meant by
+    /// calling the qualified form "what a code generator emits, not what a person types nine
+    /// times".
+    ///
+    /// Emitted only from what the module ACTUALLY contains, never from what it declared: an import
+    /// nothing uses is a denied warning, where an unused type alias is only dead code.
+    Use {
+        /// The path imported, without the `use` or the semicolon.
+        path: String, // data_class: INTERNAL_ONLY
+    },
     /// A SENTINEL failure: a unit struct that is an error, and can be compared against.
     ///
     /// Three items that are one concept — the type, its message, and its `Error` impl — so they are

@@ -64,10 +64,10 @@ pub(crate) fn build_static(
         return Ok(RustItem::SentinelError {
             docs: docs_of(declaration, resolver),
             vis: visibility(declaration),
-            // A TYPE, so its name is a type's. The source already names it as one — `ErrSize` is
-            // capitalised because it is exported, and the target capitalises it because it is a
-            // type — so the two conventions agree here for once.
-            name: to_pascal_case(&declaration.name),
+            // A TYPE, so its name is a type's — and without the source's `Err` prefix, which is
+            // a convention for a namespacing problem the target does not have. Decided by the
+            // resolver so the return and the identity test spell the same name.
+            name: resolver.sentinel_type_name(&declaration.name),
             message: message.clone(),
         });
     }
