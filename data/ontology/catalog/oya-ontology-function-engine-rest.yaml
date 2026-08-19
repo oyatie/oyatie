@@ -15,6 +15,6 @@ spec:
     annotated via utoipa.
   imports: [oya-ontology-function-engine-api, oya-ontology-function-engine-usecase,
             oya-ontology-cedar-fragment-coverage-usecase]
-  openapi_path: microservices/ontology/contracts/openapi/ontology.yaml
+  openapi_path: data/ontology/contracts/openapi/ontology.yaml
   related_ip: IP-014
   related_adrs: [ADR-0056, ADR-0105, ADR-0107]

@@ -7,14 +7,14 @@
     "kind": "framework-scorecard"
   },
   "twelve_layer_enum_position": "compliance",
-  "justification": "Industry-framework scorecards. Each evidence claim must cite a concrete artifact under microservices/analytics/. Self-declared maturity without cited evidence is forbidden.",
+  "justification": "Industry-framework scorecards. Each evidence claim must cite a concrete artifact under data/analytics/. Self-declared maturity without cited evidence is forbidden.",
   "owner": "council-analytics + axis-compliance",
   "adr_anchors": ["ADR-0001", "ADR-0040", "ADR-0193"],
   "scorecards": [
-    {"framework": "aws-well-architected", "path": "microservices/analytics/scorecards/aws-well-architected.json"},
-    {"framework": "google-sre-prr", "path": "microservices/analytics/scorecards/google-sre-prr.json"},
-    {"framework": "cis-k8s-1-10", "path": "microservices/analytics/scorecards/cis-k8s-1-10.json"},
-    {"framework": "slsa-l3", "path": "microservices/analytics/scorecards/slsa-l3.json"}
+    {"framework": "aws-well-architected", "path": "data/analytics/scorecards/aws-well-architected.json"},
+    {"framework": "google-sre-prr", "path": "data/analytics/scorecards/google-sre-prr.json"},
+    {"framework": "cis-k8s-1-10", "path": "data/analytics/scorecards/cis-k8s-1-10.json"},
+    {"framework": "slsa-l3", "path": "data/analytics/scorecards/slsa-l3.json"}
   ],
   "status": "planned"
 }
