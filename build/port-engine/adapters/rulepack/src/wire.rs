@@ -67,6 +67,10 @@ pub(crate) struct RulepackDocument {
 #[serde(deny_unknown_fields)]
 pub(crate) struct FailureDoc {
     pub(crate) source_type: String,
+    #[serde(default)]
+    pub(crate) discards_companion: bool,
+    #[serde(default)]
+    pub(crate) discard_reason: String,
     /// Why that target type, and what its bounds buy.
     pub(crate) reason: String,
     pub(crate) target_type: String,

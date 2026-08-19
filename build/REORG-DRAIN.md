@@ -1390,6 +1390,35 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   emitted output is where a misplaced comment in the input becomes visible, which is an argument
   for reading it after every corpus change rather than only after every engine change.
 
+- HOW FAR THE ENGINE TRUSTS THE SOURCE'S FAILURE CONVENTION — a decision the drain has been
+  carrying as open since P4, now made and declared. It was the largest capability blocker left:
+  4 packages, 15 declarations, and most of the real fallible code in any of them.
+  The source's failing return carries the value beside the failure — `return Nil, errSize` — and
+  the target's carries only the failure, so the companion has nowhere to go. The engine already
+  dropped it where it could SEE the value was inert, a literal or the absent value, and refused
+  otherwise. That was faithful to the cases inspection could confirm rather than to the convention.
+  THE DECISION: discard it. The source DOCUMENTS that a result beside a non-nil error is not
+  guaranteed to be meaningful, so a caller reading it is relying on something the source does not
+  promise.
+  THE COST, stated rather than hidden: a source program that violates its own convention — writing
+  a meaningful value beside a failure and having its caller read it — ports to a target program
+  that does not carry that value, and the engine cannot tell such a program from a conforming one
+  because the difference lives in the CALLER. Refusing keeps those programs correct and keeps every
+  conforming one unported, and conforming programs are almost all of them.
+  THE CASE THAT GIVES MOST PAUSE is named in the reason rather than left to be rediscovered: a
+  NAMED result may have been written through before the failure, so its value is work a reader can
+  see happening and cannot see being discarded. Under the convention it is still unreadable, so the
+  same argument covers it — but it is where a reader would most reasonably expect otherwise.
+  Pack DATA, so the trade travels in the digest and whoever owns the pack can reverse it without
+  touching the engine. Setting `discards_companion` to false returns to refusing, which costs
+  coverage and buys correctness for programs that break their own contract.
+  semver 20.7% → 34.5%, uuid 32.0% → 33.0%.
+  THE FIXTURE THAT PROVED THE REFUSAL NOW PROVES THE DROP. `corpus-failure` was written to fence a
+  refusal that no longer happens; the fence asserts the behaviour the pack currently declares, and
+  the stricter half is fenced by the transform's own tests, which declare `discards_companion`
+  false. A fixture that proves whatever the pack says is worth more than one that proves a
+  behaviour the pack has moved past.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

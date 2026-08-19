@@ -126,10 +126,22 @@ pub fn port_go_refused_interface() -> Result<usize, PipelineError> {
     refuse(admit_embedded_fixture_interface_v1().map_err(PipelineError::Admit)?)
 }
 
-/// Attempt to port the failure-convention refusal corpus, returning the refusal.
+/// Port the failure-convention corpus.
+///
+/// Named for the CONVENTION rather than for a refusal: what this corpus proves moved when the pack
+/// decided how far to trust the source's rule that a result beside a non-nil error is not
+/// guaranteed to be meaningful. It used to refuse; it now discards the companion.
 ///
 /// # Errors
-/// [`PipelineError`] — a `Transform` refusal is the SUCCESSFUL outcome for this input.
+/// [`PipelineError`] on any pipeline defect.
+pub fn port_go_failure_pipeline() -> Result<PipelineReport, PipelineError> {
+    port_go_from(admit_embedded_fixture_failure_v1().map_err(PipelineError::Admit)?)
+}
+
+/// Port the failure corpus, reporting only how many regions it produced.
+///
+/// # Errors
+/// [`PipelineError`] on any pipeline defect.
 pub fn port_go_refused_failure() -> Result<usize, PipelineError> {
     refuse(admit_embedded_fixture_failure_v1().map_err(PipelineError::Admit)?)
 }
