@@ -89,6 +89,8 @@ On Accept of **this** ADR:
 5. Until Accept or Reject of ADR-0710, **live law** for admission substrate remains ADR-0701's
    carried ADR-0379/0338 gist (Kubewarden default; Kyverno historical).
 
+**Closure note (2026-08-18):** D-1(5) is spent. Founder Accepted ADR-0710 on 2026-08-18 as **D-8 SEVERED** — D-1 through D-7 and D-9 onward carry, D-8 remains open on its own evidence. Live law for the admission substrate is therefore ADR-0710, not ADR-0701's carried ADR-0379/0338 gist, which is annotated superseded-in-part at both carried sites. D-1(1) through D-1(4) survive unchanged: the D-8 evidence packet, the explicit Accept-or-Reject of D-8, the F1(d) explicit-Reject path, and the `MPV2-0056.decision_timebox` 2026-09-10 deadline all still bind, now scoped to D-8 alone rather than to the whole ADR. D-2 survives in full.
+
 Promotion/conformance process-law (not an Accept of this ADR): flake taxonomy + rerun budget
 before the first full CNCF+Sonobuoy promotion-gate claim is recorded under
 [ADR-0713 D-A9](ADR-0713-node-substrate-architecture.md) alongside K1-owned security-response.
