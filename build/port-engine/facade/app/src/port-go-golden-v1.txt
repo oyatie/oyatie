@@ -351,15 +351,10 @@ pub mod scoped {
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__span
     /// Reports the width of s, counting a short string as one wider than it is.
     pub fn span(s: &str) -> i64 {
-        let mut result = 0;
-        {
+        let result = {
             let size = s.len() as i64;
-            if size > 4 {
-                result = size;
-            } else {
-                result = size.wrapping_add(1);
-            }
-        }
+            if size > 4 { size } else { size.wrapping_add(1) }
+        };
         result
     }
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__width

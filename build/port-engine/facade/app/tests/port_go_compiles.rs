@@ -54,15 +54,6 @@ fn emitted_rust_compiles() {
         .arg("--deny=warnings")
         .arg("--allow=dead_code")
         .arg("--allow=unused_variables")
-        // The third source property, and the one worth naming because a better translation would
-        // absorb it. Go writes `x := 0` and then assigns in every branch, and warns on neither the
-        // declaration nor the dead initial value; Rust's flow analysis sees the initialiser
-        // overwritten before it is read. A faithful port of that Go produces this warning however
-        // well it is done. What would remove it is emitting `let x = if c { a } else { b };` — the
-        // target's `if` is an expression and the source's is not — which needs the front end to
-        // report that the initial value is never read on any path. Until it does, denying this
-        // would fail the proof for output that is faithful.
-        .arg("--allow=unused_assignments")
         .arg(&source_path)
         .output()
         .expect("rustc must be runnable — this test runs under cargo, which found one");

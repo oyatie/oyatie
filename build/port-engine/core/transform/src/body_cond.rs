@@ -36,6 +36,41 @@ pub(crate) fn conditional(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr,
     Ok(RustExpr::Block(vec![bound, RustStmt::Semi(inner)]))
 }
 
+/// The same `if`, as an EXPRESSION whose branches yield the two given values.
+///
+/// Built here rather than in `body_choice` so one place decides what an `if` becomes: the condition,
+/// the init clause and the block that scopes it are all this module's, and a second builder would be
+/// free to scope the init differently.
+///
+/// The init clause keeps its block, which is what makes this faithful. The binding stays scoped to
+/// the conditional exactly as the source scopes it — the whole block simply becomes the value now
+/// rather than a statement.
+///
+/// # Errors
+/// [`TransformError`] from translating the condition, the init clause, or either value.
+pub(crate) fn branch_value(
+    node: &Declaration,
+    cx: &Body<'_>,
+    then_value: &Declaration,
+    else_value: &Declaration,
+) -> Result<RustExpr, TransformError> {
+    let condition = named_child(node, "cond", cx, "if")?;
+    let chosen = RustExpr::If {
+        cond: Box::new(expression(one_child(condition, cx, "cond")?, cx)?),
+        then: vec![RustStmt::Tail(expression(then_value, cx)?)],
+        // The target's `else` takes a block or another `if`, never a bare expression, so the
+        // value is wrapped exactly as a `then` branch's statement list already is.
+        otherwise: Some(Box::new(RustExpr::Block(vec![RustStmt::Tail(
+            expression(else_value, cx)?,
+        )]))),
+    };
+    let Some(init) = node.children_of_kind("init").first().copied() else {
+        return Ok(chosen);
+    };
+    let bound = statement(one_child(init, cx, "init")?, cx, false)?;
+    Ok(RustExpr::Block(vec![bound, RustStmt::Tail(chosen)]))
+}
+
 fn plain_conditional(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
     let condition = named_child(node, "cond", cx, "if")?;
     let then = named_child(node, "then", cx, "if")?;

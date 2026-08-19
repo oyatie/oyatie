@@ -2143,3 +2143,36 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   where the body is a field read; `usize` for a parameter used only as an index, which is the
   counter idiom one level out; and region ORDER, which is alphabetical and which the reviewer read
   as "what an emitter produces from a symbol table" rather than what an author writes.
+
+## The choice the source had to spell as a mutation
+
+- `result := 0; if c { result = a } else { result = b }` emitted `let mut result = 0;` followed by a
+  bare block. Two reviewers named it, and the second was exact: "that is the pattern you write when
+  your language doesn't have `if` as an expression."
+
+- The source's `if` is a STATEMENT, so a value chosen by a condition has to be written into a name
+  declared beforehand. The target's is an EXPRESSION, and the same choice is spelled by initialising
+  the name from it. Not a rewrite — the two run the same condition, evaluate the same branch, and
+  leave the same value in the same name.
+
+- Three defects removed, not one preference satisfied: the binding stops being `mut`, because
+  nothing writes it after it is bound; the initial value stops being emitted, because it is dead on
+  every path; and the shape stops reading as a translation.
+
+- THE INIT CLAUSE KEEPS ITS BLOCK, which is what makes this faithful rather than merely tidier. The
+  source scopes `if size := len(s); cond` so `size` dies with the branch, and hoisting it to make
+  the `if` a bare expression would be the unfaithful move this module has refused from the start.
+  The whole block simply becomes the value now instead of a statement:
+  `let result = { let size = s.len() as i64; if size > 4 { size } else { size + 1 } };`
+
+- STRICT like the propagation matchers: the `if` must be the VERY NEXT statement, BOTH branches must
+  be present, and each must be exactly one plain assignment to the declared name. Without an else
+  the initial value is live on one path and the whole argument collapses. A compound assignment is
+  refused because `x += e` reads the value this rule is about to stop emitting.
+
+- AN ALLOWANCE CAME OFF THE COMPILE PROOF, which is the measurable half. `unused_assignments` was
+  admitted two commits ago with a reason that named this exact translation as the work that would
+  remove it. It is removed, and the emitted crate now compiles under `--deny=warnings` with only the
+  two allowances that are genuinely properties of the source — an unexported declaration nobody
+  calls, and a parameter a function ignores. Writing down what would fix an allowance is what made
+  it findable.

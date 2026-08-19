@@ -175,6 +175,14 @@ pub(crate) fn translate(
             index += 2;
             continue;
         }
+        // A CHOICE the source had to spell as a mutation: `x := 0; if c { x = a } else { x = b }`.
+        // Two statements for one construct, matched here for the same reason the propagation pair
+        // is — the binding alone says nothing, and it is the `if` that follows which decides.
+        if let Some(chosen) = crate::body_choice::choice(nodes, index, cx)? {
+            out.push(chosen);
+            index += 2;
+            continue;
+        }
         let is_tail = tail == TailPosition::Yes && index + 1 == nodes.len();
         out.push(statement(&nodes[index], cx, is_tail)?);
         index += 1;
