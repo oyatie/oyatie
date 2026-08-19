@@ -8,7 +8,8 @@ use port_engine_rust_ir::{Receiver, RustFn, RustParam, RustType, Visibility};
 use crate::error::TransformError;
 use crate::naming::{to_snake_case, visibility};
 use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_for};
-use crate::params::{params, results, results_owned};
+use crate::params::params;
+use crate::results::{results, results_owned};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
     ATTR_RECEIVER, CHILD_BODY, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC, POSITION_PARAM, POSITION_RESULT,
