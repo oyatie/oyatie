@@ -146,6 +146,11 @@ func packageVarWrites(
 					if typed.Op == token.AND {
 						mark(typed.X)
 					}
+				case *ast.SliceExpr:
+					// A SLICE of a package array is the same licence by another spelling: it is a
+					// mutable view, and `io.ReadFull(r, pool[:])` fills the array through it without
+					// ever assigning to the name. That is how a randomness pool read as a constant.
+					mark(typed.X)
 				}
 				return true
 			})
@@ -181,7 +186,11 @@ func marker(
 	into map[types.Object]bool,
 ) func(ast.Expr) {
 	return func(expr ast.Expr) {
-		ident, ok := expr.(*ast.Ident)
+		// THROUGH the expression to the variable it reaches. `pool[i] = x` writes `pool`, and
+		// `cfg.field = x` writes `cfg`; stopping at the outermost node saw neither, so a package
+		// array something fills element by element read as never written -- and a never-written
+		// variable becomes a constant, which cannot be written at all.
+		ident, ok := baseIdent(expr).(*ast.Ident)
 		if !ok {
 			return
 		}
@@ -194,6 +203,28 @@ func marker(
 		if v, ok := obj.(*types.Var); ok && scope.Lookup(v.Name()) == obj {
 			written[obj] = true
 			into[obj] = true
+		}
+	}
+}
+
+// baseIdent walks an lvalue down to the variable it ultimately reaches.
+//
+// An assignment's target is rarely a bare name: `pool[i]`, `cfg.field`, `*p`, and any nesting of
+// them all write the variable at the bottom. Anything else -- a call, a literal -- reaches no
+// variable, and the caller's type assertion rejects it.
+func baseIdent(expr ast.Expr) ast.Expr {
+	for {
+		switch typed := expr.(type) {
+		case *ast.IndexExpr:
+			expr = typed.X
+		case *ast.SelectorExpr:
+			expr = typed.X
+		case *ast.StarExpr:
+			expr = typed.X
+		case *ast.ParenExpr:
+			expr = typed.X
+		default:
+			return expr
 		}
 	}
 }
