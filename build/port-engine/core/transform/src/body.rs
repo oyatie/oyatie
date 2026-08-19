@@ -208,6 +208,15 @@ pub(crate) fn translate(
     let mut out = Vec::with_capacity(nodes.len());
     let mut index = 0;
     while index < nodes.len() {
+        // A body that PROPAGATES AND SUCCEEDS is the call itself. `check(s)?; Ok(())` runs the
+        // call, hands its failure out, and reports success — which is what the call already does.
+        // The extra shape exists because the SOURCE could not say it in one statement, and the
+        // target can; a reviewer reading `check(s)?; Ok(())` in a two-line function said so.
+        if let Some(forwarded) = crate::body_failure::forwarded_call(nodes, index, cx, tail)? {
+            out.push(forwarded);
+            index += 3;
+            continue;
+        }
         // The propagation idiom spans TWO statements, so it is matched here rather than inside
         // `statement`: a bind alone says nothing, and the check that follows is what decides
         // whether the pair is an operator or two ordinary statements.

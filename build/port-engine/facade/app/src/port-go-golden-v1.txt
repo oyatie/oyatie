@@ -38,7 +38,7 @@ pub mod basic {
     pub const THRESHOLD: f64 = 0.75;
     // region: oyatie_example_portengine_fixture_corpus_basic__go_alias__id
     /// An alias for the underlying identity spelling.
-    pub type ID = String;
+    pub type Id = String;
     // region: oyatie_example_portengine_fixture_corpus_basic__go_defined_type__celsius
     /// A temperature in degrees Celsius.
     #[derive(Debug, Clone, Default, PartialEq)]
@@ -148,8 +148,7 @@ pub mod fallible {
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__validate
     /// Checks s and reports nothing else.
     pub fn validate(s: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
-        check(s)?;
-        Ok(())
+        check(s)
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_struct_body__report
     /// Records a failure alongside what was being attempted.
@@ -288,7 +287,7 @@ pub mod naming {
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__describe
     /// Returns the display name of anything that can name itself.
-    pub fn describe(named: &dyn crate::shapes::Named) -> String {
+    pub fn describe(named: &impl crate::shapes::Named) -> String {
         named.name()
     }
 }

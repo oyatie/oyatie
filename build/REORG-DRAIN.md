@@ -2430,3 +2430,36 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   `flagsFor`'s own comment says a flag set has exactly one encoding, and the admitter proved it
   within a minute. Cheap to fix and worth recording: the encoding invariants in that file are load-
   bearing, not tidiness.
+
+## Three the fifth review proved, and one decision reversed
+
+- AN ACRONYM IS ONE WORD. `type ID = String` carried the source's convention of capitalising a whole
+  acronym; RFC 430 is explicit that the target spells one as a word — `Uuid` rather than `UUID`.
+  This REVERSES a decision recorded in a test here, whose reason was that lowercasing "would rename
+  the type rather than recase it". That reason is wrong: `Id` and `ID` are the same word differently
+  cased, and casing is exactly what the naming rule does. Two reviewers read the all-capitals form
+  as the source language's convention carried over, which is what it was. `KSUID` becomes `Ksuid`,
+  and a letter following a LOWER-CASE one still starts a new word, so `NewKSUID` is `NewKsuid`
+  rather than `Newksuid`.
+
+- AN INTERFACE PARAMETER IS GENERIC, not dynamic, and it is one line of pack data. The source's
+  interface parameter is a dynamic value because the source has no other kind; the target has both,
+  and `&impl Trait` accepts every implementor exactly as the source's does, monomorphises rather
+  than dispatching through a table, and needs no allocation. `&dyn` buys heterogeneity a PARAMETER
+  cannot use — one call passes one value. Reviewers named `&dyn` at every interface boundary as a
+  port artifact and were right: it is what you get by mapping the source's one kind of interface
+  value onto the target's one that resembles it, rather than onto the one a parameter wants.
+
+  A RESULT still refuses. `impl Trait` in return position names a single hidden type where the
+  source's result may be a different one on every path, which is a different program.
+
+- A BODY THAT PROPAGATES AND SUCCEEDS IS THE CALL. `check(s)?; Ok(())` runs the call, hands its
+  failure out, and reports success — every one of which `check(s)` already does. The extra shape
+  exists because the SOURCE cannot say it in one statement: its `if err != nil { return err };
+  return nil` is two statements and a convention, where the target's return type is the whole
+  statement.
+
+  STRICT: the three must be the last three, the success must carry no value, and the call must bind
+  nothing. A success carrying a value is a different function from the one it called; a bound value
+  means the body used it. And it must run BEFORE the propagation matcher, which would otherwise
+  consume the pair and leave the `Ok(())` standing — which is how it was found.

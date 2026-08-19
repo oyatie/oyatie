@@ -582,9 +582,10 @@
     "uintptr": "0"
   },
   "trait_object_forms": {
-    "param": "&dyn {0}",
+    "param": "&impl {0}",
     "trait": "{0}",
-    "supertrait": "{0}"
+    "supertrait": "{0}",
+    "_reason": "A PARAMETER of interface type is generic, not dynamic. The source's interface parameter is a dynamic value because the source has no other kind; the target has both, and `&impl Trait` is what it writes for a parameter — it accepts every implementor exactly as the source's does, monomorphises rather than dispatching through a table, and needs no allocation. `&dyn Trait` buys heterogeneity a PARAMETER cannot use: one call passes one value, and a caller that needs a mixed collection builds one at its own boundary. Reviewers named `&dyn` at every interface boundary as a port artifact, and they were right: it is the shape you get by mapping the source's one kind of interface value onto the target's one that resembles it, rather than onto the one a parameter wants. A RESULT still has no declared form and still refuses. Returning an interface needs an owner, and `impl Trait` in return position names a single hidden type where the source's result may be a different one on every path -- which is a different program, not a different spelling."
   },
   "failure_convention": {
     "source_type": "error",

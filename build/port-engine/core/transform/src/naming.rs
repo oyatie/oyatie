@@ -96,6 +96,7 @@ pub fn to_snake_case(raw: &str) -> String {
 pub fn to_pascal_case(raw: &str) -> String {
     let mut out = String::with_capacity(raw.len());
     let mut capitalize_next = true;
+    let mut previous_was_upper = false;
     for ch in raw.chars() {
         if !ch.is_ascii_alphanumeric() {
             capitalize_next = true;
@@ -105,8 +106,19 @@ pub fn to_pascal_case(raw: &str) -> String {
             out.push(ch.to_ascii_uppercase());
             capitalize_next = false;
         } else {
-            out.push(ch);
+            // LOWER after the first letter of a run, which is what turns the source's `ID` into
+            // `Id` and its `HTTPServer` into `HttpServer`. The source's convention capitalises a
+            // whole acronym and the target's does not — RFC 430 spells one as a word — and copying
+            // the source's form is a naming a reviewer reads as the other language's, correctly.
+            //
+            // A letter that FOLLOWS a lower-case one starts a new word and keeps its own case, so
+            // `KSUID` becomes `Ksuid` and `NewKSUID` becomes `NewKsuid` rather than `Newksuid`.
+            out.push(match previous_was_upper {
+                true => ch.to_ascii_lowercase(),
+                false => ch,
+            });
         }
+        previous_was_upper = ch.is_ascii_uppercase();
     }
     if out.is_empty() {
         out.push_str("Item");
