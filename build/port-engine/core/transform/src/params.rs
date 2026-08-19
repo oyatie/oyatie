@@ -13,8 +13,8 @@ use crate::naming::to_snake_case;
 use crate::ownership::{binds_by_pointer, parameter_target, reference_target};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, POSITION_PARAM,
-    POSITION_RESULT,
+    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC,
+    IDIOM_BORROWED_SLICE, POSITION_PARAM, POSITION_RESULT,
 };
 
 /// A variadic parameter is a SLICE, which is what it already is.
@@ -50,11 +50,9 @@ pub(crate) fn params(
             // Emitting it owned would consume the caller's value and lose the sharing, which is
             // what a reviewer probing the emitted crate found: `size(my_table)` lost `my_table`.
             let ty = if is_reference_kind(&param.type_ref.kind) {
-                let resolved =
-                    resolver.resolve_in(&param.type_ref, &declaration.name, POSITION_PARAM)?;
                 RustType::path(reference_target(
                     param,
-                    &resolved.spelling(),
+                    &borrowed_spelling(param, resolver, &declaration.name)?,
                     &site,
                     resolver.ownership,
                 )?)
@@ -154,4 +152,33 @@ pub(crate) fn results(
 /// they are answered by the same dispositions.
 fn is_reference_kind(kind: &str) -> bool {
     matches!(kind, "map" | "slice")
+}
+
+/// What a borrow of this reference type borrows.
+///
+/// A SLICE borrows as `[T]`, not as the owned container: `&[T]` accepts every `&Vec<T>` and also
+/// an array, a boxed slice and a subrange, so it takes strictly more callers while promising
+/// strictly less — which is why `clippy::style` flags the container form. Nothing about the
+/// program changes, and the source's slice was never an owned container in the first place.
+///
+/// Composed STRUCTURALLY, from the element type, rather than by rewriting the container's
+/// spelling: a re-spelled container cannot silently stop matching something nobody is matching on.
+/// A map has no such unsized view, so it borrows as itself.
+///
+/// # Errors
+/// [`TransformError`] when the element or the container does not resolve.
+fn borrowed_spelling(
+    param: &Declaration,
+    resolver: &Resolver<'_>,
+    owner: &str,
+) -> Result<String, TransformError> {
+    if param.type_ref.kind == "slice"
+        && resolver.idiom_method(IDIOM_BORROWED_SLICE).is_some()
+        && let Some(element) = param.type_ref.args.first()
+    {
+        return Ok(format!("[{}]", resolver.resolve(element, owner)?.spelling()));
+    }
+    Ok(resolver
+        .resolve_in(&param.type_ref, owner, POSITION_PARAM)?
+        .spelling())
 }

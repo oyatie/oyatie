@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:44fa504025794b5d27a0a70ad4155cb22812d66b30d667d46cfd0d7aaf12d7e6",
+  "snapshot_digest": "sha256:7a6c404c75f2a70dd3ae48cbbc41949bb764ffc19fa6209be594d32d272bfd4b",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-failure/corpus-failure/carried",
@@ -75,6 +75,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             },
@@ -116,6 +117,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "builtin"
                                   }
                                 },
@@ -130,6 +132,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "3",
                                     "ref": "local"
                                   }
                                 }
@@ -216,6 +219,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "2",
                             "ref": "builtin"
                           }
                         },
@@ -230,6 +234,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "3",
                             "ref": "local"
                           }
                         }

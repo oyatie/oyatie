@@ -219,6 +219,7 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_LIT_KIND,
     ATTR_OP,
     ATTR_RANGE_KEY,
+    ATTR_READ_COUNT,
     ATTR_RANGE_VALUE,
     ATTR_RECEIVER,
     ATTR_REF,
@@ -272,6 +273,13 @@ pub const ATTR_SITE: &str = "site";
 
 /// Attribute key holding a constant's or literal's value, spelled as source.
 pub const ATTR_VALUE: &str = "value";
+
+/// Attribute key holding how many times the enclosing body reads a binding.
+///
+/// Present only where that is more than one. A read can MOVE the value when nothing reads it
+/// afterwards, and comparing this total against the reads inside one construction is how the last
+/// read is found without a liveness pass.
+pub const ATTR_READ_COUNT: &str = "read_count";
 
 /// Attribute key holding a binary or unary operator, spelled as source.
 pub const ATTR_OP: &str = "op";

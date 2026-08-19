@@ -49,6 +49,8 @@ pub const TYPE_POINTER: &str = "pointer";
 pub const KIND_LITERAL: &str = "literal";
 /// The idiom that spells an emptiness test as a method rather than a comparison.
 pub const IDIOM_EMPTY_STRING: &str = "empty_string_comparison";
+/// The idiom that borrows a sequence as a slice rather than as its owned container.
+pub const IDIOM_BORROWED_SLICE: &str = "borrowed_sequence_is_a_slice";
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
 /// The node kind of a unary expression.
@@ -129,6 +131,8 @@ pub const FLAG_UNREAD: &str = "unread";
 /// non-copying binding is a use after move. A binding read once is left alone: moving it is both
 /// correct and what someone writing the target would put.
 pub const FLAG_REREAD: &str = "reread";
+/// How many times the enclosing body reads a binding, present only where that is more than one.
+pub const ATTR_READ_COUNT: &str = "read_count";
 /// Ownership fact: the body provably assigns through this pointer.
 pub const FLAG_MUTATED: &str = "mutated";
 /// Ownership fact: this pointer provably outlives the call.

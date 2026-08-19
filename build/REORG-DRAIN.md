@@ -1286,6 +1286,31 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   imported, and the engine emits no `use`. The compile proof is what will catch it, and `use`
   emission is R3's.
 
+- A BORROWED SEQUENCE IS A SLICE, not a borrow of the owned container. `&[T]` accepts every
+  `&Vec<T>` and also an array, a boxed slice and a subrange, so it takes strictly more callers while
+  promising strictly less — which is why `clippy::style` flags the container form. Nothing about the
+  program changes, and the source's slice was never an owned container in the first place.
+  Composed STRUCTURALLY rather than by rewriting the container's spelling: the disposition's borrow
+  template substitutes `[element]` where it would have substituted the resolved container, so a
+  re-spelled container cannot silently stop matching something nobody is matching on. A map borrows
+  as itself, because it has no unsized view.
+  Seeded from the same rust-skills rule with its provenance, which is the third idiom to carry one.
+
+- THE LAST READ OF A BINDING CAN MOVE, and was being cloned anyway.
+  `Label{prefix: prefix, text: prefix}` needs ONE clone: the first read must copy because a second
+  follows, and the second can take the value because nothing follows it. Both were cloned, which
+  compiles and is exactly the needless allocation the review flags.
+  Knowing which read is last on every path is LIVENESS. Knowing it inside one composite literal is
+  COUNTING: if the body reads a binding exactly as many times as this literal does, the literal
+  holds every read and its final one is the last. The front end already counted — it was throwing
+  the count away and keeping a boolean — so the count is recorded now and the transform compares.
+  Deliberately narrow, and the narrowness is the honesty: where the body reads the binding again
+  AFTER the literal, every read in the literal still clones, because one of them is not the last
+  and this cannot say which.
+  Both of the two items named as owed at the end of the previous phase are now closed. What remains
+  from the third review is the `wrapping_*` default, which is held with its reason, and the error
+  type, which is the error-model decision rather than a defect.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil
