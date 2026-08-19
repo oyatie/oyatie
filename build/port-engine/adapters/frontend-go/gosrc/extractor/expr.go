@@ -52,12 +52,23 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 		// differently and the name alone cannot say which it is — and because the RECEIVER is the
 		// one identifier whose target spelling is not its name at all.
 		kind := referenceKind(typed, ctx)
+		// The TYPE rides along only where it is needed — on a binding this body reads again — so
+		// the snapshot does not carry a type on every identifier for the sake of the few that use
+		// one.
+		var reread []string
+		var readType *typeNode
+		if object := ctx.info.Uses[typed]; object != nil && ctx.reread[object] {
+			reread = []string{flagReread}
+			readType = typeTree(object.Type())
+		}
 		if typed.Name == ctx.receiver && ctx.receiver != "" {
 			kind = "receiver"
 		}
 		return node{
 			Kind:  kindIdent,
 			Name:  typed.Name,
+			Type:  readType,
+			Flags: reread,
 			Attrs: map[string]string{attrRef: kind},
 		}
 

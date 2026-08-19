@@ -116,7 +116,8 @@ fn v1_fixture_admits_and_carries_declarations() {
         .expect("`Point` is declared");
     assert_eq!(point.kind, "struct");
     assert_eq!(point.children_of_kind("field").len(), 3);
-    assert_eq!(point.children_of_kind("method").len(), 2);
+    // Label, Shift and Area: a getter for the unexported field, and two computations.
+    assert_eq!(point.children_of_kind("method").len(), 3);
 }
 
 #[test]

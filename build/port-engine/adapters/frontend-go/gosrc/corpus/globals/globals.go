@@ -21,8 +21,9 @@ var Prefix = "id-"
 // value.
 var Limit int64
 
-// Describe names the package. It touches no package variable, which is what lets it be emitted
-// beside two that are deferred.
+// Describe touches no package variable, which is what lets it be emitted beside two that are.
+
+// Describe returns the name of this package.
 func Describe() string {
 	return "globals"
 }

@@ -1,17 +1,12 @@
-// Package geometry exists to prove CROSS-PACKAGE type resolution.
-//
-// Everything else in this corpus refers only to its own package's types, which a resolver keyed by
-// bare name would handle by accident. Here `shapes.Point` is a named type from another package,
-// and resolving it needs the package identity the snapshot now carries and the module path the
-// assembler emits — neither of which a flat spelling table could express.
+// Package geometry provides rectangles built from points declared in another package.
 package geometry
 
 import "oyatie.example/portengine-fixture/corpus/shapes"
 
-// Origin is the zero point, referred to across a package boundary.
+// Origin names the point type this package builds rectangles from.
 type Origin = shapes.Point
 
-// Bounds is a rectangle described by two points from another package.
+// Bounds is a rectangle described by its two opposite corners.
 type Bounds struct {
 	// Min is the lower corner.
 	Min shapes.Point
@@ -19,19 +14,12 @@ type Bounds struct {
 	Max shapes.Point
 }
 
-// Widths returns the horizontal extents of several rectangles.
-//
-// The slice is the point: a composite type resolves by CONSTRUCTOR now, so one `slice` entry in
-// the pack answers this and every other slice, where a spelling table needed a row per element.
+// Widths returns the horizontal extents it was given, unchanged.
 func Widths(counts []int) []int {
 	return counts
 }
 
-// Lookup returns a count for a label, falling back when the table has none.
-//
-// The map is in the SIGNATURE rather than the body on purpose: indexing is not in the translated
-// statement subset yet and refuses by name, and this package's job is to prove type resolution
-// rather than to smuggle an untranslated construct into the green corpus.
-func Lookup(table map[string]int, fallback int) int {
-	return fallback
+// Size reports how many labelled counts the table holds.
+func Size(table map[string]int) int {
+	return len(table)
 }

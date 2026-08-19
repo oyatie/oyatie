@@ -23,11 +23,11 @@ type Describer interface {
 	Describe() string
 }
 
-// Job is anything that runs and describes itself.
-//
 // Embeds two interfaces and declares no method of its own, which is the shape 87.3% of embedding
 // interfaces have — and the shape whose emitted trait says nothing at all unless the supertraits
 // are carried.
+
+// Job is anything that runs and describes itself.
 type Job interface {
 	Runner
 	Describer
@@ -39,11 +39,11 @@ type Engine struct {
 	calls int
 }
 
-// Run performs one unit of work and reports the running count.
-//
 // MUTATING, which is what makes the promoted method interesting: the forwarding method's receiver
 // is decided by what the method it forwards to does, and there is no body on the outer type to
 // observe.
+
+// Run performs one unit of work and reports the running count.
 func (e *Engine) Run() int {
 	e.calls = e.calls + 1
 	return e.calls

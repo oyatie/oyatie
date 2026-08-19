@@ -123,6 +123,12 @@ pub const FLAG_REBOUND: &str = "rebound";
 /// source left implicit, and a parameter's name is not part of a function's type, so the signature
 /// is unchanged.
 pub const FLAG_UNREAD: &str = "unread";
+/// The body reads this binding MORE THAN ONCE.
+///
+/// The source copies a value on every read and the target moves it, so a second read of a
+/// non-copying binding is a use after move. A binding read once is left alone: moving it is both
+/// correct and what someone writing the target would put.
+pub const FLAG_REREAD: &str = "reread";
 /// Ownership fact: the body provably assigns through this pointer.
 pub const FLAG_MUTATED: &str = "mutated";
 /// Ownership fact: this pointer provably outlives the call.

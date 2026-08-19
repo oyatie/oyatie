@@ -61,3 +61,33 @@ func assignedLocals(body *ast.BlockStmt, ctx *extractCtx) map[types.Object]bool 
 	})
 	return assigned
 }
+
+// rereadBindings names the objects a body reads more than once.
+//
+// The source copies a value on every read and the target MOVES it, so the second read of a
+// non-copying binding is a use after move. A binding read once is left alone: moving it is both
+// correct and what someone writing the target would put, and cloning it would be the needless
+// allocation a reviewer flags.
+//
+// Counted over USES, which is what a read is — a `:=` binding's own name is a definition and does
+// not appear here, so introducing a name never counts as reading it.
+func rereadBindings(body *ast.BlockStmt, ctx *extractCtx) map[types.Object]bool {
+	counts := map[types.Object]int{}
+	ast.Inspect(body, func(n ast.Node) bool {
+		ident, ok := n.(*ast.Ident)
+		if !ok {
+			return true
+		}
+		if object := ctx.info.Uses[ident]; object != nil {
+			counts[object]++
+		}
+		return true
+	})
+	out := map[types.Object]bool{}
+	for object, count := range counts {
+		if count > 1 {
+			out[object] = true
+		}
+	}
+	return out
+}

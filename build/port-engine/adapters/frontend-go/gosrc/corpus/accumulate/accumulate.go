@@ -19,10 +19,10 @@ func Total(values []int64) int64 {
 	return sum
 }
 
-// Mix folds the values together with the operators a hash uses.
-//
 // `^=`, `|=` and `*=` are the three most common compound forms in the surveyed source after `+=`,
 // and all four are the same translation.
+
+// Mix folds the values together with the operators a hash uses.
 func Mix(values []int64) int64 {
 	acc := int64(1)
 	for i := 0; i < len(values); i++ {

@@ -10,9 +10,9 @@
 // translation rather than a rewrite.
 package scoped
 
-// Width reports the width of s once it clears the minimum, and zero otherwise.
-//
 // The plain shape: bound in the init clause, read in the condition and the branch.
+
+// Width reports the width of s once it clears the minimum, and zero otherwise.
 func Width(s string) int {
 	if size := len(s); size > 4 {
 		return size
@@ -20,10 +20,10 @@ func Width(s string) int {
 	return 0
 }
 
-// Span reports the width of s, counting a short string as one wider than it is.
-//
 // The binding is read in BOTH branches, which is what makes the block the only faithful shape: a
 // name hoisted out of the `if` would still be live after it, and this one must not be.
+
+// Span reports the width of s, counting a short string as one wider than it is.
 func Span(s string) int {
 	result := 0
 	if size := len(s); size > 4 {

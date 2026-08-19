@@ -38,7 +38,7 @@ fn a_trait_method_binds_the_receiver_its_implementors_need() {
         "a read-only trait method must bind shared:\n{source}"
     );
     assert!(
-        source.contains("fn rename(&mut self, next: String);"),
+        source.contains("fn refresh(&mut self);"),
         "a mutating trait method must bind exclusive:\n{source}"
     );
 }

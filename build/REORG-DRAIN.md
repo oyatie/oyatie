@@ -1150,6 +1150,50 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   its prose becomes public API documentation, so fixture docs need writing as API docs — which is
   not hand-tuning output, it is fixing the input.
 
+- THE CORPUS WAS BEING REVIEWED AS A LIBRARY, and five of the second review's seven blocking
+  findings are that. `Point` unconstructible, `lookup` ignoring its table, `Point::Shift` dropping a
+  field, `Tag::Rename` doing nothing, the rustdoc narrating an internal exercise: every one is a
+  faithful port of a fixture written to exercise a construct. The reviewer is not wrong — a
+  consumer really cannot use that crate — and the fixture really was not a library.
+  The corpus is a port INPUT. Fixing it is not hand-tuning output, and until it is what a real
+  package looks like the review bar cannot be met however good the engine gets. So:
+  CONSTRUCTORS where a type has unexported fields. `NewPoint`, `NewLabel`, `NewTag` — a real
+  package has them and the fixture had none, which is what made every emitted struct inert.
+  `Shift` keeps the label it used to drop.
+  `Lookup` was a stub whose doc claimed it looked something up; the map was in the signature to
+  prove type resolution and indexing was not translatable. It is `Size` now and calls `len` on the
+  map, which is honest, still proves the map type, and does something.
+  `Tag.Rename` was a no-op behind a mutating name — a lie in the API. Its PURPOSE was to prove the
+  trait receiver is a union over implementors, which needs one implementor that does not mutate. So
+  the method is `Refresh` now, where doing nothing is correct for a fixed tag: same proof, no lie.
+  `go vet` caught a self-assignment in the first attempt at that, which is the reason to run it.
+  THE ENGINE RATIONALE MOVED OUT OF THE DOC POSITION. The source separates a doc comment from a
+  free one with a blank line, so the first paragraph stays and the rest moves above the gap — same
+  words, in the position that says who they are for. Every emitted doc is one API sentence now, and
+  a grep for `fixture|corpus|census|prove|refus` across them returns nothing.
+
+- READING A VALUE MOVES IT in the target and COPIES it in the source, and only field reads knew.
+  The compile proof caught it the moment a constructor read one binding twice:
+  `Label{prefix: prefix, text: prefix}` is two copies in the source and a use after move in the
+  target. `self.label.clone()` already existed for a field; a plain identifier read had nothing.
+  The FIRST attempt was too coarse and the pipeline said so immediately: cloning every non-copying
+  read broke `len(values)`, which only borrows. A read is not automatically a move, and which
+  ARGUMENT positions take ownership is a signature-table question — but a struct literal's field
+  always does. Narrowed to there.
+  Counted rather than assumed, and split across the seam: the front end counts the reads because
+  that is a fact about the source, and the pack answers whether the type copies because that is a
+  fact about the target. A binding read ONCE is moved, which is both correct and what someone would
+  write. It still clones once more than the minimum, at the final read; removing that needs
+  liveness rather than counting, and is recorded rather than guessed.
+
+- FIELD-INIT SHORTHAND, seeded from the same rust-skills rule with its provenance. The source has
+  no shorthand and always writes `Tag{text: text}`, so every constructor that passes a parameter
+  into the field it names emitted what `clippy::style` calls a redundant field name. Defined as the
+  long form, so it changes the spelling and not the program.
+  Clippy on the emitted crate: the new constructors took it 5 → 7, and this took it to 3. The three
+  that remain are a dead initializer the source requires, an unused private function, and one more
+  — all cases where the source tolerates what the target warns about.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

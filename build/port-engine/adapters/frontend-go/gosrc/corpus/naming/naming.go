@@ -1,42 +1,41 @@
-// Package naming exists to prove IMPLS FROM USAGE.
+// Package naming provides display names that satisfy the shapes.Named interface.
 //
-// Go's interfaces are implicit: nothing in Label's declaration says it satisfies shapes.Named, and
-// nothing in shapes.Named says which types satisfy it. The relation exists only where a concrete
-// value flows into an interface-typed position, and docs/programs/k8s-port/census/interfaces.md
-// measured what happens if the engine guesses instead — 80,042 structural matches against 1,316
-// pairs the source declares outright.
-//
-// Two implementors, because the trait's receiver mode is the UNION over them: one mutating method
-// anywhere makes that method exclusive for everyone, and one implementor could not show that the
-// union is a union rather than the first answer found.
-//
-// The sites that do NOT emit live in corpus-interface/ instead — a value flowing into a trait
-// position needs a coercion, and returning one needs an owner, and neither is a rule this package
-// should smuggle in by having the shape and no rule for it.
+// Nothing in Label's declaration says it satisfies shapes.Named, and nothing in shapes.Named says
+// which types satisfy it: the relation exists only where a concrete value flows into an
+// interface-typed position. Two implementors, because a trait method's receiver mode is the union
+// over them — one mutating implementor makes the method exclusive for everyone, and one
+// implementor alone could not show that the union is a union rather than the first answer found.
 package naming
 
 import "oyatie.example/portengine-fixture/corpus/shapes"
 
-// Label is a display name that can rename itself.
+// Label is a display name derived from a prefix.
 type Label struct {
+	// prefix is the source the display name is derived from.
+	prefix string
 	// text is the current display name.
 	text string
 }
 
-// Name returns the display name.
-//
+// NewLabel returns a label whose display name is derived from prefix.
+func NewLabel(prefix string) Label {
+	return Label{prefix: prefix, text: prefix}
+}
+
 // Read-only, which is what makes the derived trait receiver interesting: a rule that assumed every
 // trait method is exclusive would put `&mut self` on a getter.
+
+// Name returns the display name.
 func (l *Label) Name() string {
 	return l.text
 }
 
-// Rename replaces the display name.
-//
 // Mutating, and one mutating implementor is enough to make the whole trait method exclusive: a
 // trait fixes one signature for everyone.
-func (l *Label) Rename(next string) {
-	l.text = next
+
+// Refresh recomputes the display name from the prefix.
+func (l *Label) Refresh() {
+	l.text = l.prefix
 }
 
 // Assertion site: the Go compiler checks this line, so the pair is PROVEN rather than inferred.
@@ -48,26 +47,31 @@ type Tag struct {
 	text string
 }
 
+// NewTag returns a tag with the given fixed display name.
+func NewTag(text string) Tag {
+	return Tag{text: text}
+}
+
 // Name returns the display name.
 func (t *Tag) Name() string {
 	return t.text
 }
 
-// Rename does nothing: a tag's name is fixed.
-//
-// A no-op rather than a mutation, so the derived receiver has to come from the UNION over
-// implementors — a second implementor that does not mutate proves the union does not simply take
-// the last answer.
-func (t *Tag) Rename(next string) {
+// Nothing to recompute, which is what makes this both honest and useful here: the derived receiver
+// comes from the UNION over implementors, and an implementor that does not mutate proves the union
+// does not simply take the last answer found.
+
+// Refresh recomputes the display name, which for a fixed tag is already current.
+func (t *Tag) Refresh() {
 }
 
 // Assertion site for the second implementor.
 var _ shapes.Named = (*Tag)(nil)
 
-// Describe renders anything that can name itself.
-//
 // The parameter is the one interface position with an unambiguous target form: the caller keeps
 // the value and the callee only reads it, so a borrow is right and no ownership question arises.
+
+// Describe returns the display name of anything that can name itself.
 func Describe(named shapes.Named) string {
 	return named.Name()
 }

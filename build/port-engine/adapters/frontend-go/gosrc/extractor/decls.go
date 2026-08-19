@@ -56,6 +56,7 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		if body != nil {
 			inner := *ctx
 			inner.assigned = assigned
+			inner.reread = rereadBindings(body, ctx)
 			base.Children = append(base.Children, bodyNode(body, &inner))
 		}
 		return base, nil
@@ -186,6 +187,7 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 			// something knows that `c` is the receiver and `other` is not.
 			inner := *ctx
 			inner.assigned = assigned
+			inner.reread = rereadBindings(body, ctx)
 			inner.receiver = receiverName
 			children = append(children, bodyNode(body, &inner))
 		}

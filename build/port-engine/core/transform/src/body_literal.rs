@@ -10,10 +10,36 @@ use port_engine_rust_ir::RustExpr;
 
 use crate::body::{Body, one_child};
 use crate::body_call::render_operand;
-use crate::body_expr::expression;
+use crate::body_expr::{expression, moves_on_read};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
+use crate::vocabulary::FLAG_REREAD;
 /// rather than something inferred from a spelling here.
+/// A field's value, cloned when the binding it reads is read AGAIN.
+///
+/// A struct literal's field takes OWNERSHIP of what it is given. The source copies a value on
+/// every read and the target moves it, so `T{a: x, b: x}` is two copies in the source and a use
+/// after move in the target — which is exactly what the compile proof caught.
+///
+/// Only here, and only for a binding the front end counted more than one read of. A read is not
+/// automatically a move: `x.len()` borrows, and cloning for a length would be the needless
+/// allocation a reviewer flags. Which argument positions take ownership is a question for the
+/// signature table; a struct field always does.
+///
+/// # Errors
+/// [`TransformError`] from translating the value.
+fn owned_read(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
+    let value = expression(node, cx)?;
+    if node.kind != "ident" || !node.has_flag(FLAG_REREAD) || !moves_on_read(&node.type_ref, cx) {
+        return Ok(value);
+    }
+    Ok(RustExpr::MethodCall {
+        receiver: Box::new(value),
+        method: "clone".to_owned(),
+        args: Vec::new(),
+    })
+}
+
 /// A struct literal, with every field named.
 ///
 /// Go zero-fills the fields a literal omits; the target has no such rule and rejects an incomplete
@@ -37,10 +63,8 @@ pub(crate) fn composite(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, T
     let keyed = node.children_of_kind("keyed");
     let mut fields = Vec::with_capacity(keyed.len());
     for entry in keyed {
-        fields.push((
-            to_snake_case(&entry.name),
-            expression(one_child(entry, cx, "keyed")?, cx)?,
-        ));
+        let value = one_child(entry, cx, "keyed")?;
+        fields.push((to_snake_case(&entry.name), owned_read(value, cx)?));
     }
     Ok(RustExpr::StructLiteral {
         path: path.spelling(),
