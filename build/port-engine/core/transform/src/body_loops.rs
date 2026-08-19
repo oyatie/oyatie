@@ -12,7 +12,7 @@ use crate::body_parts::{branch, named_child, one_child, two_children};
 use crate::body_expr::expression;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::vocabulary::{
+use crate::vocabulary::{KIND_IDENT, 
     ATTR_OP, ATTR_SOURCE_NODE, IDIOM_INDEX_COUNTER, IDIOM_INDEX_LOOP, IDIOM_MATCHES,
 };
 
@@ -170,14 +170,30 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
         }
     };
 
+    // Iterate by REFERENCE. The source's range copies the element and leaves the sequence usable;
+    // consuming it here would end the sequence's life at the loop.
+    //
+    // Unless the sequence expression ALREADY denotes one. A slice parameter arrives borrowed —
+    // that is what the pack's slice idiom decided it is — and borrowing it again yields `&&[T]`,
+    // which is not an iterator. The reference is what the loop NEEDS, not a token to add
+    // unconditionally, so it is added only where the expression does not already carry it.
+    let sequence = one_child(over, cx, "over")?;
+    let rendered = expression(sequence, cx)?;
+    // Already borrowed when the sequence IS a parameter the signature borrows — the same answer the
+    // signature gave, read rather than derived a second time.
+    let already_borrowed =
+        sequence.kind == KIND_IDENT && cx.borrowed.contains(&to_snake_case(&sequence.name));
+    let iter = match already_borrowed {
+        true => rendered,
+        false => RustExpr::Reference {
+            mutable: false,
+            inner: Box::new(rendered),
+        },
+    };
+
     Ok(RustStmt::ForIn {
         binding: to_snake_case(binding),
-        // Iterate by REFERENCE. Go's range copies the element and leaves the sequence usable;
-        // consuming it here would end the sequence's life at the loop.
-        iter: RustExpr::Reference {
-            mutable: false,
-            inner: Box::new(expression(one_child(over, cx, "over")?, cx)?),
-        },
+        iter,
         body: translate(&body.children, cx, TailPosition::No)?,
     })
 }

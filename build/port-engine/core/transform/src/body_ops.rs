@@ -11,7 +11,7 @@ use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    ATTR_OP, ATTR_REF, CHILD_RESULT, REF_CONST, SOURCE_STRING,
+    ATTR_OP, ATTR_REF, CHILD_RESULT, REF_CONST, REF_PACKAGE, SOURCE_STRING,
 };
 
 /// Case an identifier by what it REFERS to.
@@ -190,6 +190,21 @@ pub(crate) fn refuse_deferred_reference(
     node: &Declaration,
     cx: &Body<'_>,
 ) -> Result<(), TransformError> {
+    // A PACKAGE NAME is not a value, and the emitted crate has a module for one only if the model
+    // has that unit. `binary.LittleEndian.Uint64(b)` came out as `binary.little_endian.uint64(b)`,
+    // a path into a crate the output does not have — the same self-containment defect as a call
+    // into a foreign package, reached through a selector rather than through a callee identity.
+    if node.attr(ATTR_REF) == Some(REF_PACKAGE) && !cx.resolver.units.contains(&node.name) {
+        return Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!(
+                "reads through package `{}`, which this snapshot does not contain — the emitted \
+                 crate has no module for it, and the pack has to map what is reached through it",
+                node.name
+            ),
+        });
+    }
+
     let kind = match node.attr(ATTR_REF) {
         Some("package_var") => "var",
         _ => return Ok(()),

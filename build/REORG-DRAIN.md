@@ -2972,3 +2972,55 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
   `Send + Sync` are deliberately absent: the owned form needs them so a ported failure can cross a
   thread boundary, and a BORROW crossing nothing does not.
+
+## R1c — the four defects that put a name in the output the crate does not have
+
+Every package the engine emits now compiles with **zero rustc errors and zero clippy warnings** under
+`--deny=warnings`: semver, xid, xxhash, ksuid, uuid, errors, multierror. Four causes, each one a rule
+rather than a repair, and each found by compiling real output rather than by reading it.
+
+**A guard placed below an early return is not a guard.** The front end learned to classify an
+identifier that names a PACKAGE (`case *types.PkgName: return "package"`), and the body refused one
+the snapshot does not contain. It never fired. `refuse_deferred_reference` opens with a `match` on
+the reference kind whose arm list is one entry long and whose fall-through is `return Ok(())` — so
+every kind but `package_var` left the function before reaching the new check. The classification was
+right, the refusal was right, and the order made the refusal dead code. It is now the first thing the
+function does. Cost: xxhash 38.2% → 29.4%, ksuid 21.5% → 18.3%. Every point removed was
+`binary.little_endian.uint64(b)` — a path into a crate the output does not have, counted as
+translated.
+
+**Two spellings of one claim, one of them checked.** `crate::<module>::<Name>` is a CLAIM that the
+emitted crate has that module, true only for a unit of this model. Two functions spelled it.
+`resolve_node` checked; `named_path` had a bare fallthrough that spelled it for any non-empty
+package. That is how `&impl crate::fmt::State` reached the output — a trait-object position resolves
+through `named_path`, so the gate that covered the plain named type and the local one missed the
+third path entirely. Both now call one `foreign_path`, so a fourth caller cannot repeat it. `errors`
+went from 6 rustc errors to 0 and its coverage from 15.8% to 0.0%, which is the honest number: every
+declaration in that package reaches through `fmt`.
+
+**A constant AT a defined type is constructed at it, not assigned to it.** `const Person Domain = 0`
+needs no conversion in the source, because an untyped literal takes whatever type the declaration
+names. The target's newtype is a distinct type and `pub const PERSON: Domain = 0;` does not
+typecheck. This is the same operation the conversion path already performs for `Domain(x)`; it was
+missing here only because a constant reaches its type by declaration rather than by call. Nine of
+uuid's constants came out ill-typed for exactly that reason. Gated on the type being one the unit
+DEFINES and EMITS — a mapped type is a target type the literal already is, and a refused one is not
+there to construct.
+
+**The reference a loop needs is not a token to add unconditionally.** Ranging borrowed the sequence
+so the loop would not consume it — correct, and wrong for a slice parameter, which arrives borrowed
+because the pack's slice idiom decided it is `&[T]`. Borrowing it again yields `&&[T]`, which is not
+an iterator. The loop now reads `Body::borrowed`, the set the SIGNATURE already computed, rather than
+deriving a second answer that could disagree with it.
+
+**Coverage after:** xxhash 29.4, semver 29.3, uuid 26.8, ksuid 18.3, errors 15.8→0.0, xid 15.4,
+multierror 0.0. The number fell again and the output got correct again, which is the trade this
+engine exists to make: a declaration that emits a name resolving to nothing was never translated.
+
+**Recorded, not fixed — outside this lane.** `buck2 test //build/port-engine/...` passes 29 and fails
+to BUILD 20, on `third-party//:prettyplease-0.2` is not visible to `port-engine-rust-ir`. It fails
+identically at HEAD with this branch's changes stashed, so it predates this work. `prettyplease` is a
+workspace dependency (root `Cargo.toml`), so reindeer would mark it public; `third-party/BUCK` is
+simply stale. The fix is `scripts/ci/regen-third-party.sh`, which needs a reindeer binary this
+machine does not have, and which rewrites a generated face owned by another lane. Not hand-edited:
+patching a generated file is the same mistake as hand-tuning emitted output.

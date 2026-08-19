@@ -68,6 +68,36 @@ impl Resolver<'_> {
                 type_ref: type_ref.describe(),
             });
         }
+        self.foreign_path(type_ref, declaration_name)
+    }
+
+    /// The path another UNIT's type is addressed by, refusing a package that is not one.
+    ///
+    /// Every site that spells `crate::<module>::<Name>` goes through here, because the spelling is
+    /// a CLAIM that the emitted crate has that module — true only for a unit of this model. Two
+    /// sites spelled it and only one checked, so `&impl crate::fmt::State` reached the output for a
+    /// package the crate has never heard of. One function, so a third caller cannot repeat it.
+    ///
+    /// # Errors
+    /// [`TransformError::UnmappedType`] naming the package and what the pack owes.
+    fn foreign_path(
+        &self,
+        type_ref: &TypeRef,
+        declaration_name: &str,
+    ) -> Result<RustType, TransformError> {
+        if !self.units.contains(&type_ref.package) {
+            return Err(TransformError::UnmappedType {
+                unit: self.unit.0.clone(),
+                name: declaration_name.to_owned(),
+                type_ref: format!(
+                    "{} — package `{}` is not in this snapshot, so the emitted crate has no \
+                     module to reach it through. The pack has to map the type, as it maps the \
+                     other types from libraries that do not come along",
+                    type_ref.describe(),
+                    type_ref.package
+                ),
+            });
+        }
         Ok(RustType::path(format!(
             "{}::{}",
             module_path(&type_ref.package),
@@ -146,11 +176,7 @@ impl Resolver<'_> {
             if let Some(mapped) = self.lookup(&type_ref.qualified()) {
                 return Ok(RustType::path(mapped));
             }
-            return Ok(RustType::path(format!(
-                "{}::{}",
-                module_path(&type_ref.package),
-                to_pascal_case(&type_ref.name)
-            )));
+            return self.foreign_path(type_ref, declaration_name);
         }
 
         // A primitive, or a named type the pack maps by identity.

@@ -80,9 +80,32 @@ fn build_const(
         docs: docs_of(declaration, resolver),
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),
+        // A constant AT a defined type is CONSTRUCTED at it, not assigned to it. The source's
+        // untyped literal takes whatever type the declaration names, so `const Person Domain = 0`
+        // needs no conversion there; the target's newtype is a distinct type and `Domain = 0` does
+        // not typecheck. This is the same operation a conversion to a defined type performs, and it
+        // was missing here only because a constant reaches its type by declaration rather than by
+        // call — nine of uuid's constants came out ill-typed for exactly that reason.
+        value: match constructs_at_type(declaration, resolver) {
+            true => format!("{}({})", ty.spelling(), value),
+            false => value.to_owned(),
+        },
         ty,
-        value: value.to_owned(),
     })
+}
+
+/// Whether this declaration's type is one the unit DEFINES, and so constructs rather than coerces.
+///
+/// Local and emitted, both required: a type from the pack's table is a target type the literal
+/// already is, and a type that refused is not in the crate to construct. A length constant is
+/// excluded because its type was overridden to the index type above, which takes the literal
+/// directly.
+fn constructs_at_type(declaration: &Declaration, resolver: &Resolver<'_>) -> bool {
+    let type_ref = &declaration.type_ref;
+    type_ref.kind == "named"
+        && !resolver.scope.length_constants.contains(&declaration.name)
+        && resolver.is_local(type_ref)
+        && resolver.scope.types.contains_key(&type_ref.name)
 }
 
 fn build_fn(

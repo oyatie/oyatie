@@ -137,6 +137,8 @@ pub const TYPE_INTERFACE: &str = "interface";
 pub const ATTR_REF: &str = "ref";
 /// The [`ATTR_REF`] value for an identifier naming a constant.
 pub const REF_CONST: &str = "const";
+/// The [`ATTR_REF`] value for an identifier naming a PACKAGE, which is not a value at all.
+pub const REF_PACKAGE: &str = "package";
 /// Attribute key holding the package-qualified IDENTITY of what a call resolves to.
 pub const ATTR_CALLEE: &str = "callee";
 /// Attribute key distinguishing a call through a RECEIVER from a call to a free function.

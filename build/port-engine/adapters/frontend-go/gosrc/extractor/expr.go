@@ -242,6 +242,12 @@ func referenceKind(ident *ast.Ident, ctx *extractCtx) string {
 		return "type"
 	case *types.Builtin:
 		return "builtin"
+	case *types.PkgName:
+		// A PACKAGE NAME, which is not a value at all. It reached the model as a `local` and was
+		// cased and emitted like one, so `binary.LittleEndian.Uint64(b)` came out as
+		// `binary.little_endian.uint64(b)` — a path into a crate the emitted output does not have.
+		// The engine can only refuse it once it can SEE it, which is what this says.
+		return "package"
 	case *types.Var:
 		if typed.IsField() {
 			return "field"
