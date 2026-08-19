@@ -16,7 +16,7 @@ package invariant
 // Half returns n halved, and aborts on an odd input.
 func Half(n int64) int64 {
 	if n%2 != 0 {
-		panic("halve requires an even argument")
+		panic("half requires an even argument")
 	}
 	return n / 2
 }

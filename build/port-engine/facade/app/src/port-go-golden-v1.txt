@@ -80,7 +80,7 @@ pub mod composite {
     /// Counts the work it has done.
     #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Engine {
-        /// How many times Run has been called.
+        /// How many times run has been called.
         calls: i64,
     }
     impl Runner for Engine {
@@ -230,7 +230,7 @@ pub mod invariant {
     /// Returns n halved, and aborts on an odd input.
     pub fn half(n: i64) -> i64 {
         if n % 2 != 0 {
-            panic!("halve requires an even argument");
+            panic!("half requires an even argument");
         }
         n / 2
     }
@@ -258,7 +258,7 @@ pub mod naming {
         /// Returns a label that derives its display name from prefix.
         ///
         /// The display name starts EMPTY and is derived on the first refresh, so the two fields can differ —
-        /// which is what makes Refresh a state change rather than a self-assignment.
+        /// which is what makes refresh a state change rather than a self-assignment.
         pub fn new(prefix: &str) -> Self {
             Self {
                 prefix: prefix.to_owned(),

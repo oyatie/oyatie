@@ -63,7 +63,7 @@ pub(crate) fn build_static(
     // needs one. See `sentinel.rs` for what this costs.
     if let Some(message) = resolver.scope.sentinels.get(&declaration.name) {
         return Ok(RustItem::PackageValue {
-            docs: docs_of(declaration, resolver.doc_convention),
+            docs: docs_of(declaration, resolver),
             vis: visibility(declaration),
             name: to_screaming_snake(&declaration.name),
             ty: RustType::Reference {
@@ -107,7 +107,7 @@ pub(crate) fn build_static(
         }
     };
     Ok(RustItem::PackageValue {
-        docs: docs_of(declaration, resolver.doc_convention),
+        docs: docs_of(declaration, resolver),
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),
         ty,

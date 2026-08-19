@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:97b640cd8b2a89dffc9e452d71d1501b49c6c9883525ecc59a1a6def73ed3942",
+  "snapshot_digest": "sha256:fcd1617c6ec58989527dfecbfda4d54ad2c209cf2ba3fb79ad835d04c44164b9",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -3295,7 +3295,7 @@
                                   "name": "",
                                   "attrs": {
                                     "lit_kind": "STRING",
-                                    "value": "\"halve requires an even argument\""
+                                    "value": "\"half requires an even argument\""
                                   }
                                 }
                               ]
