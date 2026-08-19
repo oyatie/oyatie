@@ -125,15 +125,20 @@ fn returned_operand(
     operand: &Declaration,
     cx: &Body<'_>,
 ) -> Result<RustExpr, TransformError> {
+    // A LENGTH result keeps the length, so the call's own conversion comes off — through the one
+    // function that knows how, which strips only the form the pack declares.
+    if cx.results.is_a_length && index == 0 {
+        return crate::counters::unsigned_bound(operand, cx);
+    }
     // A getter's result is a BORROW of the receiver, so the field read is not a copy and needs no
     // clone. Same proof the signature read, so the two cannot disagree.
-    if cx.result_borrows_receiver && index == 0 {
+    if cx.results.borrows_receiver && index == 0 {
         return Ok(RustExpr::Reference {
             mutable: false,
             inner: Box::new(crate::body_expr::field_place(operand, cx)?),
         });
     }
-    if cx.bare_pointer_results.contains(&index)
+    if cx.results.bare_pointers.contains(&index)
         && operand.kind == KIND_UNARY
         && operand.attr(ATTR_OP) == Some(OPERATOR_ADDRESS_OF)
         && let Some(inner) = operand.children.first()

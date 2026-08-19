@@ -150,6 +150,13 @@ fn results_in(
                     .to_owned(),
             });
         }
+        // A LENGTH is a `usize`, not the source's own integer. The conversion the call's mapping
+        // adds exists to make the value type as the source's `int`, and where the value never is
+        // one the conversion is what is wrong.
+        if idioms && crate::returns::yields_a_length(declaration, resolver.length_functions) {
+            types.push(RustType::path("usize"));
+            continue;
+        }
         // A GETTER's result is a VIEW of the receiver, not a copy of it. The source's string
         // shares its backing, so handing one back copies nothing; an owned `String` would clone on
         // every call, which is work the source never does.

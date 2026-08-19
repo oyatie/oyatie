@@ -1,6 +1,6 @@
 //! The loaded shapes: a rule, its selecting fixtures, and a declared deferral.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::RuleId;
 use serde::Deserialize;
@@ -141,6 +141,16 @@ pub struct ConstantMap {
     /// Source constant name → target expression.
     pub names: BTreeMap<String, String>,
     /// Why the table exists and what it deliberately omits.
+    pub reason: String,
+}
+
+/// Callees whose value IS a length, so the target types it `usize`.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct LengthFunctions {
+    /// Callee identities.
+    pub names: BTreeSet<String>,
+    /// Why a length is not the source's own integer in the target.
     pub reason: String,
 }
 

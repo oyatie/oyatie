@@ -56,26 +56,20 @@ pub(crate) struct Body<'a> {
     /// string literal being returned is a `&'static str` in the target and a `string` in the
     /// source, and nothing inside the `return` says which the destination wants.
     pub(crate) result_is_owned_string: bool,
-    /// Whether the single result BORROWS from the receiver, so a returned field read is a view.
-    ///
-    /// A property of the signature that only the body can spend, exactly like `fallible`: the
-    /// return operand is `r.field` either way, and nothing inside it says whether the destination
-    /// wants an owned copy or a borrow of the receiver. Signature and body read the same proof.
-    pub(crate) result_borrows_receiver: bool,
     /// Counter names proven to be used for NOTHING BUT indexing, which are `usize` in the target.
     ///
     /// A property of the enclosing LOOP that only the operands inside it can spend: the range
     /// builds the counter and the index reads it, and neither one alone can see that the signed
     /// value is never observed. Both read this rather than each deciding, because they must agree
     /// or the loop does not compile.
-    pub(crate) usize_counters: BTreeSet<String>,
-    /// Result positions whose `*T` the signature proved is NEVER ABSENT, so it renders as `T`.
+    /// What the SIGNATURE decided about the results, which only the body can spend.
     ///
-    /// A property of the signature that only the body can spend, exactly like `fallible`: the
-    /// return operand is `&T{..}` either way, and nothing inside it says whether the destination
-    /// wants the pointer's owned form or the value itself. Signature and body must agree or the
-    /// emitted function does not compile — which is why this is carried rather than re-derived.
-    pub(crate) bare_pointer_results: BTreeSet<usize>,
+    /// One value rather than three because they are one thing and they grow together: every result
+    /// idiom this engine adds is another fact the return operand cannot see for itself. The return
+    /// operand is `&T{..}`, or `r.field`, or `len(x)` whatever the destination wants — and the
+    /// signature and the body must agree or the emitted function does not compile.
+    pub(crate) results: crate::returns::ResultFacts,
+    pub(crate) usize_counters: BTreeSet<String>,
 }
 
 impl<'a> Body<'a> {
@@ -85,8 +79,7 @@ impl<'a> Body<'a> {
         fallible: bool,
         result_is_owned_string: bool,
         borrowed: BTreeSet<String>,
-        bare_pointer_results: BTreeSet<usize>,
-        result_borrows_receiver: bool,
+        results: crate::returns::ResultFacts,
     ) -> Self {
         Self {
             owner,
@@ -94,9 +87,8 @@ impl<'a> Body<'a> {
             fallible,
             result_is_owned_string,
             borrowed,
-            bare_pointer_results,
+            results,
             usize_counters: BTreeSet::new(),
-            result_borrows_receiver,
         }
     }
 
@@ -113,9 +105,8 @@ impl<'a> Body<'a> {
             fallible: self.fallible,
             result_is_owned_string: self.result_is_owned_string,
             borrowed: self.borrowed.clone(),
-            bare_pointer_results: self.bare_pointer_results.clone(),
+            results: self.results.clone(),
             usize_counters,
-            result_borrows_receiver: self.result_borrows_receiver,
         }
     }
 }
@@ -158,8 +149,7 @@ pub(crate) fn statements(
             fallible,
             returns_owned_string(declaration, resolver),
             crate::params::borrowed_parameters(declaration, resolver),
-            crate::returns::bare_pointer_results(declaration),
-            result == ResultShape::Own && crate::returns::borrows_from_receiver(declaration),
+            crate::returns::ResultFacts::of(declaration, resolver, result),
         ),
         TailPosition::Yes,
     )

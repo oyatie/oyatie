@@ -9,7 +9,7 @@ use serde::Deserialize;
 
 use crate::CONFLICT_REFUSE;
 use crate::rule::{DeferredKind, DeriveWireRule, DispositionRule, DocConventionRule, FunctionMappingRule, IdiomWireRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver, UndecidedForm};
-use crate::rule::ConstantMap;
+use crate::rule::{ConstantMap, LengthFunctions};
 
 fn default_conflict() -> String {
     CONFLICT_REFUSE.to_owned()
@@ -29,6 +29,8 @@ pub(crate) struct RulepackDocument {
     pub(crate) type_map: BTreeMap<String, String>,
     #[serde(default)]
     pub(crate) constant_map: Option<ConstantMap>,
+    #[serde(default)]
+    pub(crate) length_functions: Option<LengthFunctions>,
     #[serde(default)]
     pub(crate) type_constructors: BTreeMap<String, String>,
     #[serde(default)]

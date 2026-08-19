@@ -180,8 +180,8 @@ pub mod geometry {
     }
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_func__size
     /// Reports how many labelled counts the table holds.
-    pub fn size(table: &std::collections::BTreeMap<String, i64>) -> i64 {
-        table.len() as i64
+    pub fn size(table: &std::collections::BTreeMap<String, i64>) -> usize {
+        table.len()
     }
 }
 pub mod globals {

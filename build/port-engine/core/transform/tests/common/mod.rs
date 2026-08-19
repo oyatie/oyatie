@@ -24,6 +24,9 @@ pub struct Pack {
     /// Source predeclared constant → target expression. Empty by default: these tests assert on
     /// structure, and no fixture reads a predeclared constant.
     pub constant_map: BTreeMap<String, String>,
+    /// Callees whose value is a length. Empty by default: these tests assert on structure, and no
+    /// fixture returns one.
+    pub length_functions: BTreeSet<String>,
     /// Form id → the pack's reason for not having decided it. Empty by default, for the same
     /// reason: a refusal these tests assert on names the form, and the prose is the pack's.
     pub undecided_forms: BTreeMap<String, String>,
@@ -257,6 +260,9 @@ impl PackSemantics for Pack {
     }
     fn constant_map(&self) -> &BTreeMap<String, String> {
         &self.constant_map
+    }
+    fn length_functions(&self) -> &BTreeSet<String> {
+        &self.length_functions
     }
     fn undecided_forms(&self) -> &BTreeMap<String, String> {
         &self.undecided_forms

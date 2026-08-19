@@ -96,6 +96,8 @@ pub const ATTR_LIT_KIND: &str = "lit_kind";
 pub const LIT_KIND_STRING: &str = "STRING";
 /// The source type name whose ownership decides a string literal's target form.
 pub const SOURCE_STRING: &str = "string";
+/// The source type name of its own default integer.
+pub const SOURCE_INT: &str = "int";
 /// The target's unsized view of a string, which is what a borrowed one is.
 pub const TARGET_STR: &str = "str";
 /// Attribute key naming the source construct an `unsupported` node stands for.

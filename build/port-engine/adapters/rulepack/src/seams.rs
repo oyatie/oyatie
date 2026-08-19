@@ -81,6 +81,10 @@ impl PackSemantics for LoadedRulePack {
         &self.deferred_kind_set
     }
 
+    fn length_functions(&self) -> &BTreeSet<String> {
+        &self.length_functions
+    }
+
     fn constant_map(&self) -> &BTreeMap<String, String> {
         &self.constant_map
     }
