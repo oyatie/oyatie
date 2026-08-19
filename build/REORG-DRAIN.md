@@ -3172,3 +3172,45 @@ rename map knows the target name and `emitted` knows whether it is there. What s
 across the item faces rather than a rule. Worth doing; worth doing deliberately.
 
 All seven real packages still compile with zero rustc errors and zero clippy warnings.
+
+## R1g — self-containment reaches the prose
+
+Two blind reviews in a row ranked the same sentence as their most decisive evidence that the output
+was machine-produced. Not a construct, not a type — a doc comment:
+
+> Errors returned by `inc_major_e`, `inc_minor_e`, and `inc_patch_e` wrap this value and name the
+> segment that overflowed, so they can be detected with `errors.Is`.
+
+Three methods the crate does not contain, and one function from a package that did not come along.
+
+**The rule is the one the engine already had, one layer out.** A body that calls a declaration which
+refused is refused, because the emitted crate would not contain the name. A doc comment that
+describes one is the same defect and reads worse: it documents an API that is not there, in the voice
+of somebody who checked. Two shapes, one reason — a word naming a declaration of this unit that is
+not being emitted, and a qualified name whose package is not a unit of this model.
+
+**Three false positives it took to bound it, each instructive.** A unit with a member called `con`
+refused every declaration whose prose used the word — so the rule is bound to EXPORTED names, which
+is the same bound the rename map's own construction already used, arrived at from the other side. A
+declaration's own name looked dangling to it, because Go opens a doc with the name and the rewrite
+that strips it does not always reach a second mention. And the emitted set holds TOP-LEVEL names
+only, so every member looked absent — including the seven of `semver`'s own sentinels sitting in the
+output, and `Run` on the hermetic corpus, which broke `port-go` outright. A member is emitted exactly
+when its owner is, and `LocalScope` now records which declaration owns each one.
+
+**Cost, and why it is temporary.** xxhash 29.4→26.5, ksuid 18.3→16.1, semver 29.3→27.6, uuid
+unchanged. Every one of these refusals is a CASCADE of a method or type that refused for its own
+reason — so they recover as those do. It is the self-containment fixpoint extended to prose, not a
+standing tax.
+
+**And the string literal, declined twice and now reversed.** "version increment would overflow
+uint64" names a type the emitted crate does not have, three lines from its own constant that says
+`u64`. The line I drew was that prose DESCRIBES the code and may be rewritten, while text the code
+EMITS is the program's output and may not. That line was too clean: the message was not merely
+foreign, it had become FALSE, and faithfulness to a sentence that is no longer true is not
+faithfulness. The cost is stated rather than hidden — a program that deliberately prints the source
+language's type name is changed by this — and it is accepted because the map is tiny, holds only
+names that are not English words, and two independent reviewers ranked the untranslated one at the
+top of their evidence.
+
+All seven real packages still compile with zero rustc errors and zero clippy warnings.

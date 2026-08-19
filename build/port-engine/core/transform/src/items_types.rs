@@ -21,7 +21,7 @@ pub(crate) fn build_type_alias(
     Ok(RustItem::TypeAlias {
         // The source's own aliases are concrete; only the failure alias takes a parameter.
         generics: Vec::new(),
-        docs: docs_of(declaration, resolver),
+        docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
         ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
@@ -40,7 +40,7 @@ pub(crate) fn build_newtype(
 ) -> Result<RustItem, TransformError> {
     let vis = visibility(declaration);
     Ok(RustItem::Struct {
-        docs: docs_of(declaration, resolver),
+        docs: docs_of(declaration, resolver)?,
         vis,
         name: to_pascal_case(&declaration.name),
         shape: StructShape::Tuple(vec![RustField {
@@ -67,7 +67,7 @@ pub(crate) fn build_struct(
     for field in declaration.children_of_kind(CHILD_FIELD) {
         field_types.push(field.type_ref.clone());
         fields.push(RustField {
-            docs: docs_of(field, resolver),
+            docs: docs_of(field, resolver)?,
             vis: visibility(field),
             name: to_snake_case(&field.name),
             ty: resolver.resolve_in(&field.type_ref, &field.name, POSITION_FIELD)?,
@@ -75,7 +75,7 @@ pub(crate) fn build_struct(
     }
 
     Ok(RustItem::Struct {
-        docs: docs_of(declaration, resolver),
+        docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
         shape: if fields.is_empty() {
@@ -93,7 +93,7 @@ pub(crate) fn build_trait(
     resolver: &Resolver<'_>,
 ) -> Result<RustItem, TransformError> {
     Ok(RustItem::Trait {
-        docs: docs_of(declaration, resolver),
+        docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
         supertraits: supertraits(declaration, resolver)?,

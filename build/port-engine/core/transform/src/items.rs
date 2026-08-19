@@ -77,7 +77,7 @@ fn build_const(
         false => resolver.resolve(&declaration.type_ref, &declaration.name)?,
     };
     Ok(RustItem::Const {
-        docs: docs_of(declaration, resolver),
+        docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),
         // A constant AT a defined type is CONSTRUCTED at it, not assigned to it. The source's
@@ -137,7 +137,7 @@ fn build_fn(
     };
 
     let rendered = RustFn {
-        docs: docs_of(declaration, resolver),
+        docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),
         name: to_snake_case(&declaration.name),
         receiver: None,

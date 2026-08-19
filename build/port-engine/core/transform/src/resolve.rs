@@ -48,6 +48,13 @@ pub struct LocalScope {
     /// renders as the target's index type, and the length beside it drops the conversion the call's
     /// mapping adds. Deriving it twice would let a guard compare two different types.
     pub(crate) length_constants: BTreeSet<String>,
+    /// Member source name → the declaration that OWNS it.
+    ///
+    /// Held because a member is emitted exactly when its owner is, and nothing else in the scope
+    /// records that. Prose naming a method whose type refused describes an API the crate does not
+    /// contain — and asking the top-level emitted set about a member reported EVERY member absent,
+    /// including the ones sitting in the output.
+    pub(crate) member_owners: BTreeMap<String, String>,
     /// The unit's SENTINEL failures, by source name, with the message each carries.
     ///
     /// Held here because three places need the same answer — what the declaration emits, what a
@@ -87,6 +94,7 @@ impl LocalScope {
         let sentinels = crate::sentinel::sentinels(declarations, failure);
         let mut types = BTreeMap::new();
         let mut renames: BTreeMap<String, Option<String>> = BTreeMap::new();
+        let mut member_owners: BTreeMap<String, String> = BTreeMap::new();
         for declaration in declarations {
             if declaration.name.is_empty() {
                 continue;
@@ -113,12 +121,14 @@ impl LocalScope {
                 }
                 let target = to_snake_case(&member.name);
                 record_rename(&mut renames, &member.name, target);
+                member_owners.insert(member.name.clone(), declaration.name.clone());
             }
         }
         Self {
             types,
             sentinels,
             length_constants,
+            member_owners,
             renames: renames
                 .into_iter()
                 .filter_map(|(source, target)| Some((source, target?)))
