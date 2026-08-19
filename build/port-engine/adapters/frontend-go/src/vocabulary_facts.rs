@@ -23,6 +23,7 @@ pub const KNOWN_FLAGS: &[&str] = &[
     "rebound",
     // The body reads this binding more than once. The source copies on read and the target moves,
     // so a second read of a non-copying binding is a use after move.
+    "inferred",
     "reread",
     // The body never mentions the parameter. Ordinary in the source and a warning in the target,
     // which the leading underscore answers without changing the signature.

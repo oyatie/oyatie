@@ -3,6 +3,8 @@ package main
 import (
 	"go/ast"
 	"go/token"
+	"sort"
+	"go/types"
 )
 
 // Statements that INTRODUCE a name or WRITE one.
@@ -45,11 +47,18 @@ func assignmentNode(stmt *ast.AssignStmt, ctx *extractCtx) node {
 		return node{
 			Kind: kindLet,
 			Name: name.Name,
+			// The BOUND TYPE, which `var x T` already carries and `x := e` did not. What needs it:
+			// whether the binding has a drop to delay, which is what decides whether the block that
+			// scopes it is necessary or is the source's statement form transliterated.
+			Type: typeTree(bindingType(name, ctx)),
 			// The SHORT declaration needs the same question asked of it as `var` does. It was
 			// not asked, so every `x := e` the body later assigned emitted an immutable
 			// binding followed by a write to it — output that does not compile. No fixture
 			// had the shape, which is the whole argument for ratcheting against real source.
-			Flags:    bindingFlags(name, ctx),
+			// INFERRED: the short declaration writes no type, so the target must not either.
+			// Sorted after appending, because a flag set has exactly one encoding and the digest
+			// is taken over it.
+			Flags:    withFlag(bindingFlags(name, ctx), flagInferred),
 			Children: []node{expressionNode(stmt.Rhs[0], ctx)},
 		}
 	case token.ASSIGN:
@@ -142,6 +151,25 @@ func isSimplePlace(expr ast.Expr) bool {
 	default:
 		return false
 	}
+}
+
+// withFlag adds one flag and restores the sorted order a flag set is encoded in.
+func withFlag(flags []string, flag string) []string {
+	out := append(flags, flag)
+	sort.Strings(out)
+	return out
+}
+
+// bindingType is the type the type-checker gave this binding, or nil where it gave none.
+//
+// A short declaration DEFINES its name, so `Defs` is where the object is; `Uses` would find a
+// different binding of the same name in an outer scope, which is a different variable.
+func bindingType(name *ast.Ident, ctx *extractCtx) types.Type {
+	obj := ctx.info.Defs[name]
+	if obj == nil {
+		return nil
+	}
+	return obj.Type()
 }
 
 // destructuringBind records `a, b := expr` as the names it binds and the expression they come

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:fcd1617c6ec58989527dfecbfda4d54ad2c209cf2ba3fb79ad835d04c44164b9",
+  "snapshot_digest": "sha256:d75353c57b0c3a840a35c5e3a33d2c47df068c73b46ab1f764dc7cc655b69e4d",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -45,7 +45,12 @@
                 {
                   "kind": "let",
                   "name": "sum",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
                   "flags": [
+                    "inferred",
                     "mutated"
                   ],
                   "children": [
@@ -80,7 +85,12 @@
                         {
                           "kind": "let",
                           "name": "i",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
                           "flags": [
+                            "inferred",
                             "mutated"
                           ],
                           "children": [
@@ -319,7 +329,12 @@
                 {
                   "kind": "let",
                   "name": "acc",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
                   "flags": [
+                    "inferred",
                     "mutated"
                   ],
                   "children": [
@@ -354,7 +369,12 @@
                         {
                           "kind": "let",
                           "name": "i",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
                           "flags": [
+                            "inferred",
                             "mutated"
                           ],
                           "children": [
@@ -2188,6 +2208,13 @@
                 {
                   "kind": "let",
                   "name": "err",
+                  "type": {
+                    "kind": "named_interface",
+                    "name": "error"
+                  },
+                  "flags": [
+                    "inferred"
+                  ],
                   "children": [
                     {
                       "kind": "call",
@@ -2396,6 +2423,13 @@
                 {
                   "kind": "let",
                   "name": "err",
+                  "type": {
+                    "kind": "named_interface",
+                    "name": "error"
+                  },
+                  "flags": [
+                    "inferred"
+                  ],
                   "children": [
                     {
                       "kind": "call",
@@ -2935,7 +2969,13 @@
                 {
                   "kind": "let",
                   "name": "c",
+                  "type": {
+                    "kind": "named",
+                    "name": "Counter",
+                    "package": "oyatie.example/portengine-fixture/corpus/handoff"
+                  },
                   "flags": [
+                    "inferred",
                     "mutated"
                   ],
                   "children": [
@@ -4548,6 +4588,13 @@
                         {
                           "kind": "let",
                           "name": "size",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "flags": [
+                            "inferred"
+                          ],
                           "children": [
                             {
                               "kind": "call",
@@ -4698,7 +4745,12 @@
                 {
                   "kind": "let",
                   "name": "result",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  },
                   "flags": [
+                    "inferred",
                     "mutated"
                   ],
                   "children": [
@@ -4723,6 +4775,13 @@
                         {
                           "kind": "let",
                           "name": "size",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "flags": [
+                            "inferred"
+                          ],
                           "children": [
                             {
                               "kind": "call",

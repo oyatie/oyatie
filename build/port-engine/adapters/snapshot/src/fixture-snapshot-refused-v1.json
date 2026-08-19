@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:66b972f9ce947535822aabbb2bf7c7186a57114bfe43cd47ecc50f404d28a698",
+  "snapshot_digest": "sha256:5360b1cd20fe9234a8ceda121387b955415071e43015a70748af0ba45fe189ea",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -374,7 +374,12 @@
                 {
                   "kind": "let",
                   "name": "total",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  },
                   "flags": [
+                    "inferred",
                     "mutated"
                   ],
                   "children": [
@@ -399,7 +404,12 @@
                         {
                           "kind": "let",
                           "name": "i",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
                           "flags": [
+                            "inferred",
                             "mutated"
                           ],
                           "children": [

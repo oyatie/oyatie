@@ -2399,3 +2399,34 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   class the reviews kept finding: the leading repetition of the item's own name, the porting
   reasoning that belongs in a separated comment, and now the identifiers. What remains in an emitted
   doc comment is what the author wrote about the code.
+
+## The swap, the block, and the type the source never wrote
+
+- THE EXCHANGE. `a[i], a[j] = a[j], a[i]` is what the target's sequence has a method for, and three
+  reviewers named the destructuring form as hand-rolling something the target has had since 1.0.
+  The parallel assignment is already faithful — both sides evaluated before either is written — so
+  this is the spelling and not the program. Recognised from the SOURCE nodes rather than the
+  rendered places, so a change to how an index prints cannot silently stop the idiom firing.
+
+- THE BARE BLOCK, which two reviewers read as a Go statement form transliterated. It was — and it
+  was also the only faithful shape until now, because the source scopes `if size := len(s); cond` so
+  the name dies with the branch and hoisting it would delay a drop.
+
+  What makes hoisting safe is the binding's TYPE: a copy type has no drop to delay, so the only
+  remaining difference is shadowing, which is checked against every other binding in the body. Where
+  either fails the block stays, because it is still faithful.
+
+- WHICH NEEDED A FACT THE FRONT END WAS NOT RECORDING. `var x T` carried its type and `x := e` did
+  not, because nothing had needed it. Now something does, so a short declaration records the type
+  the type-checker gave it.
+
+  AND IMMEDIATELY A SECOND DECISION, because recording it put `let size: i64 = ..` on every short
+  declaration in every body — an annotation the author never wrote and the target does not need,
+  since it infers exactly what the source inferred. So the binding also records whether the source
+  WROTE the type, and the target annotates only where it did. A fact the front end observes; a
+  decision the transform makes from it.
+
+- THE FLAG SET IS SORTED, and appending without re-sorting broke the snapshot digest immediately —
+  `flagsFor`'s own comment says a flag set has exactly one encoding, and the admitter proved it
+  within a minute. Cheap to fix and worth recording: the encoding invariants in that file are load-
+  bearing, not tidiness.

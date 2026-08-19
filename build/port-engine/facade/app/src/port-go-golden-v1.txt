@@ -349,11 +349,9 @@ pub mod scoped {
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__width
     /// Reports the byte length of s once it clears the minimum, and zero otherwise.
     pub fn width(s: &str) -> i64 {
-        {
-            let size = s.len() as i64;
-            if size > 4 {
-                return size;
-            }
+        let size = s.len() as i64;
+        if size > 4 {
+            return size;
         }
         0
     }
@@ -396,7 +394,7 @@ pub mod sequence {
     // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__swap
     /// Exchanges the values at i and j.
     pub fn swap(values: &mut [i64], i: i64, j: i64) {
-        (values[i as usize], values[j as usize]) = (values[j as usize], values[i as usize]);
+        values.swap(i as usize, j as usize);
     }
 }
 pub mod shapes {

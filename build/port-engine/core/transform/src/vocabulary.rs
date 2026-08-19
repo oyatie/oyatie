@@ -75,6 +75,8 @@ pub const IDIOM_SELF_IN_IMPL: &str = "self_inside_own_impl";
 pub const IDIOM_INDEX_COUNTER: &str = "index_counter_is_usize";
 /// The idiom that a loop counting to reach each element is an iterator over the sequence.
 pub const IDIOM_INDEX_LOOP: &str = "index_loop_is_an_iterator";
+/// The idiom that a parallel assignment exchanging two elements is the sequence's own swap.
+pub const IDIOM_SWAP: &str = "parallel_exchange_is_a_swap";
 /// The idiom that a counter used only as an index is a , so neither conversion is needed.
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
@@ -161,6 +163,8 @@ pub const FLAG_POINTER_RECEIVER: &str = "pointer_receiver";
 /// the callee's copy is the opposite claim — the caller sees nothing — so one flag carrying both
 /// would demand a borrow for every parameter a body happens to reassign.
 pub const FLAG_REBOUND: &str = "rebound";
+/// Flag marking a binding whose type the source did not write, so the target must not annotate it.
+pub const FLAG_INFERRED: &str = "inferred";
 /// The body never mentions this parameter.
 ///
 /// Ordinary in the source — it is how a function satisfies an interface it does not need every

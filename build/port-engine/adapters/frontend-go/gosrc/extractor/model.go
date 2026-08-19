@@ -211,6 +211,12 @@ const (
 	// decision: whether the type copies is the pack's answer, and the two halves belong on
 	// different sides of the seam.
 	flagReread = "reread"
+	// flagInferred marks a binding whose type the SOURCE did not write. The type is recorded
+	// either way because the engine needs it -- whether the binding has a drop to delay decides
+	// whether the block that scopes it is necessary -- and the flag is what says the target must
+	// not ANNOTATE it, since an annotation the source never had is noise on every short
+	// declaration in every body.
+	flagInferred = "inferred"
 
 	// flagUnread records that the body never mentions the parameter at all.
 	//

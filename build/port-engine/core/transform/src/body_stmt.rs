@@ -23,7 +23,9 @@ use crate::body_parts::unsupported_source;
 use crate::body_parts::{branch, named_child, one_child, two_children};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::vocabulary::{ATTR_OP, CHILD_BIND, CHILD_PLACE, CHILD_VALUE, FLAG_MUTATED};
+use crate::vocabulary::{
+    ATTR_OP, CHILD_BIND, CHILD_PLACE, CHILD_VALUE, FLAG_INFERRED, FLAG_MUTATED, IDIOM_SWAP,
+};
 
 pub(crate) fn statement(
     node: &Declaration,
@@ -47,10 +49,15 @@ pub(crate) fn statement(
             // makes every binding mutable and the target makes none of them, so a default in
             // either direction is wrong for half the bindings in any real body.
             mutable: node.has_flag(FLAG_MUTATED),
-            // A declared type is carried through. The source often declares one where the target
+            // A DECLARED type is carried through. The source often declares one where the target
             // could infer it, and dropping it would change what the binding IS wherever the two
             // languages default differently — an untyped integer literal being the common case.
-            ty: match node.type_ref.is_empty() {
+            //
+            // An INFERRED one is not. The type is recorded on every binding because the engine
+            // needs it, and annotating one the source never wrote puts a type on every short
+            // declaration in every body — noise the author did not write and the target does not
+            // need, since it infers exactly what the source inferred.
+            ty: match node.type_ref.is_empty() || node.has_flag(FLAG_INFERRED) {
                 true => None,
                 false => Some(cx.resolver.resolve_in(
                     &node.type_ref,
@@ -151,6 +158,14 @@ pub(crate) fn statement(
             let mut values = Vec::new();
             for value in node.children_of_kind(CHILD_VALUE) {
                 values.push(expression(one_child(value, cx, "assign_tuple")?, cx)?);
+            }
+            // An EXCHANGE is what the target's sequence has a method for. The parallel form is
+            // already faithful; this is the spelling, and it is recognised from the source nodes
+            // rather than from the rendered places so the match cannot depend on how they printed.
+            if cx.resolver.idiom_method(IDIOM_SWAP).is_some()
+                && let Some(swapped) = crate::body_swap::exchange(node, cx)?
+            {
+                return Ok(RustStmt::Semi(swapped));
             }
             match values.len() == 1 || values.len() == places.len() {
                 true => Ok(RustStmt::AssignTuple { places, values }),

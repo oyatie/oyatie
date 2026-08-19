@@ -72,6 +72,71 @@ pub(crate) fn branch_value(
     Ok(RustExpr::Block(vec![bound, RustStmt::Tail(chosen)]))
 }
 
+/// An `if` whose init clause is hoisted out of the block that scoped it.
+///
+/// The source scopes `if size := len(s); cond` so `size` dies with the branch, and the block this
+/// module emits is what reproduces that. The block is only NECESSARY where the scope can be
+/// observed, and for a binding whose type COPIES there is nothing to observe: a copy type has no
+/// drop to delay, so the only remaining difference is shadowing.
+///
+/// `None` unless all of:
+///
+/// - the statement is an `if` with an init clause binding one name;
+/// - that binding's type COPIES, so the scope has no drop in it;
+/// - the name is not already bound in the enclosing body, so hoisting cannot shadow one;
+/// - the name is not bound again after this statement, which would shadow the hoisted one.
+///
+/// Where any fails, the block stays — it is faithful, and it is what this module emitted before any
+/// of this. Two reviewers read the bare block as a Go statement form transliterated, which it was;
+/// what they could not see is that it was also the only faithful shape until the copy test existed.
+///
+/// # Errors
+/// [`TransformError`] from translating the init clause or the conditional.
+pub(crate) fn hoisted_init(
+    statements: &[Declaration],
+    index: usize,
+    cx: &Body<'_>,
+) -> Result<Option<Vec<RustStmt>>, TransformError> {
+    let Some(node) = statements.get(index).filter(|node| node.kind == "if") else {
+        return Ok(None);
+    };
+    let Some(init) = node.children_of_kind("init").first().copied() else {
+        return Ok(None);
+    };
+    let Some(bound) = init.children.first().filter(|node| node.kind == "let") else {
+        return Ok(None);
+    };
+    if !cx.resolver.copy_types.contains(&bound.type_ref.name) {
+        return Ok(None);
+    }
+    if binds_elsewhere(statements, index, &bound.name) {
+        return Ok(None);
+    }
+    Ok(Some(vec![
+        statement(bound, cx, false)?,
+        RustStmt::Semi(plain_conditional(node, cx)?),
+    ]))
+}
+
+/// Whether any statement but this one binds the same name.
+///
+/// Hoisting a name into the enclosing scope is safe only where nothing else there has it: a name
+/// bound before would be shadowed by the hoist, and one bound after would shadow it. Either is a
+/// different program from the one the source scoped.
+fn binds_elsewhere(statements: &[Declaration], skip: usize, name: &str) -> bool {
+    statements
+        .iter()
+        .enumerate()
+        .filter(|(position, _)| *position != skip)
+        .any(|(_, node)| binds(node, name))
+}
+
+/// Whether this subtree binds the given name anywhere.
+fn binds(node: &Declaration, name: &str) -> bool {
+    (matches!(node.kind.as_str(), "let" | "bind") && node.name == name)
+        || node.children.iter().any(|child| binds(child, name))
+}
+
 fn plain_conditional(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
     let condition = named_child(node, "cond", cx, "if")?;
     let then = named_child(node, "then", cx, "if")?;
