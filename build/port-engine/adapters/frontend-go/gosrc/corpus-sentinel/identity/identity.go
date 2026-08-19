@@ -1,14 +1,13 @@
-// Package identity is a REFUSAL corpus: what a sentinel failure CANNOT do.
+// Package identity is about what a sentinel failure IS, and what a caller may ask of it.
 //
-// A sentinel becomes its MESSAGE, which is everything a `return ErrGone` needs. What a message
-// cannot carry is IDENTITY. The source's `errors.New` returns a pointer, so `err == ErrGone`
-// compares identity and is a line real code writes; the target's failure is a boxed trait object
-// with no equality at all, so nothing means what that line means — and a comparison against a
-// freshly built value would be FALSE at every call.
+// A sentinel becomes a TYPE: a unit struct that displays the source's message and implements the
+// target's error trait. That is what makes `err == ErrGone` translatable — the source compares
+// identity because its sentinel is a pointer, and the target asks the trait object what concrete
+// type it holds, which is true in exactly the same cases.
 //
-// Its OWN corpus, because a refusal shares a package with nothing: the transform reports the first
-// refusal it reaches, and a class proven in a shared corpus is one that stops being proven the day
-// another refusal lands beside it.
+// It did not start there. While a sentinel was its MESSAGE, a fresh failure built from a shared
+// string was equal to nothing and this comparison refused by name, with the loss recorded as the
+// cost of that decision. The cost was paid; this file is where it shows.
 package identity
 
 import "errors"
@@ -18,11 +17,9 @@ var ErrGone = errors.New("gone")
 
 // Missing reports whether the given failure is the sentinel one.
 //
-// REFUSED, and this is the cost the sentinel decision names. The source's `errors.New` returns a
-// POINTER, so `err == ErrGone` compares identity and is a comparison real code writes. The target's
-// sentinel is its message and its failure is a boxed trait object, which has no equality at all —
-// so there is no target expression that means what this line means. It refuses here rather than
-// emitting a comparison against a freshly built value, which would be false at every call.
+// The comparison the whole decision turns on. In the source it is pointer equality against a
+// package-level value; in the target it is a question asked of the trait object, and a failure that
+// is not that sentinel answers no in both.
 func Missing(err error) bool {
 	return err == ErrGone
 }

@@ -203,6 +203,17 @@ fn inferred(built: RustExpr, cx: &Body<'_>) -> RustExpr {
     if convention.inferred_construction.is_empty() {
         return built;
     }
+    // A SENTINEL is already the failure's own type, so the destination's conversion is all it
+    // needs — there is no construction to rewrite because there was none.
+    if let RustExpr::Path(name) = &built
+        && cx.resolver.scope.sentinels.keys().any(|source| {
+            crate::naming::to_pascal_case(source) == *name
+        })
+    {
+        return RustExpr::Literal(
+            convention.inferred_construction.replace("{0}", name),
+        );
+    }
     // Only a rendered CONSTRUCTION is rewritten, and only by matching the general form the pack
     // declares: the operand inside it is what the shorter form takes, and reading it from the form
     // rather than from the text means a pack that changes one changes both.
@@ -244,14 +255,9 @@ fn sentinel_failure(operand: &Declaration, cx: &Body<'_>) -> Option<RustExpr> {
         return None;
     }
     cx.resolver.scope.sentinels.get(&operand.name)?;
-    let convention = cx.resolver.failure?;
-    let mapping = convention
-        .sentinel_constructors
-        .iter()
-        .find_map(|identity| cx.resolver.function_map.get(identity))?;
-    Some(RustExpr::Literal(
-        mapping
-            .form
-            .replace("{0}", &to_screaming_snake(&operand.name)),
-    ))
+    cx.resolver.failure?;
+    // The sentinel VALUE, which is the unit struct itself. What turns it into the function's
+    // failure type is the destination's own conversion, applied by `inferred` beside every other
+    // built failure — so a sentinel and a constructed failure reach `Err` the same way.
+    Some(RustExpr::Path(crate::naming::to_pascal_case(&operand.name)))
 }

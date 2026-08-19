@@ -179,7 +179,30 @@ impl Resolver<'_> {
         // caller keeps after passing it, so owning it in the target would CONSUME a value the
         // source never consumed — the same reason a source string parameter borrows rather than
         // taking a `String`. What a borrowed failure parameter should be is a decision of its own.
-        if self.is_failure_type(type_ref) && position != POSITION_PARAM {
+        if self.is_failure_type(type_ref) {
+            // A PARAMETER of the failure type has its own form, and the reason is what callers do
+            // with it: they ask which sentinel it is, and that question exists on the trait OBJECT.
+            // Where the pack declares none it still refuses, which is what it did before there was
+            // a sentinel type to ask about.
+            if position == POSITION_PARAM {
+                let form = self
+                    .failure
+                    .map(|convention| convention.param_type.as_str())
+                    .filter(|form| !form.is_empty());
+                return match form {
+                    Some(form) => Ok(RustType::path(form)),
+                    None => Err(TransformError::UnmappedType {
+                        unit: self.unit.0.clone(),
+                        name: declaration_name.to_owned(),
+                        type_ref: format!(
+                            "{} in `{position}` position — the pack declares no form for a failure \
+                             a caller hands in, and the general interface form cannot answer the \
+                             question callers ask of one",
+                            type_ref.describe()
+                        ),
+                    }),
+                };
+            }
             return self.failure_target(declaration_name).map(RustType::path);
         }
         let Some(template) = self.trait_object_forms.get(position) else {

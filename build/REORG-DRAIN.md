@@ -2923,3 +2923,52 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - What that leaves as open ENGINE work is one thing: the error model. Everything else on the list is
   either the source's own text carried faithfully, a decision already recorded with its reason, or
   something the reviewer marks as a choice a human porter would make too.
+
+## The error model, which is not an enum — and the identity that came back
+
+- Five reviewers asked for an error enum. MEASURED on `semver`, an enum generated from its seven
+  sentinels would cover 16 of 78 failure sites: 43 are built by `fmt.Errorf` with a formatted
+  message and have no variant to be, 17 return a binding, 2 construct inline. A `#[non_exhaustive]`
+  enum that silently omits four fifths of what a caller can receive is a WORSE API than the boxed
+  trait object, not a better one.
+
+  The source's failure set is NOT CLOSED, and an engine may not close it on the author's behalf.
+  What the reviewers want is a design decision the source never made — which is exactly the thing
+  this engine refuses to invent. What would change it: a package whose every failure IS a declared
+  sentinel has a closed set and deserves the enum. Across the surveyed corpora that is none of them,
+  and `errors`, `multierror` and `xid` declare no sentinel at all.
+
+- BUT THE COMPLAINT UNDERNEATH IT WAS REAL, and it was one the engine had recorded as a cost:
+  `errors.Is(err, ErrSize)` works in the source and the port lost it. The port was strictly less
+  capable than the source, and five reviewers said so in different words.
+
+- SO A SENTINEL BECAME A TYPE, reversing a decision this lane made twenty commits ago. The message
+  form — `static ERR_SIZE: &str`, the failure built from it at each return — was correct and cheaper
+  and lost the one thing that makes a sentinel a sentinel. It is now a unit struct that displays the
+  source's message and implements the target's error trait, which is what a Rust author writes for
+  exactly this and is what the source's caller is comparing against:
+
+      #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+      pub struct ErrEmpty;
+      impl std::fmt::Display for ErrEmpty { .. f.write_str("empty") }
+      impl std::error::Error for ErrEmpty {}
+
+      return Err(ErrEmpty.into());
+
+- AND THE COMPARISON CAME BACK WITH IT. `err == ErrGone` refused by name for most of this lane, and
+  the refusal was right for as long as a sentinel was its message. Now `err.downcast_ref::<ErrGone>()
+  .is_some()` — true in exactly the cases the source's is. The refusal corpus that proved the cost
+  is now a corpus that proves the capability, at 100%.
+
+  RECORDED, not hidden: the source's `errors.Is` walks an unwrap chain and a downcast does not, so a
+  package that wraps its sentinels and tests through the wrapper gets a test that says no where the
+  source said yes. No surveyed corpus does it.
+
+- A FAILURE PARAMETER GOT ITS OWN FORM, and the reason is what callers do with it. Every other
+  interface parameter is `&impl Trait` — accepts every implementor, monomorphises, no table. A
+  failure parameter is `&(dyn std::error::Error + 'static)`, because the question callers ask of one
+  is `downcast_ref`, which exists on the trait OBJECT and not on a generic. `&impl Error` accepts
+  the value and then cannot answer the only question anyone asks of it.
+
+  `Send + Sync` are deliberately absent: the owned form needs them so a ported failure can cross a
+  thread boundary, and a BORROW crossing nothing does not.
