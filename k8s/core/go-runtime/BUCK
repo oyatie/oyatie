@@ -1,0 +1,32 @@
+rust_library(
+    name = "k8s-go-runtime",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "k8s_go_runtime",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+# The semantics proofs. Every test corresponds to a place where the obvious Rust construct means
+# something DIFFERENT from the Go one, so a crate that merely compiled would pass none of them.
+rust_test(
+    name = "k8s-go-runtime-channels",
+    srcs = glob(["tests/channels.rs"]),
+    crate = "k8s_go_runtime_channels",
+    crate_root = "tests/channels.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s-go-runtime",
+    ],
+)
+
+rust_test(
+    name = "k8s-go-runtime-scheduling",
+    srcs = glob(["tests/scheduling.rs"]),
+    crate = "k8s_go_runtime_scheduling",
+    crate_root = "tests/scheduling.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":k8s-go-runtime",
+    ],
+)
