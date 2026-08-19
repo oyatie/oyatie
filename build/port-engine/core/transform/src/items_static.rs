@@ -62,13 +62,16 @@ pub(crate) fn build_static(
     // needs one. See `sentinel.rs` for what this costs.
     if let Some(message) = resolver.scope.sentinels.get(&declaration.name) {
         return Ok(RustItem::SentinelError {
-            docs: docs_of(declaration, resolver),
+            docs: docs_of(declaration, resolver)?,
             vis: visibility(declaration),
             // A TYPE, so its name is a type's — and without the source's `Err` prefix, which is
             // a convention for a namespacing problem the target does not have. Decided by the
             // resolver so the return and the identity test spell the same name.
             name: resolver.sentinel_type_name(&declaration.name),
-            message: message.clone(),
+            // The message names TYPES sometimes, and a source type name in it is a name the
+            // emitted crate does not have. See `docs::rename_types_in_text` for why this one
+            // rewrite reaches text the program emits, when no other does.
+            message: crate::docs::rename_types_in_text(message, resolver.prose_type_names),
         });
     }
     // A SENTINEL is exempt, and the exemption is the sentinel decision rather than a second one:
@@ -134,7 +137,7 @@ pub(crate) fn build_static(
         }
     };
     Ok(RustItem::PackageValue {
-        docs: docs_of(declaration, resolver),
+        docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),
         ty,

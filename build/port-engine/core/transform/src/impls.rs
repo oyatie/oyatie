@@ -70,7 +70,7 @@ fn build_impl(
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(RustItem::TraitImpl {
-        docs: satisfaction_docs(observed, resolver),
+        docs: satisfaction_docs(observed, resolver)?,
         trait_path,
         self_ty: self_ty.clone(),
         methods,
@@ -89,7 +89,10 @@ fn build_impl(
 /// The provenance is not lost. Which satisfactions were observed and where is exactly what the plan
 /// and the receipt record, and that is where provenance belongs: the emitted crate is the PRODUCT,
 /// not the record of how it was made.
-fn satisfaction_docs(observed: &Declaration, resolver: &Resolver<'_>) -> Vec<String> {
+fn satisfaction_docs(
+    observed: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<Vec<String>, TransformError> {
     docs_of(observed, resolver)
 }
 
