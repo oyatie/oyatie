@@ -14,7 +14,8 @@ use port_engine_identity::engine_digest;
 use port_engine_rulepack::{LoadedRulePack, RulepackError};
 use port_engine_rust_ir::{EmptyRenderer, RustFn, RustIr, RustItem, RustRenderer, Visibility};
 use port_engine_snapshot::{
-    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_failure_v1,
+    AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_drift_after_v1,
+    admit_embedded_fixture_drift_before_v1, admit_embedded_fixture_failure_v1,
     admit_embedded_fixture_interface_v1, admit_embedded_fixture_ownership_v1,
     admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1,
 };
@@ -31,7 +32,34 @@ use crate::driver::report::{PipelineError, PipelineReport};
 use crate::driver::smoke::smoke_admit_snapshot;
 
 pub fn port_go_pipeline() -> Result<PipelineReport, PipelineError> {
-    let admitted = admit_embedded_fixture_v1().map_err(PipelineError::Admit)?;
+    port_go_from(admit_embedded_fixture_v1().map_err(PipelineError::Admit)?)
+}
+
+/// Port the EARLIER version of the upstream-drift pair.
+///
+/// # Errors
+/// [`PipelineError`] on any pipeline defect.
+pub fn port_go_drift_before() -> Result<PipelineReport, PipelineError> {
+    port_go_from(admit_embedded_fixture_drift_before_v1().map_err(PipelineError::Admit)?)
+}
+
+/// Port the LATER version of the upstream-drift pair.
+///
+/// # Errors
+/// [`PipelineError`] on any pipeline defect.
+pub fn port_go_drift_after() -> Result<PipelineReport, PipelineError> {
+    port_go_from(admit_embedded_fixture_drift_after_v1().map_err(PipelineError::Admit)?)
+}
+
+/// The pipeline, over whichever admitted snapshot it is handed.
+///
+/// Parameterised by the SNAPSHOT and by nothing else, which is what makes a re-port comparable: the
+/// engine, the rules, the toolchain and the formatter are the same run of the same code, so an
+/// emitted difference between two calls can only have come from the source.
+///
+/// # Errors
+/// [`PipelineError`] on any pipeline defect.
+pub fn port_go_from(admitted: AdmittedSnapshot) -> Result<PipelineReport, PipelineError> {
     let pin = admitted.pin().to_owned();
     let pack = LoadedRulePack::load_embedded_go_rust().map_err(PipelineError::Rulepack)?;
     let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;

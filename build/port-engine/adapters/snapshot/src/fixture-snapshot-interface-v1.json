@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:c153ea52326dd56592218cd9ce04e862282257a62556a627a3326b95b64bac1c",
+  "snapshot_digest": "sha256:705b7e26e753e563c224ca60bf8cfa071f5ae46b7cadd173df535a8603d8507c",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-interface/corpus-interface/positions",
@@ -45,6 +45,9 @@
                     {
                       "kind": "call",
                       "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture-interface/corpus-interface/positions.Say"
+                      },
                       "children": [
                         {
                           "kind": "selector",
@@ -237,6 +240,9 @@
                     {
                       "kind": "call",
                       "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture-interface/corpus-interface/positions.Announce"
+                      },
                       "children": [
                         {
                           "kind": "ident",

@@ -9,6 +9,7 @@ use port_engine_api::{Declaration, TypeRef};
 use port_engine_rust_ir::RustExpr;
 
 use crate::body::{Body, one_child, two_children, unsupported_source};
+use crate::body_index::slice;
 use crate::body_ops::{binary_operator, is_receiver, operator_of, reference, unary_operator};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
@@ -73,6 +74,7 @@ pub(crate) fn in_position(
             })
         }
         "composite" => composite(node, cx),
+        "slice" => slice(node, cx),
         "unsupported" => Err(unsupported_source(node, cx)),
         other => Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),

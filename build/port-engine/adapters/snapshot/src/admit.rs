@@ -11,6 +11,7 @@ use crate::admitted::AdmittedSnapshot;
 use crate::error::AdmitError;
 use crate::preimage::{snapshot_preimage, snapshot_preimage_v1};
 use crate::{
+    FIXTURE_SNAPSHOT_DRIFT_AFTER_V1_JSON, FIXTURE_SNAPSHOT_DRIFT_BEFORE_V1_JSON,
     FIXTURE_SNAPSHOT_FAILURE_V1_JSON, FIXTURE_SNAPSHOT_INTERFACE_V1_JSON, FIXTURE_SNAPSHOT_JSON,
     FIXTURE_SNAPSHOT_OWNERSHIP_V1_JSON, FIXTURE_SNAPSHOT_REFUSED_V1_JSON, FIXTURE_SNAPSHOT_V1_JSON,
 };
@@ -162,5 +163,23 @@ pub fn admit_embedded_fixture_interface_v1() -> Result<AdmittedSnapshot, AdmitEr
 /// [`AdmitError`] on fixture defect.
 pub fn admit_embedded_fixture_failure_v1() -> Result<AdmittedSnapshot, AdmitError> {
     let bytes = FIXTURE_SNAPSHOT_FAILURE_V1_JSON.as_bytes();
+    admit_reproducible_pair(bytes, bytes)
+}
+
+/// Admit the earlier version of the upstream-drift pair.
+///
+/// # Errors
+/// [`AdmitError`] on fixture defect.
+pub fn admit_embedded_fixture_drift_before_v1() -> Result<AdmittedSnapshot, AdmitError> {
+    let bytes = FIXTURE_SNAPSHOT_DRIFT_BEFORE_V1_JSON.as_bytes();
+    admit_reproducible_pair(bytes, bytes)
+}
+
+/// Admit the later version of the upstream-drift pair.
+///
+/// # Errors
+/// [`AdmitError`] on fixture defect.
+pub fn admit_embedded_fixture_drift_after_v1() -> Result<AdmittedSnapshot, AdmitError> {
+    let bytes = FIXTURE_SNAPSHOT_DRIFT_AFTER_V1_JSON.as_bytes();
     admit_reproducible_pair(bytes, bytes)
 }

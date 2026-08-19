@@ -191,6 +191,28 @@ pub(crate) fn cmd_dispositions() -> ExitCode {
     }
 }
 
+/// Survey a snapshot of source the engine has never seen, and report what it could not do.
+///
+/// Exits SUCCESS whatever the coverage. A survey that failed on incomplete coverage would be a
+/// gate, and this is an instrument — the number it reports is the thing being measured, not a
+/// threshold being enforced.
+pub(crate) fn cmd_survey(path: Option<&str>) -> ExitCode {
+    let Some(path) = path else {
+        eprintln!("port-engine-app: survey needs a snapshot path");
+        return ExitCode::from(2);
+    };
+    match driver::survey_snapshot(std::path::Path::new(path)) {
+        Ok(report) => {
+            print!("{}", driver::render_survey(&report));
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: survey failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 pub(crate) fn cmd_port_go_source() -> ExitCode {
     match driver::port_go_source() {
         Ok((source, matches_golden)) => {

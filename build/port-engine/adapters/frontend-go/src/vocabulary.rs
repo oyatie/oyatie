@@ -123,6 +123,8 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "post",
     "range",
     "selector",
+    "slice",
+    "absent",
     "switch",
     "tag",
     "block",
@@ -179,6 +181,8 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_GO_NODE,
     ATTR_LIT_KIND,
     ATTR_OP,
+    ATTR_RANGE_KEY,
+    ATTR_RANGE_VALUE,
     ATTR_RECEIVER,
     ATTR_REF,
     ATTR_SITE,
@@ -190,6 +194,16 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
 ///
 /// The target has no method promotion, so a forwarding method has to name the field it forwards to.
 pub const ATTR_VIA: &str = "via";
+
+/// Attribute keys holding the names a `range` loop binds.
+///
+/// Admitted late, and found by surveying a real package rather than by reading the extractor: the
+/// fixture corpus reaches the range loop through a shape that binds only the value, so the key
+/// attribute was emitted and never decoded. A closed vocabulary is only a check if the thing it
+/// closes over is exercised.
+pub const ATTR_RANGE_KEY: &str = "key";
+/// See [`ATTR_RANGE_KEY`].
+pub const ATTR_RANGE_VALUE: &str = "value";
 
 /// Attribute key holding the package-qualified IDENTITY of what a call resolves to.
 ///
