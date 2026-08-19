@@ -2046,3 +2046,33 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   defines, so it cannot collide with a user type that happens to be called `slice`.
 
 - `Celsius(f64)` correctly earns neither; `Counter` earns both.
+
+## Session close: where the lane stands
+
+- SEVEN third-party corpora, coverage at close: xxhash 73.5%, semver 51.7%, ksuid 49.5%,
+  errors 47.4%, uuid 46.4%, xid 30.8%, go-multierror 0.0%.
+
+  Against the session's opening numbers — xxhash 70.6, ksuid 38.7, uuid 37.1, semver 34.5,
+  errors 31.6, xid 23.1 — every package is up, and semver by 17.2 points. That is NET of a
+  correction that removed 15 declarations which had been counted as translated while emitting a
+  program that reports failure where the source reports success.
+
+- THE BOARD, ranked by packages blocked: an unproven `ident` failure operand (5 pkgs, 13 decls);
+  unmapped `interface` — the source's `any` (4, 7); an unproven `call` failure operand (4, 6);
+  a compound argument to `len` (4, 4); `foreign_satisfaction` deferred (3, 6); `panic` with a
+  non-literal payload (3, 4); `ArrayType` (3, 4); unary `&` outside an argument (3, 3).
+
+- INVARIANTS, all holding: refusal corpora refused by name across six classes, each in its own
+  corpus; planted defect Red/Unexplained; upstream-drift pair Explained on exactly the snapshot
+  axis; an engine-source change moves `engine_digest`; no engine library reads Go; no production
+  source carries a corpus needle; vocabularies closed; every source file 100–300 lines except
+  `core/kernel/lib.rs`, which the design requires be one file and which says why.
+
+- VERIFY at close: 49 test binaries green including the compile proof, which now DENIES WARNINGS
+  with three named source-property allowances; port-engine clippy `-D warnings` clean; `delta`
+  Green/Unchanged; six-axis receipt fully populated; buck2 Pass 29 / Build failure 20, the known
+  third-party export gap unchanged and out of lane.
+
+- UNPUSHED. The branch is 67 commits ahead of `origin/dev` with no open PR — #2117 merged and its
+  head ref is gone. The work is committed locally and needs a push and a fresh PR to enter the
+  governance pipeline.
