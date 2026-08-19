@@ -37,7 +37,7 @@ scope:
     - university SSO integration (SAML/OIDC per institution)
     - job + internship listings (employer-posted; student-facing)
     - employer recruiting campaigns (targeted by major + grad year + university)
-    - application tracking (student side: status; employer side: pipeline)
+    - "application tracking (student side: status; employer side: pipeline)"
     - on-campus events (virtual + in-person; RSVP + check-in)
     - university-tied feeds (career office posts, club announcements, alumni Q&A)
     - alumni mentorship connections

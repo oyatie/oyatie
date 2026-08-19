@@ -42,7 +42,7 @@ spec:
       metadata: { name: deck-open-burn-rate-high }
       spec:
         description: 14.4× burn over 1h
-        notificationTargets: [{ target: grafana-oncall:slides-sev2 }]
+        notificationTargets: [{ target: "grafana-oncall:slides-sev2" }]
         conditions:
           - kind: AlertCondition
             spec: { op: lt, threshold: 0.85, lookbackWindow: 1h, alertAfter: 0m }

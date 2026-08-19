@@ -92,10 +92,10 @@ regulatory_framework:
   - EU Charter Art. 11 (freedom of expression including press freedom)
   - UK Human Rights Act 1998 Art. 10 (freedom of expression)
   - ECHR Art. 10 (press freedom doctrine; Goodwin v UK [1996] ECHR 16)
-  - Journalist shield laws (US: varies by state; FR: Code de procédure pénale
-    Art. 56-2; DE: StPO §97; AU: Evidence Amendment Act 2011)
-  - ADR-0300 §P-6: platform will contest any legal-process demand targeting
-    source identity using available legal remedies before compliance
+  - "Journalist shield laws (US: varies by state; FR: Code de procédure pénale
+    Art. 56-2; DE: StPO §97; AU: Evidence Amendment Act 2011)"
+  - "ADR-0300 §P-6: platform will contest any legal-process demand targeting
+    source identity using available legal remedies before compliance"
 
 acceptance_criteria:
   - source submission completes in p99 ≤ 3 s (includes E2EE encryption)
