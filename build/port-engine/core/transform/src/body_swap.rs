@@ -178,7 +178,7 @@ pub(crate) fn identity_test(
     // site that did not ask.
     let sentinel_of = |node: &Declaration| {
         (node.kind == KIND_IDENT && cx.resolver.scope.sentinels.contains_key(&node.name))
-            .then(|| cx.resolver.sentinel_type_name(&node.name))
+            .then(|| cx.resolver.sentinel_path(&node.name))
     };
     let (sentinel, subject) = match (sentinel_of(lhs), sentinel_of(rhs)) {
         // BOTH sides a sentinel is a comparison of two known types, which the source can write and
@@ -190,10 +190,19 @@ pub(crate) fn identity_test(
     let Some(rendered) = render_operand(&expression(subject, cx)?) else {
         return Ok(None);
     };
-    let test = convention
-        .identity_test
-        .replace("{0}", &rendered)
-        .replace("{1}", &sentinel);
+    // GROUPED, and the question splits in two: the failure has to BE the shared type, and then be
+    // that variant of it. Ungrouped, the type alone answers both.
+    let test = match cx.resolver.sentinel_enum_name() {
+        Some(group) if !convention.identity_test_grouped.is_empty() => convention
+            .identity_test_grouped
+            .replace("{0}", &rendered)
+            .replace("{1}", group)
+            .replace("{2}", &sentinel),
+        _ => convention
+            .identity_test
+            .replace("{0}", &rendered)
+            .replace("{1}", &sentinel),
+    };
     Ok(Some(RustExpr::Literal(match negated {
         true => format!("!{test}"),
         false => test,

@@ -5,7 +5,7 @@ use quote::quote;
 
 use port_engine_api::PortError;
 
-use crate::item::Visibility;
+use crate::item_parts::Visibility;
 use crate::ty::RustType;
 
 pub(crate) fn parse_type(ty: &RustType) -> Result<syn::Type, PortError> {

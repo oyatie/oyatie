@@ -125,20 +125,27 @@ pub mod fallible {
     // region: oyatie_example_portengine_fixture_corpus_fallible__prelude
     pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_var__errempty
-    /// Returned when the input string has no content.
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-    pub struct Empty;
-    impl fmt::Display for Empty {
+    #[non_exhaustive]
+    pub enum Error {
+        /// Returned when the input string has no content.
+        Empty,
+    }
+    impl fmt::Display for Error {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            f.write_str("empty")
+            f.write_str(
+                match self {
+                    Self::Empty => "empty",
+                },
+            )
         }
     }
-    impl std::error::Error for Empty {}
+    impl std::error::Error for Error {}
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__length
     /// Reports the length of s, failing on the empty string.
     pub fn length(s: &str) -> Result<i64> {
         if s.is_empty() {
-            return Err(Empty.into());
+            return Err(Error::Empty.into());
         }
         Ok(s.len() as i64)
     }

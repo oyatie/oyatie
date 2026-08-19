@@ -207,7 +207,7 @@ fn inferred(built: RustExpr, cx: &Body<'_>) -> RustExpr {
     // needs — there is no construction to rewrite because there was none.
     if let RustExpr::Path(name) = &built
         && cx.resolver.scope.sentinels.keys().any(|source| {
-            cx.resolver.sentinel_type_name(source) == *name
+            cx.resolver.sentinel_path(source) == *name
         })
     {
         return RustExpr::Literal(
@@ -259,5 +259,5 @@ fn sentinel_failure(operand: &Declaration, cx: &Body<'_>) -> Option<RustExpr> {
     // The sentinel VALUE, which is the unit struct itself. What turns it into the function's
     // failure type is the destination's own conversion, applied by `inferred` beside every other
     // built failure — so a sentinel and a constructed failure reach `Err` the same way.
-    Some(RustExpr::Path(cx.resolver.sentinel_type_name(&operand.name)))
+    Some(RustExpr::Path(cx.resolver.sentinel_path(&operand.name)))
 }

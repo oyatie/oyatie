@@ -79,10 +79,12 @@ pub(crate) fn prelude_item(
 /// uses is a denied warning, where an unused alias is only dead code — a unit whose sentinels all
 /// refused must not gain an import for them.
 pub(crate) fn import_items(items: &[RustItem]) -> Vec<RustItem> {
-    match items
-        .iter()
-        .any(|item| matches!(item, RustItem::SentinelError { .. }))
-    {
+    match items.iter().any(|item| {
+        matches!(
+            item,
+            RustItem::SentinelError { .. } | RustItem::SentinelEnum { .. }
+        )
+    }) {
         // The sentinel form spells `fmt::Display`, `fmt::Formatter` and `fmt::Result`, so a unit
         // with seven sentinels names one std module twenty-one times. The short form and this
         // import are one decision, derived from one fact, and cannot drift apart.

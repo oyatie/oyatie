@@ -20,7 +20,7 @@
 //! shapes that pass are closed, and everything else refuses by name.
 
 use port_engine_api::Declaration;
-use port_engine_rust_ir::{RustExpr, RustItem, RustType};
+use port_engine_rust_ir::{RustExpr, RustItem, RustType, SentinelVariant, Visibility};
 
 use crate::body::Body;
 use crate::body_expr::expression;
@@ -61,8 +61,35 @@ pub(crate) fn build_static(
     // is not that the call can be evaluated early but that the call is unnecessary until a return
     // needs one. See `sentinel.rs` for what this costs.
     if let Some(message) = resolver.scope.sentinels.get(&declaration.name) {
+        // ASKED FIRST, and for its refusal rather than its value. A declaration whose prose names
+        // something the crate does not contain refuses whatever it emits — and a sentinel that
+        // emits nothing of its own would otherwise skip the check entirely, carrying a dangling
+        // reference into the grouped enum's variant where nothing was watching.
+        let docs = docs_of(declaration, resolver)?;
+        // GROUPED, and then the FIRST sentinel in source order carries the whole enum and every
+        // other one emits nothing. Built once rather than once per sentinel, and here rather than
+        // as a unit-level item because this is where a resolver for the unit exists — the variants
+        // need the same name and doc rewriting every other declaration gets.
+        //
+        // The ones that emit nothing still TRANSLATED: what they become is in the crate, in the
+        // region the first sentinel owns rather than the one they own.
+        if resolver.sentinel_enum_name().is_some() {
+            // The first EMITTED one, not the first declared. A sentinel that refused is not in the
+            // crate, and building the enum on it would build nothing at all; carrying it as a
+            // variant would put a failure in the type that no return can produce.
+            let first = resolver
+                .scope
+                .sentinel_order
+                .iter()
+                .find(|(name, _)| resolver.emitted.contains(name))
+                .is_some_and(|(name, _)| name == &declaration.name);
+            return Ok(match first {
+                true => crate::items_sentinels::grouped_sentinels(resolver),
+                false => RustItem::Nothing,
+            });
+        }
         return Ok(RustItem::SentinelError {
-            docs: docs_of(declaration, resolver)?,
+            docs,
             vis: visibility(declaration),
             // A TYPE, so its name is a type's — and without the source's `Err` prefix, which is
             // a convention for a namespacing problem the target does not have. Decided by the

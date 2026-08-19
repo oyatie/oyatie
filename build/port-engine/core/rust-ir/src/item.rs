@@ -8,110 +8,10 @@
 
 use crate::expr::RustExpr;
 use crate::stmt::RustStmt;
+use crate::item_parts::{Receiver, RustField, RustFn, StructShape, Visibility};
 use crate::ty::RustType;
 
 /// Whether an item is part of the emitted crate's public surface.
-#[derive(Clone, Copy, Debug, Default, Eq, Ord, PartialEq, PartialOrd)]
-pub enum Visibility {
-    /// No qualifier. This is also the ONLY legal choice for a trait item, which is as public as
-    /// its trait and may not say so.
-    #[default]
-    Inherited,
-    /// `pub`.
-    Public,
-}
-
-/// How a method takes its receiver.
-///
-/// An explicit decision with no default. The source's receiver mode is a fact the front end knows
-/// and the transform must not guess: `&self` silently drops the mutation a pointer receiver
-/// exists to permit, and `&mut self` claims one the source may never perform.
-#[derive(Clone, Copy, Debug, Eq, Ord, PartialEq, PartialOrd)]
-pub enum Receiver {
-    /// `&self`
-    Shared,
-    /// `&mut self`
-    Exclusive,
-    /// `self`
-    Owned,
-}
-
-impl Receiver {
-    /// The receiver's spelling.
-    #[must_use]
-    pub const fn spelling(self) -> &'static str {
-        match self {
-            Self::Shared => "&self",
-            Self::Exclusive => "&mut self",
-            Self::Owned => "self",
-        }
-    }
-}
-
-/// One parameter of a function or method.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RustParam {
-    /// The parameter's name, already cased for the target.
-    pub name: String, // data_class: INTERNAL_ONLY
-    /// Whether the body never mentions this parameter.
-    ///
-    /// Emitted with a leading underscore. The source treats an unused parameter as ordinary and
-    /// the target warns on it, so the underscore is what says the omission is deliberate — and it
-    /// changes nothing a caller can see, because a parameter's name is not part of the type.
-    pub unread: bool,
-    /// Whether the body assigns to this parameter's own binding.
-    ///
-    /// The source makes every parameter a mutable local copy and the target makes none of them, so
-    /// this is observed rather than defaulted. It says nothing about the CALLER's value — a
-    /// rebound parameter is still passed by value, and the caller sees nothing.
-    pub rebound: bool,
-    /// Its type.
-    pub ty: RustType,
-}
-
-/// One field of a struct.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RustField {
-    /// Documentation carried over from the source.
-    pub docs: Vec<String>, // data_class: INTERNAL_ONLY
-    /// Whether the field is public.
-    pub vis: Visibility,
-    /// The field's name, already cased for the target.
-    pub name: String, // data_class: INTERNAL_ONLY
-    /// Its type.
-    pub ty: RustType,
-}
-
-/// A function, a method, or a trait method's signature.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub struct RustFn {
-    /// Documentation carried over from the source.
-    pub docs: Vec<String>, // data_class: INTERNAL_ONLY
-    /// Whether the function is public. Always [`Visibility::Inherited`] for a trait item.
-    pub vis: Visibility,
-    /// The function's name, already cased for the target.
-    pub name: String, // data_class: INTERNAL_ONLY
-    /// The receiver, when this is a method.
-    pub receiver: Option<Receiver>,
-    /// Parameters, in order — which is semantic.
-    pub params: Vec<RustParam>,
-    /// The return type. `None` and the unit type both render without an arrow.
-    pub ret: Option<RustType>,
-    /// The body. `None` is a signature with no body, which is what a trait item is.
-    pub body: Option<Vec<RustStmt>>,
-}
-
-/// The shape of a struct's data.
-#[derive(Clone, Debug, Eq, PartialEq)]
-pub enum StructShape {
-    /// `struct Name;`
-    Unit,
-    /// `struct Name(T);` — a newtype, which is how a distinct source type stays distinct.
-    Tuple(Vec<RustField>),
-    /// `struct Name { .. }`
-    Named(Vec<RustField>),
-}
-
 /// A top-level item.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RustItem {
@@ -128,6 +28,13 @@ pub enum RustItem {
         /// Its value, carried as a source spelling.
         value: String, // data_class: INTERNAL_ONLY
     },
+    /// NOTHING, for a declaration whose output belongs to a unit-level item instead.
+    ///
+    /// Distinct from an absent item: the declaration WAS translated, and what it became is in the
+    /// crate — a variant of the unit's failure enum, built once from the whole list rather than
+    /// once per sentinel. Saying so with a value keeps the accounting honest, where returning an
+    /// empty list would make a translated declaration indistinguishable from one nothing captured.
+    Nothing,
     /// An IMPORT the module makes, so a path it names repeatedly is named once.
     ///
     /// A module that spells `std::fmt::Display`, `std::fmt::Formatter` and `std::fmt::Result` in
@@ -141,6 +48,27 @@ pub enum RustItem {
     Use {
         /// The path imported, without the `use` or the semicolon.
         path: String, // data_class: INTERNAL_ONLY
+    },
+    /// The unit's sentinel failures as ONE enum: the type, its messages, and its `Error` impl.
+    ///
+    /// One item because they are one concept, exactly as the single-sentinel form is — and because
+    /// the `Display` arm for each variant must be built from the same list the variants are, or a
+    /// message drifts from the sentinel it belongs to.
+    ///
+    /// Grouped rather than one type each because the source's per-sentinel declaration answers a
+    /// namespacing problem the target does not have. What that costs and what it preserves is the
+    /// pack's to say; this face only spells it.
+    SentinelEnum {
+        /// Documentation for the type itself, which no source declaration owns.
+        docs: Vec<String>, // data_class: INTERNAL_ONLY
+        /// Whether the enum is public.
+        vis: Visibility,
+        /// Its type name.
+        name: String, // data_class: INTERNAL_ONLY
+        /// Whether a caller outside the crate may match it exhaustively.
+        exhaustive: bool,
+        /// Each sentinel, in the order the source declares them.
+        variants: Vec<SentinelVariant>,
     },
     /// A SENTINEL failure: a unit struct that is an error, and can be compared against.
     ///
@@ -279,4 +207,15 @@ pub enum RustItem {
     },
     /// A free function.
     Function(RustFn),
+}
+
+/// One sentinel, as a variant of the unit's failure enum.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct SentinelVariant {
+    /// Documentation carried over from the source declaration.
+    pub docs: Vec<String>, // data_class: INTERNAL_ONLY
+    /// Its variant name, already cased for the target.
+    pub name: String, // data_class: INTERNAL_ONLY
+    /// The message it carries, as a target string literal spelling.
+    pub message: String, // data_class: INTERNAL_ONLY
 }
