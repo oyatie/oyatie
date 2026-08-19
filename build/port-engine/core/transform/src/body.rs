@@ -13,16 +13,13 @@ use port_engine_rust_ir::{RustExpr, RustStmt, TupleBind};
 
 use crate::body_cond::conditional;
 use crate::body_expr::{Position, expression, in_position};
-use crate::body_ops::binary_operator;
+use crate::body_ops::{binary_operator, returns_owned_string};
 use crate::body_failure::{propagate, translated_return};
 use crate::body_loops::{counted_loop, range_loop, switch};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::resolve::Resolver;
-use crate::vocabulary::{
-    ATTR_OP, ATTR_SOURCE_NODE, CHILD_BIND, CHILD_RESULT, CHILD_VALUE, FLAG_MUTATED,
-    SOURCE_STRING,
-};
+use crate::vocabulary::{ATTR_OP, ATTR_SOURCE_NODE, CHILD_BIND, CHILD_VALUE, FLAG_MUTATED};
 
 /// What one body translation needs in order to answer a question about the TARGET.
 ///
@@ -90,22 +87,6 @@ pub(crate) fn statements(
         ),
         TailPosition::Yes,
     )
-}
-
-/// Whether this signature's single result is the OWNED target for a source string.
-///
-/// Single result only. Several results leave as a tuple, and which member a literal lands in is a
-/// question about position inside the tuple that this does not answer — so it says no rather than
-/// answering for the wrong member.
-fn returns_owned_string(declaration: &Declaration, resolver: &Resolver<'_>) -> bool {
-    let results = declaration.children_of_kind(CHILD_RESULT);
-    let [result] = results.as_slice() else {
-        return false;
-    };
-    if result.type_ref.name != SOURCE_STRING {
-        return false;
-    }
-    resolver.owns_strings()
 }
 
 /// Whether the last statement of this sequence is in TAIL position — the position whose value is

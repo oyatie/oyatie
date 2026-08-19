@@ -9,7 +9,8 @@ use port_engine_rust_ir::{BinaryOp, RustExpr, UnaryOp};
 use crate::body::Body;
 use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case};
-use crate::vocabulary::{ATTR_LIT_KIND, LIT_KIND_STRING, ATTR_OP, ATTR_REF};
+use crate::resolve::Resolver;
+use crate::vocabulary::{ATTR_OP, ATTR_REF, CHILD_RESULT, SOURCE_STRING};
 
 /// Case an identifier by what it REFERS to.
 ///
@@ -66,6 +67,22 @@ pub(crate) fn unary_operator(spelling: &str) -> Option<UnaryOp> {
         // docs/programs/k8s-port/census/ownership-escape.md exists to work out.
         _ => return None,
     })
+}
+
+/// Whether this signature's single result is the OWNED target for a source string.
+///
+/// Single result only. Several results leave as a tuple, and which member a literal lands in is a
+/// question about position inside the tuple that this does not answer — so it says no rather than
+/// answering for the wrong member.
+pub(crate) fn returns_owned_string(declaration: &Declaration, resolver: &Resolver<'_>) -> bool {
+    let results = declaration.children_of_kind(CHILD_RESULT);
+    let [result] = results.as_slice() else {
+        return false;
+    };
+    if result.type_ref.name != SOURCE_STRING {
+        return false;
+    }
+    resolver.owns_strings()
 }
 
 /// Own a bare string literal being RETURNED, where the signature says the result is owned.
