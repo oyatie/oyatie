@@ -33,15 +33,15 @@
     "_comment": "FINDING ceilings below remain ENFORCED by EQUALITY in live_tree_findings_equal_the_frozen_ceilings (semantic ADR oracle: mismatch / dangling_path / rejected_authority / …). Absolute census fields files_scanned / citation_lines / adr_records are ADVISORY ONLY — NOT merge blockers (PROCESS_TAX DELETE, audit 79f76050 / Fail-class law 2026-08-11). Do NOT hand re-freeze them on the PR path; anti-vacuity is machine-derived (git ls-files ∩ scan predicate + vacuous-scan refuse + min_* floors). Historical remeasure essays below retained as provenance, not as a duty to update on every land.",
     "_process_tax_delete_2026_08_11": "Deleted hand equality pins on files_scanned/citation_lines/adr_records as merge blockers. Values may lag tip; that lag is not a CI fail. Semantic finding ceilings still require same-change re-freeze when findings move.",
     "run_at": "2026-08-09T12:50Z",
-    "adr_records": 460,
-    "live_apexes": 12,
+    "adr_records": 466,
+    "live_apexes": 18,
     "archived": 448,
     "archived_with_successor": 425,
     "rejected": 16,
-    "citation_lines": 8996,
-    "files_scanned": 16632,
-    "adr_citation_closure_mismatch": 242,
-    "adr_citation_dangling_path": 2262,
+    "citation_lines": 8332,
+    "files_scanned": 14301,
+    "adr_citation_closure_mismatch": 240,
+    "adr_citation_dangling_path": 2157,
     "adr_citation_rejected_authority": 6,
     "adr_duplicate_id": 0,
     "adr_closure_asymmetry": 29,
@@ -99,5 +99,6 @@
     "known_limitations": "Detection requires RESIDUAL evidence: a citation whose line no longer names any ADR carries nothing to check it against, and the de-stale pass rewrote the filename slug too. The measurable defect class is therefore a lower bound on the real one. Only supersession is modelled — `amends`/`amended_by` carry authority changes this gate does not evaluate. Attribution is LINE-SCOPED by deliberate refusal: the subject of a citation is read only from the line carrying it, so a subject stated on an adjacent line or in an enclosing heading is invisible and that citation is simply never judged. Widening attribution to the surrounding block was refused rather than deferred — a heuristic that guesses which nearby sentence owns a link manufactures accusations against correct citations, and this gate's whole value is that a finding is a statement that is false today. The consequence is under-detection, which is the safe direction and is already accounted for by the lower-bound clause above. The cases where attribution WOULD be ambiguous are skipped rather than guessed: a line citing two or more apex paths produces no mismatch finding at all, and a bare id that is itself a live apex is not counted as evidence, so the any-match rule is order-independent over the resolvable ids and never depends on which link came first."
   },
   "purpose": "Make a syntactically valid, semantically wrong ADR citation impossible to reintroduce, by resolving every cited apex against an independent both-sides supersession closure instead of checking that the path exists.",
-  "authority_surface_marker": "doc_class: Operating-Contract"
+  "authority_surface_marker": "doc_class: Operating-Contract",
+  "_ci_unblock_remeasure_2026_08_18": "#2108 hub-standard re-freeze, derived from the gate's own assertion on this tree. SHRINK re-frozen DOWN same-change per the equality ratchet: mismatch 242 -> 240 and dangling_path 2262 -> 2157, both pure shrink-by-repair from this PR's hub rewrites and the cloud/ deletions already on dev. rejected_authority HELD at 6 and was NOT raised: this PR first took it to 11 by listing five Proposed decisions (0710-0715 range) in CLAUDE.md's live apex set, which adr_citation_rejected_authority exists to catch — a Proposed decision is not implement authority. The five entries were removed rather than the ceiling raised. Census fields moved with dev (cloud/ deletion): records 460 -> 466, live_apexes 12 -> 18, citation_lines 8996 -> 8332, files_scanned 16632 -> 14301. asymmetry 29, unresolvable 8, ambiguous 2, duplicate_id 0 all held."
 }

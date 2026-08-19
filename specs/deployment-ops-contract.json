@@ -69,7 +69,7 @@
         "apply",
         "tofu-init",
         "tofu-fmt-check",
-        "verify",
+        "verify-deploy",
         "verify-deploy-contract",
         "ops"
       ],
