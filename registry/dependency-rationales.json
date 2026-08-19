@@ -355,6 +355,7 @@
         "oya-cloud-intelligence-openbao-adapter",
         "oya-cloud-intelligence-rest",
         "intelligence-codeview-cli",
+        "oya-governance-audit-event-emission",
         "oya-governance-purpose-audit-app",
         "oya-governance-upstream-api-drift-kernel",
         "oya-hr-employment-api",
