@@ -79,6 +79,8 @@ pub const IDIOM_INDEX_LOOP: &str = "index_loop_is_an_iterator";
 pub const IDIOM_SWAP: &str = "parallel_exchange_is_a_swap";
 /// The idiom that a three-way comparison is the target's ordering type.
 pub const IDIOM_ORDERING: &str = "three_way_comparison_is_an_ordering";
+/// The idiom that a match yielding only booleans is a membership test.
+pub const IDIOM_MATCHES: &str = "boolean_match_is_matches";
 /// The idiom that a counter used only as an index is a , so neither conversion is needed.
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";

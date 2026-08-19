@@ -13,7 +13,7 @@ use crate::body_expr::expression;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{
-    ATTR_OP, ATTR_SOURCE_NODE, IDIOM_INDEX_COUNTER, IDIOM_INDEX_LOOP,
+    ATTR_OP, ATTR_SOURCE_NODE, IDIOM_INDEX_COUNTER, IDIOM_INDEX_LOOP, IDIOM_MATCHES,
 };
 
 /// A three-clause or condition-only `for`.
@@ -223,6 +223,17 @@ pub(crate) fn switch(
         });
     }
 
+    let tag_expr = expression(one_child(tag, cx, "tag")?, cx)?;
+
+    // A MEMBERSHIP TEST, which the target has a macro for. Recognised after the arms are built,
+    // from what they yield rather than from the source shape, so it cannot fire on a match that
+    // merely looks like one.
+    if cx.resolver.idiom_method(IDIOM_MATCHES).is_some()
+        && let Some(test) = crate::body_swap::membership(&arms, &tag_expr)
+    {
+        return Ok(test);
+    }
+
     // A `match` must be exhaustive and a Go switch need not be. Adding the arm silently would
     // invent a branch the source does not have, so the absence is a refusal — with the fix named.
     if !wildcard_seen {
@@ -235,7 +246,7 @@ pub(crate) fn switch(
     }
 
     Ok(RustExpr::Match {
-        scrutinee: Box::new(expression(one_child(tag, cx, "tag")?, cx)?),
+        scrutinee: Box::new(tag_expr),
         arms,
     })
 }

@@ -832,6 +832,15 @@
       "seed_source": "github.com/jason931225/rust-skills/rules/api-guidelines.md",
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    },
+    {
+      "id": "boolean_match_is_matches",
+      "shape": "match_yielding_only_boolean_literals",
+      "method": "matches!",
+      "reason": "A match whose arms yield only `true` and `false` is a membership TEST, and the target has a macro that is exactly one: `matches!(x, \"x\" | \"*\" | \"X\")`. The source has to spell it as a switch because its switch is the only multi-pattern form it has. Exactly equivalent -- the macro expands to the match -- so this changes the spelling and not the program, which is what makes it an idiom. `clippy::match_like_matches_macro` names it on hand-written Rust, which is what makes the long form a review comment on hand-written code and therefore a defect in emitted code held to that bar. Applies where the DEFAULT arm yields `false` and every other yields `true`; the reverse is a negated membership test and needs its own form, so it keeps the match rather than being silently inverted.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
     }
   ],
   "literal_constructors": {

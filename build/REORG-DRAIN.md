@@ -2769,3 +2769,26 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
   `fn compare_segment(v: u64, o: u64) -> std::cmp::Ordering` with `Ordering::Less`, `Greater`,
   `Equal`. The ported `semver` still compiles with zero errors and now passes clippy clean.
+
+## A real package that compiles clean and lints clean
+
+- `match x { "x" | "*" | "X" => true, _ => false }` is a membership TEST, and the target has a macro
+  that is exactly one. The source spells it as a switch because its switch is the only multi-pattern
+  form it has. Recognised from the ARMS AS BUILT rather than from the source shape — what matters is
+  what the arms yield, and that is known only after they are translated — and only where the default
+  yields `false` and every other yields `true`. The reverse is a NEGATED test and needs its own form;
+  inverting it silently would be a different expression wearing this one's shape.
+
+- WITH THAT, the ported `semver` compiles with ZERO rustc errors and passes clippy with ZERO
+  warnings. A real third-party package, emitted by an engine that had never seen it, that a Rust
+  toolchain has nothing to say about.
+
+  That is not the goal's bar — a reviewer is — but it is the first time any of this has been true,
+  and every one of the four rules that got it there came from LOOKING at the output: the tail
+  switch, the ordering, the module name, and this.
+
+- THE PATTERN OF THE WHOLE SESSION, stated once so it is not re-derived: the hermetic corpus proves
+  a rule FIRES; only a real package proves it should. Four rules that were obviously right on the
+  corpus were obviously wrong on the first real package they met — the doc rename twice, the
+  package-variable constant, and the cast under a method call — and in each case what found it was
+  reading sixty lines of emitted output rather than reading a number.
