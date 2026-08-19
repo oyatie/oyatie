@@ -52,7 +52,7 @@ capabilities:
     audit_event: CalendarSmartScheduledOnBehalf (Ed25519-sealed; payload — event hash + reversibility window expiry)
     fallback_on_model_failure: fall back to T0 suggestion mode (suggest only; do not act)
     risk_classification: limited-risk (Annex III §3 may apply for HR-scheduling overlay; per-pack ADR closes the EU AI Act conformity assessment for HR overlay — defers to a future ADR-CAL-XXXX)
-    user_label: "AI is scheduling on your behalf — cancel within 30s" (Art. 50 + Art. 14)
+    user_label: "AI is scheduling on your behalf — cancel within 30s"  # Art. 50 + Art. 14
 
   - id: T1-cal-auto-decline-conflicts
     name: "Auto-decline conflicts with policy-bound override"
