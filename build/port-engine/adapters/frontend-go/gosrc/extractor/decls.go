@@ -26,6 +26,13 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		if value := typed.Val(); value != nil {
 			base.Attrs = withAttr(base.Attrs, attrValue, value.String())
 		}
+		// The author's DERIVATION, beside the folded value. Both are recorded because they answer
+		// different questions: the value is what the constant IS, and always correct, while the
+		// expression is what the author wrote and is only emittable where the target can spell it.
+		// `marshaledSize = len(magic) + 8*5 + 32` folds to `76`, which is right and says nothing.
+		if init, ok := ctx.varInits[typed]; ok {
+			base.Children = []node{initializerNode(init, ctx)}
+		}
 		return base, nil
 
 	case *types.Var:

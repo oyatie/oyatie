@@ -42,7 +42,14 @@ func indexVarInitializers(files []*ast.File, tpkg *types.Package) map[types.Obje
 	for _, file := range files {
 		for _, decl := range file.Decls {
 			gen, ok := decl.(*ast.GenDecl)
-			if !ok || gen.Tok != token.VAR {
+			// CONSTANTS too, and for a reason that is not the variable's. A constant's VALUE is
+			// already known -- go/types folded it -- so the engine could always emit it and be
+			// right. What the folding throws away is the author's DERIVATION: `marshaledSize =
+			// len(magic) + 8*5 + 32` becomes `76`, and two reviewers in a row named that literal as
+			// evidence a translator had evaluated an expression a person would have kept. The
+			// expression is the better emit where the target can spell it, and the folded value
+			// remains correct where it cannot.
+			if !ok || (gen.Tok != token.VAR && gen.Tok != token.CONST) {
 				continue
 			}
 			for _, spec := range gen.Specs {

@@ -3693,3 +3693,44 @@ refuses. `MAGIC: &str` holds binary framing that wants `&[u8; 4]`; the source's 
 the target's is UTF-8, which is a type-map decision the pack has not made. And the eight `rolN`
 wrappers exist because the source needed them — faithful, and the reviewer is right that a Rust
 author would not write them.
+
+## R1t — the derivation the source folded away
+
+Both `xxhash` reviews put a bare folded literal at or near the top of their evidence, and the second
+one said exactly what was wrong with it:
+
+> `76` is precisely `len("xxh\x06") + 8*5 + 32` — the Go source states it as that expression; here the
+> expression was evaluated away and only the literal survived. That is a translator constant-folding,
+> not a human choosing a number.
+
+They were right, and it is not the engine's folding: `go/types` evaluates a constant before the
+extractor ever sees it, so `76` is all that arrived. The initialiser EXPRESSION is in the syntax
+though, and the extractor already indexed one for variables. It indexes constants now too, and the
+declaration carries both — the value, which is always correct, and the derivation, which is what the
+author wrote.
+
+**Why preferring the derivation is safe here and would not be in a body.** Both spellings are the
+SAME constant, proven so by the source's own evaluator. A derivation the engine cannot translate is
+therefore not a degraded answer, it is the same answer written differently — so the fallback costs
+nothing but the author's spelling. That is what makes this reasonable rather than reckless.
+
+Emitted as an EXPRESSION rather than as text, through the item shape that already held a constant's
+value as a tree. `const MARSHALED_SIZE: usize = MAGIC.len() + 8 * 5 + 32;`
+
+**Numeric only, and the string case is why.** The target has no `+` on strings at all, so
+`"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-" + NUM` parses, type-checks nowhere, and is a
+crate that does not build. Both reviewers had also named that concatenation as a fingerprint — and
+here the folded value is the only thing the target can say, so it keeps it.
+
+**And the length conversion had to come off the PART that has it.** `unsigned_bound` stripped the
+mapped length call's cast only when the whole bound was one call; a bound that is COMPUTED —
+`len(magic) + 8*5 + 32` — kept `MAGIC.len() as i64` inside a `usize` constant. It walks the source's
+arithmetic now, asking the same question of each side.
+
+**A gap it exposed: a constant reference was never self-containment-checked.** The refusal that
+guards package-scope reads grew out of the variable deferral and only ever looked at variables. A
+constant's derivation reads other constants, which is what made it visible: `byteLength =
+timestampLengthInBytes + payloadLengthInBytes` named two that had refused. Constants are checked now
+— except the ones the pack MAPS, which is what a predeclared constant is: `true` is classified as a
+constant reference like any other and is not this unit's to emit, and asking the unit for it refused
+every declaration that mentions a boolean.
