@@ -28,6 +28,7 @@ mod body_choice;
 mod body_parts;
 mod body_place;
 mod body_stmt;
+mod body_swap;
 mod body_cond;
 mod body_expr;
 mod body_idiom;

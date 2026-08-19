@@ -235,6 +235,15 @@ pub(crate) fn translate(
             out.push(chosen.statement);
             continue;
         }
+        // An `if` INIT CLAUSE whose binding COPIES needs no block. The block exists to scope the
+        // name, and scoping only matters where it can be observed — a copy type has no drop to
+        // delay, so the only thing left to observe is shadowing, which is checked. What remains
+        // reads as a binding and an `if`, which is what someone would have written.
+        if let Some(hoisted) = crate::body_cond::hoisted_init(nodes, index, cx)? {
+            out.extend(hoisted);
+            index += 1;
+            continue;
+        }
         let is_tail = tail == TailPosition::Yes && index + 1 == nodes.len();
         out.push(crate::body_stmt::statement(&nodes[index], cx, is_tail)?);
         index += 1;

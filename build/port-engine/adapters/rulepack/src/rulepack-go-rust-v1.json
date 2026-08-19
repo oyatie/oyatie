@@ -809,6 +809,15 @@
       "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    },
+    {
+      "id": "parallel_exchange_is_a_swap",
+      "shape": "assign_tuple_exchanging_two_elements",
+      "method": "swap",
+      "reason": "`a[i], a[j] = a[j], a[i]` is an EXCHANGE, and the target's sequence has a method for exactly it. The parallel assignment is already faithful -- both sides are evaluated before either is written, which is what makes it an exchange rather than two writes -- so this changes the spelling and not the program. Recognised STRUCTURALLY and narrowly: two places and two values, each place an index into the same sequence, and the values the same two indices in the opposite order. Anything else is a parallel assignment that happens to have two of each, and keeps its own form. Three independent reviewers named the destructuring form as hand-rolling a method the target has had since 1.0, which is what makes the long form a review comment on hand-written code and therefore a defect in emitted code held to that bar.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
     }
   ],
   "literal_constructors": {
