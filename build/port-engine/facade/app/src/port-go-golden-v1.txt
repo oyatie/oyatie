@@ -394,8 +394,8 @@ pub mod sequence {
     }
     // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__swap
     /// Exchanges the values at i and j.
-    pub fn swap(values: &mut [i64], i: i64, j: i64) {
-        values.swap(i as usize, j as usize);
+    pub fn swap(values: &mut [i64], i: usize, j: usize) {
+        values.swap(i, j);
     }
 }
 pub mod shapes {
