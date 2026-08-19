@@ -7,10 +7,11 @@
 //! 1. `layered-architecture-discipline` — strict; ADR-0148/0182/0183/0184.
 //! 2. `client-stack-discipline` — strict; ADR-0185.
 //!
-//! The runner I/O scans the canonical default paths in the repo
-//! (`cloud/*/manifest.json`, `oya/*/manifest.json`, and `microservices/*/manifest.json`
-//! for the layered gate; recursive `client-manifest.json` discovery under the
-//! same roots for client-stack discipline). Arguments are accepted but optional.
+//! The runner I/O scans the service roots derived by `crate::service_roots`
+//! from the closed capability registry (`<root>/manifest.json` and
+//! `<root>/<service>/manifest.json` for the layered gate; recursive
+//! `client-manifest.json` discovery under the same roots for client-stack
+//! discipline). Arguments are accepted but optional.
 
 use std::collections::BTreeSet;
 use std::fs;
@@ -20,10 +21,21 @@ use std::process::ExitCode;
 use check_client_stack_discipline as client_check;
 use check_layered_architecture_discipline as layered_check;
 
-/// Canonical service roots scanned when no explicit `--microservices-root` is given.
-const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
+use crate::service_roots::ServiceSubpath;
+
 const DEFAULT_DEFERRED_VIOLATIONS: &str =
     "registry/layered-architecture-discipline/wave-3-i-deferred-manifest-violations.tsv";
+
+/// Resolve the roots this gate scans: the explicit `--microservices-root`
+/// when given, otherwise the shared registry-derived default set. See
+/// `crate::service_roots` for why the default set is derived rather than
+/// hardcoded, and why an absent root is an error.
+fn resolve_roots(args: &[String]) -> Result<Vec<PathBuf>, String> {
+    match parse_flag_with_value(args, "--microservices-root") {
+        Some(explicit) => Ok(vec![PathBuf::from(explicit)]),
+        None => crate::service_roots::default_service_roots(),
+    }
+}
 
 fn parse_flag_with_value(args: &[String], flag: &str) -> Option<String> {
     let mut iter = args.iter();
@@ -38,34 +50,21 @@ fn parse_flag_with_value(args: &[String], flag: &str) -> Option<String> {
     None
 }
 
-fn microservice_name_for(path: &Path, marker: &str) -> Option<String> {
-    let mut iter = path.components();
-    while let Some(c) = iter.next() {
-        if c.as_os_str() == std::ffi::OsStr::new(marker)
-            && let Some(next) = iter.next()
-        {
-            return Some(next.as_os_str().to_string_lossy().to_string());
-        }
-    }
-    None
-}
-
-fn list_manifest_paths_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
+/// Every `manifest.json` under the given roots, in BOTH layout shapes,
+/// paired with the microservice name the gate keys on.
+///
+/// The predecessor walked depth 2 only and then recovered the name by
+/// searching the path for a literal `cloud` / `oya` / `microservices`
+/// component. Two of those three markers no longer exist in the tree, so
+/// every manifest outside `oya/` fell through to `unwrap_or_default()` —
+/// the empty string.
+fn list_manifests_from_roots(roots: &[PathBuf]) -> Vec<ServiceSubpath> {
     let mut out = Vec::new();
     for root in roots {
-        let Ok(entries) = fs::read_dir(root) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let dir = entry.path();
-            if !dir.is_dir() {
-                continue;
-            }
-            let manifest = dir.join("manifest.json");
-            if manifest.exists() {
-                out.push(manifest);
-            }
-        }
+        out.extend(crate::service_roots::list_service_files(
+            root,
+            "manifest.json",
+        ));
     }
     out
 }
@@ -100,11 +99,12 @@ fn collect_client_manifests(dir: &Path, out: &mut Vec<PathBuf>) {
 }
 
 pub(crate) fn run_layered_architecture_discipline(args: Vec<String>) -> ExitCode {
-    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
-    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
-        vec![PathBuf::from(r)]
-    } else {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    let roots = match resolve_roots(&args) {
+        Ok(roots) => roots,
+        Err(error) => {
+            eprintln!("layered-architecture-discipline: {error}");
+            return ExitCode::FAILURE;
+        }
     };
     let deferred_path = PathBuf::from(
         parse_flag_with_value(&args, "--deferred-violations")
@@ -112,18 +112,13 @@ pub(crate) fn run_layered_architecture_discipline(args: Vec<String>) -> ExitCode
     );
 
     let mut manifests = Vec::new();
-    for path in list_manifest_paths_from_roots(&roots) {
-        // Extract service name from any root marker (cloud, oya, microservices).
-        let microservice = microservice_name_for(&path, "cloud")
-            .or_else(|| microservice_name_for(&path, "oya"))
-            .or_else(|| microservice_name_for(&path, "microservices"))
-            .unwrap_or_default();
-        let Ok(contents) = fs::read_to_string(&path) else {
+    for manifest in list_manifests_from_roots(&roots) {
+        let Ok(contents) = fs::read_to_string(&manifest.path) else {
             continue;
         };
         manifests.push(layered_check::ManifestDocument {
-            microservice,
-            path: path.to_string_lossy().to_string(),
+            microservice: manifest.microservice,
+            path: manifest.path.to_string_lossy().to_string(),
             contents,
         });
     }
@@ -229,11 +224,12 @@ fn read_deferred_layered_violations(path: &Path) -> Result<BTreeSet<(String, Str
 }
 
 pub(crate) fn run_client_stack_discipline(args: Vec<String>) -> ExitCode {
-    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
-    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
-        vec![PathBuf::from(r)]
-    } else {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    let roots = match resolve_roots(&args) {
+        Ok(roots) => roots,
+        Err(error) => {
+            eprintln!("client-stack-discipline: {error}");
+            return ExitCode::FAILURE;
+        }
     };
 
     let mut manifests = Vec::new();

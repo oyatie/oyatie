@@ -21,8 +21,6 @@ use serde_json::Value;
 
 use crate::usage;
 
-/// Canonical service roots scanned when no explicit `--microservices-root` is given.
-const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
 const DEFAULT_SCHEMA_PATH: &str = "specs/saga-shape.json";
 
 #[derive(Clone, Debug, Eq, PartialEq)]
@@ -35,7 +33,11 @@ pub(crate) struct SagaShapeValidateArgs {
 impl Default for SagaShapeValidateArgs {
     fn default() -> Self {
         Self {
-            service_roots: DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect(),
+            // Empty means "not yet resolved": the shared, registry-derived
+            // default set is resolved in `parse_saga_shape_validate_args`,
+            // where an absent expected root can be reported as an error
+            // instead of being defaulted into an empty scan.
+            service_roots: Vec::new(),
             schema_path: PathBuf::from(DEFAULT_SCHEMA_PATH),
             allow_empty: true,
         }
@@ -77,6 +79,12 @@ pub(crate) fn parse_saga_shape_validate_args(
             }
             _ => return Err(usage()),
         }
+    }
+    if parsed.service_roots.is_empty() {
+        // No explicit root: resolve the shared, registry-derived default
+        // set. This propagates an error when an expected root is absent
+        // rather than scanning nothing and passing.
+        parsed.service_roots = crate::service_roots::default_service_roots()?;
     }
     Ok(parsed)
 }
@@ -134,26 +142,15 @@ pub(crate) fn validate_saga_shape_gate(
     }
 }
 
+/// Discover `saga-*.json` specs under every service root, in BOTH layout
+/// shapes: `<root>/specs/` and `<root>/<service>/specs/`. The predecessor
+/// walked the depth-2 shape only.
 fn discover_saga_files(service_roots: &[PathBuf]) -> Result<Vec<PathBuf>, String> {
     let mut paths = Vec::new();
     for root in service_roots {
-        if !root.exists() {
-            continue;
-        }
-        let entries = fs::read_dir(root)
-            .map_err(|error| format!("cannot read {}: {error}", root.display()))?;
-        for entry in entries {
-            let entry = entry.map_err(|error| format!("service root entry unreadable: {error}"))?;
-            let svc_dir = entry.path();
-            if !svc_dir.is_dir() {
-                continue;
-            }
-            let specs_dir = svc_dir.join("specs");
-            if !specs_dir.exists() {
-                continue;
-            }
-            let spec_entries = fs::read_dir(&specs_dir)
-                .map_err(|error| format!("cannot read {}: {error}", specs_dir.display()))?;
+        for specs in crate::service_roots::list_service_subpaths(root, "specs") {
+            let spec_entries = fs::read_dir(&specs.path)
+                .map_err(|error| format!("cannot read {}: {error}", specs.path.display()))?;
             for spec_entry in spec_entries {
                 let spec_entry =
                     spec_entry.map_err(|error| format!("spec entry unreadable: {error}"))?;
@@ -171,6 +168,7 @@ fn discover_saga_files(service_roots: &[PathBuf]) -> Result<Vec<PathBuf>, String
         }
     }
     paths.sort();
+    paths.dedup();
     Ok(paths)
 }
 

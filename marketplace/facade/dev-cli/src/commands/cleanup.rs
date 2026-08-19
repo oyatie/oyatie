@@ -168,11 +168,13 @@ impl CleanupPlan {
 fn build_cleanup_plan() -> Result<CleanupPlan, String> {
     let tombstones = find_tombstones(Path::new("."))?;
     let retired_specs = find_retired_specs(Path::new("specs"), Path::new("docs"))?;
-    // Scan all canonical service roots for retired directories.
+    // Scan every service root for retired directories. Roots come from
+    // `crate::service_roots` (derived from the closed capability registry);
+    // an expected root that is absent is an error there, not an empty scan.
     let retired_microservice_dirs: Vec<PathBuf> = {
         let mut dirs = Vec::new();
-        for root in &["cloud", "oya", "microservices"] {
-            dirs.extend(find_retired_microservice_dirs(Path::new(root))?);
+        for root in crate::service_roots::default_service_roots()? {
+            dirs.extend(find_retired_microservice_dirs(&root)?);
         }
         dirs
     };
@@ -611,13 +613,13 @@ fn rewrite_deleted_adr_citations(plan: &CleanupPlan) -> Result<(), String> {
             replacements.push((record.old_id.clone(), successor.clone()));
         }
     }
-    rewrite_text_roots(&text_roots(), |content| {
+    rewrite_text_roots(&text_roots()?, |content| {
         replace_all_pairs(content, &replacements)
     })
 }
 
 fn rewrite_retired_terms() -> Result<(), String> {
-    rewrite_text_roots(&text_roots(), |content| {
+    rewrite_text_roots(&text_roots()?, |content| {
         let mut next = content.to_owned();
         let literal_replacements = [
             ("Bronze / Silver / Gold / Platinum", "demo_trial / paid"),
@@ -715,7 +717,7 @@ fn apply_adr_renumber(plan: &CleanupPlan) -> Result<(), String> {
             replacements.push((record.old_id.clone(), new_id.clone()));
         }
     }
-    rewrite_text_roots(&text_roots(), |content| {
+    rewrite_text_roots(&text_roots()?, |content| {
         replace_all_pairs(content, &replacements)
     })
 }
@@ -728,8 +730,15 @@ fn replace_all_pairs(content: &str, replacements: &[(String, String)]) -> String
     next
 }
 
-fn text_roots() -> Vec<PathBuf> {
-    [
+/// Roots whose text content the cleanup rewriters walk.
+///
+/// The fixed entries are non-service surfaces; the service roots are
+/// appended from `crate::service_roots` rather than hardcoded. The
+/// hardcoded tail used to be `"cloud", "oya", "microservices"`, so once
+/// `cloud/` and `microservices/` were removed from the tree the rewriters
+/// silently stopped covering every capability root that replaced them.
+fn text_roots() -> Result<Vec<PathBuf>, String> {
+    let mut roots: Vec<PathBuf> = [
         "AGENTS.md",
         "CLAUDE.md",
         "README.md",
@@ -740,13 +749,12 @@ fn text_roots() -> Vec<PathBuf> {
         "tools",
         "scripts",
         "registry",
-        "cloud",
-        "oya",
-        "microservices",
     ]
     .iter()
     .map(PathBuf::from)
-    .collect()
+    .collect();
+    roots.extend(crate::service_roots::default_service_roots()?);
+    Ok(roots)
 }
 
 fn rewrite_text_roots<F>(roots: &[PathBuf], mut rewrite: F) -> Result<(), String>
