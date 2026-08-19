@@ -143,6 +143,10 @@ type extractCtx struct {
 	info    *types.Info
 	bodies  map[types.Object]*ast.BlockStmt
 	docs    map[types.Object]string
+	// assigned holds every local object the enclosing body ASSIGNS TO after binding it. A binding
+	// the body never writes again needs nothing from the target; one it does write needs to say so,
+	// and which it is cannot be told from the binding itself.
+	assigned map[types.Object]bool
 	// receiver is the name the enclosing method binds its receiver to, so an identifier that
 	// refers to it can be marked as such. Without it `c.total` and `other.total` are the same
 	// shape and only one of them is `self`.

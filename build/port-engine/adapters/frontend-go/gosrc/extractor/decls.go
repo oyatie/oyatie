@@ -38,7 +38,9 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		body := ctx.bodies[obj]
 		annotateParameterFacts(base.Children, body)
 		if body != nil {
-			base.Children = append(base.Children, bodyNode(body, ctx))
+			inner := *ctx
+			inner.assigned = assignedLocals(body, ctx)
+			base.Children = append(base.Children, bodyNode(body, &inner))
 		}
 		return base, nil
 
@@ -159,6 +161,7 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 			// The body walk needs the receiver's NAME: `c.total` becomes `self.total` only if
 			// something knows that `c` is the receiver and `other` is not.
 			inner := *ctx
+			inner.assigned = assignedLocals(body, ctx)
 			inner.receiver = receiverName
 			children = append(children, bodyNode(body, &inner))
 		}

@@ -45,6 +45,49 @@ func destructuringBind(stmt *ast.AssignStmt, ctx *extractCtx) node {
 	return out
 }
 
+// localDeclaration records `var x T`, `var x = e` and `var x T = e` inside a body.
+//
+// A single-name spec only. A grouped `var ( a = 1; b = 2 )` is several bindings in one statement,
+// and a statement list that silently gained entries would make the tail-expression position — which
+// is decided by INDEX — mean something different from what the source wrote.
+func localDeclaration(stmt *ast.DeclStmt, ctx *extractCtx) node {
+	decl, ok := stmt.Decl.(*ast.GenDecl)
+	if !ok || decl.Tok != token.VAR || len(decl.Specs) != 1 {
+		return unsupportedNode(stmt)
+	}
+	spec, ok := decl.Specs[0].(*ast.ValueSpec)
+	if !ok || len(spec.Names) != 1 || len(spec.Values) > 1 {
+		return unsupportedNode(stmt)
+	}
+
+	out := node{
+		Kind:  kindLet,
+		Name:  spec.Names[0].Name,
+		Flags: bindingFlags(spec.Names[0], ctx),
+	}
+	if spec.Type != nil {
+		out.Type = typeTree(ctx.info.TypeOf(spec.Type))
+	}
+	if len(spec.Values) == 1 {
+		out.Children = []node{expressionNode(spec.Values[0], ctx)}
+	}
+	return out
+}
+
+// bindingFlags reports what a binding needs from the target, which today is only whether it is
+// written again.
+//
+// Observed rather than assumed. Every binding in the source is mutable and most are never written
+// again: assuming mutable warns on each one, and assuming immutable fails to compile the first time
+// one is assigned. Only the body knows which, so the body is asked.
+func bindingFlags(name *ast.Ident, ctx *extractCtx) []string {
+	object := ctx.info.Defs[name]
+	if object == nil || ctx.assigned == nil || !ctx.assigned[object] {
+		return nil
+	}
+	return []string{flagMutated}
+}
+
 func statementNodes(stmts []ast.Stmt, ctx *extractCtx) []node {
 	if len(stmts) == 0 {
 		return nil
@@ -117,6 +160,9 @@ func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 		default:
 			return unsupportedNode(stmt)
 		}
+
+	case *ast.DeclStmt:
+		return localDeclaration(typed, ctx)
 
 	case *ast.ExprStmt:
 		return node{Kind: kindExprStmt, Children: []node{expressionNode(typed.X, ctx)}}

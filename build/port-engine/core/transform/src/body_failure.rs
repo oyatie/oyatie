@@ -30,7 +30,11 @@ pub(crate) fn propagate(
         [] => Ok(RustStmt::Semi(value)),
         [only] => Ok(RustStmt::Let {
             name: to_snake_case(only),
-            value,
+            // The operator's own binding is never written again: it exists to name the value the
+            // call produced, and anything that writes it does so under a name of its own.
+            mutable: false,
+            ty: None,
+            value: Some(value),
         }),
         several => Ok(RustStmt::LetTuple {
             names: several.iter().map(|name| to_snake_case(name)).collect(),

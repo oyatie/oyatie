@@ -17,7 +17,7 @@ use crate::body_loops::{counted_loop, range_loop, switch};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::resolve::Resolver;
-use crate::vocabulary::{ATTR_SOURCE_NODE, CHILD_BIND, CHILD_VALUE};
+use crate::vocabulary::{ATTR_SOURCE_NODE, CHILD_BIND, CHILD_VALUE, FLAG_MUTATED};
 
 /// What one body translation needs in order to answer a question about the TARGET.
 ///
@@ -116,7 +116,25 @@ pub(crate) fn statement(
         "if" => Ok(RustStmt::Semi(conditional(node, cx)?)),
         "let" => Ok(RustStmt::Let {
             name: to_snake_case(&node.name),
-            value: expression(one_child(node, cx, "let")?, cx)?,
+            // MUTABLE only when the body writes it again, which the front end observed. The source
+            // makes every binding mutable and the target makes none of them, so a default in
+            // either direction is wrong for half the bindings in any real body.
+            mutable: node.has_flag(FLAG_MUTATED),
+            // A declared type is carried through. The source often declares one where the target
+            // could infer it, and dropping it would change what the binding IS wherever the two
+            // languages default differently — an untyped integer literal being the common case.
+            ty: match node.type_ref.is_empty() {
+                true => None,
+                false => Some(cx.resolver.resolve_in(
+                    &node.type_ref,
+                    cx.owner,
+                    crate::vocabulary::POSITION_PARAM,
+                )?),
+            },
+            value: match node.children.first() {
+                Some(child) => Some(expression(child, cx)?),
+                None => None,
+            },
         }),
         "expr_stmt" => Ok(RustStmt::Semi(expression(
             one_child(node, cx, "expr_stmt")?,
