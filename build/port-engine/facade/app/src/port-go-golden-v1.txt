@@ -309,8 +309,8 @@ pub mod pointers {
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_func__newtally
     impl Tally {
         /// Returns a tally named for display.
-        pub fn new(label: &str) -> Option<Box<Tally>> {
-            Some(Box::new(Tally { label: label.to_owned() }))
+        pub fn new(label: &str) -> Self {
+            Self { label: label.to_owned() }
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__counter

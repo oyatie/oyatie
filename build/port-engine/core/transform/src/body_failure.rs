@@ -96,7 +96,8 @@ pub(crate) fn translated_return(
         let values = node
             .children
             .iter()
-            .map(|child| expression(child, cx))
+            .enumerate()
+            .map(|(index, child)| returned_operand(index, child, cx))
             .collect::<Result<Vec<_>, _>>()?;
         match values.len() {
             0 => None,
@@ -109,6 +110,29 @@ pub(crate) fn translated_return(
         (true, Some(expr)) => Ok(RustStmt::Tail(expr)),
         (_, value) => Ok(RustStmt::Return(value)),
     }
+}
+
+/// One operand of a return, in the shape its RESULT POSITION wants.
+///
+/// A `&T{..}` is the owned pointer everywhere except a position the signature proved is never
+/// absent, where it is the value itself. The signature and this must agree or the function does not
+/// compile, which is why both read the same proof rather than each deciding.
+///
+/// # Errors
+/// [`TransformError`] from translating the operand.
+fn returned_operand(
+    index: usize,
+    operand: &Declaration,
+    cx: &Body<'_>,
+) -> Result<RustExpr, TransformError> {
+    if cx.bare_pointer_results.contains(&index)
+        && operand.kind == KIND_UNARY
+        && operand.attr(ATTR_OP) == Some(OPERATOR_ADDRESS_OF)
+        && let Some(inner) = operand.children.first()
+    {
+        return expression(inner, cx);
+    }
+    expression(operand, cx)
 }
 
 /// A return from a function that can fail: the TRAILING operand decides the whole construction.
@@ -134,7 +158,8 @@ pub(crate) fn fallible_return(
     if crate::failure::is_absent(failure, cx.resolver.failure) {
         let values = values
             .iter()
-            .map(|child| expression(child, cx))
+            .enumerate()
+            .map(|(index, child)| returned_operand(index, child, cx))
             .collect::<Result<Vec<_>, _>>()?;
         let ok = match values.len() {
             0 => RustExpr::Tuple(Vec::new()),

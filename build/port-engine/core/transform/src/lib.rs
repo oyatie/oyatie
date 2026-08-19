@@ -45,6 +45,7 @@ mod ownership;
 mod params;
 mod promote;
 mod resolve;
+mod returns;
 mod signature_table;
 mod resolve_policy;
 mod resolve_tables;

@@ -1,0 +1,108 @@
+//! What a body PROVES about the value a signature hands back.
+//!
+//! One question so far, and it is the one a reviewer named as the single most visible defect in the
+//! emitted crate: `pub fn new(label: &str) -> Option<Box<Tally>>` for a constructor that cannot
+//! fail. Two things are wrong with that signature and both come from the same place — the pack maps
+//! the source's `*T` to the nil-representable owned form, which is right wherever a pointer may be
+//! absent and wrong wherever it may not.
+//!
+//! The pointer type earns its `Option` from nil and its `Box` from ownership. A function whose
+//! every return is the address of a value it JUST CREATED can produce neither: nothing can be
+//! absent, and nothing else can hold an alias. So the caller gets ownership of a value, which is
+//! exactly what the source hands them.
+//!
+//! The proof is the same one a failing return uses — the address of a fresh composite is never the
+//! absent value — reused rather than restated, so a change to what counts as fresh changes both.
+
+use std::collections::BTreeSet;
+
+use port_engine_api::Declaration;
+
+use crate::vocabulary::{
+    ATTR_OP, CHILD_BODY, KIND_COMPOSITE, KIND_RETURN, KIND_UNARY, OPERATOR_ADDRESS_OF, TYPE_POINTER,
+};
+
+/// Every result position whose pointer this declaration's body proves is never absent.
+///
+/// The signature and the body must AGREE — one renders `T` and the other must produce a `T` rather
+/// than the pointer's owned form — so both ask this one function rather than each deciding.
+pub(crate) fn bare_pointer_results(declaration: &Declaration) -> BTreeSet<usize> {
+    declaration
+        .children_of_kind(crate::vocabulary::CHILD_RESULT)
+        .iter()
+        .enumerate()
+        .filter(|(_, result)| never_absent_pointer(declaration, result))
+        .map(|(index, _)| index)
+        .collect()
+}
+
+/// Whether this result is a pointer the declaration's body proves is never absent.
+///
+/// Requires ALL of:
+///
+/// - the result is a pointer with a pointee — otherwise there is nothing to unwrap to;
+/// - the declaration has a BODY. Without one there is nothing to prove and the nil-representable
+///   form is the honest answer, because a caller of a signature-only declaration has no way to know
+///   what its returns look like;
+/// - the body has at least one return. A body that falls off the end returns the zero value, which
+///   for a pointer IS the absent one;
+/// - every return's operand in this result's position is the address of a fresh composite.
+///
+/// Deliberately not proven by "the pointee is not recursive" or "no other function stores it":
+/// those are properties of the whole program, and this reads one declaration.
+pub(crate) fn never_absent_pointer(declaration: &Declaration, result: &Declaration) -> bool {
+    if result.type_ref.kind != TYPE_POINTER || result.type_ref.args.is_empty() {
+        return false;
+    }
+    let Some(position) = position_of(declaration, result) else {
+        return false;
+    };
+    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
+        return false;
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    !returns.is_empty()
+        && returns.iter().all(|node| {
+            node.children
+                .get(position)
+                .is_some_and(is_fresh_address)
+        })
+}
+
+/// Which result this is, by position among the declaration's results.
+///
+/// By POINTER identity rather than by name or by type: a signature may declare two results of the
+/// same type, and answering for the wrong one would unwrap a pointer the body never proved.
+fn position_of(declaration: &Declaration, result: &Declaration) -> Option<usize> {
+    declaration
+        .children_of_kind(crate::vocabulary::CHILD_RESULT)
+        .iter()
+        .position(|candidate| std::ptr::eq(*candidate, result))
+}
+
+/// Every `return` anywhere in this subtree, including inside branches and loops.
+///
+/// A body's returns are not all at its top level, and a rule that only looked there would call a
+/// body proven because the one return it could see was fresh while another was `nil`.
+fn collect_returns<'a>(node: &'a Declaration, out: &mut Vec<&'a Declaration>) {
+    if node.kind == KIND_RETURN {
+        out.push(node);
+    }
+    for child in &node.children {
+        collect_returns(child, out);
+    }
+}
+
+/// Whether this operand is the address of a value the expression itself creates.
+///
+/// The same proof a failing return uses, and it needs no table: the expression creates the value,
+/// so nothing can have made it absent and nothing else can hold an alias to it.
+fn is_fresh_address(operand: &Declaration) -> bool {
+    operand.kind == KIND_UNARY
+        && operand.attr(ATTR_OP) == Some(OPERATOR_ADDRESS_OF)
+        && operand
+            .children
+            .first()
+            .is_some_and(|inner| inner.kind == KIND_COMPOSITE)
+}

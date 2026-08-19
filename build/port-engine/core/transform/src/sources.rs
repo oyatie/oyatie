@@ -34,6 +34,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("resolve_policy.rs", include_str!("resolve_policy.rs")),
     ("resolve_tables.rs", include_str!("resolve_tables.rs")),
     ("resolve_types.rs", include_str!("resolve_types.rs")),
+    ("returns.rs", include_str!("returns.rs")),
     ("sentinel.rs", include_str!("sentinel.rs")),
     ("signature.rs", include_str!("signature.rs")),
     ("signature_table.rs", include_str!("signature_table.rs")),
