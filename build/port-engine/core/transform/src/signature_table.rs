@@ -98,6 +98,7 @@ impl SignatureTable {
                 doc_convention: semantics.doc_convention(),
                 derives: semantics.derives(),
                 idioms: semantics.idioms(),
+                literal_constructors: semantics.literal_constructors(),
                 receiver: semantics.trait_receiver(),
                 deferred: semantics.deferred_kinds(),
                 ownership,

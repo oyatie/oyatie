@@ -39,6 +39,9 @@ pub struct Pack {
     /// Empty by default: an idiom changes a spelling and never a program, so these tests assert
     /// the same thing with or without one.
     pub idiom_rules: Vec<IdiomRule>,
+    /// Empty by default: these tests build struct literals, and a sequence constructor would not
+    /// change what any of them assert.
+    pub literals: BTreeMap<String, String>,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
     pub receiver: Option<(String, String)>,
     pub dispositions: Vec<PointerDisposition>,
@@ -200,6 +203,9 @@ impl PackSemantics for Pack {
     }
     fn copy_types(&self) -> &BTreeSet<String> {
         &self.copies
+    }
+    fn literal_constructors(&self) -> &BTreeMap<String, String> {
+        &self.literals
     }
     fn idioms(&self) -> &[IdiomRule] {
         &self.idiom_rules

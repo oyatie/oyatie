@@ -14,6 +14,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("body_failure.rs", include_str!("body_failure.rs")),
     ("body_idiom.rs", include_str!("body_idiom.rs")),
     ("body_index.rs", include_str!("body_index.rs")),
+    ("body_literal.rs", include_str!("body_literal.rs")),
     ("body_loops.rs", include_str!("body_loops.rs")),
     ("body_ops.rs", include_str!("body_ops.rs")),
     ("docs.rs", include_str!("docs.rs")),

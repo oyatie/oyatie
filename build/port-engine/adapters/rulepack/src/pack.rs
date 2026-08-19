@@ -31,6 +31,7 @@ pub struct LoadedRulePack {
     pub(crate) doc_convention: DocConvention,
     pub(crate) derives: Vec<DeriveRule>,
     pub(crate) idioms: Vec<IdiomRule>,
+    pub(crate) literal_constructors: BTreeMap<String, String>,
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
@@ -246,6 +247,7 @@ impl LoadedRulePack {
             // arithmetic by name rather than emitting an operator whose overflow rule differs.
             // Absent means the pack declines to rewrite documentation at all, which leaves the
             // source's prose exactly as its author wrote it.
+            literal_constructors: doc.literal_constructors,
             idioms: doc
                 .idioms
                 .into_iter()

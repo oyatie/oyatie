@@ -73,6 +73,7 @@ fn v1_fixture_admits_and_carries_declarations() {
             "naming",
             "pointers",
             "scoped",
+            "sequence",
             "shapes"
         ]),
         "every corpus package must be admitted"

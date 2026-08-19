@@ -139,6 +139,9 @@ pub trait PackSemantics {
 
     /// Idiom rules: spellings the target prefers, which change nothing about the program.
     fn idioms(&self) -> &[IdiomRule];
+
+    /// What a SEQUENCE literal becomes, keyed by the type's kind.
+    fn literal_constructors(&self) -> &BTreeMap<String, String>;
     /// SOURCE types a conversion reaches by a plain cast.
     ///
     /// Keyed by source identity like [`PackSemantics::type_map`]. A conversion the pack does not

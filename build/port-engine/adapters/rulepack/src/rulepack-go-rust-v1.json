@@ -105,7 +105,9 @@
     "usize, and the same value reaches both. Where a counter makes the round trip the pair is visible",
     "and removable — which is why a cast is an IR node rather than text, so the right-sizing analysis",
     "can see it and delete it rather than parse it out of a string.",
-    "copy_types names every source scalar whose target counterpart is Copy, so reading one is a read rather than a clone. It held only bool/int/float64, which is not a decision but an incomplete list: every other numeric width emitted a `.clone()` on a Copy value -- output that compiles and that no reviewer would accept. `string` is deliberately absent: it maps to an owned String, which is not Copy, so reading one really does clone."
+    "copy_types names every source scalar whose target counterpart is Copy, so reading one is a read rather than a clone. It held only bool/int/float64, which is not a decision but an incomplete list: every other numeric width emitted a `.clone()` on a Copy value -- output that compiles and that no reviewer would accept. `string` is deliberately absent: it maps to an owned String, which is not Copy, so reading one really does clone.",
+    "zero_values held four entries -- bool, int, float64, string -- so every other scalar had no zero at all and any construction needing one refused. Not a decision, an incomplete list, the same shape the copy_types gap had. The composite kinds are keyed by KIND rather than by name because an unnamed type has none; `array` carries a template because its zero needs the ELEMENT's zero and the length, neither of which is knowable without the type tree.",
+    "literal_constructors says what a SEQUENCE literal becomes, keyed by the type's kind and given its elements already translated and comma-joined. Separate from type_constructors, which answers the same kinds for a TYPE position: `Vec<u8>` is what the type becomes and `vec![..]` is what the literal becomes, and one table answering both would have to know which it was being asked. A map is deliberately absent: the source's map literal has no order and the target's ordered map imposes one, so the entry order becomes observable where it was not -- a decision needing its own reason rather than a row here."
   ],
   "pair": {
     "source": "go",
@@ -395,6 +397,9 @@
     ],
     "oyatie.example/portengine-fixture/corpus/invariant": [
       "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/sequence": [
+      "go_func"
     ]
   },
   "type_constructors": {
@@ -481,10 +486,26 @@
     "uintptr"
   ],
   "zero_values": {
+    "array": "[{0}; {name}]",
     "bool": "false",
+    "byte": "0",
+    "float32": "0.0",
     "float64": "0.0",
     "int": "0",
-    "string": "String::new()"
+    "int16": "0",
+    "int32": "0",
+    "int64": "0",
+    "int8": "0",
+    "map": "std::collections::BTreeMap::new()",
+    "rune": "0",
+    "slice": "Vec::new()",
+    "string": "String::new()",
+    "uint": "0",
+    "uint16": "0",
+    "uint32": "0",
+    "uint64": "0",
+    "uint8": "0",
+    "uintptr": "0"
   },
   "trait_object_forms": {
     "param": "&dyn {0}",
@@ -622,5 +643,9 @@
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
     }
-  ]
+  ],
+  "literal_constructors": {
+    "slice": "vec![{0}]",
+    "array": "[{0}]"
+  }
 }

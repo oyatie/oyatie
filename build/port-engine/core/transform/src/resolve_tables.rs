@@ -13,7 +13,7 @@ use port_engine_rust_ir::RustType;
 use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case, to_snake_case};
 use crate::resolve::Resolver;
-use crate::vocabulary::{SOURCE_STRING, TYPE_NAMED_INTERFACE};
+use crate::vocabulary::{SOURCE_STRING, TYPE_ARRAY, TYPE_NAMED_INTERFACE};
 
 impl Resolver<'_> {
     /// The target type a failure value becomes.
@@ -79,39 +79,6 @@ impl Resolver<'_> {
             return Ok(to_snake_case(name));
         }
         Ok(format!("{}::{}", module_path(package), to_snake_case(name)))
-    }
-
-    /// Whether converting TO this source type is a plain cast in the target.
-    ///
-    /// The pack says which, keyed by source identity like every other table. Numeric conversion is
-    /// defined to truncate in the source and the target's cast does the same thing; a conversion
-    /// the pack does not list is one where the two languages disagree, and those refuse.
-    pub(crate) fn converts_by_cast(&self, type_ref: &TypeRef) -> bool {
-        self.cast_types.contains(&table_key(type_ref))
-    }
-
-    /// Whether a plain read of this source type COPIES in the target.
-    pub(crate) fn copies(&self, type_ref: &TypeRef) -> bool {
-        self.copy_types.contains(&table_key(type_ref))
-    }
-
-    /// The target expression for this source type's zero value, when the pack declares one.
-    pub(crate) fn zero_value(&self, type_ref: &TypeRef) -> Option<String> {
-        self.zero_values.get(&table_key(type_ref)).cloned()
-    }
-}
-
-/// The identity a pack table is keyed by.
-///
-/// `package.Name` for a named type, the bare name for a primitive, and the KIND for a composite
-/// that has no name at all — the same three cases [`Resolver::resolve_node`] keys on, extracted so
-/// that every table agrees on what a type is called.
-fn table_key(type_ref: &TypeRef) -> String {
-    let qualified = type_ref.qualified();
-    if qualified.is_empty() {
-        type_ref.kind.clone()
-    } else {
-        qualified
     }
 }
 
@@ -295,5 +262,29 @@ impl Resolver<'_> {
             .and_then(|map| map.get(key))
             .or_else(|| self.type_map.get(key))
             .cloned()
+    }
+}
+
+
+/// The identity a pack table is keyed by.
+///
+/// `package.Name` for a named type, the bare name for a primitive, and the KIND for a composite
+/// that has no name at all — the same three cases [`Resolver::resolve_node`] keys on, extracted so
+/// that every table agrees on what a type is called.
+///
+/// An ARRAY is keyed by its kind DESPITE having a name, because that name is its LENGTH. A type
+/// node's `name` carries whatever non-type datum the kind needs, and for every other kind that is
+/// an identity; for an array it is a number. Falling through to it made `[4]int64` look up the key
+/// `4`, so every table missed — silently, since a miss is indistinguishable from a type the pack
+/// declines to answer for.
+pub(crate) fn table_key(type_ref: &TypeRef) -> String {
+    if type_ref.kind == TYPE_ARRAY {
+        return type_ref.kind.clone();
+    }
+    let qualified = type_ref.qualified();
+    if qualified.is_empty() {
+        type_ref.kind.clone()
+    } else {
+        qualified
     }
 }
