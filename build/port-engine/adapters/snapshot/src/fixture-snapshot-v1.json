@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:cf74672a11b3fbeeca49d72815d35bb3dfa0d4775ead332db0f8a99c99361fe7",
+  "snapshot_digest": "sha256:03b41f8ead1e66f2ef759ee01642dd3f9efd1da7e0a279b67691ac939211a454",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -1869,6 +1869,129 @@
                       "name": "nil",
                       "attrs": {
                         "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Measure",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Measure reports the length of s, failing on the empty string."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "err",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture/corpus/fallible.Check"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Check",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "flags": [
+                            "reread"
+                          ],
+                          "attrs": {
+                            "read_count": "2",
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "len"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "len",
+                          "attrs": {
+                            "ref": "builtin"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "flags": [
+                            "reread"
+                          ],
+                          "attrs": {
+                            "read_count": "2",
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "err",
+                      "attrs": {
+                        "ref": "local"
                       }
                     }
                   ]

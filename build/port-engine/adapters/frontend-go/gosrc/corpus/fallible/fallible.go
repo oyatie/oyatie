@@ -86,3 +86,14 @@ type Report struct {
 	// cause is why it did not succeed.
 	cause error
 }
+
+// Propagation with NO CHECK, which real code writes constantly. Returning the failure when it is
+// absent IS returning success, so the source omits the test — and the target spells the same
+// program as the operator followed by a success. `func FromBytes` in three of the surveyed corpora
+// is this exact shape.
+
+// Measure reports the length of s, failing on the empty string.
+func Measure(s string) (int, error) {
+	err := Check(s)
+	return len(s), err
+}

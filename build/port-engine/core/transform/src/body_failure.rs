@@ -56,6 +56,35 @@ pub(crate) fn propagate(
     }
 }
 
+/// The unchecked propagation as the target spells it: the operator, then the success.
+///
+/// Two statements out for two statements in, because the source's two do two things — run the
+/// fallible call, and return the values with whatever it produced. The target's operator carries
+/// the failure out and the success carries the values, which is the same split.
+///
+/// # Errors
+/// [`TransformError`] from translating the call or the returned values.
+pub(crate) fn propagate_into_success(
+    found: &crate::failure::TailPropagation<'_>,
+    cx: &Body<'_>,
+) -> Result<Vec<RustStmt>, TransformError> {
+    let operator = RustStmt::Semi(RustExpr::Try(Box::new(expression(found.source, cx)?)));
+    let mut values = Vec::with_capacity(found.values.len());
+    for value in found.values {
+        values.push(expression(value, cx)?);
+    }
+    let ok = match values.len() {
+        0 => RustExpr::Tuple(Vec::new()),
+        1 => values.into_iter().next().unwrap_or(RustExpr::Todo),
+        _ => RustExpr::Tuple(values),
+    };
+    let success = RustStmt::Tail(RustExpr::Call {
+        callee: Box::new(RustExpr::Path("Ok".to_owned())),
+        args: vec![ok],
+    });
+    Ok(vec![operator, success])
+}
+
 pub(crate) fn translated_return(
     node: &Declaration,
     cx: &Body<'_>,
@@ -126,12 +155,11 @@ pub(crate) fn fallible_return(
                  whose value the engine cannot show is non-absent. The source's operand may be \
                  absent, in which case its caller sees SUCCESS; the target's `Err(..)` reports \
                  failure unconditionally, so emitting it here would be a different program — and \
-                 one that reports failure where the source reported success. {}",
-                failure.kind,
-                cx.resolver
-                    .failure
-                    .map(|convention| convention.constructor_reason.as_str())
-                    .unwrap_or_default()
+                 one that reports failure where the source reported success. The two proofs the \
+                 engine has are a call to a declared failure constructor and the address of a \
+                 fresh composite; the pack's `failure_convention.constructor_reason` says which \
+                 callees those are and what admits another",
+                failure.kind
             ),
         });
     }

@@ -138,6 +138,12 @@ pub mod fallible {
         }
         Ok(s.len() as i64)
     }
+    // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__measure
+    /// Reports the length of s, failing on the empty string.
+    pub fn measure(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
+        check(s)?;
+        Ok(s.len() as i64)
+    }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__twice
     /// Returns the length of s doubled.
     pub fn twice(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
