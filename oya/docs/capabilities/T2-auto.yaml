@@ -52,7 +52,7 @@ capabilities:
       - DocsAutoTranslateRunCompleted (per-run; Ed25519-sealed; payload — source doc id + target lang + sha256 of translated content)
       - DocsAutoTranslatePolicyDisabled (Ed25519-sealed)
     risk_classification: limited-risk (Annex III §3 may apply for HR-document translation — REFUSED at Cedar layer for pack-eu pending ADR-DOCS-0005 conformity assessment)
-    user_label: '"Auto-translated by AI" (Art. 50 on every mirror doc surface)'
+    user_label: "Auto-translated by AI"  # Art. 50 on every mirror doc surface
     cedar_admission_path: |
       tenant-scope.cedar :: action::DocsT2EnableAutoTranslate admits when
       principal.tenant_class == "paid" && principal.billing_components contains "per_seat" AND user.has_opted_in_to_t2_docs_policies.
@@ -88,7 +88,7 @@ capabilities:
       - DocsAutoFormatRunCompleted (per-run; Ed25519-sealed; payload — workspace id + doc count + change count)
       - DocsAutoFormatBlockRewritten (per-rewrite; Ed25519-sealed; payload — doc id hash + block id + before-sha + after-sha)
     risk_classification: minimal-risk (deterministic logic; no LLM)
-    user_label: '"Workspace docs auto-formatted by AI overnight" (per-tenant admin notification)'
+    user_label: "Workspace docs auto-formatted by AI overnight"  # per-tenant admin notification
     cedar_admission_path: |
       tenant-scope.cedar :: action::DocsT2EnableAutoFormat admits when
       principal.tenant_class == "paid" && principal.billing_components contains "per_seat" && compliance_pack.active == true AND tenant_admin.has_opted_in_to_t2_docs_policies.
@@ -126,7 +126,7 @@ capabilities:
       - DocsAutoCiteRunCompleted (per-run; Ed25519-sealed; payload — doc id hash + cite count)
       - DocsAutoCiteInserted (per-insertion; Ed25519-sealed; payload — doc id hash + DOI of cited work)
     risk_classification: minimal-risk (citation insertion is not employment-decision)
-    user_label: '"Citations auto-inserted by AI" (per-doc admin notification + Art. 50)'
+    user_label: "Citations auto-inserted by AI"  # per-doc admin notification + Art. 50
     cedar_admission_path: |
       tenant-scope.cedar :: action::DocsT2EnableAutoCite admits when
       principal.tenant_class == "paid" && principal.billing_components contains "per_seat" AND user.has_opted_in_to_t2_docs_policies.
