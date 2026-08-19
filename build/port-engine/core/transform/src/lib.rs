@@ -26,6 +26,7 @@ mod body;
 mod body_call;
 mod body_cond;
 mod body_expr;
+mod body_idiom;
 mod body_failure;
 mod body_index;
 mod body_loops;

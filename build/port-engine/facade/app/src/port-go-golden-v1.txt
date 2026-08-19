@@ -6,9 +6,9 @@ pub mod accumulate {
     /// `^=`, `|=` and `*=` are the three most common compound forms in the surveyed source after `+=`,
     /// and all four are the same translation.
     pub fn mix(values: Vec<i64>) -> i64 {
-        let mut acc = (1) as i64;
+        let mut acc = 1i64;
         for i in 0..values.len() as i64 {
-            acc ^= values[(i) as usize];
+            acc ^= values[i as usize];
             acc = acc.wrapping_mul(3);
             acc |= 1;
         }
@@ -24,9 +24,9 @@ pub mod accumulate {
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__total
     /// Sums the values, accumulating in place.
     pub fn total(values: Vec<i64>) -> i64 {
-        let mut sum = (0) as i64;
+        let mut sum = 0i64;
         for i in 0..values.len() as i64 {
-            sum = sum.wrapping_add(values[(i) as usize]);
+            sum = sum.wrapping_add(values[i as usize]);
         }
         sum
     }
@@ -53,7 +53,7 @@ pub mod basic {
     // region: oyatie_example_portengine_fixture_corpus_basic__go_func__label
     /// Renders a display name for the given identity.
     pub fn label(id: ID, fallback: String) -> String {
-        if id == "" {
+        if id.is_empty() {
             return fallback;
         }
         id
@@ -152,7 +152,7 @@ pub mod fallible {
     /// The no-value shape: `error` alone. The target has to invent the success value here, because a
     /// function that returns only a failure still has to say it succeeded.
     pub fn check(s: String) -> Result<(), Box<dyn std::error::Error>> {
-        if s == "" {
+        if s.is_empty() {
             return Err(Box::<dyn std::error::Error>::from("empty"));
         }
         Ok(())
@@ -163,7 +163,7 @@ pub mod fallible {
     /// The one-value-and-a-failure shape: `(int, error)`, which is what most of a real package looks
     /// like.
     pub fn length(s: String) -> Result<i64, Box<dyn std::error::Error>> {
-        if s == "" {
+        if s.is_empty() {
             return Err(Box::<dyn std::error::Error>::from("empty"));
         }
         Ok(s.len() as i64)
@@ -390,8 +390,8 @@ pub mod scoped {
                 result = size;
             } else {
                 result = size.wrapping_add(1);
-            };
-        };
+            }
+        }
         result
     }
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__width
@@ -404,7 +404,7 @@ pub mod scoped {
             if size > 4 {
                 return size;
             }
-        };
+        }
         0
     }
 }

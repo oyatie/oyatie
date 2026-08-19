@@ -33,6 +33,7 @@ mod expr;
 mod item;
 mod lower;
 mod lower_body;
+mod lower_expr;
 mod lower_parts;
 mod ops;
 mod render;

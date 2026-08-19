@@ -9,6 +9,35 @@
 //! renders the target owns them. Putting them in the pack would make a second language pair
 //! re-declare the target's own vocabulary, which is the thing the neutral seam exists to prevent.
 
+/// An IDIOM rule: a spelling the target prefers for something the source says another way.
+///
+/// Distinct from every other rule here because it changes NOTHING about the program — an idiom
+/// that alters meaning is not an idiom, it is a bug. What it changes is whether the emitted code
+/// reads as written or as translated, which is the bar this engine is held to.
+///
+/// Seed provenance is REQUIRED where a rule is derived from a seed corpus, per
+/// `specs/k8s-port/licensing.json`: "Reject a rust-skills-derived rule without seed_source,
+/// seed_license, and seed_commit."
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct IdiomRule {
+    /// Stable identity, so a decision can be cited.
+    pub id: String, // data_class: INTERNAL_ONLY
+    /// The source shape this recognises. A CLOSED vocabulary: an unrecognised shape refuses
+    /// rather than reading as "no idiom", because a rule nobody applies is a rule that is not
+    /// there.
+    pub shape: String, // data_class: INTERNAL_ONLY
+    /// The target method or spelling it becomes.
+    pub method: String, // data_class: INTERNAL_ONLY
+    /// Why the two are equivalent, and why the target prefers its form.
+    pub reason: String, // data_class: INTERNAL_ONLY
+    /// Where the rule was derived from.
+    pub seed_source: String, // data_class: INTERNAL_ONLY
+    /// The seed's licence.
+    pub seed_license: String, // data_class: INTERNAL_ONLY
+    /// The seed's commit, so the derivation can be re-checked.
+    pub seed_commit: String, // data_class: INTERNAL_ONLY
+}
+
 /// A derive a ported type EARNS, and the source type kinds that block it.
 ///
 /// Which derives a type earns is a decision about what the source guarantees, so it carries a

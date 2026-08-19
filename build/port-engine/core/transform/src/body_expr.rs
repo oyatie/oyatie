@@ -12,6 +12,7 @@ use port_engine_rust_ir::RustExpr;
 use crate::body::{Body, one_child, two_children, unsupported_source};
 use crate::body_index::slice;
 use crate::body_call::call;
+use crate::body_idiom::emptiness_test;
 use crate::body_ops::{
     binary_operator, is_receiver, operator_of, own_string_for, reference,
     refuse_deferred_reference, unary_operator, unary_refusal,
@@ -19,8 +20,7 @@ use crate::body_ops::{
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, KIND_UNARY,
-    OPERATOR_ADDRESS_OF,
+    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, IDIOM_EMPTY_STRING, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
 };
 
 /// Where an expression appears: a value is READ, a place is WRITTEN TO.
@@ -108,6 +108,13 @@ pub(crate) fn in_position(
 fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
     let spelling = operator_of(node, cx)?;
     let (lhs, rhs) = two_children(node, cx, "binary")?;
+
+    // An IDIOM first: it changes the spelling and never the program, so it applies wherever the
+    // shape matches regardless of what the operands turn out to be.
+    if let Some(rendered) = emptiness_test(spelling, lhs, rhs, cx)? {
+        return Ok(rendered);
+    }
+
     let (left, right) = (expression(lhs, cx)?, expression(rhs, cx)?);
 
     if let Some(method) = cx.resolver.wrapping_method(node, spelling) {

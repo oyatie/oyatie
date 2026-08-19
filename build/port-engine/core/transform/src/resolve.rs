@@ -19,7 +19,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Declaration, DeriveRule, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic, TypeRef, UnitId};
+use port_engine_api::{Declaration, DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, TypeRef, UnitId};
 use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
@@ -82,6 +82,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) doc_convention: &'a DocConvention,
     /// The derives a ported type earns, and what blocks each.
     pub(crate) derives: &'a [DeriveRule],
+    /// Idiom rules: spellings the target prefers, which change nothing about the program.
+    pub(crate) idioms: &'a [IdiomRule],
     /// How the source spells failure, when it has a convention for it.
     pub(crate) failure: Option<&'a FailureConvention>,
     /// The kinds the pack DEFERS, so a body can refuse to reference one.

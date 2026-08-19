@@ -45,6 +45,8 @@ pub const KIND_FUNC: &str = "func";
 pub const TYPE_POINTER: &str = "pointer";
 /// The node kind of a literal.
 pub const KIND_LITERAL: &str = "literal";
+/// The idiom that spells an emptiness test as a method rather than a comparison.
+pub const IDIOM_EMPTY_STRING: &str = "empty_string_comparison";
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
 /// The node kind of a unary expression.
