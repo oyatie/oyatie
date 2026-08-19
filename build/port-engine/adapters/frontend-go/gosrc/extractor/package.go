@@ -6,10 +6,7 @@ import (
 	"go/parser"
 	"go/token"
 	"go/types"
-	"os"
 	"path/filepath"
-	"sort"
-	"strings"
 )
 
 // One package: parse, type-check, and index what the declaration walk needs.
@@ -22,23 +19,17 @@ func extractPackage(
 	dir string,
 	unitID string,
 	resolver types.Importer,
+	cfg *buildConfig,
 ) ([]node, []satisfaction, *types.Package, error) {
 	fset := token.NewFileSet()
 
-	entries, err := os.ReadDir(dir)
+	// The configuration decides which files exist, and it sorts them: go/types' object ordering
+	// follows parse order, so an unsorted listing would make the snapshot a property of the
+	// filesystem rather than of the source.
+	names, err := selectDirFiles(dir, cfg)
 	if err != nil {
-		return nil, nil, nil, fmt.Errorf("read dir: %w", err)
+		return nil, nil, nil, err
 	}
-	names := make([]string, 0, len(entries))
-	for _, entry := range entries {
-		name := entry.Name()
-		if entry.IsDir() || !strings.HasSuffix(name, ".go") || strings.HasSuffix(name, "_test.go") {
-			continue
-		}
-		names = append(names, name)
-	}
-	// Sorted parse order keeps go/types' object ordering reproducible across filesystems.
-	sort.Strings(names)
 
 	files := make([]*ast.File, 0, len(names))
 	for _, name := range names {
@@ -57,7 +48,11 @@ func extractPackage(
 		files = append(files, file)
 	}
 
-	conf := types.Config{Importer: resolver}
+	// GoVersion is pinned to the same release the constraints resolved against. Left unset,
+	// go/types checks at whatever version compiled this extractor — so a corpus using newer
+	// syntax than the declared configuration would type-check anyway, and the snapshot would
+	// describe a program the declared target cannot build.
+	conf := types.Config{Importer: resolver, GoVersion: cfg.goVersion()}
 	info := &types.Info{
 		Uses: map[*ast.Ident]types.Object{},
 		// Defs is what lets a function's own name resolve to its signature, which the

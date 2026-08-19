@@ -38,9 +38,21 @@ func main() {
 	module := flag.String("module", "oyatie.example/portengine-fixture", "module path prefix for unit ids")
 	root := flag.String("root", ".", "module root; unit ids are import paths relative to it")
 	out := flag.String("out", "", "output file; empty writes to stdout")
+	// The build configuration is an INPUT, never the host's. Reading it from the environment
+	// would make one upstream commit extract to a different identity on every machine.
+	goos := flag.String("goos", defaultGOOS, "target operating system for build constraints")
+	goarch := flag.String("goarch", defaultGOARCH, "target architecture for build constraints")
+	release := flag.Int("go-release", defaultRelease, "Go 1.N release the constraints resolve against")
+	tags := flag.String("tags", "", "comma-separated extra build tags")
 	flag.Parse()
 
-	model, err := extract(*corpus, *module, *root)
+	cfg, err := newBuildConfig(*goos, *goarch, *tags, *release)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "extractor: %v\n", err)
+		os.Exit(1)
+	}
+
+	model, err := extract(*corpus, *module, *root, cfg)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "extractor: %v\n", err)
 		os.Exit(1)

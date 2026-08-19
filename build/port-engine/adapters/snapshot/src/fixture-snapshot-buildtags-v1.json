@@ -1,0 +1,92 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:ab96b0b2782509a9cdfdca67e1bbb853c8989d0e9ba500e792a2986a3ba3ece4",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-buildtags/corpus-buildtags/tagged",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Platform",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Platform names the target this file is selected for.\n\nDeclared IDENTICALLY in platform_darwin.go. Both files cannot be in one package, and nothing but\nthe filename says so — which is the point: an extractor that globs the directory type-checks a\nredeclaration and the whole package yields no measurement."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "STRING",
+                        "value": "\"linux\""
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Recent",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Recent is declared only from go1.13 onward.\n\nThis is the QUIET case. Nothing collides, so an extractor that ignores the constraint admits it\nas an unconditional declaration of the package and no error is ever raised. `pkg/errors` ships\nexactly this shape and its `Is`, `As` and `Unwrap` entered a snapshot that way."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "bool"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "true",
+                      "attrs": {
+                        "ref": "const"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
