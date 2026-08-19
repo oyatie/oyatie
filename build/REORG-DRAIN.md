@@ -2275,3 +2275,31 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
   Three of them landed in three commits, each hitting the same splice and the same agreement
   problem. The shape was visible after the first and the lint made it unavoidable after the third.
+
+## Blanket `wrapping_*`: the objection answered in the data
+
+- FOUR independent reviewers have now called this out, each saying the same true thing: no Rust
+  author reaches for `wrapping_add` on `self.calls += 1`, and the spelling disables the debug check
+  that would have caught a bug. The objection is right about INTENT and wrong about what the engine
+  may do with it — the engine cannot read intent, and the source's overflow guarantee is not
+  conditional on the author having wanted it.
+
+- Rather than record the disagreement a fifth time, the alternatives are now in the pack's own
+  reason, so the next reviewer's objection is already answered where the decision lives:
+
+  1. Emit the plain operator and accept the debug panic — a different program for every input that
+     overflows, and the programs where wrapping is load-bearing (a hash mixer) would abort instead
+     of returning.
+  2. Type the ported values as the target's wrapping newtype so the plain operator carries the rule
+     — reads naturally at the operation and infects every signature, field and caller with a wrapper
+     the source does not have. A larger unfaithfulness than the one it fixes.
+  3. Have the emitted crate turn overflow checks off in its own build profile — a profile setting
+     does not reach a crate's DEPENDENTS, so a ported library used as a dependency is still built
+     under the consumer's profile and still panics.
+
+- AND WHAT WOULD CHANGE THE ANSWER, which is the part that makes this a decision rather than a
+  refusal to move: a proof that a particular operation cannot overflow. The engine already has one —
+  a division whose operands make overflow impossible keeps the plain operator — and every further
+  one narrows this by construction rather than by taste. A range analysis over the source is the
+  shape of the next, and `docs/programs/k8s-port/census/` sizes no such family, so that is stated
+  rather than assumed.
