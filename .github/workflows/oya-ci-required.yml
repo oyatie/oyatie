@@ -335,6 +335,17 @@ jobs:
   cross-platform-smoke:
     name: cross-platform-smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # Portability signal only where it is actionable. On merge_group this job's result is
+    # structurally discarded: it is absent from the fan-in verdict below (which checks only
+    # lint/test/live-postgres-*) and carries continue-on-error, so it cannot affect
+    # admission. That is observable, not inferred -- dev merges green today with the
+    # windows leg red. The two legs are 73 of the 90 billable minutes a queue build costs
+    # (macOS bills 10x, Windows 2x), so running them where nothing can read the answer is
+    # 81% of that build spent for no merge signal.
+    #
+    # It stays on pull_request, which is the only event where an author can still change
+    # the diff in response, and on push to dev for post-merge detection.
+    if: github.event_name != 'merge_group'
     continue-on-error: true
     timeout-minutes: 30
     strategy:
@@ -372,7 +383,12 @@ jobs:
     name: oya-ci-required
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: [lint, test, live-postgres-adapters, live-postgres-facades, cross-platform-smoke]
+    # cross-platform-smoke is deliberately NOT a dependency. The verdict below never reads
+    # its result, so listing it only made the fan-in WAIT on a lane it does not consult --
+    # and would make this required context's fate depend on that job's skip state. With
+    # enforce_admins on, a required context that fails to report blocks every merge, so the
+    # dependency is removed rather than reasoned about.
+    needs: [lint, test, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Fan-in verdict
         run: |
