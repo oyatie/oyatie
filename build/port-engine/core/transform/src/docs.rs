@@ -5,7 +5,11 @@
 //! coverage refusal does not look at — coverage proves every declaration was translated, not that
 //! everything about a declaration survived.
 
+use std::collections::BTreeMap;
+
 use port_engine_api::{Declaration, DocConvention};
+
+use crate::resolve::Resolver;
 
 use crate::vocabulary::ATTR_DOC;
 
@@ -15,11 +19,15 @@ use crate::vocabulary::ATTR_DOC;
 /// how the source stores it; splitting happens here, where the target's one-line-per-`///` shape
 /// is known. A declaration with no documentation yields an empty vector rather than a blank
 /// comment, so an undocumented item stays undocumented instead of gaining an empty line.
-pub(crate) fn docs_of(declaration: &Declaration, convention: &DocConvention) -> Vec<String> {
+pub(crate) fn docs_of(declaration: &Declaration, resolver: &Resolver<'_>) -> Vec<String> {
+    let convention = resolver.doc_convention;
     declaration
         .attr(ATTR_DOC)
         .map(|block| {
-            rewrite_opening(block, &declaration.name, convention)
+            rename_references(
+                &rewrite_opening(block, &declaration.name, convention),
+                &resolver.scope.renames,
+            )
                 .lines()
                 // A leading space is what `///` puts between the slashes and the text; the
                 // renderer re-adds it, so carrying it here would double it.
@@ -27,6 +35,45 @@ pub(crate) fn docs_of(declaration: &Declaration, convention: &DocConvention) -> 
                 .collect()
         })
         .unwrap_or_default()
+}
+
+/// Rewrite every word that NAMES a declaration of this unit into the target's name for it.
+///
+/// The source's documentation refers to `Run` because that is what the method is called there. The
+/// emitted method is `run`, and prose that still says `Run` refers to nothing — a reviewer reading
+/// the emitted crate found three such words and called them the cheapest possible proof that nobody
+/// had read the Rust.
+///
+/// EXACT and case-sensitive, which is what keeps it from touching English. A method named `Run`
+/// does not match the word "run" in a sentence, because the two differ; and where the source name
+/// and the target name are the same word, the rewrite is the identity. What it does catch is
+/// precisely the case that matters: a capitalised identifier standing where the target has a
+/// lower-cased one.
+///
+/// Word boundaries are non-identifier characters, so `Run` inside `Runner` is not a word and is not
+/// touched. A name with an ambiguous target is absent from the map and is left alone.
+fn rename_references(block: &str, renames: &BTreeMap<String, String>) -> String {
+    let mut out = String::with_capacity(block.len());
+    let mut word = String::new();
+    for character in block.chars() {
+        if character.is_alphanumeric() || character == '_' {
+            word.push(character);
+            continue;
+        }
+        push_word(&mut out, &mut word, renames);
+        out.push(character);
+    }
+    push_word(&mut out, &mut word, renames);
+    out
+}
+
+/// Flush one accumulated word, renamed if it names something.
+fn push_word(out: &mut String, word: &mut String, renames: &BTreeMap<String, String>) {
+    match renames.get(word.as_str()) {
+        Some(target) => out.push_str(target),
+        None => out.push_str(word),
+    }
+    word.clear();
 }
 
 /// Drop a leading repetition of the item's own name, as the target's convention requires.

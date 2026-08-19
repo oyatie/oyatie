@@ -70,7 +70,7 @@ fn build_impl(
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(RustItem::TraitImpl {
-        docs: satisfaction_docs(observed, resolver.doc_convention),
+        docs: satisfaction_docs(observed, resolver),
         trait_path,
         self_ty: self_ty.clone(),
         methods,
@@ -89,8 +89,8 @@ fn build_impl(
 /// The provenance is not lost. Which satisfactions were observed and where is exactly what the plan
 /// and the receipt record, and that is where provenance belongs: the emitted crate is the PRODUCT,
 /// not the record of how it was made.
-fn satisfaction_docs(observed: &Declaration, convention: &DocConvention) -> Vec<String> {
-    docs_of(observed, convention)
+fn satisfaction_docs(observed: &Declaration, resolver: &Resolver<'_>) -> Vec<String> {
+    docs_of(observed, resolver)
 }
 
 /// One trait method, carrying the BODY the type would otherwise have put in an inherent block.

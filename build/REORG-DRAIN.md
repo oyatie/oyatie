@@ -2371,3 +2371,31 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - The standing disagreement is now answered in two places and open in one: a pure supertrait bundle
   gets a blanket impl, a same-package structural match gets a real impl, and a cross-package one
   stays deferred with its reason.
+
+## A doc comment names things as the TARGET names them
+
+- The fourth blind review led with this and called it decisive: "the doc comments still name the Go
+  methods, with Go capitalization." Three words — `Run` where the method is `run`, `Refresh` where it
+  is `refresh`, and a panic message naming a function that does not exist. Their verdict on those
+  three words: "the cheapest possible proof that nobody has [read the emitted Rust]."
+
+- They are right, and the answer is a RULE rather than three edits. The source's documentation says
+  `Run` because that is what the method is called THERE; the emitted method is `run`, and prose that
+  still says `Run` refers to nothing. So every word in a doc comment that names a declaration of this
+  unit is now emitted as the target's name for it.
+
+- EXACT and case-sensitive, which is what keeps it away from English. A method named `Run` does not
+  match the word "run" in a sentence, because the two differ; where the source name and the target
+  name are the same word the rewrite is the identity; and `Run` inside `Runner` is not a word, so
+  it is not touched. What it catches is precisely the case that matters — a capitalised identifier
+  standing where the target has a lower-cased one.
+
+- AMBIGUITY IS LEFT ALONE. Two declarations sharing a source name and casing differently — a type
+  `Value` and a method `Value` — give the prose no way to say which it means, so neither is
+  rewritten. A rule that guessed there would rename half the references wrongly and no one would see
+  it.
+
+- This is the third and last thing the doc convention rewrites, and the three now cover the whole
+  class the reviews kept finding: the leading repetition of the item's own name, the porting
+  reasoning that belongs in a separated comment, and now the identifiers. What remains in an emitted
+  doc comment is what the author wrote about the code.

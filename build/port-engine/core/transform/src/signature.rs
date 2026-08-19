@@ -188,7 +188,7 @@ pub(crate) fn method_signature(
         // A method's documentation is emitted, like every other declaration's. It was being
         // dropped here while the front end captured it — the same silent loss as the interface
         // methods, and invisible for the same reason: nothing looks for prose that is absent.
-        docs: crate::docs::docs_of(method, resolver.doc_convention),
+        docs: crate::docs::docs_of(method, resolver),
         vis,
         name: to_snake_case(&method.name),
         receiver: Some(receiver),

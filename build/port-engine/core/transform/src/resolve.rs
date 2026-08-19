@@ -31,6 +31,17 @@ use crate::vocabulary::TYPE_NAMED_INTERFACE;
 /// The type names one unit declares, and the target spelling each resolves to.
 pub struct LocalScope {
     pub(crate) types: BTreeMap<String, String>,
+    /// Source name → target name, for every declaration this unit makes.
+    ///
+    /// A doc comment that NAMES a declaration must name it as the target does. The source's
+    /// documentation says `Run` because that is what the method is called there; the emitted method
+    /// is `run`, and prose that still says `Run` names nothing — which a reviewer called the
+    /// cheapest possible proof that nobody had read the emitted code.
+    ///
+    /// A name whose target spelling is AMBIGUOUS — two declarations of different kinds sharing one
+    /// source name — is absent, because rewriting it would have to pick one and the prose does not
+    /// say which.
+    pub(crate) renames: BTreeMap<String, String>,
     /// The unit's SENTINEL failures, by source name, with the message each carries.
     ///
     /// Held here because three places need the same answer — what the declaration emits, what a
@@ -57,17 +68,51 @@ impl LocalScope {
     ) -> Self {
         let sentinels = crate::sentinel::sentinels(declarations, failure);
         let mut types = BTreeMap::new();
+        let mut renames: BTreeMap<String, Option<String>> = BTreeMap::new();
         for declaration in declarations {
-            if !declaration.name.is_empty() {
-                types.insert(declaration.name.clone(), to_pascal_case(&declaration.name));
+            if declaration.name.is_empty() {
+                continue;
+            }
+            types.insert(declaration.name.clone(), to_pascal_case(&declaration.name));
+            record_rename(&mut renames, &declaration.name, to_pascal_case(&declaration.name));
+            // A METHOD and a FIELD are named inside a declaration and are cased like a binding.
+            // Both are what documentation refers to most, and neither is in package scope.
+            for member in &declaration.children {
+                if !member.name.is_empty() {
+                    let target = crate::naming::to_snake_case(&member.name);
+                    record_rename(&mut renames, &member.name, target);
+                }
             }
         }
-        Self { types, sentinels }
+        Self {
+            types,
+            sentinels,
+            renames: renames
+                .into_iter()
+                .filter_map(|(source, target)| Some((source, target?)))
+                .collect(),
+        }
     }
 
     /// Whether the unit declares this source name.
     pub(crate) fn contains(&self, name: &str) -> bool {
         self.types.contains_key(name)
+    }
+}
+
+/// Record one source name's target spelling, or mark it AMBIGUOUS if it already has a different one.
+///
+/// Two declarations sharing a source name and casing differently — a type `Value` and a method
+/// `Value` — give prose no way to say which it means, so neither is rewritten.
+fn record_rename(into: &mut BTreeMap<String, Option<String>>, source: &str, target: String) {
+    match into.get(source) {
+        Some(Some(existing)) if existing != &target => {
+            into.insert(source.to_owned(), None);
+        }
+        Some(_) => {}
+        None => {
+            into.insert(source.to_owned(), Some(target));
+        }
     }
 }
 

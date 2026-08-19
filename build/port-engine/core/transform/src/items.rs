@@ -69,7 +69,7 @@ fn build_const(
             datum: ATTR_VALUE,
         })?;
     Ok(RustItem::Const {
-        docs: docs_of(declaration, resolver.doc_convention),
+        docs: docs_of(declaration, resolver),
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),
         ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
@@ -106,7 +106,7 @@ fn build_fn(
     };
 
     let rendered = RustFn {
-        docs: docs_of(declaration, resolver.doc_convention),
+        docs: docs_of(declaration, resolver),
         vis: visibility(declaration),
         name: to_snake_case(&declaration.name),
         receiver: None,
