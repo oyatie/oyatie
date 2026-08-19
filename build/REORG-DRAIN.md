@@ -730,6 +730,60 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   it against the golden; it does not write the golden. Redirecting its output to `/dev/null` and
   then diffing the golden shows nothing changed no matter what the engine did.
 
+- READ-MODIFY-WRITE assignment reached the model as `unsupported` 69 times across the surveyed
+  corpora. The refusal said the form "carries a question — read-modify-write — that needs a rule
+  rather than a default". For the compound operators both languages share it does not: `x op= y`
+  means `x = x op y` in both, evaluates the place expression once in both, and introduces no
+  decision the binary operator has not already made. The engine maps binary `+`, `^`, `|` and the
+  rest, so refusing their compound forms refused the same decision twice. Real forms in the
+  corpora: `^=` 14, `+=` 9, `|=` 6, `*=` 6, `/=` 1, `-=` 1.
+  The operator is carried on the assign node rather than given a kind of its own, because `x += y`
+  and `x = x + y` differ only by evaluating the place once — which is true in both languages, so a
+  second kind would describe a difference neither has. It is NOT desugared in the IR for the same
+  reason: rewriting to `target = target op value` evaluates an index or a call inside the place
+  twice.
+  `&^=` stays refused and is now RECORDED rather than dropped. The extractor used to emit a bare
+  `unsupported` naming `AssignStmt`, so the transform could only say "some assignment" — which is
+  not a refusal anyone can act on. The operator is carried through and the transform refuses it by
+  name: "assignment operator `&^=` has no target form". Parallel assignment (`a, b = b, a`) is
+  still refused and is the honest remainder: it evaluates every right-hand side before assigning
+  any left, which needs temporaries in a declared order.
+
+- The corpus found a defect the compile proof named within seconds: A PARAMETER THE BODY ASSIGNS TO
+  NEEDS `mut`, and nothing recorded that it does. `cannot assign to immutable argument`.
+  `mutated` could not carry it. On a parameter that flag already means "the body writes THROUGH
+  this pointer" — a claim about the CALLER's value, and what drives the disposition to `&mut T`.
+  Rebinding the callee's own copy is the opposite claim: the caller sees nothing. One flag carrying
+  both would have demanded an exclusive borrow for every parameter a body happens to reassign. So
+  `rebound` is its own fact.
+  OWED: on a local `let`, `mutated` answers this same question under the other name. The overlap is
+  real and unifying them is deferred rather than forgotten.
+  Also found on the way: the METHOD path never called `annotateParameterFacts` at all. The function
+  path did and the method path did not, so a method's parameters carried no ownership facts and no
+  rebinding — latent for as long as no method parameter was written.
+
+- Unary `&` was refused on a false reason, the same shape as the `if` init clause. The message said
+  it "has no direct translation"; the target has both `&` and `*`. What is missing is the
+  DESTINATION: `&x` yields a pointer, and which target form it takes is the same ownership decision
+  the pack already answers for a `*T` type position — but the answer depends on the position the
+  value flows into, and the body translator does not know it.
+  Sized before deciding, over 33 `&` sites in seven packages: 11 are `f(&x)`, where the destination
+  is the CALLEE's parameter; 7 are `x := &T{..}`; 4 are `return &T{..}`; 3 are `x = &T{..}`; 3 are
+  `return &x`; the rest have unsupported operands. EVERY one resolves against a signature the
+  engine has already translated. So `&` is blocked on the SIGNATURE TABLE (R6), not on a missing
+  rule, and picking a form without one would be the guess this engine exists to refuse. The refusal
+  now says exactly that, so the census does not have to be re-derived to learn it.
+  This is the second refusal reason in two phases that turned out to be untrue on inspection. A
+  refusal reason is a CLAIM, and nothing in the suite checks claims — they are prose. Worth
+  treating every remaining one as unverified until read.
+
+- Ranking after the above. Coverage: xxhash 70.6% (was 64.7), ksuid 40.9%, uuid 43.3%, xid 38.5%,
+  errors 26.3%, semver 25.9%, go-multierror 0.0%. `AssignStmt` fell from 4 packages to 3, and what
+  remains under that name is parallel assignment alone.
+  By packages: deferred by policy (5, 76 declarations), unary `&` (5 — now blocked on R6),
+  transform ownership (5), the carried-value failing return (4), `panic` (4), unmapped type
+  `interface` (4), variadic signatures (3), `AssignStmt`/parallel (3), `ArrayType` (3).
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

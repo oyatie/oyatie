@@ -27,30 +27,6 @@ func bodyNode(block *ast.BlockStmt, ctx *extractCtx) node {
 	return node{Kind: kindBody, Children: statementNodes(block.List, ctx)}
 }
 
-// destructuringBind records `a, b := expr` as the names it binds and the expression they come
-// from, in that order.
-func destructuringBind(stmt *ast.AssignStmt, ctx *extractCtx) node {
-	out := node{Kind: kindLetTuple}
-	for _, lhs := range stmt.Lhs {
-		name, ok := lhs.(*ast.Ident)
-		if !ok {
-			return unsupportedNode(stmt)
-		}
-		// Each name a destructuring bind introduces is a binding like any other, and `err` being
-		// reassigned by a later call is the single most common shape in the source language.
-		out.Children = append(out.Children, node{
-			Kind:  kindBind,
-			Name:  name.Name,
-			Flags: bindingFlags(name, ctx),
-		})
-	}
-	out.Children = append(out.Children, node{
-		Kind:     kindValue,
-		Children: []node{expressionNode(stmt.Rhs[0], ctx)},
-	})
-	return out
-}
-
 // localDeclaration records `var x T`, `var x = e` and `var x T = e` inside a body.
 //
 // A single-name spec only. A grouped `var ( a = 1; b = 2 )` is several bindings in one statement,
@@ -78,20 +54,6 @@ func localDeclaration(stmt *ast.DeclStmt, ctx *extractCtx) node {
 		out.Children = []node{expressionNode(spec.Values[0], ctx)}
 	}
 	return out
-}
-
-// bindingFlags reports what a binding needs from the target, which today is only whether it is
-// written again.
-//
-// Observed rather than assumed. Every binding in the source is mutable and most are never written
-// again: assuming mutable warns on each one, and assuming immutable fails to compile the first time
-// one is assigned. Only the body knows which, so the body is asked.
-func bindingFlags(name *ast.Ident, ctx *extractCtx) []string {
-	object := ctx.info.Defs[name]
-	if object == nil || ctx.assigned == nil || !ctx.assigned[object] {
-		return nil
-	}
-	return []string{flagMutated}
 }
 
 func statementNodes(stmts []ast.Stmt, ctx *extractCtx) []node {
@@ -139,44 +101,7 @@ func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 		return node{Kind: kindIf, Children: children}
 
 	case *ast.AssignStmt:
-		// A DESTRUCTURING bind takes several names from one expression. It is the shape every
-		// fallible call in the source has, so it is recorded rather than refused — what the target
-		// does with it is a rule, and a rule needs the shape to reach it.
-		if typed.Tok == token.DEFINE && len(typed.Rhs) == 1 && len(typed.Lhs) > 1 {
-			return destructuringBind(typed, ctx)
-		}
-		// The remaining multi-assignment and op-assign forms each carry a question — parallel
-		// assignment order, read-modify-write — that needs a rule rather than a default.
-		if len(typed.Lhs) != 1 || len(typed.Rhs) != 1 {
-			return unsupportedNode(stmt)
-		}
-		switch typed.Tok {
-		case token.DEFINE:
-			name, ok := typed.Lhs[0].(*ast.Ident)
-			if !ok {
-				return unsupportedNode(stmt)
-			}
-			return node{
-				Kind: kindLet,
-				Name: name.Name,
-				// The SHORT declaration needs the same question asked of it as `var` does. It was
-				// not asked, so every `x := e` the body later assigned emitted an immutable
-				// binding followed by a write to it — output that does not compile. No fixture
-				// had the shape, which is the whole argument for ratcheting against real source.
-				Flags:    bindingFlags(name, ctx),
-				Children: []node{expressionNode(typed.Rhs[0], ctx)},
-			}
-		case token.ASSIGN:
-			return node{
-				Kind: kindAssign,
-				Children: []node{
-					expressionNode(typed.Lhs[0], ctx),
-					expressionNode(typed.Rhs[0], ctx),
-				},
-			}
-		default:
-			return unsupportedNode(stmt)
-		}
+		return assignmentNode(typed, ctx)
 
 	case *ast.DeclStmt:
 		return localDeclaration(typed, ctx)

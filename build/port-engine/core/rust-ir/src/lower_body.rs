@@ -74,9 +74,18 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             let expr = lower_expr(expr)?;
             Ok(quote! { return #expr; })
         }
-        RustStmt::Assign { target, value } => {
+        RustStmt::Assign { target, op, value } => {
             let (target, value) = (lower_expr(target)?, lower_expr(value)?);
-            Ok(quote! { #target = #value; })
+            let operator: TokenStream = match op {
+                None => quote! { = },
+                Some(op) => {
+                    let spelling = format!("{}=", op.spelling());
+                    spelling.parse().map_err(|_| PortError::Render {
+                        detail: format!("`{spelling}` is not a valid assignment operator"),
+                    })?
+                }
+            };
+            Ok(quote! { #target #operator #value; })
         }
         RustStmt::While { cond, body } => {
             let (cond, body) = (lower_expr(cond)?, lower_block(body)?);

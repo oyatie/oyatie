@@ -8,6 +8,7 @@
 pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("apply.rs", include_str!("apply.rs")),
     ("body.rs", include_str!("body.rs")),
+    ("body_cond.rs", include_str!("body_cond.rs")),
     ("body_expr.rs", include_str!("body_expr.rs")),
     ("body_failure.rs", include_str!("body_failure.rs")),
     ("body_index.rs", include_str!("body_index.rs")),

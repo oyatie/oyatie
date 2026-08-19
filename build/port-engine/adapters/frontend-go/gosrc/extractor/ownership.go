@@ -12,18 +12,39 @@ import (
 // Go is garbage-collected, so a `*T` says nothing about ownership. These are the facts a front end
 // can OBSERVE; what to do about them is the rule pack's decision and the analysis crate's job.
 
-func annotateParameterFacts(children []node, body *ast.BlockStmt) {
+func annotateParameterFacts(children []node, body *ast.BlockStmt, rebound map[string]bool) {
 	for i := range children {
 		if children[i].Kind != kindParam || children[i].Name == "" {
 			continue
 		}
 		facts := ownershipFacts(body, children[i].Name)
+		// The source makes every parameter a mutable local copy and the target makes none of them,
+		// so a parameter the body assigns to has to say so. Kept apart from the ownership facts
+		// above because it is a claim about the CALLEE's copy, not about the caller's value.
+		if rebound[children[i].Name] {
+			facts = append(facts, flagRebound)
+		}
 		if len(facts) == 0 {
 			continue
 		}
 		children[i].Flags = append(children[i].Flags, facts...)
 		sort.Strings(children[i].Flags)
 	}
+}
+
+// reboundParameters names the parameters the body assigns to, by name.
+//
+// Keyed by NAME rather than by object because the caller annotates nodes built from the signature,
+// which carry names and no objects; a parameter cannot be shadowed at the top level of its own
+// body, so within this scope the name identifies it.
+func reboundParameters(assigned map[types.Object]bool) map[string]bool {
+	out := map[string]bool{}
+	for object := range assigned {
+		if v, ok := object.(*types.Var); ok && v.Name() != "" {
+			out[v.Name()] = true
+		}
+	}
+	return out
 }
 
 // ownershipFacts reports what `name` undergoes inside `body`.

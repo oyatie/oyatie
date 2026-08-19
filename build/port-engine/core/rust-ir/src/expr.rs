@@ -57,10 +57,16 @@ pub enum RustStmt {
     Tail(RustExpr),
     /// An early `return <expr>;`
     Return(Option<RustExpr>),
-    /// `<target> = <value>;`
+    /// `<target> [op]= <value>;`
     Assign {
         /// What is assigned to: a path, a field, an index.
         target: RustExpr,
+        /// The operator of a read-modify-write, or `None` for a plain assignment.
+        ///
+        /// Carried here rather than desugared into `target = target op value`, because the place
+        /// expression is evaluated ONCE by both languages and rewriting it would evaluate an index
+        /// or a call inside the place twice.
+        op: Option<BinaryOp>,
         /// The new value.
         value: RustExpr,
     },

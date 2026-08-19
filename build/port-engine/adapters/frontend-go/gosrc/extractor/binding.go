@@ -1,0 +1,154 @@
+package main
+
+import (
+	"go/ast"
+	"go/token"
+)
+
+// Statements that INTRODUCE a name or WRITE one.
+//
+// Two questions live here that the statement walk should not have to hold. The first is whether a
+// binding is written again: the source makes every binding mutable and the target makes none of
+// them, so assuming either way is wrong for half the bindings in any real body — and the question
+// has to be asked of `x := e` and of each name a destructuring bind introduces, not only of `var`.
+//
+// The second is what a compound assignment carries. `x op= y` means `x = x op y` in both languages
+// and evaluates the place expression ONCE in both, so it is an assignment carrying an operator
+// rather than a construct of its own — and the one form with no target spelling is recorded with
+// its operator anyway, so the refusal downstream can name it.
+
+// assignmentNode records `:=`, `=` and the read-modify-write forms.
+func assignmentNode(stmt *ast.AssignStmt, ctx *extractCtx) node {
+	// A DESTRUCTURING bind takes several names from one expression. It is the shape every
+	// fallible call in the source has, so it is recorded rather than refused — what the target
+	// does with it is a rule, and a rule needs the shape to reach it.
+	if stmt.Tok == token.DEFINE && len(stmt.Rhs) == 1 && len(stmt.Lhs) > 1 {
+		return destructuringBind(stmt, ctx)
+	}
+	// The remaining multi-assignment and op-assign forms each carry a question — parallel
+	// assignment order, read-modify-write — that needs a rule rather than a default.
+	if len(stmt.Lhs) != 1 || len(stmt.Rhs) != 1 {
+		return unsupportedNode(stmt)
+	}
+	switch stmt.Tok {
+	case token.DEFINE:
+		name, ok := stmt.Lhs[0].(*ast.Ident)
+		if !ok {
+			return unsupportedNode(stmt)
+		}
+		return node{
+			Kind: kindLet,
+			Name: name.Name,
+			// The SHORT declaration needs the same question asked of it as `var` does. It was
+			// not asked, so every `x := e` the body later assigned emitted an immutable
+			// binding followed by a write to it — output that does not compile. No fixture
+			// had the shape, which is the whole argument for ratcheting against real source.
+			Flags:    bindingFlags(name, ctx),
+			Children: []node{expressionNode(stmt.Rhs[0], ctx)},
+		}
+	case token.ASSIGN:
+		return node{
+			Kind: kindAssign,
+			Children: []node{
+				expressionNode(stmt.Lhs[0], ctx),
+				expressionNode(stmt.Rhs[0], ctx),
+			},
+		}
+	default:
+		// A COMPOUND assignment is an assignment carrying an operator, and the operator is the
+		// same datum a binary expression carries. Recorded that way rather than as its own
+		// kind: `x += y` and `x = x + y` differ in the source only by evaluating the place
+		// once, which is also true of the target, so a second kind would describe a difference
+		// neither language has.
+		//
+		// `&^=` has no spelling here for the same reason binary `&^` has none, and reaches the
+		// transform as an operator no rule answers for — refused by name rather than silently
+		// rewritten into `& !`, which is a bit operation nobody reviews.
+		op := compoundOperator(stmt.Tok)
+		if op == "" {
+			return unsupportedNode(stmt)
+		}
+		return node{
+			Kind:  kindAssign,
+			Attrs: map[string]string{attrOp: op},
+			Children: []node{
+				expressionNode(stmt.Lhs[0], ctx),
+				expressionNode(stmt.Rhs[0], ctx),
+			},
+		}
+	}
+}
+
+// destructuringBind records `a, b := expr` as the names it binds and the expression they come
+// from, in that order.
+func destructuringBind(stmt *ast.AssignStmt, ctx *extractCtx) node {
+	out := node{Kind: kindLetTuple}
+	for _, lhs := range stmt.Lhs {
+		name, ok := lhs.(*ast.Ident)
+		if !ok {
+			return unsupportedNode(stmt)
+		}
+		// Each name a destructuring bind introduces is a binding like any other, and `err` being
+		// reassigned by a later call is the single most common shape in the source language.
+		out.Children = append(out.Children, node{
+			Kind:  kindBind,
+			Name:  name.Name,
+			Flags: bindingFlags(name, ctx),
+		})
+	}
+	out.Children = append(out.Children, node{
+		Kind:     kindValue,
+		Children: []node{expressionNode(stmt.Rhs[0], ctx)},
+	})
+	return out
+}
+
+// compoundOperator spells the BINARY operator inside a read-modify-write assignment.
+//
+// Empty for anything with no binary spelling of its own — `&^=`, and `:=`/`=` which are not
+// compound at all — so the caller records an `unsupported` naming the statement instead.
+func compoundOperator(tok token.Token) string {
+	switch tok {
+	case token.ADD_ASSIGN:
+		return "+"
+	case token.SUB_ASSIGN:
+		return "-"
+	case token.MUL_ASSIGN:
+		return "*"
+	case token.QUO_ASSIGN:
+		return "/"
+	case token.REM_ASSIGN:
+		return "%"
+	case token.AND_ASSIGN:
+		return "&"
+	case token.OR_ASSIGN:
+		return "|"
+	case token.XOR_ASSIGN:
+		return "^"
+	case token.SHL_ASSIGN:
+		return "<<"
+	case token.SHR_ASSIGN:
+		return ">>"
+	case token.AND_NOT_ASSIGN:
+		// `&^=` has no target form, and it is recorded anyway. The extractor models the SOURCE;
+		// dropping the operator here would leave the transform refusing an `AssignStmt` without
+		// being able to say which one, and "some assignment" is not a refusal anybody can act on.
+		return "&^"
+	default:
+		return ""
+	}
+}
+
+// bindingFlags reports what a binding needs from the target, which today is only whether it is
+// written again.
+//
+// Observed rather than assumed. Every binding in the source is mutable and most are never written
+// again: assuming mutable warns on each one, and assuming immutable fails to compile the first time
+// one is assigned. Only the body knows which, so the body is asked.
+func bindingFlags(name *ast.Ident, ctx *extractCtx) []string {
+	object := ctx.info.Defs[name]
+	if object == nil || ctx.assigned == nil || !ctx.assigned[object] {
+		return nil
+	}
+	return []string{flagMutated}
+}

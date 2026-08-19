@@ -36,10 +36,14 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		base.Flags = flagsFor(obj.Exported(), sig.Variadic(), false, false)
 		base.Children = signatureChildren(sig, qualify)
 		body := ctx.bodies[obj]
-		annotateParameterFacts(base.Children, body)
+		assigned := map[types.Object]bool{}
+		if body != nil {
+			assigned = assignedLocals(body, ctx)
+		}
+		annotateParameterFacts(base.Children, body, reboundParameters(assigned))
 		if body != nil {
 			inner := *ctx
-			inner.assigned = assignedLocals(body, ctx)
+			inner.assigned = assigned
 			base.Children = append(base.Children, bodyNode(body, &inner))
 		}
 		return base, nil
@@ -157,11 +161,19 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 		}
 
 		children := signatureChildren(sig, ctx.qualify)
-		if body := ctx.bodies[method]; body != nil {
+		body := ctx.bodies[method]
+		assigned := map[types.Object]bool{}
+		if body != nil {
+			assigned = assignedLocals(body, ctx)
+		}
+		// A method's parameters were never annotated at all — the function path did this and the
+		// method path did not, so a method parameter carried no ownership facts and no rebinding.
+		annotateParameterFacts(children, body, reboundParameters(assigned))
+		if body != nil {
 			// The body walk needs the receiver's NAME: `c.total` becomes `self.total` only if
 			// something knows that `c` is the receiver and `other` is not.
 			inner := *ctx
-			inner.assigned = assignedLocals(body, ctx)
+			inner.assigned = assigned
 			inner.receiver = receiverName
 			children = append(children, bodyNode(body, &inner))
 		}

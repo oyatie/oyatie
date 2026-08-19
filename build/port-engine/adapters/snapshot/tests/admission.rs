@@ -62,6 +62,7 @@ fn v1_fixture_admits_and_carries_declarations() {
     assert_eq!(
         names,
         BTreeSet::from([
+            "accumulate",
             "basic",
             "composite",
             "fallible",

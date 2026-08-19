@@ -1,8 +1,593 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:5d684ffaddbcca020e20ab3658248f5ce6ec788f89e8cc45a79767c220293d8e",
+  "snapshot_digest": "sha256:30e7cceb26eb4cba8b463656306b2640dcbca8b3327c272e7563ff49107e8daf",
   "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Mix",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Mix folds the values together with the operators a hash uses.\n\n`^=`, `|=` and `*=` are the three most common compound forms in the surveyed source after `+=`,\nand all four are the same translation."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "values",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "acc",
+                  "flags": [
+                    "mutated"
+                  ],
+                  "children": [
+                    {
+                      "kind": "convert",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "children": [
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "1"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "for",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "init",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "let",
+                          "name": "i",
+                          "flags": [
+                            "mutated"
+                          ],
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u003c"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "len"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "len",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "values",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "post",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "unsupported",
+                          "name": "",
+                          "attrs": {
+                            "go_node": "IncDecStmt"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "assign",
+                          "name": "",
+                          "attrs": {
+                            "op": "^"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "acc",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "index",
+                              "name": "",
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "values",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "i",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "assign",
+                          "name": "",
+                          "attrs": {
+                            "op": "*"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "acc",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "3"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "assign",
+                          "name": "",
+                          "attrs": {
+                            "op": "|"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "acc",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "1"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "acc",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Shift",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Shift scales n by a power of two, in place."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes",
+                "rebound"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "by",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "assign",
+                  "name": "",
+                  "attrs": {
+                    "op": "\u003c\u003c"
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "by",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "assign",
+                  "name": "",
+                  "attrs": {
+                    "op": "-"
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    },
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "1"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Total",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Total sums the values, accumulating in place."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "values",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "sum",
+                  "flags": [
+                    "mutated"
+                  ],
+                  "children": [
+                    {
+                      "kind": "convert",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "children": [
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "0"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "for",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "init",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "let",
+                          "name": "i",
+                          "flags": [
+                            "mutated"
+                          ],
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u003c"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "len"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "len",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "values",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "post",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "unsupported",
+                          "name": "",
+                          "attrs": {
+                            "go_node": "IncDecStmt"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "assign",
+                          "name": "",
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "sum",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "index",
+                              "name": "",
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "values",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "i",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "sum",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
       "producer": "bootstrap-go-packages-go-types",
@@ -1849,7 +2434,10 @@
                   "type": {
                     "kind": "basic",
                     "name": "string"
-                  }
+                  },
+                  "flags": [
+                    "escapes"
+                  ]
                 },
                 {
                   "kind": "body",

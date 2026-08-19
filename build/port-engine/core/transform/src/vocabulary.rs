@@ -87,6 +87,13 @@ pub const FLAG_EXPORTED: &str = "exported";
 pub const FLAG_VARIADIC: &str = "variadic";
 /// Flag marking a method bound through a pointer receiver.
 pub const FLAG_POINTER_RECEIVER: &str = "pointer_receiver";
+/// The body assigns to this binding's OWN name, so the target needs `mut` on it.
+///
+/// Distinct from [`FLAG_MUTATED`]: on a parameter that flag means the body writes THROUGH the
+/// pointer, which is a claim about the CALLER's value and drives an exclusive borrow. Rebinding
+/// the callee's copy is the opposite claim — the caller sees nothing — so one flag carrying both
+/// would demand a borrow for every parameter a body happens to reassign.
+pub const FLAG_REBOUND: &str = "rebound";
 /// Ownership fact: the body provably assigns through this pointer.
 pub const FLAG_MUTATED: &str = "mutated";
 /// Ownership fact: this pointer provably outlives the call.

@@ -65,14 +65,25 @@ fn the_refusal_corpus_is_refused_by_name() {
     let err = driver::port_go_refused().expect_err("the refusal corpus must not translate");
 
     let message = err.to_string();
+    // The corpus holds several untranslatable things and the pipeline reports the first it
+    // reaches, so the fence asserts the PROPERTY every refusal must have rather than pinning one
+    // message. Which one comes first is a function of declaration order, and a fence that depends
+    // on that breaks every time a corpus package lands.
+    let named = ["ForStmt", "DeferStmt", "&^="];
     assert!(
-        message.contains("ForStmt") || message.contains("DeferStmt"),
+        named.iter().any(|subject| message.contains(subject)),
         "the refusal must name the construct it refused, got: {message}"
     );
-    assert!(
-        message.contains("census"),
-        "the refusal must point at where the analysis lives, got: {message}"
-    );
+    // A refusal of a source CONSTRUCT points at the census that will size it. An operator with no
+    // target form has no census to point at — the reason is a property of the two languages and
+    // is stated in full where the operator is mapped — so requiring the word everywhere would buy
+    // a citation that does not exist.
+    if message.contains("source construct") {
+        assert!(
+            message.contains("census"),
+            "a construct refusal must point at where the analysis lives, got: {message}"
+        );
+    }
 }
 
 /// hold.
