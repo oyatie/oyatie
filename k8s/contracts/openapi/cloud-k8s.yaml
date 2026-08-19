@@ -316,6 +316,11 @@ paths:
           content:
             application/json:
               schema: {$ref: '#/components/schemas/Node'}
+    delete:
+      summary: Remove a node (kubeadm reset)
+      operationId: removeNode
+      responses:
+        '202': {description: Remove initiated}
 
   /clusters/{cluster_id}/nodes/{node_id}/cordon:
     parameters:
@@ -343,16 +348,6 @@ paths:
       operationId: drainNode
       responses:
         '202': {description: Drain initiated}
-
-  /clusters/{cluster_id}/nodes/{node_id}:
-    parameters:
-      - $ref: '#/components/parameters/ClusterId'
-      - $ref: '#/components/parameters/NodeId'
-    delete:
-      summary: Remove a node (kubeadm reset)
-      operationId: removeNode
-      responses:
-        '202': {description: Remove initiated}
 
   /clusters/{cluster_id}/namespaces/{namespace}/network-policies:
     parameters:
