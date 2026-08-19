@@ -72,7 +72,7 @@ impl LocalScope {
         declarations: &[Declaration],
         failure: Option<&port_engine_api::FailureConvention>,
     ) -> Self {
-        Self::with_lengths(declarations, failure, &BTreeSet::new())
+        Self::with_lengths(declarations, failure, &BTreeSet::new(), &BTreeSet::new())
     }
 
     /// The same, plus the constants that are lengths, which needs the pack's length callees.
@@ -80,8 +80,10 @@ impl LocalScope {
         declarations: &[Declaration],
         failure: Option<&port_engine_api::FailureConvention>,
         lengths: &BTreeSet<String>,
+        renders: &BTreeSet<String>,
     ) -> Self {
-        let length_constants = crate::length_consts::length_constants(declarations, lengths);
+        let length_constants =
+            crate::length_consts::length_constants(declarations, lengths, renders);
         let sentinels = crate::sentinel::sentinels(declarations, failure);
         let mut types = BTreeMap::new();
         let mut renames: BTreeMap<String, Option<String>> = BTreeMap::new();

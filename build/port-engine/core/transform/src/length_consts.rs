@@ -26,6 +26,7 @@ use crate::vocabulary::{ATTR_CALLEE, KIND_CALL, KIND_IDENT, REF_CONST, SOURCE_IN
 pub(crate) fn length_constants(
     declarations: &[Declaration],
     lengths: &BTreeSet<String>,
+    renders: &BTreeSet<String>,
 ) -> BTreeSet<String> {
     let candidates: BTreeSet<String> = declarations
         .iter()
@@ -40,7 +41,7 @@ pub(crate) fn length_constants(
 
     let mut reads: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for declaration in declarations {
-        count_reads(declaration, &candidates, lengths, &mut reads);
+        count_reads(declaration, &candidates, lengths, renders, &mut reads);
     }
     reads
         .into_iter()
@@ -54,8 +55,27 @@ fn count_reads(
     node: &Declaration,
     candidates: &BTreeSet<String>,
     lengths: &BTreeSet<String>,
+    renders: &BTreeSet<String>,
     into: &mut BTreeMap<String, (usize, usize)>,
 ) {
+    // A read that only RENDERS the value is NEUTRAL: it neither proves the constant is a length
+    // nor disproves it. Formatting a bound into a message reads its value and not its type, and
+    // the same non-negative literal renders identically whichever integer it is — so counting it
+    // as evidence against was rejecting exactly the constants this rule exists for. Every one of
+    // `semver`'s bounds is compared against a length once and named in the message that reports
+    // the breach, and a reviewer called the resulting signed type the most consequential finding
+    // in the file three separate times before this could see why.
+    if node.kind == KIND_CALL
+        && node.attr(ATTR_CALLEE).is_some_and(|callee| renders.contains(callee))
+    {
+        // The TEMPLATE and the values are all rendered, so none of this subtree is evidence —
+        // except a nested call, whose own arguments are its own business. Descending with the
+        // candidate set emptied says exactly that: nothing here counts as a read.
+        for child in &node.children {
+            count_reads(child, &BTreeSet::new(), lengths, renders, into);
+        }
+        return;
+    }
     if node.kind == KIND_IDENT
         && node.attr(crate::vocabulary::ATTR_REF) == Some(REF_CONST)
         && candidates.contains(&node.name)
@@ -77,7 +97,7 @@ fn count_reads(
         }
     }
     for child in &node.children {
-        count_reads(child, candidates, lengths, into);
+        count_reads(child, candidates, lengths, renders, into);
     }
 }
 

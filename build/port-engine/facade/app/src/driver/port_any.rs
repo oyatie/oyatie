@@ -101,6 +101,18 @@ pub fn port_snapshot(path: &Path) -> Result<PortedPackage, PipelineError> {
             continue;
         };
         let into = &mut files.last_mut().unwrap_or_else(|| unreachable!()).source;
+        // A BLANK LINE between declarations. Each region is one declaration's output — a type and
+        // the impls that belong to it — so a break between regions is a break between things a
+        // reader meets separately, and a break inside one would split a type from its own impl.
+        //
+        // Not cosmetic, and not something the formatter will do: `prettyplease` preserves no blank
+        // lines because the tree it renders has none, so eighty-seven lines of items arrive with
+        // nothing between them. A reviewer reading a real ported package said that is not how
+        // authored code is laid out and that the seven near-identical blocks were unscannable
+        // because of it. They were right, and no rule about the CODE would ever have fixed it.
+        if !into.is_empty() {
+            into.push('\n');
+        }
         for line in String::from_utf8_lossy(bytes).lines() {
             into.push_str(line);
             into.push('\n');
