@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:03b41f8ead1e66f2ef759ee01642dd3f9efd1da7e0a279b67691ac939211a454",
+  "snapshot_digest": "sha256:e6c286408261825c08679d08e6fdf96bb84b9cfb27cf673a18df9fe1985b908c",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -4483,6 +4483,87 @@
       "unit_id": "oyatie.example/portengine-fixture/corpus/scoped",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
+        {
+          "kind": "func",
+          "name": "Scaled",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Scaled reports n scaled by the fixed factor this function works in."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "factor",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "8"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "attrs": {
+                        "op": "*"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "factor",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
         {
           "kind": "func",
           "name": "Span",

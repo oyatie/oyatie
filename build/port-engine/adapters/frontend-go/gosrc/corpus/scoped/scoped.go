@@ -33,3 +33,18 @@ func Span(s string) int {
 	}
 	return result
 }
+
+// A body-scoped CONST, which is a binding rather than a target constant — and that is a decision
+// about what it MEANS, not what it is called. The source's untyped constant has no type until it is
+// used and takes one from each use; a target `const` must fix a type at the declaration, and a
+// target `let` takes one from use exactly as the source's does.
+//
+// The cost is stated rather than hidden: a source constant used at TWO different types in one
+// function has no single target binding. That does not compile, which is the safe failure — it
+// never means something else.
+
+// Scaled reports n scaled by the fixed factor this function works in.
+func Scaled(n int64) int64 {
+	const factor = 8
+	return n * factor
+}

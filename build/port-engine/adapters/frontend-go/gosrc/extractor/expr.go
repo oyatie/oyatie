@@ -228,6 +228,13 @@ func referenceKind(ident *ast.Ident, ctx *extractCtx) string {
 		// `return x, err` are the same shape until this distinguishes them.
 		return "nil"
 	case *types.Const:
+		// A BODY-SCOPED constant is cased like a local, because that is what it becomes: Go's
+		// untyped constant takes its type from each use and so does a target `let`, where a target
+		// `const` would have to fix one at the declaration. A package-scoped or predeclared one
+		// stays a constant and keeps constant casing.
+		if typed.Pkg() != nil && typed.Parent() != typed.Pkg().Scope() {
+			return "local"
+		}
 		return "const"
 	case *types.Func:
 		return "func"
