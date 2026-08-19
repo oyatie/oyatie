@@ -1,0 +1,172 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:5f88f8e8de3394f54e63d9f27470643e731983dce343f0da0fa7903680758b37",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "struct",
+          "name": "Stored",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Stored holds a failure rather than returning one."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "cause",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              },
+              "attrs": {
+                "doc": "cause is why the attempt did not succeed, and it may be absent."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Cause",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Cause returns why the attempt did not succeed.\n\nREFUSED. The operand is a stored field that may be absent, and neither proof the engine has\napplies to it: it is not a call to a declared failure constructor, and it is not the address of a\nfresh composite. What the source means here is a GETTER, and the target spells a getter as an\noptional rather than as a result — but choosing that would be reading intent from a shape, not\nproving it, so this refuses and says which proof is missing."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "named_interface",
+                    "name": "error"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "cause",
+                          "type": {
+                            "kind": "named_interface",
+                            "name": "error"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Wrapped",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Wrapped reports a fresh failure for the attempt.\n\nTRANSLATABLE, and here so the refusal above is a DISTINCTION rather than a blanket. The operand\nis a call to a declared failure constructor, which has no absent result to return."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "named_interface",
+                    "name": "error"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "call",
+                          "name": "",
+                          "attrs": {
+                            "callee": "errors.New"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "New",
+                              "type": {
+                                "kind": "func",
+                                "args": [
+                                  {
+                                    "kind": "tuple",
+                                    "args": [
+                                      {
+                                        "kind": "basic",
+                                        "name": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "kind": "tuple",
+                                    "args": [
+                                      {
+                                        "kind": "named_interface",
+                                        "name": "error"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "errors",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"attempt failed\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

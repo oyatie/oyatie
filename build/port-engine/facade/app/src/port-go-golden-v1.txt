@@ -150,6 +150,14 @@ pub mod fallible {
         check(s)?;
         Ok(())
     }
+    // region: oyatie_example_portengine_fixture_corpus_fallible__go_struct_body__report
+    /// Records a failure alongside what was being attempted.
+    pub struct Report {
+        /// Names what was attempted.
+        action: String,
+        /// Why it did not succeed.
+        cause: Box<dyn std::error::Error + Send + Sync>,
+    }
 }
 pub mod geometry {
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_alias__origin

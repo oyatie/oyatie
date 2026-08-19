@@ -414,7 +414,8 @@
       "go_struct_body"
     ],
     "oyatie.example/portengine-fixture/corpus/fallible": [
-      "go_func"
+      "go_func",
+      "go_struct_body"
     ],
     "oyatie.example/portengine-fixture-failure/corpus-failure/carried": [
       "go_func"
@@ -441,6 +442,10 @@
     ],
     "oyatie.example/portengine-fixture/corpus/sequence": [
       "go_func"
+    ],
+    "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored": [
+      "go_func",
+      "go_struct_body"
     ]
   },
   "type_constructors": {
@@ -582,7 +587,12 @@
     "absent": "nil",
     "reason": "The source's error is an interface value; the target's is a trait object, and a trait object needs an owner because it has no size. Boxed rather than borrowed: a failure outlives the call that produced it, so a reference would need a lifetime the caller cannot supply. SEND + SYNC IS NOT DECORATION. Without them the ported error cannot cross a thread boundary or enter any async runtime, which does not merely inconvenience a caller -- it makes the emitted crate unusable in concurrent code, where the source's error had no such limit. A reviewer reading the emitted API named this as breaking the crate for concurrent use, and they were right: the bound was missing, not declined. The source's own error values are ordinary data and satisfy both bounds; a source error that did not would not be shareable across the source's goroutines either. ON THE CRITICISM THAT A CONSUMER CANNOT MATCH ON IT, raised by two reviewers reading the emitted crate: that is the SOURCE's error model, carried across rather than introduced. The source's `errors.New(\"empty\")` gives its own callers exactly as little -- an opaque interface value with a string inside -- and a source caller who wants to branch uses `errors.Is`/`errors.As` against a sentinel value or a concrete type, which is what the target's boxed trait object plus a downcast supports. A concrete error enum would give the ported crate an API the source does not have. That is an IMPROVEMENT on the source, and improving is not porting: it invents a type upstream never declared, it cannot represent a failure propagated from a callee the package does not know, and the next upstream release would have to be reconciled against a shape nobody upstream wrote. The engine's job is to carry the source's design, including where that design is poor -- and to say so here rather than silently be blamed for it.",
     "discards_companion": true,
-    "discard_reason": "A failing return in the source carries the value beside the failure and the target's carries only the failure, so the companion has nowhere to go. The source DOCUMENTS that when a function returns a non-nil error its other results are not guaranteed to be meaningful, so dropping the companion is faithful to the convention -- and refusing unless the value could be seen to be inert was faithful only to the cases inspection could confirm, which left most real fallible code unported. THE COST: a source program that violates its own convention -- writing a meaningful value beside a failure and having its caller read it -- ports to a target program that does not carry that value, and the engine cannot tell such a program from a conforming one because the difference lives in the caller. THE CASE THAT GIVES MOST PAUSE: a NAMED result may have been written through before the failure, so the value is work a reader can see happening and cannot see being discarded. Under the convention it is still unreadable, so the same argument covers it -- but it is where a reader would most reasonably expect otherwise, which is why it is named here. Set to false to return to refusing, which costs coverage and buys correctness for programs that break their own contract."
+    "discard_reason": "A failing return in the source carries the value beside the failure and the target's carries only the failure, so the companion has nowhere to go. The source DOCUMENTS that when a function returns a non-nil error its other results are not guaranteed to be meaningful, so dropping the companion is faithful to the convention -- and refusing unless the value could be seen to be inert was faithful only to the cases inspection could confirm, which left most real fallible code unported. THE COST: a source program that violates its own convention -- writing a meaningful value beside a failure and having its caller read it -- ports to a target program that does not carry that value, and the engine cannot tell such a program from a conforming one because the difference lives in the caller. THE CASE THAT GIVES MOST PAUSE: a NAMED result may have been written through before the failure, so the value is work a reader can see happening and cannot see being discarded. Under the convention it is still unreadable, so the same argument covers it -- but it is where a reader would most reasonably expect otherwise, which is why it is named here. Set to false to return to refusing, which costs coverage and buys correctness for programs that break their own contract.",
+    "constructors": [
+      "errors.New",
+      "fmt.Errorf"
+    ],
+    "constructor_reason": "Which callees PRODUCE a failure, and therefore never produce the absent value. Needed because the target's failing return is `Err(..)` and the source's is a value that MAY be absent: wrapping an error-typed expression in `Err` is right only when that expression cannot be nil, and wrong -- silently, at runtime, in the direction of reporting failure where the source reported success -- when it can. `func (r *Report) Cause() error` returning a stored field is the shape that shows it: the source's caller checks the result against nil, and a target that always returns `Err` is a different program. A CALL to one of these is proof, because a failure constructor has no nil result to return. The other proof the engine has needs no table: the ADDRESS OF A FRESH COMPOSITE is never nil. An error-typed expression that is neither refuses by name. Add a callee here only when it cannot return the absent value on any path."
   },
   "function_map": {
     "errors.New": {

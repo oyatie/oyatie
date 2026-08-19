@@ -60,3 +60,17 @@ func Validate(s string) error {
 	}
 	return nil
 }
+
+// A failure STORED rather than returned. The source's error is an interface value and can sit
+// anywhere a value can, including inside another type — which is the shape a trait cannot take in
+// the target, because a trait has no size. The failure convention already answers it: it chose an
+// owned boxed form because a failure outlives the call that produced it, and a field holding one
+// has exactly the same problem for exactly the same reason.
+
+// Report records a failure alongside what was being attempted.
+type Report struct {
+	// action names what was attempted.
+	action string
+	// cause is why it did not succeed.
+	cause error
+}

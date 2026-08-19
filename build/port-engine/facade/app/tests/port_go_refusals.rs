@@ -107,3 +107,35 @@ fn an_escaping_receiver_is_refused_with_its_reason() {
         "the refusal must carry the pack's recorded reason: {message}"
     );
 }
+
+/// The soundness fence the failure convention turns on.
+///
+/// The source's failing return is a value that MAY be absent; the target's is `Err(..)`, which is
+/// unconditional. Wrapping an error-typed expression in `Err` is faithful only where that
+/// expression cannot be absent — and where it can, the emitted program reports failure at exactly
+/// the points the source reported SUCCESS. That compiles, and it is a different program.
+///
+/// `Cause` and `Wrapped` share a signature, a receiver and a field, and get different answers:
+/// `Wrapped` returns a call to a declared failure constructor, which has no absent result to
+/// return, and `Cause` returns the field, which may be absent. So the fence is not that the
+/// corpus refuses — it is that the refusal names the OPERAND rather than the signature, which is
+/// what makes the distinction between the two possible at all.
+#[test]
+fn a_failure_the_engine_cannot_prove_is_refused_by_its_operand() {
+    let err = driver::port_go_refused_unproven()
+        .expect_err("a stored failure may be absent, so `Err(..)` is not what it means");
+
+    let message = err.to_string();
+    assert!(
+        message.contains("Cause"),
+        "the refusal must name the declaration it refused, got: {message}"
+    );
+    assert!(
+        message.contains("PROVABLY a failure"),
+        "the refusal must say that the proof is what is missing, got: {message}"
+    );
+    assert!(
+        message.contains("reports failure where the source reported success"),
+        "the refusal must say what emitting it anyway would COST, got: {message}"
+    );
+}

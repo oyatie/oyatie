@@ -1689,3 +1689,58 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - NOTED, not fixed: `adapters/rulepack/src/pack.rs` is 376 lines, over the 300-line bar. It was
   already 363 before this work and this added 13; splitting it belongs in its own commit rather than
   as noise inside a semantically dense one.
+
+## The failure the engine could not prove was a failure
+
+- Started as coverage work — `error` nested inside another type was the top blocker, 19 declarations
+  across 4 packages, refused because "a trait has no size in the target". The pack had ALREADY
+  answered it: the failure convention chose an owned boxed form because a failure outlives the call
+  that produced it, so a reference would need a lifetime the caller cannot supply. A struct field,
+  a composite element and a map value all have that problem for that reason. So the failure type
+  resolves through the convention in every position that STORES the value, and a second answer here
+  could only disagree with the one the pack already gave.
+
+  A PARAMETER is left refusing, and the distinction is the same one strings taught: the source's
+  error is an interface value the caller keeps after passing it, so owning it in the target would
+  consume a value the source never consumed. What a borrowed failure parameter should be is a
+  decision of its own.
+
+- The corpus needle for it FOUND A SOUNDNESS DEFECT, which is what corpus needles are for.
+  `func (r *Report) Cause() error { return r.cause }` emitted `Err(self.cause.clone())` — a function
+  that reports failure unconditionally. In the source a nil `cause` means SUCCESS. The engine was
+  wrapping any non-nil-literal trailing operand in `Err(..)`, which is right only when that operand
+  cannot be absent, and silently wrong when it can — in the direction of reporting failure where the
+  source reported success. Output that compiles and means something different is the one failure
+  this engine exists to prevent, and it had been shipping it.
+
+  It had never been caught because both shapes the hermetic corpus exercised ARE proven: a call to
+  `errors.New` and a propagated failure from a tested binding. The unproven shape had simply never
+  appeared.
+
+- THE PROOF, now required, and it is two things and nothing else:
+
+  - a CALL to a callee the pack names a failure CONSTRUCTOR, because a constructor has no absent
+    result to return. Which callees those are is the pack's to say, and the distinction matters: a
+    source function that merely RETURNS an error, like `Check(s) error`, is not one of them;
+  - the ADDRESS OF A FRESH COMPOSITE, which needs no table because it is a property of the
+    construct — the expression creates the value, so nothing can have made it absent.
+
+  The tested binding is not listed because it never reaches here: the propagation rule recognises
+  `if err != nil { return 0, err }` as a whole and rewrites it to the target's operator, which is
+  the translation that makes the check impossible to forget.
+
+- The refusal corpus is its own package, per the standing pattern, and it holds BOTH answers:
+  `Cause` and `Wrapped` share a signature, a receiver and a field and are decided differently,
+  because the proof is a property of the OPERAND rather than of the signature. An engine reading the
+  signature alone would give them one answer and be wrong about one of them. The fence asserts the
+  refusal names the declaration, says the proof is what is missing, and says what emitting it anyway
+  would cost — not merely that something refused.
+
+- COVERAGE FELL, the sixth honest correction of the lane: uuid 49.5 → 44.3, semver 41.4 → 36.2,
+  errors 52.6 → 47.4, ksuid 45.2 → 44.1. Fifteen declarations had been counted as translated while
+  emitting a program that reports failure where the source reports success. The nested-error fix
+  paid for part of it and the proof took more back; net of the two, the number that matters is that
+  no emitted declaration now claims a failure it cannot prove.
+
+- Verify: 49 test binaries green including the compile proof; port-engine clippy `-D warnings`
+  clean; `delta` Green/Unchanged; golden refreshed with `Report`'s boxed error field.
