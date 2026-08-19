@@ -151,17 +151,22 @@ impl Resolver<'_> {
     }
 }
 
-/// Whether any node of this type tree has one of the given kinds.
+/// Whether any node of this type tree is one of the given blockers.
 ///
-/// Recursive, because a blocking kind is usually nested: a slice of trait objects blocks every
-/// derive its element does, and a check that looked only at the outermost node would call it a
-/// plain slice.
-fn mentions_kind(type_ref: &TypeRef, kinds: &std::collections::BTreeSet<String>) -> bool {
-    kinds.contains(&type_ref.kind)
+/// A blocker is a KIND — a trait object, a channel, a function — or the NAME of a BASIC type, which
+/// is how a float blocks the total-equality derives. The name is consulted only for a basic type,
+/// and that restriction is what keeps it safe: a basic type's name is one the language defines, so
+/// it cannot collide with a user type that happens to be called `slice`.
+///
+/// Recursive, because a blocker is usually nested: a slice of trait objects blocks every derive its
+/// element does, and a check that looked only at the outermost node would call it a plain slice.
+fn mentions_kind(type_ref: &TypeRef, blockers: &std::collections::BTreeSet<String>) -> bool {
+    blockers.contains(&type_ref.kind)
+        || (type_ref.kind == "basic" && blockers.contains(&type_ref.name))
         || type_ref
             .args
             .iter()
-            .any(|arg| mentions_kind(arg, kinds))
+            .any(|arg| mentions_kind(arg, blockers))
 }
 
 /// The length an array type carries, which the front end records in the type node's `name`.

@@ -2023,3 +2023,26 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
 - The 87.3% figure the corpus doc cites is what makes this worth the machinery: that is the share of
   embedding interfaces that declare no method of their own.
+
+## `Eq` and `Hash`, and the float that is the whole of the difference
+
+- A reviewer: "`Point` derives `PartialEq` but not `Eq`/`Hash` — its fields are `i64, i64, String`,
+  all of which support both, and a point is an obvious map key." Right, and the fix is pack data
+  with no mechanism change beyond one precision.
+
+- `Eq` is TOTAL equality, which the source has wherever `==` is defined and no field is a float. The
+  float is the whole of the difference and it is not a conservative exclusion: NaN is not equal to
+  itself in EITHER language, so a struct with a float field has no equivalence relation in either,
+  and claiming one in the target would claim something the source never had.
+
+- `Hash` follows from what the source requires of a MAP KEY — that the type be comparable — which
+  the target spells `Eq + Hash`. A source type usable as a map key must port to one usable as a
+  target map key, or a ported program that indexes by it has nowhere to go. Blocked by the same set
+  as `Eq`, because `Hash` without `Eq` violates a contract the target's own documentation states.
+
+- ONE MECHANISM CHANGE, and it was a real imprecision rather than a widening: `blocked_by` matched a
+  type's KIND only, and a float is kind `basic`. It now also matches the NAME of a basic type — and
+  only of a basic type, which is what keeps it safe: a basic type's name is one the language
+  defines, so it cannot collide with a user type that happens to be called `slice`.
+
+- `Celsius(f64)` correctly earns neither; `Counter` earns both.
