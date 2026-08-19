@@ -226,7 +226,13 @@ pub(crate) fn method_signature(
                         name: method.name.clone(),
                         datum: "body",
                     })?;
-                Some(crate::body::statements(&source.children, method, resolver, result)?)
+                Some(crate::body::statements(
+                    &source.children,
+                    method,
+                    resolver,
+                    result,
+                    Some(owner),
+                )?)
             }
             Body::None => None,
         },

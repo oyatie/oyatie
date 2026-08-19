@@ -3565,3 +3565,37 @@ is the method for exactly this reason, and it earned its keep twice in one phase
 `POOL` and `NODE_ID` now refuse by name as written package variables. `ZERO_ID` and `XVALUES` stay
 constants, which is correct — nothing writes them. All seven real packages still compile with zero
 rustc errors and zero clippy warnings.
+
+## R1q — named results, and the type a method hangs off
+
+Two of the constructs the last phase refused by name are now rules. Both were named there with the
+rule they wanted; this is that rule.
+
+**Named results are BINDINGS, so they are bound.** The source lets a signature name its results, and
+those names are variables: zero-initialised at entry, assigned during the body, returned by a bare
+`return`. The target has no such thing. Binding them at the top of the body — at the zero value the
+source gives them — makes the rest need no special case at all: an assignment to one is an ordinary
+assignment, and `return sec, nsec` is an ordinary return. Eleven declarations across the corpus.
+
+`mut` only where the body actually assigns, because a binding declared mutable and never written is
+a warning the compile proof denies — and the whole reason to bind these is that the body writes them.
+
+**A method's body did not know what `self` IS.** The receiver is not a child of the method
+declaration and the front end records no type for it, so the newtype-opacity check saw every method
+on a defined type as untyped and let `self - G1582NS100` through. The signature is the only place
+that knows the owning type, so it tells the body. Everything that asks about the receiver now gets
+the same answer the signature gave.
+
+**Coverage: uuid 13.4% → 11.3%.** Down again, and again correctly — binding the results made those
+eleven bodies translatable enough to reach the operations on the receiver, which then refused for a
+reason the engine could finally see. This is the pattern the whole session has followed: a rule that
+unblocks a construct reveals the next one, and the number goes down before it goes up.
+
+**Where the artifact stands.** Eight blind reviews of the ported `semver` since the enum landed:
+three MERGE WITH CHANGES, then a DO NOT MERGE that blocks on the boxed `Result` default and on
+missing error variants for limits the SOURCE does not declare either. The verdict oscillates on the
+same declined decision, which is the honest signal that the artifact has reached a plateau: what
+remains on the evidence lists is the source's own design showing through a faithful port — charset
+constants, a comparator helper that Go needed and Rust does not, payload-free sentinels — plus one
+decision this engine has measured and declined twice, for a reason taken from the mandate rather than
+from any corpus.

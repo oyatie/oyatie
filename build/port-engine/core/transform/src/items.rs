@@ -131,7 +131,7 @@ fn build_fn(
                 name: declaration.name.clone(),
                 datum: "body",
             })?;
-        body::statements(&source.children, declaration, resolver, body::ResultShape::Own)?
+        body::statements(&source.children, declaration, resolver, body::ResultShape::Own, None)?
     } else {
         // A rung that does not translate bodies REFUSES the function it cannot write, for the same
         // reason a method does: a body that panics compiles, reads as success to every gate, and

@@ -169,6 +169,7 @@ pub(crate) fn build_static(
                 results: crate::returns::ResultFacts::none(),
                 usize_counters: std::collections::BTreeSet::new(),
                 walked: None,
+                receiver_type: None,
             };
             expression(initialiser, &body)?
         }
