@@ -1,126 +1,12 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:e9ff8271e8d6ed6e72d12275f73cbdcebf1942c9d200a8c82bce2fc65f6a6406",
+  "snapshot_digest": "sha256:b56b0a1aba7ff4ad931100f84196c565e2f1703ffa674e075d25034822895045",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
-        {
-          "kind": "func",
-          "name": "Drive",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Drive makes one FOREIGN type satisfy two interfaces.\n\n`bytes.Buffer` belongs to neither this corpus nor the crate the engine emits, so there is\nnowhere to put an impl for it — both facts are recorded as foreign satisfactions and deferred.\nThey share a name and are not the same fact, which is the shape that used to reject a whole\nsnapshot: two entries named `bytes.Buffer` read as two declarations of one package-scope name."
-          },
-          "children": [
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "named_interface",
-                "name": "error"
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "let",
-                  "name": "buf",
-                  "type": {
-                    "kind": "named",
-                    "name": "Buffer",
-                    "package": "bytes"
-                  },
-                  "flags": [
-                    "mutated"
-                  ]
-                },
-                {
-                  "kind": "expr_stmt",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "call",
-                      "name": "",
-                      "attrs": {
-                        "callee": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign.Sink"
-                      },
-                      "children": [
-                        {
-                          "kind": "ident",
-                          "name": "Sink",
-                          "attrs": {
-                            "ref": "func"
-                          }
-                        },
-                        {
-                          "kind": "unary",
-                          "name": "",
-                          "attrs": {
-                            "op": "\u0026"
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "buf",
-                              "attrs": {
-                                "ref": "local"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "call",
-                      "name": "",
-                      "attrs": {
-                        "callee": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign.Source"
-                      },
-                      "children": [
-                        {
-                          "kind": "ident",
-                          "name": "Source",
-                          "attrs": {
-                            "ref": "func"
-                          }
-                        },
-                        {
-                          "kind": "unary",
-                          "name": "",
-                          "attrs": {
-                            "op": "\u0026"
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "buf",
-                              "attrs": {
-                                "ref": "local"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
         {
           "kind": "func",
           "name": "Sink",
@@ -145,11 +31,120 @@
               "name": "",
               "children": [
                 {
-                  "kind": "unsupported",
+                  "kind": "assign_tuple",
                   "name": "",
-                  "attrs": {
-                    "go_node": "AssignStmt"
-                  }
+                  "children": [
+                    {
+                      "kind": "place",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "_",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "place",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "_",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "value",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "call",
+                          "name": "",
+                          "attrs": {
+                            "callee": "",
+                            "callee_kind": "method"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "Write",
+                              "type": {
+                                "kind": "func",
+                                "args": [
+                                  {
+                                    "kind": "tuple",
+                                    "args": [
+                                      {
+                                        "kind": "slice",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "byte"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "kind": "tuple",
+                                    "args": [
+                                      {
+                                        "kind": "basic",
+                                        "name": "int"
+                                      },
+                                      {
+                                        "kind": "named_interface",
+                                        "name": "error"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "w",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "convert",
+                              "name": "",
+                              "type": {
+                                "kind": "slice",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "byte"
+                                  }
+                                ]
+                              },
+                              "children": [
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"x\""
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -302,6 +297,138 @@
                       "attrs": {
                         "ref": "local"
                       }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Drive",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Drive makes one FOREIGN type satisfy two interfaces.\n\n`bytes.Buffer` belongs to neither this corpus nor the crate the engine emits, so there is\nnowhere to put an impl for it — both facts are recorded as foreign satisfactions and deferred.\nThey share a name and are not the same fact, which is the shape that used to reject a whole\nsnapshot: two entries named `bytes.Buffer` read as two declarations of one package-scope name."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "buf",
+                  "type": {
+                    "kind": "named",
+                    "name": "Buffer",
+                    "package": "bytes"
+                  },
+                  "flags": [
+                    "mutated"
+                  ]
+                },
+                {
+                  "kind": "expr_stmt",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign.Sink"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Sink",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "unary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u0026"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "buf",
+                              "type": {
+                                "kind": "named",
+                                "name": "Buffer",
+                                "package": "bytes"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign.Source"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Source",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "unary",
+                          "name": "",
+                          "attrs": {
+                            "op": "\u0026"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "buf",
+                              "type": {
+                                "kind": "named",
+                                "name": "Buffer",
+                                "package": "bytes"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }
