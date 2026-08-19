@@ -101,6 +101,7 @@ pub(crate) fn build_static(
                 result_is_owned_string: false,
                 results: crate::returns::ResultFacts::none(),
                 usize_counters: std::collections::BTreeSet::new(),
+                walked: None,
             };
             expression(initialiser, &body)?
         }

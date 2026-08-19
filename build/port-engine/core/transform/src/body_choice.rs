@@ -39,7 +39,7 @@ pub(crate) fn choice(
     statements: &[Declaration],
     index: usize,
     cx: &Body<'_>,
-) -> Result<Option<RustStmt>, TransformError> {
+) -> Result<Option<Consumed>, TransformError> {
     let Some(bound) = statements.get(index).filter(|node| node.kind == "let") else {
         return Ok(None);
     };
@@ -61,14 +61,49 @@ pub(crate) fn choice(
         return Ok(None);
     };
 
-    Ok(Some(RustStmt::Let {
-        name: to_snake_case(&bound.name),
-        // Nothing writes it after it is bound, which is the whole point: the source needed it
-        // assignable only because its `if` could not produce a value.
-        mutable: false,
-        ty: None,
-        value: Some(branch_value(conditional, cx, a, b)?),
+    let chosen = branch_value(conditional, cx, a, b)?;
+    // A NAME THAT IS ONLY RETURNED is not a name. `x := 0; if c {..} else {..}; return x` binds a
+    // value, chooses it, and hands it back — three statements for one expression, and the middle
+    // name exists only because the source's `if` could not produce a value. Where the statement
+    // after the choice returns exactly that name, the value IS the answer and the binding goes.
+    if returns_only(statements, index + 2, &bound.name) {
+        return Ok(Some(Consumed {
+            statement: RustStmt::Tail(chosen),
+            statements: 3,
+        }));
+    }
+    Ok(Some(Consumed {
+        statement: RustStmt::Let {
+            name: to_snake_case(&bound.name),
+            // Nothing writes it after it is bound, which is the whole point: the source needed it
+            // assignable only because its `if` could not produce a value.
+            mutable: false,
+            ty: None,
+            value: Some(chosen),
+        },
+        statements: 2,
     }))
+}
+
+/// What a choice consumed, and what it became.
+pub(crate) struct Consumed {
+    /// The one statement the source's several become.
+    pub(crate) statement: RustStmt,
+    /// How many source statements it stands for.
+    pub(crate) statements: usize,
+}
+
+/// Whether the statement at `index` is exactly `return <name>`, and is the LAST one.
+///
+/// Last, because a return that is not last leaves code after it that this would silently drop; and
+/// exactly that name, because returning anything else means the binding is read for something.
+fn returns_only(statements: &[Declaration], index: usize, name: &str) -> bool {
+    index + 1 == statements.len()
+        && statements.get(index).is_some_and(|node| {
+            node.kind == "return"
+                && matches!(node.children.as_slice(),
+                    [only] if only.kind == KIND_IDENT && only.name == name)
+        })
 }
 
 /// The expression a branch assigns to `name`, if that is all the branch does.

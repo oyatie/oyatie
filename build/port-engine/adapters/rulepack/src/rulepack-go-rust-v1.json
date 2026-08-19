@@ -800,6 +800,15 @@
       "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-pedantic.md",
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    },
+    {
+      "id": "index_loop_is_an_iterator",
+      "shape": "counted_loop_indexing_one_sequence",
+      "method": "iter",
+      "reason": "`for i := 0; i < len(xs); i++ { .. xs[i] .. }` counts in order to reach each element, because the source has no other way to walk a sequence by value. The target does, and iterating it is the same walk: the same elements, in the same order, exactly as many times. What goes is the counter, which existed only to be an index. EQUIVALENT rather than merely shorter, and the bound is what makes it so: the loop runs from zero to the sequence's own length, so every index it produces is in range and every element is reached once. A loop whose bound is anything else is not this shape and keeps its counter. `clippy::needless_range_loop` names this on hand-written Rust, which is what makes the index form a review comment on hand-written code and therefore a defect in emitted code held to that bar -- and it is the finding three independent reviewers reached for first. THE ELEMENT NEEDS A NAME AND THE SOURCE GIVES NONE, which is the one thing this rule invents. It is a loop-local binding: no caller can see it, nothing outside the loop depends on it, and the alternative is keeping a counter the target does not need. The convention is the sequence's own name with a trailing plural `s` removed, so `values` yields `value` -- and where that yields nothing usable, or collides with a name the body already binds, the rule does not fire and the counter stays. An invented name that shadows a real one would be a different program.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
     }
   ],
   "literal_constructors": {

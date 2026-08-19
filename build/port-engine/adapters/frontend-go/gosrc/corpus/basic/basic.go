@@ -38,7 +38,7 @@ func Scale(value float64, factor float64) float64 {
 // Lower-case, so the source does not export it. Here because the emitted crate must keep the
 // distinction: a private helper that becomes public is a wider API than the source declared.
 
-// unexported returns n unchanged.
-func unexported(n int) int {
+// normalize returns n in its canonical form, which for a plain count is n itself.
+func normalize(n int) int {
 	return n
 }
