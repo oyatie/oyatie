@@ -24,6 +24,7 @@ use std::collections::BTreeMap;
 use port_engine_api::{Declaration, PackSemantics, RulePack, SourceModel, UnitId};
 
 use crate::error::TransformError;
+use crate::signature_table::SignatureTable;
 use crate::items::build_item;
 use crate::ownership::{DispositionLog, OwnershipContext};
 use crate::resolve::{LocalScope, Resolver};
@@ -136,13 +137,30 @@ where
     };
 
     let rules = pack.rules();
+    // One translation of every signature in the model, so an argument site can ask what its
+    // destination wants. Built here rather than per declaration: it is a property of the whole
+    // model, and rebuilding it each time would make the survey quadratic in the corpus.
+    let signature_log = DispositionLog::new();
+    let signature_ownership = OwnershipContext {
+        rules: pack.pointer_dispositions(),
+        log: &signature_log,
+    };
+    let signatures = SignatureTable::build(model, pack, &signature_ownership);
     for unit in model.units() {
         let Some(declarations) = model.declarations(&unit) else {
             continue;
         };
         let scope = LocalScope::of(&declarations);
         for declaration in &declarations {
-            survey_declaration(&unit, declaration, &scope, &rules, pack, &mut report);
+            survey_declaration(
+                &unit,
+                declaration,
+                &scope,
+                &rules,
+                pack,
+                &signatures,
+                &mut report,
+            );
         }
     }
     report
@@ -154,6 +172,9 @@ fn survey_declaration<P>(
     scope: &LocalScope,
     rules: &[port_engine_api::RuleId],
     pack: &P,
+    // Built once for the whole model, not per declaration: it is a translation of every signature
+    // in the snapshot, and rebuilding it for each one would make the survey quadratic in a corpus.
+    signatures: &SignatureTable,
     report: &mut SurveyReport,
 ) where
     P: RulePack + PackSemantics,
@@ -204,6 +225,7 @@ fn survey_declaration<P>(
         trait_object_forms: pack.trait_object_forms(),
         failure: pack.failure_convention(),
         deferred: pack.deferred_kinds(),
+        signatures,
         function_map: pack.function_map(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,

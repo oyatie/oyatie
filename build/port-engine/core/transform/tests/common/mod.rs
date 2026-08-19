@@ -4,8 +4,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Declaration, Digest, FailureConvention, LanguagePair, PackSemantics, PlanStep,
-    PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
+    Declaration, Digest, FailureConvention, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
 };
 use port_engine_rust_ir::RustIr;
 use port_engine_transform::*;
@@ -89,6 +88,13 @@ impl Pack {
             when_effect_unknown: Some(false),
             target: target.to_owned(),
             receiver: receiver.map(ToOwned::to_owned),
+            // A borrow is the neutral fixture construction: it is the one shape that neither moves
+            // the argument nor wraps it, so a test not about argument construction is unaffected
+            // by having to declare one.
+            construction: PointerConstruction::Borrow {
+                mutable: mutated.unwrap_or(false),
+                reason: "fixture decision".to_owned(),
+            },
             reason: "fixture decision".to_owned(),
         });
         self

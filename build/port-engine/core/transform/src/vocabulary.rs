@@ -39,6 +39,14 @@ pub const PRECONDITION_UNIT_PRESENT: &str = "unit_present";
 pub const ATTR_VALUE: &str = "value";
 /// Attribute key holding a binary or unary operator.
 pub const ATTR_OP: &str = "op";
+/// The declaration kind of a free function.
+pub const KIND_FUNC: &str = "func";
+/// The type kind of a pointer.
+pub const TYPE_POINTER: &str = "pointer";
+/// The node kind of a unary expression.
+pub const KIND_UNARY: &str = "unary";
+/// The source spelling of the address-of operator.
+pub const OPERATOR_ADDRESS_OF: &str = "&";
 /// Attribute key holding a literal's lexical class, as the source spells it.
 pub const ATTR_LIT_KIND: &str = "lit_kind";
 /// The lexical class of a string literal.

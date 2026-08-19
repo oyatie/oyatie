@@ -26,7 +26,7 @@ pub use declaration::Declaration;
 pub use error::PortError;
 pub use failure::FailureConvention;
 pub use identity::{Digest, LanguagePair, PAIR_SEPARATOR, RegionId, RuleId, UnitId};
-pub use ownership::{OwnershipFacts, PointerDisposition};
+pub use ownership::{OwnershipFacts, PointerConstruction, PointerDisposition};
 pub use plan::{PlanStep, TransformPlan};
 pub use receipt::{RECEIPT_AXES, Receipt, ReceiptAxis};
 pub use seams::{PackSemantics, Renderer, RulePack, SourceModel, TargetIr};

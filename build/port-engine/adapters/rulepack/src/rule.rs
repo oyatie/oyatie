@@ -58,8 +58,36 @@ pub struct DispositionRule {
     /// which is a refusal rather than a fallback.
     #[serde(default)]
     pub receiver: Option<String>,
+    /// How an ARGUMENT reaches a parameter holding this form.
+    ///
+    /// The same decision seen from the other end: the target says what `*T` becomes in a
+    /// parameter, and this says what `&x` becomes when handed to one.
+    pub construction: ConstructionRule,
     /// Why these facts deserve this form, and what it costs.
     pub reason: String,
+}
+
+/// How an argument reaches a parameter, as STRUCTURE.
+///
+/// Tagged by `kind`, because the two shapes take different data: a borrow needs only its
+/// exclusivity, and a wrap needs the paths it passes the value through.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(tag = "kind", rename_all = "snake_case", deny_unknown_fields)]
+pub enum ConstructionRule {
+    /// The argument lends.
+    Borrow {
+        /// Whether the borrow is exclusive.
+        mutable: bool,
+        /// Why, and what it costs the caller.
+        reason: String,
+    },
+    /// The argument is wrapped by each path in turn, innermost first.
+    Wrap {
+        /// The wrapping paths, innermost first.
+        paths: Vec<String>,
+        /// Why, and what it costs the caller.
+        reason: String,
+    },
 }
 
 /// How a trait method binds its receiver, and why.

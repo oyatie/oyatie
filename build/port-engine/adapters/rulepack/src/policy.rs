@@ -7,9 +7,9 @@
 use std::collections::BTreeSet;
 
 use crate::error::RulepackError;
-use port_engine_api::PointerDisposition;
+use port_engine_api::{PointerConstruction, PointerDisposition};
 
-use crate::rule::{DeferredKind, DispositionRule, LoadedRule, TraitReceiver};
+use crate::rule::{ConstructionRule, DeferredKind, DispositionRule, LoadedRule, TraitReceiver};
 
 /// Convert and check the ownership rules.
 ///
@@ -41,6 +41,13 @@ pub(crate) fn validate_dispositions(
                 field: "pointer_dispositions[].reason",
             });
         }
+        // A construction with no reason is the failure mode this pack exists to prevent: a
+        // decision that emits something and cannot say why.
+        if construction_reason(&rule.construction).trim().is_empty() {
+            return Err(RulepackError::Schema {
+                field: "pointer_dispositions[].construction.reason",
+            });
+        }
         if !seen.insert(rule.id.clone()) {
             return Err(RulepackError::Schema {
                 field: "pointer_dispositions[].id(duplicate)",
@@ -53,6 +60,7 @@ pub(crate) fn validate_dispositions(
             when_effect_unknown: rule.effect_unknown,
             target: rule.target.clone(),
             receiver: rule.receiver.clone(),
+            construction: construction_of(&rule.construction),
             reason: rule.reason.clone(),
         });
     }
@@ -126,4 +134,25 @@ pub(crate) fn validate_policy(
     }
 
     Ok(deferred_kind_set)
+}
+
+/// The neutral construction a pack rule declares.
+fn construction_of(rule: &ConstructionRule) -> PointerConstruction {
+    match rule {
+        ConstructionRule::Borrow { mutable, reason } => PointerConstruction::Borrow {
+            mutable: *mutable,
+            reason: reason.clone(),
+        },
+        ConstructionRule::Wrap { paths, reason } => PointerConstruction::Wrap {
+            paths: paths.clone(),
+            reason: reason.clone(),
+        },
+    }
+}
+
+/// The reason a construction rule carries, whichever shape it is.
+fn construction_reason(rule: &ConstructionRule) -> &str {
+    match rule {
+        ConstructionRule::Borrow { reason, .. } | ConstructionRule::Wrap { reason, .. } => reason,
+    }
 }

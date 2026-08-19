@@ -224,6 +224,32 @@ pub mod globals {
         "globals".to_owned()
     }
 }
+pub mod handoff {
+    // region: oyatie_example_portengine_fixture_corpus_handoff__go_func__bump
+    /// Bump adds one through the pointer, so the parameter is an exclusive borrow and the argument
+    /// lends exclusively.
+    pub fn bump(c: &mut Counter) {
+        c.total = c.total + 1;
+    }
+    // region: oyatie_example_portengine_fixture_corpus_handoff__go_func__read
+    /// Read returns the count without writing, so the parameter is a shared borrow.
+    pub fn read(c: &Counter) -> i64 {
+        c.total
+    }
+    // region: oyatie_example_portengine_fixture_corpus_handoff__go_func__twice
+    /// Twice bumps the counter twice, handing the same local to a borrowing parameter each time.
+    pub fn twice() -> i64 {
+        let mut c = Counter { total: 0 };
+        bump(&mut c);
+        bump(&mut c);
+        read(&c)
+    }
+    // region: oyatie_example_portengine_fixture_corpus_handoff__go_struct_body__counter
+    /// Counter counts.
+    pub struct Counter {
+        total: i64,
+    }
+}
 pub mod naming {
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__describe
     /// Describe renders anything that can name itself.
