@@ -21,6 +21,8 @@
 
 use std::collections::BTreeMap;
 
+use std::collections::BTreeSet;
+
 use port_engine_api::{Declaration, PackSemantics, RulePack, SourceModel, UnitId};
 
 use crate::error::TransformError;
@@ -164,6 +166,9 @@ where
         log: &signature_log,
     };
     let signatures = SignatureTable::build(model, pack, &signature_ownership);
+    // Every module the emitted crate will have. A name from outside them has nothing to be reached
+    // through, and emitting a path for it produces a crate that does not build.
+    let units: BTreeSet<String> = model.units().into_iter().map(|unit| unit.0).collect();
     for unit in model.units() {
         let Some(declarations) = model.declarations(&unit) else {
             continue;
@@ -172,6 +177,7 @@ where
         for (position, declaration) in declarations.iter().enumerate() {
             survey_declaration(
                 &Site {
+                    units: &units,
                     unit: &unit,
                     position,
                     scope: &scope,
@@ -193,6 +199,7 @@ where
 /// declaration is only ever surveyed in the context of the unit it belongs to.
 struct Site<'a> {
     unit: &'a UnitId,
+    units: &'a BTreeSet<String>,
     position: usize,
     scope: &'a LocalScope,
 }
@@ -267,6 +274,7 @@ fn survey_declaration<P>(
         literal_constructors: pack.literal_constructors(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,
+        units: site.units,
         unit: site.unit,
     };
 

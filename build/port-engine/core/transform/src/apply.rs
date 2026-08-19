@@ -174,6 +174,7 @@ pub fn apply_with_provenance(
                     literal_constructors: semantics.literal_constructors(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,
+                    units: &model_units,
                     unit: &step.unit,
                 },
             )?;

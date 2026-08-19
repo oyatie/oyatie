@@ -91,6 +91,9 @@ impl SignatureTable {
     ) -> Self {
         let mut by_callee = BTreeMap::new();
         let mut variadic = BTreeSet::new();
+        // Every module the emitted crate will have, so a signature naming a package outside them
+        // refuses here rather than producing a path that resolves to nothing.
+        let units: BTreeSet<String> = model.units().into_iter().map(|unit| unit.0).collect();
         for unit in model.units() {
             let Some(declarations) = model.declarations(&unit) else {
                 continue;
@@ -118,6 +121,7 @@ impl SignatureTable {
                 length_functions: semantics.length_functions(),
                 undecided_forms: semantics.undecided_forms(),
                 ownership,
+                units: &units,
                 unit: &unit,
                 signatures: &Self::default(),
             };

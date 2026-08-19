@@ -2616,3 +2616,32 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   signature that changes while the names it references still do not resolve produces the same
   unresolved-name error at a new place. The 96% cause is unchanged and untouched, and nothing here
   was going to move it.
+
+## Self-containment, and the seventh honest correction
+
+- 216 of 226 compile errors on six real ported packages were unresolved names, and the cause was one
+  line: a call into ANY package became `crate::<module>::<name>`, whether or not that package was in
+  the model. The engine already had this rule for a narrower case — a body naming a DEFERRED package
+  variable refuses, because "what is emitted has to be self-contained" — and it covered deferrals
+  and nothing else.
+
+- Now the resolver knows every unit the MODEL has, which is every module the emitted crate will
+  contain. A call into one of them is a path; a call into anything else refuses by name, saying that
+  the package is not in the snapshot and that the pack has to map it, as it maps the other calls into
+  libraries that do not come along.
+
+- THE CORRECTION, and it is the largest of the lane: xxhash 73.5 → 47.1, semver 51.7 → 32.8, ksuid
+  49.5 → 38.7, uuid 46.4 → 40.2, errors 47.4 → 36.8, xid 30.8 → 23.1. Every one of those points was
+  a declaration counted as translated while emitting a path that resolves to nothing.
+
+- AND THE PROOF IT WAS RIGHT: rustc errors on the emitted packages fell from 243 to 110, and
+  **semver's ported output now compiles with zero errors** — the first time a real third-party
+  package's ported subset has compiled at all. 62 lines of it, and they are 62 lines a reviewer can
+  be handed.
+
+- WHAT REMAINS in the 110 is the same rule one step further in: 78 × E0425 is a body naming a
+  declaration of its OWN unit that itself refused. That needs a fixpoint — a declaration is emitted
+  only if everything it names is emitted — and it is the next thing.
+
+- The number that matters did not change: nothing here made the engine translate more. It made it
+  stop claiming to.
