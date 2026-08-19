@@ -1818,3 +1818,32 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - TWO FENCES CAUGHT THE SPLIT, which is what they are for: `frontend-go`'s firewall and `rulepack`'s
   neutrality test each enumerate their crate's sources and assert the enumeration IS the directory.
   Both failed on the new files rather than quietly covering less than before.
+
+## Propagation without the check, and a refusal that had become an essay
+
+- `err := f(); return v, err` is the same program as the checked form — returning the failure when
+  it is ABSENT is returning success, so the source omits the test — and real code writes it
+  constantly. `func FromBytes` is this exact shape in three of the surveyed corpora. The target
+  spells it as the operator followed by the success: `f()?;` then `Ok(v)`.
+
+  Two statements in, two out, because the source's two do two things: run the fallible call, and
+  return the values with whatever it produced. The operator carries the failure out and the success
+  carries the values, which is the same split.
+
+  STRICT in the same way the checked matcher is: the return must be the VERY NEXT statement, and the
+  bind's source must be a CALL. Anything between could write the binding or do work the operator
+  would silently drop, and a bind that is not a call has a provenance this statement cannot see.
+  `v, err := f()` is deliberately not matched — its values come from the call, so `f()?` produces
+  them and a separate return has nothing to name.
+
+  NO COVERAGE MOVEMENT, and the reason is worth recording rather than hiding: the corpora sites are
+  all `var uuid UUID` followed by a method call, and `DeclStmt` has no translation yet. The rule is
+  correct and proven by the hermetic corpus; it becomes visible in the ratchet when `DeclStmt`
+  lands. Counting it as a win now would be counting the same declaration twice.
+
+- The unproven-failure refusal had become an ESSAY. It inlined the pack's whole
+  `constructor_reason` at every site — about 1,500 characters, most of it repeated from the previous
+  refusal on the same screen — which drowns the one sentence a reader needs. Trimmed to what is
+  missing, what it would cost, and the two proofs, with the pack field NAMED so the full reasoning
+  is one lookup away. Quoting the pack so text cannot drift was the right instinct and the wrong
+  amount: the pointer keeps the property and loses the flood.

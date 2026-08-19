@@ -16,7 +16,7 @@ use port_engine_rust_ir::{RustExpr, RustStmt, TupleBind};
 use crate::body_cond::conditional;
 use crate::body_expr::{Position, expression, in_position};
 use crate::body_ops::{binary_operator, returns_owned_string};
-use crate::body_failure::{propagate, translated_return};
+use crate::body_failure::{propagate, propagate_into_success, translated_return};
 use crate::body_loops::{counted_loop, range_loop, switch};
 use crate::body_parts::{branch, named_child, one_child, two_children, unsupported_source};
 use crate::error::TransformError;
@@ -123,6 +123,17 @@ pub(crate) fn translate(
         // whether the pair is an operator or two ordinary statements.
         if let Some(found) = crate::failure::propagation(nodes, index, cx.resolver.failure) {
             out.push(propagate(&found, cx)?);
+            index += 2;
+            continue;
+        }
+        // The UNCHECKED propagation, which spans two statements for the same reason: `err := f()`
+        // alone says nothing, and it is the return that follows which decides whether the pair is
+        // an operator and a success or two ordinary statements.
+        if cx.fallible
+            && let Some(found) =
+                crate::failure::tail_propagation(nodes, index, cx.resolver.failure)
+        {
+            out.extend(propagate_into_success(&found, cx)?);
             index += 2;
             continue;
         }

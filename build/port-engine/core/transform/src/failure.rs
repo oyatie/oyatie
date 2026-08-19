@@ -109,6 +109,64 @@ pub(crate) fn propagation<'a>(
     Some(Propagation { values, source })
 }
 
+/// The UNCHECKED propagation: a bind whose very next statement returns the failure it bound.
+///
+/// `err := f(); return v, err` is the same program as `err := f(); if err != nil { return v, err };
+/// return v, nil` — the source writes it without the check because returning the failure when it is
+/// absent IS returning success. Real code writes it constantly, and `func FromBytes` in three of the
+/// surveyed corpora is the exact shape.
+///
+/// Two statements, and the target spells both as one operator plus a success: `f()?;` and then
+/// `Ok(v)`. When the failure is absent the source returns `v` with success and so does the target;
+/// when it is present the source returns `v` alongside the failure and the target returns the
+/// failure alone, which is the companion discard the pack has already decided and given a reason.
+///
+/// STRICT in the same way the checked form is: the return must be the VERY NEXT statement. Anything
+/// between could write the binding or do work the operator would silently drop.
+pub(crate) struct TailPropagation<'a> {
+    /// The expression the bind takes its failure from.
+    pub(crate) source: &'a Declaration,
+    /// The operands the return carries besides the failure, which become the success value.
+    pub(crate) values: &'a [Declaration],
+}
+
+/// Recognise the unchecked propagation at `statements[index]`, consuming the return that follows.
+pub(crate) fn tail_propagation<'a>(
+    statements: &'a [Declaration],
+    index: usize,
+    convention: Option<&FailureConvention>,
+) -> Option<TailPropagation<'a>> {
+    let bind = statements.get(index)?;
+    // The failure-only bind. `v, err := f()` is deliberately NOT matched: its values come from the
+    // call, so `f()?` produces them and there is nothing for a separate return to name.
+    if bind.kind != "let" {
+        return None;
+    }
+    let source = bind.children.first()?;
+    if !source_can_fail(source, convention) {
+        return None;
+    }
+    let returned = statements.get(index + 1)?;
+    if returned.kind != "return" {
+        return None;
+    }
+    let (failure, values) = returned.children.split_last()?;
+    if failure.kind != "ident" || failure.name != bind.name {
+        return None;
+    }
+    Some(TailPropagation { source, values })
+}
+
+/// Whether the bound expression is one that can produce a failure at all.
+///
+/// A CALL, and nothing else. The bind's own type is not recorded on the node, so the shape is what
+/// says this: `err := f()` binds a call's result, and `err := x` binds something whose provenance
+/// this statement cannot see. Narrow deliberately — the operator rewrites two statements into one,
+/// and applying it to a bind that is not a call would rewrite a program it did not read.
+fn source_can_fail(source: &Declaration, _convention: Option<&FailureConvention>) -> bool {
+    source.kind == "call"
+}
+
 /// Whether a statement is exactly `if <name> != <absent> { return …, <name> }`.
 ///
 /// Every clause is checked. A body that does anything else before returning, or returns something
