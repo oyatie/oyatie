@@ -155,9 +155,23 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 		// `errors` are the same text, and only the type-checker can tell them apart — so a rule
 		// that keys on the identity answers for the real function and not for whatever shares
 		// its name.
+		// A CONVERSION is spelled exactly like a call and is not one. Recorded as its own kind,
+		// carrying the type it converts TO, because the target has three different forms for it and
+		// none of them is a function call.
+		if target := conversionTarget(typed, ctx); target != nil {
+			return node{
+				Kind:     kindConvert,
+				Type:     target,
+				Children: children[1:],
+			}
+		}
+		attrs := withAttr(nil, attrCallee, calleeIdentity(typed.Fun, ctx))
+		if calleeIsMethod(typed.Fun, ctx) {
+			attrs = withAttr(attrs, attrCalleeKind, calleeKindMethod)
+		}
 		return node{
 			Kind:     kindCall,
-			Attrs:    withAttr(nil, attrCallee, calleeIdentity(typed.Fun, ctx)),
+			Attrs:    attrs,
 			Children: children,
 		}
 
@@ -230,6 +244,13 @@ func calleeIdentity(fun ast.Expr, ctx *extractCtx) string {
 	case *types.Builtin:
 		return typed.Name()
 	case *types.Func:
+		// A METHOD is not nameable by package path — it is reached through a receiver, and the
+		// target spells that differently from a function call. Recording an identity for it would
+		// invite a rule to resolve it as a path, which is the defect this distinction exists to
+		// stop; `calleeIsMethod` reports the difference instead.
+		if signature, ok := typed.Type().(*types.Signature); ok && signature.Recv() != nil {
+			return ""
+		}
 		if pkg := typed.Pkg(); pkg != nil {
 			return pkg.Path() + "." + typed.Name()
 		}
@@ -237,6 +258,57 @@ func calleeIdentity(fun ast.Expr, ctx *extractCtx) string {
 	default:
 		return ""
 	}
+}
+
+// conversionTarget reports the type a call CONVERTS to, or nil when the call is a call.
+//
+// go/types records a conversion as a call whose callee denotes a TYPE. Nothing in the syntax says
+// so — `uint32(x)` and `f(x)` are the same production — which is why this asks the type-checker
+// rather than the shape.
+func conversionTarget(call *ast.CallExpr, ctx *extractCtx) *typeNode {
+	if len(call.Args) != 1 {
+		return nil
+	}
+	var name *ast.Ident
+	switch typed := call.Fun.(type) {
+	case *ast.Ident:
+		name = typed
+	case *ast.SelectorExpr:
+		name = typed.Sel
+	case *ast.ArrayType:
+		// `[]byte(s)` — the callee is a type expression rather than a name.
+		if tv, ok := ctx.info.Types[call.Fun]; ok && tv.IsType() {
+			return typeTree(tv.Type)
+		}
+		return nil
+	default:
+		return nil
+	}
+	if _, ok := ctx.info.Uses[name].(*types.TypeName); !ok {
+		return nil
+	}
+	if tv, ok := ctx.info.Types[call]; ok && tv.Type != nil {
+		return typeTree(tv.Type)
+	}
+	return nil
+}
+
+// calleeIsMethod reports whether a call goes through a RECEIVER.
+//
+// Syntax cannot answer this: `value.Method()` and `package.Function()` are the same shape, and only
+// the type-checker knows which name is a package. Deciding by syntax is what made a cross-package
+// call emit a method call on a binding that does not exist.
+func calleeIsMethod(fun ast.Expr, ctx *extractCtx) bool {
+	selector, ok := fun.(*ast.SelectorExpr)
+	if !ok {
+		return false
+	}
+	method, ok := ctx.info.Uses[selector.Sel].(*types.Func)
+	if !ok {
+		return false
+	}
+	signature, ok := method.Type().(*types.Signature)
+	return ok && signature.Recv() != nil
 }
 
 // sliceBound records a slice's bound, or its ABSENCE as a node of its own.

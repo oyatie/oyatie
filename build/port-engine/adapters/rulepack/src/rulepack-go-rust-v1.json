@@ -86,7 +86,13 @@
     "",
     "`error` maps to the TRAIT, not to a boxed one. Where a trait may stand is a position question",
     "the trait_object_forms table answers, so a parameter becomes `&dyn std::error::Error` and a",
-    "result — which the target must own — refuses until the pack declares how it is owned."
+    "result — which the target must own — refuses until the pack declares how it is owned.",
+    "",
+    "cast_types names the SOURCE types a conversion reaches by a plain cast. The source DEFINES numeric",
+    "conversion to truncate and the target's cast does the same thing, so the two agree and the cast is",
+    "faithful. A conversion the pack does not list is one where they disagree — string to byte slice is",
+    "infallible and lossy in the source and fallible in the target — and those refuse, because what",
+    "happens to input the target rejects is a decision rather than a spelling."
   ],
   "pair": {
     "source": "go",
@@ -417,5 +423,22 @@
   "function_map": {
     "errors.New": "Box::<dyn std::error::Error>::from({0})",
     "len": "{0}.len() as i64"
-  }
+  },
+  "cast_types": [
+    "byte",
+    "float32",
+    "float64",
+    "int",
+    "int16",
+    "int32",
+    "int64",
+    "int8",
+    "rune",
+    "uint",
+    "uint16",
+    "uint32",
+    "uint64",
+    "uint8",
+    "uintptr"
+  ]
 }

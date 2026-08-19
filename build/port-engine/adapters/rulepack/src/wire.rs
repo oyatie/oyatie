@@ -31,6 +31,8 @@ pub(crate) struct RulepackDocument {
     #[serde(default)]
     pub(crate) copy_types: BTreeSet<String>,
     #[serde(default)]
+    pub(crate) cast_types: BTreeSet<String>,
+    #[serde(default)]
     pub(crate) zero_values: BTreeMap<String, String>,
     #[serde(default)]
     pub(crate) trait_object_forms: BTreeMap<String, String>,

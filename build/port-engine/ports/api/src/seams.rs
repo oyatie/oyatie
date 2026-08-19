@@ -127,6 +127,12 @@ pub trait PackSemantics {
     /// have. No real package can be ported without this table: every one of them calls its standard
     /// library, and a standard library is exactly the part that does not come along.
     fn function_map(&self) -> &BTreeMap<String, String>;
+    /// SOURCE types a conversion reaches by a plain cast.
+    ///
+    /// Keyed by source identity like [`PackSemantics::type_map`]. A conversion the pack does not
+    /// list is one where the two languages disagree about what conversion MEANS — infallible and
+    /// lossy on one side, fallible on the other — and those refuse.
+    fn cast_types(&self) -> &BTreeSet<String>;
     /// Ownership rules, in declared order — first match wins.
     ///
     /// Which ownership form a set of observed facts deserves is a translation DECISION with a cost

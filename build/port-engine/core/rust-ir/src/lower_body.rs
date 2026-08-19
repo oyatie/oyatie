@@ -112,6 +112,14 @@ fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
             };
             Ok(quote! { &#base[#range] })
         }
+        RustExpr::Cast { expr, ty } => {
+            // The operand is BRACKETED. `as` binds tighter than every binary operator, so
+            // `a + b as u8` casts `b` alone — a silently different program from the one the source
+            // wrote, and one that compiles.
+            let inner = lower_expr(expr)?;
+            let ty = parse_type(ty)?;
+            Ok(quote! { (#inner) as #ty })
+        }
         RustExpr::Try(inner) => {
             let inner = lower_expr(inner)?;
             Ok(quote! { #inner? })

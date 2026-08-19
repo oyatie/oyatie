@@ -94,6 +94,17 @@ pub enum RustExpr {
         /// The upper bound, or the end.
         high: Option<Box<RustExpr>>,
     },
+    /// `expr as T` — a truncating conversion.
+    ///
+    /// A NODE rather than text, so a later rule can see the cast and remove it. A cast rendered
+    /// into a string is invisible to integer right-sizing, which is the rule most likely to want it
+    /// gone.
+    Cast {
+        /// What is being converted.
+        expr: Box<RustExpr>,
+        /// What it is converted to.
+        ty: RustType,
+    },
     /// `expr?` — propagate a failure to the caller.
     ///
     /// An OPERATOR rather than a call, which is the whole point of recognising the source's
@@ -239,6 +250,7 @@ impl RustExpr {
             | Self::StructLiteral { .. }
             | Self::Try(_)
             | Self::Slice { .. }
+            | Self::Cast { .. }
             | Self::SelfValue
             | Self::Match { .. }
             | Self::Todo => Precedence::ATOMIC,
