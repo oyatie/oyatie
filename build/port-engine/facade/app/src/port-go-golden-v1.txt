@@ -55,8 +55,8 @@ pub mod composite {
     // region: oyatie_example_portengine_fixture_corpus_composite__go_func__newdriver
     impl Driver {
         /// Returns a driver labelled for display, driving the given engine.
-        pub fn new(engine: Engine, label: &str) -> Driver {
-            Driver {
+        pub fn new(engine: Engine, label: &str) -> Self {
+            Self {
                 engine,
                 label: label.to_owned(),
             }
@@ -217,8 +217,8 @@ pub mod naming {
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newlabel
     impl Label {
         /// Returns a label whose display name is derived from prefix.
-        pub fn new(prefix: &str) -> Label {
-            Label {
+        pub fn new(prefix: &str) -> Self {
+            Self {
                 prefix: prefix.to_owned(),
                 text: prefix.to_owned(),
             }
@@ -227,8 +227,8 @@ pub mod naming {
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newtag
     impl Tag {
         /// Returns a tag with the given fixed display name.
-        pub fn new(text: &str) -> Tag {
-            Tag { text: text.to_owned() }
+        pub fn new(text: &str) -> Self {
+            Self { text: text.to_owned() }
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__label
@@ -268,8 +268,8 @@ pub mod pointers {
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_func__newcounter
     impl Counter {
         /// Returns a counter starting at zero, named for display.
-        pub fn new(label: &str) -> Counter {
-            Counter {
+        pub fn new(label: &str) -> Self {
+            Self {
                 total: 0,
                 label: label.to_owned(),
             }
@@ -356,8 +356,8 @@ pub mod shapes {
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_func__newpoint
     impl Point {
         /// Returns the point at the given coordinates, labelled for display.
-        pub fn new(x: i64, y: i64, label: &str) -> Point {
-            Point {
+        pub fn new(x: i64, y: i64, label: &str) -> Self {
+            Self {
                 x,
                 y,
                 label: label.to_owned(),

@@ -53,6 +53,8 @@ pub const KIND_LITERAL: &str = "literal";
 pub const IDIOM_EMPTY_STRING: &str = "empty_string_comparison";
 /// The idiom that borrows a sequence as a slice rather than as its owned container.
 pub const IDIOM_BORROWED_SLICE: &str = "borrowed_sequence_is_a_slice";
+/// The idiom that spells a type as `Self` inside its own impl block.
+pub const IDIOM_SELF_IN_IMPL: &str = "self_inside_own_impl";
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
 /// The node kind of a unary expression.

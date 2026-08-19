@@ -1469,6 +1469,39 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   31.6 → 26.3, semver 34.5 → 31.0. Every declaration that moved was emitting a signature that
   consumed a value the source shares.
 
+- `Self` INSIDE THE TYPE'S OWN IMPL. A constructor moved onto its type names that type twice —
+  once in the result and once in the literal it builds — and the target spells both `Self`. Not
+  merely shorter: `Self` survives a rename, where the name written twice has two places to miss.
+  The source has no such spelling and therefore always writes the name, so every constructor the
+  engine moves would otherwise carry it twice.
+  Structural rather than textual: the result is a resolved type and the literal carries its path,
+  so a name that merely RESEMBLES the type is not touched. Fourth idiom to carry rust-skills
+  provenance.
+
+- THE ERROR MODEL IS SETTLED, and settled as HELD rather than owed. Two reviewers called
+  `Box<dyn Error + Send + Sync>` with a string payload unfit for a library because a consumer
+  cannot match on it. Checked rather than conceded: the source's `errors.New("empty")` gives its
+  own callers exactly as little — an opaque interface value with a string inside — and a source
+  caller who wants to branch uses `errors.Is`/`errors.As` against a sentinel value or a concrete
+  type, which the target's boxed trait object plus a downcast supports. The criticism is of the
+  SOURCE's error design, carried across rather than introduced.
+  A concrete error enum would give the ported crate an API the source does not have. That is an
+  IMPROVEMENT, and improving is not porting: it invents a type upstream never declared, it cannot
+  represent a failure propagated from a callee the package does not know, and the next upstream
+  release would have to be reconciled against a shape nobody upstream wrote — which is precisely
+  the property that turns a maintained port into a fork.
+  Written into the pack's failure convention so it travels in the digest and is answered where the
+  decision lives, rather than being re-argued by the next reader of the emitted crate.
+
+- THREE STANDING DISAGREEMENTS now, all with the same shape and all recorded rather than open:
+  `wrapping_*` under the source's own docs (three reviews), the error model (two reviews), and
+  observed-rather-than-structural interface satisfaction (census-backed, 80,042 structural matches
+  against 1,316 the source declares). Each is a place where the emitted crate is faithful to a
+  source that a Rust reviewer would not have written that way. Worth naming as a CLASS: a reviewer
+  judging the output as hand-written Rust will always find the source's design decisions and
+  attribute them to the engine, and the engine's answer has to be a written reason rather than a
+  fix — because the fix is a different program.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil
