@@ -5,6 +5,10 @@
 //! only — never from `verify()`. Slice 3 lands the pin loader; extractor admission is Slice 3+.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 use std::fmt;
 
 use serde::Deserialize;

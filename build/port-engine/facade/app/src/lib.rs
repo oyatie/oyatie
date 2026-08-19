@@ -5,8 +5,13 @@
 //! `k8s/`). Bridge feedback only — never merge authority.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 pub mod cli;
 pub mod driver;
+pub mod engine;
 pub mod receipt_codec;
 pub mod receipt_e2e;
 

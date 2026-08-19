@@ -9,6 +9,10 @@
 //! coverage. Digest is SHA-256 of the embedded JSON bytes. Neutral only — no corpus vocabulary.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 mod error;
 mod pack;
 mod policy;

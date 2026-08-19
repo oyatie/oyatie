@@ -5,6 +5,10 @@
 //! identities rather than prose stubs. Algorithm: SHA-256, spelled `sha256:<lowercase-hex>`.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 use port_engine_api::Digest;
 use sha2::{Digest as Sha2Digest, Sha256};
 

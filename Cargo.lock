@@ -10137,6 +10137,7 @@ version = "0.1.0"
 name = "port-engine-app"
 version = "0.1.0"
 dependencies = [
+ "port-engine-analysis",
  "port-engine-api",
  "port-engine-emit",
  "port-engine-frontend-go",

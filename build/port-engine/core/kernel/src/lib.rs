@@ -110,6 +110,14 @@ use port_engine_api::{
 // Compile-time neutrality enforcement (ADR-0637 D1).
 // ---------------------------------------------------------------------------------------------
 
+/// This crate's own source, for the engine-identity axis assembled by the facade.
+///
+/// INLINE rather than a generated submodule. This crate refuses a submodule declaration as a whole
+/// identifier so that "the kernel is exactly this file" is a property of the build, and splitting it
+/// would delete that proof to save four lines. One entry, because the same rule makes a second file
+/// impossible — and this comment cannot spell the refused keyword, which is the scan working.
+pub const CRATE_SOURCES: &[(&str, &str)] = &[("lib.rs", include_str!("lib.rs"))];
+
 /// This file's own bytes, read at compile time. Every assertion below is evaluated against the
 /// real source rather than against a hand-maintained description of it.
 const KERNEL_SOURCE: &str = include_str!("lib.rs");

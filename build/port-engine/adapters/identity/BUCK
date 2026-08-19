@@ -1,4 +1,5 @@
-# Package-local engine-identity-v0.json is the hermetic engine axis input.
+# This crate owns the ENCODING of the engine axis, not the enumeration: every crate embeds the
+# sources it owns and the facade joins them, so this target's inputs stay package-local.
 rust_library(
     name = "port-engine-identity",
     srcs = glob(["src/**/*.rs", "src/**/*.json"]),

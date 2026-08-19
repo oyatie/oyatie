@@ -6,6 +6,10 @@
 //! - a materialize root's basename must be allowlisted
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 mod canary;
 mod error;
 mod materialize;

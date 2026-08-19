@@ -102,6 +102,21 @@ rust_test(
     ],
 )
 
+# The two fences on the `engine_digest` axis: that the manifest is the whole engine, and that the
+# digest moves when the manifest does. Neither is worth anything without the other.
+rust_test(
+    name = "port-engine-app-engine-digest",
+    srcs = glob(["tests/engine_digest.rs"]),
+    crate = "port_engine_app_engine_digest",
+    crate_root = "tests/engine_digest.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/adapters/identity:port-engine-identity",
+        ":port-engine-app",
+    ],
+)
+
 rust_test(
     name = "port-engine-app-readiness",
     srcs = glob(["tests/readiness.rs"]),

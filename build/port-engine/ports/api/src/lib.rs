@@ -8,6 +8,10 @@
 //! Zero dependencies by design: seam types name no corpus type and carry no adapter machinery.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 mod declaration;
 mod error;
 mod failure;

@@ -9,6 +9,10 @@
 //! PROVES the enumeration is the whole of `src/`.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 mod convert;
 mod error;
 mod model;

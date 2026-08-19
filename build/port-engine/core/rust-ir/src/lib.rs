@@ -25,6 +25,10 @@
 //! engine's OUTPUT must mention it, because emitting a translation of that corpus is the point.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 mod expr;
 mod item;
 mod lower;

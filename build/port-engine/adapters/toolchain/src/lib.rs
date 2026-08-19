@@ -7,6 +7,10 @@
 //! content-addressed without rewriting the live buck cell.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 use port_engine_api::Digest;
 use port_engine_hash::digest_bytes;
 
