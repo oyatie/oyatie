@@ -8,6 +8,8 @@
 //! operator tables in [`crate::body_ops`] map to typed operators rather than to spellings: a
 //! spelling has to be parenthesised defensively, a typed operator carries its own binding power.
 
+use std::collections::BTreeSet;
+
 use port_engine_api::Declaration;
 use port_engine_rust_ir::{RustExpr, RustStmt, TupleBind};
 
@@ -38,6 +40,13 @@ pub(crate) struct Body<'a> {
     /// A property of the signature that only the body can spend: the same `return x, y` is two
     /// different target constructions depending on it, and nothing inside a return says which.
     pub(crate) fallible: bool,
+    /// Parameter names the signature BORROWS.
+    ///
+    /// The transform decided which ones those are when it built the signature, so this is the same
+    /// answer rather than a second derivation. A borrowed value reaching a position that OWNS —
+    /// a struct literal's field — has to be owned there, and the source did not have to say so
+    /// because its string and its slice were already shared.
+    pub(crate) borrowed: BTreeSet<String>,
     /// Whether the single result resolves to the OWNED target for a source string.
     ///
     /// A property of the signature that only the body can spend, exactly like `fallible`: a bare
@@ -52,12 +61,14 @@ impl<'a> Body<'a> {
         resolver: &'a Resolver<'a>,
         fallible: bool,
         result_is_owned_string: bool,
+        borrowed: BTreeSet<String>,
     ) -> Self {
         Self {
             owner,
             resolver,
             fallible,
             result_is_owned_string,
+            borrowed,
         }
     }
 }
@@ -84,6 +95,7 @@ pub(crate) fn statements(
             resolver,
             fallible,
             returns_owned_string(declaration, resolver),
+            crate::params::borrowed_parameters(declaration, resolver),
         ),
         TailPosition::Yes,
     )

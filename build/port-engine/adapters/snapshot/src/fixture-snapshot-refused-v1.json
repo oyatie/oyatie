@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:b9adcee57d1cc708220af807b11b3d9999457ef1429439040b18a9b981e7cbdd",
+  "snapshot_digest": "sha256:8a31f4b2b97565169938153a91e9ae4573fe90fb6377ce87a2c513d8281337c6",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -573,6 +573,142 @@
                       "kind": "ident",
                       "name": "base",
                       "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Label",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Label renders a display name for the given identity, falling back when it is empty.\n\nREFUSED. Both parameters are strings, which the source shares with the caller, and the result is\nONE OF THEM — so the target's signature needs a lifetime tying the result to the arguments.\nNothing here emits lifetimes yet. Taking them owned instead would consume two values the source\nnever consumed, which is what this used to do."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "id",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "fallback",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
+                          "attrs": {
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "id",
+                              "type": {
+                                "kind": "basic",
+                                "name": "string"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fallback",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "id",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
+                      "attrs": {
+                        "read_count": "2",
                         "ref": "local"
                       }
                     }

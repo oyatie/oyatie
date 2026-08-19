@@ -5,7 +5,9 @@
 //! failure convention is the same observation one level up — a trailing result of the failure type
 //! is not a result at all, it is the shape of the whole return.
 
-use port_engine_api::Declaration;
+use std::collections::BTreeSet;
+
+use port_engine_api::{Declaration, TypeRef};
 use port_engine_rust_ir::{RustParam, RustType};
 
 use crate::error::TransformError;
@@ -13,8 +15,7 @@ use crate::naming::to_snake_case;
 use crate::ownership::{binds_by_pointer, parameter_target, reference_target};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC,
-    IDIOM_BORROWED_SLICE, POSITION_PARAM, POSITION_RESULT,
+    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, IDIOM_BORROWED_SLICE, POSITION_PARAM, POSITION_RESULT, SOURCE_STRING, TARGET_STR,
 };
 
 /// A variadic parameter is a SLICE, which is what it already is.
@@ -49,7 +50,7 @@ pub(crate) fn params(
             // exactly as a pointer is, so it gets the same decision on the same observed facts.
             // Emitting it owned would consume the caller's value and lose the sharing, which is
             // what a reviewer probing the emitted crate found: `size(my_table)` lost `my_table`.
-            let ty = if is_reference_kind(&param.type_ref.kind) {
+            let ty = if is_reference_kind(&param.type_ref) {
                 RustType::path(reference_target(
                     param,
                     &borrowed_spelling(param, resolver, &declaration.name)?,
@@ -150,8 +151,11 @@ pub(crate) fn results(
 /// A map is shared outright; a slice shares its backing array, so writing an element is visible to
 /// the caller while re-slicing is not. Both are the ownership question a pointer is, which is why
 /// they are answered by the same dispositions.
-fn is_reference_kind(kind: &str) -> bool {
-    matches!(kind, "map" | "slice")
+fn is_reference_kind(type_ref: &TypeRef) -> bool {
+    // A STRING is a reference too, and it is the one that is not a composite kind. The source's
+    // string is immutable and shares its backing, so passing it costs nothing and the caller keeps
+    // it — emitting an owned `String` consumes a value the source never consumed.
+    matches!(type_ref.kind.as_str(), "map" | "slice") || type_ref.name == SOURCE_STRING
 }
 
 /// What a borrow of this reference type borrows.
@@ -172,6 +176,13 @@ fn borrowed_spelling(
     resolver: &Resolver<'_>,
     owner: &str,
 ) -> Result<String, TransformError> {
+    if param.type_ref.name == SOURCE_STRING
+        && resolver.idiom_method(IDIOM_BORROWED_SLICE).is_some()
+    {
+        // `str` is the string's unsized view, exactly as `[T]` is a sequence's: `&str` takes every
+        // `&String` and also a literal and a subslice, where `&String` takes only the container.
+        return Ok(TARGET_STR.to_owned());
+    }
     if param.type_ref.kind == "slice"
         && resolver.idiom_method(IDIOM_BORROWED_SLICE).is_some()
         && let Some(element) = param.type_ref.args.first()
@@ -181,4 +192,31 @@ fn borrowed_spelling(
     Ok(resolver
         .resolve_in(&param.type_ref, owner, POSITION_PARAM)?
         .spelling())
+}
+
+/// The parameter names this signature BORROWS.
+///
+/// Answered by asking the same question the signature answered, rather than by re-deriving it: a
+/// parameter is borrowed exactly when it is a reference type whose disposition chose a borrow. A
+/// value reaching a position that OWNS — a struct literal's field — has to be owned there, and the
+/// source did not have to say so because its string and its slice were already shared.
+pub(crate) fn borrowed_parameters(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> BTreeSet<String> {
+    declaration
+        .children_of_kind(CHILD_PARAM)
+        .into_iter()
+        .filter(|param| is_reference_kind(&param.type_ref))
+        .filter(|param| {
+            let site = format!("{}({})", declaration.name, param.name);
+            borrowed_spelling(param, resolver, &declaration.name)
+                .ok()
+                .and_then(|spelling| {
+                    reference_target(param, &spelling, &site, resolver.ownership).ok()
+                })
+                .is_some_and(|target| target.starts_with('&'))
+        })
+        .map(|param| to_snake_case(&param.name))
+        .collect()
 }

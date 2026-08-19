@@ -36,6 +36,19 @@ fn owned_read(
     is_last_read: bool,
 ) -> Result<RustExpr, TransformError> {
     let value = expression(node, cx)?;
+
+    // A BORROWED parameter reaching a field that owns. The source shared its string and its slice
+    // with the caller, so nothing there had to say this; the target's field owns, so the borrow
+    // has to become one. `to_owned` rather than `clone`, because `clone` on a `&str` yields a
+    // `&str` and the field wants the owned form.
+    if node.kind == "ident" && cx.borrowed.contains(&node.name) {
+        return Ok(RustExpr::MethodCall {
+            receiver: Box::new(value),
+            method: "to_owned".to_owned(),
+            args: Vec::new(),
+        });
+    }
+
     if is_last_read
         || node.kind != "ident"
         || !node.has_flag(FLAG_REREAD)

@@ -40,14 +40,6 @@ pub mod basic {
     pub fn add(a: i64, b: i64) -> i64 {
         a.wrapping_add(b)
     }
-    // region: oyatie_example_portengine_fixture_corpus_basic__go_func__label
-    /// Renders a display name for the given identity.
-    pub fn label(id: ID, fallback: String) -> String {
-        if id.is_empty() {
-            return fallback;
-        }
-        id
-    }
     // region: oyatie_example_portengine_fixture_corpus_basic__go_func__scale
     /// Multiplies value by factor.
     pub fn scale(value: f64, factor: f64) -> f64 {
@@ -63,8 +55,11 @@ pub mod composite {
     // region: oyatie_example_portengine_fixture_corpus_composite__go_func__newdriver
     impl Driver {
         /// Returns a driver labelled for display, driving the given engine.
-        pub fn new(engine: Engine, label: String) -> Driver {
-            Driver { engine, label }
+        pub fn new(engine: Engine, label: &str) -> Driver {
+            Driver {
+                engine,
+                label: label.to_owned(),
+            }
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_interface__describer
@@ -123,7 +118,7 @@ pub mod composite {
 pub mod fallible {
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__check
     /// Reports whether s is usable, returning only a failure.
-    pub fn check(s: String) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub fn check(s: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if s.is_empty() {
             return Err(Box::<dyn std::error::Error + Send + Sync>::from("empty"));
         }
@@ -131,7 +126,7 @@ pub mod fallible {
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__length
     /// Reports the length of s, failing on the empty string.
-    pub fn length(s: String) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn length(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         if s.is_empty() {
             return Err(Box::<dyn std::error::Error + Send + Sync>::from("empty"));
         }
@@ -139,13 +134,13 @@ pub mod fallible {
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__twice
     /// Returns the length of s doubled.
-    pub fn twice(s: String) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn twice(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         let n = length(s)?;
         Ok(n.wrapping_add(n))
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__validate
     /// Checks s and reports nothing else.
-    pub fn validate(s: String) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub fn validate(s: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         check(s)?;
         Ok(())
     }
@@ -222,18 +217,18 @@ pub mod naming {
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newlabel
     impl Label {
         /// Returns a label whose display name is derived from prefix.
-        pub fn new(prefix: String) -> Label {
+        pub fn new(prefix: &str) -> Label {
             Label {
-                prefix: prefix.clone(),
-                text: prefix,
+                prefix: prefix.to_owned(),
+                text: prefix.to_owned(),
             }
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newtag
     impl Tag {
         /// Returns a tag with the given fixed display name.
-        pub fn new(text: String) -> Tag {
-            Tag { text }
+        pub fn new(text: &str) -> Tag {
+            Tag { text: text.to_owned() }
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__label
@@ -273,8 +268,11 @@ pub mod pointers {
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_func__newcounter
     impl Counter {
         /// Returns a counter starting at zero, named for display.
-        pub fn new(label: String) -> Counter {
-            Counter { total: 0, label }
+        pub fn new(label: &str) -> Counter {
+            Counter {
+                total: 0,
+                label: label.to_owned(),
+            }
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__counter
@@ -308,7 +306,7 @@ pub mod pointers {
 pub mod scoped {
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__span
     /// Reports the width of s, counting a short string as one wider than it is.
-    pub fn span(s: String) -> i64 {
+    pub fn span(s: &str) -> i64 {
         let mut result = 0;
         {
             let size = s.len() as i64;
@@ -322,7 +320,7 @@ pub mod scoped {
     }
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__width
     /// Reports the width of s once it clears the minimum, and zero otherwise.
-    pub fn width(s: String) -> i64 {
+    pub fn width(s: &str) -> i64 {
         {
             let size = s.len() as i64;
             if size > 4 {
@@ -358,8 +356,12 @@ pub mod shapes {
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_func__newpoint
     impl Point {
         /// Returns the point at the given coordinates, labelled for display.
-        pub fn new(x: i64, y: i64, label: String) -> Point {
-            Point { x, y, label }
+        pub fn new(x: i64, y: i64, label: &str) -> Point {
+            Point {
+                x,
+                y,
+                label: label.to_owned(),
+            }
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_interface__named

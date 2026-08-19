@@ -15,9 +15,9 @@ fn a_fallible_signature_becomes_a_result() {
 
     for expected in [
         // A value and a failure.
-        "pub fn length(s: String) -> Result<i64, Box<dyn std::error::Error + Send + Sync>>",
+        "pub fn length(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>>",
         // A failure alone still has to say it succeeded.
-        "pub fn check(s: String) -> Result<(), Box<dyn std::error::Error + Send + Sync>>",
+        "pub fn check(s: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>>",
         // The trailing operand decides the constructor, and a failing return drops its zero-value
         // companion because the target's failing return carries only the failure. `Send + Sync`
         // is part of the type: without them a ported error cannot cross a thread boundary, which
