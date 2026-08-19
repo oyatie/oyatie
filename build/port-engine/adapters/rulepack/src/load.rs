@@ -160,6 +160,8 @@ impl LoadedRulePack {
                 DocConvention {
                     strip_leading_name: rule.strip_leading_name,
                     copulas: rule.copulas.into_iter().collect(),
+                    passive_openings: rule.passive_openings,
+                    passive_openings_reason: rule.passive_openings_reason,
                     reason: rule.reason,
                 }
             }),

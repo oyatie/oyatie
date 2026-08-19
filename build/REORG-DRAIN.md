@@ -3443,3 +3443,45 @@ load's deferral set is asserted exactly and caught the new form. And the upstrea
 `Unchanged` because I regenerated it under a different module id — the unit stopped being one the
 plan selects, so nothing was emitted at all. The pair is the invariant that proves a moved upstream
 is Explained by exactly the snapshot axis, and it did its job by failing.
+
+## R1n — the doc fingerprint, and the error model answered from the goal instead of the corpus
+
+Two reviews in a row now return **MERGE WITH CHANGES**. Both put the same two things at the top, and
+both are worth a definite answer.
+
+**The doc fingerprint was the engine's, and it is fixed.** Three independent reviewers counted six
+docs in one file opening `Returned when …` and named the uniformity as proof the prose had been
+mechanically de-prefixed rather than written. They were right about the mechanism and right that it
+was ours. The source's convention makes a doc open with the identifier — `ErrEmpty is returned when
+the input has no content` — and stripping the name and its copula leaves the narration behind. The
+target documents a type by saying what it MEANS, not by narrating who returns it, so the narration
+goes with the name it belonged to: `The input has no content.`
+
+The bare `returned` is in the list and is safe BECAUSE of where the rule runs. The name and copula
+are already gone, so what remains is a predicate of the declaration, and `returned …` in that
+position is always narration rather than a subject. It is also what rescues a sentence upstream got
+wrong: `ErrInvalidSemVer is returned a version is found to be invalid` is missing a word in the
+SOURCE — verified against it — and dropping the narration leaves the grammatical remainder instead
+of carrying the break through. Three reviewers cited that broken sentence as their single most
+decisive tell; it now reads as English and the engine invented nothing to make it so.
+
+**The error model, answered from the goal rather than from the corpus.** The proposal is always the
+same: default `Result<T, E>` to the unit's own `Error` instead of the boxed one. My earlier answer —
+16 parameters across the corpus accept an arbitrary failure — defends the PARAMETER type and does
+not actually defend the RESULT default, and I had been using one to argue the other.
+
+The real answer has two parts. First, one default cannot serve every function: 43 of `semver`'s 78
+failure sites build a formatted message, which no variant of a sentinel enum can be. Narrowing per
+function is possible and is a fixpoint over the call graph — a function is narrow only if every
+failure it returns or propagates is narrow — and the engine already has that machinery.
+
+Second, and decisive: **the goal is to keep repos ported as upstream MOVES.** A per-function narrowed
+error type makes the emitted public API change shape whenever upstream adds a `fmt.Errorf` to a
+function that previously only returned sentinels — a change the source treats as non-breaking and the
+target would not. The boxed default is stable under exactly the upstream drift this engine exists to
+absorb. That is a reason from the mandate rather than from one corpus, and it is the one to keep.
+
+Recorded as considered and declined: dropping `Copy` from the failure enum for forward compatibility.
+The reviewer's argument is that `#[non_exhaustive]` promises additive change and `Copy` blocks adding
+context later. True in general, and not here — the enum's variants come from the source's sentinels,
+which carry no data by construction, so the field that would break `Copy` has nowhere to come from.

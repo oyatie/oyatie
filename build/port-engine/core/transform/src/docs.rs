@@ -247,7 +247,37 @@ fn rewrite_opening(block: &str, name: &str, convention: &DocConvention) -> Strin
         Some((first, tail)) if convention.copulas.contains(first) => tail,
         _ => rest,
     };
-    capitalised(trimmed)
+    capitalised(without_passive_opening(trimmed, convention))
+}
+
+/// The text without the NARRATION the source's convention leaves behind.
+///
+/// `ErrEmpty is returned when the input has no content` loses its name and copula above, leaving
+/// `returned when the input has no content` — grammatical, and a fingerprint: the target documents a
+/// type by saying what it MEANS, not by narrating who returns it. So the narration goes with the
+/// name it belonged to, and what remains is the condition.
+///
+/// Longest match first, so `returned when` is taken over a bare `returned`. Matched
+/// case-insensitively at the very start only, and a doc opening any other way is left exactly as
+/// written — this has no business rewording prose it was not asked about.
+fn without_passive_opening<'a>(text: &'a str, convention: &DocConvention) -> &'a str {
+    let lowered = text.to_lowercase();
+    let mut best: Option<usize> = None;
+    for opening in &convention.passive_openings {
+        if lowered.starts_with(&opening.to_lowercase())
+            && best.is_none_or(|at| opening.len() > at)
+        {
+            best = Some(opening.len());
+        }
+    }
+    let Some(at) = best else {
+        return text;
+    };
+    // A space has to follow, or the opening is the first part of a longer word.
+    match text[at..].strip_prefix(' ') {
+        Some(rest) => rest,
+        None => text,
+    }
 }
 
 /// The text with its first letter upper-cased, which is where a sentence now begins.

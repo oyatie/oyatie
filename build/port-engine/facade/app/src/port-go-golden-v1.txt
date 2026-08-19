@@ -135,7 +135,7 @@ pub mod fallible {
     #[derive(Debug, Clone, Copy, PartialEq, Eq)]
     #[non_exhaustive]
     pub enum Error {
-        /// Returned when the input string has no content.
+        /// The input string has no content.
         Empty,
     }
 
