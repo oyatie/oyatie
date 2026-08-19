@@ -43,6 +43,71 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
    ADR-0515 / ADR-0363 / ADR-0562 / ADR-0615 / ADR-0635 / ADR-0637–0639 when applicable.
 4. **Activation-sensitive** items (warm CAS, RE workers) remain fail-closed until explicit go-gate.
 
+## Decision D-6 — Dependency admission: stdlib first, justify the closure, else write our own (2026-08-19)
+
+Founder doctrine, recorded as three rules and one consequence. It governs whether a third-party
+crate may exist here at all — a question distinct from, and upstream of, whether its licence is
+acceptable (`deny.toml`, ADR-0706 D-5).
+
+**Rule 1 — stdlib where it will do.** A dependency whose function the standard library already
+covers is refused. A rationale that says "could use std" is not a rationale: the record must name
+the `std` API and the Rust version that stabilised it. `OnceLock`/`LazyLock`,
+`available_parallelism`, and the `std::net` primitives already used by this repo's own
+`scripted_http_server` test helper are the recurring cases.
+
+**Rule 2 — anything dragged in must be justified and clear the quality bar.** The bar is
+"foundational, broadly adopted, maintained by an organisation or a serious multi-maintainer
+community — the kind of thing a hyperscaler adopts rather than writes." **"Dragged in" is the
+load-bearing phrase: the bar applies to the transitive CLOSURE, not to the named crate.** A crate
+that clears the bar itself while dragging a deprecated runtime behind it has not cleared the bar.
+The measured instance at the time of writing: `httpmock`, a dev-dependency, is the sole parent of
+**49 of 651 third-party packages** — including the discontinued `async-std` runtime, `winapi
+0.3.9`, `hyper 0.14`, and `syn 1.0.109` — and removing it alone takes the multi-version crate
+count from 57 to 44. An admission record that scores the crate and not its closure scores the
+wrong thing.
+
+**Rule 3 — a crate that fails the bar is a candidate to write ourselves.** With the corollary that
+makes the rule real: **substituting one failing crate for another is not compliance.**
+`governance/corpus/yaml-kernel` documents rejecting `serde_yaml` as "0.9.34+deprecated,
+unmaintained, `unsafe`-heavy" — and then depends on `saphyr 0.0.11`, a 0.0.x pre-release, as the
+sole parser for a governance kernel. Rule 3 is discharged by owning the code or by adopting
+something that clears the bar, never by rotating the failure.
+
+### The artifact already exists, and nothing reads it
+
+`registry/dependency-blessed-allowlist.json` is the data surface this doctrine describes: 37
+blessed crates, each carrying a `layer_seam`, a `rationale`, and a `policy_ref` to this ADR. It
+is not enforced. Its own description names a consumer on the `oya-dev-cli` surface, which this
+repository has retirement-marked, and no gate id in `oya-ci.toml` corresponds to it. It covers 37
+of the **77** crates named directly in a first-party `[dependencies]`, `[dev-dependencies]` or
+`[build-dependencies]` table, so **40 direct dependencies are unblessed and nothing observes
+that**.
+
+This is the failure mode the doctrine must be designed against, not a footnote to it: `ci/facade/`
+holds **60 gate-shaped crates while `oya-ci.toml` registers 15**. Authoring a new gate is
+therefore the least valuable move available; **registration is the scarce step**, and the
+recommended template for cloning (`ci/facade/graphql-usage-policy`, ~3,000 lines with tests) is
+itself unregistered.
+
+### How this is enforced
+
+1. The blessed allowlist is completed to cover every direct dependency. Each row carries an
+   owner-written rationale — rationales are not generated, because an invented justification is
+   the cargo-culting this doctrine exists to stop, and is worse than a visible blank.
+2. Each row additionally records its **closure cost**: the count of third-party packages for
+   which this crate is the sole parent. Rule 2 is unenforceable without it.
+3. The gate is **registered in `oya-ci.toml` and report-only on day one**, per the ADR-0092 D14
+   report-only contract the allowlist already cites. Report-only-and-wired beats blocking-and-
+   unwired: the first reports truthfully, the second reports nothing.
+
+### Not claimed
+
+That the current dependency set complies. It does not: 6 of the 77 fail the bar on the audit of
+2026-08-19 (`httpmock`, `serde_yaml`, `saphyr`, `console_error_panic_hook`, `any_spawner`,
+`protoc-bin-vendored`), and a stricter reading of Rule 1 — "would a hyperscaler adopt this rather
+than write it" — puts roughly twenty more small utility crates in scope for review. This clause
+records the rule; the corpus is brought to it by separate, evidenced changes.
+
 ## Preserved member gists
 
 - **ADR-3** (ADR-0003-audit-chain-and-evidence-emission): We adopt a single **append-only, hash-chained audit-event log** as the tamper-evident record-keeping surface for every regulated event in every axis. The kernel is `crates/oya-audit-chain-kernel`; the application layer is `crates/oya-audit-chain-app`; per-tenant shards live behind `crates/oya-audit-chain-adapter-postgres-*` with optional cold-tier 
