@@ -52,6 +52,12 @@ impl Receiver {
 pub struct RustParam {
     /// The parameter's name, already cased for the target.
     pub name: String, // data_class: INTERNAL_ONLY
+    /// Whether the body never mentions this parameter.
+    ///
+    /// Emitted with a leading underscore. The source treats an unused parameter as ordinary and
+    /// the target warns on it, so the underscore is what says the omission is deliberate — and it
+    /// changes nothing a caller can see, because a parameter's name is not part of the type.
+    pub unread: bool,
     /// Whether the body assigns to this parameter's own binding.
     ///
     /// The source makes every parameter a mutable local copy and the target makes none of them, so

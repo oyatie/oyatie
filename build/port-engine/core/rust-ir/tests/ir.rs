@@ -37,16 +37,19 @@ fn free_fn(name: &str, body: Vec<RustStmt>) -> RustItem {
             RustParam {
                 name: "a".into(),
                 rebound: false,
+                unread: false,
                 ty: RustType::path("i64"),
             },
             RustParam {
                 name: "b".into(),
                 rebound: false,
+                unread: false,
                 ty: RustType::path("i64"),
             },
             RustParam {
                 name: "c".into(),
                 rebound: false,
+                unread: false,
                 ty: RustType::path("i64"),
             },
         ],

@@ -196,7 +196,7 @@ pub mod geometry {
     /// The map is in the SIGNATURE rather than the body on purpose: indexing is not in the translated
     /// statement subset yet and refuses by name, and this package's job is to prove type resolution
     /// rather than to smuggle an untranslated construct into the green corpus.
-    pub fn lookup(table: std::collections::BTreeMap<String, i64>, fallback: i64) -> i64 {
+    pub fn lookup(_table: std::collections::BTreeMap<String, i64>, fallback: i64) -> i64 {
         fallback
     }
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_func__widths
@@ -319,7 +319,7 @@ pub mod naming {
         /// A no-op rather than a mutation, so the derived receiver has to come from the UNION over
         /// implementors — a second implementor that does not mutate proves the union does not simply take
         /// the last answer.
-        pub fn rename(&self, next: String) {}
+        pub fn rename(&self, _next: String) {}
     }
     /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
     impl crate::shapes::Named for Tag {

@@ -167,8 +167,18 @@ fn lower_fn(function: &RustFn) -> Result<TokenStream, PortError> {
     if let Some(receiver) = function.receiver {
         inputs.push(parse_expr(receiver.spelling(), "receiver")?.into_token_stream());
     }
-    for RustParam { name, rebound, ty } in &function.params {
-        let (name, ty) = (parse_ident(name)?, parse_type(ty)?);
+    for RustParam {
+        name,
+        rebound,
+        unread,
+        ty,
+    } in &function.params
+    {
+        let spelling = match unread {
+            true => format!("_{name}"),
+            false => name.clone(),
+        };
+        let (name, ty) = (parse_ident(&spelling)?, parse_type(ty)?);
         // `mut` on a parameter binds the callee's own copy and is invisible in the function's
         // type, so it never changes what a caller may pass.
         let mutability = match rebound {

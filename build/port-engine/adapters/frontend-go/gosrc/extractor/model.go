@@ -198,6 +198,18 @@ const (
 	// mutating method into a read-only one.
 	flagPointerReceiver = "pointer_receiver"
 
+	// flagUnread records that the body never mentions the parameter at all.
+	//
+	// Ordinary in the source and a WARNING in the target, which is a difference the port has to
+	// answer for: an unused parameter is how the source satisfies an interface it does not need
+	// every argument of. The target says the same thing with a leading underscore, which keeps the
+	// signature identical — a parameter's name is not part of a function's type — and states the
+	// intent the source could only leave implicit.
+	//
+	// Only claimed where a body exists. An interface method has none, and "not read" would then
+	// mean "not looked at" rather than "not used".
+	flagUnread = "unread"
+
 	// flagRebound records that the body assigns to the binding's OWN name. Distinct from
 	// flagMutated, which on a parameter means the body writes through the pointer and is a claim
 	// about the caller's value: rebinding the callee's copy is the opposite claim, and one flag
