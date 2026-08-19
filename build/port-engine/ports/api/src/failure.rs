@@ -9,6 +9,23 @@
 //! renders the target owns them. Putting them in the pack would make a second language pair
 //! re-declare the target's own vocabulary, which is the thing the neutral seam exists to prevent.
 
+/// How the pack answers for a call the target has no name of its own for.
+///
+/// A DECISION, so it carries a reason like every other one — an earlier form of this table was a
+/// bare spelling map, and three translations sat in it with nobody's name on them.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FunctionMapping {
+    /// Target template, with `{0}`, `{1}` for the arguments.
+    pub form: String, // data_class: INTERNAL_ONLY
+    /// The shape the argument must have, when the mapping is CONDITIONAL.
+    ///
+    /// `panic` is the case this exists for: it is faithful only where the payload is a string
+    /// literal, and silently wrong anywhere else. `None` means the mapping holds for any argument.
+    pub requires_argument: Option<String>, // data_class: INTERNAL_ONLY
+    /// Why this call becomes this form, and what it costs.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// How the source spells failure, so the engine can recognise it without knowing the language.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FailureConvention {

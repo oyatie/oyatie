@@ -4,7 +4,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Declaration, Digest, FailureConvention, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
+    Declaration, Digest, FailureConvention, FunctionMapping, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
 };
 use port_engine_rust_ir::RustIr;
 use port_engine_transform::*;
@@ -26,7 +26,7 @@ pub struct Pack {
     pub zeroes: BTreeMap<String, String>,
     pub trait_objects: BTreeMap<String, String>,
     pub failure: Option<FailureConvention>,
-    pub functions: BTreeMap<String, String>,
+    pub functions: BTreeMap<String, FunctionMapping>,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
     pub receiver: Option<(String, String)>,
     pub dispositions: Vec<PointerDisposition>,
@@ -115,9 +115,18 @@ impl Pack {
     }
 
     /// Declare a source function's target expression, as a real pack must.
+    ///
+    /// Unconditional: the mappings these tests exercise hold for any argument, and the conditional
+    /// shape has its own fixture in the refusal corpus.
     pub fn with_function(mut self, source: &str, template: &str) -> Self {
-        self.functions
-            .insert(source.to_owned(), template.to_owned());
+        self.functions.insert(
+            source.to_owned(),
+            FunctionMapping {
+                form: template.to_owned(),
+                requires_argument: None,
+                reason: "fixture decision".to_owned(),
+            },
+        );
         self
     }
 
@@ -179,7 +188,7 @@ impl PackSemantics for Pack {
     fn copy_types(&self) -> &BTreeSet<String> {
         &self.copies
     }
-    fn function_map(&self) -> &BTreeMap<String, String> {
+    fn function_map(&self) -> &BTreeMap<String, FunctionMapping> {
         &self.functions
     }
     fn failure_convention(&self) -> Option<&FailureConvention> {

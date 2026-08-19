@@ -2,10 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{
-    Digest, FailureConvention, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack,
-    UnitId,
-};
+use port_engine_api::{Digest, FailureConvention, FunctionMapping, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
 use port_engine_hash::digest_bytes;
 
 use crate::error::RulepackError;
@@ -29,7 +26,7 @@ pub struct LoadedRulePack {
     pub(crate) zero_values: BTreeMap<String, String>,
     pub(crate) trait_object_forms: BTreeMap<String, String>,
     pub(crate) failure_convention: Option<FailureConvention>,
-    pub(crate) function_map: BTreeMap<String, String>,
+    pub(crate) function_map: BTreeMap<String, FunctionMapping>,
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
@@ -239,7 +236,22 @@ impl LoadedRulePack {
             cast_types: doc.cast_types,
             zero_values: doc.zero_values,
             trait_object_forms: doc.trait_object_forms,
-            function_map: doc.function_map,
+            // A mapping with no reason is the failure mode this pack exists to prevent, so an
+            // empty one is refused at load rather than emitted with nobody's name on it.
+            function_map: doc
+                .function_map
+                .into_iter()
+                .map(|(identity, rule)| {
+                    (
+                        identity,
+                        FunctionMapping {
+                            form: rule.form,
+                            requires_argument: rule.requires_argument,
+                            reason: rule.reason,
+                        },
+                    )
+                })
+                .collect(),
             failure_convention: doc.failure_convention.map(|failure| FailureConvention {
                 source_type: failure.source_type,
                 target_type: failure.target_type,

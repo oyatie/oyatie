@@ -874,6 +874,33 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   is not Copy, so reading one really does clone. The four remaining clones in the golden are all
   `String` fields, which is correct.
 
+- `function_map` was a bare string→string map, so three translations sat in the pack with nobody's
+  name on them. `errors.New` becoming a boxed trait object and `len` gaining a cast are DECISIONS,
+  and the pack's own discipline is that a decision carries a reason travelling in the digest and
+  therefore in the receipt. Entries are objects now and both reasons are written out.
+  The upgrade is what `panic` needed anyway, because that mapping is CONDITIONAL and no mapping
+  could say so. Go's `panic(v)` aborts carrying `v`; Rust's `panic!` unwinds carrying a formatted
+  string. Where `v` is a STRING LITERAL the two are the same abort with the same message and the
+  same payload type and nothing is lost. Where `v` is an error or an arbitrary value the payload
+  TYPE is lost, and a caller that recovers and type-asserts on it sees a different program — which
+  is precisely the failure this engine exists to prevent, so it refuses by name and says which
+  shape it found.
+  The condition is pack data and its vocabulary is CLOSED: a shape the engine has never heard of
+  refuses rather than reading as "no condition", because a condition nobody checks is not there.
+  ON EMITTING A PANIC AT ALL, since this repository's Rust does not. That bar governs the ENGINE's
+  own source, which contains no `panic!` and no `unwrap()` — checked, not assumed. The emitted
+  crate's semantics come from upstream: a source function that aborts must port to a target
+  function that aborts, and returning a `Result` where the source panics would be a different
+  program. Recorded as a declared exemption with the reason rather than resolved silently in
+  either direction.
+  Sized by census as the method requires: `docs/programs/k8s-port/census/defer-panic-recover.md`
+  puts the two string-literal invariant shapes at 38.2% and 21.0% of Kubernetes panic sites, 59%
+  together. In the seven surveyed corpora the mix is different — 6 `panic(<ident>)`, 3 string
+  literals, 2 `panic(fmt.Errorf(..))`, 1 `fmt.Sprintf`, 1 binary, 1 other — which is worth knowing
+  before assuming the census's shape holds off-corpus.
+  `panic` fell from 4 packages to 3. Coverage did not move, because the packages with literal
+  panics carry other blockers too.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

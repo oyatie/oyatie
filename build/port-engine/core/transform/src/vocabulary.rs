@@ -43,6 +43,10 @@ pub const ATTR_OP: &str = "op";
 pub const KIND_FUNC: &str = "func";
 /// The type kind of a pointer.
 pub const TYPE_POINTER: &str = "pointer";
+/// The node kind of a literal.
+pub const KIND_LITERAL: &str = "literal";
+/// The argument shape a conditional mapping may require: a source string literal.
+pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
 /// The node kind of a unary expression.
 pub const KIND_UNARY: &str = "unary";
 /// The source spelling of the address-of operator.

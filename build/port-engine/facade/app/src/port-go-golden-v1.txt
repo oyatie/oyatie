@@ -250,6 +250,19 @@ pub mod handoff {
         total: i64,
     }
 }
+pub mod invariant {
+    // region: oyatie_example_portengine_fixture_corpus_invariant__go_func__half
+    /// Half returns n halved, and aborts on an odd input.
+    ///
+    /// The invariant shape: a condition the caller is required to have met, and a literal message
+    /// naming what it was.
+    pub fn half(n: i64) -> i64 {
+        if n % 2 != 0 {
+            panic!("Half requires an even argument");
+        }
+        n / 2
+    }
+}
 pub mod naming {
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__describe
     /// Describe renders anything that can name itself.

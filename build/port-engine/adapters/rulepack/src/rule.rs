@@ -117,3 +117,20 @@ pub struct DeferredKind {
     /// Why it is deferred, and where the analysis lives.
     pub reason: String,
 }
+
+/// How the pack answers for a call the target has no name of its own for.
+///
+/// The reason is REQUIRED and travels in the pack digest. An earlier form of this table was a bare
+/// spelling map, so `errors.New` becoming a boxed trait object and `len` gaining a cast were
+/// decisions with nobody's name on them.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct FunctionMappingRule {
+    /// Target template, with `{0}`, `{1}` for the arguments.
+    pub form: String,
+    /// The shape the argument must have, when the mapping is CONDITIONAL.
+    #[serde(default)]
+    pub requires_argument: Option<String>,
+    /// Why this call becomes this form, and what it costs.
+    pub reason: String,
+}

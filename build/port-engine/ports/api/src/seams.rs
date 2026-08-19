@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::failure::FailureConvention;
+use crate::failure::{FailureConvention, FunctionMapping};
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
 use crate::ownership::PointerDisposition;
 
@@ -126,7 +126,7 @@ pub trait PackSemantics {
     /// A call the pack does not answer for emits the source's own name, which the target does not
     /// have. No real package can be ported without this table: every one of them calls its standard
     /// library, and a standard library is exactly the part that does not come along.
-    fn function_map(&self) -> &BTreeMap<String, String>;
+    fn function_map(&self) -> &BTreeMap<String, FunctionMapping>;
     /// SOURCE types a conversion reaches by a plain cast.
     ///
     /// Keyed by source identity like [`PackSemantics::type_map`]. A conversion the pack does not

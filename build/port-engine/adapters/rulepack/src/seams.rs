@@ -5,10 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{
-    Digest, FailureConvention, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack,
-    UnitId,
-};
+use port_engine_api::{Digest, FailureConvention, FunctionMapping, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
 
 use crate::pack::LoadedRulePack;
 
@@ -29,7 +26,7 @@ impl PackSemantics for LoadedRulePack {
         &self.type_map
     }
 
-    fn function_map(&self) -> &BTreeMap<String, String> {
+    fn function_map(&self) -> &BTreeMap<String, FunctionMapping> {
         &self.function_map
     }
 

@@ -19,7 +19,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Declaration, FailureConvention, TypeRef, UnitId};
+use port_engine_api::{Declaration, FailureConvention, FunctionMapping, TypeRef, UnitId};
 use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
@@ -75,7 +75,7 @@ pub(crate) struct Resolver<'a> {
     /// Source types a conversion reaches by a plain cast.
     pub(crate) cast_types: &'a BTreeSet<String>,
     /// Source function identity → a target expression template.
-    pub(crate) function_map: &'a BTreeMap<String, String>,
+    pub(crate) function_map: &'a BTreeMap<String, FunctionMapping>,
     /// How the source spells failure, when it has a convention for it.
     pub(crate) failure: Option<&'a FailureConvention>,
     /// The kinds the pack DEFERS, so a body can refuse to reference one.
