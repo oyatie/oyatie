@@ -60,6 +60,8 @@ pub(crate) fn validate_dispositions(
             when_effect_unknown: rule.effect_unknown,
             target: rule.target.clone(),
             receiver: rule.receiver.clone(),
+            reference_target: rule.reference_target.clone(),
+            reference_reason: rule.reference_reason.clone(),
             construction: construction_of(&rule.construction),
             reason: rule.reason.clone(),
         });

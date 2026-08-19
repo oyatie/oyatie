@@ -14,11 +14,6 @@ type Bounds struct {
 	Max shapes.Point
 }
 
-// Widths returns the horizontal extents it was given, unchanged.
-func Widths(counts []int) []int {
-	return counts
-}
-
 // Size reports how many labelled counts the table holds.
 func Size(table map[string]int) int {
 	return len(table)

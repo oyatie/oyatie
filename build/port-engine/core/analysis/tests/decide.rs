@@ -17,6 +17,10 @@ fn rule(
         when_effect_unknown: effect_unknown,
         target: format!("{id}<{{0}}>"),
         receiver: receiver.map(ToOwned::to_owned),
+        // A shared borrow is the neutral fixture reference form: these tests are about
+        // which rule matches, not about what a map or a slice parameter becomes under it.
+        reference_target: Some("&{0}".to_owned()),
+        reference_reason: Some("fixture decision".to_owned()),
         // These tests are about which rule MATCHES, not about what an argument becomes under it,
         // so the construction is the neutral borrow.
         construction: PointerConstruction::Borrow {

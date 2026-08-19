@@ -103,6 +103,10 @@ impl Pack {
             when_effect_unknown: Some(false),
             target: target.to_owned(),
             receiver: receiver.map(ToOwned::to_owned),
+            // A shared borrow is the neutral fixture reference form: these tests are about
+            // which rule matches, not about what a map or a slice parameter becomes under it.
+            reference_target: Some("&{0}".to_owned()),
+            reference_reason: Some("fixture decision".to_owned()),
             // A borrow is the neutral fixture construction: it is the one shape that neither moves
             // the argument nor wraps it, so a test not about argument construction is unaffected
             // by having to declare one.

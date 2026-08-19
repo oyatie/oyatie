@@ -87,6 +87,16 @@ pub struct PointerDisposition {
     /// share an id and a rule — and keying the construction by id rather than by matching the
     /// target spelling is what keeps a re-spelled target from silently changing it.
     pub construction: PointerConstruction,
+    /// Target form for a REFERENCE-typed parameter — a map or a slice — with `{0}` for the
+    /// resolved type itself rather than for a pointee.
+    ///
+    /// `None` means this disposition declines the reference position, which is a refusal rather
+    /// than a fallback: a pointer's owned form wraps a pointee in `Option<Box<..>>` because the
+    /// source's pointer can be nil and the pointee needs an owner, and none of that is true of a
+    /// sequence that is already owned.
+    pub reference_target: Option<String>, // data_class: INTERNAL_ONLY
+    /// Why a reference takes that form, and what it costs.
+    pub reference_reason: Option<String>, // data_class: INTERNAL_ONLY
     /// Why these facts deserve this form, and what it costs.
     pub reason: String, // data_class: INTERNAL_ONLY
 }
