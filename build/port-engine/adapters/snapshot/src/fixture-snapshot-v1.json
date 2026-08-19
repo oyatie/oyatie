@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:7932c515dfc01c59ff2485b7219fdfbf84b831c38ae64b69e13fbe4d7555e366",
+  "snapshot_digest": "sha256:10bcf616bb13f795e4a5ac51b3efa324bcde7413cdc01a94a92398851844305d",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -288,7 +288,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Mix folds the values together with the operators a hash uses."
+            "doc": "Mix folds the values together with xor, multiply and or.\n\nThe three operators are the point rather than the result: each is a compound assignment on the\nsame accumulator, and the source spells the read-modify-write once where the target has to decide\nwhether the place is read twice."
           },
           "children": [
             {
@@ -890,9 +890,9 @@
         },
         {
           "kind": "func",
-          "name": "unexported",
+          "name": "normalize",
           "attrs": {
-            "doc": "unexported returns n unchanged."
+            "doc": "normalize returns n in its canonical form, which for a plain count is n itself."
           },
           "children": [
             {
@@ -3257,7 +3257,7 @@
                                   "name": "",
                                   "attrs": {
                                     "lit_kind": "STRING",
-                                    "value": "\"Half requires an even argument\""
+                                    "value": "\"halve requires an even argument\""
                                   }
                                 }
                               ]
@@ -3411,7 +3411,7 @@
                 "pointer_receiver"
               ],
               "attrs": {
-                "doc": "Refresh recomputes the display name from the prefix."
+                "doc": "Refresh derives the display name from the prefix."
               },
               "children": [
                 {
@@ -3543,7 +3543,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "NewLabel returns a label whose display name is derived from prefix."
+            "doc": "NewLabel returns a label that derives its display name from prefix.\n\nThe display name starts EMPTY and is derived on the first refresh, so the two fields can differ —\nwhich is what makes Refresh a state change rather than a self-assignment."
           },
           "children": [
             {
@@ -3587,15 +3587,7 @@
                             {
                               "kind": "ident",
                               "name": "prefix",
-                              "type": {
-                                "kind": "basic",
-                                "name": "string"
-                              },
-                              "flags": [
-                                "reread"
-                              ],
                               "attrs": {
-                                "read_count": "2",
                                 "ref": "local"
                               }
                             }
@@ -3606,18 +3598,11 @@
                           "name": "text",
                           "children": [
                             {
-                              "kind": "ident",
-                              "name": "prefix",
+                              "kind": "zero",
+                              "name": "text",
                               "type": {
                                 "kind": "basic",
                                 "name": "string"
-                              },
-                              "flags": [
-                                "reread"
-                              ],
-                              "attrs": {
-                                "read_count": "2",
-                                "ref": "local"
                               }
                             }
                           ]
@@ -4491,7 +4476,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Width reports the width of s once it clears the minimum, and zero otherwise."
+            "doc": "Width reports the byte length of s once it clears the minimum, and zero otherwise."
           },
           "children": [
             {
@@ -4649,7 +4634,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Span reports the width of s, counting a short string as one wider than it is."
+            "doc": "Span reports the byte length of s, counting a short string as one byte wider than it is."
           },
           "children": [
             {

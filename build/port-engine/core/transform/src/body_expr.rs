@@ -22,7 +22,7 @@ use crate::body_ops::{
 use crate::error::TransformError;
 use crate::naming::{to_snake_case, to_screaming_snake};
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, DISPOSITION_OWNED_POINTER, FLAG_REREAD, IDIOM_EMPTY_STRING, KIND_COMPOSITE, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
+    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, DISPOSITION_OWNED_POINTER, FLAG_REREAD, IDIOM_EMPTY_STRING, KIND_COMPOSITE, KIND_IDENT, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
 };
 
 /// Where an expression appears: a value is READ, a place is WRITTEN TO.
@@ -90,6 +90,16 @@ pub(crate) fn in_position(
         "call" => call(node, cx),
         "index" => {
             let (base, index) = two_children(node, cx, "index")?;
+            // Inside a loop that WALKS this sequence, an index by the counter it no longer has is
+            // the element itself — the whole point of the rewrite.
+            if let Some(walked) = &cx.walked
+                && base.kind == KIND_IDENT
+                && base.name == walked.sequence
+                && index.kind == KIND_IDENT
+                && index.name == walked.counter
+            {
+                return Ok(RustExpr::Path(walked.element.clone()));
+            }
             Ok(RustExpr::Index {
                 base: Box::new(expression(base, cx)?),
                 index: Box::new(crate::body_index::index_operand(index, cx)?),

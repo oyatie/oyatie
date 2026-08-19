@@ -17,9 +17,12 @@ type Label struct {
 	text string
 }
 
-// NewLabel returns a label whose display name is derived from prefix.
+// NewLabel returns a label that derives its display name from prefix.
+//
+// The display name starts EMPTY and is derived on the first refresh, so the two fields can differ —
+// which is what makes Refresh a state change rather than a self-assignment.
 func NewLabel(prefix string) Label {
-	return Label{prefix: prefix, text: prefix}
+	return Label{prefix: prefix}
 }
 
 // Read-only, which is what makes the derived trait receiver interesting: a rule that assumed every
@@ -33,7 +36,7 @@ func (l *Label) Name() string {
 // Mutating, and one mutating implementor is enough to make the whole trait method exclusive: a
 // trait fixes one signature for everyone.
 
-// Refresh recomputes the display name from the prefix.
+// Refresh derives the display name from the prefix.
 func (l *Label) Refresh() {
 	l.text = l.prefix
 }

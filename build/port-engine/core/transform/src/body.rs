@@ -56,6 +56,12 @@ pub(crate) struct Body<'a> {
     /// string literal being returned is a `&'static str` in the target and a `string` in the
     /// source, and nothing inside the `return` says which the destination wants.
     pub(crate) result_is_owned_string: bool,
+    /// The sequence a counted loop WALKS, and the name its element took.
+    ///
+    /// Set inside a loop the iterator idiom rewrote, so `xs[i]` inside it renders as the element
+    /// rather than as an index into a counter that no longer exists. Scoped to that loop: a nested
+    /// loop over a different sequence gets its own answer, and nothing outside is affected.
+    pub(crate) walked: Option<Walked>,
     /// Counter names proven to be used for NOTHING BUT indexing, which are `usize` in the target.
     ///
     /// A property of the enclosing LOOP that only the operands inside it can spend: the range
@@ -89,6 +95,25 @@ impl<'a> Body<'a> {
             borrowed,
             results,
             usize_counters: BTreeSet::new(),
+            walked: None,
+        }
+    }
+
+    /// The same body, inside a loop that WALKS a sequence rather than counting into it.
+    pub(crate) fn with_element(&self, counter: &str, sequence: &str, element: &str) -> Self {
+        Self {
+            owner: self.owner,
+            resolver: self.resolver,
+            fallible: self.fallible,
+            result_is_owned_string: self.result_is_owned_string,
+            borrowed: self.borrowed.clone(),
+            results: self.results.clone(),
+            usize_counters: self.usize_counters.clone(),
+            walked: Some(Walked {
+                counter: counter.to_owned(),
+                sequence: sequence.to_owned(),
+                element: element.to_owned(),
+            }),
         }
     }
 
@@ -107,8 +132,20 @@ impl<'a> Body<'a> {
             borrowed: self.borrowed.clone(),
             results: self.results.clone(),
             usize_counters,
+            walked: self.walked.clone(),
         }
     }
+}
+
+/// The one sequence a rewritten loop walks, and what its element is called.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub(crate) struct Walked {
+    /// The source name of the counter the loop no longer has.
+    pub(crate) counter: String,
+    /// The source name of the sequence being walked.
+    pub(crate) sequence: String,
+    /// The target name the element took.
+    pub(crate) element: String,
 }
 
 /// Whose signature this body has to satisfy.
@@ -194,8 +231,8 @@ pub(crate) fn translate(
         // Two statements for one construct, matched here for the same reason the propagation pair
         // is — the binding alone says nothing, and it is the `if` that follows which decides.
         if let Some(chosen) = crate::body_choice::choice(nodes, index, cx)? {
-            out.push(chosen);
-            index += 2;
+            index += chosen.statements;
+            out.push(chosen.statement);
             continue;
         }
         let is_tail = tail == TailPosition::Yes && index + 1 == nodes.len();

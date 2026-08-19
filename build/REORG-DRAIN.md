@@ -2303,3 +2303,40 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   one narrows this by construction rather than by taste. A range analysis over the source is the
   shape of the next, and `docs/programs/k8s-port/census/` sizes no such family, so that is stated
   rather than assumed.
+
+## Clippy on the emitted crate, which is the reviewer this engine can actually run
+
+- THE MOVE THAT MATTERED, and it should have come three reviews ago: run `clippy-driver` on the
+  emitted crate and deny its warnings, beside the `rustc` proof that already does. `rustc` proves
+  the output is a PROGRAM; clippy is the closest thing to the bar this engine is held to. It is not
+  a reviewer — but every lint it raises IS a review comment a human would have written, and a lint
+  the engine trips is a defect it can be told about deterministically instead of three reviews and
+  three days later.
+
+- It found exactly three things on the first run, and all three were already on a reviewer's list:
+  two index loops that should walk their sequence, and a binding that exists only to be returned.
+  Nothing else. That is the useful part of the result — the emitted crate was already clean of
+  everything else clippy knows how to name.
+
+- A NAME THAT IS ONLY RETURNED is not a name. `x := 0; if c {..} else {..}; return x` is three
+  statements for one expression, and the middle name exists only because the source's `if` could not
+  produce a value. Where the statement after the choice returns exactly that name and is the last,
+  the value IS the answer and the binding goes. Last, because a return that is not last leaves code
+  this would silently drop.
+
+- A COUNTED LOOP THAT ONLY REACHES ELEMENTS IS AN ITERATOR. `for i := 0; i < len(xs); i++ { xs[i] }`
+  counts because the source has no other way to walk a sequence by value; the target does, and it is
+  the same walk — same elements, same order, same number of times. What goes is the counter, which
+  existed only to be an index. `xs.iter().copied()`, because the source's index read takes a COPY
+  and leaves the sequence usable: consuming it would end its life at the loop, and handing out
+  references would give the body a reference where the source gave it a value.
+
+  THE ONE THING THIS RULE INVENTS is the element's name, and the source gives none. It is a
+  loop-local binding — no caller sees it, nothing outside depends on it — and the alternative is
+  keeping a counter the target does not need. The convention is the sequence's own name with a
+  trailing plural removed, `values` → `value`, and where that yields nothing usable or COLLIDES with
+  a name the body already binds, the rule does not fire and the counter stays. An invented name that
+  shadows a real one would be a different program.
+
+  Fires only where every element COPIES, where the bound is the sequence's own length, and where one
+  counter indexes exactly one sequence. Two sequences indexed by one counter is a walk of neither.

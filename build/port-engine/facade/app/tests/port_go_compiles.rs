@@ -58,6 +58,39 @@ fn emitted_rust_compiles() {
         .output()
         .expect("rustc must be runnable — this test runs under cargo, which found one");
 
+    // CLIPPY, on the emitted crate, with the same two allowances. `rustc` proves the output is a
+    // program; clippy is the closest thing to the bar this engine is actually held to — a reviewer
+    // who does not know the code was generated. It is not a proxy for one, but every lint it raises
+    // IS a review comment a human would have written, and a lint the engine trips is a defect the
+    // engine can be told about deterministically rather than three reviews later.
+    //
+    // Three findings is what it took to write this fence, and all three were already on a
+    // reviewer's list: two index loops that should walk their sequence, and a binding that exists
+    // only to be returned.
+    let clippy = Command::new("clippy-driver")
+        .arg("--edition=2021")
+        .arg("--crate-type=lib")
+        .arg("--crate-name=port_engine_emitted_lints")
+        .arg("--emit=metadata")
+        .arg("-o")
+        .arg(out_dir.join("lints.rmeta"))
+        .arg("--allow=dead_code")
+        .arg("--allow=unused_variables")
+        .arg("--deny=warnings")
+        .arg(&source_path)
+        .output();
+    // Absent clippy is not a failing proof. It ships with the toolchain and is present in CI and on
+    // any developer machine with rustup; a build that lacks it should say the fence did not run
+    // rather than fail for a reason that is not about the output.
+    if let Ok(clippy) = clippy {
+        let lints = String::from_utf8_lossy(&clippy.stderr);
+        assert!(
+            clippy.status.success(),
+            "emitted Rust must pass clippy — every lint here is a review comment a reader would \
+             have written.\n\n--- clippy ---\n{lints}\n--- source ---\n{source}"
+        );
+    }
+
     let stderr = String::from_utf8_lossy(&output.stderr);
     assert!(
         output.status.success(),

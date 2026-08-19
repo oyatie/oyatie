@@ -73,6 +73,8 @@ pub const IDIOM_BORROWED_SLICE: &str = "borrowed_sequence_is_a_slice";
 pub const IDIOM_SELF_IN_IMPL: &str = "self_inside_own_impl";
 /// The idiom that a counter used only as an index needs neither of the two conversions.
 pub const IDIOM_INDEX_COUNTER: &str = "index_counter_is_usize";
+/// The idiom that a loop counting to reach each element is an iterator over the sequence.
+pub const IDIOM_INDEX_LOOP: &str = "index_loop_is_an_iterator";
 /// The idiom that a counter used only as an index is a , so neither conversion is needed.
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";

@@ -13,7 +13,7 @@ use crate::body_expr::expression;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{
-    ATTR_OP, ATTR_SOURCE_NODE, IDIOM_INDEX_COUNTER,
+    ATTR_OP, ATTR_SOURCE_NODE, IDIOM_INDEX_COUNTER, IDIOM_INDEX_LOOP,
 };
 
 /// A three-clause or condition-only `for`.
@@ -91,6 +91,38 @@ fn counted_range(
     // needs no conversion and neither does the index. See the pack's `index_counter_is_usize`.
     let indexes_only = cx.resolver.idiom_method(IDIOM_INDEX_COUNTER).is_some()
         && crate::counters::indexes_only(body, counter);
+    // The counter exists only to reach each element, and the target reaches them directly. Same
+    // elements, same order, same number of times — what goes is the index. See the pack's
+    // `index_loop_is_an_iterator` for what it costs, which is one invented loop-local name.
+    if cx.resolver.idiom_method(IDIOM_INDEX_LOOP).is_some()
+        && let Some(sequence) =
+            crate::counters::walked_sequence(rhs, body, counter, cx.resolver.length_functions)
+        && let Some(element) = crate::counters::element_name(&sequence, body)
+        && crate::counters::elements_copy(body, counter, cx)
+    {
+        return Ok(RustStmt::ForIn {
+            binding: to_snake_case(&element),
+            // Borrow the sequence and COPY each element, which is exactly what the source's index
+            // read does: it takes a copy and leaves the sequence usable. Consuming the sequence
+            // would end its life at the loop, and handing out references would give the body a
+            // reference where the source gave it a value.
+            iter: RustExpr::MethodCall {
+                receiver: Box::new(RustExpr::MethodCall {
+                    receiver: Box::new(RustExpr::Path(to_snake_case(&sequence))),
+                    method: "iter".to_owned(),
+                    args: Vec::new(),
+                }),
+                method: "copied".to_owned(),
+                args: Vec::new(),
+            },
+            body: translate(
+                &body.children,
+                &cx.with_element(counter, &sequence, &to_snake_case(&element)),
+                TailPosition::No,
+            )?,
+        });
+    }
+
     let widened;
     let inner: &Body<'_> = match indexes_only {
         true => {

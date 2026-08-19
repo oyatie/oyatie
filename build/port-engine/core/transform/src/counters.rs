@@ -14,6 +14,8 @@
 //! something the source typed `int`, stored in a field: in each of those the signed value IS
 //! observed, and dropping the conversion would change what the program computes with.
 
+use std::collections::BTreeSet;
+
 use port_engine_api::Declaration;
 use port_engine_rust_ir::RustExpr;
 
@@ -54,6 +56,106 @@ fn count_reads(node: &Declaration, counter: &str, reads: &mut usize, indexed: &m
     }
     for child in &node.children {
         count_reads(child, counter, reads, indexed);
+    }
+}
+
+/// The sequence a counted loop walks, if it walks exactly one and nothing else.
+///
+/// `Some(name)` when the bound is `len(xs)` and every read of the counter is `xs[i]` for that same
+/// `xs`. Two different sequences indexed by one counter is a walk of neither, and a bound that is
+/// not a length says nothing about the range.
+pub(crate) fn walked_sequence(
+    bound: &Declaration,
+    body: &Declaration,
+    counter: &str,
+    lengths: &BTreeSet<String>,
+) -> Option<String> {
+    if bound.kind != KIND_CALL || !lengths.contains(bound.attr(ATTR_CALLEE)?) {
+        return None;
+    }
+    // The callee's own selector is a child too, so the sequence is the first IDENT argument.
+    let sequence = bound
+        .children
+        .iter()
+        .skip(1)
+        .find(|child| child.kind == KIND_IDENT)?;
+    let mut indexed = BTreeSet::new();
+    collect_indexed(body, counter, &mut indexed);
+    match indexed.len() == 1 && indexed.contains(&sequence.name) {
+        true => Some(sequence.name.clone()),
+        false => None,
+    }
+}
+
+/// Whether every element this loop reads COPIES in the target.
+///
+/// Required, because the walk hands the body each element by value exactly as the source's index
+/// read does. An element that MOVES would be moved out of the sequence by the first read, which the
+/// source never does — so a sequence of those keeps its counter and its indexed reads.
+pub(crate) fn elements_copy(body: &Declaration, counter: &str, cx: &Body<'_>) -> bool {
+    let mut reads = Vec::new();
+    collect_indexed_nodes(body, counter, &mut reads);
+    !reads.is_empty()
+        && reads.iter().all(|node| {
+            node.children
+                .first()
+                .and_then(|base| base.type_ref.args.first())
+                .is_some_and(|element| cx.resolver.copy_types.contains(&element.name))
+        })
+}
+
+/// Every index node this counter appears in, so the element type can be read off the base.
+fn collect_indexed_nodes<'a>(node: &'a Declaration, counter: &str, out: &mut Vec<&'a Declaration>) {
+    if node.kind == KIND_INDEX
+        && node
+            .children
+            .get(1)
+            .is_some_and(|operand| operand.kind == KIND_IDENT && operand.name == counter)
+    {
+        out.push(node);
+    }
+    for child in &node.children {
+        collect_indexed_nodes(child, counter, out);
+    }
+}
+
+/// Every sequence name this counter indexes into, anywhere in the body.
+fn collect_indexed(node: &Declaration, counter: &str, out: &mut BTreeSet<String>) {
+    if node.kind == KIND_INDEX
+        && let [base, operand] = node.children.as_slice()
+        && operand.kind == KIND_IDENT
+        && operand.name == counter
+        && base.kind == KIND_IDENT
+    {
+        out.insert(base.name.clone());
+    }
+    for child in &node.children {
+        collect_indexed(child, counter, out);
+    }
+}
+
+/// The name a loop element takes, when the source gives none.
+///
+/// The sequence's own name with a trailing plural removed. `None` where that yields nothing usable
+/// or collides with a name the body already binds — an invented name that shadows a real one would
+/// be a different program, and keeping the counter is the honest fallback.
+pub(crate) fn element_name(sequence: &str, body: &Declaration) -> Option<String> {
+    let singular = sequence.strip_suffix('s').filter(|rest| !rest.is_empty())?;
+    let mut bound = BTreeSet::new();
+    collect_bound_names(body, &mut bound);
+    match bound.contains(singular) || singular == sequence {
+        true => None,
+        false => Some(singular.to_owned()),
+    }
+}
+
+/// Every name the body binds, so an invented one cannot shadow a real one.
+fn collect_bound_names(node: &Declaration, out: &mut BTreeSet<String>) {
+    if matches!(node.kind.as_str(), "let" | "bind" | "ident" | "param") && !node.name.is_empty() {
+        out.insert(node.name.clone());
+    }
+    for child in &node.children {
+        collect_bound_names(child, out);
     }
 }
 
