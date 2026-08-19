@@ -23,22 +23,6 @@ use crate::vocabulary::{
     ATTR_VALUE, KIND_IDENT, KIND_LITERAL, OPERATOR_ADDRESS_OF, SOURCE_INT, TYPE_POINTER,
 };
 
-/// Every parameter the signature made the target's index type.
-///
-/// Read by the BODY, so a read of one is not converted a second time: the signature and the body
-/// must agree, and they agree by asking this rather than each deciding.
-pub(crate) fn index_parameters(
-    declaration: &Declaration,
-    resolver: &crate::resolve::Resolver<'_>,
-) -> BTreeSet<String> {
-    declaration
-        .children_of_kind(crate::vocabulary::CHILD_PARAM)
-        .into_iter()
-        .filter(|param| indexes_only_parameter(declaration, param, resolver))
-        .map(|param| crate::naming::to_snake_case(&param.name))
-        .collect()
-}
-
 /// Whether this declaration is a THREE-WAY COMPARISON, and so returns the target's ordering.
 ///
 /// Every return is one of the three literals the source uses to spell a comparison, and that is the
@@ -87,30 +71,6 @@ fn is_ordering_literal(operand: &Declaration) -> bool {
         _ => false,
     }
 }
-
-/// Whether this parameter is used for NOTHING BUT indexing, and so is a `usize`.
-///
-/// The same question the loop counter asks, one scope out: a name whose every read is an index
-/// operand never has its signed value observed, so it does not need one. The difference is that a
-/// parameter's value comes from a CALLER, which is why the call site converts — see `body_call`.
-///
-/// Requires the source's own integer type, because a parameter of any other type is not a candidate
-/// for the target's index type at all; and a BODY, because a signature-only declaration proves
-/// nothing about how its parameters are used.
-pub(crate) fn indexes_only_parameter(
-    declaration: &Declaration,
-    param: &Declaration,
-    resolver: &crate::resolve::Resolver<'_>,
-) -> bool {
-    if param.type_ref.name != SOURCE_INT || resolver.idiom_index_counter().is_none() {
-        return false;
-    }
-    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
-        return false;
-    };
-    crate::counters::indexes_only(body, &param.name)
-}
-
 /// Whether this declaration is a GETTER whose result borrows from the receiver.
 ///
 /// The source's string is immutable and shares its backing, so `func (c Counter) Label() string`
@@ -335,76 +295,4 @@ fn is_fresh_address(operand: &Declaration) -> bool {
             .children
             .first()
             .is_some_and(|inner| inner.kind == KIND_COMPOSITE)
-}
-
-/// The two operands a three-way comparison LADDER compares, if the body is exactly one.
-///
-/// `if v < o { -1 } if v > o { 1 } 0` is how the source spells `cmp`, and it spells it that way
-/// because it has no such method. Recognised structurally and strictly: two `if`s over the SAME
-/// pair in the same order, one `<` and one `>`, each returning the matching extreme, and a trailing
-/// equal. Anything else is a comparison that does something of its own and keeps its branches.
-pub(crate) fn comparison_ladder_of(
-    statements: &[Declaration],
-    _cx: &crate::body::Body<'_>,
-) -> Option<(String, String)> {
-    let [less, greater, equal] = statements else {
-        return None;
-    };
-    if !returns_literal(equal, "0") {
-        return None;
-    }
-    let (a, b) = branch_operands(less, "<", "-1")?;
-    let (c, d) = branch_operands(greater, ">", "1")?;
-    match a == c && b == d {
-        true => Some((a, b)),
-        false => None,
-    }
-}
-
-/// The two names an `if <a> <op> <b> { return <literal> }` compares, when that is all it is.
-fn branch_operands(node: &Declaration, op: &str, literal: &str) -> Option<(String, String)> {
-    if node.kind != "if" || !node.children_of_kind("else").is_empty() {
-        return None;
-    }
-    let conditions = node.children_of_kind("cond");
-    let test = conditions.first()?.children.first()?;
-    if test.kind != "binary" || test.attr(ATTR_OP) != Some(op) {
-        return None;
-    }
-    let [left, right] = test.children.as_slice() else {
-        return None;
-    };
-    if left.kind != KIND_IDENT || right.kind != KIND_IDENT {
-        return None;
-    }
-    let branches = node.children_of_kind("then");
-    let then = branches.first()?;
-    let [only] = then.children.as_slice() else {
-        return None;
-    };
-    match returns_literal(only, literal) {
-        true => Some((left.name.clone(), right.name.clone())),
-        false => None,
-    }
-}
-
-/// Whether this statement returns exactly the given integer literal, negative sign included.
-fn returns_literal(node: &Declaration, literal: &str) -> bool {
-    if node.kind != KIND_RETURN {
-        return false;
-    }
-    let [only] = node.children.as_slice() else {
-        return false;
-    };
-    match literal.strip_prefix('-') {
-        Some(magnitude) => {
-            only.kind == KIND_UNARY
-                && only.attr(ATTR_OP) == Some("-")
-                && only
-                    .children
-                    .first()
-                    .is_some_and(|inner| inner.attr(ATTR_VALUE) == Some(magnitude))
-        }
-        None => only.attr(ATTR_VALUE) == Some(literal),
-    }
 }

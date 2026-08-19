@@ -197,7 +197,7 @@ pub(crate) fn statements(
         // A parameter the signature made a `usize` is one for the body too, and it reaches the
         // index through the same set a proven loop counter does — so one place decides, and the
         // signature and the body cannot disagree about whether a conversion is needed.
-        .with_usize_parameters(crate::returns::index_parameters(declaration, resolver)),
+        .with_usize_parameters(crate::index_params::index_parameters(declaration, resolver)),
         TailPosition::Yes,
     )
 }
@@ -250,7 +250,7 @@ pub(crate) fn translate(
         // such method. Whole-body, so it is matched once before any statement is.
         if index == 0
             && cx.results.is_an_ordering
-            && let Some((left, right)) = crate::returns::comparison_ladder_of(nodes, cx)
+            && let Some((left, right)) = crate::comparison::comparison_ladder_of(nodes, cx)
         {
             out.push(RustStmt::Tail(RustExpr::MethodCall {
                 receiver: Box::new(RustExpr::Path(crate::naming::to_snake_case(&left))),

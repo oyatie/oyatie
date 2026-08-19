@@ -2831,3 +2831,22 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
 - TWO REAL PACKAGES now compile with zero rustc errors AND pass clippy with zero warnings: `semver`
   and `xid`. Total across all six: 23 errors, down from 243 when `port` first ran.
+
+## Holding the bar through the review responses
+
+- Six files crossed 300 during the last stretch. Split along real question boundaries, and the
+  boundaries are worth naming because they are the shape the engine has grown into:
+
+  - what a body translation NEEDS versus the DISPATCH that spends it (`body.rs` / `body_stmt.rs`);
+  - whether a failing return MAY become `Err` versus what it BECOMES versus what its operands have
+    to be (`failure_proof.rs` / `body_failure.rs` / `body_operand.rs`);
+  - a PARAMETER's shape, decided by what the caller keeps, versus a RESULT's, decided by what the
+    body can prove (`params.rs` / `results.rs`), and the index parameter proved from how the body
+    USES it rather than what it produces (`index_params.rs`);
+  - measuring what translates versus deciding which translations SURVIVE self-containment
+    (`survey.rs` / `reachable.rs`) versus how a refusal is ranked (`survey_cause.rs`);
+  - the ladder that is the target's `cmp` written out (`comparison.rs`).
+
+- Every one of those pairs was one file until a rule arrived that needed only half of it. That is
+  what the size bar is actually for: it does not make the code smaller, it makes the second question
+  visible when it turns up.

@@ -8,7 +8,8 @@ use port_engine_rust_ir::{
 use crate::error::TransformError;
 use crate::impls::trait_impls;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
-use crate::params::{params, results};
+use crate::params::params;
+use crate::results::results;
 use crate::items_types::{
     blanket_impl, build_newtype, build_struct, build_trait, build_type_alias,
 };
