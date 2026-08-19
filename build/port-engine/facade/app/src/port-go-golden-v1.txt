@@ -331,15 +331,15 @@ pub mod pointers {
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__tally
-    /// A counter allocated away from the caller's frame.
+    /// A label shared by everything that reports under it.
     #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Tally {
-        /// Names the tally.
+        /// Names what is being tallied.
         label: String,
     }
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_func__newtally
     impl Tally {
-        /// Returns a tally named for display.
+        /// Returns a tally reporting under the given label.
         pub fn new(label: &str) -> Self {
             Self { label: label.to_owned() }
         }
@@ -387,7 +387,7 @@ pub mod sequence {
         vec![1, 2, 3]
     }
     // region: oyatie_example_portengine_fixture_corpus_sequence__go_func__empty
-    /// Returns no widths at all.
+    /// Returns the widths of a table with no columns.
     pub fn empty() -> Vec<i64> {
         Vec::new()
     }
