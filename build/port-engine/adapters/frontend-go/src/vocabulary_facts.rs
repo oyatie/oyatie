@@ -32,6 +32,7 @@ pub const KNOWN_FLAGS: &[&str] = &[
 
 /// The closed attribute-key vocabulary, closed for the same reason as the flags.
 pub const KNOWN_ATTR_KEYS: &[&str] = &[
+    ATTR_BUNDLE,
     ATTR_CALLEE,
     ATTR_CALLEE_KIND,
     ATTR_DOC,
@@ -90,6 +91,13 @@ pub const ATTR_RECEIVER: &str = "receiver";
 /// A declared assertion is compile-checked by the source language; a flow-derived one is the front
 /// end's inference. An impl emitted from either looks identical, so the distinction is recorded
 /// rather than left to be reconstructed.
+/// Attribute key marking a satisfaction whose interface is a pure SUPERTRAIT BUNDLE.
+///
+/// The interface declares no method of its own and embeds at least one, so the source satisfies it
+/// structurally — every type with the embedded method sets has it. The target says that once with a
+/// blanket impl, and a per-type impl beside one is a coherence conflict rather than a redundancy.
+pub const ATTR_BUNDLE: &str = "bundle";
+
 pub const ATTR_SITE: &str = "site";
 
 /// Attribute key holding a constant's or literal's value, spelled as source.

@@ -190,6 +190,20 @@ pub enum RustItem {
         /// Its required methods, as signatures.
         methods: Vec<RustFn>,
     },
+    /// `impl<T: A + B> Trait for T {}` — a supertrait bundle satisfied by anything that qualifies.
+    ///
+    /// The shape a source interface takes when it embeds other interfaces and declares no method of
+    /// its own, which is the great majority of them. The source satisfies such an interface
+    /// STRUCTURALLY: a type that has both method sets has it, with nothing to declare. The target
+    /// is nominal, so the same statement needs a blanket impl — and the alternative, one hand-written
+    /// empty impl per type, is both more code and strictly weaker, because a type the engine never
+    /// saw asserted would not have the trait the source says it has.
+    BlanketImpl {
+        /// The trait implemented for everything that meets the bounds.
+        name: String, // data_class: INTERNAL_ONLY
+        /// The bounds, which are the trait's own supertraits.
+        bounds: Vec<RustType>,
+    },
     /// `impl Trait for Type { .. }`, from an OBSERVED interface satisfaction.
     ///
     /// The trait is a path rather than a name because the interface a type satisfies is routinely

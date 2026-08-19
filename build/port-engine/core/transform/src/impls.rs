@@ -31,7 +31,7 @@ use crate::naming::to_pascal_case;
 use crate::resolve::Resolver;
 use crate::signature::{Body, method_receiver, method_signature};
 use crate::vocabulary::{
-    ATTR_SITE, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PROMOTED, POSITION_TRAIT,
+    ATTR_BUNDLE, ATTR_SITE, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PROMOTED, POSITION_TRAIT,
 };
 
 /// Every trait impl a declaration's observed satisfactions call for.
@@ -47,6 +47,11 @@ pub(crate) fn trait_impls(
     declaration
         .children_of_kind(CHILD_IMPLEMENTS)
         .into_iter()
+        // A pure SUPERTRAIT BUNDLE is implemented once, for everything that qualifies, where the
+        // trait is declared. The source satisfies such an interface structurally, so a per-type
+        // impl says something weaker AND conflicts with the blanket one — which is not a
+        // redundancy the target tolerates, it is a coherence error.
+        .filter(|observed| observed.attr(ATTR_BUNDLE) != Some("true"))
         .map(|observed| build_impl(observed, declaration, &self_ty, resolver))
         .collect()
 }
@@ -65,30 +70,27 @@ fn build_impl(
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(RustItem::TraitImpl {
-        docs: satisfaction_docs(observed, &trait_path, resolver.doc_convention),
+        docs: satisfaction_docs(observed, resolver.doc_convention),
         trait_path,
         self_ty: self_ty.clone(),
         methods,
     })
 }
 
-/// How the satisfaction was observed, carried into the emitted crate.
+/// The impl's documentation, which is the SOURCE's and nothing else.
 ///
-/// A declared assertion is checked by the source compiler; a flow-derived one is the front end's
-/// inference from one use site. The two produce identical Rust, so a reader who needs to know
-/// which they are looking at can only be told — and the emitted code is where they are reading.
-fn satisfaction_docs(
-    observed: &Declaration,
-    trait_path: &RustType,
-    convention: &DocConvention,
-) -> Vec<String> {
-    let mut docs = docs_of(observed, convention);
-    let site = observed.attr(ATTR_SITE).unwrap_or("an unrecorded position");
-    docs.push(format!(
-        " Ported from an implicit interface: the source was observed satisfying `{}` at {site}.",
-        trait_path.spelling()
-    ));
-    docs
+/// This used to append "Ported from an implicit interface: the source was observed satisfying `X`
+/// at <site>." A reviewer reading the emitted crate found that sentence in the public rustdoc and
+/// named it as a translator's working note shipped as API documentation — and they were right. A
+/// doc comment is what a CALLER reads; how the engine came to emit an impl is not something a
+/// caller can act on, and it tells them the crate was generated, which is the one thing this engine
+/// is trying not to say.
+///
+/// The provenance is not lost. Which satisfactions were observed and where is exactly what the plan
+/// and the receipt record, and that is where provenance belongs: the emitted crate is the PRODUCT,
+/// not the record of how it was made.
+fn satisfaction_docs(observed: &Declaration, convention: &DocConvention) -> Vec<String> {
+    docs_of(observed, convention)
 }
 
 /// One trait method, carrying the BODY the type would otherwise have put in an inherent block.

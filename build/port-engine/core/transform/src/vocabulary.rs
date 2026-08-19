@@ -197,5 +197,7 @@ pub(crate) const CHILD_PROMOTED: &str = "promoted";
 pub(crate) const CHILD_BIND: &str = "bind";
 /// The child role of one place a parallel assignment writes to.
 pub(crate) const CHILD_PLACE: &str = "place";
+/// Attribute key marking a satisfaction whose interface is a pure supertrait bundle.
+pub(crate) const ATTR_BUNDLE: &str = "bundle";
 /// The expression a destructuring bind takes its values from.
 pub(crate) const CHILD_VALUE: &str = "value";
