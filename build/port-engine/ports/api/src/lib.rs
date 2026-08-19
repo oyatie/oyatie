@@ -25,7 +25,7 @@ mod type_ref;
 pub use declaration::Declaration;
 pub use error::PortError;
 pub use failure::{
-    DeriveRule, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic,
+    DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };
 pub use identity::{Digest, LanguagePair, PAIR_SEPARATOR, RegionId, RuleId, UnitId};
 pub use ownership::{OwnershipFacts, PointerConstruction, PointerDisposition};

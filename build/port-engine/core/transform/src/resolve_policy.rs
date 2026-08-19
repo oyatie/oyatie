@@ -6,12 +6,23 @@
 //! pack declining to let the engine assume something — and separated from the type tables because
 //! a reader chasing "what does `map[string]int` become" should not have to read past them.
 
-use port_engine_api::{Declaration, TypeRef};
+use port_engine_api::{Declaration, IdiomRule, TypeRef};
 
 use crate::resolve::Resolver;
 use crate::vocabulary::SOURCE_STRING;
 
 impl Resolver<'_> {
+    /// The target spelling an idiom rule declares, if the pack declares that idiom.
+    ///
+    /// `None` means the pack does not carry the rule, and the source form is emitted unchanged —
+    /// an idiom is a preference, and a pack that declines to state one has not made an error.
+    pub(crate) fn idiom_method(&self, id: &str) -> Option<&str> {
+        self.idioms
+            .iter()
+            .find(|rule| rule.id == id)
+            .map(|rule| rule.method.as_str())
+    }
+
     /// Whether this construction holds a source `string` as an OWNED target value.
     ///
     /// Asked of the same table the type resolution uses, so a literal and the position it lands in

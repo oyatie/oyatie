@@ -11,6 +11,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("lib.rs", include_str!("lib.rs")),
     ("lower.rs", include_str!("lower.rs")),
     ("lower_body.rs", include_str!("lower_body.rs")),
+    ("lower_expr.rs", include_str!("lower_expr.rs")),
     ("lower_parts.rs", include_str!("lower_parts.rs")),
     ("ops.rs", include_str!("ops.rs")),
     ("render.rs", include_str!("render.rs")),

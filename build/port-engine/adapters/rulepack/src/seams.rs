@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
+use port_engine_api::{DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
 
 use crate::pack::LoadedRulePack;
 
@@ -26,6 +26,9 @@ impl PackSemantics for LoadedRulePack {
         &self.type_map
     }
 
+    fn idioms(&self) -> &[IdiomRule] {
+        &self.idioms
+    }
     fn derives(&self) -> &[DeriveRule] {
         &self.derives
     }

@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
+use port_engine_api::{DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
 use port_engine_hash::digest_bytes;
 
 use crate::error::RulepackError;
@@ -30,6 +30,7 @@ pub struct LoadedRulePack {
     pub(crate) integer_arithmetic: IntegerArithmetic,
     pub(crate) doc_convention: DocConvention,
     pub(crate) derives: Vec<DeriveRule>,
+    pub(crate) idioms: Vec<IdiomRule>,
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
@@ -245,6 +246,19 @@ impl LoadedRulePack {
             // arithmetic by name rather than emitting an operator whose overflow rule differs.
             // Absent means the pack declines to rewrite documentation at all, which leaves the
             // source's prose exactly as its author wrote it.
+            idioms: doc
+                .idioms
+                .into_iter()
+                .map(|rule| IdiomRule {
+                    id: rule.id,
+                    shape: rule.shape,
+                    method: rule.method,
+                    reason: rule.reason,
+                    seed_source: rule.seed_source,
+                    seed_license: rule.seed_license,
+                    seed_commit: rule.seed_commit,
+                })
+                .collect(),
             derives: doc
                 .derives
                 .into_iter()

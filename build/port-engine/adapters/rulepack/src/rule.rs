@@ -181,3 +181,27 @@ pub struct DeriveWireRule {
     /// What the source guarantees that makes it faithful, and what blocks it.
     pub reason: String,
 }
+
+/// An idiom rule, with the seed provenance the licensing policy requires.
+///
+/// `specs/k8s-port/licensing.json` rejects a rust-skills-derived rule without `seed_source`,
+/// `seed_license` and `seed_commit`, so all three are REQUIRED here rather than optional: a rule
+/// whose derivation cannot be re-checked is a rule nobody can audit.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct IdiomWireRule {
+    /// Stable identity, so a decision can be cited.
+    pub id: String,
+    /// The source shape this recognises, from a closed vocabulary.
+    pub shape: String,
+    /// The target method or spelling it becomes.
+    pub method: String,
+    /// Why the two are equivalent, and why the target prefers its form.
+    pub reason: String,
+    /// Where the rule was derived from.
+    pub seed_source: String,
+    /// The seed's licence.
+    pub seed_license: String,
+    /// The seed's commit, so the derivation can be re-checked.
+    pub seed_commit: String,
+}

@@ -610,5 +610,16 @@
       "name": "PartialEq",
       "reason": "The source compares structs with `==` exactly when no field is a slice, a map or a function -- and those are precisely the fields whose target counterpart is not comparable either. The two languages agree here, so this is derived rather than guessed: a type the source could compare, the port can compare."
     }
+  ],
+  "idioms": [
+    {
+      "id": "empty_string_comparison",
+      "shape": "compare_to_empty_string",
+      "method": "is_empty",
+      "reason": "The source spells the emptiness test as a comparison against the empty string literal, and the target has a method for it. Exactly equivalent -- both are true precisely when the value has length zero -- so this changes the spelling and not the program. `clippy::style` flags the comparison form, which is what makes it a review comment on hand-written code and therefore a defect in emitted code held to that bar. Applies to `==` and to `!=`, the second negated.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    }
   ]
 }

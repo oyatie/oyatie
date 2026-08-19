@@ -230,6 +230,7 @@ fn survey_declaration<P>(
         integer_arithmetic: pack.integer_arithmetic(),
         doc_convention: pack.doc_convention(),
         derives: pack.derives(),
+        idioms: pack.idioms(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,
         unit,

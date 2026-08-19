@@ -97,6 +97,7 @@ impl SignatureTable {
                 integer_arithmetic: semantics.integer_arithmetic(),
                 doc_convention: semantics.doc_convention(),
                 derives: semantics.derives(),
+                idioms: semantics.idioms(),
                 receiver: semantics.trait_receiver(),
                 deferred: semantics.deferred_kinds(),
                 ownership,

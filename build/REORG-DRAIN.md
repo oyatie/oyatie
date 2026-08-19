@@ -1016,6 +1016,37 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   — are all cases where the source tolerates what the target warns about, and all three are fixture
   artifacts rather than shapes real packages have.
 
+- R7 OPENED, with the licensing contract honoured from the first rule rather than retrofitted.
+  `specs/k8s-port/licensing.json` rejects a rust-skills-derived rule without `seed_source`,
+  `seed_license` and `seed_commit`, so the idiom table carries all three as REQUIRED fields — a
+  rule whose derivation cannot be re-checked is a rule nobody can audit. The seed corpus is real
+  and was read rather than assumed: 384 rules, MIT, commit a28144ccd.
+  An idiom is a different KIND of rule from everything else in the pack and is kept apart for that
+  reason. Every other decision changes what the emitted program does or refuses to do; an idiom
+  changes only how it READS, and an idiom that alters meaning is not an idiom but a bug.
+  First rule: `x == ""` becomes `x.is_empty()`, seeded from `rules/lint-warn-style.md` because
+  `comparison_to_empty` is a `clippy::style` lint and a comment a reviewer would make on
+  hand-written code is a defect in code held to that bar. Exactly equivalent — both true precisely
+  when the value has length zero. Either operand may be the literal, since the source permits
+  `"" == x`; two literals is a comparison of constants and not this shape at all.
+
+- Three emission defects the reviewer named, all in the LOWERING and none needing data.
+  `(1) as i64` — a cast's operand was bracketed unconditionally because `as` binds tighter than
+  every binary operator, so `a + b as u8` would cast `b` alone. True for a compound operand and
+  pointless for one that cannot reassociate; a literal, a path, a field, an index and a call all
+  bind tighter than `as` already.
+  `1 as i64` — and then the cast itself was wrong for a literal. `int64(1)` in the source is the
+  value one at that width, and `1i64` says so where `1 as i64` says a conversion happened. Only for
+  an integer literal reaching an integer type: a float target or a signed operand is a conversion
+  that can change the value and must keep saying so.
+  `};` — an `if` in statement position carried a trailing semicolon. Not merely noise: it makes the
+  block an expression statement whose value is discarded, which is how an emitted `if` came to sit
+  under a binding rustc then reported as never read.
+  MEASURED: clippy on the emitted crate went from 14 warnings at the blind review to 2, and rustc
+  from 5 to 3. The two clippy ones that remain — a dead initializer the source requires and an
+  unused private function — are both cases where the source tolerates what the target warns about,
+  and both are fixture artifacts rather than shapes real packages have.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

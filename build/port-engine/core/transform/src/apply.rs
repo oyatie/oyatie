@@ -157,6 +157,7 @@ pub fn apply_with_provenance(
                     integer_arithmetic: semantics.integer_arithmetic(),
                     doc_convention: semantics.doc_convention(),
                     derives: semantics.derives(),
+                    idioms: semantics.idioms(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,
                     unit: &step.unit,

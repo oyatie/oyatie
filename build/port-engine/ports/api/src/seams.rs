@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::failure::{DeriveRule, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic};
+use crate::failure::{DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic};
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
 use crate::ownership::PointerDisposition;
 
@@ -136,6 +136,9 @@ pub trait PackSemantics {
 
     /// The derives a ported type earns, and what blocks each.
     fn derives(&self) -> &[DeriveRule];
+
+    /// Idiom rules: spellings the target prefers, which change nothing about the program.
+    fn idioms(&self) -> &[IdiomRule];
     /// SOURCE types a conversion reaches by a plain cast.
     ///
     /// Keyed by source identity like [`PackSemantics::type_map`]. A conversion the pack does not
