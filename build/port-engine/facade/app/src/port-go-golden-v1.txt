@@ -75,6 +75,7 @@ pub mod composite {
     // region: oyatie_example_portengine_fixture_corpus_composite__go_interface__job
     /// Anything that runs and describes itself.
     pub trait Job: Runner + Describer {}
+
     impl<T: Runner + Describer> Job for T {}
     // region: oyatie_example_portengine_fixture_corpus_composite__go_struct_body__engine
     /// Counts the work it has done.
@@ -83,6 +84,7 @@ pub mod composite {
         /// How many times run has been called.
         calls: i64,
     }
+
     impl Runner for Engine {
         fn run(&mut self) -> i64 {
             self.calls = self.calls.wrapping_add(1);
@@ -98,11 +100,13 @@ pub mod composite {
         /// Describes this driver.
         label: String,
     }
+
     impl Describer for Driver {
         fn describe(&self) -> String {
             self.label.clone()
         }
     }
+
     impl Runner for Driver {
         fn run(&mut self) -> i64 {
             self.engine.run()
@@ -131,6 +135,7 @@ pub mod fallible {
         /// Returned when the input string has no content.
         Empty,
     }
+
     impl fmt::Display for Error {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
             f.write_str(
@@ -140,6 +145,7 @@ pub mod fallible {
             )
         }
     }
+
     impl std::error::Error for Error {}
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__length
     /// Reports the length of s, failing on the empty string.
@@ -308,6 +314,7 @@ pub mod naming {
         /// The current display name.
         text: String,
     }
+
     impl crate::shapes::Named for Label {
         fn name(&self) -> String {
             self.text.clone()
@@ -336,6 +343,7 @@ pub mod naming {
         /// The fixed display name.
         text: String,
     }
+
     impl crate::shapes::Named for Tag {
         fn name(&self) -> String {
             self.text.clone()
@@ -365,6 +373,7 @@ pub mod pointers {
         /// Names the counter.
         label: String,
     }
+
     impl Counter {
         /// Adds n to the counter.
         pub fn add(&mut self, n: i64) {
@@ -480,6 +489,7 @@ pub mod shapes {
         /// Names the point for display.
         label: String,
     }
+
     impl Point {
         /// Reports the area of the rectangle between the origin and this point.
         pub fn area(&self) -> i64 {

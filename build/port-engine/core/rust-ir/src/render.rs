@@ -139,7 +139,7 @@ impl RustRenderer {
         let mut out = BTreeMap::new();
         for region in ir.regions() {
             let file = ir.file(&region)?;
-            out.insert(region, prettyplease::unparse(&file).into_bytes());
+            out.insert(region, separated(&file).into_bytes());
         }
         Ok(out)
     }
@@ -165,4 +165,33 @@ impl Renderer for RustRenderer {
             detail: "RustRenderer::render requires typed RustIr via render_rust_ir".into(),
         })
     }
+}
+
+/// A file's items, formatted with a BLANK LINE between each.
+///
+/// The formatter emits none, because the tree it renders has none — a syntax tree records what the
+/// items ARE and not how far apart a reader wants them. So a type, its `Display` impl and its
+/// `Error` impl arrive as one unbroken block, which is not how anybody lays out Rust and which a
+/// reviewer named as making seven near-identical blocks unscannable.
+///
+/// Per ITEM rather than per region, because a region is one declaration's whole output and one
+/// declaration emits several items — the break belongs between them too.
+///
+/// A file carrying inner attributes is rendered whole: they belong to the file rather than to any
+/// item, and splitting would lose them.
+fn separated(file: &syn::File) -> String {
+    if !file.attrs.is_empty() || file.items.len() < 2 {
+        return prettyplease::unparse(file);
+    }
+    file.items
+        .iter()
+        .map(|item| {
+            prettyplease::unparse(&syn::File {
+                shebang: file.shebang.clone(),
+                attrs: Vec::new(),
+                items: vec![item.clone()],
+            })
+        })
+        .collect::<Vec<String>>()
+        .join("\n")
 }
