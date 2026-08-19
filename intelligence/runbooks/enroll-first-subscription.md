@@ -1,24 +1,27 @@
 # Enroll first Anthropic OAuth subscription
 
-> **STATUS 2026-08-19 — NOT EXECUTABLE. Deployment state UNKNOWN.**
+> **STATUS 2026-08-19 — NOT EXECUTABLE AS WRITTEN. Deployment state UNKNOWN.**
 >
-> The deploy path this runbook opens with no longer exists, and nothing in the repository
-> can bring it back as written:
+> Every path this runbook names was **rehomed by the capability reorg, not deleted**. The work is
+> a repoint, not a rebuild:
 >
-> - `scripts/build/build-and-push-cloud-intelligence.sh` — **absent from the tree**.
-> - `microservices/cloud-intelligence/iac/k8s/helm/values.yaml` — **absent**; the whole
->   `microservices/` root was removed by the capability reorg.
-> - The `cloud-intelligence` Argo CD Application still declared in
->   `infra/gitops/values.yaml` points at `microservices/cloud-intelligence/k8s`, so it
->   **cannot render or reconcile**.
+> | Runbook says | Actually at |
+> |---|---|
+> | `microservices/cloud-intelligence/iac/k8s/helm/values.yaml` | `intelligence/iac/k8s/helm/values.yaml` |
+> | `microservices/cloud-intelligence/k8s` | `intelligence/k8s/` |
+> | `scripts/build/build-and-push-cloud-intelligence.sh` | absent from the tree — this one is genuinely gone |
 >
-> Cluster readback is unavailable, so whether a `cloud-intelligence` workload is still
-> running from an earlier sync is **unknown and must not be claimed either way**. Treat every
-> `kubectl` and `argocd` step below as unverified: none of them is evidence of deployment.
+> The `cloud-intelligence` Argo CD Application in `infra/gitops/values.yaml` still declares
+> `path: microservices/cloud-intelligence/k8s`, so it **cannot render**. The remediation is a
+> single field: repoint it at `intelligence/k8s`. That is tracked as `oyatie-6t5.22`.
 >
-> The enrollment procedure itself (seat, Cedar binding, proxy key) is retained because it is
-> product knowledge independent of the deploy path. The deploy sections must be re-authored
-> against the real path when the service is next deployed — tracked by `oyatie-6t5.22`.
+> Until then, treat every `kubectl` and `argocd` step below as unverified. Cluster readback is
+> unavailable, so whether a `cloud-intelligence` workload survives from an earlier sync is
+> **unknown and is not claimed either way** — a dangling source path stops new desired state
+> rendering; it does not tell you what is running.
+>
+> The enrollment procedure itself (seat, Cedar binding, proxy key) is retained: it is product
+> knowledge independent of the deploy path.
 
 This runbook provisions the oyatie-dogfood tenant's first Anthropic OAuth subscription
 into the cloud-intelligence gateway. Every step that requires human credentials is

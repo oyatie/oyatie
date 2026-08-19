@@ -1,0 +1,81 @@
+# CI Webhook Gateway deployment (ADR-0374): GitHub PR webhook -> HMAC verify ->
+# dispatch Jenkins oyaCiLane (-> oya gate run-all -> commit-status). Namespace oya-ci.
+# The HMAC secret is an MVP k8s Secret (ci-webhook-gateway-secret); hardening to
+# OpenBao + ESO ExternalSecret is the follow-up now that ESO is deployed.
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ci-webhook-gateway
+  namespace: oya-ci
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ci-webhook-gateway
+  namespace: oya-ci
+  labels:
+    app: ci-webhook-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ci-webhook-gateway
+  template:
+    metadata:
+      labels:
+        app: ci-webhook-gateway
+    spec:
+      serviceAccountName: ci-webhook-gateway
+      containers:
+        - name: gateway
+          image: registry.oya-registry.svc.cluster.local:5000/ci-webhook-gateway:dev
+          ports:
+            - containerPort: 8099
+              name: http
+          env:
+            - name: OYA_GATEWAY_BIND_ADDR
+              value: "0.0.0.0:8099"
+            - name: OYA_GATEWAY_TARGET_BRANCH
+              value: "dev"
+            - name: OYA_GITHUB_WEBHOOK_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: ci-webhook-gateway-secret
+                  key: webhook-secret
+            - name: OYA_JENKINS_DISPATCH_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ci-webhook-gateway-secret
+                  key: jenkins-dispatch-url
+          readinessProbe:
+            httpGet: { path: /healthz, port: 8099 }
+            initialDelaySeconds: 3
+            periodSeconds: 10
+          livenessProbe:
+            httpGet: { path: /healthz, port: 8099 }
+            initialDelaySeconds: 5
+            periodSeconds: 20
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            runAsUser: 65532
+            capabilities:
+              drop: [ALL]
+            seccompProfile:
+              type: RuntimeDefault
+          resources:
+            requests: { cpu: 25m, memory: 64Mi }
+            limits: { memory: 256Mi }
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ci-webhook-gateway
+  namespace: oya-ci
+spec:
+  selector:
+    app: ci-webhook-gateway
+  ports:
+    - port: 8099
+      targetPort: 8099
+      name: http
