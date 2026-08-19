@@ -92,6 +92,18 @@ pub(crate) struct FailureDoc {
     #[serde(default)]
     pub(crate) target_type_alternative_reason: String,
     #[serde(default)]
+    pub(crate) sentinel_enum: String,
+    #[serde(default)]
+    pub(crate) sentinel_enum_reason: String,
+    #[serde(default)]
+    pub(crate) sentinel_enum_exhaustive: bool,
+    #[serde(default)]
+    pub(crate) sentinel_enum_exhaustive_reason: String,
+    #[serde(default)]
+    pub(crate) identity_test_grouped: String,
+    #[serde(default)]
+    pub(crate) identity_test_grouped_reason: String,
+    #[serde(default)]
     pub(crate) sentinel_prefix: String,
     #[serde(default)]
     pub(crate) sentinel_prefix_reason: String,

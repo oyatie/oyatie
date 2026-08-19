@@ -11,7 +11,8 @@ use quote::{ToTokens, quote};
 
 use port_engine_api::PortError;
 
-use crate::item::{RustField, RustFn, RustItem, RustParam, StructShape};
+use crate::item::RustItem;
+use crate::item_parts::{RustField, RustFn, RustParam, StructShape};
 use crate::lower_body::lower_block;
 use crate::lower_parts::{lower_docs, lower_vis, parse_expr, parse_ident, parse_path, parse_type};
 
@@ -51,30 +52,9 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             Ok(quote! { use #path; })
         }
 
-        RustItem::SentinelError {
-            docs,
-            vis,
-            name,
-            message,
-        } => {
-            let (docs, vis) = (lower_docs(docs), lower_vis(*vis));
-            let name = parse_ident(name)?;
-            let message = parse_expr(message, "sentinel message")?;
-            // COPY and EQ, because a sentinel is a value with no data: comparing two is comparing
-            // which sentinel they are, which is the whole point of it having a type at all.
-            Ok(quote! {
-                #docs
-                #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-                #vis struct #name;
-
-                impl fmt::Display for #name {
-                    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                        f.write_str(#message)
-                    }
-                }
-
-                impl std::error::Error for #name {}
-            })
+        RustItem::Nothing => Ok(quote! {}),
+        item @ (RustItem::SentinelEnum { .. } | RustItem::SentinelError { .. }) => {
+            crate::lower_sentinel::lower(item)
         }
 
         RustItem::PackageValue {

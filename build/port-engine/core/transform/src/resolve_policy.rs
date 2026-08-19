@@ -38,6 +38,36 @@ impl Resolver<'_> {
     /// The prefix stays in three cases, each one a case where dropping it would be a guess or a
     /// loss: the pack declares no prefix, what is left is empty, or another declaration in the unit
     /// already emits that name.
+    /// The ENUM a unit's sentinels are grouped into, when the pack groups them and the name is free.
+    ///
+    /// `None` means each sentinel keeps its own type — because the pack declares no enum, or because
+    /// this unit already declares something by that name, and a rename that collides is worse than
+    /// the boilerplate it removes.
+    pub(crate) fn sentinel_enum_name(&self) -> Option<&str> {
+        let convention = self.failure?;
+        if convention.sentinel_enum.is_empty() || self.scope.sentinels.is_empty() {
+            return None;
+        }
+        let taken = self
+            .scope
+            .types
+            .values()
+            .any(|target| target == &convention.sentinel_enum);
+        (!taken).then_some(convention.sentinel_enum.as_str())
+    }
+
+    /// How a sentinel is NAMED where a value is wanted: a variant path when grouped, else the type.
+    ///
+    /// The one answer every site asks for, so the declaration, the return and the identity test
+    /// cannot disagree — which they did, once, and it did not compile.
+    pub(crate) fn sentinel_path(&self, source: &str) -> String {
+        let variant = self.sentinel_type_name(source);
+        match self.sentinel_enum_name() {
+            Some(group) => format!("{group}::{variant}"),
+            None => variant,
+        }
+    }
+
     pub(crate) fn sentinel_type_name(&self, source: &str) -> String {
         let full = to_pascal_case(source);
         let Some(convention) = self.failure.filter(|c| !c.sentinel_prefix.is_empty()) else {

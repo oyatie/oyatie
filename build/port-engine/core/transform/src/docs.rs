@@ -24,15 +24,32 @@ pub(crate) fn docs_of(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
 ) -> Result<Vec<String>, TransformError> {
-    let convention = resolver.doc_convention;
     let Some(block) = declaration.attr(ATTR_DOC) else {
         return Ok(Vec::new());
     };
     refuse_dangling_reference(block, declaration, resolver)?;
-    Ok({
+    Ok(docs_from_block(block, &declaration.name, resolver))
+}
+
+/// The same, from a doc block and the name it opens with, for a declaration not in hand.
+///
+/// The grouped failure enum builds a variant per sentinel and needs each one's documentation, but
+/// it works from the unit's sentinel list rather than from the declarations. Factored so both go
+/// through one pipeline: two spellings of a doc rewrite would drift exactly as two spellings of a
+/// name did.
+///
+/// No refusal check here — the declaration this block came from is surveyed on its own, and that is
+/// where its dangling references are caught.
+pub(crate) fn docs_from_block(
+    block: &str,
+    name: &str,
+    resolver: &Resolver<'_>,
+) -> Vec<String> {
+    let convention = resolver.doc_convention;
+    {
         {
             rename_references(
-                &rewrite_opening(block, &declaration.name, convention),
+                &rewrite_opening(block, name, convention),
                 &resolver.scope.renames,
                 resolver.prose_type_names,
             )
@@ -42,7 +59,7 @@ pub(crate) fn docs_of(
             .map(|line| format!(" {}", line.trim_end()))
             .collect()
         }
-    })
+    }
 }
 
 /// Refuse prose that NAMES something the emitted crate does not contain.

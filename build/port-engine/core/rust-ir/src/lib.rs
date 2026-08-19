@@ -36,14 +36,17 @@ mod lower;
 mod lower_body;
 mod lower_expr;
 mod lower_precedence;
+mod item_parts;
 mod lower_parts;
+mod lower_sentinel;
 mod ops;
 mod render;
 mod ty;
 
 pub use expr::{MatchArm, RustExpr};
 pub use stmt::{RustStmt, TupleBind};
-pub use item::{Receiver, RustField, RustFn, RustItem, RustParam, StructShape, Visibility};
+pub use item::{RustItem, SentinelVariant};
+pub use item_parts::{Receiver, RustField, RustFn, RustParam, StructShape, Visibility};
 pub use lower::lower_file;
 pub use ops::{BinaryOp, Precedence, UnaryOp};
 pub use render::{EmptyRenderer, FORMATTER_ID, RustIr, RustRenderer};

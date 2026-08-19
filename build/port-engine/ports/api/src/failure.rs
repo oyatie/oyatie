@@ -183,6 +183,18 @@ pub struct FailureConvention {
     /// measurement rather than a preference — an engine that cannot say why it did not do the
     /// obvious thing will be asked again every time somebody reads the output.
     pub target_type_alternative_reason: String, // data_class: INTERNAL_ONLY
+    /// The ONE type a unit's proved sentinels become, as variants. Empty to give each its own.
+    pub sentinel_enum: String, // data_class: INTERNAL_ONLY
+    /// Why grouping them is a separate decision from what a fallible function returns.
+    pub sentinel_enum_reason: String, // data_class: INTERNAL_ONLY
+    /// Whether a caller outside the crate may match that enum exhaustively.
+    pub sentinel_enum_exhaustive: bool,
+    /// Why that answer, and what it costs.
+    pub sentinel_enum_exhaustive_reason: String, // data_class: INTERNAL_ONLY
+    /// How identity is tested when the sentinels are grouped: failure, enum, variant.
+    pub identity_test_grouped: String, // data_class: INTERNAL_ONLY
+    /// Why the grouped test asks two questions where the ungrouped one asked one.
+    pub identity_test_grouped_reason: String, // data_class: INTERNAL_ONLY
     /// The prefix the source puts on a sentinel's NAME, which the target drops. Empty to keep it.
     pub sentinel_prefix: String, // data_class: INTERNAL_ONLY
     /// Why the prefix goes, and the three conditions under which it stays.

@@ -3284,3 +3284,53 @@ proves it. It appears as those functions land.
 The general shape here is worth keeping: an enum is a better Rust API for a program somebody is
 writing fresh, and a DIFFERENT API from the one being ported. Choosing it would be redesigning the
 package rather than porting it, and this engine ports.
+
+## R1j — the finding three reviews led with, and the two decisions I had conflated
+
+Three consecutive blind reviews opened with the same thing: seven near-identical `struct` + `Display`
++ `Error` blocks where a Rust author writes one enum. I declined it twice by measurement, and the
+measurement was sound but it answered a question nobody had asked.
+
+**The conflation.** `target_type` — what a fallible function RETURNS — has to stay the open boxed
+error, because the source's error is an open interface and 16 parameters across the corpus accept an
+arbitrary failure. That measurement holds. But it says nothing about how a unit's OWN declared
+sentinels are SPELLED, and spelling them one type each was a separate choice that never had to follow
+from it. Two decisions, one of which I had been defending with the other's evidence.
+
+Grouped, the unit's sentinels become `pub enum Error` with a variant each, one `Display` whose arms
+are built from the same list the variants are, and one `Error` impl. It preserves everything the
+separate types carried — distinct identity, the message each holds, the comparison a caller makes —
+and it still boxes at the boundary, so an arbitrary failure crosses exactly as before. Six blocks of
+`semver` became one; the hermetic corpus's single sentinel became a one-variant enum, which is the
+same rule and reads the same way.
+
+**Named `Error`, not after the package.** The target addresses it through the module already:
+`semver::Error` says everything `semver::SemverError` does. Falls back to one type per sentinel where
+the unit already declares that name, because a collision is worse than the boilerplate.
+
+**`#[non_exhaustive]`, and the cost is stated.** An exhaustive `match` was part of what the reviewers
+wanted from an enum, and this withholds it. Taken anyway: the source's sentinel list grows without
+ceremony there, and in the target an added variant would break every downstream match. A library that
+cannot add a failure without a major version is a worse outcome than one whose callers write a
+wildcard arm.
+
+**Three things the change surfaced.**
+- The enum was carrying a variant for a sentinel whose own declaration had REFUSED — a failure case
+  the type declared and no return could ever construct. Variants are now filtered to what is
+  emitted, and the enum is built on the first sentinel that survives rather than the first declared.
+- A sentinel emitting nothing of its own was skipping the dangling-prose check entirely, because the
+  grouping branch returned before the docs were read. The check now runs first, for its refusal
+  rather than for its value.
+- The identity test was `matches!(err.downcast_ref::<Error>(), Some(&Error::Gone))` and rendered as
+  `downcast_ref::< Error > ()` — the target's formatter prints MACRO bodies as raw tokens. Switched
+  to the equality, which says the same thing, needs a derive the type already has, and formats.
+
+**Four files split along real seams** to hold the 100–300 bar: the grouped enum out of `items_static`
+(one item from a whole list, where everything there builds one item from one declaration); the
+sentinel lowering out of `lower.rs` (both spellings of one decision in one place); the item
+VOCABULARY out of the item list; and a unit's own facts out of the resolver that asks questions of
+them.
+
+All seven real packages still compile with zero rustc errors and zero clippy warnings, and coverage
+is unchanged — this is a change in how the same declarations are spelled, not in how many of them
+the engine can reach.
