@@ -27,6 +27,9 @@ pub struct Pack {
     /// Callees whose value is a length. Empty by default: these tests assert on structure, and no
     /// fixture returns one.
     pub length_functions: BTreeSet<String>,
+    /// Source type name → target spelling in prose. Empty by default: these tests assert on
+    /// structure, and no fixture's documentation names a primitive.
+    pub prose_type_names: BTreeMap<String, String>,
     /// Form id → the pack's reason for not having decided it. Empty by default, for the same
     /// reason: a refusal these tests assert on names the form, and the prose is the pack's.
     pub undecided_forms: BTreeMap<String, String>,
@@ -267,6 +270,9 @@ impl PackSemantics for Pack {
     }
     fn length_functions(&self) -> &BTreeSet<String> {
         &self.length_functions
+    }
+    fn prose_type_names(&self) -> &BTreeMap<String, String> {
+        &self.prose_type_names
     }
     fn undecided_forms(&self) -> &BTreeMap<String, String> {
         &self.undecided_forms

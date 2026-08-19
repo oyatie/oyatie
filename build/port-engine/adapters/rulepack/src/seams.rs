@@ -81,6 +81,10 @@ impl PackSemantics for LoadedRulePack {
         &self.deferred_kind_set
     }
 
+    fn prose_type_names(&self) -> &BTreeMap<String, String> {
+        &self.prose_type_names
+    }
+
     fn length_functions(&self) -> &BTreeSet<String> {
         &self.length_functions
     }

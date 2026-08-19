@@ -27,6 +27,7 @@ pub(crate) fn docs_of(declaration: &Declaration, resolver: &Resolver<'_>) -> Vec
             rename_references(
                 &rewrite_opening(block, &declaration.name, convention),
                 &resolver.scope.renames,
+                resolver.prose_type_names,
             )
                 .lines()
                 // A leading space is what `///` puts between the slashes and the text; the
@@ -52,7 +53,11 @@ pub(crate) fn docs_of(declaration: &Declaration, resolver: &Resolver<'_>) -> Vec
 ///
 /// Word boundaries are non-identifier characters, so `Run` inside `Runner` is not a word and is not
 /// touched. A name with an ambiguous target is absent from the map and is left alone.
-fn rename_references(block: &str, renames: &BTreeMap<String, String>) -> String {
+fn rename_references(
+    block: &str,
+    renames: &BTreeMap<String, String>,
+    types: &BTreeMap<String, String>,
+) -> String {
     let mut out = String::with_capacity(block.len());
     let mut word = String::new();
     for character in block.chars() {
@@ -60,16 +65,24 @@ fn rename_references(block: &str, renames: &BTreeMap<String, String>) -> String 
             word.push(character);
             continue;
         }
-        push_word(&mut out, &mut word, renames);
+        push_word(&mut out, &mut word, renames, types);
         out.push(character);
     }
-    push_word(&mut out, &mut word, renames);
+    push_word(&mut out, &mut word, renames, types);
     out
 }
 
 /// Flush one accumulated word, renamed if it names something.
-fn push_word(out: &mut String, word: &mut String, renames: &BTreeMap<String, String>) {
-    match renames.get(word.as_str()) {
+fn push_word(
+    out: &mut String,
+    word: &mut String,
+    renames: &BTreeMap<String, String>,
+    types: &BTreeMap<String, String>,
+) {
+    // A DECLARATION of this unit first, then a source TYPE the pack names. The two cannot collide:
+    // the pack's set holds only the source's own primitive spellings, and a unit declaring one of
+    // those is declaring a name the target could not use anyway.
+    match renames.get(word.as_str()).or_else(|| types.get(word.as_str())) {
         Some(target) => out.push_str(target),
         None => out.push_str(word),
     }

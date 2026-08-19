@@ -127,6 +127,11 @@ pub trait PackSemantics {
     /// have. No real package can be ported without this table: every one of them calls its standard
     /// library, and a standard library is exactly the part that does not come along.
     fn function_map(&self) -> &BTreeMap<String, FunctionMapping>;
+    /// Source TYPE names a doc comment may name, and the target's spelling for each.
+    ///
+    /// Separate from the type map, which answers what a DECLARATION's type becomes. Prose is not a
+    /// declaration, and a type name that is also an English word must not be rewritten in it.
+    fn prose_type_names(&self) -> &BTreeMap<String, String>;
     /// Callee identities whose value IS a length, and so is a `usize` in the target.
     ///
     /// The source types a length as its own integer, which the type map sends to a signed target

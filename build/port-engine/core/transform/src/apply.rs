@@ -169,6 +169,7 @@ pub fn apply_with_provenance(
                     failure: semantics.failure_convention(),
                     deferred: semantics.deferred_kinds(),
                     constant_map: semantics.constant_map(),
+                    prose_type_names: semantics.prose_type_names(),
                     length_functions: semantics.length_functions(),
                     undecided_forms: semantics.undecided_forms(),
                     signatures: &signatures,

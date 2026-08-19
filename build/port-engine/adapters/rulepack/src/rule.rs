@@ -154,6 +154,20 @@ pub struct LengthFunctions {
     pub reason: String,
 }
 
+/// Source TYPE names a doc comment may name, and the target's spelling for each.
+///
+/// Deliberately small, and the bound is the substance: every name in it is unambiguous in English,
+/// so a word matching one is naming a type. An ordinary English word that is also a type name is
+/// absent, because rewriting prose to fix a type name it never meant makes the prose worse.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct ProseTypeNames {
+    /// Source type name → target spelling.
+    pub names: BTreeMap<String, String>,
+    /// Why this set and not the full type map.
+    pub reason: String,
+}
+
 /// A FORM the pack has not decided, keyed by an id the engine names when it declines.
 ///
 /// Distinct from [`DeferredKind`], which is per declaration KIND and mutually exclusive with a
