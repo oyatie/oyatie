@@ -30,7 +30,7 @@
     "_findings_by_apex_comment": "Keyed '{code}@{apex}'. Read WHOLE by the gate, and compared over the UNION of the observed and frozen key sets, so a pair appearing for the first time is drift rather than a silent pass. Only OBSERVED pairs are listed; an absent key means zero. Every value here was read from this gate's own 'observed N' line, never computed.",
     "findings_by_apex": {
       "apex_gist_cut_from_source@700": 174,
-      "apex_gist_cut_from_source@701": 114,
+      "apex_gist_cut_from_source@701": 110,
       "apex_gist_cut_from_source@702": 44,
       "apex_gist_cut_from_source@703": 12,
       "apex_gist_cut_from_source@704": 28,
@@ -66,7 +66,7 @@
       "apex_gist_unclosed_fence@705": 3,
       "apex_gist_unclosed_fence@708": 4,
       "apex_gist_unclosed_fence@709": 15,
-      "apex_member_without_gist@700": 66,
+      "apex_member_without_gist@700": 65,
       "apex_member_without_gist@709": 66,
       "apex_member_without_residual@709": 1,
       "apex_topic_dropped@700": 1,
