@@ -50,6 +50,7 @@ mod items_static;
 mod naming;
 mod ownership;
 mod params;
+mod prelude;
 mod promote;
 mod resolve;
 mod returns;

@@ -19,6 +19,8 @@ pub(crate) fn build_type_alias(
     resolver: &Resolver<'_>,
 ) -> Result<RustItem, TransformError> {
     Ok(RustItem::TypeAlias {
+        // The source's own aliases are concrete; only the failure alias takes a parameter.
+        generics: Vec::new(),
         docs: docs_of(declaration, resolver),
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),

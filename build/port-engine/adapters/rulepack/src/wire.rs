@@ -85,6 +85,14 @@ pub(crate) struct FailureDoc {
     #[serde(default)]
     pub(crate) constructors: std::collections::BTreeSet<String>,
     #[serde(default)]
+    pub(crate) inferred_construction: String,
+    #[serde(default)]
+    pub(crate) inferred_construction_reason: String,
+    #[serde(default)]
+    pub(crate) alias: String,
+    #[serde(default)]
+    pub(crate) alias_reason: String,
+    #[serde(default)]
     pub(crate) constructor_reason: String,
     #[serde(default)]
     pub(crate) sentinel_constructors: std::collections::BTreeSet<String>,

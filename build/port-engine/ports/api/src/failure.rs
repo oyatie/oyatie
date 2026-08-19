@@ -132,6 +132,17 @@ pub struct FailureConvention {
     /// nil — and silently wrong when it can, in the direction of reporting failure where the source
     /// reported success.
     pub constructors: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// How a failure is built where the DESTINATION already fixes its type. Empty to use the
+    /// general mapping everywhere.
+    pub inferred_construction: String, // data_class: INTERNAL_ONLY
+    /// Why a second form, and where it applies.
+    pub inferred_construction_reason: String, // data_class: INTERNAL_ONLY
+    /// The name a unit gives the failure type, so its signatures do not spell it out.
+    ///
+    /// Empty means every signature carries the full type.
+    pub alias: String, // data_class: INTERNAL_ONLY
+    /// Why the alias, and what it changes.
+    pub alias_reason: String, // data_class: INTERNAL_ONLY
     /// Why those callees, and what admits a new one.
     pub constructor_reason: String, // data_class: INTERNAL_ONLY
     /// Constructors whose SOLE ARGUMENT is the message, so a sentinel built by one is its message.

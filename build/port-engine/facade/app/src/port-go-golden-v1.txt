@@ -120,34 +120,36 @@ pub mod composite {
     }
 }
 pub mod fallible {
+    // region: oyatie_example_portengine_fixture_corpus_fallible__prelude
+    pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_var__errempty
     /// Returned when the input string has no content.
     pub const ERR_EMPTY: &str = "empty";
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__length
     /// Reports the length of s, failing on the empty string.
-    pub fn length(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn length(s: &str) -> Result<i64> {
         if s.is_empty() {
-            return Err(Box::<dyn std::error::Error + Send + Sync>::from(ERR_EMPTY));
+            return Err(ERR_EMPTY.into());
         }
         Ok(s.len() as i64)
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__check
     /// Reports whether s is usable, returning only a failure.
-    pub fn check(s: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub fn check(s: &str) -> Result<()> {
         if s.is_empty() {
-            return Err(Box::<dyn std::error::Error + Send + Sync>::from("empty"));
+            return Err("empty".into());
         }
         Ok(())
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__twice
     /// Returns the length of s doubled.
-    pub fn twice(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn twice(s: &str) -> Result<i64> {
         let n = length(s)?;
         Ok(n.wrapping_add(n))
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__validate
     /// Checks s and reports nothing else.
-    pub fn validate(s: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+    pub fn validate(s: &str) -> Result<()> {
         check(s)
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_struct_body__report
@@ -160,7 +162,7 @@ pub mod fallible {
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__measure
     /// Reports the length of s, failing on the empty string.
-    pub fn measure(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
+    pub fn measure(s: &str) -> Result<i64> {
         check(s)?;
         Ok(s.len() as i64)
     }

@@ -265,10 +265,53 @@ pub(crate) fn fallible_return(
         Some(built) => built,
         None => expression(failure, cx)?,
     };
+    let built = inferred(built, cx);
     Ok(RustExpr::Call {
         callee: Box::new(RustExpr::Path("Err".to_owned())),
         args: vec![built],
     })
+}
+
+/// A built failure, in the shorter form the DESTINATION allows.
+///
+/// Inside `Err(..)` of a function whose return type names the failure, the type is already known,
+/// so the explicit conversion the general mapping uses says something the signature has said. The
+/// pack decides whether there is a shorter form and what it is; where it declares none, or where
+/// the built expression is not a plain conversion this can rewrite, the general form stands.
+fn inferred(built: RustExpr, cx: &Body<'_>) -> RustExpr {
+    let Some(convention) = cx.resolver.failure else {
+        return built;
+    };
+    if convention.inferred_construction.is_empty() {
+        return built;
+    }
+    // Only a rendered CONSTRUCTION is rewritten, and only by matching the general form the pack
+    // declares: the operand inside it is what the shorter form takes, and reading it from the form
+    // rather than from the text means a pack that changes one changes both.
+    let RustExpr::Literal(rendered) = &built else {
+        return built;
+    };
+    let Some(mapping) = convention
+        .constructors
+        .iter()
+        .find_map(|identity| cx.resolver.function_map.get(identity))
+    else {
+        return built;
+    };
+    let Some((prefix, suffix)) = mapping.form.split_once("{0}") else {
+        return built;
+    };
+    match rendered
+        .strip_prefix(prefix)
+        .and_then(|rest| rest.strip_suffix(suffix))
+    {
+        Some(operand) => RustExpr::Literal(
+            convention
+                .inferred_construction
+                .replace("{0}", operand),
+        ),
+        None => built,
+    }
 }
 
 /// The failure a SENTINEL operand builds, if the operand is one.

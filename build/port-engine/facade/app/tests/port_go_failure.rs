@@ -15,14 +15,18 @@ fn a_fallible_signature_becomes_a_result() {
 
     for expected in [
         // A value and a failure.
-        "pub fn length(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>>",
+        // The unit NAMES the failure type once and its signatures use that name. `Send + Sync` is
+        // still part of the type — without them a ported error cannot cross a thread boundary,
+        // which the source's error had no trouble doing — and the alias is where it is now said.
+        "pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;",
+        "pub fn length(s: &str) -> Result<i64>",
         // A failure alone still has to say it succeeded.
-        "pub fn check(s: &str) -> Result<(), Box<dyn std::error::Error + Send + Sync>>",
+        "pub fn check(s: &str) -> Result<()>",
         // The trailing operand decides the constructor, and a failing return drops its zero-value
-        // companion because the target's failing return carries only the failure. `Send + Sync`
-        // is part of the type: without them a ported error cannot cross a thread boundary, which
-        // the source's error had no trouble doing.
-        "return Err(Box::<dyn std::error::Error + Send + Sync>::from(\"empty\"));",
+        // companion because the target's failing return carries only the failure. Built by the
+        // INFERRING form, because inside `Err(..)` of a function whose return type names the
+        // failure the type is already known and spelling it again says nothing new.
+        "return Err(\"empty\".into());",
         "Ok(s.len() as i64)",
     ] {
         assert!(
@@ -70,8 +74,11 @@ fn a_mapped_call_is_answered_by_the_pack() {
         source.contains("s.len() as i64"),
         "a builtin must be answered by the pack rather than emitted by name:\n{source}"
     );
+    // The pack answers the standard-library call, and where the destination already fixes the
+    // type it answers with the shorter of its two forms. Both are the pack's; neither is a spelling
+    // this code chose.
     assert!(
-        source.contains("Box::<dyn std::error::Error + Send + Sync>::from(\"empty\")"),
+        source.contains("Err(\"empty\".into())"),
         "a standard-library call must be answered by the pack:\n{source}"
     );
 }

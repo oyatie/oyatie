@@ -173,6 +173,10 @@ impl Pack {
             // The fixture's failure constructor, so a fixture return of a fresh failure is proven
             // exactly as a real pack's is rather than by a second rule these tests alone have.
             constructors: BTreeSet::from(["errors.New".to_owned()]),
+            inferred_construction: String::new(),
+            inferred_construction_reason: String::new(),
+            alias: String::new(),
+            alias_reason: String::new(),
             constructor_reason: "fixture decision".to_owned(),
             sentinel_constructors: BTreeSet::from(["errors.New".to_owned()]),
             sentinel_reason: "fixture decision".to_owned(),

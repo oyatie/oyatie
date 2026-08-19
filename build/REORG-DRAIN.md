@@ -2549,3 +2549,35 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
   Only ONE of the 226 is a type mismatch, which is the encouraging half: where the engine can see a
   name, it is getting the types right.
+
+## The unit names its failure type once
+
+- `Box<dyn std::error::Error + Send + Sync>` is the longest thing in most emitted signatures and it
+  appears in every fallible one — eight times in a four-hundred-line module. Two reviewers named it
+  as the type any author writing it a third time would have aliased, and neither was wrong.
+
+- A unit with a fallible declaration now emits `pub type Result<T> = std::result::Result<T, ..>;`
+  and its signatures name it: `pub fn length(s: &str) -> Result<i64>`. An alias is TRANSPARENT, so
+  a caller may still write the full type and the two are the same — this changes the spelling and
+  not the program.
+
+  PER UNIT, because the engine emits one module per source package and has no crate root of its own;
+  a module-scoped `Result` is what a crate organised that way writes anyway. Only where the unit HAS
+  a fallible declaration, so a module that never fails does not gain a name it never uses.
+
+- IT NEEDED A KIND OF REGION THE ENGINE DID NOT HAVE: a PRELUDE, which belongs to no declaration.
+  Every region until now traced to one, and this one is decided by a property of the whole unit —
+  whether anything in it can fail — which no per-declaration rule can see. Synthesised after the
+  declaration loop and ordered at position -1, which is what the region ordering's "a declaration
+  with no position sorts first" clause was already reserving space for.
+
+- AND THE TURBOFISH WENT WITH IT. The pack's form for the source's failure constructor is explicit
+  about the type, and its reason said why: the mapping fires in any position and an inferring
+  conversion only works where the destination is known. Inside `Err(..)` of a function whose return
+  type names the failure, it IS known — so the pack now declares a second form for exactly that
+  position, and `Err(Box::<dyn std::error::Error + Send + Sync>::from(ERR_EMPTY))` is
+  `Err(ERR_EMPTY.into())`.
+
+  Both forms are the pack's, and the shorter one is applied by matching the general form's own
+  template rather than by editing rendered text — so a pack that changes one changes both, and a
+  pack that declares no second form gets the first everywhere, exactly as before.
