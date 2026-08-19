@@ -10,9 +10,10 @@ use crate::impls::trait_impls;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
 use crate::params::{params, results};
 use crate::resolve::Resolver;
+use crate::items_self::rename_own_type;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{
-    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, POSITION_FIELD, POSITION_SUPERTRAIT,
+    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, IDIOM_SELF_IN_IMPL, POSITION_FIELD, POSITION_SUPERTRAIT,
 };
 use crate::{body, docs::docs_of};
 
@@ -208,14 +209,23 @@ fn build_fn(
 
     // A package-level CONSTRUCTOR belongs on the type, not beside it.
     match constructed_type(declaration, resolver) {
-        Some(self_ty) => Ok(RustItem::InherentImpl {
-            docs: Vec::new(),
-            self_ty: RustType::path(self_ty),
-            methods: vec![RustFn {
-                name: "new".to_owned(),
-                ..rendered
-            }],
-        }),
+        Some(self_ty) => {
+            // Inside the type's own impl block the target spells that type `Self`, which is not
+            // merely shorter: it survives a rename, where the name written twice has two places to
+            // miss. The source has no such spelling and always writes the name.
+            let inside = match resolver.idiom_method(IDIOM_SELF_IN_IMPL) {
+                Some(spelling) => rename_own_type(rendered, &self_ty, spelling),
+                None => rendered,
+            };
+            Ok(RustItem::InherentImpl {
+                docs: Vec::new(),
+                self_ty: RustType::path(self_ty),
+                methods: vec![RustFn {
+                    name: "new".to_owned(),
+                    ..inside
+                }],
+            })
+        }
         None => Ok(RustItem::Function(rendered)),
     }
 }

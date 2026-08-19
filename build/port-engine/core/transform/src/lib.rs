@@ -37,6 +37,7 @@ mod error;
 mod failure;
 mod impls;
 mod items;
+mod items_self;
 mod naming;
 mod ownership;
 mod params;
