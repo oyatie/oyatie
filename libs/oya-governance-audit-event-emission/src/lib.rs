@@ -188,14 +188,23 @@ fn extract_proto_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
 fn extract_openapi_like_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
     match extract_openapi_value_mutations(path, raw) {
         Some(parsed) => parsed,
-        None if is_structured_openapi_file(path) => ParsedEndpoints {
+        // A file the walker admitted but could not be parsed is a FINDING, never a silent
+        // downgrade. This arm used to apply only to `*.openapi.*` names — 9 of the 130 endpoint
+        // files — and everything else fell through to a hand-rolled line scanner. That fallback
+        // was silent, and silence here is indistinguishable from a pass: under-reporting
+        // endpoints produces zero findings, which is exactly what a green run looks like.
+        //
+        // It was not theoretical. `k8s/contracts/openapi/cloud-k8s.yaml` carried a DUPLICATE
+        // `paths` key, so serde_yaml refused the document and the gate quietly scanned it by
+        // line instead of reporting anything. tests/endpoint_files_parse.rs now proves every
+        // admitted file parses, which is what makes this arm safe to widen.
+        None => ParsedEndpoints {
             endpoints: Vec::new(),
             missing_identifier_findings: vec![missing_identifier(
                 path,
                 "parseable OpenAPI document with `paths`",
             )],
         },
-        None => extract_openapi_line_mutations(path, raw),
     }
 }
 
@@ -243,54 +252,6 @@ fn extract_openapi_value_mutations(path: &Path, raw: &str) -> Option<ParsedEndpo
     })
 }
 
-fn extract_openapi_line_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
-    let mut endpoints = Vec::new();
-    let mut missing_identifier_findings = Vec::new();
-    let mut current_path: Option<String> = None;
-    let mut pending_operation: Option<String> = None;
-
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if let Some(api_path) = yaml_path_key(trimmed) {
-            if let Some(pending) = pending_operation.take() {
-                missing_identifier_findings.push(missing_identifier(path, &pending));
-            }
-            current_path = Some(api_path.to_string());
-            continue;
-        }
-
-        if let Some(method) = http_method_key(trimmed) {
-            if let Some(pending) = pending_operation.take() {
-                missing_identifier_findings.push(missing_identifier(path, &pending));
-            }
-            if is_mutating_method(method)
-                && let Some(api_path) = &current_path
-            {
-                pending_operation = Some(format!("{} {}", method.to_uppercase(), api_path));
-            }
-            continue;
-        }
-
-        if let Some(identifier) = scalar_value(trimmed, "operationId")
-            && let Some(_pending) = pending_operation.take()
-        {
-            endpoints.push(Endpoint {
-                source_file: path.to_path_buf(),
-                identifier,
-            });
-        }
-    }
-
-    if let Some(pending) = pending_operation.take() {
-        missing_identifier_findings.push(missing_identifier(path, &pending));
-    }
-
-    ParsedEndpoints {
-        endpoints,
-        missing_identifier_findings,
-    }
-}
-
 fn missing_identifier(path: &Path, operation: &str) -> AuditFinding {
     AuditFinding {
         kind: FindingKind::MissingEndpointIdentifier,
@@ -302,34 +263,6 @@ fn missing_identifier(path: &Path, operation: &str) -> AuditFinding {
     }
 }
 
-fn yaml_path_key(trimmed: &str) -> Option<&str> {
-    let without_quote = trimmed.trim_matches('"').trim_matches('\'');
-    if !without_quote.starts_with('/') {
-        return None;
-    }
-    without_quote
-        .split_once(':')
-        .map(|(path, _)| path.trim().trim_matches('"').trim_matches('\''))
-        .filter(|path| path.starts_with('/'))
-}
-
-fn http_method_key(trimmed: &str) -> Option<&'static str> {
-    const METHODS: &[&str] = &[
-        "get", "put", "post", "delete", "patch", "head", "options", "trace",
-    ];
-    METHODS.iter().copied().find(|method| {
-        trimmed
-            .strip_prefix(*method)
-            .is_some_and(|rest| rest.trim_start().starts_with(':'))
-    })
-}
-
-fn scalar_value(trimmed: &str, key: &str) -> Option<String> {
-    let rest = trimmed.strip_prefix(key)?.trim_start();
-    let rest = rest.strip_prefix(':')?.trim();
-    let value = rest.trim_matches('"').trim_matches('\'').trim();
-    (!value.is_empty()).then(|| value.to_string())
-}
 fn mapping_field<'a>(value: &'a serde_yaml::Value, field: &str) -> Option<&'a serde_yaml::Value> {
     let serde_yaml::Value::Mapping(map) = value else {
         return None;
@@ -347,16 +280,6 @@ fn mapping_string_field(value: &serde_yaml::Value, field: &str) -> Option<String
 
 fn is_mutating_method(method: &str) -> bool {
     matches!(method, "post" | "put" | "patch" | "delete")
-}
-
-fn is_structured_openapi_file(path: &Path) -> bool {
-    let file = path
-        .file_name()
-        .map(|value| value.to_string_lossy().to_ascii_lowercase())
-        .unwrap_or_default();
-    file.ends_with(".openapi.yaml")
-        || file.ends_with(".openapi.yml")
-        || file.ends_with(".openapi.json")
 }
 
 fn is_mutating_identifier(identifier: &str) -> bool {
