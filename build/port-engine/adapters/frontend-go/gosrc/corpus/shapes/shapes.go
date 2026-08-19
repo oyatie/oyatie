@@ -39,5 +39,5 @@ type Named interface {
 	Refresh()
 }
 
-// Origin is the point at the coordinate origin.
-var Origin Point = Point{X: 0, Y: 0}
+// origin is the point at the coordinate origin.
+var origin Point = Point{X: 0, Y: 0}

@@ -186,7 +186,11 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
 ///
 /// The target's `match` does not fall through and neither does the source's switch, so the two
 /// agree on the one semantic that usually differs between languages here.
-pub(crate) fn switch(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
+pub(crate) fn switch(
+    node: &Declaration,
+    cx: &Body<'_>,
+    tail: TailPosition,
+) -> Result<RustExpr, TransformError> {
     let cases = node.children_of_kind("case");
     let Some(tag) = node.children_of_kind("tag").first().copied() else {
         return Err(TransformError::Unsupported {
@@ -210,7 +214,12 @@ pub(crate) fn switch(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tran
         wildcard_seen |= patterns.is_empty();
         arms.push(MatchArm {
             patterns,
-            body: translate(&body.children, cx, TailPosition::No)?,
+            // AN ARM OF A TAIL MATCH IS ITSELF IN TAIL POSITION. The source's switch is a statement
+            // and every arm has to `return` out of the function; the target's is an expression, and
+            // an arm that returns where it could simply yield is the shape clippy's
+            // `needless_return` names — which is what it named, on the first real package this was
+            // pointed at. The top level of a body already got this right; the arms did not.
+            body: translate(&body.children, cx, tail)?,
         });
     }
 

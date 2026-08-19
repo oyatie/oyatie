@@ -50,7 +50,7 @@ fn named(name: &str) -> Declaration {
 #[test]
 fn an_initialised_variable_carries_its_initialiser() {
     assert_eq!(
-        named("Prefix").children.len(),
+        named("prefix").children.len(),
         1,
         "`Prefix = \"id-\"` must record what it is initialised to"
     );
@@ -65,7 +65,7 @@ fn an_initialised_variable_carries_its_initialiser() {
 #[test]
 fn an_uninitialised_variable_carries_no_initialiser() {
     assert!(
-        named("Limit").children.is_empty(),
+        named("limit").children.is_empty(),
         "`var Limit int64` has no initialiser, and absence is what says so"
     );
 }
@@ -76,7 +76,7 @@ fn an_uninitialised_variable_carries_no_initialiser() {
 /// an argument about synchronizing writes that never happen.
 #[test]
 fn an_unwritten_variable_is_not_marked_written() {
-    for name in ["Prefix", "Limit"] {
+    for name in ["prefix", "limit"] {
         assert!(
             !named(name).flags.contains(FLAG_REBOUND),
             "nothing in the package assigns to `{name}`"

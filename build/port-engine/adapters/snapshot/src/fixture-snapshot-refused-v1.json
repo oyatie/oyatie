@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:5360b1cd20fe9234a8ceda121387b955415071e43015a70748af0ba45fe189ea",
+  "snapshot_digest": "sha256:78f07ad1cb7abc6b36dd08392ce3882af3c8a744d9c71ff1be4fa003205a49de",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -164,6 +164,68 @@
                       "name": "counts",
                       "attrs": {
                         "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Coerce",
+          "type": {
+            "kind": "basic",
+            "name": "bool"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Coerce reports whether the parser should coerce its input. Set it to false to make parsing\nstrict."
+          },
+          "children": [
+            {
+              "kind": "ident",
+              "name": "true",
+              "attrs": {
+                "ref": "const"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Coerced",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Coerced reports the setting."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "bool"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "Coerce",
+                      "attrs": {
+                        "ref": "package_var"
                       }
                     }
                   ]

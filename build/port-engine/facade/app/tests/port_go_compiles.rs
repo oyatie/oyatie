@@ -139,12 +139,20 @@ fn emitted_rust_carries_the_corpus() {
     //
     // The variable something WRITES is the one that stays undecided, and it is proven in the
     // refusal corpus.
-    for expected in ["pub const ENABLED: bool = true", "pub const THRESHOLD: f64 = 0.75"] {
+    // UNEXPORTED, and that is the second half of the rule: "never written" is a fact about this
+    // package, and an EXPORTED package variable may be written by anything that imports it. The
+    // engine cannot see those writes, so an exported one is the mutable global the undecided form
+    // is about, arrived at from outside — and it refuses, which the refusal corpus proves.
+    for expected in ["const ENABLED: bool = true", "const THRESHOLD: f64 = 0.75"] {
         assert!(
             source.contains(expected),
-            "an unwritten package variable must be a const:\n{source}"
+            "an unexported unwritten package variable must be a const:\n{source}"
         );
     }
+    assert!(
+        !source.contains("pub const ENABLED"),
+        "a private source variable must not become public API:\n{source}"
+    );
 }
 
 /// The third refusal class: a trait in a position the pack declares no form for.

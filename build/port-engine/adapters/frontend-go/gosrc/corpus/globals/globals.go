@@ -19,14 +19,14 @@ package globals
 // A string literal is a borrow in Rust and the owned form is not a constant expression, so this is
 // the case that decides what a never-written string variable becomes.
 
-// Prefix is the identity prefix every generated name starts with.
-var Prefix = "id-"
+// prefix is the identity prefix every generated name starts with.
+var prefix = "id-"
 
 // No initialiser and never written, so its value is the zero — which is a value rather than work,
 // and therefore has no when-does-it-happen question of the kind that defers package init.
 
-// Limit is the ceiling this component will not exceed. Zero means unbounded.
-var Limit int64
+// limit is the ceiling this component will not exceed. Zero means unbounded.
+var limit int64
 
 // Describe touches no package variable, which is what lets it be emitted beside two that are.
 

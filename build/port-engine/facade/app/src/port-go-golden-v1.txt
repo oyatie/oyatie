@@ -32,10 +32,10 @@ pub mod basic {
     pub const DEFAULT_NAME: &str = "anonymous";
     // region: oyatie_example_portengine_fixture_corpus_basic__go_var__enabled
     /// Reports whether the fixture feature is on by default.
-    pub const ENABLED: bool = true;
+    const ENABLED: bool = true;
     // region: oyatie_example_portengine_fixture_corpus_basic__go_var__threshold
     /// The default cutoff.
-    pub const THRESHOLD: f64 = 0.75;
+    const THRESHOLD: f64 = 0.75;
     // region: oyatie_example_portengine_fixture_corpus_basic__go_alias__id
     /// An alias for the underlying identity spelling.
     pub type Id = String;
@@ -189,10 +189,10 @@ pub mod geometry {
 pub mod globals {
     // region: oyatie_example_portengine_fixture_corpus_globals__go_var__prefix
     /// The identity prefix every generated name starts with.
-    pub const PREFIX: &str = "id-";
+    const PREFIX: &str = "id-";
     // region: oyatie_example_portengine_fixture_corpus_globals__go_var__limit
     /// The ceiling this component will not exceed. Zero means unbounded.
-    pub const LIMIT: i64 = 0;
+    const LIMIT: i64 = 0;
     // region: oyatie_example_portengine_fixture_corpus_globals__go_func__describe
     /// Returns the name of this component.
     pub fn describe() -> String {
@@ -449,7 +449,7 @@ pub mod shapes {
     }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_var__origin
     /// The point at the coordinate origin.
-    pub const ORIGIN: Point = Point {
+    const ORIGIN: Point = Point {
         x: 0,
         y: 0,
         label: String::new(),

@@ -13,11 +13,11 @@ const MaxRetries int = 3
 // DefaultName is the fallback identity for an unnamed record.
 const DefaultName string = "anonymous"
 
-// Enabled reports whether the fixture feature is on by default.
-var Enabled bool = true
+// enabled reports whether the fixture feature is on by default.
+var enabled bool = true
 
-// Threshold is the default cutoff.
-var Threshold float64 = 0.75
+// threshold is the default cutoff.
+var threshold float64 = 0.75
 
 // ID is an alias for the underlying identity spelling.
 type ID = string

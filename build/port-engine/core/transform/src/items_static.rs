@@ -29,8 +29,7 @@ use crate::error::TransformError;
 use crate::naming::{to_screaming_snake, visibility};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    ATTR_REF, CONSTRUCTION_RUST_STATIC, FLAG_REBOUND, FORM_WRITTEN_PACKAGE_VAR, KIND_COMPOSITE,
-    KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING, TARGET_STR,
+    ATTR_REF, CONSTRUCTION_RUST_STATIC, FLAG_EXPORTED, FLAG_REBOUND, FORM_WRITTEN_PACKAGE_VAR, KIND_COMPOSITE, KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING, TARGET_STR,
 };
 
 /// `static NAME: T = value;` for a package variable nothing writes.
@@ -71,6 +70,35 @@ pub(crate) fn build_static(
                 inner: Box::new(RustType::Path(TARGET_STR.to_owned())),
             },
             value: RustExpr::Literal(message.clone()),
+        });
+    }
+    // A SENTINEL is exempt, and the exemption is the sentinel decision rather than a second one:
+    // it becomes its MESSAGE, and the message is constant however the variable is reassigned.
+    // Reassignment changes which failure value the NAME holds, which is identity — and identity is
+    // what the sentinel decision already records as lost, with its cost written down.
+    //
+    // EXPORTED is written by anyone, and the engine cannot see them. "Never written" is a fact
+    // about THIS package, and an exported package variable is part of the source's API: a consumer
+    // writes `semver.CoerceNewVersion = false` and the package's own documentation says to. Making
+    // one a constant deletes a feature and keeps the prose describing it, which a reviewer reading
+    // a real ported package found and called a translation that preserved syntax and dropped
+    // semantics. They were right, and the engine had no way to see it — so the rule now asks
+    // whether anyone COULD write it rather than whether this package does.
+    if declaration.flags.iter().any(|flag| flag == FLAG_EXPORTED) {
+        return Err(TransformError::UndecidedForm {
+            form: FORM_WRITTEN_PACKAGE_VAR.to_owned(),
+            name: declaration.name.clone(),
+            reason: format!(
+                "`{}` is EXPORTED, so anything that imports this package may write it — which is \
+                 the same mutable global the undecided form is about, arrived at from outside \
+                 rather than from within. Nothing here can observe those writes. {}",
+                declaration.name,
+                resolver
+                    .undecided_forms
+                    .get(FORM_WRITTEN_PACKAGE_VAR)
+                    .cloned()
+                    .unwrap_or_default()
+            ),
         });
     }
     let ty = static_type(declaration, resolver)?;

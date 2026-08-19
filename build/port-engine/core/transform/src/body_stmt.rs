@@ -186,7 +186,19 @@ pub(crate) fn statement(
         "break" => Ok(RustStmt::Break),
         "for" => counted_loop(node, cx),
         "range" => range_loop(node, cx),
-        "switch" => Ok(RustStmt::Semi(switch(node, cx)?)),
+        // A switch in TAIL position is the body's value, and its arms are too — so an arm yields
+        // rather than returning, and the match itself is the tail rather than a statement.
+        "switch" => {
+            let tail = match is_last {
+                true => TailPosition::Yes,
+                false => TailPosition::No,
+            };
+            let matched = switch(node, cx, tail)?;
+            Ok(match is_last {
+                true => RustStmt::Tail(matched),
+                false => RustStmt::Semi(matched),
+            })
+        }
         "unsupported" => Err(unsupported_source(node, cx)),
         other => Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),
