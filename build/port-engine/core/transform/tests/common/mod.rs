@@ -165,6 +165,10 @@ impl Pack {
     /// Declare the source's failure convention, as a real pack must.
     pub fn with_failure(mut self, source: &str, target: &str) -> Self {
         self.failure = Some(FailureConvention {
+            // Empty, so a test fixture keeps the source's sentinel names. The prefix drop is a real
+            // pack's decision and every fixture that wanted it would have to restate it.
+            sentinel_prefix: String::new(),
+            sentinel_prefix_reason: String::new(),
             source_type: source.to_owned(),
             reason: "fixture decision".to_owned(),
             target_type: target.to_owned(),

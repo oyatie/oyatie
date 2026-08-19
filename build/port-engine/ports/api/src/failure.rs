@@ -133,6 +133,10 @@ pub struct FailureConvention {
     /// reported success.
     pub constructors: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
     /// What the failure type is as a PARAMETER. Empty to refuse one.
+    /// The prefix the source puts on a sentinel's NAME, which the target drops. Empty to keep it.
+    pub sentinel_prefix: String, // data_class: INTERNAL_ONLY
+    /// Why the prefix goes, and the three conditions under which it stays.
+    pub sentinel_prefix_reason: String, // data_class: INTERNAL_ONLY
     pub param_type: String, // data_class: INTERNAL_ONLY
     /// Why that form and not the general interface one.
     pub param_type_reason: String, // data_class: INTERNAL_ONLY

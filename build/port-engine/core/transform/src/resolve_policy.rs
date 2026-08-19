@@ -8,6 +8,7 @@
 
 use port_engine_api::{Declaration, IdiomRule, TypeRef};
 
+use crate::naming::to_pascal_case;
 use crate::resolve::Resolver;
 use crate::resolve_tables::table_key;
 use crate::vocabulary::SOURCE_STRING;
@@ -19,6 +20,41 @@ impl Resolver<'_> {
     /// a constructor for someone else's type stays a free function however it is named.
     pub(crate) fn declares(&self, type_ref: &TypeRef) -> bool {
         !type_ref.name.is_empty() && self.scope.contains(&type_ref.name)
+    }
+
+    /// The TYPE NAME a sentinel takes, which is its source name without the convention's prefix.
+    ///
+    /// The source prefixes a sentinel's name because it has no namespacing inside a package and an
+    /// unprefixed one would collide with an ordinary declaration. The target has modules, so
+    /// `semver::EmptyString` says everything `semver::ErrEmptyString` does — and the prefix costs
+    /// something there that it does not cost in the source, because the target's failure arm is
+    /// literally called `Err`. `Err(ErrEmptyString)` stutters at every return, which is what a
+    /// reviewer reading a real ported package named.
+    ///
+    /// Answered HERE because three sites need the same answer — the declaration, the return that
+    /// constructs one, and the identity test that downcasts to it — and a rename two of them agreed
+    /// on would not compile.
+    ///
+    /// The prefix stays in three cases, each one a case where dropping it would be a guess or a
+    /// loss: the pack declares no prefix, what is left is empty, or another declaration in the unit
+    /// already emits that name.
+    pub(crate) fn sentinel_type_name(&self, source: &str) -> String {
+        let full = to_pascal_case(source);
+        let Some(convention) = self.failure.filter(|c| !c.sentinel_prefix.is_empty()) else {
+            return full;
+        };
+        let Some(rest) = full.strip_prefix(convention.sentinel_prefix.as_str()) else {
+            return full;
+        };
+        let taken = self
+            .scope
+            .renames
+            .iter()
+            .any(|(other, target)| other != source && target == rest);
+        match rest.is_empty() || taken {
+            true => full,
+            false => rest.to_owned(),
+        }
     }
 
     /// Whether converting TO this source type is a plain cast in the target.
