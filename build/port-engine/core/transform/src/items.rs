@@ -45,6 +45,11 @@ pub(crate) fn build_item(
     }?;
 
     let mut items = vec![item];
+    if construction == CONSTRUCTION_RUST_TRAIT
+        && let Some(blanket) = blanket_impl(declaration, resolver)?
+    {
+        items.push(blanket);
+    }
     items.extend(trait_impls(declaration, resolver)?);
     Ok(items)
 }
@@ -152,6 +157,34 @@ fn build_trait(
         supertraits: supertraits(declaration, resolver)?,
         methods: trait_methods(declaration, resolver)?,
     })
+}
+
+/// The blanket impl a pure SUPERTRAIT BUNDLE earns, if this interface is one.
+///
+/// A source interface that embeds others and declares no method of its own is satisfied
+/// STRUCTURALLY: a type with both method sets has it, and there is nothing to declare. The target
+/// is nominal, so saying the same thing takes `impl<T: A + B> Job for T {}`.
+///
+/// That is not merely tidier than one empty impl per observed type — it is what the source MEANS.
+/// The per-type form gives the trait only to types the engine saw asserted, and the source gives it
+/// to every type that qualifies. A caller writing a generic function over `Job` would find their
+/// own type rejected under the per-type form and accepted under this one, which is the difference
+/// between a translation and an approximation.
+///
+/// `None` for an interface that declares any method of its own: a blanket impl would have to supply
+/// bodies for them, and there are none to supply.
+fn blanket_impl(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<Option<RustItem>, TransformError> {
+    let bounds = supertraits(declaration, resolver)?;
+    if bounds.is_empty() || !trait_methods(declaration, resolver)?.is_empty() {
+        return Ok(None);
+    }
+    Ok(Some(RustItem::BlanketImpl {
+        name: to_pascal_case(&declaration.name),
+        bounds,
+    }))
 }
 
 /// The traits an interface's embedded interfaces require.

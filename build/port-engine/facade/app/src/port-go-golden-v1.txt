@@ -77,6 +77,7 @@ pub mod composite {
     // region: oyatie_example_portengine_fixture_corpus_composite__go_interface__job
     /// Anything that runs and describes itself.
     pub trait Job: Runner + Describer {}
+    impl<T: Runner + Describer> Job for T {}
     // region: oyatie_example_portengine_fixture_corpus_composite__go_interface__runner
     /// Anything that can run.
     pub trait Runner {
@@ -92,15 +93,11 @@ pub mod composite {
         /// Describes this driver.
         label: String,
     }
-    /// Ported from an implicit interface: the source was observed satisfying `Describer` at assertion.
     impl Describer for Driver {
         fn describe(&self) -> String {
             self.label.clone()
         }
     }
-    /// Ported from an implicit interface: the source was observed satisfying `Job` at assertion.
-    impl Job for Driver {}
-    /// Ported from an implicit interface: the source was observed satisfying `Runner` at assertion.
     impl Runner for Driver {
         fn run(&mut self) -> i64 {
             self.engine.run()
@@ -271,7 +268,6 @@ pub mod naming {
         /// The current display name.
         text: String,
     }
-    /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
     impl crate::shapes::Named for Label {
         fn name(&self) -> String {
             self.text.clone()
@@ -287,7 +283,6 @@ pub mod naming {
         /// The fixed display name.
         text: String,
     }
-    /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
     impl crate::shapes::Named for Tag {
         fn name(&self) -> String {
             self.text.clone()

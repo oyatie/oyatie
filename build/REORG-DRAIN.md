@@ -1987,3 +1987,39 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - No coverage movement, and none expected: every one of these declarations already translated. What
   moved is what the output READS like, which is the bar the goal actually sets — an engine whose
   output a reviewer judges as hand-written.
+
+## The translator's note in the public rustdoc, and the bundle that should be one impl
+
+- "Ported from an implicit interface: the source was observed satisfying `X` at <site>." was
+  shipping in the emitted crate's PUBLIC RUSTDOC. A reviewer found it and named it as a translator's
+  working note published as API documentation, and they were right twice over: a doc comment is what
+  a CALLER reads, how the engine came to emit an impl is not something a caller can act on, and it
+  tells them the crate was generated — which is the one thing this engine is trying not to say.
+
+  The provenance is not lost. Which satisfactions were observed and where is exactly what the plan
+  and the receipt record, and that is where it belongs: the emitted crate is the PRODUCT, not the
+  record of how it was made. That distinction had been missing.
+
+- A pure SUPERTRAIT BUNDLE now gets one blanket impl instead of one empty impl per observed type.
+  `pub trait Job: Runner + Describer {}` with `impl Job for Driver {}` beside it is Go's interface
+  embedding transliterated; the source satisfies such an interface STRUCTURALLY, so every type with
+  the embedded method sets has it and the target says that once: `impl<T: Runner + Describer> Job
+  for T {}`.
+
+  Not merely tidier — it is what the source MEANS. The per-type form gives the trait only to types
+  the engine saw asserted, and the source gives it to every type that qualifies. A caller writing a
+  generic function over `Job` would find their own type rejected under the per-type form and
+  accepted under this one, which is the difference between a translation and an approximation. It is
+  also the first place the observed-vs-structural standing disagreement has been answered rather
+  than recorded, and it is answered where the answer is sound: a bundle has no method to implement,
+  so a blanket impl asserts nothing the engine has not seen.
+
+- THE COMPILE PROOF CAUGHT THE CONSEQUENCE, one commit after the proof started denying warnings: the
+  blanket impl and the per-type impl are a COHERENCE CONFLICT, not a redundancy, and the emitted
+  crate stopped compiling until the per-type one went. That needed a fact only the type-checker can
+  see, because the interface is routinely declared in a package the observation is not in — so the
+  front end now records `bundle` on a satisfaction whose interface declares no method of its own and
+  embeds at least one. A fact, observed and recorded, with the decision made downstream of it.
+
+- The 87.3% figure the corpus doc cites is what makes this worth the machinery: that is the share of
+  embedding interfaces that declare no method of their own.

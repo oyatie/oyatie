@@ -285,6 +285,11 @@ const (
 	// Structured rather than folded into attrGoNode's sentence: one concrete type may satisfy
 	// several interfaces, and those facts are only distinguishable if the interface is a field.
 	attrInterface = "interface"
+	// attrBundle marks a satisfaction whose interface declares no method of its own and embeds at
+	// least one. The source satisfies such an interface structurally, so the target says it once
+	// with a blanket impl; without this the emitted crate carries both that impl and a per-type
+	// one, which is a coherence conflict rather than a redundancy.
+	attrBundle = "bundle"
 	// attrSite records HOW an interface satisfaction was observed. A declared assertion is
 	// compile-checked by Go; a flow-derived one is this extractor's inference. An impl emitted
 	// from either looks identical, so a reviewer needs the distinction recorded rather than

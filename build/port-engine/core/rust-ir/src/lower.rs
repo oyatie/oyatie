@@ -59,6 +59,12 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             Ok(quote! { #docs #vis static #name: #ty = #value; })
         }
 
+        RustItem::BlanketImpl { name, bounds } => {
+            let name = parse_ident(name)?;
+            let bounds = bounds.iter().map(parse_type).collect::<Result<Vec<_>, _>>()?;
+            Ok(quote! { impl<T: #(#bounds)+*> #name for T {} })
+        }
+
         RustItem::TypeAlias {
             docs,
             vis,

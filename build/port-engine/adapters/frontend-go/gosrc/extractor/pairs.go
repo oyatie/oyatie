@@ -44,13 +44,22 @@ func implementsNodes(facts []satisfaction, qualify types.Qualifier) []node {
 			})
 		}
 		sortNodes(methods)
+		// A pure BUNDLE: the interface declares no method of its own and embeds at least one. The
+		// source satisfies such an interface STRUCTURALLY, so every type with the embedded method
+		// sets has it — which the target says once with a blanket impl rather than once per type.
+		// Recorded as a fact because only the type-checker can see it: the interface is routinely
+		// declared in a package this observation is not in.
+		attrs := map[string]string{attrSite: fact.site}
+		if iface.NumExplicitMethods() == 0 && iface.NumEmbeddeds() > 0 {
+			attrs[attrBundle] = "true"
+		}
 		nodes = append(nodes, node{
 			Kind: kindImplements,
 			// Deliberately unnamed: the front end refuses two same-named declarations in one
 			// NAMESPACE, and a type satisfying two interfaces would trip that check on a node
 			// whose identity is its type rather than its name.
 			Type:     typeTree(fact.iface),
-			Attrs:    map[string]string{attrSite: fact.site},
+			Attrs:    attrs,
 			Children: methods,
 		})
 	}
