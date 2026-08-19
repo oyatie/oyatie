@@ -98,6 +98,22 @@ impl Resolver<'_> {
         if package == self.unit.0 {
             return Ok(to_snake_case(name));
         }
+        // ANOTHER UNIT of this model is a module the emitted crate will have. Anything else is not:
+        // a standard-library function, a dependency, a package the snapshot does not cover. Naming
+        // one produces a path that resolves to nothing, which is a crate that does not build rather
+        // than a crate that is wrong — but it is counted as translated either way, which is the
+        // defect. What is missing is a mapping in the pack, and the refusal says so.
+        if !self.units.contains(package) {
+            return Err(TransformError::Unsupported {
+                name: declaration_name.to_owned(),
+                detail: format!(
+                    "`{identity}` is in package `{package}`, which this snapshot does not contain. \
+                     What the engine emits has to be self-contained, so there is no module to reach \
+                     it through — the pack has to map the call, as it maps the other calls into \
+                     libraries that do not come along"
+                ),
+            });
+        }
         Ok(format!("{}::{}", module_path(package), to_snake_case(name)))
     }
 }

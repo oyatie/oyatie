@@ -184,6 +184,14 @@ pub(crate) struct Resolver<'a> {
     pub(crate) receiver: Option<(&'a str, &'a str)>,
     /// The pack's ownership rules, and the log every decision is recorded into.
     pub(crate) ownership: &'a OwnershipContext<'a>,
+    /// Every unit the MODEL has, which is every module the emitted crate will contain.
+    ///
+    /// What is emitted has to be SELF-CONTAINED. A name from a package outside the model has no
+    /// module to be reached through, and emitting `crate::<module>::<name>` for it produces a path
+    /// that resolves to nothing — 216 of 226 compile errors across six real ported packages were
+    /// exactly that. The engine already refuses a body that names a DEFERRED declaration for this
+    /// reason; this is the same rule for the case it did not cover.
+    pub(crate) units: &'a BTreeSet<String>,
     /// The unit under transform, which decides whether a named type is local.
     pub(crate) unit: &'a UnitId,
 }
