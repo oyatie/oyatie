@@ -7,6 +7,3 @@ metadata:
     istio-injection: enabled
     oyatie/microservice: sheets
     oyatie/owning-axis: ecosystem-infrastructure-backbone
-    pod-security.kubernetes.io/enforce: restricted
-    pod-security.kubernetes.io/audit: restricted
-    pod-security.kubernetes.io/warn: restricted
