@@ -1,0 +1,34 @@
+rust_library(
+    name = "port-engine-analysis",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "port_engine_analysis",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+# Deciding ownership: order, refusal, and the record that makes a decision auditable.
+rust_test(
+    name = "port-engine-analysis-decide",
+    srcs = glob(["tests/decide.rs"]),
+    crate = "port_engine_analysis_decide",
+    crate_root = "tests/decide.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-analysis",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+rust_test(
+    name = "port-engine-analysis-readiness",
+    srcs = glob(["tests/readiness.rs"]),
+    crate = "port_engine_analysis_readiness",
+    crate_root = "tests/readiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-analysis",
+    ],
+)

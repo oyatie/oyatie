@@ -1,0 +1,72 @@
+rust_library(
+    name = "port-engine-rust-ir",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "port_engine_rust_ir",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:proc-macro2-1",
+        "third-party//:prettyplease-0.2",
+        "//build/port-engine/ports/api:port-engine-api",
+        "third-party//:quote",
+        "third-party//:syn",
+    ],
+)
+
+# Compiles #[cfg(test)] modules in src/lib.rs (syn/quote path + leakage fences).
+rust_test(
+    name = "port-engine-rust-ir-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "port_engine_rust_ir",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:proc-macro2-1",
+        "third-party//:prettyplease-0.2",
+        "//build/port-engine/ports/api:port-engine-api",
+        "third-party//:quote",
+        "third-party//:syn",
+    ],
+)
+
+# Architecture fence. `srcs` carries the library sources because the fence READS them with
+# include_str! — they are inputs to compiling this test, never modules of it.
+rust_test(
+    name = "port-engine-rust-ir-fences",
+    srcs = glob(["tests/fences.rs", "src/**/*.rs"]),
+    crate = "port_engine_rust_ir_fences",
+    crate_root = "tests/fences.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:proc-macro2-1",
+        "third-party//:prettyplease-0.2",
+        ":port-engine-rust-ir",
+    ],
+)
+
+rust_test(
+    name = "port-engine-rust-ir-ir",
+    srcs = glob(["tests/ir.rs"]),
+    crate = "port_engine_rust_ir_ir",
+    crate_root = "tests/ir.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:proc-macro2-1",
+        "third-party//:prettyplease-0.2",
+        "//build/port-engine/ports/api:port-engine-api",
+        ":port-engine-rust-ir",
+    ],
+)
+
+rust_test(
+    name = "port-engine-rust-ir-readiness",
+    srcs = glob(["tests/readiness.rs"]),
+    crate = "port_engine_rust_ir_readiness",
+    crate_root = "tests/readiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:proc-macro2-1",
+        "third-party//:prettyplease-0.2",
+        ":port-engine-rust-ir",
+    ],
+)

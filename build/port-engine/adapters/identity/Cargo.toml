@@ -1,0 +1,22 @@
+[package]
+name = "port-engine-identity"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Engine identity → receipt `engine_digest` (W0-B Slice 9).
+# Package-local manifest; no Cargo.lock absorb this tip.
+
+[dependencies]
+port-engine-api = { path = "../../ports/api" }
+port-engine-hash = { path = "../hash" }
+
+[lib]
+name = "port_engine_identity"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

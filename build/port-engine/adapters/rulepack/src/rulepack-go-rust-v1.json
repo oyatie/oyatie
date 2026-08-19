@@ -1,0 +1,464 @@
+{
+  "_comment": [
+    "Neutral go->rust rule pack. Package-local mirror of the forever home",
+    "specs/port-rules/lang/go-rust/**; the engine reads only what is here.",
+    "",
+    "Rule order in `rules` IS the transform order, and `precedence` must agree with it — the",
+    "loader refuses a pack where the two disagree rather than silently obeying one of them.",
+    "",
+    "type_map is keyed by TYPE IDENTITY, not by spelling: a primitive by its bare name, a named",
+    "type by `package.Name`. The two cannot collide because a qualified key always carries a dot",
+    "a bare name may not. A named type this map does not carry, from a unit the corpus also",
+    "translates, resolves through that unit's emitted module instead — which is the case a",
+    "spelling table could not express at all.",
+    "",
+    "type_constructors answers for a COMPOSITE by its constructor rather than its shape. One",
+    "`slice` entry answers every slice; a spelling table needed a row per element type.",
+    "",
+    "type_map_overrides: one source type does not always take one target type. `string` becomes",
+    "an owned String where a value is stored — a field, a parameter, a return — and CANNOT be one",
+    "in a constant, because a Rust const must be known at compile time and String is",
+    "heap-allocated. Recording that here rather than branching on it keeps the decision reviewable.",
+    "",
+    "pointer_dispositions decide what a pointer BECOMES, from facts the front end observed, in",
+    "declared order with the first match winning. Go is garbage-collected, so a `*T` says nothing",
+    "about ownership; the decision has to be made and it has to be recorded. Order matters: the",
+    "two conservative rules come first, so an escaping or unanalysed pointer never reaches a",
+    "borrow rule. There is deliberately NO catch-all — facts nothing accepts refuse, because an",
+    "invented default is a decision nobody wrote down.",
+    "",
+    "copy_types names the SOURCE types whose target counterpart copies, keyed by source identity",
+    "the same way type_map is, so the two tables answer for the same thing. Reading anything else",
+    "by value MOVES in the target, which does not compile out of a borrow — so the read is cloned:",
+    "`return c.label` returns a copy in the source and the receiver survives, while the same text",
+    "in Rust moves out of `&self`.",
+    "",
+    "zero_values is what a struct literal's OMITTED fields become. Go fills them with the field",
+    "type's zero and the target rejects an incomplete literal, so the engine spells them out. A",
+    "type with no entry refuses by name rather than falling back to `Default::default()`, which",
+    "would compile for these four and quietly mean something else for a type whose Default is not",
+    "its zero.",
+    "",
+    "trait_object_forms is how a TRAIT reaches a value position. The source holds an interface",
+    "value directly and the target cannot — a trait has no size — so it arrives as `&dyn T`,",
+    "`Box<dyn T>`, `Rc<dyn T>` or a generic parameter, and those are different answers to who owns",
+    "the value and how long it lives. Only `param` is declared: a borrow is unambiguously right",
+    "there and the caller keeps the value. `result` is deliberately absent, so returning an",
+    "interface refuses by name rather than being boxed on a guess.",
+    "",
+    "The supertrait position takes the bare path: an embedded interface becomes a trait BOUND, which",
+    "is the one place a trait appears as itself rather than as something holding it. Declared rather",
+    "than special-cased in the engine, so every position answers the same way.",
+    "",
+    "failure_convention is what makes a function FALLIBLE. The source returns failure as a trailing",
+    "result of a designated type, checked by convention rather than enforced; the target expresses",
+    "it as the whole return type. Only the SOURCE side is declared here — which type carries the",
+    "convention and how the absent value is spelled — because `Result`, `Ok` and `Err` are target",
+    "spellings and the face that renders the target owns them.",
+    "",
+    "The target type is a boxed trait object rather than a `thiserror` enum because the emitted",
+    "crate is compiled against the standard library alone. A real port declares its own error type",
+    "here and nothing in the engine changes.",
+    "",
+    "function_map answers for a CALL the way type_map answers for a type, keyed by source identity",
+    "so a local named `errors` cannot be mistaken for the package. It is not optional for a real",
+    "package: every one calls its standard library, and the standard library is exactly the part",
+    "that does not come along. `len` casts because the source's `len` returns its `int`, which this",
+    "pack maps to `i64`, and the target's returns a `usize`.",
+    "A template brackets ITSELF where it needs to. The engine substitutes text and does not know",
+    "what the surrounding expression will be, so a template whose result binds looser than a caller",
+    "might is the template author's problem to parenthesise — the same contract type_constructors has.",
+    "",
+    "The type map covers the source's WHOLE basic set, because a real package uses most of it in",
+    "its first file — a map sized to a fixture corpus is a map sized to what the engine already",
+    "handled. `int` and `int64` both take `i64` because the source's `int` is 64-bit on every",
+    "platform this programme targets; `rune` is a code point and takes `char`, not `i32`, because",
+    "the target has a type for exactly that and using it keeps the meaning.",
+    "",
+    "The `untyped` rows are the source's UNTYPED CONSTANTS, which carry a default type rather than",
+    "a declared one. They are listed rather than folded into their defaults because they are",
+    "distinct identities in the front end and a table that answered for one and not the other would",
+    "resolve a constant and refuse the variable beside it.",
+    "",
+    "complex64/128 map to a name the target does not have, ON PURPOSE. The target has no complex",
+    "type and inventing one silently would be worse than the compile error this produces; the row",
+    "exists so the failure names the type rather than reading as an unmapped-type hole.",
+    "",
+    "`error` maps to the TRAIT, not to a boxed one. Where a trait may stand is a position question",
+    "the trait_object_forms table answers, so a parameter becomes `&dyn std::error::Error` and a",
+    "result — which the target must own — refuses until the pack declares how it is owned.",
+    "",
+    "cast_types names the SOURCE types a conversion reaches by a plain cast. The source DEFINES numeric",
+    "conversion to truncate and the target's cast does the same thing, so the two agree and the cast is",
+    "faithful. A conversion the pack does not list is one where they disagree — string to byte slice is",
+    "infallible and lossy in the source and fallible in the target — and those refuse, because what",
+    "happens to input the target rejects is a decision rather than a spelling.",
+    "",
+    "The `array` template uses `{name}`, which is the type's own non-type datum — for an array that",
+    "is its LENGTH. `[N]T` is a VALUE type that copies on assignment and carries its size in its",
+    "type; rendering it as a growable heap type changed all three at once, and none of the three is",
+    "visible in the emitted text.",
+    "",
+    "",
+    "`len` casts to the source width, and the INDEX casts back. Both are needed and neither is",
+    "redundant on its own: `return len(s)` wants the source's int, and `v[i]` wants the target's",
+    "usize, and the same value reaches both. Where a counter makes the round trip the pair is visible",
+    "and removable — which is why a cast is an IR node rather than text, so the right-sizing analysis",
+    "can see it and delete it rather than parse it out of a string."
+  ],
+  "pair": {
+    "source": "go",
+    "target": "rust"
+  },
+  "type_map": {
+    "bool": "bool",
+    "byte": "u8",
+    "complex128": "unsupported_complex128",
+    "complex64": "unsupported_complex64",
+    "error": "std::error::Error",
+    "float32": "f32",
+    "float64": "f64",
+    "int": "i64",
+    "int16": "i16",
+    "int32": "i32",
+    "int64": "i64",
+    "int8": "i8",
+    "rune": "char",
+    "string": "String",
+    "uint": "u64",
+    "uint16": "u16",
+    "uint32": "u32",
+    "uint64": "u64",
+    "uint8": "u8",
+    "uintptr": "usize",
+    "untyped bool": "bool",
+    "untyped float": "f64",
+    "untyped int": "i64",
+    "untyped rune": "char",
+    "untyped string": "String"
+  },
+  "type_map_overrides": {
+    "rust_const": {
+      "string": "&str"
+    }
+  },
+  "trait_receiver": {
+    "mode": "exclusive",
+    "reason": "A Go interface says nothing about how an implementation binds its receiver, and the implementations are not all in view, so this cannot be recovered from the source — it can only be decided. EXCLUSIVE is the choice that does not silently forbid something: a shared receiver makes a mutating method like Named.Rename unimplementable, whereas an exclusive one only demands mutability from implementations that do not need it, which is a compile-time inconvenience rather than a lost capability. Revisit when the front end reports per-method mutation; see docs/programs/k8s-port/census/ownership-escape.md."
+  },
+  "deferred_kinds": [
+    {
+      "kind": "var",
+      "reason": "A package-level var is a MUTABLE global. Rust's `static` is immutable, so emitting one would silently drop the mutability the declaration exists for; `static mut` is unsafe and `OnceLock`/`Mutex` each pick a synchronization policy the source never stated. Choosing among those is a rule decision, not a default. See docs/programs/k8s-port/census/ownership-escape.md and concurrency.md."
+    },
+    {
+      "kind": "foreign_satisfaction",
+      "reason": "An interface satisfaction whose concrete type this corpus does not declare — a standard-library value assigned where a standard-library interface is expected is the common case, and `var buf bytes.Buffer` passed as an `io.Writer` is the exact shape. There is nowhere to emit the impl: the type belongs to neither this corpus nor this crate, so the target's coherence rule forbids it outright. Recorded rather than dropped, because a satisfaction the engine cannot host must stay distinguishable from one that does not exist; deferred rather than refused, because refusing would reject every package that touches the standard library through an interface, which is most of them."
+    },
+    {
+      "kind": "package_init",
+      "reason": "The source runs package init work before main, in dependency order across packages and file order within one, with no way to observe or defer it. The target has no such phase. LazyLock runs on first use rather than before it, which is a different program whenever the work has side effects or whenever two packages' initialisation order matters; an explicit init function called from main is faithful but changes the library's API and pushes the ordering obligation onto every caller. Choosing between them is a decision about the ported program's startup, not a spelling, so it is declared rather than inferred. Recorded as a declaration so the work is VISIBLE: it was reaching the model nowhere at all, which is neither a translation nor a refusal, and three of eight surveyed packages declare one."
+    }
+  ],
+  "rules": [
+    {
+      "id": "go_const",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "const"
+      ],
+      "construction": "rust_const",
+      "precedence": 0,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-const-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
+          "selects": true
+        },
+        {
+          "id": "go-const-does-not-select-shapes",
+          "unit": "oyatie.example/portengine-fixture/corpus/shapes",
+          "selects": false
+        }
+      ]
+    },
+    {
+      "id": "go_alias",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "alias"
+      ],
+      "construction": "rust_type_alias",
+      "precedence": 1,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-alias-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
+          "selects": true
+        }
+      ]
+    },
+    {
+      "id": "go_defined_type",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "named"
+      ],
+      "construction": "rust_newtype",
+      "precedence": 2,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-defined-type-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
+          "selects": true
+        }
+      ]
+    },
+    {
+      "id": "go_struct",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "struct"
+      ],
+      "construction": "rust_struct",
+      "precedence": 3,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-struct-selects-geometry",
+          "unit": "oyatie.example/portengine-fixture/corpus/geometry",
+          "selects": true
+        },
+        {
+          "id": "go-struct-does-not-select-basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
+          "selects": false
+        }
+      ]
+    },
+    {
+      "id": "go_interface",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "interface"
+      ],
+      "construction": "rust_trait",
+      "precedence": 4,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-interface-selects-shapes",
+          "unit": "oyatie.example/portengine-fixture/corpus/shapes",
+          "selects": true
+        }
+      ]
+    },
+    {
+      "id": "go_func",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "func"
+      ],
+      "construction": "rust_fn_body",
+      "precedence": 5,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-func-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
+          "selects": true
+        },
+        {
+          "id": "go-func-selects-fallible",
+          "unit": "oyatie.example/portengine-fixture/corpus/fallible",
+          "selects": true
+        }
+      ]
+    },
+    {
+      "id": "go_struct_body",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "struct"
+      ],
+      "construction": "rust_struct_body",
+      "precedence": 6,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-struct-body-selects-pointers",
+          "unit": "oyatie.example/portengine-fixture/corpus/pointers",
+          "selects": true
+        },
+        {
+          "id": "go-struct-body-selects-shapes",
+          "unit": "oyatie.example/portengine-fixture/corpus/shapes",
+          "selects": true
+        },
+        {
+          "id": "go-struct-body-selects-naming",
+          "unit": "oyatie.example/portengine-fixture/corpus/naming",
+          "selects": true
+        },
+        {
+          "id": "go-struct-body-selects-composite",
+          "unit": "oyatie.example/portengine-fixture/corpus/composite",
+          "selects": true
+        }
+      ]
+    }
+  ],
+  "applies": {
+    "oyatie.example/portengine-fixture/corpus/basic": [
+      "go_const",
+      "go_alias",
+      "go_defined_type",
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/shapes": [
+      "go_interface",
+      "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture-refused/corpus-refused/hard": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/geometry": [
+      "go_alias",
+      "go_struct",
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/pointers": [
+      "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping": [
+      "go_struct"
+    ],
+    "oyatie.example/portengine-fixture/corpus/naming": [
+      "go_func",
+      "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture-interface/corpus-interface/positions": [
+      "go_interface",
+      "go_func",
+      "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture/corpus/composite": [
+      "go_interface",
+      "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture/corpus/fallible": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture-failure/corpus-failure/carried": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/drift": [
+      "go_func"
+    ]
+  },
+  "type_constructors": {
+    "slice": "Vec<{0}>",
+    "map": "std::collections::BTreeMap<{0}, {1}>",
+    "array": "[{0}; {name}]",
+    "pointer": "Option<Box<{0}>>"
+  },
+  "pointer_dispositions": [
+    {
+      "id": "escaping_owned",
+      "escapes": true,
+      "target": "Option<Box<{0}>>",
+      "reason": "The pointer outlives the call — it is returned or captured — so no borrow can be handed out: a reference would need a lifetime the caller cannot supply. Owned is the form that is always available, and `Option` carries the nil the source could hold. NO RECEIVER FORM: a method whose receiver escapes cannot be a borrow of self, and refusing is better than picking a borrow that will not hold."
+    },
+    {
+      "id": "unproven_owned",
+      "escapes": false,
+      "effect_unknown": true,
+      "target": "Option<Box<{0}>>",
+      "reason": "The pointer reached a call the front end did not analyse, so 'not mutated' and 'does not escape' are UNPROVEN rather than false. A borrow chosen on unproven facts is a guess; the owned form costs a move and cannot be wrong. Revisit when the analysis follows calls."
+    },
+    {
+      "id": "exclusive_borrow",
+      "escapes": false,
+      "effect_unknown": false,
+      "mutated": true,
+      "target": "&mut {0}",
+      "receiver": "&mut self",
+      "reason": "The body provably assigns through this pointer and nothing outlives the call, so an exclusive borrow is what the code does. This is a HYPOTHESIS about aliasing, not a proof: escape analysis shows lifetime compatibility and not the exclusivity a borrow needs, because a Go caller may pass one pointer as two arguments. What makes it safe to emit is that the target checks it — an unsatisfiable `&mut` is a borrow-check error the compile proof catches, which is a red build rather than silent corruption. See docs/programs/k8s-port/census/ownership-escape.md."
+    },
+    {
+      "id": "shared_borrow",
+      "escapes": false,
+      "effect_unknown": false,
+      "mutated": false,
+      "target": "&{0}",
+      "receiver": "&self",
+      "reason": "Nothing mutates through it and nothing outlives the call, so a shared borrow is both sufficient and the cheapest form. Same aliasing caveat as the exclusive case, and much weaker: a shared borrow coexists with other shared borrows, so caller-side aliasing does not invalidate it."
+    }
+  ],
+  "copy_types": [
+    "bool",
+    "float64",
+    "int"
+  ],
+  "zero_values": {
+    "bool": "false",
+    "float64": "0.0",
+    "int": "0",
+    "string": "String::new()"
+  },
+  "trait_object_forms": {
+    "param": "&dyn {0}",
+    "trait": "{0}",
+    "supertrait": "{0}"
+  },
+  "failure_convention": {
+    "source_type": "error",
+    "target_type": "Box<dyn std::error::Error>",
+    "absent": "nil"
+  },
+  "function_map": {
+    "errors.New": "Box::<dyn std::error::Error>::from({0})",
+    "len": "{0}.len() as i64"
+  },
+  "cast_types": [
+    "byte",
+    "float32",
+    "float64",
+    "int",
+    "int16",
+    "int32",
+    "int64",
+    "int8",
+    "rune",
+    "uint",
+    "uint16",
+    "uint32",
+    "uint64",
+    "uint8",
+    "uintptr"
+  ]
+}

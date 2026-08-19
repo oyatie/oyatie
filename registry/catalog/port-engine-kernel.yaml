@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  source_crate: build/port-engine/core/port-engine-kernel/Cargo.toml
+  source_crate: build/port-engine/core/kernel/Cargo.toml
 non_claims:
   - W0 SEAMS ONLY (ADR-0637 D4); no source-language front end, no rule data, no corpus, no generated output exists or is claimed
   - defines NO capability; build/ is a meta directory that owns zero capability crates (ADR-0637 D1, governance/capability-registry.json build/ owns_crates=false). The `capability` field above is this catalog's naming slot, not a capability-registry claim

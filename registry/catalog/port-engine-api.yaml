@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  source_crate: build/port-engine/ports/port-engine-api/Cargo.toml
+  source_crate: build/port-engine/ports/api/Cargo.toml
 non_claims:
   - W0-B Slice 1 skeleton only; neutral seam types remain on port-engine-kernel until Slice 2
   - defines NO capability; build/ is a meta directory that owns zero capability crates (ADR-0637 D1)

@@ -1,0 +1,223 @@
+//! The declaration-level construction builders: what each construction emits, as IR items.
+
+use port_engine_api::Declaration;
+use port_engine_rust_ir::{
+    RustExpr, RustField, RustFn, RustItem, RustStmt, RustType, StructShape, Visibility,
+};
+
+use crate::error::TransformError;
+use crate::impls::trait_impls;
+use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
+use crate::params::{params, refuse_variadic, results};
+use crate::resolve::Resolver;
+use crate::signature::{Body, inherent_methods, trait_methods};
+use crate::vocabulary::{
+    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CONSTRUCTION_RUST_CONST,
+    CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE,
+    CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT,
+    CONSTRUCTION_RUST_TYPE_ALIAS, POSITION_FIELD, POSITION_SUPERTRAIT,
+};
+use crate::{body, docs::docs_of};
+
+/// What one construction emits.
+///
+/// A LIST, because a declaration is not always one item: a type that satisfies an interface emits
+/// the type and an `impl` per satisfaction. Folding those into the type's own construction would
+/// make "which interfaces does this type satisfy" a question the struct builder answers, and a
+/// type could not gain an impl without its construction changing.
+pub(crate) fn build_item(
+    construction: &str,
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<Vec<RustItem>, TransformError> {
+    let item = match construction {
+        CONSTRUCTION_RUST_CONST => build_const(declaration, resolver),
+        CONSTRUCTION_RUST_TYPE_ALIAS => build_type_alias(declaration, resolver),
+        CONSTRUCTION_RUST_NEWTYPE => build_newtype(declaration, resolver),
+        CONSTRUCTION_RUST_STRUCT => build_struct(declaration, resolver, Body::Stub),
+        CONSTRUCTION_RUST_STRUCT_BODY => build_struct(declaration, resolver, Body::Translate),
+        CONSTRUCTION_RUST_TRAIT => build_trait(declaration, resolver),
+        CONSTRUCTION_RUST_FN => build_fn(declaration, resolver, false),
+        CONSTRUCTION_RUST_FN_BODY => build_fn(declaration, resolver, true),
+        other => Err(TransformError::UnknownConstruction {
+            rule: String::new(),
+            construction: other.to_owned(),
+        }),
+    }?;
+
+    let mut items = vec![item];
+    items.extend(trait_impls(declaration, resolver)?);
+    Ok(items)
+}
+
+fn build_const(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<RustItem, TransformError> {
+    let value = declaration
+        .attr(ATTR_VALUE)
+        .ok_or_else(|| TransformError::MissingDatum {
+            construction: CONSTRUCTION_RUST_CONST.to_owned(),
+            name: declaration.name.clone(),
+            datum: ATTR_VALUE,
+        })?;
+    Ok(RustItem::Const {
+        docs: docs_of(declaration),
+        vis: visibility(declaration),
+        name: to_screaming_snake(&declaration.name),
+        ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
+        value: value.to_owned(),
+    })
+}
+
+fn build_type_alias(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<RustItem, TransformError> {
+    Ok(RustItem::TypeAlias {
+        docs: docs_of(declaration),
+        vis: visibility(declaration),
+        name: to_pascal_case(&declaration.name),
+        ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
+    })
+}
+
+/// A defined type over an underlying type becomes a newtype, never an alias.
+///
+/// The distinction is the whole point of the source construct: a defined type is a DISTINCT type
+/// that does not interchange with its underlying one, and rendering it as an alias would erase
+/// exactly the property it was declared for. A newtype keeps the distinction in the target's own
+/// type system.
+fn build_newtype(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<RustItem, TransformError> {
+    let vis = visibility(declaration);
+    Ok(RustItem::Struct {
+        docs: docs_of(declaration),
+        vis,
+        name: to_pascal_case(&declaration.name),
+        shape: StructShape::Tuple(vec![RustField {
+            docs: Vec::new(),
+            vis,
+            name: String::new(),
+            ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
+        }]),
+        methods: inherent_methods(declaration, resolver, Body::Stub)?,
+    })
+}
+
+fn build_struct(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+    body: Body,
+) -> Result<RustItem, TransformError> {
+    let mut fields = Vec::new();
+    for field in declaration.children_of_kind(CHILD_FIELD) {
+        fields.push(RustField {
+            docs: docs_of(field),
+            vis: visibility(field),
+            name: to_snake_case(&field.name),
+            ty: resolver.resolve_in(&field.type_ref, &field.name, POSITION_FIELD)?,
+        });
+    }
+
+    Ok(RustItem::Struct {
+        docs: docs_of(declaration),
+        vis: visibility(declaration),
+        name: to_pascal_case(&declaration.name),
+        shape: if fields.is_empty() {
+            StructShape::Unit
+        } else {
+            StructShape::Named(fields)
+        },
+        methods: inherent_methods(declaration, resolver, body)?,
+    })
+}
+
+fn build_trait(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<RustItem, TransformError> {
+    Ok(RustItem::Trait {
+        docs: docs_of(declaration),
+        vis: visibility(declaration),
+        name: to_pascal_case(&declaration.name),
+        supertraits: supertraits(declaration, resolver)?,
+        methods: trait_methods(declaration, resolver)?,
+    })
+}
+
+/// The traits an interface's embedded interfaces require.
+///
+/// A supertrait is a REQUIREMENT: an implementor must implement these too. Flattening them into the
+/// outer trait's method list would compile and would mean something weaker — a type could satisfy
+/// the outer trait without satisfying the embedded ones, which the source does not allow.
+fn supertraits(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<Vec<RustType>, TransformError> {
+    declaration
+        .children_of_kind(CHILD_EMBEDS)
+        .into_iter()
+        .map(|embed| resolver.resolve_in(&embed.type_ref, &declaration.name, POSITION_SUPERTRAIT))
+        .collect()
+}
+
+fn build_fn(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+    translate_body: bool,
+) -> Result<RustItem, TransformError> {
+    if !declaration.children_of_kind(CHILD_FIELD).is_empty() {
+        return Err(TransformError::ConstructionKindMismatch {
+            construction: CONSTRUCTION_RUST_FN.to_owned(),
+            kind: declaration.kind.clone(),
+            name: declaration.name.clone(),
+        });
+    }
+    refuse_variadic(declaration)?;
+
+    let body = if translate_body {
+        let source = declaration
+            .children_of_kind(CHILD_BODY)
+            .first()
+            .copied()
+            .ok_or_else(|| TransformError::MissingDatum {
+                construction: CONSTRUCTION_RUST_FN_BODY.to_owned(),
+                name: declaration.name.clone(),
+                datum: "body",
+            })?;
+        body::statements(&source.children, declaration, resolver)?
+    } else {
+        vec![RustStmt::Tail(RustExpr::Todo)]
+    };
+
+    Ok(RustItem::Function(RustFn {
+        docs: docs_of(declaration),
+        vis: visibility(declaration),
+        name: to_snake_case(&declaration.name),
+        receiver: None,
+        params: params(declaration, resolver, &declaration.name)?,
+        ret: results(declaration, resolver)?,
+        body: Some(body),
+    }))
+}
+
+/// The unit-level constructions: one region per unit, no declarations read.
+pub(crate) fn build_unit_item(construction: &str, region: &str) -> Option<RustItem> {
+    let name = match construction {
+        crate::vocabulary::CONSTRUCTION_PASS_THROUGH => region.to_owned(),
+        crate::vocabulary::CONSTRUCTION_EMPTY_CANARY => format!("{region}_canary"),
+        _ => return None,
+    };
+    Some(RustItem::Function(RustFn {
+        docs: Vec::new(),
+        vis: Visibility::Public,
+        name,
+        receiver: None,
+        params: Vec::new(),
+        ret: None,
+        body: Some(Vec::new()),
+    }))
+}

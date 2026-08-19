@@ -9,7 +9,7 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  source_crate: build/port-engine/adapters/port-engine-hash/Cargo.toml
+  source_crate: build/port-engine/adapters/hash/Cargo.toml
 non_claims:
   - W0-B hash adapter seam
   - defines NO capability; build/ owns_crates=false (ADR-0637 D1)
