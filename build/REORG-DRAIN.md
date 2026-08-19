@@ -3651,3 +3651,45 @@ literal the target infers it, and for anything else a conversion between two wid
 the source never asked for. So the mapping holds for a literal distance and refuses by name for the
 rest, through a new `int_literal_last` argument shape — the same mechanism `panic` already used to
 say "faithful for this shape and silently wrong for the others".
+
+## R1s — a comment that named the source language, and the review that verified the arithmetic
+
+Reviews had only ever seen `semver`, the thinnest package. `xxhash` is now the most complete at 52.9%
+and exercises entirely different constructs, so it went for review instead. The verdict was **MERGE
+WITH CHANGES**, and the reviewer did something none of the others had: they checked the numbers.
+
+> All five primes are numerically exact. `round` and `merge_round` match the algorithm — operand
+> order, rotate amount, and the `*PRIME1 + PRIME4` tail. Critically, **every** arithmetic op uses
+> `wrapping_add`/`wrapping_mul`. Go's `+`/`*` wrap silently, so a literal transliteration would panic
+> in debug builds; someone caught that.
+
+That is the engine's central claim, checked by someone who did not know it was a claim: the output
+does not mean something different.
+
+**And their single most decisive provenance finding was ours.** A doc comment, in rustdoc, on a crate
+that denies `unsafe`:
+
+> The consts are used when possible in Go code to avoid MOVs but we need a contiguous array for the
+> assembly code.
+
+Prose naming the source language, describing its compiler's register allocation and an assembly
+backend that does not exist here. A doc that documents a program which was not ported. It refuses
+now, for the same reason prose naming an absent API refuses: the engine can see the sentence is false
+about what it documents and cannot write a true one.
+
+**Why the language's own name is safe to look for, which is the whole subtlety.** `Go` is an English
+word and `multierror` declares a METHOD called `Go` whose doc opens `Go calls the given function in a
+new goroutine` — a naive match refuses it on its own name. The check runs on the REWRITTEN prose, and
+the source's convention opens a doc with the identifier, so that word is already gone by the time
+this looks. Verified: the method survives, and `goroutine` catches what the sentence is really about.
+The English verb is lower-case, which the list is not.
+
+**Checked and NOT ours:** the reviewer wanted the primes in hex, since the spec states them that way
+and they had to run a calculator. Upstream writes them in decimal. Carried faithfully.
+
+**Still owed, recorded from this review:** `MARSHALED_SIZE: i64` is a byte count that wants `usize` —
+the length-constant proof needs a comparison against a length, and the function that would supply one
+refuses. `MAGIC: &str` holds binary framing that wants `&[u8; 4]`; the source's `string` is bytes and
+the target's is UTF-8, which is a type-map decision the pack has not made. And the eight `rolN`
+wrappers exist because the source needed them — faithful, and the reviewer is right that a Rust
+author would not write them.

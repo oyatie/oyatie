@@ -46,6 +46,7 @@ mod body_ops;
 mod comparison;
 mod counters;
 mod docs;
+mod docs_refuse;
 mod error;
 mod failure;
 mod failure_proof;

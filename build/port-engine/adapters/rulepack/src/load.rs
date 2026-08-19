@@ -160,6 +160,8 @@ impl LoadedRulePack {
                 DocConvention {
                     strip_leading_name: rule.strip_leading_name,
                     copulas: rule.copulas.into_iter().collect(),
+                    source_language_words: rule.source_language_words,
+                    source_language_words_reason: rule.source_language_words_reason,
                     passive_openings: rule.passive_openings,
                     passive_openings_reason: rule.passive_openings_reason,
                     reason: rule.reason,

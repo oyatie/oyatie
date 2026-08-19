@@ -232,6 +232,10 @@ pub struct DocConventionRule {
     /// Words dropped along with the name, so the remainder still reads.
     pub copulas: Vec<String>,
     #[serde(default)]
+    pub source_language_words: Vec<String>,
+    #[serde(default)]
+    pub source_language_words_reason: String,
+    #[serde(default)]
     pub passive_openings: Vec<String>,
     #[serde(default)]
     pub passive_openings_reason: String,
