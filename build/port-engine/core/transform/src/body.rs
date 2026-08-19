@@ -9,7 +9,7 @@
 //! spelling has to be parenthesised defensively, a typed operator carries its own binding power.
 
 use port_engine_api::Declaration;
-use port_engine_rust_ir::{RustExpr, RustStmt};
+use port_engine_rust_ir::{RustExpr, RustStmt, TupleBind};
 
 use crate::body_expr::{Position, expression, in_position};
 use crate::body_failure::{propagate, translated_return};
@@ -114,6 +114,9 @@ pub(crate) fn statement(
             TailPosition::No,
         )?))),
         "if" => Ok(RustStmt::Semi(conditional(node, cx)?)),
+        // A `cond` node reaching statement position is an init clause's own statement, already
+        // handled by `conditional`. Reaching here would mean the tree is shaped differently than
+        // the front end claims, which is a defect rather than a construct.
         "let" => Ok(RustStmt::Let {
             name: to_snake_case(&node.name),
             // MUTABLE only when the body writes it again, which the front end observed. The source
@@ -156,7 +159,12 @@ pub(crate) fn statement(
             Ok(RustStmt::LetTuple {
                 names: binds
                     .iter()
-                    .map(|bound| to_snake_case(&bound.name))
+                    .map(|bound| TupleBind {
+                        name: to_snake_case(&bound.name),
+                        // Observed by the front end, exactly as a single binding's is. Assuming
+                        // either way is wrong for half the bindings in any real body.
+                        mutable: bound.has_flag(FLAG_MUTATED),
+                    })
                     .collect(),
                 value: expression(one_child(value, cx, "let_tuple")?, cx)?,
             })
@@ -173,7 +181,26 @@ pub(crate) fn statement(
     }
 }
 
+/// An `if`, and the block its init clause needs.
+///
+/// The source scopes `if x := f(); cond` so that `x` is visible in the condition and in both
+/// branches, and nowhere after. The target has exactly one construct with that shape -- a block --
+/// so the init statement becomes the block's first statement and the conditional its last.
+///
+/// Hoisting the binding into the ENCLOSING scope would compile and would be a different program:
+/// the name would outlive the branch, shadow differently, and drop later. That is the refusal the
+/// front end used to make, and it refused the whole construct rather than the hoist.
 fn conditional(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
+    let inner = plain_conditional(node, cx)?;
+    let Some(init) = node.children_of_kind("init").first().copied() else {
+        return Ok(inner);
+    };
+
+    let bound = statement(one_child(init, cx, "init")?, cx, false)?;
+    Ok(RustExpr::Block(vec![bound, RustStmt::Semi(inner)]))
+}
+
+fn plain_conditional(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
     let condition = named_child(node, "cond", cx, "if")?;
     let then = named_child(node, "then", cx, "if")?;
 

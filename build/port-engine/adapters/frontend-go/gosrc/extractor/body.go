@@ -36,7 +36,13 @@ func destructuringBind(stmt *ast.AssignStmt, ctx *extractCtx) node {
 		if !ok {
 			return unsupportedNode(stmt)
 		}
-		out.Children = append(out.Children, node{Kind: kindBind, Name: name.Name})
+		// Each name a destructuring bind introduces is a binding like any other, and `err` being
+		// reassigned by a later call is the single most common shape in the source language.
+		out.Children = append(out.Children, node{
+			Kind:  kindBind,
+			Name:  name.Name,
+			Flags: bindingFlags(name, ctx),
+		})
 	}
 	out.Children = append(out.Children, node{
 		Kind:     kindValue,
@@ -109,15 +115,21 @@ func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 
 	case *ast.IfStmt:
 		// An `if` with an init statement (`if x := f(); x != nil`) scopes a binding to the
-		// condition, which Rust has no direct form for. Recorded as unsupported rather than
-		// silently hoisted, because hoisting changes the binding's lifetime.
+		// condition and both branches. Recorded as a CHILD, exactly as the `for` loop records its
+		// own init clause: the snapshot is a model of the source, and rewriting the shape here
+		// would make it a model of the target instead. What the target does with it is a decision
+		// the transform makes, where the reason can be written next to the emission.
+		children := []node{}
 		if typed.Init != nil {
-			return unsupportedNode(stmt)
+			children = append(children, node{
+				Kind:     kindInit,
+				Children: []node{statementNode(typed.Init, ctx)},
+			})
 		}
-		children := []node{
-			{Kind: "cond", Children: []node{expressionNode(typed.Cond, ctx)}},
-			{Kind: kindThen, Children: statementNodes(typed.Body.List, ctx)},
-		}
+		children = append(children,
+			node{Kind: kindCond, Children: []node{expressionNode(typed.Cond, ctx)}},
+			node{Kind: kindThen, Children: statementNodes(typed.Body.List, ctx)},
+		)
 		if typed.Else != nil {
 			children = append(children, node{
 				Kind:     kindElse,
@@ -145,8 +157,13 @@ func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 				return unsupportedNode(stmt)
 			}
 			return node{
-				Kind:     kindLet,
-				Name:     name.Name,
+				Kind: kindLet,
+				Name: name.Name,
+				// The SHORT declaration needs the same question asked of it as `var` does. It was
+				// not asked, so every `x := e` the body later assigned emitted an immutable
+				// binding followed by a write to it — output that does not compile. No fixture
+				// had the shape, which is the whole argument for ratcheting against real source.
+				Flags:    bindingFlags(name, ctx),
 				Children: []node{expressionNode(typed.Rhs[0], ctx)},
 			}
 		case token.ASSIGN:

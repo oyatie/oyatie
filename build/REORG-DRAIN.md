@@ -692,6 +692,44 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   top CAPABILITY blocker is now `IfStmt` at six of seven packages, and the largest single number on
   the board is a decision nobody has made rather than a construct nobody has written.
 
+- `if x := f(); cond` was refused on a reason that was not true, and it was the top capability
+  blocker on the board — six of seven surveyed packages. The recorded reason said the target has no
+  direct form for a binding scoped to a condition. It has exactly one: a block. `{ let x = f(); if
+  cond { .. } else { .. } }` scopes `x` to the condition and both branches and nothing after, and
+  drops it where the source's scope ends. What is unfaithful is HOISTING to the enclosing scope,
+  which the old comment refused correctly and then generalised into refusing the construct itself.
+  A refusal reason is a claim, and this one had never been checked.
+  The split follows the one the `for` loop already used. The extractor records the init clause as a
+  CHILD — the snapshot is a model of the source, and rewriting the shape at extraction would make
+  it a model of the target — and the transform decides it becomes a block. That also made the
+  refusal granular: an init clause the front end cannot model now refuses by ITS own name instead
+  of collapsing the whole `if` into `unsupported`.
+  THE FIXTURE FOUND TWO MORE DEFECTS, both of which emit code that does not compile, and neither of
+  which any existing corpus could have shown.
+  `x := e` never asked whether the body writes the binding again. `bindingFlags` existed and was
+  wired only to the `var` path, so every short declaration later assigned emitted an immutable
+  binding followed by a write to it. `var` was in the corpus and `:=` was not — and `:=` is the
+  form real Go actually uses.
+  `RustStmt::LetTuple` had no mutability at ALL. `v, err := f()` followed by a later write to `err`
+  is the most common shape in the source language and it emitted `let (v, err) = ...`. Mutability
+  is now PER NAME rather than per statement, because the source binds each name independently: it
+  is routinely `err` that is written again and `v` that is not, and one flag for the pair would
+  have to be the disjunction, making every value binding mutable to serve the failure beside it.
+  Proven by the compile proof rather than by reading: six tests, `rustc` on the emitted crate.
+  Also worth recording about the instrument: only `xxhash` moved (61.8% → 64.7%) and the other six
+  did not budge. That is correct and not a disappointment. The ranking counts declarations that
+  NAME a cause, and a declaration blocked by `IfStmt` is usually blocked by four other things too —
+  so clearing one cause removes it from every ranking without unblocking a single declaration until
+  the last of its causes goes. `IfStmt` is off the board entirely; coverage is a lagging indicator
+  of it.
+  New top capability blockers, by packages: unary `&` (5), transform ownership (5), the
+  carried-value failing return (4), `AssignStmt` forms (4), `panic` (4), `unmapped type interface`
+  (4). "deferred by policy" still leads at 5 packages and 76 declarations, and is still a decision
+  nobody has made rather than a construct nobody has written.
+  One process note, since it cost real time: `port-go-source` PRINTS the emitted crate and compares
+  it against the golden; it does not write the golden. Redirecting its output to `/dev/null` and
+  then diffing the golden shows nothing changed no matter what the engine did.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

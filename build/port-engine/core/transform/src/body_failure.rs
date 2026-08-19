@@ -6,7 +6,7 @@
 //! that cannot be forgotten.
 
 use port_engine_api::Declaration;
-use port_engine_rust_ir::{RustExpr, RustStmt};
+use port_engine_rust_ir::{RustExpr, RustStmt, TupleBind};
 
 use crate::body::Body;
 use crate::body_expr::expression;
@@ -36,8 +36,17 @@ pub(crate) fn propagate(
             ty: None,
             value: Some(value),
         }),
+        // The propagation operator has already consumed the failure, so these are the VALUE
+        // names alone. They are the operator's own bindings and are never written again — anything
+        // that writes one does so under a name of its own, exactly as in the single-value arm.
         several => Ok(RustStmt::LetTuple {
-            names: several.iter().map(|name| to_snake_case(name)).collect(),
+            names: several
+                .iter()
+                .map(|name| TupleBind {
+                    name: to_snake_case(name),
+                    mutable: false,
+                })
+                .collect(),
             value,
         }),
     }
