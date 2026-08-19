@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Digest, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
+use port_engine_api::{Digest, DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
 use port_engine_hash::digest_bytes;
 
 use crate::error::RulepackError;
@@ -28,6 +28,7 @@ pub struct LoadedRulePack {
     pub(crate) failure_convention: Option<FailureConvention>,
     pub(crate) function_map: BTreeMap<String, FunctionMapping>,
     pub(crate) integer_arithmetic: IntegerArithmetic,
+    pub(crate) doc_convention: DocConvention,
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
@@ -241,6 +242,15 @@ impl LoadedRulePack {
             // empty one is refused at load rather than emitted with nobody's name on it.
             // Absent means the pack declines to answer, and the transform then refuses integer
             // arithmetic by name rather than emitting an operator whose overflow rule differs.
+            // Absent means the pack declines to rewrite documentation at all, which leaves the
+            // source's prose exactly as its author wrote it.
+            doc_convention: doc.doc_convention.map_or_else(DocConvention::default, |rule| {
+                DocConvention {
+                    strip_leading_name: rule.strip_leading_name,
+                    copulas: rule.copulas.into_iter().collect(),
+                    reason: rule.reason,
+                }
+            }),
             integer_arithmetic: doc.integer_arithmetic.map_or_else(
                 IntegerArithmetic::default,
                 |rule| IntegerArithmetic {

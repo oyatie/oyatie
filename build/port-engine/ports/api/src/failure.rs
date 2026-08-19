@@ -9,6 +9,20 @@
 //! renders the target owns them. Putting them in the pack would make a second language pair
 //! re-declare the target's own vocabulary, which is the thing the neutral seam exists to prevent.
 
+/// How the source's documentation convention differs from the target's.
+///
+/// A DECISION about prose, so it carries a reason: rewriting what an author wrote is not something
+/// to do silently, and the bound on what is rewritten is the substance of the rule.
+#[derive(Clone, Debug, Eq, PartialEq, Default)]
+pub struct DocConvention {
+    /// Whether a leading repetition of the item's own name is dropped.
+    pub strip_leading_name: bool,
+    /// Words dropped along with the name, so the remainder still reads.
+    pub copulas: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// Why the source's form is rewritten, and what is deliberately left alone.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// How the source's integer arithmetic must be spelled in the target.
 ///
 /// The source defines overflow as WRAPPING and the target panics on it in debug and wraps in

@@ -150,3 +150,18 @@ pub struct IntegerArithmeticRule {
     /// Why this spelling, and what it costs.
     pub reason: String,
 }
+
+/// How the source's documentation convention differs from the target's.
+///
+/// The reason is REQUIRED and travels in the pack digest, because rewriting prose somebody wrote
+/// is not something to do silently — and the BOUND on what gets rewritten is the substance of it.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct DocConventionRule {
+    /// Whether a leading repetition of the item's own name is dropped.
+    pub strip_leading_name: bool,
+    /// Words dropped along with the name, so the remainder still reads.
+    pub copulas: Vec<String>,
+    /// Why the source's form is rewritten, and what is deliberately left alone.
+    pub reason: String,
+}

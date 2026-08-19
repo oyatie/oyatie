@@ -24,7 +24,7 @@ mod type_ref;
 
 pub use declaration::Declaration;
 pub use error::PortError;
-pub use failure::{FailureConvention, FunctionMapping, IntegerArithmetic};
+pub use failure::{DocConvention, FailureConvention, FunctionMapping, IntegerArithmetic};
 pub use identity::{Digest, LanguagePair, PAIR_SEPARATOR, RegionId, RuleId, UnitId};
 pub use ownership::{OwnershipFacts, PointerConstruction, PointerDisposition};
 pub use plan::{PlanStep, TransformPlan};

@@ -8,7 +8,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Deserialize;
 
 use crate::CONFLICT_REFUSE;
-use crate::rule::{DeferredKind, DispositionRule, FunctionMappingRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver};
+use crate::rule::{DeferredKind, DispositionRule, DocConventionRule, FunctionMappingRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver};
 
 fn default_conflict() -> String {
     CONFLICT_REFUSE.to_owned()
@@ -42,6 +42,8 @@ pub(crate) struct RulepackDocument {
     pub(crate) function_map: BTreeMap<String, FunctionMappingRule>,
     #[serde(default)]
     pub(crate) integer_arithmetic: Option<IntegerArithmeticRule>,
+    #[serde(default)]
+    pub(crate) doc_convention: Option<DocConventionRule>,
     #[serde(default)]
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     #[serde(default)]

@@ -954,6 +954,37 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   zeroing. A different rule needing its own form, and `census/` sizes no numeric family at all —
   which the standing brief already says, and this is the first time it has cost something.
 
+- The source's DOC CONVENTION is not the target's, and the engine copied it verbatim. The source
+  requires a doc comment to open with the identifier it documents; the target requires that it does
+  not and writes in the third person. Every one of the forty-odd emitted doc comments carried the
+  source's form, and the blind reviewer named it the loudest single signal that a Rust developer
+  had not written the code.
+  Mechanical and BOUNDED, which is the only reason rewriting somebody's prose is defensible: the
+  leading word must equal the declaration's own source name EXACTLY, and a copula immediately after
+  it is dropped with it so `ID is an alias` becomes `An alias` rather than the ungrammatical `Is an
+  alias`. A doc opening any other way is returned untouched — its author already chose an opening,
+  and this has no business rewording prose it was not asked about. The bound is in the pack with
+  the reason, not in the code.
+  `Mix folds the values` → `Folds the values`; `Add returns the sum` → `Returns the sum`;
+  `DefaultName is the fallback identity` → `The fallback identity`.
+
+- STILL OWED from the blind review, and named rather than half-done:
+  A trait impl forwards to the inherent method of the same name — `Driver::describe(self)` inside
+  `impl Describer for Driver`. Correct by construction today, because the engine always emits both
+  and inherent methods win path resolution; a trap if the inherent one is ever removed. Removing
+  the DUPLICATION is the real fix and it needs `use` emission, because dropping the inherent method
+  means an intra-crate caller must have the trait in scope and the engine currently emits
+  fully-qualified paths instead of imports. Reversing the forwarding direction alone would remove
+  the hazard and leave a duplicate a reviewer would still question, so it is one change or none.
+  No `derive` on any emitted type, so nothing can be `{:?}`-printed or compared. Universal and
+  pack-shaped: which derives a ported struct earns is a decision about what the source guarantees,
+  and `Copy` in particular cannot be assumed.
+  A METHOD parameter the body never reads still warns — the `unread` flag reaches functions and not
+  methods, because the two build their parameters through different paths and only one was wired.
+  `if s == ""` for `is_empty`, `self.total = self.total + n` for `+=`, stray `};` after block
+  statements, `(1) as i64`, and fully-qualified paths where a `use` belongs. All idiom rules, all
+  R7, and all now measured rather than guessed at.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil
