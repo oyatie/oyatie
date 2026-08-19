@@ -231,6 +231,10 @@ pub struct DocConventionRule {
     pub strip_leading_name: bool,
     /// Words dropped along with the name, so the remainder still reads.
     pub copulas: Vec<String>,
+    #[serde(default)]
+    pub passive_openings: Vec<String>,
+    #[serde(default)]
+    pub passive_openings_reason: String,
     /// Why the source's form is rewritten, and what is deliberately left alone.
     pub reason: String,
 }

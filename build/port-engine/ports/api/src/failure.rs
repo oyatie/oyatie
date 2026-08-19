@@ -66,6 +66,13 @@ pub struct DocConvention {
     pub strip_leading_name: bool,
     /// Words dropped along with the name, so the remainder still reads.
     pub copulas: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// Passive openings the source's convention leaves behind, which the target does not have.
+    ///
+    /// Longest match wins, so `returned when` is taken over `returned` — which is why this is a
+    /// list rather than a set: the order it is written in is the order it is tried.
+    pub passive_openings: Vec<String>, // data_class: INTERNAL_ONLY
+    /// Why the narration goes with the name it belonged to.
+    pub passive_openings_reason: String, // data_class: INTERNAL_ONLY
     /// Why the source's form is rewritten, and what is deliberately left alone.
     pub reason: String, // data_class: INTERNAL_ONLY
 }

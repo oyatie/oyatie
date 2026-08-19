@@ -719,7 +719,16 @@
       "was",
       "were"
     ],
-    "reason": "The source's convention requires a doc comment to open with the identifier it documents; the target's requires that it does not, and writes in the third person. Copying the source form verbatim is what makes emitted documentation read as translated rather than written -- flagged on every doc comment by a reviewer who did not know the code was generated, as the loudest single signal a Rust developer had not written it. The rewrite is mechanical and bounded: the leading word must equal the declaration's own source name EXACTLY, and a copula immediately following it is dropped with it so `ID is an alias` becomes `An alias` rather than the ungrammatical `Is an alias`. A doc that opens any other way is left exactly as written, because its author already chose an opening and this has no business rewording prose it was not asked about."
+    "reason": "The source's convention requires a doc comment to open with the identifier it documents; the target's requires that it does not, and writes in the third person. Copying the source form verbatim is what makes emitted documentation read as translated rather than written -- flagged on every doc comment by a reviewer who did not know the code was generated, as the loudest single signal a Rust developer had not written it. The rewrite is mechanical and bounded: the leading word must equal the declaration's own source name EXACTLY, and a copula immediately following it is dropped with it so `ID is an alias` becomes `An alias` rather than the ungrammatical `Is an alias`. A doc that opens any other way is left exactly as written, because its author already chose an opening and this has no business rewording prose it was not asked about.",
+    "passive_openings": [
+      "returned when",
+      "returned if",
+      "returned for",
+      "used when",
+      "used to",
+      "returned"
+    ],
+    "passive_openings_reason": "Openings the SOURCE's convention leaves behind, and which the target's does not have. The source requires a doc to open with the identifier, so a sentinel is documented `ErrEmpty is returned when the input has no content.` Stripping the name and its copula leaves `Returned when the input has no content.` -- grammatical, and a fingerprint: three independent reviewers counted six of them in one file and named the uniformity as proof the prose had been mechanically de-prefixed rather than written. The target documents a type by saying what it MEANS, not by narrating who returns it, so the narration goes with the name it belonged to and what remains is the condition itself: `The input has no content.` Bounded exactly as the name strip is: the opening must match one of these forms at the very start, and what follows is capitalised. A doc opening any other way is left alone, because its author already chose an opening and this has no business rewording prose it was not asked about. Set to empty to keep the narration. The bare `returned` is last and is safe BECAUSE of where this runs: the name and its copula are already gone, so what remains is a predicate of the declaration, and `returned ...` in that position is always narration rather than a subject. It is what rescues an upstream sentence that is itself ungrammatical -- `ErrInvalidSemVer is returned a version is found to be invalid` is missing a word in the source, and dropping the narration leaves the grammatical remainder instead of carrying the break through. Longest match first, so the specific forms win."
   },
   "derives": [
     {
