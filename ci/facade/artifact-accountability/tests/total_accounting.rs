@@ -155,9 +155,36 @@ fn move_plan_conformance_is_wired_on_the_live_corpus() {
     let planned = registry["planned_move_paths"]
         .as_array()
         .expect("the face must carry planned_move_paths");
+
+    // Discovery is checked against an INDEPENDENT enumeration of the plan glob, not against a
+    // constant. RR-MOVEPLAN-SINGLETON allows AT MOST one live plan, so zero is a legitimate
+    // state between rehomes -- the previous `!planned.is_empty()` made finishing a rehome and
+    // retiring its spent plan fail this gate, which is the same shape as the finding-count
+    // assertions removed earlier: an anti-vacuity check that punishes the work completing.
+    //
+    // What still must hold is AGREEMENT: if a live plan is committed, the producer must have
+    // found it. Counting the glob here rather than reusing the producer's own discovery is the
+    // point -- a broken glob shows up as disagreement, which a self-consistent count cannot see.
+    let live_plans: Vec<String> = fs::read_dir(root.join("specs/reorg"))
+        .expect("specs/reorg must exist")
+        .filter_map(Result::ok)
+        .filter_map(|entry| entry.file_name().into_string().ok())
+        .filter(|name| {
+            name.ends_with("-move-plan.json")
+                && !name.contains(".PARKED.")
+                && !name.contains(".BLOCKED.")
+        })
+        .collect();
     assert!(
-        !planned.is_empty(),
-        "at least one committed move plan must be discovered, else conformance is vacuous"
+        live_plans.len() <= 1,
+        "RR-MOVEPLAN-SINGLETON allows at most one live move plan; found {live_plans:?}"
+    );
+    assert_eq!(
+        live_plans.is_empty(),
+        planned.is_empty(),
+        "committed live plans {live_plans:?} disagree with the face's planned_move_paths \
+         ({} entries) -- the plan glob and the producer's discovery have diverged",
+        planned.len()
     );
 
     // The derived half: every accounting row must carry a `disposition`, drawn from the closed
