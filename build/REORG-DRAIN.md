@@ -337,6 +337,45 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   and 65% of the S1 background-loop shape. When the engine can emit a `go` statement, those
   libraries are what its rules should target — and that is when they get written.
 
+- P2 (the one the plan ordered second and this lane reached last): the FAILURE CONVENTION, and the
+  function map. These are what the plan calls "the two mappings that block every real Go package",
+  and the diagnosis is worth stating precisely: what blocked a real package was never one construct
+  the engine lacked. It was a CONVENTION it could not see.
+  The source returns failure as an extra RESULT. Nothing in a signature says the value must be
+  checked and nothing in the type system stops a caller from dropping it — it is held up by
+  discipline. The target says the same thing in the return type, where the compiler holds it up. So
+  this is one of the few translations that makes the ported program STRICTER than the original
+  rather than merely equivalent to it, and it is the reason a mechanical port is worth having.
+  Three shapes, each matched structurally and refused otherwise. A fallible signature: a trailing
+  result of the failure type is split off before any result is resolved, so `(T, error)` becomes
+  `Result<T, E>` and `error` alone becomes `Result<(), E>`. A return: the TRAILING operand decides
+  the whole construction, so the same `return x, y` is `Ok` or `Err` depending on it. And the
+  CHECK — `v, err := f()` followed by `if err != nil { return …, err }` — collapses into `f()?`,
+  which is the only one that becomes an operator rather than a statement, and the only one that
+  moves the check out of discipline and into the type system.
+  A failing return DISCARDS its companion operands, and that is sound exactly when they are zero
+  values — the convention says a caller may not read them after a failure. When one is COMPUTED it
+  refuses, because dropping it loses work the reader of the emitted crate could never see was lost.
+  Admitted: literals and the absent value. Deliberately not admitted: anything that would require
+  deciding some expression is "obviously" zero.
+  Only the SOURCE half is pack data — which type carries the convention and how the absent value is
+  spelled. `Result`, `Ok`, `Err` and `?` are decided in the transform, because that face renders
+  Rust and a second language pair must not have to re-declare the target's own vocabulary.
+  THE FUNCTION MAP is the other half of "blocks every real package", and it is not optional: every
+  real package calls its standard library, and the standard library is exactly the part that does
+  not come along. `function_map` answers for a CALL the way `type_map` answers for a type, keyed by
+  the callee's IDENTITY from the type-checker rather than by its spelling — `errors.New` and a local
+  variable named `errors` are the same text. A template brackets itself; an argument that is a
+  compound expression refuses, because substituting one into a text template needs parentheses the
+  template cannot ask for.
+  Two source facts had to exist first, and both were losses rather than gaps. `nil` reached the
+  snapshot classified as a local, so `return x, nil` and `return x, err` were the same shape from a
+  distance — and telling them apart is the whole of the convention. And `v, err := f()` was recorded
+  as unsupported, so the shape every fallible call in the source has could not be seen at all.
+  New corpora: `corpus/fallible` (four shapes of the convention) and `corpus-failure/carried` (the
+  fifth refusal class). The compile proof carries `Result`, `?` and the mapped calls through
+  `rustc`, which is what makes the claim more than a golden.
+
 ## Still owed by this lane
 
 - A concrete value flowing into a trait-object POSITION needs a coercion the body translator does

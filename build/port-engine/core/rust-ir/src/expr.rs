@@ -13,6 +13,13 @@ use crate::ops::{BinaryOp, Precedence, UnaryOp};
 /// A statement in an emitted body.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RustStmt {
+    /// `let (a, b) = value;` — a destructuring bind.
+    LetTuple {
+        /// The names bound, in order.
+        names: Vec<String>, // data_class: INTERNAL_ONLY
+        /// What they are bound from.
+        value: RustExpr,
+    },
     /// `let <name> = <value>;`
     Let {
         /// The bound name, already cased for the target.
@@ -64,6 +71,12 @@ pub enum RustExpr {
     /// literal with no valid target spelling fails the parse, which is the correct outcome. No
     /// attempt is made to normalise numbers, because a rounded literal compiles and means
     /// something else.
+    /// `expr?` — propagate a failure to the caller.
+    ///
+    /// An OPERATOR rather than a call, which is the whole point of recognising the source's
+    /// propagation idiom: a two-statement bind-and-check becomes one expression that cannot be
+    /// forgotten, where the source's version is a convention a caller may ignore.
+    Try(Box<RustExpr>),
     Literal(String), // data_class: INTERNAL_ONLY
     /// A path or identifier, already cased for the target.
     Path(String), // data_class: INTERNAL_ONLY
@@ -201,6 +214,7 @@ impl RustExpr {
             | Self::MethodCall { .. }
             | Self::Index { .. }
             | Self::StructLiteral { .. }
+            | Self::Try(_)
             | Self::SelfValue
             | Self::Match { .. }
             | Self::Todo => Precedence::ATOMIC,

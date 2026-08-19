@@ -64,6 +64,8 @@ pub const TYPE_NAMED_INTERFACE: &str = "named_interface";
 
 /// Attribute key classifying what an identifier resolves to.
 pub const ATTR_REF: &str = "ref";
+/// Attribute key holding the package-qualified IDENTITY of what a call resolves to.
+pub const ATTR_CALLEE: &str = "callee";
 /// Attribute key holding the receiver a TRAIT method binds, derived from its observed
 /// implementors. Absent means nothing was observed to implement the interface, and the pack's
 /// declared decision answers instead.
@@ -106,3 +108,7 @@ pub(crate) const CHILD_IMPLEMENTS: &str = "implements";
 pub(crate) const CHILD_EMBEDS: &str = "embeds";
 /// A method a type gains through EMBEDDING rather than declaration.
 pub(crate) const CHILD_PROMOTED: &str = "promoted";
+/// One name a destructuring bind introduces.
+pub(crate) const CHILD_BIND: &str = "bind";
+/// The expression a destructuring bind takes its values from.
+pub(crate) const CHILD_VALUE: &str = "value";

@@ -1,0 +1,218 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:395e2567abfe297b682438c8323309c1d938edfdb9b815a94a35e03aeec2dceb",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-failure/corpus-failure/carried",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Sized",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Sized reports the length of s and whether s was usable, returning both even on the failure path."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "len"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "len",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "s",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "errors.New"
+                              },
+                              "children": [
+                                {
+                                  "kind": "selector",
+                                  "name": "New",
+                                  "type": {
+                                    "kind": "func",
+                                    "args": [
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "string"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "named_interface",
+                                            "name": "error"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "ident",
+                                      "name": "errors",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"empty\""
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "len"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "len",
+                          "attrs": {
+                            "ref": "builtin"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -48,7 +48,26 @@
     "",
     "The supertrait position takes the bare path: an embedded interface becomes a trait BOUND, which",
     "is the one place a trait appears as itself rather than as something holding it. Declared rather",
-    "than special-cased in the engine, so every position answers the same way."
+    "than special-cased in the engine, so every position answers the same way.",
+    "",
+    "failure_convention is what makes a function FALLIBLE. The source returns failure as a trailing",
+    "result of a designated type, checked by convention rather than enforced; the target expresses",
+    "it as the whole return type. Only the SOURCE side is declared here — which type carries the",
+    "convention and how the absent value is spelled — because `Result`, `Ok` and `Err` are target",
+    "spellings and the face that renders the target owns them.",
+    "",
+    "The target type is a boxed trait object rather than a `thiserror` enum because the emitted",
+    "crate is compiled against the standard library alone. A real port declares its own error type",
+    "here and nothing in the engine changes.",
+    "",
+    "function_map answers for a CALL the way type_map answers for a type, keyed by source identity",
+    "so a local named `errors` cannot be mistaken for the package. It is not optional for a real",
+    "package: every one calls its standard library, and the standard library is exactly the part",
+    "that does not come along. `len` casts because the source's `len` returns its `int`, which this",
+    "pack maps to `i64`, and the target's returns a `usize`.",
+    "A template brackets ITSELF where it needs to. The engine substitutes text and does not know",
+    "what the surrounding expression will be, so a template whose result binds looser than a caller",
+    "might is the template author's problem to parenthesise — the same contract type_constructors has."
   ],
   "pair": {
     "source": "go",
@@ -203,6 +222,11 @@
           "id": "go-func-selects-basic",
           "unit": "oyatie.example/portengine-fixture/corpus/basic",
           "selects": true
+        },
+        {
+          "id": "go-func-selects-fallible",
+          "unit": "oyatie.example/portengine-fixture/corpus/fallible",
+          "selects": true
         }
       ]
     },
@@ -279,6 +303,12 @@
     "oyatie.example/portengine-fixture/corpus/composite": [
       "go_interface",
       "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture/corpus/fallible": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture-failure/corpus-failure/carried": [
+      "go_func"
     ]
   },
   "type_constructors": {
@@ -335,5 +365,14 @@
     "param": "&dyn {0}",
     "trait": "{0}",
     "supertrait": "{0}"
+  },
+  "failure_convention": {
+    "source_type": "error",
+    "target_type": "Box<dyn std::error::Error>",
+    "absent": "nil"
+  },
+  "function_map": {
+    "errors.New": "Box::<dyn std::error::Error>::from({0})",
+    "len": "{0}.len() as i64"
   }
 }

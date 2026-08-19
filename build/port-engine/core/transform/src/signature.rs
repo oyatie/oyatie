@@ -6,6 +6,7 @@ use port_engine_rust_ir::{Receiver, RustFn, RustParam, RustType, Visibility};
 use crate::error::TransformError;
 use crate::naming::{to_snake_case, visibility};
 use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_for};
+use crate::params::{params, refuse_variadic, results};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
     ATTR_RECEIVER, CHILD_BODY, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC,
@@ -198,94 +199,11 @@ pub(crate) fn method_signature(
                         name: method.name.clone(),
                         datum: "body",
                     })?;
-                Some(crate::body::statements(
-                    &source.children,
-                    &method.name,
-                    resolver,
-                )?)
+                Some(crate::body::statements(&source.children, method, resolver)?)
             }
             Body::None => None,
         },
     })
-}
-
-pub(crate) fn refuse_variadic(declaration: &Declaration) -> Result<(), TransformError> {
-    if declaration.flags.contains(FLAG_VARIADIC) {
-        return Err(TransformError::Unsupported {
-            name: declaration.name.clone(),
-            detail: "variadic signature: the target has no variadic parameter, so this needs a \
-                     rule that chooses a slice or a builder rather than a default"
-                .to_owned(),
-        });
-    }
-    Ok(())
-}
-
-pub(crate) fn params(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-    owner: &str,
-) -> Result<Vec<RustParam>, TransformError> {
-    declaration
-        .children_of_kind(CHILD_PARAM)
-        .into_iter()
-        .enumerate()
-        .map(|(index, param)| {
-            // A POINTER parameter is an ownership question and gets a decision; anything else is
-            // just a type. The split is deliberate: a pointer inside a field or a result has no
-            // call site to borrow across, so it stays a plain type-map answer.
-            let ty = if param.type_ref.kind == "pointer" {
-                let pointee =
-                    param
-                        .type_ref
-                        .args
-                        .first()
-                        .ok_or_else(|| TransformError::Ownership {
-                            detail: format!(
-                                "pointer parameter `{}` of `{owner}::{}` has no pointee",
-                                param.name, declaration.name
-                            ),
-                        })?;
-                let resolved = resolver.resolve(pointee, &declaration.name)?;
-                let site = format!("{owner}::{}({})", declaration.name, param.name);
-                RustType::path(parameter_target(
-                    param,
-                    &resolved.spelling(),
-                    &site,
-                    resolver.ownership,
-                )?)
-            } else {
-                resolver.resolve_in(&param.type_ref, &declaration.name, POSITION_PARAM)?
-            };
-            // An unnamed parameter is legal in the source and illegal in the target, so it is
-            // given a positional name. The position is already its identity, so nothing is
-            // invented that was not already true.
-            let name = if param.name.is_empty() || param.name == "_" {
-                format!("arg{index}")
-            } else {
-                to_snake_case(&param.name)
-            };
-            Ok(RustParam { name, ty })
-        })
-        .collect()
-}
-
-pub(crate) fn results(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> Result<Option<RustType>, TransformError> {
-    let results = declaration.children_of_kind(CHILD_RESULT);
-    let mut types = Vec::with_capacity(results.len());
-    for result in results {
-        types.push(resolver.resolve_in(&result.type_ref, &declaration.name, POSITION_RESULT)?);
-    }
-    match types.len() {
-        0 => Ok(None),
-        // Several results become a tuple. That is the target's own shape for "more than one value
-        // out", and it keeps arity and order visible instead of inventing a struct nobody declared.
-        1 => Ok(types.pop()),
-        _ => Ok(Some(RustType::Tuple(types))),
-    }
 }
 
 /// Visibility for a declaration, as a value the IR places rather than a prefix a string carries.

@@ -12,7 +12,7 @@ mod error;
 mod preimage;
 
 pub use admit::{
-    admit_embedded_fixture, admit_embedded_fixture_interface_v1,
+    admit_embedded_fixture, admit_embedded_fixture_failure_v1, admit_embedded_fixture_interface_v1,
     admit_embedded_fixture_ownership_v1, admit_embedded_fixture_refused_v1,
     admit_embedded_fixture_v1, admit_reproducible_pair,
 };
@@ -41,6 +41,12 @@ pub(crate) const FIXTURE_SNAPSHOT_OWNERSHIP_V1_JSON: &str =
 /// no size in the target, and returning one by value needs an owner the pack has not declared.
 pub(crate) const FIXTURE_SNAPSHOT_INTERFACE_V1_JSON: &str =
     include_str!("fixture-snapshot-interface-v1.json");
+
+/// Embedded fixture for the corpus whose FAILURE returns the engine must refuse: the target's
+/// failing return carries only the failure, so a source that returns a computed value beside one
+/// has no shape to become.
+pub(crate) const FIXTURE_SNAPSHOT_FAILURE_V1_JSON: &str =
+    include_str!("fixture-snapshot-failure-v1.json");
 
 /// Fail-closed readiness gate. `true` once admission is present.
 #[must_use]

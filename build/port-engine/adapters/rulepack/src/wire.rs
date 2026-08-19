@@ -35,6 +35,10 @@ pub(crate) struct RulepackDocument {
     #[serde(default)]
     pub(crate) trait_object_forms: BTreeMap<String, String>,
     #[serde(default)]
+    pub(crate) failure_convention: Option<FailureDoc>,
+    #[serde(default)]
+    pub(crate) function_map: BTreeMap<String, String>,
+    #[serde(default)]
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     #[serde(default)]
     pub(crate) deferred_kinds: Vec<DeferredKind>,
@@ -44,6 +48,15 @@ pub(crate) struct RulepackDocument {
     pub(crate) pointer_dispositions: Vec<DispositionRule>,
     pub(crate) rules: Vec<RuleDocument>,
     pub(crate) applies: BTreeMap<String, Vec<String>>,
+}
+
+/// The wire shape of the failure convention.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct FailureDoc {
+    pub(crate) source_type: String,
+    pub(crate) target_type: String,
+    pub(crate) absent: String,
 }
 
 #[derive(Deserialize)]

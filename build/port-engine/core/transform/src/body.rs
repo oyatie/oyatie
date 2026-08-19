@@ -12,6 +12,7 @@ use port_engine_api::Declaration;
 use port_engine_rust_ir::{RustExpr, RustStmt};
 
 use crate::body_expr::{Position, expression, in_position};
+use crate::body_failure::{propagate, translated_return};
 use crate::body_loops::{counted_loop, range_loop, switch};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
@@ -30,11 +31,20 @@ pub(crate) struct Body<'a> {
     pub(crate) owner: &'a str,
     /// The pack's answers: type mapping, copy types, zero values, ownership.
     pub(crate) resolver: &'a Resolver<'a>,
+    /// Whether this function can FAIL — whether its results end in the failure type.
+    ///
+    /// A property of the signature that only the body can spend: the same `return x, y` is two
+    /// different target constructions depending on it, and nothing inside a return says which.
+    pub(crate) fallible: bool,
 }
 
 impl<'a> Body<'a> {
-    pub(crate) fn new(owner: &'a str, resolver: &'a Resolver<'a>) -> Self {
-        Self { owner, resolver }
+    pub(crate) fn new(owner: &'a str, resolver: &'a Resolver<'a>, fallible: bool) -> Self {
+        Self {
+            owner,
+            resolver,
+            fallible,
+        }
     }
 }
 
@@ -49,10 +59,15 @@ impl<'a> Body<'a> {
 /// [`TransformError::Unsupported`] for any construct outside the translated subset.
 pub(crate) fn statements(
     nodes: &[Declaration],
-    owner: &str,
+    declaration: &Declaration,
     resolver: &Resolver<'_>,
 ) -> Result<Vec<RustStmt>, TransformError> {
-    translate(nodes, &Body::new(owner, resolver), TailPosition::Yes)
+    let fallible = crate::failure::is_fallible(declaration, resolver.failure);
+    translate(
+        nodes,
+        &Body::new(&declaration.name, resolver, fallible),
+        TailPosition::Yes,
+    )
 }
 
 /// Whether the last statement of this sequence is in TAIL position — the position whose value is
@@ -69,9 +84,19 @@ pub(crate) fn translate(
     tail: TailPosition,
 ) -> Result<Vec<RustStmt>, TransformError> {
     let mut out = Vec::with_capacity(nodes.len());
-    for (index, node) in nodes.iter().enumerate() {
+    let mut index = 0;
+    while index < nodes.len() {
+        // The propagation idiom spans TWO statements, so it is matched here rather than inside
+        // `statement`: a bind alone says nothing, and the check that follows is what decides
+        // whether the pair is an operator or two ordinary statements.
+        if let Some(found) = crate::failure::propagation(nodes, index, cx.resolver.failure) {
+            out.push(propagate(&found, cx)?);
+            index += 2;
+            continue;
+        }
         let is_tail = tail == TailPosition::Yes && index + 1 == nodes.len();
-        out.push(statement(node, cx, is_tail)?);
+        out.push(statement(&nodes[index], cx, is_tail)?);
+        index += 1;
     }
     Ok(out)
 }
@@ -113,28 +138,6 @@ pub(crate) fn statement(
             name: cx.owner.to_owned(),
             detail: format!("statement kind `{other}` has no translation"),
         }),
-    }
-}
-
-fn translated_return(
-    node: &Declaration,
-    cx: &Body<'_>,
-    is_last: bool,
-) -> Result<RustStmt, TransformError> {
-    let values = node
-        .children
-        .iter()
-        .map(|child| expression(child, cx))
-        .collect::<Result<Vec<_>, _>>()?;
-    let value = match values.len() {
-        0 => None,
-        1 => values.into_iter().next(),
-        // Several results leave as a tuple, matching how the signature renders them.
-        _ => Some(RustExpr::Tuple(values)),
-    };
-    match (is_last, value) {
-        (true, Some(expr)) => Ok(RustStmt::Tail(expr)),
-        (_, value) => Ok(RustStmt::Return(value)),
     }
 }
 

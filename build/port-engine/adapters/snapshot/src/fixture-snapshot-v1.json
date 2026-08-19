@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:99de35280bae96efd20b17c1c770df3c39cf369bece394a8863aa594145fcfbe",
+  "snapshot_digest": "sha256:f2e124c74a8b2686d5e4a9216227d1ec4762c5cc1e6177fe105930c5c78bb05d",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
@@ -823,6 +823,669 @@
       ]
     },
     {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/fallible",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Check",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Check reports whether s is usable, returning only a failure.\n\nThe no-value shape: `error` alone. The target has to invent the success value here, because a\nfunction that returns only a failure still has to say it succeeded."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "errors.New"
+                              },
+                              "children": [
+                                {
+                                  "kind": "selector",
+                                  "name": "New",
+                                  "type": {
+                                    "kind": "func",
+                                    "args": [
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "string"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "named_interface",
+                                            "name": "error"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "ident",
+                                      "name": "errors",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"empty\""
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Length",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Length reports the length of s, failing on the empty string.\n\nThe one-value-and-a-failure shape: `(int, error)`, which is what most of a real package looks\nlike."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "errors.New"
+                              },
+                              "children": [
+                                {
+                                  "kind": "selector",
+                                  "name": "New",
+                                  "type": {
+                                    "kind": "func",
+                                    "args": [
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "string"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "named_interface",
+                                            "name": "error"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "ident",
+                                      "name": "errors",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"empty\""
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "len"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "len",
+                          "attrs": {
+                            "ref": "builtin"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Twice",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Twice returns the length of s doubled.\n\nThe PROPAGATION shape, and the point of the whole exercise: `n, err := Length(s)` followed by\n`if err != nil { return 0, err }` is two statements the caller could simply not have written.\nThe target spells it as one operator on a value that cannot be used without addressing the\nfailure."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let_tuple",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "bind",
+                      "name": "n"
+                    },
+                    {
+                      "kind": "bind",
+                      "name": "err"
+                    },
+                    {
+                      "kind": "value",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "call",
+                          "name": "",
+                          "attrs": {
+                            "callee": "oyatie.example/portengine-fixture/corpus/fallible.Length"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "Length",
+                              "attrs": {
+                                "ref": "func"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "!="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "err",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "nil",
+                              "attrs": {
+                                "ref": "nil"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "err",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "+"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Validate",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Validate checks s and reports nothing else.\n\nPropagation with NO value bound: the call is run for its failure alone, so there is nothing to\nname and the target keeps it as a statement."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "err",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture/corpus/fallible.Check"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Check",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "!="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "err",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "nil",
+                              "attrs": {
+                                "ref": "nil"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "err",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
       "unit_id": "oyatie.example/portengine-fixture/corpus/geometry",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
@@ -1054,6 +1717,9 @@
                     {
                       "kind": "call",
                       "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture/corpus/shapes.Name"
+                      },
                       "children": [
                         {
                           "kind": "selector",

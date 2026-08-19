@@ -64,6 +64,7 @@ fn v1_fixture_admits_and_carries_declarations() {
         BTreeSet::from([
             "basic",
             "composite",
+            "fallible",
             "geometry",
             "naming",
             "pointers",

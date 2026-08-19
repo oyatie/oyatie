@@ -8,8 +8,9 @@ use port_engine_rust_ir::{
 use crate::error::TransformError;
 use crate::impls::trait_impls;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
+use crate::params::{params, refuse_variadic, results};
 use crate::resolve::Resolver;
-use crate::signature::{Body, inherent_methods, params, refuse_variadic, results, trait_methods};
+use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{
     ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CONSTRUCTION_RUST_CONST,
     CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE,
@@ -187,7 +188,7 @@ fn build_fn(
                 name: declaration.name.clone(),
                 datum: "body",
             })?;
-        body::statements(&source.children, &declaration.name, resolver)?
+        body::statements(&source.children, declaration, resolver)?
     } else {
         vec![RustStmt::Tail(RustExpr::Todo)]
     };

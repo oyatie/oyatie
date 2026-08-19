@@ -81,6 +81,28 @@ rust_test(
 )
 
 rust_test(
+    name = "port-engine-app-port-go-failure",
+    srcs = glob(["tests/port_go_failure.rs"]),
+    crate = "port_engine_app_port_go_failure",
+    crate_root = "tests/port_go_failure.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+    ],
+)
+
+rust_test(
+    name = "port-engine-app-port-go-interfaces",
+    srcs = glob(["tests/port_go_interfaces.rs"]),
+    crate = "port_engine_app_port_go_interfaces",
+    crate_root = "tests/port_go_interfaces.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":port-engine-app",
+    ],
+)
+
+rust_test(
     name = "port-engine-app-readiness",
     srcs = glob(["tests/readiness.rs"]),
     crate = "port_engine_app_readiness",

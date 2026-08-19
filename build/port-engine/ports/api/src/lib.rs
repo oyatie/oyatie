@@ -10,6 +10,7 @@
 
 mod declaration;
 mod error;
+mod failure;
 mod identity;
 mod ownership;
 mod plan;
@@ -19,6 +20,7 @@ mod type_ref;
 
 pub use declaration::Declaration;
 pub use error::PortError;
+pub use failure::FailureConvention;
 pub use identity::{Digest, LanguagePair, PAIR_SEPARATOR, RegionId, RuleId, UnitId};
 pub use ownership::{OwnershipFacts, PointerDisposition};
 pub use plan::{PlanStep, TransformPlan};

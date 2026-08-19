@@ -108,48 +108,11 @@ fn emitted_rust_carries_the_corpus() {
 /// off a declaration — Go's interfaces are implicit. The impl exists because the front end saw a
 /// concrete value flow into an interface-typed position, and the emitted doc comment carries which
 /// kind of position it was, because a declared assertion is compile-checked by the source and an
-/// inferred one is not, and the two produce identical Rust.
-#[test]
-fn trait_impls_are_emitted_from_observed_satisfaction() {
-    let report = driver::port_go_pipeline().expect("the Go corpus must port");
-    let source = driver::assemble_modules(&report);
-
-    for expected in [
-        "impl crate::shapes::Named for Label",
-        "impl crate::shapes::Named for Tag",
-        "observed satisfying `crate::shapes::Named` at assertion",
-        // The delegating body is a PATH call, not a method call: inside a trait impl, `self.name()`
-        // resolves against the trait being implemented and recurses into itself.
-        "Label::name(self)",
-    ] {
-        assert!(
-            source.contains(expected),
-            "emitted source must carry `{expected}`:\n{source}"
-        );
-    }
-}
-
 /// The trait's receiver is DERIVED from its implementors, not declared once for all its methods.
 ///
 /// The pack's declared mode is `exclusive`, which is right for `Rename` and wrong for `Name` — a
 /// getter that takes `&mut self` is a signature no shared borrow can call. With the implementors
 /// observed, each method takes the mode its implementors need: exclusive exactly when one of them
-/// mutates.
-#[test]
-fn a_trait_method_binds_the_receiver_its_implementors_need() {
-    let report = driver::port_go_pipeline().expect("the Go corpus must port");
-    let source = driver::assemble_modules(&report);
-
-    assert!(
-        source.contains("fn name(&self) -> String;"),
-        "a read-only trait method must bind shared:\n{source}"
-    );
-    assert!(
-        source.contains("fn rename(&mut self, next: String);"),
-        "a mutating trait method must bind exclusive:\n{source}"
-    );
-}
-
 /// Embedding becomes explicit, on both sides of it.
 ///
 /// The source composes by embedding and nothing forwards — an anonymous field lifts the embedded
@@ -159,44 +122,24 @@ fn a_trait_method_binds_the_receiver_its_implementors_need() {
 ///
 /// `Driver` satisfies `Job` ONLY through a promoted method, which is why the two are proven
 /// together. An engine that emitted the supertraits and skipped the promotion would produce an impl
-/// naming a method nothing implements — and nothing short of compiling it would notice.
-#[test]
-fn embedding_becomes_supertraits_and_forwarding_methods() {
-    let report = driver::port_go_pipeline().expect("the Go corpus must port");
-    let source = driver::assemble_modules(&report);
-
-    for expected in [
-        // An embedded interface is a REQUIREMENT, not a copy of its method set.
-        "pub trait Job: Runner + Describer {}",
-        // A promoted method is forwarded through the field it was promoted from.
-        "self.engine.run()",
-        // And the impl of the outer trait carries nothing of its own, because the trait does not.
-        "impl Job for Driver {}",
-        "impl Runner for Driver",
-    ] {
-        assert!(
-            source.contains(expected),
-            "emitted source must carry `{expected}`:\n{source}"
-        );
-    }
-}
-
 /// A forwarding method binds the receiver the method it forwards to needs.
 ///
 /// It has no body of its own to observe. `Engine::Run` mutates, so `Driver::run` cannot be a shared
 /// borrow — the call through the field would not compile — and the front end carries the embedded
-/// method's own ownership facts precisely so this is a decision rather than a default.
-#[test]
-fn a_forwarding_method_inherits_its_receiver_from_what_it_forwards_to() {
-    let report = driver::port_go_pipeline().expect("the Go corpus must port");
-    let source = driver::assemble_modules(&report);
-
-    assert!(
-        source.contains("pub fn run(&mut self) -> i64 {\n            self.engine.run()"),
-        "a forwarding method for a mutating method must bind exclusively:\n{source}"
-    );
-}
-
+/// The source's FAILURE CONVENTION becomes the target's return type.
+///
+/// This is the mapping that blocks every real package, and it is not one construct — it is a
+/// convention. The source returns failure as an extra result that nothing requires a caller to
+/// check; the target says it in the return type, where the compiler requires it. So this is one of
+/// the few translations that makes the ported program STRICTER than the original rather than merely
+/// The propagation idiom becomes an OPERATOR, which is the whole point of recognising it.
+///
+/// `n, err := f()` followed by `if err != nil { return 0, err }` is two statements a caller could
+/// simply not have written. `f()?` is one expression on a value that cannot be used without
+/// addressing the failure — so the translation moves the check from discipline into the type
+/// A call the target has no name for is answered by the pack, by the callee's IDENTITY.
+///
+/// No real package ports without this: every one calls its standard library, and the standard
 /// Every method in the corpus carries a TRANSLATED body.
 ///
 /// A stub compiles, matches a golden, and hashes into a stable receipt — so every other check in

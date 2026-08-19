@@ -151,7 +151,15 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 	case *ast.CallExpr:
 		children := []node{expressionNode(typed.Fun, ctx)}
 		children = append(children, expressionNodes(typed.Args, ctx)...)
-		return node{Kind: kindCall, Children: children}
+		// The callee's IDENTITY, not its spelling. `errors.New` and a local variable named
+		// `errors` are the same text, and only the type-checker can tell them apart — so a rule
+		// that keys on the identity answers for the real function and not for whatever shares
+		// its name.
+		return node{
+			Kind:     kindCall,
+			Attrs:    withAttr(nil, attrCallee, calleeIdentity(typed.Fun, ctx)),
+			Children: children,
+		}
 
 	case *ast.IndexExpr:
 		return node{
@@ -188,6 +196,32 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 }
 
 // referenceKind classifies what an identifier resolves to, via go/types.
+// calleeIdentity is the package-qualified identity of what a call resolves to, or empty when the
+// callee is not a declared function — a value of function type, a conversion, a method value.
+func calleeIdentity(fun ast.Expr, ctx *extractCtx) string {
+	var name *ast.Ident
+	switch typed := fun.(type) {
+	case *ast.Ident:
+		name = typed
+	case *ast.SelectorExpr:
+		name = typed.Sel
+	default:
+		return ""
+	}
+	obj := ctx.info.Uses[name]
+	switch typed := obj.(type) {
+	case *types.Builtin:
+		return typed.Name()
+	case *types.Func:
+		if pkg := typed.Pkg(); pkg != nil {
+			return pkg.Path() + "." + typed.Name()
+		}
+		return typed.Name()
+	default:
+		return ""
+	}
+}
+
 func referenceKind(ident *ast.Ident, ctx *extractCtx) string {
 	obj := ctx.info.Uses[ident]
 	if obj == nil {
@@ -196,6 +230,11 @@ func referenceKind(ident *ast.Ident, ctx *extractCtx) string {
 		return "local"
 	}
 	switch typed := obj.(type) {
+	case *types.Nil:
+		// The ABSENT value, and it needs its own classification rather than falling through to a
+		// local. A failure convention is spelled by comparing against it, so `return x, nil` and
+		// `return x, err` are the same shape until this distinguishes them.
+		return "nil"
 	case *types.Const:
 		return "const"
 	case *types.Func:
