@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:3c2b95cf38c2b4153364ef7bded869ff04f5047fa4cf32b0c902de2a6b94629c",
+  "snapshot_digest": "sha256:3f648d78f50252fd0f99b5a717d54be68e0ebe0d7953b6c7ba493d3bfa38c0d1",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -1600,7 +1600,7 @@
                       "kind": "ident",
                       "name": "errors",
                       "attrs": {
-                        "ref": "local"
+                        "ref": "package"
                       }
                     }
                   ]
@@ -1892,7 +1892,7 @@
                                       "kind": "ident",
                                       "name": "errors",
                                       "attrs": {
-                                        "ref": "local"
+                                        "ref": "package"
                                       }
                                     }
                                   ]

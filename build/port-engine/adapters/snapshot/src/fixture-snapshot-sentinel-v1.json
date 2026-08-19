@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:6350e1ea094d035377823e4a2066f5d7c6545a55587a68b5feaa285ab02649bd",
+  "snapshot_digest": "sha256:4e945f904a5ecff8b590b893307902bd7f0becbdbbe9e963a58e4cf697954b4a",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-sentinel/corpus-sentinel/identity",
@@ -59,7 +59,7 @@
                       "kind": "ident",
                       "name": "errors",
                       "attrs": {
-                        "ref": "local"
+                        "ref": "package"
                       }
                     }
                   ]

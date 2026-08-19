@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:5f88f8e8de3394f54e63d9f27470643e731983dce343f0da0fa7903680758b37",
+  "snapshot_digest": "sha256:63ed159888dd8cceed10a321f28821b77125864b4d90835bf4759a1f252762d1",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored",
@@ -143,7 +143,7 @@
                                   "kind": "ident",
                                   "name": "errors",
                                   "attrs": {
-                                    "ref": "local"
+                                    "ref": "package"
                                   }
                                 }
                               ]
