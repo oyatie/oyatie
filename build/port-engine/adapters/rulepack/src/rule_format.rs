@@ -65,3 +65,13 @@ pub(crate) struct UnmappableCallsRule {
     #[serde(default)]
     pub(crate) reason: String,
 }
+
+/// Wire shape for types the pack refuses to map, with the reason each cannot be mapped.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct UnmappableTypesRule {
+    #[serde(default)]
+    pub(crate) types: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    pub(crate) reason: String,
+}

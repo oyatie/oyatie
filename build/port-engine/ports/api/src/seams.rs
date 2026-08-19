@@ -149,6 +149,12 @@ pub trait PackSemantics {
     /// this one refuses saying a mapping would be wrong — the target has something that looks like
     /// the source's call and differs on input a test would not think to write.
     fn unmappable_calls(&self) -> &BTreeMap<String, String>;
+    /// Types the pack refuses to map, and the reason each one CANNOT be mapped.
+    ///
+    /// The mirror of [`Self::unmappable_calls`]. A type the pack has not reached refuses saying a
+    /// mapping is owed; one it has looked at refuses saying a mapping would be wrong — the target
+    /// has a type of the same name or purpose and a different shape.
+    fn unmappable_types(&self) -> &BTreeMap<String, String>;
     /// Callees that TAKE a length, so a read there is not evidence against a constant being one.
     ///
     /// The mirror of [`Self::length_functions`]: that one names callees whose VALUE is a length,

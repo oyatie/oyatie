@@ -86,6 +86,23 @@ impl Resolver<'_> {
         declaration_name: &str,
     ) -> Result<RustType, TransformError> {
         if !self.units.contains(&type_ref.package) {
+            // The pack may have LOOKED at this type and decided it cannot be mapped, which is a
+            // different answer from not having reached it. The target usually has a type of the
+            // same name or the same rough purpose; what the reason records is how the shape differs.
+            if let Some(reason) = self
+                .unmappable_types
+                .get(&format!("{}.{}", type_ref.package, type_ref.name))
+            {
+                return Err(TransformError::UnmappedType {
+                    unit: self.unit.0.clone(),
+                    name: declaration_name.to_owned(),
+                    type_ref: format!(
+                        "{} — no faithful target form, and the pack says why rather than leaving \
+                         it to be guessed at: {reason}",
+                        type_ref.describe()
+                    ),
+                });
+            }
             return Err(TransformError::UnmappedType {
                 unit: self.unit.0.clone(),
                 name: declaration_name.to_owned(),
