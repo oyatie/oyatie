@@ -1913,6 +1913,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-rust-toolchain-bump-proposer"
+version = "0.1.0"
+dependencies = [
+ "ci-dependency-automation",
+ "ci-generated-artifact-freshness",
+ "proptest",
+]
+
+[[package]]
 name = "ci-scan-root-liveness"
 version = "0.1.0"
 dependencies = [
