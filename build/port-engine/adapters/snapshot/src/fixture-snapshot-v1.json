@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:db3e0feb94e8ce843dca50accb64021d2cb6879a005dacf9a4a20bb5d8dfc0a4",
+  "snapshot_digest": "sha256:bed0725a03bb1f1833403912a40b3241cbba7645882e72f99937623f3cd43f30",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -1506,6 +1506,93 @@
                 "name": "Describer",
                 "package": "oyatie.example/portengine-fixture/corpus/composite"
               }
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "NewDriver",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "NewDriver returns a driver labelled for display, driving the given engine."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "engine",
+              "type": {
+                "kind": "named",
+                "name": "Engine",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              }
+            },
+            {
+              "kind": "param",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named",
+                "name": "Driver",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "named",
+                        "name": "Driver",
+                        "package": "oyatie.example/portengine-fixture/corpus/composite"
+                      },
+                      "children": [
+                        {
+                          "kind": "keyed",
+                          "name": "Engine",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "engine",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "keyed",
+                          "name": "label",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "label",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
             }
           ]
         },
@@ -4156,6 +4243,85 @@
                               "name": "c",
                               "attrs": {
                                 "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "NewCounter",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "NewCounter returns a counter starting at zero, named for display."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named",
+                "name": "Counter",
+                "package": "oyatie.example/portengine-fixture/corpus/pointers"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "named",
+                        "name": "Counter",
+                        "package": "oyatie.example/portengine-fixture/corpus/pointers"
+                      },
+                      "children": [
+                        {
+                          "kind": "keyed",
+                          "name": "total",
+                          "children": [
+                            {
+                              "kind": "zero",
+                              "name": "total",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "keyed",
+                          "name": "label",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "label",
+                              "attrs": {
+                                "ref": "local"
                               }
                             }
                           ]

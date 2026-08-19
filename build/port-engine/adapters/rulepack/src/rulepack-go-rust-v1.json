@@ -357,6 +357,7 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/pointers": [
+      "go_func",
       "go_struct_body"
     ],
     "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping": [
@@ -373,6 +374,7 @@
     ],
     "oyatie.example/portengine-fixture/corpus/composite": [
       "go_interface",
+      "go_func",
       "go_struct_body"
     ],
     "oyatie.example/portengine-fixture/corpus/fallible": [
