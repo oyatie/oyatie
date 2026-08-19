@@ -5,6 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
         "//build/port-engine/adapters/hash:port-engine-hash",
         "//build/port-engine/ports/api:port-engine-api",
     ],
@@ -18,6 +20,8 @@ rust_test(
     crate_root = "tests/load.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
         ":port-engine-rulepack",
         "//build/port-engine/adapters/hash:port-engine-hash",
         "//build/port-engine/ports/api:port-engine-api",
@@ -33,6 +37,8 @@ rust_test(
     crate_root = "tests/refusals.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
         ":port-engine-rulepack",
         "//build/port-engine/adapters/hash:port-engine-hash",
         "//build/port-engine/ports/api:port-engine-api",
@@ -48,6 +54,8 @@ rust_test(
     crate_root = "tests/neutrality.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
         ":port-engine-rulepack",
     ],
 )
@@ -59,6 +67,8 @@ rust_test(
     crate_root = "tests/readiness.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
         ":port-engine-rulepack",
     ],
 )

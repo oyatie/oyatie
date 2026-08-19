@@ -117,6 +117,21 @@ rust_test(
     ],
 )
 
+# Re-porting a MOVED upstream: Green AND Explained, with exactly the snapshot axis. The property a
+# continuously maintained port rests on, and the one determinism alone does not cover.
+rust_test(
+    name = "port-engine-app-port-go-upstream-drift",
+    srcs = glob(["tests/port_go_upstream_drift.rs"]),
+    crate = "port_engine_app_port_go_upstream_drift",
+    crate_root = "tests/port_go_upstream_drift.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/port-engine/core/kernel:port-engine-kernel",
+        "//build/port-engine/ports/api:port-engine-api",
+        ":port-engine-app",
+    ],
+)
+
 rust_test(
     name = "port-engine-app-readiness",
     srcs = glob(["tests/readiness.rs"]),
