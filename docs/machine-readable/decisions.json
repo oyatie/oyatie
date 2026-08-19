@@ -11,8 +11,8 @@
     "gaps": [],
     "next_adr": "ADR-0719",
     "status_counts": {
-      "Accepted": 14,
-      "Proposed": 5
+      "Accepted": 15,
+      "Proposed": 4
     }
   },
   "decisions": [
@@ -140,7 +140,7 @@
       "adr": "ADR-0710",
       "number": 710,
       "title": "Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook",
-      "status": "Proposed",
+      "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-08-08",
       "path": "decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md",
