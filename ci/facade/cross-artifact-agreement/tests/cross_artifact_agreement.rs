@@ -1281,9 +1281,19 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
         "the cargo materializer must own provider-tuple interpretation"
     );
     let workspace_tests = named_job_step(test_job, "Workspace tests");
+    // ADR-0718-D3: assert the PROPERTY (the whole workspace runs under one LOCKED cargo
+    // invocation), not the spelling. nextest is an interchangeable runner; pinning the literal
+    // would make a runner swap look like the gate fleet had stopped running.
+    let runs_locked_workspace = ["cargo test", "cargo nextest run"].iter().any(|runner| {
+        workspace_tests.split_once(runner).is_some_and(|(_, args)| {
+            let tokens: Vec<&str> = args.split_whitespace().collect();
+            tokens.contains(&"--locked") && tokens.contains(&"--workspace")
+        })
+    });
     assert!(
-        workspace_tests.contains("cargo test --locked --workspace"),
-        "the gate fleet, scm-facts census receipt included, must run under the cargo workspace tests"
+        runs_locked_workspace,
+        "the gate fleet, scm-facts census receipt included, must run under a locked cargo \
+         workspace test invocation (cargo test or cargo nextest run); found: {workspace_tests:?}"
     );
     assert_absent(
         &workflow,

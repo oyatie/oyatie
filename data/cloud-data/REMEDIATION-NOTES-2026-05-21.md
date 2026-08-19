@@ -10,10 +10,10 @@
 ## Wave 15-Valkey migration (2026-05-21)
 
 Per ADR-0336, Redis vocabulary replaced with Valkey in:
-- `microservices/cloud-data/onboarding/data-engineer-first-week.md`
-- `microservices/cloud-data/migration-playbooks/from-aurora-and-dynamodb.md`
-- `microservices/cloud-data/feature-parity-matrix-2026-05-20.md`
-- `microservices/cloud-data/REMEDIATION-NOTES-2026-05-21-tier-scrub.md`
+- `data/cloud-data/onboarding/data-engineer-first-week.md`
+- `data/cloud-data/migration-playbooks/from-aurora-and-dynamodb.md`
+- `data/cloud-data/feature-parity-matrix-2026-05-20.md`
+- `data/cloud-data/REMEDIATION-NOTES-2026-05-21-tier-scrub.md`
 - `crates/oya-cloud-data-domain/src/lib.rs`
 - `crates/oya-cloud-data-kernel/src/data_service.rs`
 - `crates/oya-cloud-resource-domain/src/lib.rs`
@@ -26,7 +26,7 @@ Files renamed (git mv):
 
 ## Wave 15-doctrine-propagation-PRD (2026-05-21)
 
-D3-BUCKET-1 did not modify `PRD.md` because `microservices/cloud-data/PRD.md` and `microservices/cloud-data/manifest.json` are absent. The D-3 instruction requires reading both artifacts and matching manifest-declared values before writing DR, capacity, sustainability, and API-version posture.
+D3-BUCKET-1 did not modify `PRD.md` because, at the time of this 2026-05-21 decision, the artifacts did not exist at their then-current location `microservices/cloud-data/` (`PRD.md` and `manifest.json`). They exist today at `data/cloud-data/`; this note records why the wave was blocked THEN and must not be read as a claim about the current tree. The D-3 instruction requires reading both artifacts and matching manifest-declared values before writing DR, capacity, sustainability, and API-version posture.
 
 Values: no authoritative RTO/RPO, capacity_model, pod_runtime_tier, tenant_version_pinning, or OSS stewardship declarations were available. ADRs implicated once artifacts exist: ADR-0338, ADR-0340, ADR-0342 if public contracts exist, ADR-0343, ADR-0344, and ADR-0345; ADR-0337 likely applies only if cloud-data writes OLAP via the canonical Iceberg/data-warehouse path; ADR-0339 applies only if `iac/<context>/` wrappers exist. Alternatives considered: infer from cloud-storage/cloud-iac patterns or create placeholder sections; rejected because data-plane durability and OLAP ownership are doctrine-sensitive. Cost: missing first-class PRD/manifest blocks this wave for cloud-data.
 
@@ -47,7 +47,7 @@ Values: no authoritative RTO/RPO, capacity_model, pod_runtime_tier, tenant_versi
 - Cost: Warm regional capacity, backup-drill evidence, and audit-chain continuity are mandatory operating expenses.
 
 ### Block 3: pod_runtime_tier
-- Values: pod_runtime_tier=1; evidence=microservices/cloud-data/feature-parity-matrix-2026-05-20.md, crates/oya-cloud-data-domain/src/lib.rs, crates/oya-cloud-data-kernel/src/lib.rs.
+- Values: pod_runtime_tier=1; evidence=data/cloud-data/feature-parity-matrix-2026-05-20.md, crates/oya-cloud-data-domain/src/lib.rs, crates/oya-cloud-data-kernel/src/lib.rs.
 - ADR: ADR-0338, cross-checked against ADR-0340 cell placement Tier-1.
 - Why: Substrate-touching tenant-data service: it owns data-query and analytical storage semantics, so tenant data-plane access requires Kata/Cloud Hypervisor isolation rather than first-party runc placement.
 - Rejected: defaulting blindly to Tier 2 was rejected because runtime isolation must follow tenant-code, substrate, app, or edge semantics rather than service-name convention.

@@ -21,7 +21,7 @@
     ]
   },
   "owner": "council-analytics",
-  "rationale": "Analytics µservice — tenant-facing OLAP analytics warehouse per ADR-0193. Serves tenant-facing dashboards, ops portal rollups, audit-log query, and billing rollups. Distinct from observability (ops/SRE telemetry per ADR-0186) and foundry (vector retrieval per ADR-0192). Introduced 2026-05-18 by the data-substrate batch.",
+  "rationale": "Analytics \u00b5service \u2014 tenant-facing OLAP analytics warehouse per ADR-0193. Serves tenant-facing dashboards, ops portal rollups, audit-log query, and billing rollups. Distinct from observability (ops/SRE telemetry per ADR-0186) and foundry (vector retrieval per ADR-0192). Introduced 2026-05-18 by the data-substrate batch.",
   "introducing_phase": "M02-data-substrate",
   "adr_anchors": [
     "ADR-0131-per-microservice-flat-layout",
@@ -58,29 +58,29 @@
     "quota_authority": "ADR-0155-per-tenant-resource-quotas"
   },
   "residency": {
-    "kr_pack": "microservices/analytics/iac/kustomize/overlays/pack-kr",
-    "eu_pack": "microservices/analytics/iac/kustomize/overlays/pack-eu",
+    "kr_pack": "data/analytics/iac/kustomize/overlays/pack-kr",
+    "eu_pack": "data/analytics/iac/kustomize/overlays/pack-eu",
     "data_class_taxonomy": "ADR-0008-DUBO"
   },
   "observability": {
     "openslo_manifests": [
-      "microservices/analytics/slos/clickhouse-query-latency.openslo.yaml"
+      "data/observability/slos/analytics/clickhouse-query-latency.openslo.yaml"
     ],
     "dashboards": [
-      "microservices/analytics/dashboards/clickhouse-overview.json"
+      "data/analytics/dashboards/clickhouse-overview.json"
     ],
     "prometheus_rules": "rendered via sloth from openslo source per ADR-0186 Stage 5"
   },
   "framework_scorecards": {
-    "aws_well_architected": "microservices/analytics/scorecards/aws-well-architected.json",
-    "google_sre_prr": "microservices/analytics/scorecards/google-sre-prr.json",
-    "cis_k8s_1_10": "microservices/analytics/scorecards/cis-k8s-1-10.json",
-    "slsa_l3": "microservices/analytics/scorecards/slsa-l3.json"
+    "aws_well_architected": "data/analytics/scorecards/aws-well-architected.json",
+    "google_sre_prr": "data/analytics/scorecards/google-sre-prr.json",
+    "cis_k8s_1_10": "data/analytics/scorecards/cis-k8s-1-10.json",
+    "slsa_l3": "data/analytics/scorecards/slsa-l3.json"
   },
   "ip_pack": [
     {
       "id": "IP-001",
-      "title": "ClickHouse cluster IaC (operator + 3-shard × 2-replica + Keeper)"
+      "title": "ClickHouse cluster IaC (operator + 3-shard \u00d7 2-replica + Keeper)"
     },
     {
       "id": "IP-002",
@@ -92,7 +92,7 @@
     },
     {
       "id": "IP-004",
-      "title": "Outbox → ClickHouse CDC ingest pipeline"
+      "title": "Outbox \u2192 ClickHouse CDC ingest pipeline"
     },
     {
       "id": "IP-005",
@@ -120,11 +120,11 @@
     },
     {
       "id": "IP-011",
-      "title": "Per-tenant quota enforcement (ClickHouse QUOTA → Cedar)"
+      "title": "Per-tenant quota enforcement (ClickHouse QUOTA \u2192 Cedar)"
     },
     {
       "id": "IP-012",
-      "title": "Backup tool (BACKUP TABLE → S3-compat) + restore drill"
+      "title": "Backup tool (BACKUP TABLE \u2192 S3-compat) + restore drill"
     },
     {
       "id": "IP-013",
@@ -169,7 +169,7 @@
     "fedramp",
     "il5"
   ],
-  "hyperscaler_benchmark": "aws_well_architected: microservices/analytics/scorecards/aws-well-architected.json; google_sre_prr: microservices/analytics/scorecards/google-sre-prr.json; cis_k8s_1_10: microservices/analytics/scorecards/cis-k8s-1-10.json; slsa_l3: microservices/analytics/scorecards/slsa-l3.json; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
+  "hyperscaler_benchmark": "aws_well_architected: data/analytics/scorecards/aws-well-architected.json; google_sre_prr: data/analytics/scorecards/google-sre-prr.json; cis_k8s_1_10: data/analytics/scorecards/cis-k8s-1-10.json; slsa_l3: data/analytics/scorecards/slsa-l3.json; 1: AWS IAM service-linked roles is the reference pattern for the control shape described here; 2: Google Cloud service agents is the second reference pattern used to avoid a single-vendor cargo-cult design",
   "owner_team": "council-analytics",
   "data_classification": "AUDIT_INTERNAL, TENANT_AUDIT, TENANT_PUBLIC, TENANT_PRIVATE, FINANCIAL, PII_IDENTIFYING, AUDIT",
   "compliance_packs_applicable": [
@@ -249,7 +249,7 @@
   "pod_runtime_tier_surface_evidence": [
     "microservices/analytics/PRD.md",
     "microservices/analytics/ARCHITECTURE.md",
-    "microservices/analytics/contracts/openapi-v1.yaml",
+    "data/analytics/contracts/openapi-v1.yaml",
     "microservices/analytics/specs/IP-007-tenant-dashboard-api.md"
   ],
   "tenant_version_pinning": {
@@ -265,10 +265,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/analytics/contracts/openapi-v1.yaml"
+        "2026-05-21": "data/analytics/contracts/openapi-v1.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/analytics/contracts/asyncapi-v1.yaml"
+        "2026-05-21": "data/analytics/contracts/asyncapi-v1.yaml"
       }
     }
   },
@@ -295,11 +295,11 @@
     }
   ],
   "doc_class": "Machine-Readable-Spec",
-  "slo_exemption": {
-    "status": "live_exempted_no_runtime_sli",
-    "owner": "council-analytics",
-    "rationale": "No current measured runtime SLI is declared for this foundation or planning-only service; the manifest must not claim production or hyperscaler-ready SLO coverage until an OpenSLO file lands.",
-    "cutover_on": "2026-12-31",
-    "evidence": "specs/master-plan-sequencing.json#realignment_wave_sequence"
-  }
+  "slos": [
+    {
+      "name": "analytics-clickhouse-query-latency",
+      "target": "0.99",
+      "file": "data/observability/slos/analytics/clickhouse-query-latency.openslo.yaml"
+    }
+  ]
 }

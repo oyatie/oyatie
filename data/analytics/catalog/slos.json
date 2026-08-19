@@ -23,6 +23,6 @@
     {"name": "regulator-export-success", "target": "99.9% success"},
     {"name": "billing-reconciliation", "target": "99.99% within 0.01% drift"}
   ],
-  "directory": "microservices/analytics/slos/",
+  "directory": "data/observability/slos/analytics/",
   "status": "planned"
 }
