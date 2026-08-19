@@ -157,6 +157,16 @@ fn results_in(
                     .to_owned(),
             });
         }
+        // A THREE-WAY COMPARISON returns the target's ordering type, which is the type its own
+        // sorting and its own `Ord` are defined in terms of.
+        if idioms && crate::returns::is_three_way_comparison(declaration, resolver) {
+            types.push(RustType::path(
+                resolver
+                    .idiom_method(crate::vocabulary::IDIOM_ORDERING)
+                    .unwrap_or("std::cmp::Ordering"),
+            ));
+            continue;
+        }
         // A LENGTH is a `usize`, not the source's own integer. The conversion the call's mapping
         // adds exists to make the value type as the source's `int`, and where the value never is
         // one the conversion is what is wrong.

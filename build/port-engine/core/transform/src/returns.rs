@@ -20,7 +20,7 @@ use port_engine_api::Declaration;
 
 use crate::vocabulary::{
     ATTR_CALLEE, ATTR_OP, CHILD_BODY, KIND_CALL, KIND_COMPOSITE, KIND_RETURN, KIND_UNARY,
-    OPERATOR_ADDRESS_OF, SOURCE_INT, TYPE_POINTER,
+    ATTR_VALUE, KIND_LITERAL, OPERATOR_ADDRESS_OF, SOURCE_INT, TYPE_POINTER,
 };
 
 /// Every parameter the signature made the target's index type.
@@ -37,6 +37,55 @@ pub(crate) fn index_parameters(
         .filter(|param| indexes_only_parameter(declaration, param, resolver))
         .map(|param| crate::naming::to_snake_case(&param.name))
         .collect()
+}
+
+/// Whether this declaration is a THREE-WAY COMPARISON, and so returns the target's ordering.
+///
+/// Every return is one of the three literals the source uses to spell a comparison, and that is the
+/// whole range — a function that can return anything else is not this shape. A returned VARIABLE
+/// could hold anything, and proving otherwise is a range analysis this does not have, so it does
+/// not qualify.
+pub(crate) fn is_three_way_comparison(
+    declaration: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+) -> bool {
+    if resolver.idiom_method(crate::vocabulary::IDIOM_ORDERING).is_none() {
+        return false;
+    }
+    let results = declaration.children_of_kind(crate::vocabulary::CHILD_RESULT);
+    let [result] = results.as_slice() else {
+        return false;
+    };
+    if result.type_ref.name != SOURCE_INT {
+        return false;
+    }
+    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
+        return false;
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    !returns.is_empty()
+        && returns
+            .iter()
+            .all(|node| matches!(node.children.as_slice(), [only] if is_ordering_literal(only)))
+}
+
+/// Whether this operand is one of the three literals a source comparison returns.
+///
+/// `-1` reaches the model as a UNARY minus over `1`, which is what the source wrote; the other two
+/// are plain literals.
+fn is_ordering_literal(operand: &Declaration) -> bool {
+    match operand.kind.as_str() {
+        KIND_LITERAL => matches!(operand.attr(ATTR_VALUE), Some("0" | "1")),
+        KIND_UNARY => {
+            operand.attr(ATTR_OP) == Some("-")
+                && operand
+                    .children
+                    .first()
+                    .is_some_and(|inner| inner.attr(ATTR_VALUE) == Some("1"))
+        }
+        _ => false,
+    }
 }
 
 /// Whether this parameter is used for NOTHING BUT indexing, and so is a `usize`.
@@ -191,6 +240,8 @@ pub(crate) struct ResultFacts {
     pub(crate) borrows_receiver: bool,
     /// Whether the single result IS a length, so a returned length keeps its `usize`.
     pub(crate) is_a_length: bool,
+    /// Whether the single result is an ORDERING, so a returned -1/0/1 becomes one.
+    pub(crate) is_an_ordering: bool,
 }
 
 impl ResultFacts {
@@ -205,6 +256,7 @@ impl ResultFacts {
             bare_pointers: bare_pointer_results(declaration),
             borrows_receiver: own && borrows_from_receiver(declaration),
             is_a_length: own && yields_a_length(declaration, resolver.length_functions),
+            is_an_ordering: own && is_three_way_comparison(declaration, resolver),
         }
     }
 

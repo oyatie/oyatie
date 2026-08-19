@@ -15,7 +15,7 @@ use crate::body_ops::own_returned_string;
 use crate::error::TransformError;
 use crate::naming::{to_screaming_snake, to_snake_case};
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_OP, KIND_CALL, KIND_COMPOSITE, KIND_IDENT, KIND_UNARY, OPERATOR_ADDRESS_OF,
+    ATTR_CALLEE, ATTR_OP, ATTR_VALUE, KIND_CALL, KIND_COMPOSITE, KIND_IDENT, KIND_UNARY, OPERATOR_ADDRESS_OF,
 };
 
 /// The source's bind-and-check pair as one operator.
@@ -126,6 +126,10 @@ fn returned_operand(
     operand: &Declaration,
     cx: &Body<'_>,
 ) -> Result<RustExpr, TransformError> {
+    // An ORDERING result: the source's three literals ARE the ordering, and each names a variant.
+    if cx.results.is_an_ordering && index == 0 {
+        return Ok(RustExpr::Path(ordering_variant(operand)));
+    }
     // A LENGTH result keeps the length, so the call's own conversion comes off — through the one
     // function that knows how, which strips only the form the pack declares.
     if cx.results.is_a_length && index == 0 {
@@ -264,6 +268,21 @@ fn inferred(built: RustExpr, cx: &Body<'_>) -> RustExpr {
                 .replace("{0}", operand),
         ),
         None => built,
+    }
+}
+
+/// The ordering variant one of the source's three comparison literals names.
+///
+/// The mapping is the target's own definition of what those integers mean: negative is less,
+/// positive is greater, zero is equal. Reached only for an operand the signature already proved is
+/// one of the three, so the fallback cannot be taken.
+fn ordering_variant(operand: &Declaration) -> String {
+    let equal = operand.attr(ATTR_VALUE) == Some("0");
+    let greater = operand.attr(ATTR_VALUE) == Some("1");
+    match (equal, greater) {
+        (true, _) => "std::cmp::Ordering::Equal".to_owned(),
+        (_, true) => "std::cmp::Ordering::Greater".to_owned(),
+        _ => "std::cmp::Ordering::Less".to_owned(),
     }
 }
 

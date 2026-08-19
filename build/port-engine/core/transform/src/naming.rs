@@ -152,12 +152,35 @@ pub fn to_pascal_case(raw: &str) -> String {
 /// error rather than a silent overwrite, which is why the readable form is worth its risk today.
 #[must_use]
 pub fn module_name(unit: &str) -> String {
-    let tail = unit.rsplit('/').next().unwrap_or(unit);
+    let tail = major_version_stripped(unit);
     let name = sanitize_ident(tail);
     if name.as_bytes().first().is_some_and(u8::is_ascii_digit) {
         format!("_{name}")
     } else {
         name
+    }
+}
+
+/// The last path segment that is a PACKAGE NAME rather than a module-path convention.
+///
+/// The source spells a module's major version as a trailing path segment — `github.com/x/semver/v3`
+/// — and the package that path names is still `semver`. Emitting `pub mod v3` names the module
+/// after a versioning convention the target does not have, where versions live in the manifest; a
+/// reviewer reading a real ported package called it out immediately, and it would be wrong again
+/// the moment the source went to v4.
+///
+/// Recognised strictly: a `v` followed by digits and nothing else, and only when there is a segment
+/// before it to fall back to. A package genuinely named `v3` — legal, and the segment would then be
+/// the whole path — keeps its name.
+fn major_version_stripped(unit: &str) -> &str {
+    let mut segments = unit.rsplit('/');
+    let tail = segments.next().unwrap_or(unit);
+    let is_major_version = tail.strip_prefix('v').is_some_and(|rest| {
+        !rest.is_empty() && rest.bytes().all(|byte| byte.is_ascii_digit())
+    });
+    match is_major_version {
+        true => segments.next().unwrap_or(tail),
+        false => tail,
     }
 }
 
