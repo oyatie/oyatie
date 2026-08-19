@@ -18,6 +18,7 @@ mod load;
 mod pack;
 mod policy;
 mod rule;
+mod rule_format;
 mod rules;
 mod seams;
 mod wire;

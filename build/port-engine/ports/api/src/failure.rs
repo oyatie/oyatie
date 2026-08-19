@@ -9,6 +9,8 @@
 //! renders the target owns them. Putting them in the pack would make a second language pair
 //! re-declare the target's own vocabulary, which is the thing the neutral seam exists to prevent.
 
+use std::collections::BTreeMap;
+
 /// An IDIOM rule: a spelling the target prefers for something the source says another way.
 ///
 /// Distinct from every other rule here because it changes NOTHING about the program — an idiom
@@ -98,6 +100,48 @@ pub struct FunctionMapping {
     pub requires_argument: Option<String>, // data_class: INTERNAL_ONLY
     /// Why this call becomes this form, and what it costs.
     pub reason: String, // data_class: INTERNAL_ONLY
+}
+
+/// What the pack does with a formatted string, for one source callee.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct FormatFunction {
+    /// The target callee that receives the formatted string. Empty when the string IS the result.
+    pub wrapper: String, // data_class: INTERNAL_ONLY
+    /// Why this call becomes this form, and what it does not preserve.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
+/// How the pack answers for a call that FORMATS: a template plus arguments.
+///
+/// Separate from [`FunctionMapping`] because the mechanism is different, not just the spelling. A
+/// mapped call substitutes rendered arguments into a template the pack wrote; a formatted call has
+/// to read the SOURCE's template, translate every verb in it, and check that what is left means the
+/// same thing. A text substitution cannot do that, and a table of forms cannot express it.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct FormatCalls {
+    /// The target macro that builds a string from a template.
+    pub macro_name: String, // data_class: INTERNAL_ONLY
+    /// Why that macro is the target's spelling for this operation.
+    pub macro_reason: String, // data_class: INTERNAL_ONLY
+    /// Callee identity to what RECEIVES the formatted string, empty when the string is the result.
+    pub functions: BTreeMap<String, FormatFunction>, // data_class: INTERNAL_ONLY
+    /// Why the receiver is a callee path rather than a template with a hole in it.
+    pub wrapper_reason: String, // data_class: INTERNAL_ONLY
+    /// The CLOSED set of source verbs and the target placeholder each becomes.
+    ///
+    /// Closed on purpose: a verb absent from here refuses by name. Defaulting an unknown verb to the
+    /// plain placeholder would produce a program that compiles and prints something else.
+    pub verbs: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
+    /// Why the verb set is closed, and what the ones left out would have cost.
+    pub verbs_reason: String, // data_class: INTERNAL_ONLY
+    /// The verb that records a CAUSE rather than rendering anything. Empty if the source has none.
+    pub wrap_verb: String, // data_class: INTERNAL_ONLY
+    /// Why a wrapping verb cannot become a rendering.
+    pub wrap_verb_reason: String, // data_class: INTERNAL_ONLY
+    /// Why the template has to be a literal.
+    pub literal_only_reason: String, // data_class: INTERNAL_ONLY
+    /// Why a literal brace in the template has to be doubled.
+    pub brace_reason: String, // data_class: INTERNAL_ONLY
 }
 
 /// How the source spells failure, so the engine can recognise it without knowing the language.

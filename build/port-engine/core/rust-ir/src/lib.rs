@@ -35,6 +35,7 @@ mod item;
 mod lower;
 mod lower_body;
 mod lower_expr;
+mod lower_precedence;
 mod lower_parts;
 mod ops;
 mod render;

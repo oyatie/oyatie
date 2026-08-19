@@ -36,6 +36,7 @@ mod body_forward;
 mod body_idiom;
 mod body_literal;
 mod body_failure;
+mod body_format;
 mod body_index;
 mod body_loops;
 mod body_operand;

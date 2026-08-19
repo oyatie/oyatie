@@ -120,6 +120,7 @@ impl SignatureTable {
                 trait_object_forms: semantics.trait_object_forms(),
                 failure: semantics.failure_convention(),
                 function_map: semantics.function_map(),
+                format_calls: semantics.format_calls(),
                 integer_arithmetic: semantics.integer_arithmetic(),
                 doc_convention: semantics.doc_convention(),
                 derives: semantics.derives(),

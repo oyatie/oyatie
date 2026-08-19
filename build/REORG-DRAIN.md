@@ -3073,3 +3073,61 @@ different.
 
 All seven real packages still compile with zero rustc errors and zero clippy warnings, per file:
 semver, xid (2 files), xxhash (2 files), ksuid, uuid, errors, multierror.
+
+## R1e — the formatting call, ranked first by packages blocked
+
+Building a string from a template is the most common call in real source after the plain one. It is
+how nearly every error message in every real package is made, and it appeared in **six of the seven**
+surveyed packages — `fmt.Errorf` fifty times in `semver` alone. Every one of them refused. Measured
+and ranked before it was built, exactly as the method says: not by count in one package, but by how
+many packages the cause blocks.
+
+**Why it needed its own mechanism, not another row in the function table.** The existing table
+substitutes rendered arguments into a template the PACK wrote. A formatting call has to read the
+template the SOURCE wrote, translate every verb in it, and establish that what comes out means the
+same thing. No table of fixed forms can express that, because the form differs at every call site.
+
+**The verb set is CLOSED, and that is the whole safety argument.** `%v`, `%s` and `%d` all render a
+value in its default form, which is what `{}` does; `%q` quotes and escapes, which is `{:?}`.
+Everything else refuses BY NAME. `%x` is a base, `%T` is a type name the target has no runtime access
+to, `%+v` and `%#v` are source-specific value dumps, and any width, precision or flag is a layout the
+target spells differently. Defaulting an unknown verb to the plain placeholder would produce a
+program that compiles and prints something else — the one failure this engine exists to prevent.
+
+**`%w` refuses for a different reason, and it is the interesting one.** It is not a rendering at all:
+it records the argument as the new error's CAUSE, which is what `errors.Is` and `errors.Unwrap` walk.
+Rendering it as `{}` would compile, print the identical text, and silently drop a chain callers
+navigate. The failure is invisible in the output and total in the semantics.
+
+**Text assembly was the wrong mechanism and had to go.** The first working version substituted
+arguments as TEXT, and every real call still refused: the arguments to a formatting call are field
+reads, method calls and indexes, none of which has an unambiguous text spelling. `RustExpr::MacroCall`
+carries them as expressions, so precedence is the IR's problem, which is where it belongs.
+
+**Two defects the corpus caught that reading would not have.** The front end records a literal as the
+source's own SPELLING — right for a literal that passes straight through, since the emitted tree is
+parsed. A template is read and rewritten, so re-emitting the spelling put the source's quotes inside
+the target's template: `format!("\"count {}\"", n)`. The literal is now decoded, against a closed
+escape set holding only what both languages spell identically; `\a`, `\v` and the octal form refuse.
+And a template with no placeholders and no arguments is not a formatting operation at all, whatever
+the source spelled — it is the string itself, and invoking the macro for it is a use the target's own
+lints name.
+
+**Corpus.** `corpus/formatted` proves all seven shapes: one value, several, the quoted verb, no
+values, the escaped percent, the literal brace, and the failure form. It was added only after the
+engine handled every one of them.
+
+**What the gates caught, and why that is the point.** Four separate fences fired on this change
+before any of it could land: the engine-digest manifest (a new source file the digest did not hash),
+the corpus admission set, and two neutrality/architecture fences (a source file no fence reads). Each
+one named exactly what was missing. That is four chances to ship a change with no receipt axis
+accounting for it, all closed automatically.
+
+Coverage is unchanged on every package, and that is expected: these declarations refuse on several
+constructs each, and the formatting call was one of them. What moved is that `fmt.Errorf` and
+`fmt.Sprintf` no longer appear in any refusal reason anywhere in the corpus.
+
+**Files split to hold the 100–300 bar:** `rule_format.rs` out of `rule.rs`, and `lower_precedence.rs`
+out of `lower_expr.rs` — the second a real seam rather than a size cut: what a node BECOMES and where
+the grammar needs it BRACKETED are different questions, and getting the second wrong reassociates
+silently rather than failing to compile.

@@ -33,6 +33,10 @@ pub struct Pack {
     /// Form id → the pack's reason for not having decided it. Empty by default, for the same
     /// reason: a refusal these tests assert on names the form, and the prose is the pack's.
     pub undecided_forms: BTreeMap<String, String>,
+    /// What the pack answers for a formatting call. Empty by default, for the same reason as the
+    /// tables above: these tests assert on structure, and the rule is exercised against the real
+    /// pack over real source, where the template is one somebody wrote.
+    pub format_calls: port_engine_api::FormatCalls,
     pub copies: BTreeSet<String>,
     pub casts: BTreeSet<String>,
     pub zeroes: BTreeMap<String, String>,
@@ -217,6 +221,13 @@ impl Pack {
 }
 
 impl PackSemantics for Pack {
+    fn format_calls(&self) -> &port_engine_api::FormatCalls {
+        // EMPTY, so a fixture answers for no formatting call at all and the ones that want the rule
+        // exercise it through the real pack over the corpus, where the template is real source.
+        &self.format_calls
+    }
+
+
     fn construction(&self, rule: &RuleId) -> Option<&str> {
         self.rules.get(rule.0.as_str()).map(|(c, _, _)| *c)
     }

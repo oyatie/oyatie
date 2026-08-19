@@ -2,7 +2,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
+use port_engine_api::{FormatCalls, DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
 use port_engine_hash::digest_bytes;
 
 use crate::error::RulepackError;
@@ -33,6 +33,7 @@ pub struct LoadedRulePack {
     pub(crate) trait_object_forms: BTreeMap<String, String>,
     pub(crate) failure_convention: Option<FailureConvention>,
     pub(crate) function_map: BTreeMap<String, FunctionMapping>,
+    pub(crate) format_calls: FormatCalls,
     pub(crate) integer_arithmetic: IntegerArithmetic,
     pub(crate) doc_convention: DocConvention,
     pub(crate) derives: Vec<DeriveRule>,

@@ -93,6 +93,24 @@ pub enum RustExpr {
         name: String, // data_class: INTERNAL_ONLY
     },
     /// `<callee>(<args>)`
+    /// A MACRO call with a template and its arguments.
+    ///
+    /// Its own node rather than assembled text, because the arguments are ordinary expressions and
+    /// text assembly cannot carry one: a field read, a method call, or anything needing parentheses
+    /// has no unambiguous spelling to substitute. That limit is what made every real formatting
+    /// call in the corpus refuse.
+    ///
+    /// The template is carried as an already-translated target template. Whether its placeholders
+    /// correspond to the arguments is settled before the node is built, because the macro checks it
+    /// at compile time and a mismatch would be a render failure rather than a refusal by name.
+    MacroCall {
+        /// The macro's name, without the `!`.
+        name: String, // data_class: INTERNAL_ONLY
+        /// The target template, placeholders already translated.
+        template: String, // data_class: INTERNAL_ONLY
+        /// The values the template consumes, in order.
+        args: Vec<RustExpr>,
+    },
     Call {
         /// The function being called.
         callee: Box<RustExpr>,
@@ -188,6 +206,7 @@ impl RustExpr {
             | Self::Field { .. }
             | Self::Call { .. }
             | Self::MethodCall { .. }
+            | Self::MacroCall { .. }
             | Self::Index { .. }
             | Self::StructLiteral { .. }
             | Self::Try(_)

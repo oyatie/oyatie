@@ -7,7 +7,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{
+use port_engine_api::{FormatFunction, FormatCalls, 
     DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
     LanguagePair, PointerConstruction, PointerDisposition, RuleId, UnitId,
 };
@@ -171,6 +171,30 @@ impl LoadedRulePack {
                     reason: rule.reason,
                 },
             ),
+            format_calls: doc.format_calls.map(|rule| FormatCalls {
+                macro_name: rule.r#macro,
+                macro_reason: rule.macro_reason,
+                functions: rule
+                    .functions
+                    .into_iter()
+                    .map(|(identity, entry)| {
+                        (
+                            identity,
+                            FormatFunction {
+                                wrapper: entry.wrapper,
+                                reason: entry.reason,
+                            },
+                        )
+                    })
+                    .collect(),
+                wrapper_reason: rule.wrapper_reason,
+                verbs: rule.verbs,
+                verbs_reason: rule.verbs_reason,
+                wrap_verb: rule.wrap_verb,
+                wrap_verb_reason: rule.wrap_verb_reason,
+                literal_only_reason: rule.literal_only_reason,
+                brace_reason: rule.brace_reason,
+            }).unwrap_or_default(),
             function_map: doc
                 .function_map
                 .into_iter()

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:3f648d78f50252fd0f99b5a717d54be68e0ebe0d7953b6c7ba493d3bfa38c0d1",
+  "snapshot_digest": "sha256:006f551743ab8fcc15febbb277bc4c36297b37b794c21181a1ab6b60194cd5b5",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -2498,6 +2498,903 @@
                       "name": "err",
                       "attrs": {
                         "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/formatted",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Describe",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Describe renders n with a label."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "fmt.Sprintf"
+                      },
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Sprintf",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
+                                  {
+                                    "kind": "slice",
+                                    "args": [
+                                      {
+                                        "kind": "named",
+                                        "name": "any"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fmt",
+                              "attrs": {
+                                "ref": "package"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "STRING",
+                            "value": "\"count %d\""
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Pair",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Pair renders two values as one string."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "name",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "fmt.Sprintf"
+                      },
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Sprintf",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
+                                  {
+                                    "kind": "slice",
+                                    "args": [
+                                      {
+                                        "kind": "named",
+                                        "name": "any"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fmt",
+                              "attrs": {
+                                "ref": "package"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "STRING",
+                            "value": "\"%s has %d\""
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "name",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Quoted",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Quoted renders s in quotes."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "fmt.Sprintf"
+                      },
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Sprintf",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
+                                  {
+                                    "kind": "slice",
+                                    "args": [
+                                      {
+                                        "kind": "named",
+                                        "name": "any"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fmt",
+                              "attrs": {
+                                "ref": "package"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "STRING",
+                            "value": "\"got %q\""
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Fixed",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Fixed renders the fixed message."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "fmt.Sprintf"
+                      },
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Sprintf",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
+                                  {
+                                    "kind": "slice",
+                                    "args": [
+                                      {
+                                        "kind": "named",
+                                        "name": "any"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fmt",
+                              "attrs": {
+                                "ref": "package"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "STRING",
+                            "value": "\"nothing to report\""
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Percentage",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Percentage renders n as a percentage."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "fmt.Sprintf"
+                      },
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Sprintf",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
+                                  {
+                                    "kind": "slice",
+                                    "args": [
+                                      {
+                                        "kind": "named",
+                                        "name": "any"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fmt",
+                              "attrs": {
+                                "ref": "package"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "STRING",
+                            "value": "\"%d%% done\""
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Braced",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Braced renders n inside braces."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "fmt.Sprintf"
+                      },
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Sprintf",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
+                                  {
+                                    "kind": "slice",
+                                    "args": [
+                                      {
+                                        "kind": "named",
+                                        "name": "any"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fmt",
+                              "attrs": {
+                                "ref": "package"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "STRING",
+                            "value": "\"{%d}\""
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Checked",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Checked reports n, failing when it is negative."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "effect_unknown",
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
+                          "attrs": {
+                            "op": "\u003c"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "n",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int64"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "3",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "fmt.Errorf"
+                              },
+                              "children": [
+                                {
+                                  "kind": "selector",
+                                  "name": "Errorf",
+                                  "type": {
+                                    "kind": "func",
+                                    "args": [
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "string"
+                                          },
+                                          {
+                                            "kind": "slice",
+                                            "args": [
+                                              {
+                                                "kind": "named",
+                                                "name": "any"
+                                              }
+                                            ]
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "named_interface",
+                                            "name": "error"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "ident",
+                                      "name": "fmt",
+                                      "attrs": {
+                                        "ref": "package"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"negative count %d\""
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "n",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "int64"
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
+                                  "attrs": {
+                                    "read_count": "3",
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
+                      "attrs": {
+                        "read_count": "3",
+                        "ref": "local"
+                      }
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
                       }
                     }
                   ]
