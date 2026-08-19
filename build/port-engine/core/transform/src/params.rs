@@ -97,9 +97,35 @@ pub(crate) fn params(
         .collect()
 }
 
+/// The results a method has when its SIGNATURE came from elsewhere.
+///
+/// A trait fixes the shape, so no result idiom applies: the borrow a getter would earn is not this
+/// method's to take, because its caller is written against the trait's spelling.
+///
+/// # Errors
+/// [`TransformError`] from resolving a result type.
+pub(crate) fn results_owned(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<Option<RustType>, TransformError> {
+    results_in(declaration, resolver, false)
+}
+
 pub(crate) fn results(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
+) -> Result<Option<RustType>, TransformError> {
+    results_in(declaration, resolver, true)
+}
+
+/// Every result, with `idioms` deciding whether a result-shape idiom may apply.
+///
+/// # Errors
+/// [`TransformError`] from resolving a result type, or a failure type in a non-trailing position.
+fn results_in(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+    idioms: bool,
 ) -> Result<Option<RustType>, TransformError> {
     let mut results = declaration.children_of_kind(CHILD_RESULT);
 
@@ -123,6 +149,16 @@ pub(crate) fn results(
                          and the target's fallible return carries exactly one"
                     .to_owned(),
             });
+        }
+        // A GETTER's result is a VIEW of the receiver, not a copy of it. The source's string
+        // shares its backing, so handing one back copies nothing; an owned `String` would clone on
+        // every call, which is work the source never does.
+        if idioms && crate::returns::borrows_from_receiver(declaration) {
+            types.push(RustType::Reference {
+                mutable: false,
+                inner: Box::new(RustType::path(TARGET_STR)),
+            });
+            continue;
         }
         // A `*T` result that is NEVER ABSENT is a `T`. The pointer type carries `Option` because
         // the source's pointer admits nil, and the `Box` because a pointer owns — and a function

@@ -215,15 +215,29 @@ fn address_of_fresh(
 /// The source copied; `.clone()` is what that costs in the target. In PLACE position there is no
 /// read at all, so there is nothing to clone — and cloning there would emit an assignment to a
 /// temporary, which parses and silently does nothing.
+/// The PLACE a field selector names, with no decision about copying it.
+///
+/// Split out so a caller that has already decided the destination borrows — a getter's return — gets
+/// the field itself rather than the clone the value position would add.
+///
+/// # Errors
+/// [`TransformError`] from translating the base.
+pub(crate) fn field_place(
+    node: &Declaration,
+    cx: &Body<'_>,
+) -> Result<RustExpr, TransformError> {
+    Ok(RustExpr::Field {
+        base: Box::new(expression(one_child(node, cx, "selector")?, cx)?),
+        name: to_snake_case(&node.name),
+    })
+}
+
 fn selector(
     node: &Declaration,
     cx: &Body<'_>,
     position: Position,
 ) -> Result<RustExpr, TransformError> {
-    let field = RustExpr::Field {
-        base: Box::new(expression(one_child(node, cx, "selector")?, cx)?),
-        name: to_snake_case(&node.name),
-    };
+    let field = field_place(node, cx)?;
     if position == Position::Value && moves_on_read(&node.type_ref, cx) {
         return Ok(RustExpr::MethodCall {
             receiver: Box::new(field),

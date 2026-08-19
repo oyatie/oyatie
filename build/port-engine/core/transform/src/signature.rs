@@ -8,7 +8,7 @@ use port_engine_rust_ir::{Receiver, RustFn, RustParam, RustType, Visibility};
 use crate::error::TransformError;
 use crate::naming::{to_snake_case, visibility};
 use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_for};
-use crate::params::{params, results};
+use crate::params::{params, results, results_owned};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
     ATTR_RECEIVER, CHILD_BODY, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC, POSITION_PARAM, POSITION_RESULT,
@@ -51,6 +51,7 @@ pub(crate) fn inherent_methods(
                 Visibility::Public,
                 body,
                 &declaration.name,
+                crate::body::ResultShape::Own,
             )
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -95,6 +96,7 @@ pub(crate) fn trait_methods(
                 Visibility::Inherited,
                 Body::None,
                 &declaration.name,
+                crate::body::ResultShape::Own,
             )?;
             rendered.receiver = Some(method_receiver(method, resolver, &declaration.name)?);
             Ok(rendered)
@@ -151,6 +153,7 @@ pub(crate) fn method_signature(
     vis: Visibility,
     body: Body,
     owner: &str,
+    result: crate::body::ResultShape,
 ) -> Result<RustFn, TransformError> {
 
     // A pointer receiver used to be refused outright, because `&self` drops the mutation it
@@ -190,7 +193,11 @@ pub(crate) fn method_signature(
         name: to_snake_case(&method.name),
         receiver: Some(receiver),
         params: params(method, resolver, owner)?,
-        ret: results(method, resolver)?,
+        ret: match result {
+            crate::body::ResultShape::Own => results(method, resolver)?,
+            // The trait fixed it, and this call exists only for the body it produces.
+            crate::body::ResultShape::Inherited => results_owned(method, resolver)?,
+        },
         body: match body {
             Body::Stub => Some(vec![port_engine_rust_ir::RustStmt::Tail(
                 port_engine_rust_ir::RustExpr::Todo,
@@ -205,7 +212,7 @@ pub(crate) fn method_signature(
                         name: method.name.clone(),
                         datum: "body",
                     })?;
-                Some(crate::body::statements(&source.children, method, resolver)?)
+                Some(crate::body::statements(&source.children, method, resolver, result)?)
             }
             Body::None => None,
         },

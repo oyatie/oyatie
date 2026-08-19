@@ -56,6 +56,12 @@ pub(crate) struct Body<'a> {
     /// string literal being returned is a `&'static str` in the target and a `string` in the
     /// source, and nothing inside the `return` says which the destination wants.
     pub(crate) result_is_owned_string: bool,
+    /// Whether the single result BORROWS from the receiver, so a returned field read is a view.
+    ///
+    /// A property of the signature that only the body can spend, exactly like `fallible`: the
+    /// return operand is `r.field` either way, and nothing inside it says whether the destination
+    /// wants an owned copy or a borrow of the receiver. Signature and body read the same proof.
+    pub(crate) result_borrows_receiver: bool,
     /// Counter names proven to be used for NOTHING BUT indexing, which are `usize` in the target.
     ///
     /// A property of the enclosing LOOP that only the operands inside it can spend: the range
@@ -80,6 +86,7 @@ impl<'a> Body<'a> {
         result_is_owned_string: bool,
         borrowed: BTreeSet<String>,
         bare_pointer_results: BTreeSet<usize>,
+        result_borrows_receiver: bool,
     ) -> Self {
         Self {
             owner,
@@ -89,6 +96,7 @@ impl<'a> Body<'a> {
             borrowed,
             bare_pointer_results,
             usize_counters: BTreeSet::new(),
+            result_borrows_receiver,
         }
     }
 
@@ -107,8 +115,23 @@ impl<'a> Body<'a> {
             borrowed: self.borrowed.clone(),
             bare_pointer_results: self.bare_pointer_results.clone(),
             usize_counters,
+            result_borrows_receiver: self.result_borrows_receiver,
         }
     }
+}
+
+/// Whose signature this body has to satisfy.
+///
+/// A body normally answers to the declaration it belongs to, and the two are built together so they
+/// cannot disagree. A TRAIT IMPL splits them: the signature comes from the trait's method and the
+/// body from the type's own, and a body built for its own signature would then be wrong for the one
+/// it is spliced into. So the splicer says which, rather than the body guessing.
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub(crate) enum ResultShape {
+    /// The body's own declaration decides, which is every case but a trait impl.
+    Own,
+    /// The signature comes from elsewhere and fixes the shape, so no result idiom applies.
+    Inherited,
 }
 
 /// Translate a function body's statements.
@@ -124,6 +147,7 @@ pub(crate) fn statements(
     nodes: &[Declaration],
     declaration: &Declaration,
     resolver: &Resolver<'_>,
+    result: ResultShape,
 ) -> Result<Vec<RustStmt>, TransformError> {
     let fallible = crate::failure::is_fallible(declaration, resolver.failure);
     translate(
@@ -135,6 +159,7 @@ pub(crate) fn statements(
             returns_owned_string(declaration, resolver),
             crate::params::borrowed_parameters(declaration, resolver),
             crate::returns::bare_pointer_results(declaration),
+            result == ResultShape::Own && crate::returns::borrows_from_receiver(declaration),
         ),
         TailPosition::Yes,
     )

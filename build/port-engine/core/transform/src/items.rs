@@ -226,7 +226,7 @@ fn build_fn(
                 name: declaration.name.clone(),
                 datum: "body",
             })?;
-        body::statements(&source.children, declaration, resolver)?
+        body::statements(&source.children, declaration, resolver, body::ResultShape::Own)?
     } else {
         vec![RustStmt::Tail(RustExpr::Todo)]
     };

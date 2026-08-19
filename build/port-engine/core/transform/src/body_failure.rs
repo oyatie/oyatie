@@ -125,6 +125,14 @@ fn returned_operand(
     operand: &Declaration,
     cx: &Body<'_>,
 ) -> Result<RustExpr, TransformError> {
+    // A getter's result is a BORROW of the receiver, so the field read is not a copy and needs no
+    // clone. Same proof the signature read, so the two cannot disagree.
+    if cx.result_borrows_receiver && index == 0 {
+        return Ok(RustExpr::Reference {
+            mutable: false,
+            inner: Box::new(crate::body_expr::field_place(operand, cx)?),
+        });
+    }
     if cx.bare_pointer_results.contains(&index)
         && operand.kind == KIND_UNARY
         && operand.attr(ATTR_OP) == Some(OPERATOR_ADDRESS_OF)
