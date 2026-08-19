@@ -246,6 +246,22 @@ pub(crate) fn translate(
             index += 2;
             continue;
         }
+        // THE COMPARISON LADDER, which is the target's `cmp` written out because the source has no
+        // such method. Whole-body, so it is matched once before any statement is.
+        if index == 0
+            && cx.results.is_an_ordering
+            && let Some((left, right)) = crate::returns::comparison_ladder_of(nodes, cx)
+        {
+            out.push(RustStmt::Tail(RustExpr::MethodCall {
+                receiver: Box::new(RustExpr::Path(crate::naming::to_snake_case(&left))),
+                method: "cmp".to_owned(),
+                args: vec![RustExpr::Reference {
+                    mutable: false,
+                    inner: Box::new(RustExpr::Path(crate::naming::to_snake_case(&right))),
+                }],
+            }));
+            break;
+        }
         // A CHOICE the source had to spell as a mutation: `x := 0; if c { x = a } else { x = b }`.
         // Two statements for one construct, matched here for the same reason the propagation pair
         // is — the binding alone says nothing, and it is the `if` that follows which decides.

@@ -16,7 +16,13 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 	switch typed := obj.(type) {
 	case *types.Const:
 		base.Kind = kindConst
-		base.Type = typeTree(typed.Type())
+		// The DEFAULT type, because a declaration in the target must have one. An untyped constant
+		// has no type in the source until it is used — `const magic = "xxh"` is `untyped string` —
+		// and its type node then matches nothing in the pack, so it emitted `const MAGIC: String`
+		// where the constant-position override says `&str`. `types.Default` is the source's own
+		// answer to "what type does this take when it must have one", which is exactly the
+		// question a target declaration asks.
+		base.Type = typeTree(types.Default(typed.Type()))
 		if value := typed.Val(); value != nil {
 			base.Attrs = withAttr(base.Attrs, attrValue, value.String())
 		}
