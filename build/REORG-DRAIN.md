@@ -1582,3 +1582,46 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - `k8s/**` — separate integ rail (mechanical port *generates into* k8s/; does not own the tree).
 - `.buckconfig` cell remap for toolchains — coordinate with reachability/registry consumers.
 - `ci/controller/**` members — wait `#1646` land (reverted premature absorb @ `72530017a`).
+
+## `&T{..}` needs no destination, and `New(..) *T` is still a constructor
+
+- Unary `&` was refused everywhere except an ARGUMENT, where the signature table names the
+  parameter's disposition. That left 33 sites across 5 packages, of which 14 are `x := &T{..}` (7),
+  `return &T{..}` (4) and `x = &T{..}` (3) — and none of the 14 needs a destination at all.
+
+  The operand is a COMPOSITE LITERAL: a value the expression itself creates. Nothing else can alias
+  it, no binding is moved out of, and there is no caller whose value could be borrowed. So the owned
+  form is not one choice among several here, it is the only one available, and the pack's pointer
+  type already says what owned means for a pointer.
+
+  `&x` of an EXISTING binding stays refused, and the difference is the whole point: that one borrows
+  or moves something that already has an owner, which is precisely the ownership question the
+  signature table exists to answer. A fresh composite does not have it.
+
+  Built from the `escaping_owned` disposition's declared `wrap: ["Box::new", "Some"]` construction
+  rather than from a second rule saying the same thing — one place says what an owned pointer is and
+  how one is constructed, and a second would be free to disagree with it.
+
+  `errors` 31.6% → 52.6% (6 → 10 of 19). The other six corpora did not move: a declaration only
+  counts as translated when every construct in it translates, and in those the `&T{..}` site shared
+  a body with a blocker still on the board.
+
+- The corpus case it needed EXPOSED the next defect. `NewTally(label string) *Tally` emitted as a
+  free `pub fn new_tally`, because the constructor rule required the sole result to be a type the
+  unit declares and `*Tally` is a pointer to one. But `func New(..) *T` is the SAME convention as
+  `func New(..) T` and is the commoner of the two: the source allocates away from the caller's frame
+  and hands the pointer back, and what it constructs is the pointer's target either way. That target
+  is the type the impl block stands on, so the pointer is looked through rather than treated as a
+  different result. Coherence is untouched — the impl is still on a type this unit declares.
+
+- STANDING TENSION, recorded rather than fixed: `Tally::new` returns `Option<Box<Tally>>`, because
+  the pack maps `*T` to the nil-representable form. It is sound — the source's `*T` genuinely admits
+  nil, and a caller can get nil back from a source constructor — but no hand-written `new` has that
+  signature, and a reviewer will say so. Changing it is a decision about the pointer type itself, not
+  about constructors, and it belongs with the pointer mapping rather than here.
+
+- Verify: 49 test binaries green; port-engine clippy `-D warnings` clean; `delta` Green/Unchanged;
+  golden refreshed (`Tally::new`, `Some(Box::new(Tally { .. }))`); engine digest moved to
+  `sha256:e12aa8cf…`. buck2 `Pass 29, Build failure 20` — the known third-party export gap recorded
+  above (prettyplease/proc-macro2 carry `visibility = []` and have no PUBLIC alias), unchanged by
+  this work and still outside this lane.

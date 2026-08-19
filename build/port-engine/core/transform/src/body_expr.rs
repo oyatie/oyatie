@@ -11,7 +11,7 @@ use port_engine_rust_ir::RustExpr;
 
 use crate::body::{Body, one_child, two_children, unsupported_source};
 use crate::body_index::slice;
-use crate::body_call::call;
+use crate::body_call::{call, constructed};
 use crate::body_literal::{composite, zero_value};
 use crate::body_idiom::emptiness_test;
 use crate::body_ops::{
@@ -21,7 +21,7 @@ use crate::body_ops::{
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, FLAG_REREAD, IDIOM_EMPTY_STRING, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
+    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, DISPOSITION_OWNED_POINTER, FLAG_REREAD, IDIOM_EMPTY_STRING, KIND_COMPOSITE, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
 };
 
 /// Where an expression appears: a value is READ, a place is WRITTEN TO.
@@ -67,6 +67,14 @@ pub(crate) fn in_position(
         "binary" => binary(node, cx),
         "unary" => {
             let spelling = operator_of(node, cx)?;
+            // `&T{..}` — the address of a value this expression just created. No caller owns it,
+            // nothing else can alias it, and no binding is moved out of, so the owned form is the
+            // only one available and needs no destination to choose it.
+            if spelling == OPERATOR_ADDRESS_OF
+                && let Some(rendered) = address_of_fresh(node, cx)?
+            {
+                return Ok(rendered);
+            }
             let op = unary_operator(spelling).ok_or_else(|| TransformError::Unsupported {
                 name: cx.owner.to_owned(),
                 detail: unary_refusal(spelling),
@@ -135,6 +143,33 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         lhs: Box::new(left),
         rhs: Box::new(right),
     })
+}
+
+/// The address of a freshly built composite, which is an owned pointer.
+///
+/// `None` when the operand is not a composite literal — `&x` of an existing binding borrows or
+/// moves something that already has an owner, which is the ownership question the signature table
+/// exists to answer, and a fresh value simply does not have it.
+///
+/// Built from the disposition that already describes the owned pointer rather than a second rule
+/// saying the same thing: one place says what an owned pointer is and how one is constructed, and
+/// a second would be free to disagree with it.
+///
+/// # Errors
+/// [`TransformError`] from translating the composite.
+fn address_of_fresh(
+    node: &Declaration,
+    cx: &Body<'_>,
+) -> Result<Option<RustExpr>, TransformError> {
+    let operand = one_child(node, cx, KIND_UNARY)?;
+    if operand.kind != KIND_COMPOSITE {
+        return Ok(None);
+    }
+    let Some(construction) = cx.resolver.ownership.construction_for(DISPOSITION_OWNED_POINTER)
+    else {
+        return Ok(None);
+    };
+    Ok(Some(constructed(construction, expression(operand, cx)?)))
 }
 
 /// A field access, cloned when reading it would MOVE.

@@ -275,6 +275,13 @@ pub mod pointers {
             }
         }
     }
+    // region: oyatie_example_portengine_fixture_corpus_pointers__go_func__newtally
+    impl Tally {
+        /// Returns a tally named for display.
+        pub fn new(label: &str) -> Option<Box<Tally>> {
+            Some(Box::new(Tally { label: label.to_owned() }))
+        }
+    }
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__counter
     /// Accumulates a total.
     #[derive(Debug, Clone, Default, PartialEq)]
@@ -301,6 +308,13 @@ pub mod pointers {
         pub fn total(&self) -> i64 {
             self.total
         }
+    }
+    // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__tally
+    /// A counter allocated away from the caller's frame.
+    #[derive(Debug, Clone, Default, PartialEq)]
+    pub struct Tally {
+        /// Names the tally.
+        label: String,
     }
 }
 pub mod scoped {
