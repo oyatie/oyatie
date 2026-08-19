@@ -216,7 +216,33 @@ fn mapped_call(
             ),
         });
     }
-    Ok(Some(RustExpr::Literal(rendered)))
+    Ok(Some(structured(&rendered, &mapping.form)))
+}
+
+/// A rendered mapping as an EXPRESSION, with a trailing conversion read as one.
+///
+/// The pack's forms are text templates, and one of them ends in a conversion: `{0}.len() as i64`.
+/// Handed to the IR as a flat literal, nothing downstream can see that the outermost thing is a
+/// cast — and `xs.len() as i64` with a method on it renders as `xs.len() as i64.wrapping_sub(1)`,
+/// which the target REJECTS outright. Two whole packages failed to render on exactly that, and the
+/// hermetic corpus never had a cast with a method on it.
+///
+/// Read from the FORM the pack declares rather than by sniffing the rendered text, so a template
+/// with no trailing conversion is left exactly alone and a pack that changes one changes this.
+fn structured(rendered: &str, form: &str) -> RustExpr {
+    let Some((_, target)) = form.rsplit_once(" as ") else {
+        return RustExpr::Literal(rendered.to_owned());
+    };
+    match rendered
+        .strip_suffix(&format!(" as {target}"))
+        .filter(|inner| !inner.is_empty())
+    {
+        Some(inner) => RustExpr::Cast {
+            expr: Box::new(RustExpr::Literal(inner.to_owned())),
+            ty: port_engine_rust_ir::RustType::path(target),
+        },
+        None => RustExpr::Literal(rendered.to_owned()),
+    }
 }
 
 /// Refuse a mapped call whose argument is not the shape the mapping declares.

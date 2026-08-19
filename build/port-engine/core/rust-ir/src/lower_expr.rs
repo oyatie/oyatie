@@ -216,6 +216,11 @@ fn lower_postfix_base(expr: &RustExpr) -> Result<TokenStream, PortError> {
         | RustExpr::Unary { .. }
         | RustExpr::Range { .. }
         | RustExpr::Reference { .. }
+        // A CAST is postfix-hostile: `x as i64.wrapping_add(y)` is not `(x as i64).wrapping_add(y)`
+        // — the target rejects it outright rather than parsing it the other way, which is the good
+        // failure mode and is how this was found. A whole real package failed to render on it, and
+        // the hermetic corpus never had a cast with a method on it.
+        | RustExpr::Cast { .. }
         | RustExpr::If { .. } => Ok(quote! { (#tokens) }),
         _ => Ok(tokens),
     }

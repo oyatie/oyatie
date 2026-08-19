@@ -252,6 +252,9 @@ pub(crate) fn cmd_port(path: Option<&str>) -> ExitCode {
                 ported.report.deferred.len(),
                 ported.report.uncaptured.len()
             );
+            for refusal in &ported.unrenderable {
+                eprintln!("unrenderable {refusal}");
+            }
             ExitCode::SUCCESS
         }
         Err(err) => {

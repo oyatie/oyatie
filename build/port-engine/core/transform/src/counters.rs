@@ -176,24 +176,12 @@ pub(crate) fn unsigned_bound(
     if bound.kind != KIND_CALL {
         return Ok(translated);
     }
-    let Some(identity) = bound.attr(ATTR_CALLEE) else {
-        return Ok(translated);
-    };
-    let Some(mapping) = cx.resolver.function_map.get(identity) else {
-        return Ok(translated);
-    };
-    // The pack's own form, with the target's own conversion syntax stripped from its END. Done by
-    // comparing against the form the pack declares rather than by editing the rendered text, so a
-    // pack whose mapping has no trailing conversion is left exactly alone.
-    let Some(prefix) = mapping.form.split_once(" as ") else {
-        return Ok(translated);
-    };
-    let RustExpr::Literal(rendered) = &translated else {
-        return Ok(translated);
-    };
-    let suffix = &mapping.form[prefix.0.len()..];
-    match rendered.strip_suffix(suffix) {
-        Some(trimmed) => Ok(RustExpr::Literal(trimmed.to_owned())),
-        None => Ok(translated),
+    // A mapped call whose form ends in a conversion arrives as a CAST NODE, so the conversion comes
+    // off by unwrapping it. This used to strip the rendered text against the pack's declared form,
+    // which worked and depended on how the call had printed; reading the node instead means a
+    // change to the rendering cannot silently stop it working.
+    match translated {
+        RustExpr::Cast { expr, .. } => Ok(*expr),
+        other => Ok(other),
     }
 }

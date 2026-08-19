@@ -2501,3 +2501,51 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - That is the next thing to fix, and it is worth more than any single rule: compile-proof the ported
   third-party output. It will reclassify a chunk of every coverage number downward, which is the
   sixth honest correction of the lane and the one that makes the rest of them trustworthy.
+
+## What a real package actually compiles to, measured
+
+- With `port` emitting region by region — a region the renderer will not take is a refusal
+  discovered late, and rendering the package as one tree let a single bad one take the whole package
+  with it — all six surveyed packages now emit. Two of them could not emit AT ALL before that, and
+  the reason was one defect apiece.
+
+  A CAST IS POSTFIX-HOSTILE. `xs.len() as i64.wrapping_sub(1)` is not `(xs.len() as i64)
+  .wrapping_sub(1)`; the target rejects it outright, which is the good failure mode and is how this
+  was found. Two whole packages failed to render on it, and the hermetic corpus never had a cast
+  with a method on it.
+
+  It needed the cast to be VISIBLE. The pack's `len` form is a text template ending in a conversion,
+  and handed to the IR as a flat literal nothing downstream could see that the outermost thing was a
+  cast. It is now read from the FORM the pack declares — a template with no trailing conversion is
+  left exactly alone — and the length-result rule, which used to strip that conversion by editing
+  rendered text, now unwraps the node instead.
+
+- THE MEASUREMENT, which is the point of the exercise. Ported and fed to `rustc`:
+
+  | package | lines | errors |
+  |---|---|---|
+  | xxhash | 96 | 20 |
+  | ksuid | 221 | 66 |
+  | uuid | 252 | 57 |
+  | xid | 28 | 9 |
+  | errors | 173 | 17 |
+  | semver | 450 | 57 |
+
+  226 errors, and the taxonomy is one cause: **130 × E0425** (cannot find value in scope) and
+  **86 × E0433** (unresolved module or crate) — 216 of 226, 96%. Plus 9 × E0422 (unknown struct) and
+  exactly ONE type mismatch.
+
+- ONE CAUSE, and the engine already has the rule for a narrower version of it: what is emitted has
+  to be SELF-CONTAINED, which is why a body naming a deferred package variable refuses. That rule
+  covers deferred kinds and nothing else. It does not cover a call into another package the emitted
+  crate does not have, a stdlib function with no mapping, or a reference to a declaration that
+  itself refused — and each of those is emitted as a path that resolves to nothing.
+
+  So the coverage numbers are an UPPER BOUND: `translated` means the transform produced an item, and
+  for the hermetic corpus a compile proof backs that up while for a real package nothing does.
+  Generalising the self-containment rule — a body that names anything the emitted crate will not
+  contain refuses — is the single highest-value change left, and it will move every coverage number
+  down. That is the correction that makes the rest of them mean something.
+
+  Only ONE of the 226 is a type mismatch, which is the encouraging half: where the engine can see a
+  name, it is getting the types right.
