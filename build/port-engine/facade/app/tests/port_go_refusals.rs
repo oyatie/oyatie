@@ -11,30 +11,31 @@
 
 use port_engine_app::driver;
 
-/// A failing return that carries a COMPUTED value beside the failure.
+/// A failing return DISCARDS the value carried beside the failure, because the pack says so.
 ///
-/// The source returns both; the target returns one or the other. Discarding the companion is sound
-/// exactly when it is the zero value — the convention says a caller may not read it after a failure
-/// — and is a silent loss of work when it is not. So the engine admits literals and the absent
-/// value, and refuses anything computed rather than deciding that some expression is "obviously"
-/// zero.
+/// The source returns both; the target returns one or the other. The source documents that a
+/// result beside a non-nil error is not guaranteed to be meaningful, so discarding is faithful to
+/// the CONVENTION — and the engine used to be faithful only to the cases inspection could confirm,
+/// admitting a literal and refusing anything computed, which left most real fallible code
+/// unported.
+///
+/// This asserts the decision as the pack currently declares it. The stricter half — refusing
+/// unless the value can be seen to be inert — is what the pack buys back by setting
+/// `discards_companion` to false, and is fenced by the transform's own tests, which declare it
+/// that way.
 #[test]
-fn a_failing_return_that_carries_a_value_is_refused_with_its_reason() {
-    let err = driver::port_go_refused_failure()
-        .expect_err("a computed value beside a failure has no target shape");
+fn a_failing_return_discards_its_companion() {
+    let report = driver::port_go_failure_pipeline()
+        .expect("the pack grants the trust, so a carried value no longer refuses");
+    let source = driver::assemble_modules(&report);
 
-    let message = err.to_string();
     assert!(
-        message.contains("Sized"),
-        "the refusal must name the declaration: {message}"
+        source.contains("return Err("),
+        "a failing return must carry the failure alone:\n{source}"
     );
     assert!(
-        message.contains("carries only the failure"),
-        "the refusal must say what the target's shape IS: {message}"
-    );
-    assert!(
-        message.contains("lose work"),
-        "the refusal must say what would be lost: {message}"
+        !source.contains("Err((") ,
+        "the companion must be gone, not tupled into the failure:\n{source}"
     );
 }
 

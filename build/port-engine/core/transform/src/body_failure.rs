@@ -139,5 +139,17 @@ pub(crate) fn fallible_return(
 /// admitting more would mean deciding that some expression is "obviously" zero, which is exactly
 /// the guess this engine does not make.
 fn discards_nothing(node: &Declaration, cx: &Body<'_>) -> bool {
+    // The pack decides HOW FAR to trust the source's failure convention. Where it says the
+    // companion may be discarded, every value is discardable — the source documents that a result
+    // beside a non-nil error is not guaranteed to be meaningful, so a reader of a conforming
+    // program cannot observe the difference. Where it does not, only a value the engine can SEE is
+    // inert may go, which is faithful to the cases inspection can confirm and refuses the rest.
+    if cx
+        .resolver
+        .failure
+        .is_some_and(|convention| convention.discards_companion)
+    {
+        return true;
+    }
     node.kind == "literal" || crate::failure::is_absent(node, cx.resolver.failure)
 }

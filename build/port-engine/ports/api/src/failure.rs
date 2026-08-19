@@ -108,6 +108,15 @@ pub struct FailureConvention {
     pub source_type: String, // data_class: INTERNAL_ONLY
     /// Target type the failure value becomes.
     pub target_type: String, // data_class: INTERNAL_ONLY
+    /// Whether a failing return DISCARDS the value carried beside the failure.
+    ///
+    /// The source's failing return carries both; the target's carries only the failure. The source
+    /// documents that the other results are not guaranteed to be meaningful when the error is
+    /// non-nil, so discarding is faithful to that convention — and the alternative is refusing most
+    /// real fallible code.
+    pub discards_companion: bool,
+    /// Why the companion may be discarded, and what it costs.
+    pub discard_reason: String, // data_class: INTERNAL_ONLY
     /// Why that target type, and what its bounds buy.
     ///
     /// Required, because this is the single most load-bearing type decision the pack makes: it

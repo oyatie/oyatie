@@ -157,6 +157,10 @@ impl Pack {
             reason: "fixture decision".to_owned(),
             target_type: target.to_owned(),
             absent: "nil".to_owned(),
+            // Refusing is the stricter half, so these tests assert the behaviour that holds
+            // when the pack has NOT granted the trust rather than the one that follows from it.
+            discards_companion: false,
+            discard_reason: "fixture decision".to_owned(),
         });
         self
     }
