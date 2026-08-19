@@ -392,12 +392,17 @@
       "live_adr_files": 19,
       "dotdir_files": 242,
       "reorg_paths": 25,
-      "oya_legacy_root_files": 1868,
+      "oya_legacy_root_files": 1869,
       "yaml_files": 3022,
       "json_files": 1284
     },
     "reviewed_raises": {
       "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
+      "oya_legacy_root_files": {
+        "from": 1868,
+        "to": 1869,
+        "reason": "oya/crates/oya-application-shell-frontend/src/browser_panic_hook.rs replaces console_error_panic_hook with std panic hook."
+      },
       "evidence_files": {
         "from": 53,
         "to": 54,
