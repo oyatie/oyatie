@@ -6,7 +6,12 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: oya-kms
-  labels: { app.kubernetes.io/part-of: oya-substrate, oya.io/adr: ADR-0043 }
+  labels:
+    app.kubernetes.io/part-of: oya-substrate
+    oya.io/adr: ADR-0043
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
 ---
 apiVersion: v1
 kind: ConfigMap

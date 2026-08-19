@@ -342,6 +342,10 @@
       "prefix": "governance/capability-registry.json"
     },
     {
+      "anchor": "ADR-0710 D-1 PRESENCE HALF: the recorded, expiring PSA exception registry that D-1's exit criteria require — every declared Namespace carries pod-security.kubernetes.io/enforce: restricted OR a record here. Policy-as-data, non-crate, reached by ADR-0710 D-1 and sited beside governance/capability-registry.json per the ADR-0562 governance meta-directory charter. Deliberately NOT D-3's exception shape, which keys on cluster version.",
+      "prefix": "governance/psa-exception-registry.json"
+    },
+    {
       "anchor": "ADR-0615 §2 Q13 + ADR-0555: cedar policy fragments absorbed under META governance/cedar/ (authority slice from oya/governance); non-crate DATA.",
       "prefix": "governance/cedar/"
     },

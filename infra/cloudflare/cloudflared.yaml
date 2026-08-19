@@ -22,7 +22,12 @@ apiVersion: v1
 kind: Namespace
 metadata:
   name: oya-cloudflared
-  labels: { app.kubernetes.io/part-of: oya-substrate, oya.io/adr: ADR-0371 }
+  labels:
+    app.kubernetes.io/part-of: oya-substrate
+    oya.io/adr: ADR-0371
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
 ---
 apiVersion: apps/v1
 kind: Deployment
