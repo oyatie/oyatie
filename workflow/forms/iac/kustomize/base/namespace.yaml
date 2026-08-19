@@ -6,3 +6,6 @@ metadata:
   labels:
     oyatie/microservice: forms
     oyatie/layer: a
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
