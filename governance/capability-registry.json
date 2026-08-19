@@ -19,7 +19,7 @@
       "dir": "kernel/",
       "rung": 0,
       "off_runtime_ladder": false,
-      "charter": "kuberos no_std kernel + sysroot; the recursion floor. Its own excluded/nested workspace per the ADR-0512 kernel carve-out.",
+      "charter": "Rung-0 kernel floor; the recursion floor. Its own excluded/nested workspace per the ADR-0512 kernel carve-out. The kuberos no_std framekernel that formerly occupied this rung was retired by founder decision 2026-08-02 and deleted by commit c2ee2631a; the directory persists at rung 0 and holds the Asterinas evaluation as a black-box upstream pin.",
       "owns_crates": true
     },
     {
@@ -257,7 +257,7 @@
       "substrate_dag_position": {
         "stratum": "S1"
       },
-      "charter": "Owned Kubernetes control plane (core) + managed-k8s product (facade). kuberos->cloud-k8s ladder rung above os/.",
+      "charter": "Owned Kubernetes control plane (core) + managed-k8s product (facade). ladder rung above os/ (formerly written kuberos->cloud-k8s; the kuberos rung was retired 2026-08-14).",
       "seed_domains": [
         "control plane"
       ],
@@ -557,7 +557,7 @@
     },
     "meta_directory_absorbs": [
       {
-        "_comment": "kuberos kernel + sysroot floor (ADR-0512 carve-out). cloud-kernel is the single 2nd-level crate. The bare `kernel` root is the ADR-0611 landed destination (kernel/core/asterinas-boundary + kernel/harness/asterinas-real-boot live there today, in kernel/'s own excluded nested workspace); it is absorbed exactly like every other destination root so the crates that already sit at the destination map to meta:kernel/ once the root is scanned.",
+        "_comment": "Rung-0 kernel floor (ADR-0512 carve-out). The kuberos framekernel that formerly occupied this rung was RETIRED by founder decision of 2026-08-02 (keep Asterinas, delete kuberos/cloud-kernel), executed by commit c2ee2631a on 2026-08-14; cloud/ now holds zero tracked files and cloud-kernel no longer exists. The bare `kernel` root is the ADR-0611 landed destination (kernel/core/asterinas-boundary + kernel/harness/asterinas-real-boot live there today, in kernel/'s own excluded nested workspace); it is absorbed exactly like every other destination root so the crates that already sit at the destination map to meta:kernel/ once the root is scanned.",
         "meta_dir": "kernel/",
         "current_dirs": [
           "kernel"
