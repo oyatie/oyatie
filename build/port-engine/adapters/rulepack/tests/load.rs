@@ -96,7 +96,7 @@ fn embedded_go_rust_pack_loads_with_captures_types_and_deferrals() {
         deferred.iter().map(|entry| entry.kind.as_str()).collect();
     assert_eq!(
         kinds,
-        std::collections::BTreeSet::from(["var", "foreign_satisfaction"]),
+        std::collections::BTreeSet::from(["var", "foreign_satisfaction", "package_init"]),
     );
     for entry in deferred {
         assert!(

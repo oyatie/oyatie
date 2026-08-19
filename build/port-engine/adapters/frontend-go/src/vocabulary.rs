@@ -68,6 +68,11 @@ pub const KNOWN_DECLARATION_KINDS: &[&str] = &[
     // does not exist — and deferred by the pack, which is where the decision belongs.
     "foreign_satisfaction",
     "func",
+    // The package's `init` work. The source keeps it out of package scope — it is not addressable
+    // and several may exist — so it reached the model nowhere until it was collected explicitly. A
+    // construct that is neither translated nor refused is the one outcome this engine cannot answer
+    // for, so it is admitted here and deferred by the pack.
+    "package_init",
     "interface",
     "named",
     "struct",
