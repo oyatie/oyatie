@@ -151,6 +151,39 @@ On Accept:
    — not a day-1 encode claim of this ADR. That target inherits the same quote-before-authz
    rule with a stronger measurement profile (host out of TCB).
 
+### D-3a — Harvested attestation chain (recorded 2026-08-19)
+
+This clause records, in the ADR that owns the decision, the relying-party shape that until now
+existed only inside `os/harness/attestation-relying-party` — a scaffold slated for deletion with
+the rest of the hand-written `os/` tree. Recording it here means that deletion costs no doctrine.
+It is recorded design law, not an Accept; D-1 and D-3 remain gated exactly as written.
+
+**The chain, end to end:**
+
+```
+guest collector          ->  off-node OWNED verifier      ->  short-TTL signed    ->  existing SVID issuer
+(configfs-tsm,               (pinned AMD KDS / Intel PCS)     attestation RESULT      + Cedar context keys
+ nonce-bound report_data)
+```
+
+**Invariants, in the order they bite:**
+
+1. **UNKNOWN is never PASS.** Stale or unreachable collateral yields verdict **UNKNOWN**, and
+   UNKNOWN must be treated as a failure to attest — never as a pass, and never as an absent
+   check. This is what a naive implementation gets wrong under provider outage, which is exactly
+   when it matters most.
+2. **The verifier is owned and off-node.** Verification does not run on the node being attested,
+   and the KDS/PCS endpoints are pinned rather than resolved at use time.
+3. **The result is short-TTL and signed**, and it feeds the existing SVID issuer plus Cedar
+   context keys rather than establishing a parallel identity path.
+4. **Hardware-agnostic evidence schema first**, with SEV-SNP / TDX / ARM-CCA adapters behind it —
+   not a schema shaped around whichever TEE lands first.
+5. **Day-1 `private-kernel-attested` is attested-identity**, host in TCB, explicitly labeled.
+   Operator-excluded confidentiality (guest-pull) is the F1 Isolation target and MUST NOT be
+   claimed on day one. This restates D-3(3) from the evidence side, deliberately: the two clauses
+   are the same promise made once to admission and once to the customer.
+
+
 ## Consequences
 
 ### Concrete file and crate changes
