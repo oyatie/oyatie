@@ -50,6 +50,10 @@
       "prefix": ".github/workflows/domain-stabilize.yml"
     },
     {
+      "anchor": "Weekly non-blocking deny.toml license check over the resolved cargo graph (advisory scheduled lane, never merge authority). Same class as buck2-weekly-smoke under ADR-0716.",
+      "prefix": ".github/workflows/license-weekly-advisory.yml"
+    },
+    {
       "anchor": "Forever merge-admission workflow filename + dual-emit public status string merge-admission-required (workflow_call-only body until quiet cutover); protection context flip remains PAUSE-AND-PAIR (ADR-0515).",
       "prefix": ".github/workflows/merge-admission-required.yml"
     },
