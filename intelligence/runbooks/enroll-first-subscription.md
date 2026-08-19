@@ -1,11 +1,31 @@
 # Enroll first Anthropic OAuth subscription
 
+> **STATUS 2026-08-19 — NOT EXECUTABLE. Deployment state UNKNOWN.**
+>
+> The deploy path this runbook opens with no longer exists, and nothing in the repository
+> can bring it back as written:
+>
+> - `scripts/build/build-and-push-cloud-intelligence.sh` — **absent from the tree**.
+> - `microservices/cloud-intelligence/iac/k8s/helm/values.yaml` — **absent**; the whole
+>   `microservices/` root was removed by the capability reorg.
+> - The `cloud-intelligence` Argo CD Application still declared in
+>   `infra/gitops/values.yaml` points at `microservices/cloud-intelligence/k8s`, so it
+>   **cannot render or reconcile**.
+>
+> Cluster readback is unavailable, so whether a `cloud-intelligence` workload is still
+> running from an earlier sync is **unknown and must not be claimed either way**. Treat every
+> `kubectl` and `argocd` step below as unverified: none of them is evidence of deployment.
+>
+> The enrollment procedure itself (seat, Cedar binding, proxy key) is retained because it is
+> product knowledge independent of the deploy path. The deploy sections must be re-authored
+> against the real path when the service is next deployed — tracked by `oyatie-6t5.22`.
+
 This runbook provisions the oyatie-dogfood tenant's first Anthropic OAuth subscription
 into the cloud-intelligence gateway. Every step that requires human credentials is
 flagged **[human-auth]**.
 
 Prereqs: Talos cluster with ArgoCD + ESO + owned cloud-secrets/cloud-kms adapters +
-cloud-intelligence deployed and running (see `SETUP-RUNBOOK.md` — "Production deploy on Talos" section).
+cloud-intelligence deployed and running. **This precondition is currently unmet and unverifiable** — see the status banner above; the referenced `SETUP-RUNBOOK.md` deploy path uses removed paths.
 
 ---
 
@@ -28,11 +48,11 @@ git commit -am "chore(cloud-intelligence): pin v0.1.0 image digest to sha256:<..
 # ArgoCD picks up the change within ~30s
 ```
 
-Verify ArgoCD transitions from "Missing" to "Healthy":
+Verify ArgoCD transitions from "Missing" to "Healthy" (**cannot pass today**: the Application's source path is removed, so it stays Missing):
 
 ```sh
 kubectl -n argocd get application cloud-intelligence -o jsonpath='{.status.health.status}'
-# expect: Healthy
+# expect: Healthy -- UNREACHABLE while the source path is removed
 ```
 
 ---
