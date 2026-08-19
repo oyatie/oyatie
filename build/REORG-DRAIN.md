@@ -320,46 +320,22 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   New corpus `corpus/composite`. Emitted-code lint: 21 pedantic warnings over 281 lines, unchanged
   in absolute terms across a 65% larger emit.
 
-- P6a: the Go concurrency runtime, hand-ported once. New crate `k8s/core/go-runtime`.
-  `census/concurrency.md` §6 is unambiguous about where the leverage is: five hand-ported runtime
-  libraries are "worth more than any rule in the table above, and it SHRINKS the rule corpus rather
-  than adding to it". The concentration is measured, not hoped for — `wait.*` is 108 of 400 named
-  goroutine launches (27%) and 65% of the S1 background-loop shape, so one audited `wait::until`
-  collapses 108 launch sites into 108 calls.
-  PLACEMENT, which the plan left open and this phase closes with the registry's own rule rather
-  than a preference. `governance/capability-registry.json` is CLOSED; its `base/` admission rule is
-  exact — a crate enters `base/` only if depended on by AT LEAST THREE capabilities and strictly
-  below all of them. Exactly one depends on this today, so `base/` is not open to it, and
-  `specs/k8s-port/scope.json` names `k8s` as the port's destination capability. It goes to
-  `k8s/core/go-runtime` and relocates when the registry's rule — not an opinion — says it may. The
-  `*/core/*` workspace glob made it a member with ZERO edit to the root manifest, which is exactly
-  the merge-conflict class ADR-0538 set out to remove.
-  THREADS, NOT FUTURES, and this is a decision with a reason. A goroutine is a stackful,
-  preemptively scheduled thread whose blocking operations block. Translating blocking Go into
-  `async` requires colouring every function that transitively blocks — the fixpoint the census names
-  as one of its two largest open questions (§4.1, §7 item 1) and could not close — and colouring
-  wrong is not a performance bug: a guard held across an `.await` is a deadlock, with a proxy
-  population of 55–107 at-risk sites. Two smaller facts point the same way: 239 of 400 channels
-  (59.8%) are unbuffered and a rendezvous is directly expressible on threads where
-  `tokio::sync::mpsc::channel(0)` does not exist, and `close(ch)` is a BROADCAST that no
-  sender-disconnection model reproduces. The COST is stated rather than hidden — one OS thread per
-  goroutine is heavier than Go's scheduler — and it is a scheduling decision behind an API, so it
-  can be revisited without changing a line of emitted code.
-  Three semantics have no standard-library equivalent and are why the channel is built on a mutex
-  and two condition variables rather than wrapped around `mpsc`: close is a broadcast; unbuffered is
-  a rendezvous rather than a capacity-one queue (a sender must not run one value ahead); and a
-  closed channel is DRAINED before it reports closure. `chan struct{}` gets its own type because
-  44.8% of created channels are payload-free and a signal is idempotent and broadcast where a value
-  channel delivers each value once — modelling it as `Chan<()>` releases one waiter per close, which
-  is a shutdown that hangs in production rather than in a test.
-  Lock poisoning is deliberately ignored: Go has no poisoning, and propagating it would introduce a
-  failure mode the ported source has no handling for and never had.
-  14 semantics proofs, each corresponding to a place where the obvious Rust construct means
-  something DIFFERENT from the Go one — a crate that merely compiled would pass none of them and
-  would look finished. Stable across five consecutive runs.
-  The R-DOC gate caught the new crate leaf as unclassified, which is its stated purpose;
-  `specs/k8s-port/regenerable-regions.json` now carries it as `first-party` and its census moved
-  18/44/62 → 19/44/63.
+- P6a REVERTED, and the scope rule it clarified is worth keeping.
+  `k8s/core/go-runtime` was a hand-written Go concurrency runtime — channels, `WaitGroup`, `Once`,
+  the `wait.Until` family — placed under the `k8s` capability by the registry's own `base/`
+  admission rule. It was correct work and it was the WRONG WORK: that crate is a component of the
+  PORTED ARTIFACT, not of the engine that produces it. Nothing in it makes the engine translate
+  anything, and building it first meant the destination's runtime existed before the engine could
+  emit a single call to it.
+  THE SCOPE RULE: this lane builds the ENGINE, and its work stays inside `build/port-engine/`. The
+  destination tree (`k8s/`), its runtime libraries, and the specs that classify them are downstream
+  of an engine that can emit them, and touching them ahead of that is building the port rather than
+  the thing that ports.
+  The census reading that motivated it stands and is recorded here so it is not re-derived:
+  `census/concurrency.md` §6 sizes the concurrency surface at ~65–85 mechanical rules plus FIVE
+  hand-ported runtime libraries, and `wait.*` alone is 108 of 400 named goroutine launches (27%)
+  and 65% of the S1 background-loop shape. When the engine can emit a `go` statement, those
+  libraries are what its rules should target — and that is when they get written.
 
 ## Still owed by this lane
 
@@ -368,14 +344,6 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   to `&Tag`, and is not when a conservative ownership rule makes it `Option<Box<Tag>>` — which is
   why the argument and result SITES are proven on the snapshot in `corpus-interface/` rather than
   end-to-end through the emit. The assertion site is proven end-to-end.
-- NOTHING EMITS A CALL TO `k8s/core/go-runtime` YET. The library is the half that had to exist
-  first; the translation rules that call it are the other half, and they need three things this
-  commit does not have: a `go` statement in the extractor's vocabulary, closures in the IR (`go f(x)`
-  is `spawn(move || f(x))`), and a compile proof that LINKS the runtime — today it runs `rustc` with
-  no `--extern` at all, so an emit with a dependency would not be provable by it.
-- The orphan rule becomes reachable with that link and not before. `go-runtime` is the first thing
-  the emitted crate depends on across a crate boundary, which is the condition P5 recorded as the
-  one that makes foreign-trait-on-foreign-type possible.
 - A struct embedding an INTERFACE still refuses, because the field position has no declared
   trait-object form. `Box<dyn T>` would compile and would claim unique ownership of a value the
   source may share, and nothing here proves it is not shared — which is the same reason P3 refuses
