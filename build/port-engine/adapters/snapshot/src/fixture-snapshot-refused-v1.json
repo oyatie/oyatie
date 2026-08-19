@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:329f035585cbca08794c90387ec4414969683fe0742b4c9ec18e86134de3a3de",
+  "snapshot_digest": "sha256:127b04e13b7777d9b9f53f6cb01480ae6aee6274f7eb596083133e40b5ca5044",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -416,6 +416,99 @@
                       "attrs": {
                         "ref": "local"
                       }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Rethrow",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Rethrow aborts carrying an error value.\n\nREFUSED. The target's `panic!` carries a formatted string, so the payload TYPE is lost: a caller\nthat recovers and type-asserts on the error would see a different program. The pack answers for\n`panic` only where the payload is a string literal, and says so by name."
+          },
+          "children": [
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "expr_stmt",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "panic"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "panic",
+                          "attrs": {
+                            "ref": "builtin"
+                          }
+                        },
+                        {
+                          "kind": "call",
+                          "name": "",
+                          "attrs": {
+                            "callee": "errors.New"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "New",
+                              "type": {
+                                "kind": "func",
+                                "args": [
+                                  {
+                                    "kind": "tuple",
+                                    "args": [
+                                      {
+                                        "kind": "basic",
+                                        "name": "string"
+                                      }
+                                    ]
+                                  },
+                                  {
+                                    "kind": "tuple",
+                                    "args": [
+                                      {
+                                        "kind": "named_interface",
+                                        "name": "error"
+                                      }
+                                    ]
+                                  }
+                                ]
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "errors",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"boom\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 }

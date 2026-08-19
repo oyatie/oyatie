@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:cf0a13d83337d2e51d1e5e46c27adfc8028af7f8a7e82f94348c1ba1a5be41e4",
+  "snapshot_digest": "sha256:3d72e727b23ada673ab754af253617e7a49f085e62b139e0f07141e467bf5ba1",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -2707,6 +2707,165 @@
                               }
                             }
                           ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/invariant",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Half",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Half returns n halved, and aborts on an odd input.\n\nThe invariant shape: a condition the caller is required to have met, and a literal message\nnaming what it was."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "!="
+                          },
+                          "children": [
+                            {
+                              "kind": "binary",
+                              "name": "",
+                              "attrs": {
+                                "op": "%"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "n",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "INT",
+                                    "value": "2"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "expr_stmt",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "panic"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "panic",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"Half requires an even argument\""
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "/"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "2"
+                          }
                         }
                       ]
                     }

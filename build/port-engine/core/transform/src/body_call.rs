@@ -10,7 +10,7 @@
 //! `f(x)`, `value.Method()` and `package.Function()` with one production, and deciding by shape is
 //! how a cross-package call became a method call on a binding that did not exist.
 
-use port_engine_api::{Declaration, PointerConstruction};
+use port_engine_api::{Declaration, FunctionMapping, PointerConstruction};
 use port_engine_rust_ir::RustExpr;
 
 use crate::body::{Body, one_child};
@@ -19,7 +19,8 @@ use crate::body_ops::{operator_of, own_string_for, reference};
 use crate::error::TransformError;
 use crate::naming::{module_path, to_snake_case};
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_CALLEE_KIND, CALLEE_KIND_METHOD, KIND_UNARY, OPERATOR_ADDRESS_OF,
+    ARGUMENT_STRING_LITERAL, ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, CALLEE_KIND_METHOD,
+    KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
 };
 
 /// One argument, translated for the parameter it reaches.
@@ -175,11 +176,12 @@ fn mapped_call(
     let Some(identity) = node.attr(ATTR_CALLEE) else {
         return Ok(None);
     };
-    let Some(template) = cx.resolver.function_map.get(identity) else {
+    let Some(mapping) = cx.resolver.function_map.get(identity) else {
         return Ok(None);
     };
+    refuse_wrong_argument_shape(node, identity, mapping, cx)?;
 
-    let mut rendered = template.clone();
+    let mut rendered = mapping.form.clone();
     for (index, arg) in args.iter().enumerate() {
         let operand = render_operand(arg).ok_or_else(|| TransformError::Unsupported {
             name: cx.owner.to_owned(),
@@ -200,6 +202,58 @@ fn mapped_call(
         });
     }
     Ok(Some(RustExpr::Literal(rendered)))
+}
+
+/// Refuse a mapped call whose argument is not the shape the mapping declares.
+///
+/// Some mappings hold for any argument and some do not. `panic` is the case this exists for: Go's
+/// `panic(v)` aborts carrying `v` and Rust's `panic!` aborts carrying a formatted string, so where
+/// `v` is a STRING LITERAL the two are the same abort with the same message and the same payload
+/// type — and where it is an error or an arbitrary value the payload TYPE is lost, which a caller
+/// that recovers and type-asserts on it would see as a different program.
+///
+/// The condition is pack data and its vocabulary is CLOSED: a shape the engine has never heard of
+/// refuses rather than being read as "no condition", because a condition nobody checks is a
+/// condition that is not there.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] naming the call, the shape required, and the shape found.
+fn refuse_wrong_argument_shape(
+    node: &Declaration,
+    identity: &str,
+    mapping: &FunctionMapping,
+    cx: &Body<'_>,
+) -> Result<(), TransformError> {
+    let Some(required) = mapping.requires_argument.as_deref() else {
+        return Ok(());
+    };
+    let argument = node.children.get(1);
+    let holds = match required {
+        ARGUMENT_STRING_LITERAL => argument.is_some_and(|arg| {
+            arg.kind == KIND_LITERAL && arg.attr(ATTR_LIT_KIND) == Some(LIT_KIND_STRING)
+        }),
+        unknown => {
+            return Err(TransformError::Unsupported {
+                name: cx.owner.to_owned(),
+                detail: format!(
+                    "the pack requires argument shape `{unknown}` for `{identity}`, which is not \
+                     a shape this engine knows how to check"
+                ),
+            });
+        }
+    };
+    if holds {
+        return Ok(());
+    }
+    Err(TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: format!(
+            "`{identity}` is answered by the pack only for a `{required}` argument, and this call \
+             passes `{}` — {}",
+            argument.map_or("nothing", |arg| arg.kind.as_str()),
+            mapping.reason
+        ),
+    })
 }
 
 /// An argument, as target text for a template to interpolate.

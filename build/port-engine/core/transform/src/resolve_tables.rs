@@ -61,7 +61,7 @@ impl Resolver<'_> {
 
         // The pack answers first, for anything the target has no name of its own for.
         if let Some(mapped) = self.function_map.get(identity) {
-            return Ok(mapped.clone());
+            return Ok(mapped.form.clone());
         }
 
         let Some((package, name)) = identity.rsplit_once('.') else {
