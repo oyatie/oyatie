@@ -383,7 +383,11 @@ jobs:
   # Fan-in: the single required context. Green IFF lint, test, and both live-postgres
   # lanes are green. The cross-platform lane is soft: its failure never blocks merge.
   oya-ci-required:
-    name: oya-ci-required
+    # The context string is the job's `name:`, not its id, so this renames the PUBLIC status
+    # check while leaving the job id -- and therefore the rust-first inline-shell baseline key
+    # `<file>::<job-id>::<step>` -- untouched. That is what makes this rename possible without
+    # a replacement-window ADR.
+    name: merge-admission-required
     runs-on: ubuntu-latest
     if: ${{ always() }}
     # cross-platform-smoke is deliberately NOT a dependency. The verdict below never reads
@@ -400,7 +404,13 @@ jobs:
   # Dual-emit of the forever public status string alongside the legacy protected context.
   # The branch-protection flip to `merge-admission-required` is a founder-only setting change.
   merge-admission-required:
-    name: merge-admission-required
+    # TRANSITION MIRROR, to be deleted once branch protection requires only the new name.
+    # It carries the OLD context string so `oya-ci-required` keeps reporting while protection
+    # still lists it. It is a mirror, not the verdict: it SKIPS when the fan-in fails, which is
+    # exactly why it must never be the sole required context. Protection currently requires
+    # BOTH names, so at every point in this migration at least one required context is the real
+    # fan-in and fails closed on red -- there is no window where a skip can satisfy the gate.
+    name: oya-ci-required
     runs-on: ubuntu-latest
     if: ${{ always() && needs.oya-ci-required.result == 'success' }}
     needs:
