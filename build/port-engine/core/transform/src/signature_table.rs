@@ -102,6 +102,7 @@ impl SignatureTable {
             &declarations,
             semantics.failure_convention(),
             semantics.length_functions(),
+            &semantics.format_calls().functions.keys().cloned().collect(),
         );
             // Every name: a SIGNATURE names no body, so nothing here can depend on whether another
             // declaration's body translated.

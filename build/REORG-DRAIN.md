@@ -3131,3 +3131,44 @@ constructs each, and the formatting call was one of them. What moved is that `fm
 out of `lower_expr.rs` — the second a real seam rather than a size cut: what a node BECOMES and where
 the grammar needs it BRACKETED are different questions, and getting the second wrong reassociates
 silently rather than failing to compile.
+
+## R1f — two findings a rule about the CODE would never have reached
+
+A ninth blind review verified its provenance claim against upstream rather than inferring it, which
+makes its evidence sharper than any before it. Two items were provable and are now in.
+
+**A blank line between declarations.** Eighty-seven lines of items with nothing between them. The
+formatter will never fix this — `prettyplease` preserves no blank lines because the tree it renders
+has none — so no rule about the code could have reached it. Each region is one declaration's output,
+a type and the impls that belong to it, so the break goes BETWEEN regions and never inside one: a
+break inside would split a type from its own impl. The reviewer said seven near-identical error
+blocks were unscannable without it, and that this is not how authored code is laid out. Both true.
+
+**A read that only RENDERS a value is neutral evidence.** The length-constant proof requires every
+read of a candidate to be a comparison against a length — one read that is anything else means the
+signed value IS observed somewhere. That was too strict in exactly the case the rule exists for.
+`semver` compares each of its bounds against a length once and then names it in the message that
+reports the breach; the message read counted as evidence against, so all three stayed signed. A
+formatted read observes a value and not its type, and the same non-negative literal renders
+identically whichever integer it is. `MAX_CONSTRAINT_LEN`, `MAX_CONSTRAINT_GROUPS` and
+`MAX_VERSION_LEN` are now `usize`.
+
+Note what made that reachable: the formatting rule landed one phase earlier. Until the pack could
+say which callees render their arguments, "this read only formats the value" was not a fact the
+engine had. A reviewer named the signed bound three separate times before the engine could see why.
+
+**Declined again, with the reason sharpened.** The reviewer cited `uint64` twice — once in a doc
+comment and once in a `Display` string. The doc comment was already correct; the prose rule had
+rewritten it, and the citation was to the string. The string stands: it is the program's OUTPUT, and
+rewriting what a program prints is changing the program. The line holds — prose that DESCRIBES the
+code is rewritten, text the code EMITS is not.
+
+**Named as the next provable finding, not yet done.** A doc comment that names a declaration the
+crate does not emit — `inc_major_e`, `inc_minor_e`, `inc_patch_e`, whose methods refused — is prose
+describing an API that is not there, which is the self-containment rule at the prose layer. The same
+sentence also names `errors.Is`, a foreign package's function. The engine has both facts already: the
+rename map knows the target name and `emitted` knows whether it is there. What stops it today is that
+`docs_of` is infallible everywhere it is called, so refusing from inside it is a signature change
+across the item faces rather than a rule. Worth doing; worth doing deliberately.
+
+All seven real packages still compile with zero rustc errors and zero clippy warnings.
