@@ -19,7 +19,8 @@ pub use port_go::{
     assemble_modules, port_go_delta, port_go_dispositions, port_go_drift_after,
     port_go_drift_before, port_go_failure_pipeline, port_go_from, port_go_pipeline,
     port_go_refused, port_go_refused_failure,
-    port_go_refused_interface, port_go_refused_ownership, port_go_refused_unproven,
+    port_go_refused_interface, port_go_refused_ownership, port_go_refused_sentinel,
+    port_go_refused_unproven,
     port_go_source,
 };
 pub use probe::{render_survey, survey_snapshot};

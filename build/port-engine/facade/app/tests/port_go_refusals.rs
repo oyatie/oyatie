@@ -139,3 +139,25 @@ fn a_failure_the_engine_cannot_prove_is_refused_by_its_operand() {
         "the refusal must say what emitting it anyway would COST, got: {message}"
     );
 }
+
+/// What the SENTINEL decision costs, proven rather than claimed.
+///
+/// A sentinel becomes its message, which is what a `return ErrGone` needs and all it needs. What
+/// the message cannot carry is IDENTITY: the source's `errors.New` returns a pointer, so
+/// `err == ErrGone` compares identity, and the target's boxed trait object has no equality at all.
+/// A comparison against a freshly built value would be FALSE at every call — so the site refuses,
+/// and this asserts it refuses rather than emitting something that merely fails to compile.
+#[test]
+fn comparing_against_a_sentinel_refuses_where_returning_one_does_not() {
+    let err = driver::port_go_refused_sentinel()
+        .expect_err("a sentinel comparison has no target expression");
+    let message = err.to_string();
+    assert!(
+        message.contains("ErrGone") && message.contains("SENTINEL failure"),
+        "the refusal must name the sentinel it refused to compare, got: {message}"
+    );
+    assert!(
+        message.contains("false at every call"),
+        "the refusal must say what emitting a comparison anyway would COST, got: {message}"
+    );
+}

@@ -1744,3 +1744,50 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
 - Verify: 49 test binaries green including the compile proof; port-engine clippy `-D warnings`
   clean; `delta` Green/Unchanged; golden refreshed with `Report`'s boxed error field.
+
+## The sentinel error, which blocked twice over
+
+- After the failure proof landed, the top of the board was the refusal it introduced — 14 unproven
+  `ident` returns across 5 packages. Almost all of them are the same thing: a SENTINEL.
+  `var ErrSize = errors.New("size")`, declared once and returned from many places, is the commonest
+  error-typed package variable in real code, and it blocked twice over. The declaration is not a
+  constant expression, so it could not be a `static`; and every `return ErrSize` is an operand
+  nothing could prove was a failure.
+
+- THE DECISION: a sentinel becomes its MESSAGE. `static ERR_SIZE: &str = "size"`, and each failing
+  return builds a failure from it through the same mapping the pack already declares for the
+  constructor — one rule doing the work rather than a second free to disagree with it. The message
+  is a constant expression, so there is no lazy initialisation and no when-does-the-work-happen
+  question of the kind that defers `package_init`.
+
+- THE COST, and it is real: the source's sentinel has IDENTITY. `errors.New` returns a POINTER, so
+  `err == ErrSize` compares identity and is a line real code writes. The target's boxed trait object
+  has no equality at all, so nothing means what that line means. The split falls exactly along what
+  the target can express — RETURNING a sentinel ports, COMPARING against one does not — and the
+  comparison refuses by name at the site.
+
+- THE FIRST TRY AT IT WAS WRONG, and the corpus caught it. Building the failure at every reference
+  to a sentinel meant `err == ErrGone` emitted `err == Box::from(ERR_GONE)`: not a refusal, just
+  code that fails to compile — and for third-party corpora, which are never compiled, not even that.
+  An identifier does not know where it stands. So the construction moved to `fallible_return`, which
+  is the one place the engine already knows the operand IS the failure, and a sentinel read anywhere
+  else refuses. Emitting something that merely fails to compile is a worse outcome than refusing,
+  because the reader gets a broken crate instead of a sentence saying what is missing.
+
+- `fmt.Errorf` is a failure constructor and NOT a sentinel one, and the distinction is why the pack
+  has two lists: its message is FORMATTED from arguments, which is not a constant expression. Seven
+  of the seventeen error-typed package variables in the corpora are built that way and refuse.
+
+- THE REFUSAL CORPUS SHADOWED ITSELF, which is the failure mode the engine's own comment warns
+  about: the sentinel comparison and the unproven operand shared a package, the transform reports
+  the first refusal it reaches, and the sentinel one took over — silently un-proving the class the
+  corpus had been added for. Split into `corpus-sentinel/`, per the standing pattern. A refusal class
+  proven in a shared corpus stops being proven the day another refusal lands beside it.
+
+- Ratchet: semver 36.2 → 51.7, uuid 44.3 → 46.4, ksuid 44.1 → 45.2. Together with the failure proof
+  that preceded it, semver is up 15.5 points on where it started the pair and every declaration that
+  returns a failure now proves it is one.
+
+- Verify: 49 test binaries green including the compile proof — `Err(Box::<dyn Error + Send + Sync>
+  ::from(ERR_EMPTY))` compiles; port-engine clippy `-D warnings` clean; `delta` Green/Unchanged;
+  golden refreshed.

@@ -20,7 +20,7 @@ pub use admit::{
     admit_embedded_fixture_buildtags_v1, admit_embedded_fixture_drift_before_v1,
     admit_embedded_fixture_failure_v1, admit_embedded_fixture_foreign_v1,
     admit_embedded_fixture_interface_v1, admit_embedded_fixture_ownership_v1,
-    admit_embedded_fixture_unproven_v1,
+    admit_embedded_fixture_sentinel_v1, admit_embedded_fixture_unproven_v1,
     admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1, admit_reproducible_pair,
 };
 pub use admitted::AdmittedSnapshot;
@@ -62,6 +62,13 @@ pub(crate) const FIXTURE_SNAPSHOT_FAILURE_V1_JSON: &str =
 /// the distinction is proven rather than shadowed by whichever package the transform reached first.
 pub(crate) const FIXTURE_SNAPSHOT_UNPROVEN_V1_JSON: &str =
     include_str!("fixture-snapshot-unproven-v1.json");
+
+/// Embedded fixture for what a SENTINEL failure cannot do: be compared against.
+///
+/// Its own corpus because a refusal class proven in a shared one stops being proven the day another
+/// refusal lands beside it — which is exactly what happened when this shared the unproven corpus.
+pub(crate) const FIXTURE_SNAPSHOT_SENTINEL_V1_JSON: &str =
+    include_str!("fixture-snapshot-sentinel-v1.json");
 
 /// Embedded fixture for the corpus whose files are selected by BUILD CONSTRAINTS.
 ///

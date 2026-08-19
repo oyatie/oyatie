@@ -134,7 +134,7 @@ pub mod fallible {
     /// Reports the length of s, failing on the empty string.
     pub fn length(s: &str) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         if s.is_empty() {
-            return Err(Box::<dyn std::error::Error + Send + Sync>::from("empty"));
+            return Err(Box::<dyn std::error::Error + Send + Sync>::from(ERR_EMPTY));
         }
         Ok(s.len() as i64)
     }
@@ -158,6 +158,9 @@ pub mod fallible {
         /// Why it did not succeed.
         cause: Box<dyn std::error::Error + Send + Sync>,
     }
+    // region: oyatie_example_portengine_fixture_corpus_fallible__go_var__errempty
+    /// Returned when the input string has no content.
+    pub static ERR_EMPTY: &str = "empty";
 }
 pub mod geometry {
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_alias__origin

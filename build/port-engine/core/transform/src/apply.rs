@@ -130,7 +130,7 @@ pub fn apply_with_provenance(
                 .ok_or_else(|| TransformError::UnitNotInModel {
                     unit: step.unit.0.clone(),
                 })?;
-        let scope = LocalScope::of(&declarations);
+        let scope = LocalScope::with_failure(&declarations, semantics.failure_convention());
         let entry = captured_kinds.entry(step.unit.clone()).or_default();
         for capture in captures {
             entry.insert(capture.clone());

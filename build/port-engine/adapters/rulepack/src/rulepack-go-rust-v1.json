@@ -415,7 +415,8 @@
     ],
     "oyatie.example/portengine-fixture/corpus/fallible": [
       "go_func",
-      "go_struct_body"
+      "go_struct_body",
+      "go_var"
     ],
     "oyatie.example/portengine-fixture-failure/corpus-failure/carried": [
       "go_func"
@@ -446,6 +447,10 @@
     "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored": [
       "go_func",
       "go_struct_body"
+    ],
+    "oyatie.example/portengine-fixture-sentinel/corpus-sentinel/identity": [
+      "go_func",
+      "go_var"
     ]
   },
   "type_constructors": {
@@ -592,7 +597,11 @@
       "errors.New",
       "fmt.Errorf"
     ],
-    "constructor_reason": "Which callees PRODUCE a failure, and therefore never produce the absent value. Needed because the target's failing return is `Err(..)` and the source's is a value that MAY be absent: wrapping an error-typed expression in `Err` is right only when that expression cannot be nil, and wrong -- silently, at runtime, in the direction of reporting failure where the source reported success -- when it can. `func (r *Report) Cause() error` returning a stored field is the shape that shows it: the source's caller checks the result against nil, and a target that always returns `Err` is a different program. A CALL to one of these is proof, because a failure constructor has no nil result to return. The other proof the engine has needs no table: the ADDRESS OF A FRESH COMPOSITE is never nil. An error-typed expression that is neither refuses by name. Add a callee here only when it cannot return the absent value on any path."
+    "constructor_reason": "Which callees PRODUCE a failure, and therefore never produce the absent value. Needed because the target's failing return is `Err(..)` and the source's is a value that MAY be absent: wrapping an error-typed expression in `Err` is right only when that expression cannot be nil, and wrong -- silently, at runtime, in the direction of reporting failure where the source reported success -- when it can. `func (r *Report) Cause() error` returning a stored field is the shape that shows it: the source's caller checks the result against nil, and a target that always returns `Err` is a different program. A CALL to one of these is proof, because a failure constructor has no nil result to return. The other proof the engine has needs no table: the ADDRESS OF A FRESH COMPOSITE is never nil. An error-typed expression that is neither refuses by name. Add a callee here only when it cannot return the absent value on any path.",
+    "sentinel_constructors": [
+      "errors.New"
+    ],
+    "sentinel_reason": "A SENTINEL is a package-level failure value the source declares once and returns from many places: `var ErrSize = errors.New(\"size\")`. It is the commonest error-typed package variable in real code and it blocks twice over -- the declaration is not a constant expression, so it cannot be a static, and every `return ErrSize` is an operand the engine cannot prove is a failure. THE DECISION: a sentinel becomes its MESSAGE. `static ERR_SIZE: &str = \"size\"`, and each `return ErrSize` builds a failure from it through the same mapping the pack already declares for its constructor. The message is a constant expression, so it needs no lazy initialisation and no when-does-the-work-happen decision; and one rule does the work rather than a second one that could disagree with the constructor mapping. THE COST, stated rather than hidden: the source's sentinel has IDENTITY. `errors.New` returns a pointer, and a source caller writes `err == ErrSize` to compare against it. The target's boxed trait object has no equality at all, so that comparison has no translation -- and it REFUSES at the comparison site rather than silently comparing something else. Returning a sentinel ports; comparing against one does not, and the split falls exactly along what the target can express. LISTED HERE and not in `constructors` because these are the callees whose sole argument IS the message. `fmt.Errorf` is a constructor but not a sentinel one: its message is FORMATTED from arguments, which is not a constant expression, so a sentinel built by one refuses by name."
   },
   "function_map": {
     "errors.New": {

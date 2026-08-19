@@ -13,13 +13,25 @@ package fallible
 
 import "errors"
 
+// The SENTINEL: one failure value declared once and returned from many places, which is the
+// commonest error-typed package variable in real code. It becomes its MESSAGE, and each return
+// builds a failure from that through the same mapping the pack declares for the constructor.
+//
+// What is lost is IDENTITY. The source's `errors.New` returns a pointer and a caller may write
+// `err == ErrEmpty` to compare against it; the target's boxed trait object has no equality, so that
+// comparison has no translation and refuses where it is written rather than comparing something
+// else. Returning a sentinel ports; comparing against one does not.
+
+// ErrEmpty is returned when the input string has no content.
+var ErrEmpty = errors.New("empty")
+
 // The one-value-and-a-failure shape: `(int, error)`, which is what most of a real package looks
 // like.
 
 // Length reports the length of s, failing on the empty string.
 func Length(s string) (int, error) {
 	if s == "" {
-		return 0, errors.New("empty")
+		return 0, ErrEmpty
 	}
 	return len(s), nil
 }

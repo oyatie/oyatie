@@ -19,7 +19,7 @@ use crate::body_ops::{
     refuse_deferred_reference, unary_operator, unary_refusal,
 };
 use crate::error::TransformError;
-use crate::naming::to_snake_case;
+use crate::naming::{to_snake_case, to_screaming_snake};
 use crate::vocabulary::{
     ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, DISPOSITION_OWNED_POINTER, FLAG_REREAD, IDIOM_EMPTY_STRING, KIND_COMPOSITE, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
 };
@@ -59,6 +59,7 @@ pub(crate) fn in_position(
         "ident" if is_receiver(node) => Ok(RustExpr::SelfValue),
         "ident" => {
             refuse_deferred_reference(node, cx)?;
+            refuse_sentinel_out_of_place(node, cx)?;
             Ok(RustExpr::Path(reference(node, cx.resolver)))
         }
         // A source-level parenthesis carries no information the tree does not already have, and
@@ -142,6 +143,42 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         op,
         lhs: Box::new(left),
         rhs: Box::new(right),
+    })
+}
+
+/// A SENTINEL read anywhere but a failing return, which has no target expression.
+///
+/// The sentinel is emitted as its MESSAGE, and a failure is built from it at the one place a
+/// failure is wanted — a failing return, where `fallible_return` knows that is what the operand is.
+/// An identifier does not know where it stands, so building one here would build a failure in
+/// places that want something else.
+///
+/// The comparison is the case that matters and the cost the decision names: the source's
+/// `errors.New` returns a POINTER, so `err == ErrGone` compares identity and is a line real code
+/// writes. The target's boxed trait object has no equality, so nothing means what that line means —
+/// and emitting a comparison against a freshly built value would be FALSE at every call. It refuses
+/// here rather than emitting that.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] naming the sentinel and where it can be used.
+fn refuse_sentinel_out_of_place(
+    node: &Declaration,
+    cx: &Body<'_>,
+) -> Result<(), TransformError> {
+    if !cx.resolver.scope.sentinels.contains_key(&node.name) {
+        return Ok(());
+    }
+    Err(TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: format!(
+            "`{}` is a SENTINEL failure, which is emitted as its message — so it can be built into \
+             a failure where one is returned, and read nowhere else. The source's sentinel has \
+             POINTER identity and the target's failure is a boxed trait object with no equality, so \
+             a comparison against it has no target expression at all: emitting one against a \
+             freshly built value would be false at every call. What is missing is a decision about \
+             sentinel identity, not a spelling.",
+            node.name
+        ),
     })
 }
 

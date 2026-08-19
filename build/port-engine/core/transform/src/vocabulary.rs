@@ -77,6 +77,8 @@ pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
 pub const KIND_UNARY: &str = "unary";
 /// The node kind of a call.
 pub const KIND_CALL: &str = "call";
+/// The declaration kind of a package-level variable.
+pub const KIND_VAR: &str = "var";
 /// The source spelling of the address-of operator.
 pub const OPERATOR_ADDRESS_OF: &str = "&";
 /// Attribute key holding a literal's lexical class, as the source spells it.

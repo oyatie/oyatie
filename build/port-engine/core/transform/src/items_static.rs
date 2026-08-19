@@ -57,6 +57,22 @@ pub(crate) fn build_static(
                 .unwrap_or_default(),
         });
     }
+    // A SENTINEL is its message. The initialiser is a call, which is not a constant expression, so
+    // this arm exists before the constant test rather than inside it — what makes the value usable
+    // is not that the call can be evaluated early but that the call is unnecessary until a return
+    // needs one. See `sentinel.rs` for what this costs.
+    if let Some(message) = resolver.scope.sentinels.get(&declaration.name) {
+        return Ok(RustItem::Static {
+            docs: docs_of(declaration, resolver.doc_convention),
+            vis: visibility(declaration),
+            name: to_screaming_snake(&declaration.name),
+            ty: RustType::Reference {
+                mutable: false,
+                inner: Box::new(RustType::Path(TARGET_STR.to_owned())),
+            },
+            value: RustExpr::Literal(message.clone()),
+        });
+    }
     let ty = static_type(declaration, resolver)?;
     let value = match declaration.children.first() {
         // No initialiser at all: the source guarantees the zero value, and there is no work whose

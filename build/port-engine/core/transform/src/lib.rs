@@ -47,6 +47,7 @@ mod resolve;
 mod signature_table;
 mod resolve_policy;
 mod resolve_tables;
+mod sentinel;
 mod signature;
 mod survey;
 mod vocabulary;
