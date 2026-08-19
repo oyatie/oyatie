@@ -5,7 +5,7 @@ plane: offline
 slo: cataloged-no-runtime-claim
 data_classes_owned: []
 operational_classes_owned: []
-api_stability: offline
+api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
