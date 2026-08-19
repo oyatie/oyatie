@@ -27,7 +27,7 @@ func Widths() []int64 {
 	return []int64{1, 2, 3}
 }
 
-// Empty returns no widths at all.
+// Empty returns the widths of a table with no columns.
 func Empty() []int64 {
 	return []int64{}
 }

@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:d75353c57b0c3a840a35c5e3a33d2c47df068c73b46ab1f764dc7cc655b69e4d",
+  "snapshot_digest": "sha256:e28c822b214adfb7b3ce3f5d5d6cccc5aa01123cac20c5c67df544c0bf4e2dec",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -4446,7 +4446,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Tally is a counter allocated away from the caller's frame."
+            "doc": "Tally is a label shared by everything that reports under it."
           },
           "children": [
             {
@@ -4457,7 +4457,7 @@
                 "name": "string"
               },
               "attrs": {
-                "doc": "label names the tally."
+                "doc": "label names what is being tallied."
               }
             }
           ]
@@ -4469,7 +4469,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "NewTally returns a tally named for display."
+            "doc": "NewTally returns a tally reporting under the given label."
           },
           "children": [
             {
@@ -5290,7 +5290,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Empty returns no widths at all."
+            "doc": "Empty returns the widths of a table with no columns."
           },
           "children": [
             {

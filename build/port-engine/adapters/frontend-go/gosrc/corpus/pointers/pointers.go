@@ -52,9 +52,9 @@ func (c *Counter) Merge(other *Counter) {
 	c.total = c.total + other.total
 }
 
-// Tally is a counter allocated away from the caller's frame.
+// Tally is a label shared by everything that reports under it.
 type Tally struct {
-	// label names the tally.
+	// label names what is being tallied.
 	label string
 }
 
@@ -64,7 +64,7 @@ type Tally struct {
 // binding stays refused. And `func New(..) *T`, which is the commoner constructor shape of the
 // two: what it constructs is the pointer's target, so the impl block stands on that.
 
-// NewTally returns a tally named for display.
+// NewTally returns a tally reporting under the given label.
 func NewTally(label string) *Tally {
 	return &Tally{label: label}
 }
