@@ -1,5 +1,7 @@
 //! Parameters, results, and method signatures — as IR nodes.
 
+use std::collections::BTreeSet;
+
 use port_engine_api::Declaration;
 use port_engine_rust_ir::{Receiver, RustFn, RustParam, RustType, Visibility};
 
@@ -9,8 +11,7 @@ use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_fo
 use crate::params::{params, results};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    ATTR_RECEIVER, CHILD_BODY, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC,
-    POSITION_PARAM, POSITION_RESULT,
+    ATTR_RECEIVER, CHILD_BODY, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC, POSITION_PARAM, POSITION_RESULT,
 };
 
 /// Whether a method's body is translated, stubbed, or absent.
@@ -34,9 +35,15 @@ pub(crate) fn inherent_methods(
     resolver: &Resolver<'_>,
     body: Body,
 ) -> Result<Vec<RustFn>, TransformError> {
+    // A method the source's own interfaces claim is emitted in the TRAIT IMPL, not here. Both
+    // would be an inherent method shadowing a trait method of the same name: it compiles because
+    // inherent wins path resolution, and deleting the inherent one turns the trait impl's forward
+    // into infinite recursion — a stack overflow introduced by removing code.
+    let claimed = methods_claimed_by_traits(declaration);
     let mut methods = declaration
         .children_of_kind(CHILD_METHOD)
         .into_iter()
+        .filter(|method| !claimed.contains(&method.name))
         .map(|method| {
             method_signature(
                 method,
@@ -47,7 +54,7 @@ pub(crate) fn inherent_methods(
             )
         })
         .collect::<Result<Vec<_>, _>>()?;
-    methods.extend(crate::promote::promoted_methods(declaration, resolver)?);
+    methods.extend(crate::promote::promoted_methods(declaration, resolver, &claimed)?);
     Ok(methods)
 }
 
@@ -208,4 +215,18 @@ pub(crate) fn method_signature(
 /// Visibility for a declaration, as a value the IR places rather than a prefix a string carries.
 pub(crate) fn declared_visibility(declaration: &Declaration) -> Visibility {
     visibility(declaration)
+}
+
+/// The method names some observed interface satisfaction will carry into a trait impl.
+///
+/// Those are emitted THERE and not in the inherent block, because a type carrying both an inherent
+/// `describe` and a trait `describe` is the shadowing footgun above. A method that satisfies no
+/// interface keeps its inherent impl, because there is no trait to put it in.
+fn methods_claimed_by_traits(declaration: &Declaration) -> BTreeSet<String> {
+    declaration
+        .children_of_kind(CHILD_IMPLEMENTS)
+        .into_iter()
+        .flat_map(|observed| observed.children_of_kind(CHILD_METHOD))
+        .map(|method| method.name.clone())
+        .collect()
 }

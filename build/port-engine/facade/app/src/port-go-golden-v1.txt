@@ -84,20 +84,10 @@ pub mod composite {
         /// Describes this driver.
         label: String,
     }
-    impl Driver {
-        /// Renders a description.
-        pub fn describe(&self) -> String {
-            self.label.clone()
-        }
-        /// Performs one unit of work and reports the running count.
-        pub fn run(&mut self) -> i64 {
-            self.engine.run()
-        }
-    }
     /// Ported from an implicit interface: the source was observed satisfying `Describer` at assertion.
     impl Describer for Driver {
         fn describe(&self) -> String {
-            Driver::describe(self)
+            self.label.clone()
         }
     }
     /// Ported from an implicit interface: the source was observed satisfying `Job` at assertion.
@@ -105,7 +95,7 @@ pub mod composite {
     /// Ported from an implicit interface: the source was observed satisfying `Runner` at assertion.
     impl Runner for Driver {
         fn run(&mut self) -> i64 {
-            Driver::run(self)
+            self.engine.run()
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_struct_body__engine
@@ -244,23 +234,13 @@ pub mod naming {
         /// The current display name.
         text: String,
     }
-    impl Label {
-        /// Returns the display name.
-        pub fn name(&self) -> String {
-            self.text.clone()
-        }
-        /// Recomputes the display name from the prefix.
-        pub fn refresh(&mut self) {
-            self.text = self.prefix.clone();
-        }
-    }
     /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
     impl crate::shapes::Named for Label {
         fn name(&self) -> String {
-            Label::name(self)
+            self.text.clone()
         }
         fn refresh(&mut self) {
-            Label::refresh(self);
+            self.text = self.prefix.clone();
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__tag
@@ -270,22 +250,12 @@ pub mod naming {
         /// The fixed display name.
         text: String,
     }
-    impl Tag {
-        /// Returns the display name.
-        pub fn name(&self) -> String {
-            self.text.clone()
-        }
-        /// Recomputes the display name, which for a fixed tag is already current.
-        pub fn refresh(&self) {}
-    }
     /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
     impl crate::shapes::Named for Tag {
         fn name(&self) -> String {
-            Tag::name(self)
+            self.text.clone()
         }
-        fn refresh(&mut self) {
-            Tag::refresh(self);
-        }
+        fn refresh(&mut self) {}
     }
 }
 pub mod pointers {
