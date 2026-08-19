@@ -27,8 +27,10 @@ pub(crate) fn docs_of(
     let Some(block) = declaration.attr(ATTR_DOC) else {
         return Ok(Vec::new());
     };
-    refuse_dangling_reference(block, declaration, resolver)?;
-    Ok(docs_from_block(block, &declaration.name, resolver))
+    crate::docs_refuse::refuse_dangling_reference(block, declaration, resolver)?;
+    let rendered = docs_from_block(block, &declaration.name, resolver);
+    crate::docs_refuse::refuse_source_language_prose(&rendered, declaration, resolver)?;
+    Ok(rendered)
 }
 
 /// The same, from a doc block and the name it opens with, for a declaration not in hand.
@@ -60,89 +62,6 @@ pub(crate) fn docs_from_block(
             .collect()
         }
     }
-}
-
-/// Refuse prose that NAMES something the emitted crate does not contain.
-///
-/// Self-containment, at the prose layer. A body that calls a declaration which refused is refused,
-/// because the emitted crate would not contain the name; a doc comment that describes one is the
-/// same defect and reads worse — it documents an API that is not there, in the voice of somebody
-/// who checked. A reviewer reading a real ported package ranked exactly this as their single most
-/// decisive piece of evidence that nobody had read the output.
-///
-/// Two shapes, one reason. A word that names a declaration of THIS unit which is not being emitted;
-/// and a qualified name whose package is not a unit of this model, which no module here can reach.
-///
-/// Deliberately narrow. A word only counts when the unit actually declares it, so ordinary English
-/// is untouched; a qualified name only counts in the source's own `package.Exported` shape, so a
-/// decimal number and a sentence boundary are not it.
-fn refuse_dangling_reference(
-    block: &str,
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> Result<(), TransformError> {
-    for word in block.split(|ch: char| !(ch.is_alphanumeric() || ch == '_' || ch == '.')) {
-        if let Some((package, member)) = qualified(word)
-            && !resolver.units.contains(package)
-        {
-            return Err(TransformError::Unsupported {
-                name: declaration.name.clone(),
-                detail: format!(
-                    "its documentation names `{package}.{member}`, which is in a package this \
-                     snapshot does not contain — the emitted crate has nothing by that name, so \
-                     the prose describes an API that is not there"
-                ),
-            });
-        }
-        // Named by this unit, and not being emitted.
-        //
-        // EXPORTED only, which is the same bound the rename map's own construction uses and for the
-        // same reason: an unexported source name is lower-case and indistinguishable from English.
-        // Without it a unit with a field called `con` refused every declaration whose prose used
-        // the word — the exact false positive that bound exists to prevent, arrived at from the
-        // other direction.
-        //
-        // A SENTINEL counts as emitted. It is emitted, as a type, by a path that does not go
-        // through the reachability set — so asking that set alone reported seven of `semver`'s own
-        // error types as absent while they sat in the output.
-        let exported = word.chars().next().is_some_and(char::is_uppercase);
-        // A declaration's own name is never dangling: the prose describes THIS declaration, and
-        // this declaration is the one being emitted.
-        if !exported || word == declaration.name || !resolver.scope.renames.contains_key(word) {
-            continue;
-        }
-        // A MEMBER is emitted exactly when its owner is, so that is what is asked about it. The
-        // top-level set knows nothing about members, and asking it reported every one of them
-        // absent — including the ones in the output.
-        let subject = resolver
-            .scope
-            .member_owners
-            .get(word)
-            .map_or(word, String::as_str);
-        if !resolver.emitted.contains(subject) && !resolver.scope.sentinels.contains_key(subject) {
-            return Err(TransformError::Unsupported {
-                name: declaration.name.clone(),
-                detail: format!(
-                    "its documentation names `{word}`, which this unit declares and is not \
-                     emitting — the prose would describe an API the crate does not contain"
-                ),
-            });
-        }
-    }
-    Ok(())
-}
-
-/// A word in the source's `package.Exported` shape, split into its two halves.
-///
-/// Strict on both sides: the package half starts with a lower-case letter and the member half with
-/// an upper-case one, which is the source's own convention and is what keeps a decimal number and a
-/// sentence boundary from matching.
-fn qualified(word: &str) -> Option<(&str, &str)> {
-    let (package, member) = word.split_once('.')?;
-    let starts_lower = package.chars().next().is_some_and(char::is_lowercase);
-    let starts_upper = member.chars().next().is_some_and(char::is_uppercase);
-    (starts_lower && starts_upper && package.chars().all(char::is_alphanumeric))
-        .then_some((package, member))
 }
 
 /// Rewrite source TYPE names inside text the emitted program itself carries.

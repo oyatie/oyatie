@@ -66,6 +66,13 @@ pub struct DocConvention {
     pub strip_leading_name: bool,
     /// Words dropped along with the name, so the remainder still reads.
     pub copulas: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// Words that name the SOURCE LANGUAGE or something only it has.
+    ///
+    /// Prose containing one documents a program that was not ported. Checked after the opening
+    /// rewrite, which is what makes the language's own name safe to list.
+    pub source_language_words: Vec<String>, // data_class: INTERNAL_ONLY
+    /// Why such prose refuses rather than losing the sentence.
+    pub source_language_words_reason: String, // data_class: INTERNAL_ONLY
     /// Passive openings the source's convention leaves behind, which the target does not have.
     ///
     /// Longest match wins, so `returned when` is taken over `returned` — which is why this is a
