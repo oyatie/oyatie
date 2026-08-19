@@ -36,6 +36,7 @@ pub struct LoadedRulePack {
     pub(crate) format_calls: FormatCalls,
     pub(crate) target_imports: BTreeMap<String, String>,
     pub(crate) unmappable_calls: BTreeMap<String, String>,
+    pub(crate) unmappable_types: BTreeMap<String, String>,
     pub(crate) length_argument_callees: BTreeSet<String>,
     pub(crate) integer_arithmetic: IntegerArithmetic,
     pub(crate) doc_convention: DocConvention,

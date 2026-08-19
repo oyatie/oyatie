@@ -45,6 +45,10 @@ impl PackSemantics for LoadedRulePack {
         &self.length_argument_callees
     }
 
+    fn unmappable_types(&self) -> &BTreeMap<String, String> {
+        &self.unmappable_types
+    }
+
     fn unmappable_calls(&self) -> &BTreeMap<String, String> {
         &self.unmappable_calls
     }

@@ -124,6 +124,7 @@ impl SignatureTable {
                 function_map: semantics.function_map(),
                 format_calls: semantics.format_calls(),
                 unmappable_calls: semantics.unmappable_calls(),
+                unmappable_types: semantics.unmappable_types(),
                 integer_arithmetic: semantics.integer_arithmetic(),
                 doc_convention: semantics.doc_convention(),
                 derives: semantics.derives(),

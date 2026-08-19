@@ -3734,3 +3734,41 @@ timestampLengthInBytes + payloadLengthInBytes` named two that had refused. Const
 — except the ones the pack MAPS, which is what a predeclared constant is: `true` is classified as a
 constant reference like any other and is not this unit's to emit, and asking the unit for it refused
 every declaration that mentions a boolean.
+
+## R1u — types that cannot be mapped, and what the doc refusals actually cost
+
+Re-ranked the causes. The top one is now the CASCADE at 25 — declarations refusing because something
+they name refused — and under it, unmapped types at 17. Most of those 17 are the cascade again; only
+four are genuinely foreign. So the work was two things: name those four, and find out what is really
+at the root of the cascade.
+
+**Four types the pack now refuses BY NAME**, mirroring the unmappable calls table and for the same
+distinction — a type the pack has not reached says a mapping is owed, one it has looked at says a
+mapping would be wrong:
+
+- `sync.Mutex` — the two guard different things. The source's mutex guards a critical SECTION and
+  sits beside the fields it protects, with nothing in the type system tying them together; the
+  target's OWNS what it protects, and holding the lock is the only way to reach the data. Mapping the
+  type alone emits a lock guarding nothing, which compiles and protects nothing. What it wants is the
+  struct reshaped so the mutex wraps the fields it stands next to — and which fields those are is
+  something the source records only by adjacency.
+- `time.Time` — the source's instant is a wall clock reading with a monotonic reading attached and a
+  location beside it. The target splits those three ways and no single mapping keeps all of them.
+- `fmt.State`, `math/rand.Source64` — a formatter interface with no counterpart, and randomness the
+  target's standard library does not have at all.
+
+**And a measurement worth having, on the engine's own rules.** Chasing `xid.ID` — the central type of
+its package — turned up that it refuses because a METHOD's documentation says *"behaves just like
+`bytes.Compare`"*. An explanatory aside, not a claim about this crate's API, and the prose refusal
+cannot tell those apart.
+
+So both halves of the doc refusal were disabled and measured. Together they cost **xxhash 3.0,
+semver 1.7, ksuid 2.1 points** — real, bounded, and much less than feared. They are kept: prose
+naming what the crate does not have is false about it, two independent reviewers ranked exactly this
+among their most decisive evidence, and the alternative is documentation written in the voice of
+somebody who checked.
+
+What the measurement did change is a warning worth recording: **a doc refusal MASKS the code reason
+underneath it.** `xid.ID` reports the doc as its cause and still refuses with both halves off, so
+something else is wrong there too and the survey will not say what until the doc reason is gone.
+Anyone chasing a cascade root should disable these two first and re-read the reasons.
