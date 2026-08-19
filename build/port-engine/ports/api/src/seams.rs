@@ -9,6 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
+use crate::failure::FailureConvention;
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
 use crate::ownership::PointerDisposition;
 
@@ -114,6 +115,18 @@ pub trait PackSemantics {
     /// function returns. A position with no entry REFUSES, because the choice between borrowing,
     /// boxing and sharing is an ownership decision and the engine has no basis to make it.
     fn trait_object_forms(&self) -> &BTreeMap<String, String>;
+    /// How the source spells failure, or `None` when it has no such convention.
+    ///
+    /// A trailing result of the named type is what makes a function FALLIBLE, which the target
+    /// expresses as the whole return type. `None` means every result is an ordinary value, and a
+    /// source language without the convention needs no rule to say so.
+    fn failure_convention(&self) -> Option<&FailureConvention>;
+    /// Source function identity → a target expression template, with `{0}`, `{1}` for arguments.
+    ///
+    /// A call the pack does not answer for emits the source's own name, which the target does not
+    /// have. No real package can be ported without this table: every one of them calls its standard
+    /// library, and a standard library is exactly the part that does not come along.
+    fn function_map(&self) -> &BTreeMap<String, String>;
     /// Ownership rules, in declared order — first match wins.
     ///
     /// Which ownership form a set of observed facts deserves is a translation DECISION with a cost

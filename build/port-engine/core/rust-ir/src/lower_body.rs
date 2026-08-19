@@ -24,6 +24,15 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             let value = lower_expr(value)?;
             Ok(quote! { let #name = #value; })
         }
+        RustStmt::LetTuple { names, value } => {
+            let names = names
+                .iter()
+                .map(String::as_str)
+                .map(parse_ident)
+                .collect::<Result<Vec<_>, _>>()?;
+            let value = lower_expr(value)?;
+            Ok(quote! { let ( #(#names),* ) = #value; })
+        }
         RustStmt::Semi(expr) => {
             let expr = lower_expr(expr)?;
             Ok(quote! { #expr; })
@@ -62,6 +71,10 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
 /// Lower an expression, parenthesising an operand only where the tree says it needs it.
 fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
     match expr {
+        RustExpr::Try(inner) => {
+            let inner = lower_expr(inner)?;
+            Ok(quote! { #inner? })
+        }
         RustExpr::Literal(spelling) => {
             let literal = parse_expr(spelling, "literal")?;
             Ok(literal.into_token_stream())

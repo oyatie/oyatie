@@ -4,8 +4,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Declaration, Digest, LanguagePair, PackSemantics, PlanStep, PointerDisposition, RuleId,
-    SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
+    Declaration, Digest, FailureConvention, LanguagePair, PackSemantics, PlanStep,
+    PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
 };
 use port_engine_rust_ir::RustIr;
 use port_engine_transform::*;
@@ -25,6 +25,8 @@ pub struct Pack {
     pub copies: BTreeSet<String>,
     pub zeroes: BTreeMap<String, String>,
     pub trait_objects: BTreeMap<String, String>,
+    pub failure: Option<FailureConvention>,
+    pub functions: BTreeMap<String, String>,
     /// The declared trait-receiver decision. `None` means the pack made none, which is a refusal.
     pub receiver: Option<(String, String)>,
     pub dispositions: Vec<PointerDisposition>,
@@ -105,6 +107,23 @@ impl Pack {
         self
     }
 
+    /// Declare a source function's target expression, as a real pack must.
+    pub fn with_function(mut self, source: &str, template: &str) -> Self {
+        self.functions
+            .insert(source.to_owned(), template.to_owned());
+        self
+    }
+
+    /// Declare the source's failure convention, as a real pack must.
+    pub fn with_failure(mut self, source: &str, target: &str) -> Self {
+        self.failure = Some(FailureConvention {
+            source_type: source.to_owned(),
+            target_type: target.to_owned(),
+            absent: "nil".to_owned(),
+        });
+        self
+    }
+
     /// Declare the target form a trait takes in one position, as a real pack must.
     pub fn with_trait_object(mut self, position: &str, form: &str) -> Self {
         self.trait_objects
@@ -149,6 +168,12 @@ impl PackSemantics for Pack {
     }
     fn copy_types(&self) -> &BTreeSet<String> {
         &self.copies
+    }
+    fn function_map(&self) -> &BTreeMap<String, String> {
+        &self.functions
+    }
+    fn failure_convention(&self) -> Option<&FailureConvention> {
+        self.failure.as_ref()
     }
     fn trait_object_forms(&self) -> &BTreeMap<String, String> {
         &self.trait_objects

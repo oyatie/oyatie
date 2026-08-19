@@ -133,7 +133,12 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "field",
     "ident",
     "if",
+    // A destructuring bind and its two child kinds. Recorded rather than refused because it is
+    // the shape every fallible call in the source has, and a rule cannot fire on a shape the
+    // snapshot never carries.
+    "bind",
     "let",
+    "let_tuple",
     "literal",
     "method",
     "paren",
@@ -142,6 +147,7 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "return",
     "then",
     "unary",
+    "value",
     // A field a struct literal LEFT OUT, carrying the type whose zero fills it. Recorded
     // rather than omitted because the target needs every field named, and an absent entry
     // would be indistinguishable from a field the front end failed to see.
@@ -168,6 +174,7 @@ pub const KNOWN_FLAGS: &[&str] = &[
 
 /// The closed attribute-key vocabulary, closed for the same reason as the flags.
 pub const KNOWN_ATTR_KEYS: &[&str] = &[
+    ATTR_CALLEE,
     ATTR_DOC,
     ATTR_GO_NODE,
     ATTR_LIT_KIND,
@@ -183,6 +190,12 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
 ///
 /// The target has no method promotion, so a forwarding method has to name the field it forwards to.
 pub const ATTR_VIA: &str = "via";
+
+/// Attribute key holding the package-qualified IDENTITY of what a call resolves to.
+///
+/// The identity rather than the spelling, because a rule keyed on text would answer for a local
+/// variable that shares a package's name.
+pub const ATTR_CALLEE: &str = "callee";
 
 /// Attribute key holding the receiver a TRAIT method binds, derived from its observed
 /// implementors.

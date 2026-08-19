@@ -110,6 +110,50 @@ pub mod composite {
         }
     }
 }
+pub mod fallible {
+    // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__check
+    /// Check reports whether s is usable, returning only a failure.
+    ///
+    /// The no-value shape: `error` alone. The target has to invent the success value here, because a
+    /// function that returns only a failure still has to say it succeeded.
+    pub fn check(s: String) -> Result<(), Box<dyn std::error::Error>> {
+        if s == "" {
+            return Err(Box::<dyn std::error::Error>::from("empty"));
+        }
+        Ok(())
+    }
+    // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__length
+    /// Length reports the length of s, failing on the empty string.
+    ///
+    /// The one-value-and-a-failure shape: `(int, error)`, which is what most of a real package looks
+    /// like.
+    pub fn length(s: String) -> Result<i64, Box<dyn std::error::Error>> {
+        if s == "" {
+            return Err(Box::<dyn std::error::Error>::from("empty"));
+        }
+        Ok(s.len() as i64)
+    }
+    // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__twice
+    /// Twice returns the length of s doubled.
+    ///
+    /// The PROPAGATION shape, and the point of the whole exercise: `n, err := Length(s)` followed by
+    /// `if err != nil { return 0, err }` is two statements the caller could simply not have written.
+    /// The target spells it as one operator on a value that cannot be used without addressing the
+    /// failure.
+    pub fn twice(s: String) -> Result<i64, Box<dyn std::error::Error>> {
+        let n = length(s)?;
+        Ok(n + n)
+    }
+    // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__validate
+    /// Validate checks s and reports nothing else.
+    ///
+    /// Propagation with NO value bound: the call is run for its failure alone, so there is nothing to
+    /// name and the target keeps it as a statement.
+    pub fn validate(s: String) -> Result<(), Box<dyn std::error::Error>> {
+        check(s)?;
+        Ok(())
+    }
+}
 pub mod geometry {
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_alias__origin
     /// Origin is the zero point, referred to across a package boundary.

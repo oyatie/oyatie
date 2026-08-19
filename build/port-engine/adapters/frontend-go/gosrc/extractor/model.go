@@ -123,13 +123,20 @@ const (
 
 	// Body vocabulary. A function body is a `body` node whose children are statements, and a
 	// statement's children are expressions — the same uniform node all the way down.
-	kindBody     = "body"
-	kindBlock    = "block"
-	kindReturn   = "return"
-	kindIf       = "if"
-	kindThen     = "then"
-	kindElse     = "else"
-	kindLet      = "let"
+	kindBody   = "body"
+	kindBlock  = "block"
+	kindReturn = "return"
+	kindIf     = "if"
+	kindThen   = "then"
+	kindElse   = "else"
+	kindLet    = "let"
+	// kindLetTuple is a destructuring bind — `v, err := f()`. Its children are the names it
+	// binds, in order, followed by the single expression they come from.
+	kindLetTuple = "let_tuple"
+	// kindBind is one name a destructuring bind introduces.
+	kindBind = "bind"
+	// kindValue is the expression a destructuring bind takes its values from.
+	kindValue    = "value"
 	kindExprStmt = "expr_stmt"
 
 	kindLiteral   = "literal"
@@ -207,6 +214,9 @@ const (
 	// attrVia is the dotted FIELD PATH a promoted method is reached through. The target has no
 	// method promotion, so the forwarding method has to name the field it forwards to.
 	attrVia = "via"
+	// attrCallee is the package-qualified IDENTITY of what a call resolves to. Recorded because
+	// a rule keyed on the callee's spelling would answer for anything that shares its name.
+	attrCallee = "callee"
 	// attrSite records HOW an interface satisfaction was observed. A declared assertion is
 	// compile-checked by Go; a flow-derived one is this extractor's inference. An impl emitted
 	// from either looks identical, so a reviewer needs the distinction recorded rather than

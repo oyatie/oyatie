@@ -27,6 +27,24 @@ func bodyNode(block *ast.BlockStmt, ctx *extractCtx) node {
 	return node{Kind: kindBody, Children: statementNodes(block.List, ctx)}
 }
 
+// destructuringBind records `a, b := expr` as the names it binds and the expression they come
+// from, in that order.
+func destructuringBind(stmt *ast.AssignStmt, ctx *extractCtx) node {
+	out := node{Kind: kindLetTuple}
+	for _, lhs := range stmt.Lhs {
+		name, ok := lhs.(*ast.Ident)
+		if !ok {
+			return unsupportedNode(stmt)
+		}
+		out.Children = append(out.Children, node{Kind: kindBind, Name: name.Name})
+	}
+	out.Children = append(out.Children, node{
+		Kind:     kindValue,
+		Children: []node{expressionNode(stmt.Rhs[0], ctx)},
+	})
+	return out
+}
+
 func statementNodes(stmts []ast.Stmt, ctx *extractCtx) []node {
 	if len(stmts) == 0 {
 		return nil
@@ -66,8 +84,14 @@ func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 		return node{Kind: kindIf, Children: children}
 
 	case *ast.AssignStmt:
-		// Multi-assignment and the op-assign forms each carry a tuple-destructuring or
-		// read-modify-write question that needs a rule rather than a default.
+		// A DESTRUCTURING bind takes several names from one expression. It is the shape every
+		// fallible call in the source has, so it is recorded rather than refused — what the target
+		// does with it is a rule, and a rule needs the shape to reach it.
+		if typed.Tok == token.DEFINE && len(typed.Rhs) == 1 && len(typed.Lhs) > 1 {
+			return destructuringBind(typed, ctx)
+		}
+		// The remaining multi-assignment and op-assign forms each carry a question — parallel
+		// assignment order, read-modify-write — that needs a rule rather than a default.
 		if len(typed.Lhs) != 1 || len(typed.Rhs) != 1 {
 			return unsupportedNode(stmt)
 		}

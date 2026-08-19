@@ -11,6 +11,33 @@
 
 use port_engine_app::driver;
 
+/// A failing return that carries a COMPUTED value beside the failure.
+///
+/// The source returns both; the target returns one or the other. Discarding the companion is sound
+/// exactly when it is the zero value — the convention says a caller may not read it after a failure
+/// — and is a silent loss of work when it is not. So the engine admits literals and the absent
+/// value, and refuses anything computed rather than deciding that some expression is "obviously"
+/// zero.
+#[test]
+fn a_failing_return_that_carries_a_value_is_refused_with_its_reason() {
+    let err = driver::port_go_refused_failure()
+        .expect_err("a computed value beside a failure has no target shape");
+
+    let message = err.to_string();
+    assert!(
+        message.contains("Sized"),
+        "the refusal must name the declaration: {message}"
+    );
+    assert!(
+        message.contains("carries only the failure"),
+        "the refusal must say what the target's shape IS: {message}"
+    );
+    assert!(
+        message.contains("lose work"),
+        "the refusal must say what would be lost: {message}"
+    );
+}
+
 /// and none for a result. Emitting a box there would be choosing an owner on the source's behalf.
 #[test]
 fn an_interface_in_an_undeclared_position_is_refused_with_its_reason() {

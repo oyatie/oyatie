@@ -3,7 +3,8 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Digest, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId,
+    Digest, FailureConvention, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack,
+    UnitId,
 };
 use port_engine_hash::digest_bytes;
 
@@ -26,6 +27,8 @@ pub struct LoadedRulePack {
     pub(crate) copy_types: BTreeSet<String>,
     pub(crate) zero_values: BTreeMap<String, String>,
     pub(crate) trait_object_forms: BTreeMap<String, String>,
+    pub(crate) failure_convention: Option<FailureConvention>,
+    pub(crate) function_map: BTreeMap<String, String>,
     pub(crate) type_map_overrides: BTreeMap<String, BTreeMap<String, String>>,
     pub(crate) deferred_kinds: Vec<DeferredKind>,
     pub(crate) deferred_kind_set: BTreeSet<String>,
@@ -234,6 +237,12 @@ impl LoadedRulePack {
             copy_types: doc.copy_types,
             zero_values: doc.zero_values,
             trait_object_forms: doc.trait_object_forms,
+            function_map: doc.function_map,
+            failure_convention: doc.failure_convention.map(|failure| FailureConvention {
+                source_type: failure.source_type,
+                target_type: failure.target_type,
+                absent: failure.absent,
+            }),
             type_map_overrides: doc.type_map_overrides,
             deferred_kinds: doc.deferred_kinds,
             deferred_kind_set,

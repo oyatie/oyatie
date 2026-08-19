@@ -12,7 +12,7 @@ use crate::body::{Body, one_child, two_children, unsupported_source};
 use crate::body_ops::{binary_operator, is_receiver, operator_of, reference, unary_operator};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::vocabulary::ATTR_VALUE;
+use crate::vocabulary::{ATTR_CALLEE, ATTR_VALUE};
 
 /// Where an expression appears: a value is READ, a place is WRITTEN TO.
 ///
@@ -202,6 +202,13 @@ fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
         .map(|arg| expression(arg, cx))
         .collect::<Result<Vec<_>, _>>()?;
 
+    // The pack answers for the callee FIRST, by identity. A call it answers for is one the target
+    // has no name of its own for — a builtin, or something from a standard library that does not
+    // come along — and emitting the source's spelling would name nothing.
+    if let Some(rendered) = mapped_call(node, &args, cx)? {
+        return Ok(rendered);
+    }
+
     if callee.kind == "selector" {
         return Ok(RustExpr::MethodCall {
             // The receiver of a method call is a PLACE, not a value: `x.m()` borrows `x` rather
@@ -219,4 +226,54 @@ fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
         callee: Box::new(expression(callee, cx)?),
         args,
     })
+}
+
+/// A call the pack answers for by the callee's IDENTITY, rendered from its declared template.
+///
+/// Arity is checked rather than assumed: a template that expects an argument the call does not have
+/// would leave its own placeholder in the output, which parses as nothing and would be discovered
+/// far from its cause.
+fn mapped_call(
+    node: &Declaration,
+    args: &[RustExpr],
+    cx: &Body<'_>,
+) -> Result<Option<RustExpr>, TransformError> {
+    let Some(identity) = node.attr(ATTR_CALLEE) else {
+        return Ok(None);
+    };
+    let Some(template) = cx.resolver.function_map.get(identity) else {
+        return Ok(None);
+    };
+
+    let mut rendered = template.clone();
+    for (index, arg) in args.iter().enumerate() {
+        let operand = render_operand(arg).ok_or_else(|| TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!(
+                "an argument to `{identity}` is a compound expression, and the pack answers for                  that call with a TEXT template — substituting one would need parentheses the                  template cannot ask for"
+            ),
+        })?;
+        rendered = rendered.replace(&format!("{{{index}}}"), &operand);
+    }
+    if rendered.contains('{') {
+        return Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!(
+                "the pack's template for `{identity}` expects more arguments than the call has"
+            ),
+        });
+    }
+    Ok(Some(RustExpr::Literal(rendered)))
+}
+
+/// An argument, as target text for a template to interpolate.
+///
+/// Only the forms whose text is unambiguous are admitted. A template is textual substitution, and
+/// substituting a compound expression into one would need parentheses this cannot see the need for —
+/// so anything else refuses rather than producing text that reassociates.
+fn render_operand(arg: &RustExpr) -> Option<String> {
+    match arg {
+        RustExpr::Literal(text) | RustExpr::Path(text) => Some(text.clone()),
+        _ => None,
+    }
 }

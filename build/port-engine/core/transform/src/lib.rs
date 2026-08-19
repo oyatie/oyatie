@@ -20,16 +20,20 @@
 mod apply;
 mod body;
 mod body_expr;
+mod body_failure;
 mod body_loops;
 mod body_ops;
 mod docs;
 mod error;
+mod failure;
 mod impls;
 mod items;
 mod naming;
 mod ownership;
+mod params;
 mod promote;
 mod resolve;
+mod resolve_tables;
 mod signature;
 mod vocabulary;
 
