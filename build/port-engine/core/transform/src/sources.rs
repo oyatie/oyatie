@@ -43,6 +43,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("items_sentinels.rs", include_str!("items_sentinels.rs")),
     ("items_static.rs", include_str!("items_static.rs")),
     ("items_types.rs", include_str!("items_types.rs")),
+    ("items_value.rs", include_str!("items_value.rs")),
     ("length_consts.rs", include_str!("length_consts.rs")),
     ("lib.rs", include_str!("lib.rs")),
     ("naming.rs", include_str!("naming.rs")),

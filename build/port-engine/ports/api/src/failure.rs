@@ -116,6 +116,20 @@ pub struct FunctionMapping {
     pub reason: String, // data_class: INTERNAL_ONLY
 }
 
+/// What a source STRING becomes when its content is not text.
+///
+/// The source's string is a byte string and the target's is guaranteed UTF-8, so the ordinary
+/// mapping is right only for the ones that hold text. This says what the rest become.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct BinaryString {
+    /// The target type, with `{0}` for the byte count.
+    pub target_type: String, // data_class: INTERNAL_ONLY
+    /// The target literal, with `{0}` for the source's own literal spelling.
+    pub literal_form: String, // data_class: INTERNAL_ONLY
+    /// Why a byte array rather than the target's string, and how binary is recognised.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// What the pack does with a formatted string, for one source callee.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct FormatFunction {

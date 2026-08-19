@@ -64,6 +64,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) unmappable_calls: &'a BTreeMap<String, String>,
     /// Types the pack refuses to map, and why each one cannot be mapped faithfully.
     pub(crate) unmappable_types: &'a BTreeMap<String, String>,
+    /// What a source string constant becomes when its content is not text.
+    pub(crate) binary_string: &'a port_engine_api::BinaryString,
     /// How integer arithmetic must be spelled so overflow keeps the source's meaning.
     pub(crate) integer_arithmetic: &'a IntegerArithmetic,
     /// How the source's documentation convention differs from the target's.

@@ -3819,3 +3819,36 @@ checks anyway.
 Coverage is unchanged across all seven packages, and that is the point: this changes how the same
 translated declarations are SPELLED, and the compile proof holds at zero rustc errors and zero
 clippy warnings.
+
+## R1w — a string that is not text
+
+The last `xxhash` review put `const MAGIC: &str = "xxh\x06";` second in its evidence, and the trap it
+described is concrete rather than stylistic:
+
+> The trailing byte is a format-version tag, so someone will eventually bump it. Rust `str` literals
+> only permit `\xNN` up to `\x7F`. Bump this to `\x80` and the literal stops compiling; the natural
+> "fix" is `"xxh\u{80}"`, which is TWO UTF-8 bytes, silently turning `MAGIC.len()` from 4 into 5 and
+> shifting every offset in the marshaled layout.
+
+That is this engine's own failure mode described by somebody who did not know what they were looking
+at: a change that compiles and means something different. The source's string is a byte string and
+the target's is guaranteed UTF-8, so the ordinary mapping is right only for the strings that are
+text.
+
+**Recognised, not guessed.** A byte the source had to write as an ESCAPE because it cannot be typed
+is exactly the evidence that the value is data rather than prose. The common whitespace escapes —
+newline, tab, carriage return — are text and stay text, so a message with a line break in it is
+untouched. The byte COUNT is taken from the decoded bytes rather than the spelling, because an escape
+is one byte written as four characters, and a wrong count would be the very shift the reviewer warned
+about.
+
+`const MAGIC: &[u8; 4] = b"xxh\x06";` — and `MARSHALED_SIZE` still derives from it, because
+`<[u8]>::len` is const just as `str::len` is.
+
+**The decoder refuses what it cannot decode.** Only escapes both languages spell identically; a value
+with anything else yields nothing and the constant stays a string. A length the engine guessed would
+be a wire format the engine guessed.
+
+Coverage unchanged across all seven packages. `items.rs` crossed the 300-line bar and split along the
+seam that was already there: which ITEM a declaration becomes, versus what goes on the right of the
+`=`.

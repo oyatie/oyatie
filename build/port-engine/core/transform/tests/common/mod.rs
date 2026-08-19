@@ -43,6 +43,8 @@ pub struct Pack {
     pub unmappable_calls: BTreeMap<String, String>,
     /// Types that cannot be mapped, and why. Empty by default, for the same reason.
     pub unmappable_types: BTreeMap<String, String>,
+    /// What a binary string becomes. Empty by default, for the same reason.
+    pub binary_string: port_engine_api::BinaryString,
     /// Callees that take a length. Empty by default, for the same reason.
     pub length_argument_callees: BTreeSet<String>,
     pub copies: BTreeSet<String>,
@@ -238,6 +240,13 @@ impl Pack {
 }
 
 impl PackSemantics for Pack {
+    fn binary_string(&self) -> &port_engine_api::BinaryString {
+        // EMPTY, so a fixture's string constant stays a string. Which strings are binary is a
+        // judgement about real source, exercised against the corpus.
+        &self.binary_string
+    }
+
+
     fn unmappable_types(&self) -> &BTreeMap<String, String> {
         // EMPTY, like the tables beside it: which types cannot be mapped is the real pack's
         // judgement about a real standard library.

@@ -25,7 +25,8 @@ mod type_ref;
 pub use declaration::Declaration;
 pub use error::PortError;
 pub use failure::{
-    DeriveRule, DocConvention, FailureConvention, FormatCalls, FormatFunction, FunctionMapping, IdiomRule,
+    BinaryString, DeriveRule, DocConvention, FailureConvention, FormatCalls, FormatFunction,
+    FunctionMapping, IdiomRule,
     IntegerArithmetic,
 };
 pub use identity::{Digest, LanguagePair, PAIR_SEPARATOR, RegionId, RuleId, UnitId};

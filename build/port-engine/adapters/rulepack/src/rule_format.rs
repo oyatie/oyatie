@@ -75,3 +75,15 @@ pub(crate) struct UnmappableTypesRule {
     #[serde(default)]
     pub(crate) reason: String,
 }
+
+/// Wire shape for what a source string becomes when its content is not text.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct BinaryStringRule {
+    #[serde(default)]
+    pub(crate) target_type: String,
+    #[serde(default)]
+    pub(crate) literal_form: String,
+    #[serde(default)]
+    pub(crate) reason: String,
+}
