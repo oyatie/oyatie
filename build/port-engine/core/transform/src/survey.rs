@@ -232,7 +232,9 @@ pub(crate) fn survey_declaration<P>(
         unit: site.unit,
     };
 
-    match build_item(construction, declaration, &resolver) {
+    match build_item(construction, declaration, &resolver)
+        .and_then(|items| refuse_unrenderable(items, declaration))
+    {
         Ok(items) => {
             // KEPT, not counted and discarded. A survey that only counts can say a package is 70%
             // translated and show nobody what the 70% looks like — and what it looks like is the
@@ -246,5 +248,34 @@ pub(crate) fn survey_declaration<P>(
             report.translated.push(entry(None));
         }
         Err(error) => report.refused.push(entry(Some(crate::survey_cause::refusal_of(&error)))),
+    }
+}
+
+/// Refuse items that BUILD but do not RENDER.
+///
+/// Emittability has to include renderability, and it did not. The renderer parses what the transform
+/// produced — the emitted tree is text that has to be valid target syntax — and a region it refuses
+/// is dropped from the output. That happens AFTER the fixpoint has decided who is emittable, so the
+/// callers of a dropped declaration are emitted anyway and name something that is no longer there.
+///
+/// One mapping template rendering wrong took `rol31` out of `xxhash` and left eight functions
+/// calling it, which is exactly the dangling reference the fixpoint exists to prevent — arriving one
+/// layer below where the fixpoint could see it.
+///
+/// So the check moves INTO the fixpoint: a declaration that will not render is not emittable, and
+/// everything that names it refuses with it.
+///
+/// # Errors
+/// [`TransformError::Ir`] carrying what the renderer said it could not parse.
+fn refuse_unrenderable(
+    items: Vec<port_engine_rust_ir::RustItem>,
+    declaration: &Declaration,
+) -> Result<Vec<port_engine_rust_ir::RustItem>, TransformError> {
+    match port_engine_rust_ir::lower_file(&items) {
+        Ok(_) => Ok(items),
+        Err(error) => {
+            let _ = declaration;
+            Err(TransformError::Ir(error))
+        }
     }
 }
