@@ -1419,6 +1419,25 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   false. A fixture that proves whatever the pack says is worth more than one that proves a
   behaviour the pack has moved past.
 
+- `copy` SURFACED IN THE TOP EIGHT once the failure-convention decision stopped masking it: 3
+  packages, 5 declarations blocked, 29 call sites. Sized before building anything, and the sizing
+  says what the obstacle is.
+  Shapes: `copy(slice, ident)` 14, `copy(slice, slice)` 9, `copy(ident, ident)` 3, and one each of
+  `(ident, selector)`, `(slice, literal)`, `(ident, call)`. So the operands are overwhelmingly
+  SLICE EXPRESSIONS — `copy(ksuid[:], b)` — and that is exactly what the current mechanism cannot
+  take.
+  The faithful target is not one expression but three: `let n = dst.len().min(src.len());
+  dst[..n].copy_from_slice(&src[..n]); n`. The source's `copy` takes the MINIMUM of the two lengths
+  and returns how many it moved; the target's `copy_from_slice` panics unless the lengths match, so
+  emitting it bare would turn a defined truncation into an abort.
+  `function_map` answers with a TEXT template and one expression, so it cannot express this: the
+  block form needs `{0}` twice, and `render_operand` admits only operands whose text cannot
+  reassociate — which a slice expression is not. The gap is the MECHANISM, not a missing row.
+  What that needs is a structured form for a mapped call — the same move `pointer_dispositions`
+  made when a text template could not say `Some(Box::new(x))` without being re-parsed. Recorded
+  rather than started, because it is a mechanism change and this phase already spent its budget on
+  the failure convention.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil
