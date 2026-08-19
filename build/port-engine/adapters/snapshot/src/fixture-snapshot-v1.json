@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:006f551743ab8fcc15febbb277bc4c36297b37b794c21181a1ab6b60194cd5b5",
+  "snapshot_digest": "sha256:91f4a1e88798cc3f89fe24d14ca56b16cd3e135cb56de2fe770ded14f3e2c886",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -666,7 +666,17 @@
           "attrs": {
             "doc": "MaxRetries bounds the retry loop.",
             "value": "3"
-          }
+          },
+          "children": [
+            {
+              "kind": "literal",
+              "name": "",
+              "attrs": {
+                "lit_kind": "INT",
+                "value": "3"
+              }
+            }
+          ]
         },
         {
           "kind": "const",
@@ -681,7 +691,17 @@
           "attrs": {
             "doc": "DefaultName is the fallback identity for an unnamed record.",
             "value": "\"anonymous\""
-          }
+          },
+          "children": [
+            {
+              "kind": "literal",
+              "name": "",
+              "attrs": {
+                "lit_kind": "STRING",
+                "value": "\"anonymous\""
+              }
+            }
+          ]
         },
         {
           "kind": "var",
@@ -5969,7 +5989,17 @@
           "attrs": {
             "doc": "MaxWidth bounds the byte length this package accepts.",
             "value": "8"
-          }
+          },
+          "children": [
+            {
+              "kind": "literal",
+              "name": "",
+              "attrs": {
+                "lit_kind": "INT",
+                "value": "8"
+              }
+            }
+          ]
         },
         {
           "kind": "func",

@@ -76,6 +76,18 @@ fn build_const(
         true => RustType::path("usize"),
         false => resolver.resolve(&declaration.type_ref, &declaration.name)?,
     };
+    // The author's DERIVATION where the target can spell it. Carried as an EXPRESSION rather than
+    // as text: the derivation is a tree, and the one item shape that holds a constant's value as a
+    // tree already exists for a package value.
+    if let Some(value) = authored_value(declaration, resolver, &ty) {
+        return Ok(RustItem::PackageValue {
+            docs: docs_of(declaration, resolver)?,
+            vis: visibility(declaration),
+            name: to_screaming_snake(&declaration.name),
+            ty,
+            value,
+        });
+    }
     Ok(RustItem::Const {
         docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),
@@ -92,6 +104,66 @@ fn build_const(
         },
         ty,
     })
+}
+
+/// The author's DERIVATION where the target can spell it, and the folded value where it cannot.
+///
+/// The source folds a constant expression before the engine ever sees it, so `marshaledSize =
+/// len(magic) + 8*5 + 32` arrives as `76`. That value is correct — it is the same constant — and it
+/// throws away what the author wrote and why. Two reviewers reading real ported packages named a
+/// bare folded literal as evidence that a translator had evaluated an expression a person would
+/// have kept, and they were right: `76` is a magic number and `MAGIC.len() + 8 * 5 + 32` is a
+/// derivation that stays correct when the layout changes.
+///
+/// The fallback is SAFE in a way a body's would not be, and that is what makes preferring the
+/// expression reasonable rather than reckless: both spellings are the same constant, proven so by
+/// the source's own evaluator. Where the expression names something the target cannot say — a
+/// concatenation of two constant strings, which the target has no operator for — the value is not a
+/// degraded answer, it is the same answer written differently.
+fn authored_value(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+    ty: &RustType,
+) -> Option<RustExpr> {
+    let authored = declaration.children.first()?;
+    let body = crate::body::Body {
+        owner: &declaration.name,
+        resolver,
+        fallible: false,
+        borrowed: std::collections::BTreeSet::new(),
+        result_is_owned_string: false,
+        results: crate::returns::ResultFacts::none(),
+        usize_counters: std::collections::BTreeSet::new(),
+        walked: None,
+        receiver_type: None,
+    };
+    // A LITERAL derivation is the folded value already, and rendering it again only risks spelling
+    // it differently for no gain.
+    if authored.kind == crate::vocabulary::KIND_LITERAL {
+        return None;
+    }
+    // NUMERIC only, and that is the whole of the condition. The derivation is preferred because the
+    // target can spell the source's arithmetic — `len(magic) + 8*5 + 32` reads as itself — and the
+    // target has no `+` on strings at all, so `"abc" + num` parses, type-checks nowhere, and is a
+    // crate that does not build. The folded value is the same constant either way, so the string
+    // case loses nothing but the author's spelling.
+    if !matches!(
+        ty.spelling().as_str(),
+        "usize" | "i8" | "i16" | "i32" | "i64" | "u8" | "u16" | "u32" | "u64" | "isize"
+    ) {
+        return None;
+    }
+    // A LENGTH constant is the target's index type, and the mapped length call adds a conversion to
+    // the source's integer. Stripping it is the same thing a guard comparing against a length does,
+    // through the same function, so the declaration and every comparison agree.
+    let rendered = match ty.spelling() == "usize" {
+        true => crate::counters::unsigned_bound(authored, &body),
+        false => crate::body_expr::expression(authored, &body),
+    };
+    // A derivation the engine cannot translate is not a loss: the folded value is the SAME constant,
+    // proven so by the source's own evaluator. That is what makes preferring the expression
+    // reasonable rather than reckless — unlike a body, there is no wrong answer to fall back to.
+    rendered.ok()
 }
 
 /// Whether this declaration's type is one the unit DEFINES, and so constructs rather than coerces.

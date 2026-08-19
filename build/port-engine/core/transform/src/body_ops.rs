@@ -207,6 +207,15 @@ pub(crate) fn refuse_deferred_reference(
 
     let kind = match node.attr(ATTR_REF) {
         Some("package_var") => "var",
+        // A CONSTANT is a package-scope name too, and reading one the crate does not contain is the
+        // same dangling reference. It was never checked because the deferral this function grew out
+        // of was about variables — and a constant's DERIVATION reads other constants, which is what
+        // made it visible: `byteLength = timestampLengthInBytes + payloadLengthInBytes` named two
+        // that had refused.
+        // ...unless the pack MAPS it, which is what a predeclared constant is. `true` is classified
+        // as a constant reference like any other, and it is not this unit's to emit — asking the
+        // unit for it refused every declaration that mentions a boolean.
+        Some(REF_CONST) if !cx.resolver.constant_map.contains_key(&node.name) => "const",
         _ => return Ok(()),
     };
     // NOT EMITTED, whichever way: the pack defers the kind, or the declaration itself refused.

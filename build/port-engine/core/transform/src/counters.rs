@@ -22,7 +22,7 @@ use port_engine_rust_ir::RustExpr;
 use crate::body::Body;
 use crate::body_expr::expression;
 use crate::error::TransformError;
-use crate::vocabulary::{ATTR_CALLEE, KIND_CALL, KIND_IDENT, KIND_INDEX};
+use crate::vocabulary::{ATTR_CALLEE, ATTR_OP, KIND_CALL, KIND_IDENT, KIND_INDEX};
 
 /// Whether every read of `counter` inside this body is a sequence index.
 ///
@@ -172,6 +172,20 @@ pub(crate) fn unsigned_bound(
     bound: &Declaration,
     cx: &Body<'_>,
 ) -> Result<RustExpr, TransformError> {
+    // THROUGH an arithmetic expression, because a bound is often computed: `len(magic) + 8*5 + 32`
+    // is a length built from one, and the conversion has to come off the part that has it rather
+    // than off the whole. Only the operators that keep a length a length — the source's own
+    // arithmetic — and each side answered by the same question this one is.
+    if bound.kind == "binary"
+        && let [left, right] = bound.children.as_slice()
+        && let Some(op) = bound.attr(ATTR_OP).and_then(crate::body_ops::binary_operator)
+    {
+        return Ok(RustExpr::Binary {
+            op,
+            lhs: Box::new(unsigned_bound(left, cx)?),
+            rhs: Box::new(unsigned_bound(right, cx)?),
+        });
+    }
     let translated = expression(bound, cx)?;
     if bound.kind != KIND_CALL {
         return Ok(translated);
