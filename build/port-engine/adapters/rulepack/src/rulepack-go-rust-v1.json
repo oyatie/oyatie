@@ -716,6 +716,36 @@
       ],
       "name": "PartialEq",
       "reason": "The source compares structs with `==` exactly when no field is a slice, a map or a function -- and those are precisely the fields whose target counterpart is not comparable either. The two languages agree here, so this is derived rather than guessed: a type the source could compare, the port can compare."
+    },
+    {
+      "name": "Eq",
+      "blocked_by": [
+        "chan",
+        "float32",
+        "float64",
+        "func",
+        "interface",
+        "map",
+        "named_interface",
+        "slice",
+        "unsupported"
+      ],
+      "reason": "TOTAL equality, which the source has wherever `==` is defined and no field is a float. The float is the whole of the difference and it is not a conservative exclusion: NaN is not equal to itself in EITHER language, so a struct with a float field has no equivalence relation in either, and claiming one in the target would be claiming something the source never had. Everything `PartialEq` blocks blocks this too, because a type with no partial equality has no total equality."
+    },
+    {
+      "name": "Hash",
+      "blocked_by": [
+        "chan",
+        "float32",
+        "float64",
+        "func",
+        "interface",
+        "map",
+        "named_interface",
+        "slice",
+        "unsupported"
+      ],
+      "reason": "The source's requirement for a MAP KEY is that the type be comparable, and the target spells that requirement `Eq + Hash`. A source type usable as a map key must port to one usable as a target map key, or a ported program that indexes by it has nowhere to go — and a reviewer reading the emitted crate said exactly that of a point type whose fields all support both. Blocked by the same set as `Eq`, because `Hash` without `Eq` violates a contract the target's own documentation states: equal values must hash equally, and a type with no equality cannot promise it."
     }
   ],
   "idioms": [

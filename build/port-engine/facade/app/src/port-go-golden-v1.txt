@@ -86,7 +86,7 @@ pub mod composite {
     }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_struct_body__driver
     /// Embeds an Engine and gains its methods.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Driver {
         /// Embedded, so Driver's method set includes Run without declaring it.
         pub engine: Engine,
@@ -105,7 +105,7 @@ pub mod composite {
     }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_struct_body__engine
     /// Counts the work it has done.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Engine {
         /// How many times Run has been called.
         calls: i64,
@@ -176,7 +176,7 @@ pub mod geometry {
     }
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_struct__bounds
     /// A rectangle described by its two opposite corners.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Bounds {
         /// The lower corner.
         pub min: crate::shapes::Point,
@@ -221,7 +221,7 @@ pub mod handoff {
     }
     // region: oyatie_example_portengine_fixture_corpus_handoff__go_struct_body__counter
     /// Counts.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Counter {
         total: i64,
     }
@@ -261,7 +261,7 @@ pub mod naming {
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__label
     /// A display name derived from a prefix.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Label {
         /// The source the display name is derived from.
         prefix: String,
@@ -278,7 +278,7 @@ pub mod naming {
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__tag
     /// A display name that never changes.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Tag {
         /// The fixed display name.
         text: String,
@@ -310,7 +310,7 @@ pub mod pointers {
     }
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__counter
     /// Accumulates a total.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Counter {
         /// The running sum.
         total: i64,
@@ -337,7 +337,7 @@ pub mod pointers {
     }
     // region: oyatie_example_portengine_fixture_corpus_pointers__go_struct_body__tally
     /// A counter allocated away from the caller's frame.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Tally {
         /// Names the tally.
         label: String,
@@ -425,7 +425,7 @@ pub mod shapes {
     }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_struct_body__point
     /// A location in two dimensions.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
     pub struct Point {
         /// The horizontal coordinate.
         pub x: i64,
