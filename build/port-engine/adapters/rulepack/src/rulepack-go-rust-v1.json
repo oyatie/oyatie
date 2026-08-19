@@ -527,5 +527,30 @@
     "uint64",
     "uint8",
     "uintptr"
-  ]
+  ],
+  "integer_arithmetic": {
+    "types": [
+      "byte",
+      "int",
+      "int8",
+      "int16",
+      "int32",
+      "int64",
+      "rune",
+      "uint",
+      "uint8",
+      "uint16",
+      "uint32",
+      "uint64",
+      "uintptr"
+    ],
+    "operators": {
+      "+": "wrapping_add",
+      "-": "wrapping_sub",
+      "*": "wrapping_mul",
+      "/": "wrapping_div",
+      "%": "wrapping_rem"
+    },
+    "reason": "The source defines signed and unsigned overflow as WRAPPING; the target panics on overflow in a debug build and wraps in a release one. Emitting the plain operator therefore turns one source program into two target programs, neither of which is it -- output that compiles and means something different, which is the failure this engine exists to prevent. `wrapping_*` is the target's spelling of exactly the source's rule and behaves identically in both profiles. THE COST is that every arithmetic operation is spelled this way, including the overwhelming majority that never overflow, and a reader without the provenance will ask why. That is accepted: a verbose port is a port, and a port that means something else is not. SHIFTS ARE ABSENT ON PURPOSE. The source defines `x << s` for `s` at or beyond the operand width as zero; the target masks the amount in release and panics in debug, and `wrapping_shl` masks rather than zeroing -- a different rule needing its own form, which nothing here has measured. `docs/programs/k8s-port/census/` sizes no numeric family at all, so this says so rather than assuming one."
+  }
 }

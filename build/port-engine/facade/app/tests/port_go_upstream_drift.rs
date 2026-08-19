@@ -73,8 +73,13 @@ fn a_moved_upstream_carries_its_change_into_the_emit() {
         &driver::port_go_drift_after().expect("the later version must port"),
     );
 
-    assert!(before.contains("value * 2"), "the earlier body:\n{before}");
-    assert!(after.contains("value * 3"), "the changed body:\n{after}");
+    // The multiplier is what moved upstream. Spelled `wrapping_mul` because the source defines
+    // integer overflow as wrapping and the target does not — see the pack's `integer_arithmetic`.
+    assert!(
+        before.contains("wrapping_mul(2)"),
+        "the earlier body:\n{before}"
+    );
+    assert!(after.contains("wrapping_mul(3)"), "the changed body:\n{after}");
     assert!(
         !before.contains("fn offset") && after.contains("pub fn offset(value: i64) -> i64"),
         "a declaration that appeared upstream must appear in the port:\n{after}"

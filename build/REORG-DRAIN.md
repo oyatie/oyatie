@@ -901,6 +901,59 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   `panic` fell from 4 packages to 3. Coverage did not move, because the packages with literal
   panics carry other blockers too.
 
+- THE BLIND REVIEW WAS RUN, which is the goal's own bar and had never been tested. The emitted
+  crate was handed to a reviewer told it was a colleague's hand-written Rust submitted for merge.
+  Verdict: DO NOT MERGE. That is the honest state and it is worth having in writing.
+  The findings split three ways and the split matters, because acting on all of them equally would
+  be wrong:
+  ENGINE DEFECTS, universal and real. Integer overflow (below). Inherent methods shadowing
+  identically-named trait methods, which works only because inherent methods win path resolution
+  and becomes infinite recursion the moment the inherent one is deleted — set four times in the
+  golden. No `derive` anywhere, so nothing emitted can be `{:?}`-printed or compared. Go doc
+  comments copied verbatim into rustdoc, carrying Go's convention (`/// Mix folds…` repeats the
+  item name, which rustdoc does not) and, worse, carrying ENGINE-INTERNAL prose into public API
+  documentation — "the target has to invent the success value here", "refuses by name and this
+  package's job is to prove type resolution". Five compiler warnings on a clean build, one of
+  which (`unused variable: next`) is a METHOD parameter, which the `unread` flag covers for
+  functions and not for methods. `if s == ""` for `is_empty`. `self.total = self.total + n` for
+  `+=`. Stray `};` after block statements. `(1) as i64` — redundant parens and a redundant cast.
+  Fully-qualified `crate::shapes::Point` inline instead of a `use`.
+  FIXTURE ARTIFACTS, not engine defects. Unconstructible structs, stub functions whose docs claim
+  behaviour they do not have, module names that are construct families rather than domains, dead
+  exports, two unrelated `Counter` types. Every one is a faithful port of a fixture written to
+  exercise a construct. They say the CORPUS is not a library, which is true and was never the
+  claim — and they are exactly why a corpus committed beside the engine cannot be the measure.
+  FAITHFUL-PORT TENSIONS, which must be declared rather than fixed. `panic` on an ordinary input
+  (already declared). `s.len()` reporting bytes (Go's `len` IS bytes — the port is right and the
+  DOC is Go's). A no-op `rename` (the source's method is empty). `Box<dyn Error>` not being
+  `Send + Sync` is a genuine pack decision worth revisiting and is not a port defect.
+
+- SIGNED ARITHMETIC WRAPS IN THE SOURCE AND PANICS IN THE TARGET, and the engine emitted the plain
+  operator. `acc *= 3` in a mixing loop overflows `i64` at about forty elements: defined wrapping
+  in the source, a debug panic and a release wrap in the target — one source program became two
+  target programs, neither of which is it. Output that compiles and means something different,
+  which is the failure this engine exists to prevent, and NOTHING IN THE SUITE WAS LOOKING FOR IT.
+  It took a reader who did not know the code was generated.
+  The result TYPE decides and is not recoverable from the operator — `+` on floats, on strings and
+  on integers are three rules — so the front end now records it on both the binary expression and
+  the compound assignment. Another instance of the standing pattern: go/types knew, the extractor
+  dropped it.
+  The pack declares the spelling with its cost written out. `wrapping_*` is the target's spelling
+  of exactly the source's rule and behaves identically in both profiles; the cost is that every
+  arithmetic operation is spelled that way including the overwhelming majority that never overflow,
+  and a reader without the provenance will ask why. Accepted, because a verbose port is a port and
+  a port that means something else is not.
+  Bitwise `^=` and `|=` stay compound, which is the decision being precise rather than broad: they
+  cannot overflow, so the pack's operator table does not list them.
+  THE COMPOUND FORM EXPANDS, because the target has no `wrapping_mul_assign`: `x *= 3` becomes
+  `x = x.wrapping_mul(3)`, which reads the place twice where the source read it once. Sound only
+  where reading twice equals reading once — a path, a field of one, an index by one — and refused
+  by name anywhere else rather than calling something twice that the source called once.
+  SHIFTS ARE LEFT OUT DELIBERATELY. The source defines `x << s` at or beyond the operand width as
+  zero; the target masks in release and panics in debug, and `wrapping_shl` masks rather than
+  zeroing. A different rule needing its own form, and `census/` sizes no numeric family at all —
+  which the standing brief already says, and this is the first time it has cost something.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

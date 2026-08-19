@@ -132,8 +132,14 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 		return compositeNode(typed, ctx)
 
 	case *ast.BinaryExpr:
+		// The RESULT TYPE decides how the operation must be spelled, and it is not recoverable
+		// from the operator or from the operands' syntax. The source's signed arithmetic is
+		// defined to WRAP; the target's panics on overflow in a debug build and wraps in a release
+		// one. Those are three different programs, and telling them apart needs to know that this
+		// `+` is on integers rather than on floats or strings.
 		return node{
 			Kind:  kindBinary,
+			Type:  typeTree(ctx.info.Types[typed].Type),
 			Attrs: map[string]string{attrOp: typed.Op.String()},
 			Children: []node{
 				expressionNode(typed.X, ctx),

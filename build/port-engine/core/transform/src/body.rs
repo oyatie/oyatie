@@ -167,18 +167,50 @@ pub(crate) fn statement(
             // A read-modify-write carries the operator it applies; a plain assignment carries
             // none. The operator is refused by name when the target has no form for it, which is
             // the same answer the binary expression gives for the same spelling.
-            let op = match node.attr(ATTR_OP) {
-                None => None,
-                Some(spelling) => {
-                    Some(binary_operator(spelling).ok_or_else(|| TransformError::Unsupported {
-                        name: cx.owner.to_owned(),
-                        detail: format!("assignment operator `{spelling}=` has no target form"),
-                    })?)
-                }
+            let place = in_position(target, cx, Position::Place)?;
+            let Some(spelling) = node.attr(ATTR_OP) else {
+                return Ok(RustStmt::Assign {
+                    target: place,
+                    op: None,
+                    value: expression(value, cx)?,
+                });
             };
+
+            // A read-modify-write on integers carries the same overflow question a binary
+            // operation does, and the target has no `wrapping_mul_assign` to answer it with. So
+            // the compound form EXPANDS to `place = place.wrapping_mul(value)` — which reads the
+            // place twice, and is only sound where reading it twice is the same as reading it
+            // once. Where it is not, this refuses rather than calling something twice that the
+            // source called once.
+            if let Some(method) = cx.resolver.wrapping_method(node, spelling) {
+                if !reads_once(&place) {
+                    return Err(TransformError::Unsupported {
+                        name: cx.owner.to_owned(),
+                        detail: format!(
+                            "`{spelling}=` on an integer needs the wrapping form, which reads the \
+                             assigned place twice, and this place is not one that can be read \
+                             twice safely"
+                        ),
+                    });
+                }
+                return Ok(RustStmt::Assign {
+                    target: place.clone(),
+                    op: None,
+                    value: RustExpr::MethodCall {
+                        receiver: Box::new(place),
+                        method: method.to_owned(),
+                        args: vec![expression(value, cx)?],
+                    },
+                });
+            }
+
+            let op = binary_operator(spelling).ok_or_else(|| TransformError::Unsupported {
+                name: cx.owner.to_owned(),
+                detail: format!("assignment operator `{spelling}=` has no target form"),
+            })?;
             Ok(RustStmt::Assign {
-                target: in_position(target, cx, Position::Place)?,
-                op,
+                target: place,
+                op: Some(op),
                 value: expression(value, cx)?,
             })
         }
@@ -210,6 +242,20 @@ pub(crate) fn statement(
             name: cx.owner.to_owned(),
             detail: format!("statement kind `{other}` has no translation"),
         }),
+    }
+}
+
+/// Whether reading this place twice is the same as reading it once.
+///
+/// The expanded compound assignment reads the assigned place on both sides, and the source read it
+/// once. A path, a field of one, and an index by one are all pure reads; anything reached through
+/// a CALL is not, and doubling it would run the caller's code twice.
+fn reads_once(place: &RustExpr) -> bool {
+    match place {
+        RustExpr::Path(_) | RustExpr::SelfValue | RustExpr::Literal(_) => true,
+        RustExpr::Field { base, .. } => reads_once(base),
+        RustExpr::Index { base, index } => reads_once(base) && reads_once(index),
+        _ => false,
     }
 }
 

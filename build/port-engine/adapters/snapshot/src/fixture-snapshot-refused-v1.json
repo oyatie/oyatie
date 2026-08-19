@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:127b04e13b7777d9b9f53f6cb01480ae6aee6274f7eb596083133e40b5ca5044",
+  "snapshot_digest": "sha256:e50dfe5afd5b8c16e598672e7e6b54f5f46db358adbf109c7ab0f8e46f487882",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -43,6 +43,10 @@
                 {
                   "kind": "assign",
                   "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
                   "attrs": {
                     "op": "+"
                   },
@@ -66,6 +70,10 @@
                 {
                   "kind": "assign",
                   "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
                   "attrs": {
                     "op": "*"
                   },
@@ -152,6 +160,10 @@
                 {
                   "kind": "assign",
                   "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
                   "attrs": {
                     "op": "\u0026^"
                   },
@@ -270,6 +282,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "\u003c"
                           },
@@ -323,6 +339,10 @@
                             {
                               "kind": "binary",
                               "name": "",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
                               "attrs": {
                                 "op": "+"
                               },

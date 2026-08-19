@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:395e2567abfe297b682438c8323309c1d938edfdb9b815a94a35e03aeec2dceb",
+  "snapshot_digest": "sha256:ff5cce6cc3d23ec243c2098672a80c3e3f14e9b9b9f9f50ae258cdd5e240267c",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-failure/corpus-failure/carried",
@@ -59,6 +59,10 @@
                         {
                           "kind": "binary",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
                           "attrs": {
                             "op": "=="
                           },

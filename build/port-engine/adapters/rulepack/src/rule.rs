@@ -134,3 +134,19 @@ pub struct FunctionMappingRule {
     /// Why this call becomes this form, and what it costs.
     pub reason: String,
 }
+
+/// How the source's integer arithmetic must be spelled in the target.
+///
+/// The reason is REQUIRED and travels in the pack digest, because this is a decision with a cost
+/// on both sides: the plain operator is shorter and means something different on overflow, and the
+/// wrapping form is exact and spelled that way everywhere.
+#[derive(Clone, Debug, Eq, PartialEq, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct IntegerArithmeticRule {
+    /// Source type names whose arithmetic this governs.
+    pub types: Vec<String>,
+    /// Source operator to the target method carrying the same rule.
+    pub operators: std::collections::BTreeMap<String, String>,
+    /// Why this spelling, and what it costs.
+    pub reason: String,
+}
