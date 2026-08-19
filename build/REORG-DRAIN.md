@@ -1954,3 +1954,36 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 - REAFFIRMED STANDING DISAGREEMENTS, now with another review behind each: blanket `wrapping_*`
   (four reviews), `Box<dyn Error>` as a library's error type (three), and impls emitted only for
   OBSERVED satisfactions rather than structural ones (three).
+
+## A counter used only as an index is a `usize`
+
+- The most pervasive "reads translated" tell after the constructor, and the reviewer named it
+  precisely: `for i in 0..values.len() as i64 { values[i as usize] }` is "a length cast to signed
+  and immediately cast back to index."
+
+- Both conversions come off where the counter is used for NOTHING BUT indexing, and the argument is
+  the loop's own bound: the range's upper bound IS a length, so no value the loop produces can be
+  negative or exceed `usize`, and the round trip is the identity for every one of them. The signed
+  value is never observed, so it does not need to exist.
+
+  ONE read that is not an index and both stay — passed to a function, compared against something the
+  source typed `int`, stored in a field. In each of those the signed value IS observed.
+
+- Declared as an IDIOM, with rust-skills provenance, because that is what it is: it changes the
+  spelling and not the program. The mechanism is gated on the pack declaring the rule, exactly as
+  the borrowed-slice idiom is, so a pack that drops it gets the conversions back with no code
+  change.
+
+- The bound's conversion is dropped by comparing against the FORM THE PACK DECLARES rather than by
+  editing rendered text: the pack's `len` mapping is `{0}.len() as i64`, and only that declared
+  trailing conversion is stripped. A pack whose mapping has no trailing conversion is left exactly
+  alone, so code and data cannot drift into disagreeing about what `len` becomes.
+
+- The range and the index read the same proof rather than each deciding, for the same reason the
+  pointer result's signature and body do: they must agree or the loop does not compile. Scoped to
+  the loop that proved it, so a name shadowed by an inner loop with different uses gets its own
+  answer.
+
+- No coverage movement, and none expected: every one of these declarations already translated. What
+  moved is what the output READS like, which is the bar the goal actually sets — an engine whose
+  output a reviewer judges as hand-written.

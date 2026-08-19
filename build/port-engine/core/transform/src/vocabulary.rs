@@ -71,6 +71,9 @@ pub const IDIOM_EMPTY_STRING: &str = "empty_string_comparison";
 pub const IDIOM_BORROWED_SLICE: &str = "borrowed_sequence_is_a_slice";
 /// The idiom that spells a type as `Self` inside its own impl block.
 pub const IDIOM_SELF_IN_IMPL: &str = "self_inside_own_impl";
+/// The idiom that a counter used only as an index needs neither of the two conversions.
+pub const IDIOM_INDEX_COUNTER: &str = "index_counter_is_usize";
+/// The idiom that a counter used only as an index is a , so neither conversion is needed.
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
 /// The node kind of a unary expression.
@@ -79,6 +82,8 @@ pub const KIND_UNARY: &str = "unary";
 pub const KIND_CALL: &str = "call";
 /// The node kind of a return statement.
 pub const KIND_RETURN: &str = "return";
+/// The node kind of an index expression.
+pub const KIND_INDEX: &str = "index";
 /// The declaration kind of a package-level variable.
 pub const KIND_VAR: &str = "var";
 /// The source spelling of the address-of operator.

@@ -4,8 +4,8 @@ pub mod accumulate {
     /// Folds the values together with the operators a hash uses.
     pub fn mix(values: &[i64]) -> i64 {
         let mut acc = 1i64;
-        for i in 0..values.len() as i64 {
-            acc ^= values[i as usize];
+        for i in 0..values.len() {
+            acc ^= values[i];
             acc = acc.wrapping_mul(3);
             acc |= 1;
         }
@@ -15,8 +15,8 @@ pub mod accumulate {
     /// Sums the values, accumulating in place.
     pub fn total(values: &[i64]) -> i64 {
         let mut sum = 0i64;
-        for i in 0..values.len() as i64 {
-            sum = sum.wrapping_add(values[i as usize]);
+        for i in 0..values.len() {
+            sum = sum.wrapping_add(values[i]);
         }
         sum
     }

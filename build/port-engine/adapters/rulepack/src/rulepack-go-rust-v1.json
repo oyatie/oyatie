@@ -754,6 +754,15 @@
       "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    },
+    {
+      "id": "index_counter_is_usize",
+      "shape": "counted_loop_indexing_only",
+      "method": "usize",
+      "reason": "The source counts with its `int` and the target indexes with `usize`, so the engine converts at both ends: `for i in 0..values.len() as i64` and then `values[i as usize]`. Where the counter is used for NOTHING BUT indexing, the signed value is never observed and both conversions are removable -- the counter is a `usize` from the start. Exactly equivalent, because the round trip is the identity for every value the loop can produce: the range's upper bound IS a length, so no value in it can be negative or exceed `usize`. This changes the spelling and not the program, which is what makes it an idiom rather than a rule. A reviewer reading the emitted crate called the pair 'a length cast to signed and immediately cast back to index, with bounds checks the iterator would have elided', and they are right about the first half; the second is a further step this does not take. Applies only where every read of the counter inside the loop is an index operand. One read that is not -- passed to a function, compared against something the source typed `int`, stored -- and the signed value IS observed, so the conversions stay.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-pedantic.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
     }
   ],
   "literal_constructors": {
