@@ -1,12 +1,225 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:8a31f4b2b97565169938153a91e9ae4573fe90fb6377ce87a2c513d8281337c6",
+  "snapshot_digest": "sha256:66b972f9ce947535822aabbb2bf7c7186a57114bfe43cd47ecc50f404d28a698",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
+        {
+          "kind": "func",
+          "name": "Clear",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Clear turns off the bits of mask in n.\n\n`\u0026^=` (AND NOT) has no single-operator target form, exactly as binary `\u0026^` has none. It is\nspellable as `\u0026 !`, and the operand widths differ between the languages — a silent rewrite of a\nbit operation is the class of change nobody reviews, so it is refused by name instead."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes",
+                "rebound"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "mask",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "assign",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
+                  "attrs": {
+                    "op": "\u0026^"
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
+                      "attrs": {
+                        "read_count": "2",
+                        "ref": "local"
+                      }
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "mask",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
+                      "attrs": {
+                        "read_count": "2",
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Widths",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Widths returns the horizontal extents it was given, unchanged.\n\nREFUSED. The source's slice parameter SHARES the caller's backing array, so it is a reference\nthe caller keeps — and returning it hands that share out past the call. A borrow would need a\nlifetime the caller cannot supply, and an owned parameter would consume the caller's slice,\nwhich the source never does. What an escaping sequence becomes has not been decided."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "counts",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "counts",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "counter",
+          "type": {
+            "kind": "basic",
+            "name": "int64"
+          },
+          "flags": [
+            "rebound"
+          ],
+          "attrs": {
+            "doc": "counter is written by Bump, which is the case the `var` deferral's synchronization argument is\nactually about."
+          }
+        },
+        {
+          "kind": "var",
+          "name": "pooled",
+          "type": {
+            "kind": "basic",
+            "name": "int64"
+          },
+          "flags": [
+            "rebound"
+          ],
+          "attrs": {
+            "doc": "pooled is both initialised and written."
+          },
+          "children": [
+            {
+              "kind": "convert",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "children": [
+                {
+                  "kind": "literal",
+                  "name": "",
+                  "attrs": {
+                    "lit_kind": "INT",
+                    "value": "1"
+                  }
+                }
+              ]
+            }
+          ]
+        },
         {
           "kind": "func",
           "name": "Bump",
@@ -120,111 +333,6 @@
                       "attrs": {
                         "read_count": "2",
                         "ref": "package_var"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "func",
-          "name": "Clear",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Clear turns off the bits of mask in n.\n\n`\u0026^=` (AND NOT) has no single-operator target form, exactly as binary `\u0026^` has none. It is\nspellable as `\u0026 !`, and the operand widths differ between the languages — a silent rewrite of a\nbit operation is the class of change nobody reviews, so it is refused by name instead."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "n",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              },
-              "flags": [
-                "escapes",
-                "rebound"
-              ]
-            },
-            {
-              "kind": "param",
-              "name": "mask",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              },
-              "flags": [
-                "escapes"
-              ]
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "assign",
-                  "name": "",
-                  "type": {
-                    "kind": "basic",
-                    "name": "int64"
-                  },
-                  "attrs": {
-                    "op": "\u0026^"
-                  },
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "n",
-                      "type": {
-                        "kind": "basic",
-                        "name": "int64"
-                      },
-                      "flags": [
-                        "reread"
-                      ],
-                      "attrs": {
-                        "read_count": "2",
-                        "ref": "local"
-                      }
-                    },
-                    {
-                      "kind": "ident",
-                      "name": "mask",
-                      "attrs": {
-                        "ref": "local"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "n",
-                      "type": {
-                        "kind": "basic",
-                        "name": "int64"
-                      },
-                      "flags": [
-                        "reread"
-                      ],
-                      "attrs": {
-                        "read_count": "2",
-                        "ref": "local"
                       }
                     }
                   ]
@@ -517,68 +625,11 @@
         },
         {
           "kind": "func",
-          "name": "Join",
-          "flags": [
-            "exported",
-            "variadic"
-          ],
-          "attrs": {
-            "doc": "Join concatenates the given counts into a total.\n\nThe SIGNATURE ports: `counts` is a slice inside the function, which is what the source records\nand what the target's slice rule already answers."
-          },
+          "name": "cleanup",
           "children": [
             {
-              "kind": "param",
-              "name": "base",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              },
-              "flags": [
-                "escapes"
-              ]
-            },
-            {
-              "kind": "param",
-              "name": "counts",
-              "type": {
-                "kind": "slice",
-                "args": [
-                  {
-                    "kind": "basic",
-                    "name": "int64"
-                  }
-                ]
-              },
-              "flags": [
-                "unread"
-              ]
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              }
-            },
-            {
               "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "base",
-                      "attrs": {
-                        "ref": "local"
-                      }
-                    }
-                  ]
-                }
-              ]
+              "name": ""
             }
           ]
         },
@@ -918,6 +969,73 @@
         },
         {
           "kind": "func",
+          "name": "Join",
+          "flags": [
+            "exported",
+            "variadic"
+          ],
+          "attrs": {
+            "doc": "Join concatenates the given counts into a total.\n\nThe SIGNATURE ports: `counts` is a slice inside the function, which is what the source records\nand what the target's slice rule already answers."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "base",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "counts",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              },
+              "flags": [
+                "unread"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "base",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
           "name": "Total",
           "flags": [
             "exported"
@@ -993,124 +1111,6 @@
                       ]
                     }
                   ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "func",
-          "name": "Widths",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Widths returns the horizontal extents it was given, unchanged.\n\nREFUSED. The source's slice parameter SHARES the caller's backing array, so it is a reference\nthe caller keeps — and returning it hands that share out past the call. A borrow would need a\nlifetime the caller cannot supply, and an owned parameter would consume the caller's slice,\nwhich the source never does. What an escaping sequence becomes has not been decided."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "counts",
-              "type": {
-                "kind": "slice",
-                "args": [
-                  {
-                    "kind": "basic",
-                    "name": "int64"
-                  }
-                ]
-              },
-              "flags": [
-                "escapes"
-              ]
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "slice",
-                "args": [
-                  {
-                    "kind": "basic",
-                    "name": "int64"
-                  }
-                ]
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "counts",
-                      "attrs": {
-                        "ref": "local"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "func",
-          "name": "cleanup",
-          "children": [
-            {
-              "kind": "body",
-              "name": ""
-            }
-          ]
-        },
-        {
-          "kind": "var",
-          "name": "counter",
-          "type": {
-            "kind": "basic",
-            "name": "int64"
-          },
-          "flags": [
-            "rebound"
-          ],
-          "attrs": {
-            "doc": "counter is written by Bump, which is the case the `var` deferral's synchronization argument is\nactually about."
-          }
-        },
-        {
-          "kind": "var",
-          "name": "pooled",
-          "type": {
-            "kind": "basic",
-            "name": "int64"
-          },
-          "flags": [
-            "rebound"
-          ],
-          "attrs": {
-            "doc": "pooled is both initialised and written."
-          },
-          "children": [
-            {
-              "kind": "convert",
-              "name": "",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              },
-              "children": [
-                {
-                  "kind": "literal",
-                  "name": "",
-                  "attrs": {
-                    "lit_kind": "INT",
-                    "value": "1"
-                  }
                 }
               ]
             }

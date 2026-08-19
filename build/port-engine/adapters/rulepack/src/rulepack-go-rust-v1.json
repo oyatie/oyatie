@@ -200,6 +200,31 @@
       ]
     },
     {
+      "id": "go_var",
+      "version": "1",
+      "precondition": "unit_present",
+      "captures": [
+        "var"
+      ],
+      "construction": "rust_static",
+      "precedence": 1,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "go-var-selects-globals",
+          "unit": "oyatie.example/portengine-fixture/corpus/globals",
+          "selects": true
+        },
+        {
+          "id": "go-var-does-not-select-geometry",
+          "unit": "oyatie.example/portengine-fixture/corpus/geometry",
+          "selects": false
+        }
+      ]
+    },
+    {
       "id": "go_alias",
       "version": "1",
       "precondition": "unit_present",
@@ -207,7 +232,7 @@
         "alias"
       ],
       "construction": "rust_type_alias",
-      "precedence": 1,
+      "precedence": 2,
       "conflict": "refuse",
       "required_diagnostics": [],
       "proof_obligations": [],
@@ -227,7 +252,7 @@
         "named"
       ],
       "construction": "rust_newtype",
-      "precedence": 2,
+      "precedence": 3,
       "conflict": "refuse",
       "required_diagnostics": [],
       "proof_obligations": [],
@@ -236,31 +261,6 @@
           "id": "go-defined-type-selects-basic",
           "unit": "oyatie.example/portengine-fixture/corpus/basic",
           "selects": true
-        }
-      ]
-    },
-    {
-      "id": "go_struct",
-      "version": "1",
-      "precondition": "unit_present",
-      "captures": [
-        "struct"
-      ],
-      "construction": "rust_struct",
-      "precedence": 3,
-      "conflict": "refuse",
-      "required_diagnostics": [],
-      "proof_obligations": [],
-      "selecting_fixtures": [
-        {
-          "id": "go-struct-selects-geometry",
-          "unit": "oyatie.example/portengine-fixture/corpus/geometry",
-          "selects": true
-        },
-        {
-          "id": "go-struct-does-not-select-basic",
-          "unit": "oyatie.example/portengine-fixture/corpus/basic",
-          "selects": false
         }
       ]
     },
@@ -285,27 +285,27 @@
       ]
     },
     {
-      "id": "go_func",
+      "id": "go_struct",
       "version": "1",
       "precondition": "unit_present",
       "captures": [
-        "func"
+        "struct"
       ],
-      "construction": "rust_fn_body",
+      "construction": "rust_struct",
       "precedence": 5,
       "conflict": "refuse",
       "required_diagnostics": [],
       "proof_obligations": [],
       "selecting_fixtures": [
         {
-          "id": "go-func-selects-basic",
-          "unit": "oyatie.example/portengine-fixture/corpus/basic",
+          "id": "go-struct-selects-geometry",
+          "unit": "oyatie.example/portengine-fixture/corpus/geometry",
           "selects": true
         },
         {
-          "id": "go-func-selects-fallible",
-          "unit": "oyatie.example/portengine-fixture/corpus/fallible",
-          "selects": true
+          "id": "go-struct-does-not-select-basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
+          "selects": false
         }
       ]
     },
@@ -345,27 +345,27 @@
       ]
     },
     {
-      "id": "go_var",
+      "id": "go_func",
       "version": "1",
       "precondition": "unit_present",
       "captures": [
-        "var"
+        "func"
       ],
-      "construction": "rust_static",
+      "construction": "rust_fn_body",
       "precedence": 7,
       "conflict": "refuse",
       "required_diagnostics": [],
       "proof_obligations": [],
       "selecting_fixtures": [
         {
-          "id": "go-var-selects-globals",
-          "unit": "oyatie.example/portengine-fixture/corpus/globals",
+          "id": "go-func-selects-basic",
+          "unit": "oyatie.example/portengine-fixture/corpus/basic",
           "selects": true
         },
         {
-          "id": "go-var-does-not-select-geometry",
-          "unit": "oyatie.example/portengine-fixture/corpus/geometry",
-          "selects": false
+          "id": "go-func-selects-fallible",
+          "unit": "oyatie.example/portengine-fixture/corpus/fallible",
+          "selects": true
         }
       ]
     }
@@ -373,16 +373,16 @@
   "applies": {
     "oyatie.example/portengine-fixture/corpus/basic": [
       "go_const",
+      "go_var",
       "go_alias",
       "go_defined_type",
-      "go_func",
-      "go_var"
+      "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/shapes": [
+      "go_var",
       "go_interface",
-      "go_func",
       "go_struct_body",
-      "go_var"
+      "go_func"
     ],
     "oyatie.example/portengine-fixture-refused/corpus-refused/hard": [
       "go_func"
@@ -393,30 +393,30 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/pointers": [
-      "go_func",
-      "go_struct_body"
+      "go_struct_body",
+      "go_func"
     ],
     "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping": [
       "go_struct"
     ],
     "oyatie.example/portengine-fixture/corpus/naming": [
-      "go_func",
-      "go_struct_body"
+      "go_struct_body",
+      "go_func"
     ],
     "oyatie.example/portengine-fixture-interface/corpus-interface/positions": [
       "go_interface",
-      "go_func",
-      "go_struct_body"
+      "go_struct_body",
+      "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/composite": [
       "go_interface",
-      "go_func",
-      "go_struct_body"
+      "go_struct_body",
+      "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/fallible": [
-      "go_func",
+      "go_var",
       "go_struct_body",
-      "go_var"
+      "go_func"
     ],
     "oyatie.example/portengine-fixture-failure/corpus-failure/carried": [
       "go_func"
@@ -431,12 +431,12 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/globals": [
-      "go_func",
-      "go_var"
+      "go_var",
+      "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/handoff": [
-      "go_func",
-      "go_struct_body"
+      "go_struct_body",
+      "go_func"
     ],
     "oyatie.example/portengine-fixture/corpus/invariant": [
       "go_func"
@@ -445,12 +445,12 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored": [
-      "go_func",
-      "go_struct_body"
+      "go_struct_body",
+      "go_func"
     ],
     "oyatie.example/portengine-fixture-sentinel/corpus-sentinel/identity": [
-      "go_func",
-      "go_var"
+      "go_var",
+      "go_func"
     ]
   },
   "type_constructors": {

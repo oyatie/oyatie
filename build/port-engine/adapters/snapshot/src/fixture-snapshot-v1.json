@@ -1,12 +1,286 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:530f2a9d70538db5d11307af1f503a690fa5da61b05fac5cc2f9ac172173fb78",
+  "snapshot_digest": "sha256:7932c515dfc01c59ff2485b7219fdfbf84b831c38ae64b69e13fbe4d7555e366",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
+        {
+          "kind": "func",
+          "name": "Total",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Total sums the values, accumulating in place."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "values",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "sum",
+                  "flags": [
+                    "mutated"
+                  ],
+                  "children": [
+                    {
+                      "kind": "convert",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "children": [
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "0"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "for",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "init",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "let",
+                          "name": "i",
+                          "flags": [
+                            "mutated"
+                          ],
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
+                          "attrs": {
+                            "op": "\u003c"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "3",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "len"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "len",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "values",
+                                  "type": {
+                                    "kind": "slice",
+                                    "args": [
+                                      {
+                                        "kind": "basic",
+                                        "name": "int64"
+                                      }
+                                    ]
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
+                                  "attrs": {
+                                    "read_count": "2",
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "post",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "unsupported",
+                          "name": "",
+                          "attrs": {
+                            "go_node": "IncDecStmt"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "assign",
+                          "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int64"
+                          },
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "sum",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int64"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "index",
+                              "name": "",
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "values",
+                                  "type": {
+                                    "kind": "slice",
+                                    "args": [
+                                      {
+                                        "kind": "basic",
+                                        "name": "int64"
+                                      }
+                                    ]
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
+                                  "attrs": {
+                                    "read_count": "2",
+                                    "ref": "local"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "i",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "int"
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
+                                  "attrs": {
+                                    "read_count": "3",
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "sum",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
+                      "attrs": {
+                        "read_count": "2",
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
         {
           "kind": "func",
           "name": "Mix",
@@ -352,280 +626,6 @@
               ]
             }
           ]
-        },
-        {
-          "kind": "func",
-          "name": "Total",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Total sums the values, accumulating in place."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "values",
-              "type": {
-                "kind": "slice",
-                "args": [
-                  {
-                    "kind": "basic",
-                    "name": "int64"
-                  }
-                ]
-              }
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "let",
-                  "name": "sum",
-                  "flags": [
-                    "mutated"
-                  ],
-                  "children": [
-                    {
-                      "kind": "convert",
-                      "name": "",
-                      "type": {
-                        "kind": "basic",
-                        "name": "int64"
-                      },
-                      "children": [
-                        {
-                          "kind": "literal",
-                          "name": "",
-                          "attrs": {
-                            "lit_kind": "INT",
-                            "value": "0"
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "kind": "for",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "init",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "let",
-                          "name": "i",
-                          "flags": [
-                            "mutated"
-                          ],
-                          "children": [
-                            {
-                              "kind": "literal",
-                              "name": "",
-                              "attrs": {
-                                "lit_kind": "INT",
-                                "value": "0"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "kind": "cond",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "binary",
-                          "name": "",
-                          "type": {
-                            "kind": "basic",
-                            "name": "untyped bool"
-                          },
-                          "attrs": {
-                            "op": "\u003c"
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "i",
-                              "type": {
-                                "kind": "basic",
-                                "name": "int"
-                              },
-                              "flags": [
-                                "reread"
-                              ],
-                              "attrs": {
-                                "read_count": "3",
-                                "ref": "local"
-                              }
-                            },
-                            {
-                              "kind": "call",
-                              "name": "",
-                              "attrs": {
-                                "callee": "len"
-                              },
-                              "children": [
-                                {
-                                  "kind": "ident",
-                                  "name": "len",
-                                  "attrs": {
-                                    "ref": "builtin"
-                                  }
-                                },
-                                {
-                                  "kind": "ident",
-                                  "name": "values",
-                                  "type": {
-                                    "kind": "slice",
-                                    "args": [
-                                      {
-                                        "kind": "basic",
-                                        "name": "int64"
-                                      }
-                                    ]
-                                  },
-                                  "flags": [
-                                    "reread"
-                                  ],
-                                  "attrs": {
-                                    "read_count": "2",
-                                    "ref": "local"
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "kind": "post",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "unsupported",
-                          "name": "",
-                          "attrs": {
-                            "go_node": "IncDecStmt"
-                          }
-                        }
-                      ]
-                    },
-                    {
-                      "kind": "then",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "assign",
-                          "name": "",
-                          "type": {
-                            "kind": "basic",
-                            "name": "int64"
-                          },
-                          "attrs": {
-                            "op": "+"
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "sum",
-                              "type": {
-                                "kind": "basic",
-                                "name": "int64"
-                              },
-                              "flags": [
-                                "reread"
-                              ],
-                              "attrs": {
-                                "read_count": "2",
-                                "ref": "local"
-                              }
-                            },
-                            {
-                              "kind": "index",
-                              "name": "",
-                              "children": [
-                                {
-                                  "kind": "ident",
-                                  "name": "values",
-                                  "type": {
-                                    "kind": "slice",
-                                    "args": [
-                                      {
-                                        "kind": "basic",
-                                        "name": "int64"
-                                      }
-                                    ]
-                                  },
-                                  "flags": [
-                                    "reread"
-                                  ],
-                                  "attrs": {
-                                    "read_count": "2",
-                                    "ref": "local"
-                                  }
-                                },
-                                {
-                                  "kind": "ident",
-                                  "name": "i",
-                                  "type": {
-                                    "kind": "basic",
-                                    "name": "int"
-                                  },
-                                  "flags": [
-                                    "reread"
-                                  ],
-                                  "attrs": {
-                                    "read_count": "3",
-                                    "ref": "local"
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "sum",
-                      "type": {
-                        "kind": "basic",
-                        "name": "int64"
-                      },
-                      "flags": [
-                        "reread"
-                      ],
-                      "attrs": {
-                        "read_count": "2",
-                        "ref": "local"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
         }
       ]
     },
@@ -633,6 +633,111 @@
       "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
+        {
+          "kind": "const",
+          "name": "MaxRetries",
+          "type": {
+            "kind": "basic",
+            "name": "int"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "MaxRetries bounds the retry loop.",
+            "value": "3"
+          }
+        },
+        {
+          "kind": "const",
+          "name": "DefaultName",
+          "type": {
+            "kind": "basic",
+            "name": "string"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "DefaultName is the fallback identity for an unnamed record.",
+            "value": "\"anonymous\""
+          }
+        },
+        {
+          "kind": "var",
+          "name": "Enabled",
+          "type": {
+            "kind": "basic",
+            "name": "bool"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Enabled reports whether the fixture feature is on by default."
+          },
+          "children": [
+            {
+              "kind": "ident",
+              "name": "true",
+              "attrs": {
+                "ref": "const"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Threshold",
+          "type": {
+            "kind": "basic",
+            "name": "float64"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Threshold is the default cutoff."
+          },
+          "children": [
+            {
+              "kind": "literal",
+              "name": "",
+              "attrs": {
+                "lit_kind": "FLOAT",
+                "value": "0.75"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "alias",
+          "name": "ID",
+          "type": {
+            "kind": "basic",
+            "name": "string"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "ID is an alias for the underlying identity spelling."
+          }
+        },
+        {
+          "kind": "named",
+          "name": "Celsius",
+          "type": {
+            "kind": "basic",
+            "name": "float64"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Celsius is a temperature in degrees Celsius."
+          }
+        },
         {
           "kind": "func",
           "name": "Add",
@@ -707,87 +812,6 @@
               ]
             }
           ]
-        },
-        {
-          "kind": "named",
-          "name": "Celsius",
-          "type": {
-            "kind": "basic",
-            "name": "float64"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Celsius is a temperature in degrees Celsius."
-          }
-        },
-        {
-          "kind": "const",
-          "name": "DefaultName",
-          "type": {
-            "kind": "basic",
-            "name": "string"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "DefaultName is the fallback identity for an unnamed record.",
-            "value": "\"anonymous\""
-          }
-        },
-        {
-          "kind": "var",
-          "name": "Enabled",
-          "type": {
-            "kind": "basic",
-            "name": "bool"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Enabled reports whether the fixture feature is on by default."
-          },
-          "children": [
-            {
-              "kind": "ident",
-              "name": "true",
-              "attrs": {
-                "ref": "const"
-              }
-            }
-          ]
-        },
-        {
-          "kind": "alias",
-          "name": "ID",
-          "type": {
-            "kind": "basic",
-            "name": "string"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "ID is an alias for the underlying identity spelling."
-          }
-        },
-        {
-          "kind": "const",
-          "name": "MaxRetries",
-          "type": {
-            "kind": "basic",
-            "name": "int"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "MaxRetries bounds the retry loop.",
-            "value": "3"
-          }
         },
         {
           "kind": "func",
@@ -865,30 +889,6 @@
           ]
         },
         {
-          "kind": "var",
-          "name": "Threshold",
-          "type": {
-            "kind": "basic",
-            "name": "float64"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Threshold is the default cutoff."
-          },
-          "children": [
-            {
-              "kind": "literal",
-              "name": "",
-              "attrs": {
-                "lit_kind": "FLOAT",
-                "value": "0.75"
-              }
-            }
-          ]
-        },
-        {
           "kind": "func",
           "name": "unexported",
           "attrs": {
@@ -943,6 +943,38 @@
       "declarations": [
         {
           "kind": "interface",
+          "name": "Runner",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Runner is anything that can run."
+          },
+          "children": [
+            {
+              "kind": "method",
+              "name": "Run",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Run performs one unit of work and reports the running count."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "interface",
           "name": "Describer",
           "flags": [
             "exported"
@@ -969,6 +1001,213 @@
                     "kind": "basic",
                     "name": "string"
                   }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "interface",
+          "name": "Job",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Job is anything that runs and describes itself."
+          },
+          "children": [
+            {
+              "kind": "embeds",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Runner",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              }
+            },
+            {
+              "kind": "embeds",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Describer",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Engine",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Engine counts the work it has done."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "calls",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "attrs": {
+                "doc": "calls is how many times Run has been called."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Run",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Run performs one unit of work and reports the running count."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "assign",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "calls",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "e",
+                              "type": {
+                                "kind": "pointer",
+                                "args": [
+                                  {
+                                    "kind": "named",
+                                    "name": "Engine",
+                                    "package": "oyatie.example/portengine-fixture/corpus/composite"
+                                  }
+                                ]
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "3",
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "calls",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "e",
+                                  "type": {
+                                    "kind": "pointer",
+                                    "args": [
+                                      {
+                                        "kind": "named",
+                                        "name": "Engine",
+                                        "package": "oyatie.example/portengine-fixture/corpus/composite"
+                                      }
+                                    ]
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
+                                  "attrs": {
+                                    "read_count": "3",
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "1"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "calls",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "e",
+                              "type": {
+                                "kind": "pointer",
+                                "args": [
+                                  {
+                                    "kind": "named",
+                                    "name": "Engine",
+                                    "package": "oyatie.example/portengine-fixture/corpus/composite"
+                                  }
+                                ]
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "3",
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -1165,213 +1404,6 @@
           ]
         },
         {
-          "kind": "struct",
-          "name": "Engine",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Engine counts the work it has done."
-          },
-          "children": [
-            {
-              "kind": "field",
-              "name": "calls",
-              "type": {
-                "kind": "basic",
-                "name": "int"
-              },
-              "attrs": {
-                "doc": "calls is how many times Run has been called."
-              }
-            },
-            {
-              "kind": "method",
-              "name": "Run",
-              "flags": [
-                "exported",
-                "mutated",
-                "pointer_receiver"
-              ],
-              "attrs": {
-                "doc": "Run performs one unit of work and reports the running count."
-              },
-              "children": [
-                {
-                  "kind": "result",
-                  "name": "",
-                  "type": {
-                    "kind": "basic",
-                    "name": "int"
-                  }
-                },
-                {
-                  "kind": "body",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "assign",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "selector",
-                          "name": "calls",
-                          "type": {
-                            "kind": "basic",
-                            "name": "int"
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "e",
-                              "type": {
-                                "kind": "pointer",
-                                "args": [
-                                  {
-                                    "kind": "named",
-                                    "name": "Engine",
-                                    "package": "oyatie.example/portengine-fixture/corpus/composite"
-                                  }
-                                ]
-                              },
-                              "flags": [
-                                "reread"
-                              ],
-                              "attrs": {
-                                "read_count": "3",
-                                "ref": "receiver"
-                              }
-                            }
-                          ]
-                        },
-                        {
-                          "kind": "binary",
-                          "name": "",
-                          "type": {
-                            "kind": "basic",
-                            "name": "int"
-                          },
-                          "attrs": {
-                            "op": "+"
-                          },
-                          "children": [
-                            {
-                              "kind": "selector",
-                              "name": "calls",
-                              "type": {
-                                "kind": "basic",
-                                "name": "int"
-                              },
-                              "children": [
-                                {
-                                  "kind": "ident",
-                                  "name": "e",
-                                  "type": {
-                                    "kind": "pointer",
-                                    "args": [
-                                      {
-                                        "kind": "named",
-                                        "name": "Engine",
-                                        "package": "oyatie.example/portengine-fixture/corpus/composite"
-                                      }
-                                    ]
-                                  },
-                                  "flags": [
-                                    "reread"
-                                  ],
-                                  "attrs": {
-                                    "read_count": "3",
-                                    "ref": "receiver"
-                                  }
-                                }
-                              ]
-                            },
-                            {
-                              "kind": "literal",
-                              "name": "",
-                              "attrs": {
-                                "lit_kind": "INT",
-                                "value": "1"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "kind": "return",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "selector",
-                          "name": "calls",
-                          "type": {
-                            "kind": "basic",
-                            "name": "int"
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "e",
-                              "type": {
-                                "kind": "pointer",
-                                "args": [
-                                  {
-                                    "kind": "named",
-                                    "name": "Engine",
-                                    "package": "oyatie.example/portengine-fixture/corpus/composite"
-                                  }
-                                ]
-                              },
-                              "flags": [
-                                "reread"
-                              ],
-                              "attrs": {
-                                "read_count": "3",
-                                "ref": "receiver"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "interface",
-          "name": "Job",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Job is anything that runs and describes itself."
-          },
-          "children": [
-            {
-              "kind": "embeds",
-              "name": "",
-              "type": {
-                "kind": "named_interface",
-                "name": "Runner",
-                "package": "oyatie.example/portengine-fixture/corpus/composite"
-              }
-            },
-            {
-              "kind": "embeds",
-              "name": "",
-              "type": {
-                "kind": "named_interface",
-                "name": "Describer",
-                "package": "oyatie.example/portengine-fixture/corpus/composite"
-              }
-            }
-          ]
-        },
-        {
           "kind": "func",
           "name": "NewDriver",
           "flags": [
@@ -1457,38 +1489,6 @@
               ]
             }
           ]
-        },
-        {
-          "kind": "interface",
-          "name": "Runner",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Runner is anything that can run."
-          },
-          "children": [
-            {
-              "kind": "method",
-              "name": "Run",
-              "flags": [
-                "exported"
-              ],
-              "attrs": {
-                "doc": "Run performs one unit of work and reports the running count."
-              },
-              "children": [
-                {
-                  "kind": "result",
-                  "name": "",
-                  "type": {
-                    "kind": "basic",
-                    "name": "int"
-                  }
-                }
-              ]
-            }
-          ]
         }
       ]
     },
@@ -1496,158 +1496,6 @@
       "unit_id": "oyatie.example/portengine-fixture/corpus/fallible",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
-        {
-          "kind": "func",
-          "name": "Check",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Check reports whether s is usable, returning only a failure."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "s",
-              "type": {
-                "kind": "basic",
-                "name": "string"
-              }
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "named_interface",
-                "name": "error"
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "if",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "cond",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "binary",
-                          "name": "",
-                          "type": {
-                            "kind": "basic",
-                            "name": "untyped bool"
-                          },
-                          "attrs": {
-                            "op": "=="
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "s",
-                              "attrs": {
-                                "ref": "local"
-                              }
-                            },
-                            {
-                              "kind": "literal",
-                              "name": "",
-                              "attrs": {
-                                "lit_kind": "STRING",
-                                "value": "\"\""
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "kind": "then",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "return",
-                          "name": "",
-                          "children": [
-                            {
-                              "kind": "call",
-                              "name": "",
-                              "attrs": {
-                                "callee": "errors.New"
-                              },
-                              "children": [
-                                {
-                                  "kind": "selector",
-                                  "name": "New",
-                                  "type": {
-                                    "kind": "func",
-                                    "args": [
-                                      {
-                                        "kind": "tuple",
-                                        "args": [
-                                          {
-                                            "kind": "basic",
-                                            "name": "string"
-                                          }
-                                        ]
-                                      },
-                                      {
-                                        "kind": "tuple",
-                                        "args": [
-                                          {
-                                            "kind": "named_interface",
-                                            "name": "error"
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  },
-                                  "children": [
-                                    {
-                                      "kind": "ident",
-                                      "name": "errors",
-                                      "attrs": {
-                                        "ref": "local"
-                                      }
-                                    }
-                                  ]
-                                },
-                                {
-                                  "kind": "literal",
-                                  "name": "",
-                                  "attrs": {
-                                    "lit_kind": "STRING",
-                                    "value": "\"empty\""
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                },
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "ident",
-                      "name": "nil",
-                      "attrs": {
-                        "ref": "nil"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
         {
           "kind": "var",
           "name": "ErrEmpty",
@@ -1880,12 +1728,12 @@
         },
         {
           "kind": "func",
-          "name": "Measure",
+          "name": "Check",
           "flags": [
             "exported"
           ],
           "attrs": {
-            "doc": "Measure reports the length of s, failing on the empty string."
+            "doc": "Check reports whether s is usable, returning only a failure."
           },
           "children": [
             {
@@ -1894,14 +1742,6 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              }
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "basic",
-                "name": "int"
               }
             },
             {
@@ -1917,37 +1757,105 @@
               "name": "",
               "children": [
                 {
-                  "kind": "let",
-                  "name": "err",
+                  "kind": "if",
+                  "name": "",
                   "children": [
                     {
-                      "kind": "call",
+                      "kind": "cond",
                       "name": "",
-                      "attrs": {
-                        "callee": "oyatie.example/portengine-fixture/corpus/fallible.Check"
-                      },
                       "children": [
                         {
-                          "kind": "ident",
-                          "name": "Check",
-                          "attrs": {
-                            "ref": "func"
-                          }
-                        },
-                        {
-                          "kind": "ident",
-                          "name": "s",
+                          "kind": "binary",
+                          "name": "",
                           "type": {
                             "kind": "basic",
-                            "name": "string"
+                            "name": "untyped bool"
                           },
-                          "flags": [
-                            "reread"
-                          ],
                           "attrs": {
-                            "read_count": "2",
-                            "ref": "local"
-                          }
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "errors.New"
+                              },
+                              "children": [
+                                {
+                                  "kind": "selector",
+                                  "name": "New",
+                                  "type": {
+                                    "kind": "func",
+                                    "args": [
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "string"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "named_interface",
+                                            "name": "error"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "ident",
+                                      "name": "errors",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"empty\""
+                                  }
+                                }
+                              ]
+                            }
+                          ]
                         }
                       ]
                     }
@@ -1958,80 +1866,15 @@
                   "name": "",
                   "children": [
                     {
-                      "kind": "call",
-                      "name": "",
-                      "attrs": {
-                        "callee": "len"
-                      },
-                      "children": [
-                        {
-                          "kind": "ident",
-                          "name": "len",
-                          "attrs": {
-                            "ref": "builtin"
-                          }
-                        },
-                        {
-                          "kind": "ident",
-                          "name": "s",
-                          "type": {
-                            "kind": "basic",
-                            "name": "string"
-                          },
-                          "flags": [
-                            "reread"
-                          ],
-                          "attrs": {
-                            "read_count": "2",
-                            "ref": "local"
-                          }
-                        }
-                      ]
-                    },
-                    {
                       "kind": "ident",
-                      "name": "err",
+                      "name": "nil",
                       "attrs": {
-                        "ref": "local"
+                        "ref": "nil"
                       }
                     }
                   ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "kind": "struct",
-          "name": "Report",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Report records a failure alongside what was being attempted."
-          },
-          "children": [
-            {
-              "kind": "field",
-              "name": "action",
-              "type": {
-                "kind": "basic",
-                "name": "string"
-              },
-              "attrs": {
-                "doc": "action names what was attempted."
-              }
-            },
-            {
-              "kind": "field",
-              "name": "cause",
-              "type": {
-                "kind": "named_interface",
-                "name": "error"
-              },
-              "attrs": {
-                "doc": "cause is why it did not succeed."
-              }
             }
           ]
         },
@@ -2439,6 +2282,163 @@
               ]
             }
           ]
+        },
+        {
+          "kind": "struct",
+          "name": "Report",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Report records a failure alongside what was being attempted."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "action",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "action names what was attempted."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "cause",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              },
+              "attrs": {
+                "doc": "cause is why it did not succeed."
+              }
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Measure",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Measure reports the length of s, failing on the empty string."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "err",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture/corpus/fallible.Check"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Check",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "flags": [
+                            "reread"
+                          ],
+                          "attrs": {
+                            "read_count": "2",
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "len"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "len",
+                          "attrs": {
+                            "ref": "builtin"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "flags": [
+                            "reread"
+                          ],
+                          "attrs": {
+                            "read_count": "2",
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "err",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
         }
       ]
     },
@@ -2446,6 +2446,21 @@
       "unit_id": "oyatie.example/portengine-fixture/corpus/geometry",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
+        {
+          "kind": "alias",
+          "name": "Origin",
+          "type": {
+            "kind": "named",
+            "name": "Point",
+            "package": "oyatie.example/portengine-fixture/corpus/shapes"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Origin names the point type rectangles are built from."
+          }
+        },
         {
           "kind": "struct",
           "name": "Bounds",
@@ -2487,21 +2502,6 @@
               }
             }
           ]
-        },
-        {
-          "kind": "alias",
-          "name": "Origin",
-          "type": {
-            "kind": "named",
-            "name": "Point",
-            "package": "oyatie.example/portengine-fixture/corpus/shapes"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Origin names the point type rectangles are built from."
-          }
         },
         {
           "kind": "func",
@@ -2582,6 +2582,44 @@
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
         {
+          "kind": "var",
+          "name": "Prefix",
+          "type": {
+            "kind": "basic",
+            "name": "string"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Prefix is the identity prefix every generated name starts with."
+          },
+          "children": [
+            {
+              "kind": "literal",
+              "name": "",
+              "attrs": {
+                "lit_kind": "STRING",
+                "value": "\"id-\""
+              }
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Limit",
+          "type": {
+            "kind": "basic",
+            "name": "int64"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Limit is the ceiling this component will not exceed. Zero means unbounded."
+          }
+        },
+        {
           "kind": "func",
           "name": "Describe",
           "flags": [
@@ -2620,44 +2658,6 @@
               ]
             }
           ]
-        },
-        {
-          "kind": "var",
-          "name": "Limit",
-          "type": {
-            "kind": "basic",
-            "name": "int64"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Limit is the ceiling this component will not exceed. Zero means unbounded."
-          }
-        },
-        {
-          "kind": "var",
-          "name": "Prefix",
-          "type": {
-            "kind": "basic",
-            "name": "string"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Prefix is the identity prefix every generated name starts with."
-          },
-          "children": [
-            {
-              "kind": "literal",
-              "name": "",
-              "attrs": {
-                "lit_kind": "STRING",
-                "value": "\"id-\""
-              }
-            }
-          ]
         }
       ]
     },
@@ -2665,6 +2665,26 @@
       "unit_id": "oyatie.example/portengine-fixture/corpus/handoff",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
+        {
+          "kind": "struct",
+          "name": "Counter",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Counter counts."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "total",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            }
+          ]
+        },
         {
           "kind": "func",
           "name": "Bump",
@@ -2786,26 +2806,6 @@
                   ]
                 }
               ]
-            }
-          ]
-        },
-        {
-          "kind": "struct",
-          "name": "Counter",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Counter counts."
-          },
-          "children": [
-            {
-              "kind": "field",
-              "name": "total",
-              "type": {
-                "kind": "basic",
-                "name": "int64"
-              }
             }
           ]
         },
@@ -3321,87 +3321,6 @@
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
         {
-          "kind": "func",
-          "name": "Describe",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Describe returns the display name of anything that can name itself."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "named",
-              "type": {
-                "kind": "named_interface",
-                "name": "Named",
-                "package": "oyatie.example/portengine-fixture/corpus/shapes"
-              }
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "basic",
-                "name": "string"
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "call",
-                      "name": "",
-                      "attrs": {
-                        "callee": "",
-                        "callee_kind": "method"
-                      },
-                      "children": [
-                        {
-                          "kind": "selector",
-                          "name": "Name",
-                          "type": {
-                            "kind": "func",
-                            "args": [
-                              {
-                                "kind": "tuple"
-                              },
-                              {
-                                "kind": "tuple",
-                                "args": [
-                                  {
-                                    "kind": "basic",
-                                    "name": "string"
-                                  }
-                                ]
-                              }
-                            ]
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "named",
-                              "attrs": {
-                                "ref": "local"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
           "kind": "struct",
           "name": "Label",
           "flags": [
@@ -3712,71 +3631,6 @@
           ]
         },
         {
-          "kind": "func",
-          "name": "NewTag",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "NewTag returns a tag with the given fixed display name."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "text",
-              "type": {
-                "kind": "basic",
-                "name": "string"
-              }
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "named",
-                "name": "Tag",
-                "package": "oyatie.example/portengine-fixture/corpus/naming"
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "composite",
-                      "name": "",
-                      "type": {
-                        "kind": "named",
-                        "name": "Tag",
-                        "package": "oyatie.example/portengine-fixture/corpus/naming"
-                      },
-                      "children": [
-                        {
-                          "kind": "keyed",
-                          "name": "text",
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "text",
-                              "attrs": {
-                                "ref": "local"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
           "kind": "struct",
           "name": "Tag",
           "flags": [
@@ -3905,6 +3759,152 @@
                   "attrs": {
                     "receiver": "exclusive"
                   }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "NewTag",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "NewTag returns a tag with the given fixed display name."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "text",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named",
+                "name": "Tag",
+                "package": "oyatie.example/portengine-fixture/corpus/naming"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "named",
+                        "name": "Tag",
+                        "package": "oyatie.example/portengine-fixture/corpus/naming"
+                      },
+                      "children": [
+                        {
+                          "kind": "keyed",
+                          "name": "text",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "text",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Describe",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Describe returns the display name of anything that can name itself."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "named",
+              "type": {
+                "kind": "named_interface",
+                "name": "Named",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "",
+                        "callee_kind": "method"
+                      },
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Name",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple"
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "named",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
                 }
               ]
             }
@@ -4377,6 +4377,29 @@
           ]
         },
         {
+          "kind": "struct",
+          "name": "Tally",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Tally is a counter allocated away from the caller's frame."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "label names the tally."
+              }
+            }
+          ]
+        },
+        {
           "kind": "func",
           "name": "NewTally",
           "flags": [
@@ -4454,29 +4477,6 @@
               ]
             }
           ]
-        },
-        {
-          "kind": "struct",
-          "name": "Tally",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Tally is a counter allocated away from the caller's frame."
-          },
-          "children": [
-            {
-              "kind": "field",
-              "name": "label",
-              "type": {
-                "kind": "basic",
-                "name": "string"
-              },
-              "attrs": {
-                "doc": "label names the tally."
-              }
-            }
-          ]
         }
       ]
     },
@@ -4486,20 +4486,20 @@
       "declarations": [
         {
           "kind": "func",
-          "name": "Scaled",
+          "name": "Width",
           "flags": [
             "exported"
           ],
           "attrs": {
-            "doc": "Scaled reports n scaled by the fixed factor this function works in."
+            "doc": "Width reports the width of s once it clears the minimum, and zero otherwise."
           },
           "children": [
             {
               "kind": "param",
-              "name": "n",
+              "name": "s",
               "type": {
                 "kind": "basic",
-                "name": "int64"
+                "name": "string"
               }
             },
             {
@@ -4507,7 +4507,7 @@
               "name": "",
               "type": {
                 "kind": "basic",
-                "name": "int64"
+                "name": "int"
               }
             },
             {
@@ -4515,16 +4515,112 @@
               "name": "",
               "children": [
                 {
-                  "kind": "let",
-                  "name": "factor",
+                  "kind": "if",
+                  "name": "",
                   "children": [
                     {
-                      "kind": "literal",
+                      "kind": "init",
                       "name": "",
-                      "attrs": {
-                        "lit_kind": "INT",
-                        "value": "8"
-                      }
+                      "children": [
+                        {
+                          "kind": "let",
+                          "name": "size",
+                          "children": [
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "len"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "len",
+                                  "attrs": {
+                                    "ref": "builtin"
+                                  }
+                                },
+                                {
+                                  "kind": "ident",
+                                  "name": "s",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "untyped bool"
+                          },
+                          "attrs": {
+                            "op": "\u003e"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "size",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "4"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "size",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "2",
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
                     }
                   ]
                 },
@@ -4533,31 +4629,12 @@
                   "name": "",
                   "children": [
                     {
-                      "kind": "binary",
+                      "kind": "literal",
                       "name": "",
-                      "type": {
-                        "kind": "basic",
-                        "name": "int64"
-                      },
                       "attrs": {
-                        "op": "*"
-                      },
-                      "children": [
-                        {
-                          "kind": "ident",
-                          "name": "n",
-                          "attrs": {
-                            "ref": "local"
-                          }
-                        },
-                        {
-                          "kind": "ident",
-                          "name": "factor",
-                          "attrs": {
-                            "ref": "local"
-                          }
-                        }
-                      ]
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
                     }
                   ]
                 }
@@ -4833,20 +4910,20 @@
         },
         {
           "kind": "func",
-          "name": "Width",
+          "name": "Scaled",
           "flags": [
             "exported"
           ],
           "attrs": {
-            "doc": "Width reports the width of s once it clears the minimum, and zero otherwise."
+            "doc": "Scaled reports n scaled by the fixed factor this function works in."
           },
           "children": [
             {
               "kind": "param",
-              "name": "s",
+              "name": "n",
               "type": {
                 "kind": "basic",
-                "name": "string"
+                "name": "int64"
               }
             },
             {
@@ -4854,7 +4931,7 @@
               "name": "",
               "type": {
                 "kind": "basic",
-                "name": "int"
+                "name": "int64"
               }
             },
             {
@@ -4862,112 +4939,16 @@
               "name": "",
               "children": [
                 {
-                  "kind": "if",
-                  "name": "",
+                  "kind": "let",
+                  "name": "factor",
                   "children": [
                     {
-                      "kind": "init",
+                      "kind": "literal",
                       "name": "",
-                      "children": [
-                        {
-                          "kind": "let",
-                          "name": "size",
-                          "children": [
-                            {
-                              "kind": "call",
-                              "name": "",
-                              "attrs": {
-                                "callee": "len"
-                              },
-                              "children": [
-                                {
-                                  "kind": "ident",
-                                  "name": "len",
-                                  "attrs": {
-                                    "ref": "builtin"
-                                  }
-                                },
-                                {
-                                  "kind": "ident",
-                                  "name": "s",
-                                  "attrs": {
-                                    "ref": "local"
-                                  }
-                                }
-                              ]
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "kind": "cond",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "binary",
-                          "name": "",
-                          "type": {
-                            "kind": "basic",
-                            "name": "untyped bool"
-                          },
-                          "attrs": {
-                            "op": "\u003e"
-                          },
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "size",
-                              "type": {
-                                "kind": "basic",
-                                "name": "int"
-                              },
-                              "flags": [
-                                "reread"
-                              ],
-                              "attrs": {
-                                "read_count": "2",
-                                "ref": "local"
-                              }
-                            },
-                            {
-                              "kind": "literal",
-                              "name": "",
-                              "attrs": {
-                                "lit_kind": "INT",
-                                "value": "4"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    },
-                    {
-                      "kind": "then",
-                      "name": "",
-                      "children": [
-                        {
-                          "kind": "return",
-                          "name": "",
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "size",
-                              "type": {
-                                "kind": "basic",
-                                "name": "int"
-                              },
-                              "flags": [
-                                "reread"
-                              ],
-                              "attrs": {
-                                "read_count": "2",
-                                "ref": "local"
-                              }
-                            }
-                          ]
-                        }
-                      ]
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "8"
+                      }
                     }
                   ]
                 },
@@ -4976,12 +4957,31 @@
                   "name": "",
                   "children": [
                     {
-                      "kind": "literal",
+                      "kind": "binary",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
                       "attrs": {
-                        "lit_kind": "INT",
-                        "value": "0"
-                      }
+                        "op": "*"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "factor",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
                     }
                   ]
                 }
@@ -5033,56 +5033,6 @@
                       "type": {
                         "kind": "array",
                         "name": "4",
-                        "args": [
-                          {
-                            "kind": "basic",
-                            "name": "int64"
-                          }
-                        ]
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "func",
-          "name": "Empty",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Empty returns no widths at all."
-          },
-          "children": [
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "slice",
-                "args": [
-                  {
-                    "kind": "basic",
-                    "name": "int64"
-                  }
-                ]
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "composite",
-                      "name": "",
-                      "type": {
-                        "kind": "slice",
                         "args": [
                           {
                             "kind": "basic",
@@ -5168,6 +5118,132 @@
                           }
                         }
                       ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Widths",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Widths returns the configured widths."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "slice",
+                        "args": [
+                          {
+                            "kind": "basic",
+                            "name": "int64"
+                          }
+                        ]
+                      },
+                      "children": [
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "1"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "2"
+                          }
+                        },
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "lit_kind": "INT",
+                            "value": "3"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Empty",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Empty returns no widths at all."
+          },
+          "children": [
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int64"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "slice",
+                        "args": [
+                          {
+                            "kind": "basic",
+                            "name": "int64"
+                          }
+                        ]
+                      }
                     }
                   ]
                 }
@@ -5418,82 +5494,6 @@
               ]
             }
           ]
-        },
-        {
-          "kind": "func",
-          "name": "Widths",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Widths returns the configured widths."
-          },
-          "children": [
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "slice",
-                "args": [
-                  {
-                    "kind": "basic",
-                    "name": "int64"
-                  }
-                ]
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "composite",
-                      "name": "",
-                      "type": {
-                        "kind": "slice",
-                        "args": [
-                          {
-                            "kind": "basic",
-                            "name": "int64"
-                          }
-                        ]
-                      },
-                      "children": [
-                        {
-                          "kind": "literal",
-                          "name": "",
-                          "attrs": {
-                            "lit_kind": "INT",
-                            "value": "1"
-                          }
-                        },
-                        {
-                          "kind": "literal",
-                          "name": "",
-                          "attrs": {
-                            "lit_kind": "INT",
-                            "value": "2"
-                          }
-                        },
-                        {
-                          "kind": "literal",
-                          "name": "",
-                          "attrs": {
-                            "lit_kind": "INT",
-                            "value": "3"
-                          }
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
         }
       ]
     },
@@ -5501,227 +5501,6 @@
       "unit_id": "oyatie.example/portengine-fixture/corpus/shapes",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
-        {
-          "kind": "interface",
-          "name": "Named",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Named is anything that can render its own display name."
-          },
-          "children": [
-            {
-              "kind": "method",
-              "name": "Name",
-              "flags": [
-                "exported"
-              ],
-              "attrs": {
-                "doc": "Name returns the display name.",
-                "receiver": "shared"
-              },
-              "children": [
-                {
-                  "kind": "result",
-                  "name": "",
-                  "type": {
-                    "kind": "basic",
-                    "name": "string"
-                  }
-                }
-              ]
-            },
-            {
-              "kind": "method",
-              "name": "Refresh",
-              "flags": [
-                "exported"
-              ],
-              "attrs": {
-                "doc": "Refresh recomputes the display name from the current state.",
-                "receiver": "exclusive"
-              }
-            }
-          ]
-        },
-        {
-          "kind": "func",
-          "name": "NewPoint",
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "NewPoint returns the point at the given coordinates, labelled for display."
-          },
-          "children": [
-            {
-              "kind": "param",
-              "name": "x",
-              "type": {
-                "kind": "basic",
-                "name": "int"
-              }
-            },
-            {
-              "kind": "param",
-              "name": "y",
-              "type": {
-                "kind": "basic",
-                "name": "int"
-              }
-            },
-            {
-              "kind": "param",
-              "name": "label",
-              "type": {
-                "kind": "basic",
-                "name": "string"
-              }
-            },
-            {
-              "kind": "result",
-              "name": "",
-              "type": {
-                "kind": "named",
-                "name": "Point",
-                "package": "oyatie.example/portengine-fixture/corpus/shapes"
-              }
-            },
-            {
-              "kind": "body",
-              "name": "",
-              "children": [
-                {
-                  "kind": "return",
-                  "name": "",
-                  "children": [
-                    {
-                      "kind": "composite",
-                      "name": "",
-                      "type": {
-                        "kind": "named",
-                        "name": "Point",
-                        "package": "oyatie.example/portengine-fixture/corpus/shapes"
-                      },
-                      "children": [
-                        {
-                          "kind": "keyed",
-                          "name": "X",
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "x",
-                              "attrs": {
-                                "ref": "local"
-                              }
-                            }
-                          ]
-                        },
-                        {
-                          "kind": "keyed",
-                          "name": "Y",
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "y",
-                              "attrs": {
-                                "ref": "local"
-                              }
-                            }
-                          ]
-                        },
-                        {
-                          "kind": "keyed",
-                          "name": "label",
-                          "children": [
-                            {
-                              "kind": "ident",
-                              "name": "label",
-                              "attrs": {
-                                "ref": "local"
-                              }
-                            }
-                          ]
-                        }
-                      ]
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
-        {
-          "kind": "var",
-          "name": "Origin",
-          "type": {
-            "kind": "named",
-            "name": "Point",
-            "package": "oyatie.example/portengine-fixture/corpus/shapes"
-          },
-          "flags": [
-            "exported"
-          ],
-          "attrs": {
-            "doc": "Origin is the point at the coordinate origin."
-          },
-          "children": [
-            {
-              "kind": "composite",
-              "name": "",
-              "type": {
-                "kind": "named",
-                "name": "Point",
-                "package": "oyatie.example/portengine-fixture/corpus/shapes"
-              },
-              "children": [
-                {
-                  "kind": "keyed",
-                  "name": "X",
-                  "children": [
-                    {
-                      "kind": "literal",
-                      "name": "",
-                      "attrs": {
-                        "lit_kind": "INT",
-                        "value": "0"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "kind": "keyed",
-                  "name": "Y",
-                  "children": [
-                    {
-                      "kind": "literal",
-                      "name": "",
-                      "attrs": {
-                        "lit_kind": "INT",
-                        "value": "0"
-                      }
-                    }
-                  ]
-                },
-                {
-                  "kind": "keyed",
-                  "name": "label",
-                  "children": [
-                    {
-                      "kind": "zero",
-                      "name": "label",
-                      "type": {
-                        "kind": "basic",
-                        "name": "string"
-                      }
-                    }
-                  ]
-                }
-              ]
-            }
-          ]
-        },
         {
           "kind": "struct",
           "name": "Point",
@@ -6108,6 +5887,227 @@
                           ]
                         }
                       ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "NewPoint",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "NewPoint returns the point at the given coordinates, labelled for display."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "x",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "param",
+              "name": "y",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "param",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named",
+                "name": "Point",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "composite",
+                      "name": "",
+                      "type": {
+                        "kind": "named",
+                        "name": "Point",
+                        "package": "oyatie.example/portengine-fixture/corpus/shapes"
+                      },
+                      "children": [
+                        {
+                          "kind": "keyed",
+                          "name": "X",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "x",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "keyed",
+                          "name": "Y",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "y",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "keyed",
+                          "name": "label",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "label",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "interface",
+          "name": "Named",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Named is anything that can render its own display name."
+          },
+          "children": [
+            {
+              "kind": "method",
+              "name": "Name",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Name returns the display name.",
+                "receiver": "shared"
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Refresh",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Refresh recomputes the display name from the current state.",
+                "receiver": "exclusive"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Origin",
+          "type": {
+            "kind": "named",
+            "name": "Point",
+            "package": "oyatie.example/portengine-fixture/corpus/shapes"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Origin is the point at the coordinate origin."
+          },
+          "children": [
+            {
+              "kind": "composite",
+              "name": "",
+              "type": {
+                "kind": "named",
+                "name": "Point",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "children": [
+                {
+                  "kind": "keyed",
+                  "name": "X",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyed",
+                  "name": "Y",
+                  "children": [
+                    {
+                      "kind": "literal",
+                      "name": "",
+                      "attrs": {
+                        "lit_kind": "INT",
+                        "value": "0"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyed",
+                  "name": "label",
+                  "children": [
+                    {
+                      "kind": "zero",
+                      "name": "label",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
                     }
                   ]
                 }
