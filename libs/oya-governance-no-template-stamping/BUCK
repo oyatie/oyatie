@@ -8,7 +8,6 @@ rust_library(
         "third-party//:anyhow",
         "third-party//:serde",
         "third-party//:serde_json",
-        "third-party//:serde_yaml",
         "third-party//:walkdir",
     ],
 )
@@ -23,7 +22,6 @@ rust_binary(
         "third-party//:anyhow",
         "third-party//:serde",
         "third-party//:serde_json",
-        "third-party//:serde_yaml",
         "third-party//:walkdir",
     ],
 )
@@ -38,7 +36,6 @@ rust_test(
         "third-party//:anyhow",
         "third-party//:serde",
         "third-party//:serde_json",
-        "third-party//:serde_yaml",
         "third-party//:walkdir",
     ],
 )
@@ -54,7 +51,6 @@ rust_test(
         "third-party//:anyhow",
         "third-party//:serde",
         "third-party//:serde_json",
-        "third-party//:serde_yaml",
         "third-party//:walkdir",
     ],
 )
