@@ -3599,3 +3599,55 @@ remains on the evidence lists is the source's own design showing through a faith
 constants, a comparator helper that Go needed and Rust does not, payload-free sentinels — plus one
 decision this engine has measured and declined twice, for a reason taken from the mandate rather than
 from any corpus.
+
+## R1r — the ranked top cause was pack data all along
+
+Twenty refusals said the same thing: `X is in package Y, which this snapshot does not contain — the
+pack has to map the call`. Ranked first among causes that are not cascades, and pure pack work with
+no engine change. I had been avoiding it because each mapping is a semantic decision — which is
+exactly what a pack is for.
+
+Nineteen distinct callees. Three map, nine cannot, and saying WHICH is most of the value.
+
+**Mapped, where the two agree on every input.** `math/bits.RotateLeft64` → `rotate_left`, because
+both rotate and both reduce the distance modulo 64. `os.Getenv` → `env::var(..).unwrap_or_default()`,
+because the source cannot tell unset from empty and the target's default for unset is empty.
+`strings.LastIndex` → `rfind(..).map_or(-1, ..)`, because both count BYTES — the thing that usually
+differs between two languages' index functions — so only the absent case needed spelling.
+
+**And a new table for the ones that CANNOT be mapped, each with the reason.** This is the distinction
+that was missing: a call the pack has not reached refuses saying a mapping is owed, and a call the
+pack has LOOKED at refuses saying a mapping would be wrong. Every entry is a case where the target
+has something that resembles the source's call and differs on input nobody would think to test:
+
+- `strconv.ParseUint` — the target accepts a leading `+` and the source rejects it, and the source
+  takes a base and a bit size of which only one pair is the target's `parse` at all. A version parser
+  is exactly where that matters: invisible on valid input, and it changes which strings are accepted.
+- `strings.EqualFold` — Unicode simple case FOLDING against ASCII folding or case MAPPING. They
+  differ on the Kelvin sign, final sigma, and the Turkish dotless i.
+- `errors.Is` / `errors.As` — they walk a cause chain this port does not build, since the wrapping
+  verb refuses for that reason. Right today; silently wrong the day upstream wraps something.
+- `encoding/hex.*`, `crypto/md5.New`, `crypto/sha1.New` — absent from the target's standard library.
+  Which crate supplies one is a dependency decision about the ported crate, not the engine's.
+- `bytes.Compare` — the values correspond and the TYPES do not, and which to emit is a decision about
+  the call sites.
+
+**One mapping paid for the whole phase: xxhash 26.5% → 55.9%.** The rotation is the inner loop of the
+hash, and every function that used it had been refusing.
+
+**Two defects it exposed, both mine.**
+
+The mapping template `{0}.rotate_left({1} as u32)` rendered as `x.rotate_left(1` — the cast detector
+takes the text after the LAST ` as ` for a type, and here that was `u32)`. It only ever meant to
+recognise a cast of the WHOLE expression, which is the case that needs bracketing, so it now requires
+the target to be an identifier. Worth noting how it surfaced: as a LATE refusal at render, after the
+self-containment fixpoint had already run — so `rol31` vanished from the output while its callers
+stayed, leaving exactly the dangling reference that fixpoint exists to prevent. A render refusal is
+invisible to the transform, and nothing today reconciles them.
+
+Then `1 as u32` on a literal is a cast the target's own lints call unnecessary, and they are right.
+The source counts a rotation distance in its own `int` and the target's method takes a `u32`: for a
+literal the target infers it, and for anything else a conversion between two widths is needed that
+the source never asked for. So the mapping holds for a literal distance and refuses by name for the
+rest, through a new `int_literal_last` argument shape — the same mechanism `panic` already used to
+say "faithful for this shape and silently wrong for the others".

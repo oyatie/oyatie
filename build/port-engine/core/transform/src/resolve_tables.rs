@@ -117,6 +117,19 @@ impl Resolver<'_> {
         // than a crate that is wrong — but it is counted as translated either way, which is the
         // defect. What is missing is a mapping in the pack, and the refusal says so.
         if !self.units.contains(package) {
+            // The pack may have LOOKED at this call and decided it cannot be mapped, which is a
+            // different answer from not having reached it — and a far more useful one. The target
+            // usually has something that resembles the source's call; what the reason records is
+            // how the resemblance breaks, on input nobody would think to test.
+            if let Some(reason) = self.unmappable_calls.get(identity) {
+                return Err(TransformError::Unsupported {
+                    name: declaration_name.to_owned(),
+                    detail: format!(
+                        "`{identity}` has no faithful target form, and the pack says why rather \
+                         than leaving it to be guessed at: {reason}"
+                    ),
+                });
+            }
             return Err(TransformError::Unsupported {
                 name: declaration_name.to_owned(),
                 detail: format!(

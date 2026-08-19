@@ -21,8 +21,8 @@ use crate::body_ops::{operator_of, own_string_for, reference};
 use crate::error::TransformError;
 use crate::naming::{module_path, to_snake_case};
 use crate::vocabulary::{
-    ARGUMENT_STRING_LITERAL, ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, CALLEE_KIND_METHOD,
-    KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
+    ARGUMENT_INT_LITERAL_LAST, ARGUMENT_STRING_LITERAL, ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, CALLEE_KIND_METHOD,
+    KIND_LITERAL, KIND_UNARY, LIT_KIND_INT, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
 };
 
 /// A call, which is a method call when its callee is a field access.
@@ -161,6 +161,17 @@ fn structured(rendered: &str, form: &str) -> RustExpr {
     let Some((_, target)) = form.rsplit_once(" as ") else {
         return RustExpr::Literal(rendered.to_owned());
     };
+    // A TRAILING cast, and nothing else. A form whose ` as ` sits INSIDE it —
+    // `{0}.rotate_left({1} as u32)` — is not a cast of the whole call, and reading one there took
+    // `u32)` for a type and cut the rendered text at the paren: `x.rotate_left(31`, which does not
+    // parse. The whole point of recognising the cast is that a cast is postfix-hostile and needs
+    // bracketing, and only a cast of the WHOLE expression does.
+    if !target
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
+    {
+        return RustExpr::Literal(rendered.to_owned());
+    }
     match rendered
         .strip_suffix(&format!(" as {target}"))
         .filter(|inner| !inner.is_empty())
@@ -200,6 +211,13 @@ fn refuse_wrong_argument_shape(
     let holds = match required {
         ARGUMENT_STRING_LITERAL => argument.is_some_and(|arg| {
             arg.kind == KIND_LITERAL && arg.attr(ATTR_LIT_KIND) == Some(LIT_KIND_STRING)
+        }),
+        // A COUNT, and the target infers its own width for a literal one. Where the source passes a
+        // variable instead, the width has to be converted and the source's `int` is not the
+        // target's — so the mapping holds for the literal and refuses for the rest rather than
+        // carrying a cast that is wrong for one of them.
+        ARGUMENT_INT_LITERAL_LAST => node.children.last().is_some_and(|arg| {
+            arg.kind == KIND_LITERAL && arg.attr(ATTR_LIT_KIND) == Some(LIT_KIND_INT)
         }),
         unknown => {
             return Err(TransformError::Unsupported {

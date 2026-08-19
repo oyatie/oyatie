@@ -39,6 +39,8 @@ pub struct Pack {
     pub format_calls: port_engine_api::FormatCalls,
     /// Library paths named by their short form. Empty by default, like the tables above.
     pub target_imports: BTreeMap<String, String>,
+    /// Calls that cannot be mapped, and why. Empty by default, for the same reason.
+    pub unmappable_calls: BTreeMap<String, String>,
     pub copies: BTreeSet<String>,
     pub casts: BTreeSet<String>,
     pub zeroes: BTreeMap<String, String>,
@@ -232,6 +234,13 @@ impl Pack {
 }
 
 impl PackSemantics for Pack {
+    fn unmappable_calls(&self) -> &BTreeMap<String, String> {
+        // EMPTY, so a fixture's foreign call refuses saying a mapping is owed. Which calls cannot
+        // be mapped is the real pack's judgement, exercised against real source.
+        &self.unmappable_calls
+    }
+
+
     fn target_imports(&self) -> &BTreeMap<String, String> {
         // EMPTY, so a fixture spells every library path out and the rule is exercised against the
         // real pack over real source.

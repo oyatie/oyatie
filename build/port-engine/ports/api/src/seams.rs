@@ -143,6 +143,12 @@ pub trait PackSemantics {
     /// Keyed by the short name because that is what the emitted code says and what a scan of it
     /// looks for — and because one of them is a RENAME, so the name cannot be derived from the path.
     fn target_imports(&self) -> &BTreeMap<String, String>;
+    /// Calls the pack refuses to map, and the reason each one CANNOT be mapped.
+    ///
+    /// Distinct from a call the pack has not reached. That one refuses saying a mapping is owed;
+    /// this one refuses saying a mapping would be wrong — the target has something that looks like
+    /// the source's call and differs on input a test would not think to write.
+    fn unmappable_calls(&self) -> &BTreeMap<String, String>;
     /// Source TYPE names a doc comment may name, and the target's spelling for each.
     ///
     /// Separate from the type map, which answers what a DECLARATION's type becomes. Prose is not a

@@ -93,6 +93,12 @@ pub const IDIOM_MATCHES: &str = "boolean_match_is_matches";
 /// The idiom that a counter used only as an index is a , so neither conversion is needed.
 /// The argument shape a conditional mapping may require: a source string literal.
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
+/// The argument shape "the LAST argument is an integer literal".
+///
+/// The last one because that is where a count sits — a rotation distance, a shift, a width — and
+/// because a mapping that needs one usually needs it there. Its own shape rather than a position
+/// plus a kind, because the two are one question: is this a number the target can infer a type for.
+pub const ARGUMENT_INT_LITERAL_LAST: &str = "int_literal_last";
 /// The node kind of a unary expression.
 pub const KIND_UNARY: &str = "unary";
 /// The node kind of a call.

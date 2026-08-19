@@ -656,10 +656,23 @@
       "form": "{0}.len() as i64",
       "reason": "The source's `len` yields its own `int`, which the pack maps to `i64`; the target's yields `usize`. The cast is in the VALUE position because the value is what the source typed as `int` -- and the index position casts back, because the same value reaches both. Where a counter makes the round trip the pair is visible and removable by a right-sizing analysis, which is why a cast is an IR node rather than characters in a string."
     },
+    "math/bits.RotateLeft64": {
+      "form": "{0}.rotate_left({1})",
+      "requires_argument": "int_literal_last",
+      "reason": "Both languages rotate a 64-bit value left and both reduce the distance modulo 64, so the two agree on every input -- including the ones where a rotate and a shift differ. Only for a LITERAL distance, and that is the whole of the condition: the source counts the distance in its own `int` and the target's method takes a `u32`, which for a literal the target simply infers and for anything else needs a conversion between two widths the source never asked for. Carrying a cast that suits the variable case would put `1 as u32` on every literal, which the target's own lints call unnecessary -- and they are right, so the mapping holds where no conversion is needed and refuses by name where one is."
+    },
+    "os.Getenv": {
+      "form": "std::env::var({0}).unwrap_or_default()",
+      "reason": "The source returns the empty string for a variable that is unset and cannot tell that from one set to empty; the target returns a failure for unset, and the default for it is the empty string -- so the two collapse to the same value in the same cases. What is NOT preserved is the target's extra case: a value that is not valid Unicode fails there and is bytes in the source, and it collapses to empty here, which is what the source would have done with it anyway had it been asked for a string."
+    },
     "panic": {
       "form": "panic!({0})",
       "requires_argument": "string_literal",
       "reason": "Go's `panic(v)` aborts the goroutine carrying `v`; Rust's `panic!` unwinds carrying a formatted string. Where `v` is a STRING LITERAL the two are the same abort with the same message and the same payload type, and nothing is lost -- which is why this mapping declares that shape and refuses every other one by name. Where `v` is an error or an arbitrary value, the payload TYPE is lost, and a caller that recovers and type-asserts on it sees a different program. ON EMITTING A PANIC AT ALL: the no-panic bar governs THIS repository's own Rust, and the engine's production sources contain none. The emitted crate's semantics come from upstream: a source function that aborts must port to a target function that aborts, and returning a `Result` where the source panics would be a different program -- which is the one failure this engine exists to prevent. Sized by docs/programs/k8s-port/census/defer-panic-recover.md: the string-literal invariant shapes are 38.2% and 21.0% of Kubernetes panic sites."
+    },
+    "strings.LastIndex": {
+      "form": "{0}.rfind({1}).map_or(-1, |at| at as i64)",
+      "reason": "The source answers with a byte offset or -1; the target answers with an optional byte offset. Same search, same units -- both count BYTES rather than characters, which is the thing that usually differs between two languages' index functions -- so only the absent case needs spelling, and -1 is how the source spells it. Kept as the sentinel rather than turned into an option because the call sites are the source's and they compare against -1."
     }
   },
   "length_functions": {
@@ -927,5 +940,19 @@
       "StdError": "std::error::Error"
     },
     "reason": "Library paths this pack names by their SHORT form, and the import each one then needs. Keyed by the short name because that is what the emitted code says and what the scan looks for. Three reviewers in a row said the same thing: one module importing `std::fmt` while spelling `std::error::Error` and `std::cmp::Ordering` out at every use is not a choice anybody makes -- it is the source language's package-qualified reference model applied to the target's paths. `StdError` is a RENAME rather than the path's own last segment, and deliberately: a unit that declares failures emits its own type called `Error`, so importing the trait under that name would collide with it. `use std::error::Error as StdError` is what real Rust writes in exactly this situation, and it is the reason the table is keyed by the name rather than derived from the path. An import is emitted only where the unit's emitted types actually NAME the short form -- an import nothing uses is a denied warning, not a tidiness point."
+  },
+  "unmappable_calls": {
+    "calls": {
+      "bytes.Compare": "The source answers with -1, 0 or 1 as its own `int`; the target answers with an `Ordering`. The values correspond exactly and the TYPES do not -- so a call site comparing the result against a number wants the source's spelling and one matching on it wants the target's. Which to emit is a decision about the call sites, and the engine meets them one at a time.",
+      "crypto/md5.New": "The target's standard library has no digest algorithms at all. Which crate supplies one is a dependency decision about the ported crate, and that belongs to whoever ports it.",
+      "crypto/sha1.New": "The same absence as `crypto/md5.New`.",
+      "encoding/hex.Encode": "The target's standard library has no hex codec. Mapping this would introduce a dependency the ported crate does not otherwise have and the source did not choose, or an implementation nobody wrote -- and inventing a body is not translation.",
+      "encoding/hex.EncodeToString": "The same absence as `encoding/hex.Encode`.",
+      "errors.As": "The same chain as `errors.Is`, and an out-parameter besides: the source writes the error it found through a pointer the caller supplies, where the target's downcast returns it. Even the single-link case is a different shape at the call site.",
+      "errors.Is": "It walks the CAUSE CHAIN, and this port builds none -- the wrapping verb refuses for that reason, so a failure here carries a message and nothing under it. Mapping this to a downcast would answer the top of a chain with no rest: right today, and silently wrong the day upstream wraps something.",
+      "strconv.ParseUint": "The two parsers disagree about input the SOURCE REJECTS. The target accepts a leading `+`, so `+5` parses there and fails here; and the source takes a base and a bit size, of which only base 10 at 64 bits is the target's `parse` at all. A version parser is exactly where that matters -- the difference is invisible on valid input and changes which strings are accepted.",
+      "strings.EqualFold": "The source compares under Unicode SIMPLE CASE FOLDING. The target's `eq_ignore_ascii_case` folds only ASCII, and comparing `to_lowercase()` is case MAPPING rather than folding; they differ on the Kelvin sign, on final sigma, and on the Turkish dotless i. Each of those compares equal in the source and unequal in at least one target spelling, on input no test would think to write."
+    },
+    "reason": "Calls into libraries that do not come along and CANNOT be mapped, each with the reason it cannot. Distinct from a call the pack has simply not reached: that one refuses saying a mapping is owed, and this one refuses saying a mapping would be WRONG. Every entry is a case where the target has something that looks like the source's call and differs on input a test would not think to write -- a parser that accepts one more string, a comparison that folds a different alphabet, a chain-walker with no chain. Emitting the near-equivalent is precisely the failure this engine exists to prevent, and the near-equivalents are the tempting ones, so the reason is written where the next reader will look for it."
   }
 }
