@@ -43,6 +43,53 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
    ADR-0515 / ADR-0363 / ADR-0562 / ADR-0615 / ADR-0635 / ADR-0637–0639 when applicable.
 4. **Activation-sensitive** items (warm CAS, RE workers) remain fail-closed until explicit go-gate.
 
+## Decision D-5 — AGPL boundary: split by plane, not by component (2026-08-19)
+
+The observability stack is not licence-homogeneous, and until now nothing recorded which half
+may face a tenant. `observability/iac/helm/` carries **grafana, loki, mimir, pyroscope, alloy and
+oncall — all AGPLv3** since Grafana Labs relicensed in 2021. Its siblings in the same tree —
+**prometheus, clickhouse, opencost, otel-tailsampling-collector, alertmanager — are Apache-2.0**.
+`deny.toml`'s allow-list does not contain AGPL and never reached these anyway: it governs Cargo
+dependencies, and these are charts.
+
+The boundary is drawn by **plane**, not by component:
+
+1. **Ops console — AGPL permitted.** Grafana, OnCall and Pyroscope may serve internal SRE use.
+   There is no distribution and no network provision to a third party, so AGPL §13 does not
+   engage, and these are the best tools for the job. Removing them would cost real capability for
+   no risk reduction.
+
+2. **Tenant-facing product surface — Apache-2.0 only.** No AGPL component may be embedded in,
+   proxied by, or **queried by** a tenant-facing route: the console, the `observability`
+   capability's public API, per-tenant rollups, tenant SLO dashboards.
+
+3. **The data plane follows the product, not the console.** This is the clause that is easy to get
+   wrong. If a tenant-facing surface **queries** Mimir or Loki, the AGPL program is being provided
+   over a network even though no tenant ever sees a Grafana page. So the metrics and log stores
+   backing the product are Apache-2.0 — Prometheus/Thanos or VictoriaMetrics for metrics,
+   ClickHouse or OpenSearch for logs — and Grafana reads those same stores as an ops client.
+
+**Why not simply accept AGPL tenant-side.** Modification risk is permanent rather than one-off:
+the moment anyone patches Grafana or writes a plugin that is a derivative work, oyatie owes *its*
+source, and that becomes a boundary someone must police forever. AGPL prohibitions are routine in
+the enterprise and public-sector procurement the `kr` / `eu` / `us-healthcare` / `ksa` / `uae`
+packs target. And it would contradict a posture this repository has already taken twice —
+OpenBao instead of Vault, OpenTofu instead of Terraform, both forks chosen to avoid licence risk.
+`.github/CONTRIBUTING.md` already states that AGPL is not permitted in product code; this clause
+says where the product boundary runs.
+
+**Enforcement, because a ruling nothing executes is the failure this clause exists to avoid.**
+The chart/image licence gate carries **two allow-lists keyed by plane** — tenant-facing admits the
+Apache-2.0 family only; ops-internal additionally admits AGPL-3.0. Every chart declares which
+plane it serves, and an undeclared chart **fails closed**. A route-level check asserts that no
+tenant-facing ingress path resolves to an ops-internal workload. That gate does not exist yet:
+licence policy today reaches Cargo crates only, never charts or images.
+
+**Cheap now, expensive later.** The `observability` Argo Application currently points at
+`microservices/observability/iac/k8s/helm`, a path the reorg deleted, so **nothing is deployed
+against this decision today**. Four Apache-2.0 charts are already in the same tree. After tenants
+are on those dashboards the same change is a migration.
+
 ## Preserved member gists
 
 - **ADR-114** (ADR-0114-canary-observability-rollback): A canary gate runs between every promotion event. The gate emits one of four verdicts: `PROMOTE`, `ROLLBACK`, `EXTEND_OBSERVATION`, `ESCALATE`. The verdict conditions whether the downstream promotion workflow advances. ### 1. Cohort selection (per-cell) Oyatie's cell architecture (per ADR-0033 + cell-domain crates) gives a natural canary mechanism:
