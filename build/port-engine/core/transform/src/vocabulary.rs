@@ -102,6 +102,10 @@ pub const OPERATOR_ADDRESS_OF: &str = "&";
 pub const ATTR_LIT_KIND: &str = "lit_kind";
 /// The lexical class of a string literal.
 pub const LIT_KIND_STRING: &str = "STRING";
+/// The lexical class of an integer literal, whose type the source leaves UNTYPED until use.
+pub const LIT_KIND_INT: &str = "INT";
+/// The same, for a fractional one.
+pub const LIT_KIND_FLOAT: &str = "FLOAT";
 /// The source type name whose ownership decides a string literal's target form.
 pub const SOURCE_STRING: &str = "string";
 /// The source type name of its own default integer.

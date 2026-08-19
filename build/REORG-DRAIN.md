@@ -3214,3 +3214,44 @@ names that are not English words, and two independent reviewers ranked the untra
 top of their evidence.
 
 All seven real packages still compile with zero rustc errors and zero clippy warnings.
+
+## R1h — the gate that was only watching one corpus
+
+A third blind review, and the shape of its evidence had changed. Gone from the list: `errors.Is` in
+prose, the `_e` method suffix, `uint64` in a message, `i64` for a length, the `Err` prefix stutter,
+nine `std::fmt::` paths, and eighty-seven lines with no break in them. What remains is almost
+entirely the SOURCE's own design showing through a faithful port — six sentinels because the source
+declares six, character-set constants because the source carries them, a comparator helper because
+the source needs one, `is_x(x)` because that is what the source calls it. An engine that "fixed"
+those would be rewriting the program rather than porting it.
+
+**Then it named something that was true and was mine.** The six error types are constructed and never
+compared: zero `downcast_ref` sites across all seven ported packages. The mechanism exists and the
+sentinel corpus proves it — but only the sentinel corpus, and looking there showed the declaration
+emitting `pub struct Gone` while the comparison asked about `ErrGone`. Two spellings of one name,
+from the two sites, which is exactly the disagreement `sentinel_type_name` was written to prevent —
+reintroduced by the one call site that cased the name itself instead of asking.
+
+**The gate could not have caught it, so the gate was wrong.** The compile proof ran the strict
+pipeline over ONE corpus. The other four were rendered by tests that checked what they SAID and never
+checked that it was a program. `every_corpus_compiles.rs` now assembles each committed fixture into a
+crate and type-checks it — as a crate, with one module per unit, because that is the layout the
+output claims: `crate::shapes::Point` resolves only where the unit modules are siblings at a root, so
+compiling the files separately would prove less than the output asserts.
+
+**It found a second defect on its first run.** `let mut total = 0;` followed by
+`total.wrapping_add(i)` does not compile: the target cannot infer a width from a method call that
+exists on all of them. The source's untyped constant takes a DEFAULT type — its own `int`, which this
+pack maps to a 64-bit one — and the target infers from use instead. So the annotation is kept for a
+bare numeric literal and dropped for everything else, where the value already has a type and the two
+languages agree. A third case had to be split out: a binding with no recorded type at all, which is
+what a body-scoped constant is, and where there is nothing to annotate with.
+
+**And a stale assertion, which is its own lesson.** The sentinel refusal test asserted
+`downcast_ref::<ErrGone>()` — the pre-prefix-drop spelling. It passed while the declaration and the
+comparison disagreed, because it was checking against the same wrong answer one of them gave. A test
+that pins a spelling has to be updated when the spelling is decided elsewhere, or it stops being a
+check and becomes a second opinion holding the old view.
+
+Three defects, one gate. All seven real packages still compile with zero rustc errors and zero clippy
+warnings; all five corpora now do too.
