@@ -18,4 +18,4 @@ spec:
             service: data-warehouse
           annotations:
             summary: Data Warehouse freshness burn
-            runbook: microservices/data-warehouse/runbooks/local-freshness-burn.md
+            runbook: data/data-warehouse/runbooks/local-freshness-burn.md

@@ -55,7 +55,7 @@ paths:
         Returns hourly workflow execution counts and latency percentiles for the
         calling tenant. Backed by `tenant_${tid}.workflow_rolling_hour`
         (AggregatingMergeTree) per IP-005. Cursor-paginated per ADR-0150.
-        SLO: p99 ≤ 500ms (per microservices/analytics/slos/dashboard-api-latency.openslo.yaml).
+        SLO: p99 ≤ 500ms (per data/observability/slos/analytics/dashboard-api-latency.openslo.yaml).
       operationId: getWorkflowExecutionDashboard
       parameters:
         - $ref: '#/components/parameters/XRequestId'

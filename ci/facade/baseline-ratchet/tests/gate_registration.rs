@@ -56,10 +56,11 @@ use serde_json::Value;
 /// job runs their `-unittest` targets, and planning-projection's library code additionally runs
 /// inside the bespoke `gate-generated-artifact-freshness` lane that depends on it.
 const PRODUCER_CRATE: &str = "artifact-inventory-registry";
-const NON_GATE_CRATES: [&str; 3] = [
+const NON_GATE_CRATES: [&str; 4] = [
     "artifact-inventory-registry",
     "crate-registration",
     "planning-projection",
+    "rust-toolchain-bump-proposer",
 ];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -675,7 +676,14 @@ fn workspace_tests_executed(workflow: &str) -> bool {
         {
             return false;
         }
-        let Some((_, args)) = trimmed.split_once("cargo test ") else {
+        // ADR-0718-D3: accept either runner. The property this asserts is "the whole workspace
+        // runs under one blocking invocation", not the spelling of the command; pinning the
+        // literal would make a runner swap look like the census-epoch validator had stopped
+        // running. The advisory escapes above stay rejected either way.
+        let Some((_, args)) = trimmed
+            .split_once("cargo nextest run ")
+            .or_else(|| trimmed.split_once("cargo test "))
+        else {
             return false;
         };
         args.split_whitespace().any(|token| token == "--workspace")

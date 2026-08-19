@@ -2,7 +2,7 @@
 
 **Authority:** ADR-0195, IP-005, IP-004
 **Owner:** council-analytics
-**Trigger:** Per-MV freshness SLO burn (any MV in `microservices/analytics/slos/`).
+**Trigger:** Per-MV freshness SLO burn (any MV in `data/observability/slos/analytics/`).
 **Severity:** Sev 2
 
 ## What an MV is

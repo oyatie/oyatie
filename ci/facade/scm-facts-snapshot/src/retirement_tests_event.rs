@@ -61,6 +61,57 @@ fn event_identity_rejects_pr_parent_order_extra_parent_and_subject_aliases() {
     }
 }
 
+/// The base branch MOVING must not fail an open pull request.
+///
+/// `github.event.pull_request.base.sha` is frozen when the event fires, while GitHub keeps
+/// regenerating `refs/pull/N/merge` against the LIVE base tip. Before this, an exact
+/// `parents[0] == protected` comparison failed every open PR the moment anything merged to the
+/// base — with a merge queue draining entries, that is most of the time, and the failure is
+/// spurious: the merge ref is MORE current than the recorded base, not less.
+#[test]
+fn event_identity_accepts_a_first_parent_that_advanced_past_the_recorded_base() {
+    const ADVANCED_BASE: &str = "5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a5a";
+    let mut source = fixture();
+    let mut context = context();
+    context.scm_event_name = "pull_request";
+    context.scm_event_ref = "refs/pull/123/merge";
+    context.scm_event_base_ref = "dev";
+    context.subject_commit = PREDECESSOR;
+
+    // The base advanced: the merge ref's first parent is a DESCENDANT of the recorded base.
+    source.parents = vec![ADVANCED_BASE.to_owned(), PREDECESSOR.to_owned()];
+    source
+        .ancestry
+        .insert((PROTECTED.to_owned(), ADVANCED_BASE.to_owned()));
+    assert!(
+        materialize_history_only_retirement_facts(&source, &context).is_ok(),
+        "a first parent that advanced past the recorded base is real base history, not drift"
+    );
+}
+
+/// The relaxation above must NOT weaken the property the check exists for. A first parent that
+/// is not descended from the recorded base — unrelated, fabricated, or a rewound base — is
+/// still rejected, because ancestry is absent.
+#[test]
+fn event_identity_still_rejects_a_first_parent_off_the_protected_branch() {
+    const OFF_BRANCH: &str = "6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b6b";
+    let mut source = fixture();
+    let mut context = context();
+    context.scm_event_name = "pull_request";
+    context.scm_event_ref = "refs/pull/123/merge";
+    context.scm_event_base_ref = "dev";
+    context.subject_commit = PREDECESSOR;
+
+    // No ancestry edge recorded: this commit is not on the protected branch.
+    source.parents = vec![OFF_BRANCH.to_owned(), PREDECESSOR.to_owned()];
+    let error = materialize_history_only_retirement_facts(&source, &context)
+        .expect_err("a first parent off the protected branch must fail closed");
+    assert!(
+        error.contains("first parent must be the protected base or a descendant"),
+        "unexpected error: {error}"
+    );
+}
+
 #[test]
 fn event_identity_rejects_nonself_push_and_merge_group_subjects() {
     for event in ["push", "merge_group"] {

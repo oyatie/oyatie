@@ -1,5 +1,5 @@
 {
-  "_comment": "THE ONE-WAY DOOR. This is the ONLY human-edited, founder-signed file in the firewall ratchet — it is NOT producer-generated and is NOT byte-diffed by registry-drift. It is the sole exemption to the ratchet GROWTH check: a key listed under _sign_off_additions[gate][code] is exempted, for ONE regen, from the rule that the baseline may only shrink. Growing tolerated debt requires an explicit signed decision here, never a silent producer re-run (founder one-way-door / verify-each-step rule). Keep this tiny and audited. EMPTY = the ratchet is fully closed: the baseline can only shrink.",
+  "_comment": "THE ONE-WAY DOOR. This is the ONLY human-edited, founder-signed file in the firewall ratchet \u2014 it is NOT producer-generated and is NOT byte-diffed by registry-drift. It is the sole exemption to the ratchet GROWTH check: a key listed under _sign_off_additions[gate][code] is exempted, for ONE regen, from the rule that the baseline may only shrink. Growing tolerated debt requires an explicit signed decision here, never a silent producer re-run (founder one-way-door / verify-each-step rule). Keep this tiny and audited. EMPTY = the ratchet is fully closed: the baseline can only shrink. | 2026-08-18: ADR-0718 signed off under unpropagated_decision. Every Accepted ADR is born unpropagated-and-baselined \u2014 in_spec is true for any on-disk ADR, but in_masterplan requires a bound plan node and in_roadmap a roadmap entry, and the gate demands ALL THREE. This follows the documented treatment of the 148 existing entries and of ADR-0716/ADR-0717 immediately before it. Propagating ADR-0718 into the masterplan and roadmap is real follow-up work, not waived: it is deferred because the roadmap face this producer reads currently resolves under .grok/, itself a retirement target, and guessing at plan data is worse than recording the debt.",
   "_provenance": {
     "authority": "founder sign-off (door:one-way)",
     "signoff_schema_version": 1,
@@ -7,19 +7,19 @@
       {
         "date": "2026-06-08",
         "authorized_by": "founder (explicit: 'fully autonomous through both' firewall go-live)",
-        "rationale": "Admit the firewall's OWN required-CI substrate into the baseline: the oya-ci-required fan-in workflow + its gate-registration meta-test. These are born-unowned/unjustified/unreachable like every other .github workflow + gate test (the RED-but-baselined class), and ADR-0515 makes oya-ci-required the single required GO-LIVE check. Bootstrap exemption — the gate that runs the gates cannot itself pass the accounting gate without this signed admission.",
+        "rationale": "Admit the firewall's OWN required-CI substrate into the baseline: the oya-ci-required fan-in workflow + its gate-registration meta-test. These are born-unowned/unjustified/unreachable like every other .github workflow + gate test (the RED-but-baselined class), and ADR-0515 makes oya-ci-required the single required GO-LIVE check. Bootstrap exemption \u2014 the gate that runs the gates cannot itself pass the accounting gate without this signed admission.",
         "adr": "ADR-0515"
       },
       {
         "date": "2026-06-08",
-        "authorized_by": "founder (R1-INTEGRATE convergence ratification — door:one-way sign-off of the 20-ADR fabric cluster ADR-0516..0535, the 7 amend-in-place edits, and the 6 folded ADRs per CANON-PROPOSAL-FOR-SIGNOFF.md)",
-        "rationale": "Admit the legitimate baseline growth that is the DIRECT, ratified result of the WAVE-1 convergence canon (NOT new engineering debt). Three classes, all founder-precedented (mirrors the firewall go-live bootstrap where ADR-0515 itself was admitted as unpropagated/unowned/unreachable-but-baselined): (1) cross-artifact unpropagated_decision (+23): the 20 new Accepted ADRs ADR-0516..0535 + the 3 Proposed->Accepted flips ADR-0280/0392/0510 — every Accepted ADR is born unpropagated-and-baselined exactly like the 148 existing ones (ADR-0515 included). (2) total-accounting unowned (+24) / unreachable (+24): the 20 new ADR files + the 4 SSOT store files (registry/stores/*.json) — ADR files are born owner:null/reachable_from:[] (209 ADR files already in the foundry baseline class) and the SSOT stores are the canonical metadata residue per STORE-SCHEMA; unjustified (+6): the 4 SSOT stores + docs/standards/image-discipline.md + security-review.md (orphaned by the canonical git-rm of ADR-0345, whose stewardship substance is re-authored into ADR-0535; not re-justified to avoid altering ratified ADR-0535 body). (3) brand-residue forbidden_foundry(+7)/forgejo(+2)/jenkins(+3)/oya-vcs(+1): META-references in ADR-0519/0529/0533/0535 (which DOCUMENT the vocab-eradication mechanism, e.g. forbidden_stems=[foundry,forgejo,jenkins,oya-vcs]) + the 4 SSOT stores (the forbidden-vocab directive, the D-FOUNDRY-CLARIFY rename ledger, the foundry-context excision provenance) — the same 'names the tokens it guards, not residue' pattern oya-check-brand-residue itself uses. Firewall predicates byte-UNCHANGED; config-driven boundary intact; this is the founder-signed door admission, not a producer launder.",
+        "authorized_by": "founder (R1-INTEGRATE convergence ratification \u2014 door:one-way sign-off of the 20-ADR fabric cluster ADR-0516..0535, the 7 amend-in-place edits, and the 6 folded ADRs per CANON-PROPOSAL-FOR-SIGNOFF.md)",
+        "rationale": "Admit the legitimate baseline growth that is the DIRECT, ratified result of the WAVE-1 convergence canon (NOT new engineering debt). Three classes, all founder-precedented (mirrors the firewall go-live bootstrap where ADR-0515 itself was admitted as unpropagated/unowned/unreachable-but-baselined): (1) cross-artifact unpropagated_decision (+23): the 20 new Accepted ADRs ADR-0516..0535 + the 3 Proposed->Accepted flips ADR-0280/0392/0510 \u2014 every Accepted ADR is born unpropagated-and-baselined exactly like the 148 existing ones (ADR-0515 included). (2) total-accounting unowned (+24) / unreachable (+24): the 20 new ADR files + the 4 SSOT store files (registry/stores/*.json) \u2014 ADR files are born owner:null/reachable_from:[] (209 ADR files already in the foundry baseline class) and the SSOT stores are the canonical metadata residue per STORE-SCHEMA; unjustified (+6): the 4 SSOT stores + docs/standards/image-discipline.md + security-review.md (orphaned by the canonical git-rm of ADR-0345, whose stewardship substance is re-authored into ADR-0535; not re-justified to avoid altering ratified ADR-0535 body). (3) brand-residue forbidden_foundry(+7)/forgejo(+2)/jenkins(+3)/oya-vcs(+1): META-references in ADR-0519/0529/0533/0535 (which DOCUMENT the vocab-eradication mechanism, e.g. forbidden_stems=[foundry,forgejo,jenkins,oya-vcs]) + the 4 SSOT stores (the forbidden-vocab directive, the D-FOUNDRY-CLARIFY rename ledger, the foundry-context excision provenance) \u2014 the same 'names the tokens it guards, not residue' pattern oya-check-brand-residue itself uses. Firewall predicates byte-UNCHANGED; config-driven boundary intact; this is the founder-signed door admission, not a producer launder.",
         "adr": "ADR-0516..ADR-0535 (CANON-PROPOSAL-FOR-SIGNOFF.md)"
       },
       {
         "date": "2026-06-23",
         "authorized_by": "pending-founder-ratification (G004/AUTH-005 remediation, task #124; ADR-0572)",
-        "rationale": "Admit ADR-0572 (Accepted) as unpropagated_decision. Every new Accepted ADR is born with in_spec=true/in_masterplan=false/in_roadmap=false — the same pattern as the 148 existing unpropagated ADRs (ADR-0280/0392/0510/0515 and the ADR-0516..0535 cluster, all admitted by prior signings). ADR-0572 records the fail-closed authz decision for the Cedar policy publish control plane (AUTH-005 remediation, task #124). Propagation to masterplan/roadmap is the converge-and-wire step that happens after the ADR is accepted, not as part of the security remediation PR. Firewall predicates byte-UNCHANGED.",
+        "rationale": "Admit ADR-0572 (Accepted) as unpropagated_decision. Every new Accepted ADR is born with in_spec=true/in_masterplan=false/in_roadmap=false \u2014 the same pattern as the 148 existing unpropagated ADRs (ADR-0280/0392/0510/0515 and the ADR-0516..0535 cluster, all admitted by prior signings). ADR-0572 records the fail-closed authz decision for the Cedar policy publish control plane (AUTH-005 remediation, task #124). Propagation to masterplan/roadmap is the converge-and-wire step that happens after the ADR is accepted, not as part of the security remediation PR. Firewall predicates byte-UNCHANGED.",
         "adr": "ADR-0572"
       },
       {
@@ -30,8 +30,8 @@
       },
       {
         "date": "2026-07-08",
-        "authorized_by": "pending-founder-ratification (ci keystone move remediation; NOT ci-move-caused — pre-existing debt surfaced by a stale merge-base committed face)",
-        "rationale": "Admit the six iam/adapters/pdp-cedar files (BUCK, Cargo.toml, cedar/platform-templates.cedar, cedar/platform.cedarschema, src/lib.rs, tests/cedar_pdp_conformance.rs) as unjustified. This is PRE-EXISTING debt unrelated to the cloud/cloud-ci -> ci/facade keystone move: iam/adapters/pdp-cedar is byte-identical between the merge-base (origin/dev@63905a1a6) and this branch (git diff = empty; the crate was rehomed in the already-merged PR #1184, not by this move). The files are reachable via cargo-members but ADR-0559 references only the crate DIR (iam/adapters/pdp-cedar), not the exact files, so a fresh producer run marks them unjustified. They read as ratchet GROWTH only because the merge-base COMMITTED gate-baseline face is stale (it classifies the dir as justified) — a stale-face false positive, not new debt from this PR. Same admitted-pre-existing class as the registry/stores/*.json and docs/standards/*.md entries. Firewall predicates byte-UNCHANGED. Founder ratification required; the durable fix is exact-path justification in ADR-0559 (a separate iam-scope PR) after which this entry is removed.",
+        "authorized_by": "pending-founder-ratification (ci keystone move remediation; NOT ci-move-caused \u2014 pre-existing debt surfaced by a stale merge-base committed face)",
+        "rationale": "Admit the six iam/adapters/pdp-cedar files (BUCK, Cargo.toml, cedar/platform-templates.cedar, cedar/platform.cedarschema, src/lib.rs, tests/cedar_pdp_conformance.rs) as unjustified. This is PRE-EXISTING debt unrelated to the cloud/cloud-ci -> ci/facade keystone move: iam/adapters/pdp-cedar is byte-identical between the merge-base (origin/dev@63905a1a6) and this branch (git diff = empty; the crate was rehomed in the already-merged PR #1184, not by this move). The files are reachable via cargo-members but ADR-0559 references only the crate DIR (iam/adapters/pdp-cedar), not the exact files, so a fresh producer run marks them unjustified. They read as ratchet GROWTH only because the merge-base COMMITTED gate-baseline face is stale (it classifies the dir as justified) \u2014 a stale-face false positive, not new debt from this PR. Same admitted-pre-existing class as the registry/stores/*.json and docs/standards/*.md entries. Firewall predicates byte-UNCHANGED. Founder ratification required; the durable fix is exact-path justification in ADR-0559 (a separate iam-scope PR) after which this entry is removed.",
         "adr": "ADR-0559 (cloud-iam Cedar PDP commissioning); pre-existing, out-of-scope for the ci keystone move"
       }
     ]
@@ -64,6 +64,11 @@
       ],
       "forbidden_oya-vcs": [
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json"
+      ]
+    },
+    "cloud-ci-cross-artifact-agreement": {
+      "unpropagated_decision": [
+        "ADR-0718"
       ]
     }
   },
@@ -100,7 +105,7 @@
     {
       "date": "2026-06-12",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed — the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
+      "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed \u2014 the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
       "gate": "cloud-ci-total-accounting",
       "code": "unjustified",
       "keys": [
@@ -110,7 +115,7 @@
     {
       "date": "2026-06-12",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed — the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
+      "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed \u2014 the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
       "gate": "cloud-ci-total-accounting",
       "code": "unowned",
       "keys": [
@@ -140,7 +145,7 @@
     {
       "date": "2026-06-12",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed — the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
+      "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed \u2014 the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
       "gate": "cloud-ci-total-accounting",
       "code": "unreachable",
       "keys": [
@@ -169,7 +174,7 @@
     {
       "date": "2026-06-13",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed — the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
+      "rationale": "Mechanically derived: entry key absent from the merge-base frozen face AND from current AND from proposed \u2014 the exemption protects nothing and is a standing re-introduction ticket (FRIC-1781280001 inert-door detector; ADR-0551 hardening).",
       "gate": "cloud-ci-total-accounting",
       "code": "unowned",
       "keys": [
@@ -179,7 +184,7 @@
     {
       "date": "2026-06-21",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-total-accounting",
       "code": "unjustified",
       "keys": [
@@ -189,7 +194,7 @@
     {
       "date": "2026-06-25",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-total-accounting",
       "code": "unjustified",
       "keys": [
@@ -199,7 +204,7 @@
     {
       "date": "2026-06-25",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-total-accounting",
       "code": "unowned",
       "keys": [
@@ -209,7 +214,7 @@
     {
       "date": "2026-07-13",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-brand-residue",
       "code": "forbidden_forgejo",
       "keys": [
@@ -219,7 +224,7 @@
     {
       "date": "2026-07-13",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-brand-residue",
       "code": "forbidden_foundry",
       "keys": [
@@ -229,7 +234,7 @@
     {
       "date": "2026-07-13",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-brand-residue",
       "code": "forbidden_jenkins",
       "keys": [
@@ -239,7 +244,7 @@
     {
       "date": "2026-07-13",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-brand-residue",
       "code": "forbidden_oya-vcs",
       "keys": [
@@ -249,7 +254,7 @@
     {
       "date": "2026-07-23",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-total-accounting",
       "code": "unowned",
       "keys": [
@@ -272,7 +277,7 @@
     {
       "date": "2026-08-01",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-total-accounting",
       "code": "unjustified",
       "keys": [
@@ -287,7 +292,7 @@
     {
       "date": "2026-08-06",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-brand-residue",
       "code": "forbidden_forgejo",
       "keys": [
@@ -297,7 +302,7 @@
     {
       "date": "2026-08-06",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-brand-residue",
       "code": "forbidden_foundry",
       "keys": [
@@ -307,7 +312,7 @@
     {
       "date": "2026-08-06",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-brand-residue",
       "code": "forbidden_jenkins",
       "keys": [
@@ -317,7 +322,7 @@
     {
       "date": "2026-08-06",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-brand-residue",
       "code": "forbidden_oya-vcs",
       "keys": [
@@ -327,7 +332,7 @@
     {
       "date": "2026-08-06",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-cross-artifact-agreement",
       "code": "unpropagated_decision",
       "keys": [
@@ -340,7 +345,7 @@
     {
       "date": "2026-08-11",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-total-accounting",
       "code": "unjustified",
       "keys": [
@@ -352,7 +357,7 @@
     {
       "date": "2026-08-11",
       "retired_by": "oya-cloud-ci-firewall-signoff-fixer --fix (mechanical inert-entry retirement, FRIC-1781280001)",
-      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) — the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
+      "rationale": "Mechanically derived: entry key absent from the CANDIDATE tree (current AND proposed) \u2014 the door admits nothing in the change under evaluation, so the exemption protects nothing and is a standing re-introduction ticket. Inert-ness is read against the candidate, not the merge-base frozen face, so PR-admission and push-admission agree (FRIC-1781280001 inert-door detector; ADR-0551 hardening; FRIC-1781460000 PR/push symmetry).",
       "gate": "cloud-ci-total-accounting",
       "code": "unreachable",
       "keys": [

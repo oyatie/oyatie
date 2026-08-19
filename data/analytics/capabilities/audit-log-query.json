@@ -9,5 +9,5 @@
   "rationale": "Read against per-tenant audit-log table; emits its own audit event (recursive). Not an inference path.",
   "data_class": ["AUDIT_INTERNAL", "TENANT_AUDIT"],
   "cedar_action": "QueryAuditLog",
-  "slo_anchor": "microservices/analytics/slos/audit-log-query-latency.openslo.yaml"
+  "slo_anchor": "data/observability/slos/analytics/audit-log-query-latency.openslo.yaml"
 }

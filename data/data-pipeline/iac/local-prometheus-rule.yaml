@@ -18,4 +18,4 @@ spec:
             service: data-pipeline
           annotations:
             summary: Data Pipeline ingest-freshness burn
-            runbook: microservices/data-pipeline/runbooks/local-ingest-freshness-burn.md
+            runbook: data/data-pipeline/runbooks/local-ingest-freshness-burn.md
