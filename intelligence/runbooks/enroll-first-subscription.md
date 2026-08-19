@@ -1,11 +1,35 @@
 # Enroll first Anthropic OAuth subscription
 
+> **STATUS 2026-08-19 — NOT EXECUTABLE AS WRITTEN. Deployment state UNKNOWN.**
+>
+> Every path this runbook names was **rehomed by the capability reorg, not deleted**:
+>
+> | Runbook says | Actually at |
+> |---|---|
+> | `microservices/cloud-intelligence/iac/k8s/helm/values.yaml` | `intelligence/iac/k8s/helm/values.yaml` |
+> | `microservices/cloud-intelligence/k8s` | `intelligence/k8s/` |
+> | `scripts/build/build-and-push-cloud-intelligence.sh` | absent from the tree — this one is genuinely gone |
+>
+> The `cloud-intelligence` Argo CD Application in `infra/gitops/values.yaml` still declares
+> `path: microservices/cloud-intelligence/k8s`, so it **cannot render**. Deleting or modifying
+> the dangling `cloud-intelligence` Application row without `cascadeDelete` would orphan any
+> surviving workload rather than remove it; that teardown follows the `oyatie-6t5.23` two-phase
+> pattern and needs cluster readback first.
+>
+> Until then, treat every `kubectl` and `argocd` step below as unverified. Cluster readback is
+> unavailable, so whether a `cloud-intelligence` workload survives from an earlier sync is
+> **unknown and is not claimed either way** — a dangling source path stops new desired state
+> rendering; it does not tell you what is running.
+>
+> The enrollment procedure itself (seat, Cedar binding, proxy key) is retained: it is product
+> knowledge independent of the deploy path.
+
 This runbook provisions the oyatie-dogfood tenant's first Anthropic OAuth subscription
 into the cloud-intelligence gateway. Every step that requires human credentials is
 flagged **[human-auth]**.
 
 Prereqs: Talos cluster with ArgoCD + ESO + owned cloud-secrets/cloud-kms adapters +
-cloud-intelligence deployed and running (see `SETUP-RUNBOOK.md` — "Production deploy on Talos" section).
+cloud-intelligence deployed and running. **This precondition is currently unmet and unverifiable** — see the status banner above; the referenced `SETUP-RUNBOOK.md` deploy path uses removed paths.
 
 ---
 
@@ -28,11 +52,11 @@ git commit -am "chore(cloud-intelligence): pin v0.1.0 image digest to sha256:<..
 # ArgoCD picks up the change within ~30s
 ```
 
-Verify ArgoCD transitions from "Missing" to "Healthy":
+Verify ArgoCD transitions from "Missing" to "Healthy" (**cannot pass today**: the Application's source path is removed, so it stays Missing):
 
 ```sh
 kubectl -n argocd get application cloud-intelligence -o jsonpath='{.status.health.status}'
-# expect: Healthy
+# expect: Healthy -- UNREACHABLE while the source path is removed
 ```
 
 ---
