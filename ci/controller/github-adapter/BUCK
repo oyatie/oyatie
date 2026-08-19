@@ -20,7 +20,7 @@ rust_test(
     deps = [
         ":ci-controller-github-adapter",
         "//ci/controller/kernel:ci-controller-kernel",
-        "third-party//:httpmock",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
         "third-party//:serde_json",
     ],
 )
@@ -34,6 +34,6 @@ rust_test(
     deps = [
         ":ci-controller-github-adapter",
         "//ci/controller/kernel:ci-controller-kernel",
-        "third-party//:httpmock",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
     ],
 )
