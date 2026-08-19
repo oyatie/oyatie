@@ -187,6 +187,20 @@ pub enum RustItem {
         /// The trait's required methods, each with a body.
         methods: Vec<RustFn>,
     },
+    /// `impl Type { .. }` — an inherent impl block standing on its own.
+    ///
+    /// Separate from [`RustItem::Struct`]'s methods because the engine emits one region per source
+    /// declaration, and a package-level constructor is a declaration of its own. Folding it into
+    /// the type's item would make one declaration's output depend on another's; the target allows
+    /// several inherent impls for a type, so nothing is given up by keeping them apart.
+    InherentImpl {
+        /// Documentation carried over from the source declaration.
+        docs: Vec<String>, // data_class: INTERNAL_ONLY
+        /// The type the block is on.
+        self_ty: RustType,
+        /// The associated functions it carries.
+        methods: Vec<RustFn>,
+    },
     /// A free function.
     Function(RustFn),
 }

@@ -12,10 +12,7 @@ use crate::params::{params, results};
 use crate::resolve::Resolver;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{
-    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CONSTRUCTION_RUST_CONST,
-    CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE,
-    CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT,
-    CONSTRUCTION_RUST_TYPE_ALIAS, POSITION_FIELD, POSITION_SUPERTRAIT,
+    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, POSITION_FIELD, POSITION_SUPERTRAIT,
 };
 use crate::{body, docs::docs_of};
 
@@ -199,7 +196,7 @@ fn build_fn(
         vec![RustStmt::Tail(RustExpr::Todo)]
     };
 
-    Ok(RustItem::Function(RustFn {
+    let rendered = RustFn {
         docs: docs_of(declaration, resolver.doc_convention),
         vis: visibility(declaration),
         name: to_snake_case(&declaration.name),
@@ -207,7 +204,49 @@ fn build_fn(
         params: params(declaration, resolver, &declaration.name)?,
         ret: results(declaration, resolver)?,
         body: Some(body),
-    }))
+    };
+
+    // A package-level CONSTRUCTOR belongs on the type, not beside it.
+    match constructed_type(declaration, resolver) {
+        Some(self_ty) => Ok(RustItem::InherentImpl {
+            docs: Vec::new(),
+            self_ty: RustType::path(self_ty),
+            methods: vec![RustFn {
+                name: "new".to_owned(),
+                ..rendered
+            }],
+        }),
+        None => Ok(RustItem::Function(rendered)),
+    }
+}
+
+/// The type a package-level CONSTRUCTOR constructs, if this declaration is one.
+///
+/// Recognised by SHAPE, not by name alone: the source's explicit constructor convention is a
+/// package-level function named `New` or `New<Type>` whose sole result is a type that same package
+/// declares. Both halves are required. A function merely named `NewFoo` that returns something
+/// else is not a constructor, and one returning a local type without the prefix is a factory the
+/// source did not mark as one — neither is moved onto a type.
+///
+/// The target puts a constructor on the type: `Label::new` rather than a free `new_label`. A
+/// reviewer reading the emitted crate called the free form the single most visible sign that
+/// another language's structure had been carried across rather than translated.
+fn constructed_type(declaration: &Declaration, resolver: &Resolver<'_>) -> Option<String> {
+    let suffix = declaration.name.strip_prefix(CONSTRUCTOR_PREFIX)?;
+    let results = declaration.children_of_kind(CHILD_RESULT);
+    let [result] = results.as_slice() else {
+        return None;
+    };
+    // The result must be a type this unit DECLARES. A constructor for someone else's type is not
+    // this package's to put a method on — the target's coherence rule forbids it outright.
+    if !resolver.declares(&result.type_ref) {
+        return None;
+    }
+    let target = to_pascal_case(&result.type_ref.name);
+    match suffix.is_empty() || to_pascal_case(suffix) == target {
+        true => Some(target),
+        false => None,
+    }
 }
 
 /// The unit-level constructions: one region per unit, no declarations read.

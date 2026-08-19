@@ -1344,6 +1344,23 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   and the mismatch is inherited rather than introduced. Three mentions is worth recording as a
   standing disagreement rather than as a finding not yet acted on.
 
+- A PACKAGE-LEVEL CONSTRUCTOR IS AN ASSOCIATED FUNCTION, and emitting it free was, in the fourth
+  reviewer's words, "the single most visible structural tell" — the thing that says another
+  language's structure was carried across rather than translated. `pub fn new_label(prefix: String)
+  -> Label` is now `impl Label { pub fn new(prefix: String) -> Label }`.
+  RECOGNISED BY SHAPE, not by name alone. The source's explicit constructor convention is a
+  package-level function named `New` or `New<Type>` whose sole result is a type that same package
+  DECLARES, and both halves are required: a function merely named `NewFoo` returning something else
+  is not a constructor, and one returning a local type without the prefix is a factory the source
+  did not mark as one. Neither is moved.
+  The declaring half is not decoration — the target's coherence rule forbids an inherent method on
+  a type from elsewhere, so a constructor for someone else's type stays a free function however it
+  is named.
+  EMITTED AS ITS OWN inherent impl block rather than folded into the type's. The engine emits one
+  region per source declaration, and a constructor is a declaration of its own; folding would make
+  one declaration's output depend on another's, which is the property the region model exists to
+  keep. The target allows several inherent impls for a type, so nothing is given up.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

@@ -49,6 +49,11 @@ impl LocalScope {
         }
         Self { types }
     }
+
+    /// Whether the unit declares this source name.
+    pub(crate) fn contains(&self, name: &str) -> bool {
+        self.types.contains_key(name)
+    }
 }
 
 /// What a resolver needs: the unit's own declarations, the pack's answers, and the unit's identity.

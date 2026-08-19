@@ -124,6 +124,19 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             Ok(quote! { #doc_tokens #vis_tokens trait #ident #requires { #(#rendered)* } })
         }
 
+        RustItem::InherentImpl {
+            docs,
+            self_ty,
+            methods,
+        } => {
+            let doc_tokens = lower_docs(docs);
+            let self_tokens = parse_type(self_ty)?;
+            let rendered = methods
+                .iter()
+                .map(lower_fn)
+                .collect::<Result<Vec<_>, _>>()?;
+            Ok(quote! { #doc_tokens impl #self_tokens { #(#rendered)* } })
+        }
         RustItem::TraitImpl {
             docs,
             trait_path,
