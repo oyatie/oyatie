@@ -10,7 +10,9 @@ use port_engine_rust_ir::RustExpr;
 
 use crate::body::{Body, one_child, two_children, unsupported_source};
 use crate::body_index::slice;
-use crate::body_ops::{binary_operator, is_receiver, operator_of, reference, unary_operator};
+use crate::body_ops::{
+    binary_operator, is_receiver, operator_of, reference, unary_operator, unary_refusal,
+};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_VALUE, CALLEE_KIND_METHOD};
@@ -57,7 +59,7 @@ pub(crate) fn in_position(
             let spelling = operator_of(node, cx)?;
             let op = unary_operator(spelling).ok_or_else(|| TransformError::Unsupported {
                 name: cx.owner.to_owned(),
-                detail: format!("unary operator `{spelling}` has no direct translation"),
+                detail: unary_refusal(spelling),
             })?;
             Ok(RustExpr::Unary {
                 op,

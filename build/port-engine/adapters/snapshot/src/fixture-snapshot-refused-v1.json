@@ -1,12 +1,97 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:7291490aab9588e31e97d384312ecfae92b8204ac3a3e0c98a0da7d43abb786c",
+  "snapshot_digest": "sha256:95a1da653c9b8015b99ff2a2eca20a0a7a0b0f7af41014d2fee8353224212bec",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
       "producer": "bootstrap-go-packages-go-types",
       "declarations": [
+        {
+          "kind": "func",
+          "name": "Clear",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Clear turns off the bits of mask in n.\n\n`\u0026^=` (AND NOT) has no single-operator target form, exactly as binary `\u0026^` has none. It is\nspellable as `\u0026 !`, and the operand widths differ between the languages — a silent rewrite of a\nbit operation is the class of change nobody reviews, so it is refused by name instead."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes",
+                "rebound"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "mask",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "assign",
+                  "name": "",
+                  "attrs": {
+                    "op": "\u0026^"
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "mask",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
         {
           "kind": "func",
           "name": "Countdown",

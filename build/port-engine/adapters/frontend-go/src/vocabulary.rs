@@ -195,6 +195,11 @@ pub const KNOWN_FLAGS: &[&str] = &[
     "exported",
     "mutated",
     "pointer_receiver",
+    // The body assigns to the binding's OWN name. Distinct from `mutated`, which on a parameter
+    // means the body writes THROUGH the pointer and is a claim about the caller's value; rebinding
+    // the callee's copy is the opposite claim, and one flag carrying both would make every
+    // rebound parameter demand an exclusive borrow.
+    "rebound",
     "variadic",
 ];
 

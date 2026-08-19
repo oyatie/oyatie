@@ -198,6 +198,12 @@ const (
 	// mutating method into a read-only one.
 	flagPointerReceiver = "pointer_receiver"
 
+	// flagRebound records that the body assigns to the binding's OWN name. Distinct from
+	// flagMutated, which on a parameter means the body writes through the pointer and is a claim
+	// about the caller's value: rebinding the callee's copy is the opposite claim, and one flag
+	// carrying both would make every rebound parameter demand an exclusive borrow.
+	flagRebound = "rebound"
+
 	// Ownership facts, observed intra-procedurally. See ownershipFacts for what each means and
 	// why the third one exists.
 	flagMutated       = "mutated"

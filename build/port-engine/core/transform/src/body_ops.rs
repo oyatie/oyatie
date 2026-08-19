@@ -68,6 +68,30 @@ pub(crate) fn unary_operator(spelling: &str) -> Option<UnaryOp> {
     })
 }
 
+/// Why a unary operator was refused, in the operator's own terms.
+///
+/// `&` and `*` are NOT missing a spelling — the target has both. What is missing is the
+/// DESTINATION: `&x` yields a pointer, and which target form that pointer takes is the same
+/// ownership decision the pack already answers for a `*T` type position. The answer depends on the
+/// position the value flows into, and the body translator does not know it.
+///
+/// Measured rather than assumed, over the seven surveyed third-party corpora: of 33 `&` sites, 11
+/// are `f(&x)` — where the destination is the CALLEE's parameter — 7 are `x := &T{..}`, 4 are
+/// `return &T{..}`, 3 are `x = &T{..}`, 3 are `return &x`, and the rest are unsupported operands.
+/// Every one of them resolves against a signature the engine has already translated, so what
+/// unblocks this is a signature table, not a rule. Choosing a form without one would be the guess
+/// this engine exists to refuse.
+pub(crate) fn unary_refusal(spelling: &str) -> String {
+    match spelling {
+        "&" | "*" => format!(
+            "unary `{spelling}` needs the DESTINATION's ownership disposition, which is decided \
+             per position and is not known at an expression site; it needs the signature table, \
+             not a new rule"
+        ),
+        other => format!("unary operator `{other}` has no target form"),
+    }
+}
+
 pub(crate) fn operator_of<'a>(
     node: &'a Declaration,
     cx: &Body<'_>,

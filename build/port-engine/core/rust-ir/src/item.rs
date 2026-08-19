@@ -52,6 +52,12 @@ impl Receiver {
 pub struct RustParam {
     /// The parameter's name, already cased for the target.
     pub name: String, // data_class: INTERNAL_ONLY
+    /// Whether the body assigns to this parameter's own binding.
+    ///
+    /// The source makes every parameter a mutable local copy and the target makes none of them, so
+    /// this is observed rather than defaulted. It says nothing about the CALLER's value — a
+    /// rebound parameter is still passed by value, and the caller sees nothing.
+    pub rebound: bool,
     /// Its type.
     pub ty: RustType,
 }

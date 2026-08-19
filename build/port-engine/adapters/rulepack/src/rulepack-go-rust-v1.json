@@ -381,6 +381,9 @@
     ],
     "oyatie.example/portengine-fixture/corpus/scoped": [
       "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/accumulate": [
+      "go_func"
     ]
   },
   "type_constructors": {
