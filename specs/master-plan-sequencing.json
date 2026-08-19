@@ -228,6 +228,15 @@
           "note": "Live apex ADR-0709 (general) after 2026-08-06 disposition PR #1574; bound via planning_authority.bound_adrs; no new wave mint."
         },
         {
+          "id": "ADR-0710",
+          "lifecycle_state": "Accepted",
+          "planning_impact": true,
+          "sequencing_effect": "none",
+          "disposition_ref": "/specs/masterplan.json#planning_authority.bound_adrs",
+          "hold_state": "HOLD(Planning)",
+          "note": "Live apex ADR-0710 (Kubernetes admission substrate is the API server) Accepted with D-8 severed; bound via planning_authority.bound_adrs; no new wave mint -- D-8 remains open on its own evidence and the Accept authorizes no removal."
+        },
+        {
           "id": "ADR-0711",
           "lifecycle_state": "Accepted",
           "planning_impact": true,
