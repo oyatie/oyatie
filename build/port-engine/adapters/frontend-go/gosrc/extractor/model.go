@@ -139,14 +139,20 @@ const (
 	kindValue    = "value"
 	kindExprStmt = "expr_stmt"
 
-	kindLiteral   = "literal"
-	kindIdent     = "ident"
-	kindBinary    = "binary"
-	kindUnary     = "unary"
-	kindParen     = "paren"
-	kindSelector  = "selector"
-	kindCall      = "call"
-	kindIndex     = "index"
+	kindLiteral  = "literal"
+	kindIdent    = "ident"
+	kindBinary   = "binary"
+	kindUnary    = "unary"
+	kindParen    = "paren"
+	kindSelector = "selector"
+	kindCall     = "call"
+	kindIndex    = "index"
+	// kindSlice is `s[lo:hi]`. The bounds are children in a fixed order and an ABSENT bound is
+	// recorded as an empty node rather than omitted, because `s[:hi]` and `s[lo:]` would
+	// otherwise be the same two-child shape meaning different things.
+	kindSlice = "slice"
+	// kindAbsent is a bound a slice expression left out.
+	kindAbsent    = "absent"
 	kindComposite = "composite"
 	kindKeyed     = "keyed"
 	kindZero      = "zero"

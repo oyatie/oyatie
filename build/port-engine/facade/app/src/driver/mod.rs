@@ -7,6 +7,7 @@
 
 mod pipeline;
 mod port_go;
+mod probe;
 mod report;
 mod smoke;
 
@@ -15,9 +16,11 @@ pub use pipeline::{
     smoke_pipeline, smoke_receipt_golden, smoke_render, smoke_transform,
 };
 pub use port_go::{
-    assemble_modules, port_go_delta, port_go_dispositions, port_go_pipeline, port_go_refused,
-    port_go_refused_failure, port_go_refused_interface, port_go_refused_ownership, port_go_source,
+    assemble_modules, port_go_delta, port_go_dispositions, port_go_drift_after,
+    port_go_drift_before, port_go_from, port_go_pipeline, port_go_refused, port_go_refused_failure,
+    port_go_refused_interface, port_go_refused_ownership, port_go_source,
 };
+pub use probe::{render_survey, survey_snapshot};
 pub use report::{PipelineError, PipelineReport, PlanSmokeError};
 pub use smoke::{
     fleet_pin, smoke_admit_snapshot, smoke_declarations, smoke_digest, smoke_engine_digest,

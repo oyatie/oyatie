@@ -17,7 +17,7 @@ use crate::body_loops::{counted_loop, range_loop, switch};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::resolve::Resolver;
-use crate::vocabulary::ATTR_SOURCE_NODE;
+use crate::vocabulary::{ATTR_SOURCE_NODE, CHILD_BIND, CHILD_VALUE};
 
 /// What one body translation needs in order to answer a question about the TARGET.
 ///
@@ -127,6 +127,20 @@ pub(crate) fn statement(
             Ok(RustStmt::Assign {
                 target: in_position(target, cx, Position::Place)?,
                 value: expression(value, cx)?,
+            })
+        }
+        "let_tuple" => {
+            // A destructuring bind that is NOT the failure check — the propagation matcher runs
+            // first and consumes those, so anything reaching here binds several values from one
+            // expression and means exactly what the target's tuple binding means.
+            let binds = node.children_of_kind(CHILD_BIND);
+            let value = named_child(node, CHILD_VALUE, cx, "let_tuple")?;
+            Ok(RustStmt::LetTuple {
+                names: binds
+                    .iter()
+                    .map(|bound| to_snake_case(&bound.name))
+                    .collect(),
+                value: expression(one_child(value, cx, "let_tuple")?, cx)?,
             })
         }
         "break" => Ok(RustStmt::Break),

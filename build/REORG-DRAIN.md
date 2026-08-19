@@ -376,6 +376,51 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   fifth refusal class). The compile proof carries `Result`, `?` and the mapped calls through
   `rustc`, which is what makes the claim more than a golden.
 
+- Continuous re-port: the UPSTREAM DRIFT proof, and the SURVEY that measures the engine against
+  source it has never seen. This is the pair that turns "the engine ports a fixture" into "the
+  engine can be kept pointed at a moving dependency".
+  DRIFT. Everything the facade proved before was about determinism: the same source twice gives the
+  same bytes, and bytes that move with no axis to account for them are RED. Neither says anything
+  about the case that actually happens in service — upstream releases, the engine re-runs, and the
+  output differs because the SOURCE differs. That case has to come back Green AND Explained, and it
+  now does, over a real second EXTRACTION of one package at two versions at the same unit id, with
+  the two changes a dependency bump makes: a body changed and a declaration appeared. The axis set
+  is asserted EXACTLY — only the snapshot axis may move, because the engine, rules, toolchain and
+  formatter are the same run of the same code across the pair. An engine that answered `Unexplained`
+  every time a dependency moved would be crying wolf at its operator until nobody read the signal
+  again, and that signal is the only thing between a maintained port and a fork nobody dares
+  regenerate.
+  SURVEY. `apply` is fail-closed, which is right for PRODUCING a port and wrong for MEASURING one:
+  pointed at a real package it reports the first refusal and says nothing about the other nine
+  hundred declarations. `survey` attempts each declaration independently and reports a RANKED work
+  list, so the next rule to write is the one blocking the most rather than the one most recently
+  thought of. It deliberately ignores the pack's `applies` map, because that map is policy and the
+  question is capability — a survey restricted to units somebody already listed measures the list.
+  It also separates a DEFERRAL from a hole: a deferral is a decision with a written reason, and a
+  hole is a kind nobody has looked at; counting them together understates the engine in one
+  direction and hides a decision in the other.
+  THE RATCHET, against `google/uuid` — reputable, stdlib-only, 97 declarations, and not in this
+  repository. Corpora for this live outside the repo on purpose: a corpus committed beside the
+  engine only ever contains what the engine already handles, which is exactly why the fixture
+  corpus could reach five phases without anyone noticing `byte` was unmapped.
+  Rung 0: **20.6%**. The first run did not even admit — the `range` loop's `key` attribute was
+  emitted by the front end and absent from the closed vocabulary, because the fixture corpus reaches
+  ranges through a shape that binds only the value. A closed vocabulary is a check only over what is
+  exercised.
+  Rung 1: **37.1%**. The type map had FOUR entries, which was enough for a corpus written beside it;
+  a real package uses most of the basic set in its first file, and `byte` alone blocked eight
+  declarations. Now the whole set, plus the untyped-constant identities and `error` as the trait it
+  is. `uncaptured` fell to zero: every kind is either handled or a recorded decision.
+  Rung 2: **44.3%**. A destructuring bind that is NOT a failure check (the propagation matcher
+  consumes those first, so what reaches the statement layer means exactly what the target's tuple
+  binding means), and the slice expression — BORROWED, because the source's slice is a view and an
+  owned target would be a different program with different aliasing. A three-index slice refuses:
+  it sets the result's capacity, which the target does not express at all.
+  What the ratchet says is left, in its own order: `var` at package scope (27, deferred with a
+  recorded reason — a mutable global whose target form is a synchronization policy the source never
+  stated), `DeclStmt` (10), `defer` (9), and a tail of type assertions, array types and one
+  carried-value failing return.
+
 ## Still owed by this lane
 
 - A concrete value flowing into a trait-object POSITION needs a coercion the body translator does

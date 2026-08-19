@@ -161,6 +161,23 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 			Children: children,
 		}
 
+	case *ast.SliceExpr:
+		// A three-index slice sets the CAPACITY of the result, which the target's slicing does not
+		// express at all — the capacity of a Rust slice is its length. Recorded as unsupported so
+		// it refuses by name rather than silently becoming a two-index slice with a different
+		// aliasing story.
+		if typed.Slice3 {
+			return unsupportedNode(typed)
+		}
+		return node{
+			Kind: kindSlice,
+			Children: []node{
+				expressionNode(typed.X, ctx),
+				sliceBound(typed.Low, ctx),
+				sliceBound(typed.High, ctx),
+			},
+		}
+
 	case *ast.IndexExpr:
 		return node{
 			Kind: kindIndex,
@@ -220,6 +237,17 @@ func calleeIdentity(fun ast.Expr, ctx *extractCtx) string {
 	default:
 		return ""
 	}
+}
+
+// sliceBound records a slice's bound, or its ABSENCE as a node of its own.
+//
+// Absence is recorded rather than omitted because the two ends are positional: dropping a missing
+// low bound would make `s[:hi]` indistinguishable from `s[lo:]`, and the two are different programs.
+func sliceBound(expr ast.Expr, ctx *extractCtx) node {
+	if expr == nil {
+		return node{Kind: kindAbsent}
+	}
+	return expressionNode(expr, ctx)
 }
 
 func referenceKind(ident *ast.Ident, ctx *extractCtx) string {

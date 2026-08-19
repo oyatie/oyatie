@@ -71,6 +71,19 @@ pub enum RustExpr {
     /// literal with no valid target spelling fails the parse, which is the correct outcome. No
     /// attempt is made to normalise numbers, because a rounded literal compiles and means
     /// something else.
+    /// `&base[lo..hi]` — a borrowed subrange, with either bound optional.
+    ///
+    /// BORROWED, not owned. The source's slice expression produces a VIEW over the same backing
+    /// array and does not copy, so an owned target would be a different program with different
+    /// costs and different aliasing.
+    Slice {
+        /// What is being sliced.
+        base: Box<RustExpr>,
+        /// The lower bound, or the start.
+        low: Option<Box<RustExpr>>,
+        /// The upper bound, or the end.
+        high: Option<Box<RustExpr>>,
+    },
     /// `expr?` — propagate a failure to the caller.
     ///
     /// An OPERATOR rather than a call, which is the whole point of recognising the source's
@@ -215,6 +228,7 @@ impl RustExpr {
             | Self::Index { .. }
             | Self::StructLiteral { .. }
             | Self::Try(_)
+            | Self::Slice { .. }
             | Self::SelfValue
             | Self::Match { .. }
             | Self::Todo => Precedence::ATOMIC,

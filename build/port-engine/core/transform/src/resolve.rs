@@ -28,7 +28,7 @@ use crate::ownership::OwnershipContext;
 use crate::vocabulary::TYPE_NAMED_INTERFACE;
 
 /// The type names one unit declares, and the target spelling each resolves to.
-pub(crate) struct LocalScope {
+pub struct LocalScope {
     pub(crate) types: BTreeMap<String, String>,
 }
 
@@ -39,7 +39,7 @@ impl LocalScope {
     /// source language's kind vocabulary in the neutral face. Every named declaration is recorded
     /// instead, and a collision is impossible because the front end already refuses two
     /// declarations sharing a name in one namespace.
-    pub(crate) fn of(declarations: &[Declaration]) -> Self {
+    pub fn of(declarations: &[Declaration]) -> Self {
         let mut types = BTreeMap::new();
         for declaration in declarations {
             if !declaration.name.is_empty() {

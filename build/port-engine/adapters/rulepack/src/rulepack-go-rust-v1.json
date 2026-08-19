@@ -67,7 +67,26 @@
     "pack maps to `i64`, and the target's returns a `usize`.",
     "A template brackets ITSELF where it needs to. The engine substitutes text and does not know",
     "what the surrounding expression will be, so a template whose result binds looser than a caller",
-    "might is the template author's problem to parenthesise — the same contract type_constructors has."
+    "might is the template author's problem to parenthesise — the same contract type_constructors has.",
+    "",
+    "The type map covers the source's WHOLE basic set, because a real package uses most of it in",
+    "its first file — a map sized to a fixture corpus is a map sized to what the engine already",
+    "handled. `int` and `int64` both take `i64` because the source's `int` is 64-bit on every",
+    "platform this programme targets; `rune` is a code point and takes `char`, not `i32`, because",
+    "the target has a type for exactly that and using it keeps the meaning.",
+    "",
+    "The `untyped` rows are the source's UNTYPED CONSTANTS, which carry a default type rather than",
+    "a declared one. They are listed rather than folded into their defaults because they are",
+    "distinct identities in the front end and a table that answered for one and not the other would",
+    "resolve a constant and refuse the variable beside it.",
+    "",
+    "complex64/128 map to a name the target does not have, ON PURPOSE. The target has no complex",
+    "type and inventing one silently would be worse than the compile error this produces; the row",
+    "exists so the failure names the type rather than reading as an unmapped-type hole.",
+    "",
+    "`error` maps to the TRAIT, not to a boxed one. Where a trait may stand is a position question",
+    "the trait_object_forms table answers, so a parameter becomes `&dyn std::error::Error` and a",
+    "result — which the target must own — refuses until the pack declares how it is owned."
   ],
   "pair": {
     "source": "go",
@@ -75,9 +94,30 @@
   },
   "type_map": {
     "bool": "bool",
+    "byte": "u8",
+    "complex128": "unsupported_complex128",
+    "complex64": "unsupported_complex64",
+    "error": "std::error::Error",
+    "float32": "f32",
     "float64": "f64",
     "int": "i64",
-    "string": "String"
+    "int16": "i16",
+    "int32": "i32",
+    "int64": "i64",
+    "int8": "i8",
+    "rune": "char",
+    "string": "String",
+    "uint": "u64",
+    "uint16": "u16",
+    "uint32": "u32",
+    "uint64": "u64",
+    "uint8": "u8",
+    "uintptr": "usize",
+    "untyped bool": "bool",
+    "untyped float": "f64",
+    "untyped int": "i64",
+    "untyped rune": "char",
+    "untyped string": "String"
   },
   "type_map_overrides": {
     "rust_const": {
@@ -308,6 +348,9 @@
       "go_func"
     ],
     "oyatie.example/portengine-fixture-failure/corpus-failure/carried": [
+      "go_func"
+    ],
+    "oyatie.example/portengine-fixture/corpus/drift": [
       "go_func"
     ]
   },

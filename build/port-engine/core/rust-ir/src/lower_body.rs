@@ -71,6 +71,25 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
 /// Lower an expression, parenthesising an operand only where the tree says it needs it.
 fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
     match expr {
+        RustExpr::Slice { base, low, high } => {
+            let base = lower_expr(base)?;
+            let range = match (low, high) {
+                (Some(low), Some(high)) => {
+                    let (low, high) = (lower_expr(low)?, lower_expr(high)?);
+                    quote! { #low..#high }
+                }
+                (Some(low), None) => {
+                    let low = lower_expr(low)?;
+                    quote! { #low.. }
+                }
+                (None, Some(high)) => {
+                    let high = lower_expr(high)?;
+                    quote! { ..#high }
+                }
+                (None, None) => quote! { .. },
+            };
+            Ok(quote! { &#base[#range] })
+        }
         RustExpr::Try(inner) => {
             let inner = lower_expr(inner)?;
             Ok(quote! { #inner? })

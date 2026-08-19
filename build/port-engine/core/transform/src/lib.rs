@@ -21,6 +21,7 @@ mod apply;
 mod body;
 mod body_expr;
 mod body_failure;
+mod body_index;
 mod body_loops;
 mod body_ops;
 mod docs;
@@ -35,6 +36,7 @@ mod promote;
 mod resolve;
 mod resolve_tables;
 mod signature;
+mod survey;
 mod vocabulary;
 
 pub use apply::{TransformOutput, apply, apply_with_provenance};
@@ -44,6 +46,7 @@ pub use naming::{
     sanitize_ident, to_pascal_case, to_screaming_snake, to_snake_case,
 };
 pub use ownership::{DispositionLog, DispositionRecord, OwnershipContext};
+pub use survey::{SurveyEntry, SurveyReport, survey};
 pub use vocabulary::{
     ATTR_DOC, ATTR_OP, ATTR_REF, ATTR_SOURCE_NODE, ATTR_VALUE, CONSTRUCTION_EMPTY_CANARY,
     CONSTRUCTION_PASS_THROUGH, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN,
