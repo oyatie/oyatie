@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:ec935310b73ce2f7468e90d2350677adc6227a36f3999a5d2536a3ad6d2aa1e1",
+  "snapshot_digest": "sha256:97b640cd8b2a89dffc9e452d71d1501b49c6c9883525ecc59a1a6def73ed3942",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -288,7 +288,7 @@
             "exported"
           ],
           "attrs": {
-            "doc": "Mix folds the values together with xor, multiply and or.\n\nThe three operators are the point rather than the result: each is a compound assignment on the\nsame accumulator, and the source spells the read-modify-write once where the target has to decide\nwhether the place is read twice."
+            "doc": "Mix folds the values together with xor, multiply and or.\n\nNot a hash: the trailing or forces the low bit, so the result is always odd."
           },
           "children": [
             {
@@ -3376,7 +3376,7 @@
                 "name": "string"
               },
               "attrs": {
-                "doc": "prefix is the source the display name is derived from."
+                "doc": "prefix is what the display name is derived from."
               }
             },
             {
