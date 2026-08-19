@@ -10,10 +10,10 @@
 // Kubernetes panic sites, 59% together.
 package invariant
 
-// Half returns n halved, and aborts on an odd input.
-//
 // The invariant shape: a condition the caller is required to have met, and a literal message
 // naming what it was.
+
+// Half returns n halved, and aborts on an odd input.
 func Half(n int64) int64 {
 	if n%2 != 0 {
 		panic("Half requires an even argument")

@@ -2,9 +2,6 @@
 pub mod accumulate {
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__mix
     /// Folds the values together with the operators a hash uses.
-    ///
-    /// `^=`, `|=` and `*=` are the three most common compound forms in the surveyed source after `+=`,
-    /// and all four are the same translation.
     pub fn mix(values: Vec<i64>) -> i64 {
         let mut acc = 1i64;
         for i in 0..values.len() as i64 {
@@ -57,7 +54,7 @@ pub mod basic {
         value * factor
     }
     // region: oyatie_example_portengine_fixture_corpus_basic__go_func__unexported
-    /// Not part of the fixture's public surface.
+    /// Returns n unchanged, and is not part of this package's public surface.
     fn unexported(n: i64) -> i64 {
         n
     }
@@ -71,10 +68,6 @@ pub mod composite {
     }
     // region: oyatie_example_portengine_fixture_corpus_composite__go_interface__job
     /// Anything that runs and describes itself.
-    ///
-    /// Embeds two interfaces and declares no method of its own, which is the shape 87.3% of embedding
-    /// interfaces have — and the shape whose emitted trait says nothing at all unless the supertraits
-    /// are carried.
     pub trait Job: Runner + Describer {}
     // region: oyatie_example_portengine_fixture_corpus_composite__go_interface__runner
     /// Anything that can run.
@@ -97,10 +90,6 @@ pub mod composite {
             self.label.clone()
         }
         /// Performs one unit of work and reports the running count.
-        ///
-        /// MUTATING, which is what makes the promoted method interesting: the forwarding method's receiver
-        /// is decided by what the method it forwards to does, and there is no body on the outer type to
-        /// observe.
         pub fn run(&mut self) -> i64 {
             self.engine.run()
         }
@@ -128,10 +117,6 @@ pub mod composite {
     }
     impl Engine {
         /// Performs one unit of work and reports the running count.
-        ///
-        /// MUTATING, which is what makes the promoted method interesting: the forwarding method's receiver
-        /// is decided by what the method it forwards to does, and there is no body on the outer type to
-        /// observe.
         pub fn run(&mut self) -> i64 {
             self.calls = self.calls.wrapping_add(1);
             self.calls
@@ -141,9 +126,6 @@ pub mod composite {
 pub mod fallible {
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__check
     /// Reports whether s is usable, returning only a failure.
-    ///
-    /// The no-value shape: `error` alone. The target has to invent the success value here, because a
-    /// function that returns only a failure still has to say it succeeded.
     pub fn check(s: String) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         if s.is_empty() {
             return Err(Box::<dyn std::error::Error + Send + Sync>::from("empty"));
@@ -152,9 +134,6 @@ pub mod fallible {
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__length
     /// Reports the length of s, failing on the empty string.
-    ///
-    /// The one-value-and-a-failure shape: `(int, error)`, which is what most of a real package looks
-    /// like.
     pub fn length(s: String) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         if s.is_empty() {
             return Err(Box::<dyn std::error::Error + Send + Sync>::from("empty"));
@@ -163,20 +142,12 @@ pub mod fallible {
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__twice
     /// Returns the length of s doubled.
-    ///
-    /// The PROPAGATION shape, and the point of the whole exercise: `n, err := Length(s)` followed by
-    /// `if err != nil { return 0, err }` is two statements the caller could simply not have written.
-    /// The target spells it as one operator on a value that cannot be used without addressing the
-    /// failure.
     pub fn twice(s: String) -> Result<i64, Box<dyn std::error::Error + Send + Sync>> {
         let n = length(s)?;
         Ok(n.wrapping_add(n))
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__validate
     /// Checks s and reports nothing else.
-    ///
-    /// Propagation with NO value bound: the call is run for its failure alone, so there is nothing to
-    /// name and the target keeps it as a statement.
     pub fn validate(s: String) -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
         check(s)?;
         Ok(())
@@ -184,27 +155,20 @@ pub mod fallible {
 }
 pub mod geometry {
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_alias__origin
-    /// The zero point, referred to across a package boundary.
+    /// Names the point type this package builds rectangles from.
     pub type Origin = crate::shapes::Point;
-    // region: oyatie_example_portengine_fixture_corpus_geometry__go_func__lookup
-    /// Returns a count for a label, falling back when the table has none.
-    ///
-    /// The map is in the SIGNATURE rather than the body on purpose: indexing is not in the translated
-    /// statement subset yet and refuses by name, and this package's job is to prove type resolution
-    /// rather than to smuggle an untranslated construct into the green corpus.
-    pub fn lookup(_table: std::collections::BTreeMap<String, i64>, fallback: i64) -> i64 {
-        fallback
+    // region: oyatie_example_portengine_fixture_corpus_geometry__go_func__size
+    /// Reports how many labelled counts the table holds.
+    pub fn size(table: std::collections::BTreeMap<String, i64>) -> i64 {
+        table.len() as i64
     }
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_func__widths
-    /// Returns the horizontal extents of several rectangles.
-    ///
-    /// The slice is the point: a composite type resolves by CONSTRUCTOR now, so one `slice` entry in
-    /// the pack answers this and every other slice, where a spelling table needed a row per element.
+    /// Returns the horizontal extents it was given, unchanged.
     pub fn widths(counts: Vec<i64>) -> Vec<i64> {
         counts
     }
     // region: oyatie_example_portengine_fixture_corpus_geometry__go_struct__bounds
-    /// A rectangle described by two points from another package.
+    /// A rectangle described by its two opposite corners.
     #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Bounds {
         /// The lower corner.
@@ -215,8 +179,7 @@ pub mod geometry {
 }
 pub mod globals {
     // region: oyatie_example_portengine_fixture_corpus_globals__go_func__describe
-    /// Names the package. It touches no package variable, which is what lets it be emitted
-    /// beside two that are deferred.
+    /// Returns the name of this package.
     pub fn describe() -> String {
         "globals".to_owned()
     }
@@ -251,9 +214,6 @@ pub mod handoff {
 pub mod invariant {
     // region: oyatie_example_portengine_fixture_corpus_invariant__go_func__half
     /// Returns n halved, and aborts on an odd input.
-    ///
-    /// The invariant shape: a condition the caller is required to have met, and a literal message
-    /// naming what it was.
     pub fn half(n: i64) -> i64 {
         if n % 2 != 0 {
             panic!("Half requires an even argument");
@@ -263,34 +223,40 @@ pub mod invariant {
 }
 pub mod naming {
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__describe
-    /// Renders anything that can name itself.
-    ///
-    /// The parameter is the one interface position with an unambiguous target form: the caller keeps
-    /// the value and the callee only reads it, so a borrow is right and no ownership question arises.
+    /// Returns the display name of anything that can name itself.
     pub fn describe(named: &dyn crate::shapes::Named) -> String {
         named.name()
     }
+    // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newlabel
+    /// Returns a label whose display name is derived from prefix.
+    pub fn new_label(prefix: String) -> Label {
+        Label {
+            prefix: prefix.clone(),
+            text: prefix.clone(),
+        }
+    }
+    // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newtag
+    /// Returns a tag with the given fixed display name.
+    pub fn new_tag(text: String) -> Tag {
+        Tag { text }
+    }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__label
-    /// A display name that can rename itself.
+    /// A display name derived from a prefix.
     #[derive(Debug, Clone, Default, PartialEq)]
     pub struct Label {
+        /// The source the display name is derived from.
+        prefix: String,
         /// The current display name.
         text: String,
     }
     impl Label {
         /// Returns the display name.
-        ///
-        /// Read-only, which is what makes the derived trait receiver interesting: a rule that assumed every
-        /// trait method is exclusive would put `&mut self` on a getter.
         pub fn name(&self) -> String {
             self.text.clone()
         }
-        /// Replaces the display name.
-        ///
-        /// Mutating, and one mutating implementor is enough to make the whole trait method exclusive: a
-        /// trait fixes one signature for everyone.
-        pub fn rename(&mut self, next: String) {
-            self.text = next;
+        /// Recomputes the display name from the prefix.
+        pub fn refresh(&mut self) {
+            self.text = self.prefix.clone();
         }
     }
     /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
@@ -298,8 +264,8 @@ pub mod naming {
         fn name(&self) -> String {
             Label::name(self)
         }
-        fn rename(&mut self, next: String) {
-            Label::rename(self, next);
+        fn refresh(&mut self) {
+            Label::refresh(self);
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_struct_body__tag
@@ -314,20 +280,16 @@ pub mod naming {
         pub fn name(&self) -> String {
             self.text.clone()
         }
-        /// Does nothing: a tag's name is fixed.
-        ///
-        /// A no-op rather than a mutation, so the derived receiver has to come from the UNION over
-        /// implementors — a second implementor that does not mutate proves the union does not simply take
-        /// the last answer.
-        pub fn rename(&self, _next: String) {}
+        /// Recomputes the display name, which for a fixed tag is already current.
+        pub fn refresh(&self) {}
     }
     /// Ported from an implicit interface: the source was observed satisfying `crate::shapes::Named` at assertion.
     impl crate::shapes::Named for Tag {
         fn name(&self) -> String {
             Tag::name(self)
         }
-        fn rename(&mut self, next: String) {
-            Tag::rename(self, next);
+        fn refresh(&mut self) {
+            Tag::refresh(self);
         }
     }
 }
@@ -343,27 +305,18 @@ pub mod pointers {
     }
     impl Counter {
         /// Adds n to the counter.
-        ///
-        /// MUTATED, does not escape: the body assigns through the receiver and nothing outlives the call.
         pub fn add(&mut self, n: i64) {
             self.total = self.total.wrapping_add(n);
         }
         /// Reports the counter's name, by value receiver.
-        ///
-        /// No pointer at all — the receiver is a copy, so no disposition question arises.
         pub fn label(&self) -> String {
             self.label.clone()
         }
         /// Folds other into the receiver.
-        ///
-        /// The receiver is mutated; `other` is read-only. Two pointers in one signature, with different
-        /// answers — a rule that keys on the type rather than on the facts gives them the same one.
         pub fn merge(&mut self, other: &Counter) {
             self.total = self.total.wrapping_add(other.total);
         }
         /// Reports the accumulated value.
-        ///
-        /// Neither mutated nor escaping: a read-only borrow is enough.
         pub fn total(&self) -> i64 {
             self.total
         }
@@ -372,9 +325,6 @@ pub mod pointers {
 pub mod scoped {
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__span
     /// Reports the width of s, counting a short string as one wider than it is.
-    ///
-    /// The binding is read in BOTH branches, which is what makes the block the only faithful shape: a
-    /// name hoisted out of the `if` would still be live after it, and this one must not be.
     pub fn span(s: String) -> i64 {
         let mut result = 0;
         {
@@ -389,8 +339,6 @@ pub mod scoped {
     }
     // region: oyatie_example_portengine_fixture_corpus_scoped__go_func__width
     /// Reports the width of s once it clears the minimum, and zero otherwise.
-    ///
-    /// The plain shape: bound in the init clause, read in the condition and the branch.
     pub fn width(s: String) -> i64 {
         {
             let size = s.len() as i64;
@@ -424,13 +372,18 @@ pub mod sequence {
     }
 }
 pub mod shapes {
+    // region: oyatie_example_portengine_fixture_corpus_shapes__go_func__newpoint
+    /// Returns the point at the given coordinates, labelled for display.
+    pub fn new_point(x: i64, y: i64, label: String) -> Point {
+        Point { x, y, label }
+    }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_interface__named
-    /// Anything that can render its own name.
+    /// Anything that can render its own display name.
     pub trait Named {
         /// Returns the display name.
         fn name(&self) -> String;
-        /// Replaces the display name.
-        fn rename(&mut self, next: String);
+        /// Recomputes the display name from the current state.
+        fn refresh(&mut self);
     }
     // region: oyatie_example_portengine_fixture_corpus_shapes__go_struct_body__point
     /// A location in two dimensions.
@@ -440,20 +393,24 @@ pub mod shapes {
         pub x: i64,
         /// The vertical coordinate.
         pub y: i64,
-        /// Unexported and must survive extraction as such.
+        /// Names the point for display.
         label: String,
     }
     impl Point {
-        /// Reports the rectangle area between the origin and p.
+        /// Reports the area of the rectangle between the origin and this point.
         pub fn area(&self) -> i64 {
             self.x.wrapping_mul(self.y)
         }
-        /// Returns a Point moved by the given deltas.
+        /// Returns the point's display name.
+        pub fn label(&self) -> String {
+            self.label.clone()
+        }
+        /// Returns the point moved by the given deltas, keeping its label.
         pub fn shift(&self, dx: i64, dy: i64) -> Point {
             Point {
                 x: self.x.wrapping_add(dx),
                 y: self.y.wrapping_add(dy),
-                label: String::new(),
+                label: self.label.clone(),
             }
         }
     }

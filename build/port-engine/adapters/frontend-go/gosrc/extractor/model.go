@@ -198,6 +198,14 @@ const (
 	// mutating method into a read-only one.
 	flagPointerReceiver = "pointer_receiver"
 
+	// flagReread records that the body reads this binding MORE THAN ONCE.
+	//
+	// The source copies a value on every read and the target moves it, so a second read of a
+	// non-copying binding is a use after move. Recorded as a count-based FACT rather than as a
+	// decision: whether the type copies is the pack's answer, and the two halves belong on
+	// different sides of the seam.
+	flagReread = "reread"
+
 	// flagUnread records that the body never mentions the parameter at all.
 	//
 	// Ordinary in the source and a WARNING in the target, which is a difference the port has to

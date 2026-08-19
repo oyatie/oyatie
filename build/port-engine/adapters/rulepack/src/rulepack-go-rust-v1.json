@@ -344,6 +344,7 @@
     ],
     "oyatie.example/portengine-fixture/corpus/shapes": [
       "go_interface",
+      "go_func",
       "go_struct_body"
     ],
     "oyatie.example/portengine-fixture-refused/corpus-refused/hard": [
@@ -639,6 +640,15 @@
       "shape": "compare_to_empty_string",
       "method": "is_empty",
       "reason": "The source spells the emptiness test as a comparison against the empty string literal, and the target has a method for it. Exactly equivalent -- both are true precisely when the value has length zero -- so this changes the spelling and not the program. `clippy::style` flags the comparison form, which is what makes it a review comment on hand-written code and therefore a defect in emitted code held to that bar. Applies to `==` and to `!=`, the second negated.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    },
+    {
+      "id": "field_init_shorthand",
+      "shape": "field_named_as_its_value",
+      "method": "",
+      "reason": "A struct literal field whose value is a binding of the SAME name is written without the colon in the target. Exactly equivalent -- the shorthand is defined as the long form -- so this changes the spelling and not the program. `clippy::style` flags the long form as `redundant_field_names`, and a comment a reviewer would make on hand-written code is a defect in code held to that bar. The source has no shorthand and therefore always writes the long form, so this fires wherever a constructor passes a parameter straight into the field it names -- which is what most constructors do.",
       "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"

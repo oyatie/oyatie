@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:0ab7f55126955f9a6abe9362d16c0283c99df288a7f2eb1fbe51082d0e60d4a4",
+  "snapshot_digest": "sha256:8d86d9223ae1c1896b981f292381f5979787e900b577bb0ba8b9da9294f58d56",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -54,6 +54,13 @@
                     {
                       "kind": "ident",
                       "name": "counter",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
                       "attrs": {
                         "ref": "package_var"
                       }
@@ -102,6 +109,13 @@
                     {
                       "kind": "ident",
                       "name": "counter",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
                       "attrs": {
                         "ref": "package_var"
                       }
@@ -171,6 +185,13 @@
                     {
                       "kind": "ident",
                       "name": "n",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
                       "attrs": {
                         "ref": "local"
                       }
@@ -191,6 +212,13 @@
                     {
                       "kind": "ident",
                       "name": "n",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
                       "attrs": {
                         "ref": "local"
                       }
@@ -293,6 +321,13 @@
                             {
                               "kind": "ident",
                               "name": "i",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
                               "attrs": {
                                 "ref": "local"
                               }
@@ -332,6 +367,13 @@
                             {
                               "kind": "ident",
                               "name": "total",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
                               "attrs": {
                                 "ref": "local"
                               }
@@ -350,6 +392,13 @@
                                 {
                                   "kind": "ident",
                                   "name": "total",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "int"
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
                                   "attrs": {
                                     "ref": "local"
                                   }
@@ -357,6 +406,13 @@
                                 {
                                   "kind": "ident",
                                   "name": "i",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "int"
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
                                   "attrs": {
                                     "ref": "local"
                                   }
@@ -376,6 +432,13 @@
                     {
                       "kind": "ident",
                       "name": "total",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
                       "attrs": {
                         "ref": "local"
                       }
@@ -595,6 +658,13 @@
                     {
                       "kind": "ident",
                       "name": "n",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
                       "attrs": {
                         "ref": "local"
                       }
@@ -615,6 +685,13 @@
                     {
                       "kind": "ident",
                       "name": "n",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
+                      "flags": [
+                        "reread"
+                      ],
                       "attrs": {
                         "ref": "local"
                       }

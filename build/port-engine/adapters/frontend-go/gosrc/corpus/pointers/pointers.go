@@ -15,31 +15,31 @@ type Counter struct {
 	label string
 }
 
-// Add adds n to the counter.
-//
 // MUTATED, does not escape: the body assigns through the receiver and nothing outlives the call.
+
+// Add adds n to the counter.
 func (c *Counter) Add(n int) {
 	c.total = c.total + n
 }
 
-// Total reports the accumulated value.
-//
 // Neither mutated nor escaping: a read-only borrow is enough.
+
+// Total reports the accumulated value.
 func (c *Counter) Total() int {
 	return c.total
 }
 
-// Label reports the counter's name, by value receiver.
-//
 // No pointer at all — the receiver is a copy, so no disposition question arises.
+
+// Label reports the counter's name, by value receiver.
 func (c Counter) Label() string {
 	return c.label
 }
 
-// Merge folds other into the receiver.
-//
 // The receiver is mutated; `other` is read-only. Two pointers in one signature, with different
 // answers — a rule that keys on the type rather than on the facts gives them the same one.
+
+// Merge folds other into the receiver.
 func (c *Counter) Merge(other *Counter) {
 	c.total = c.total + other.total
 }

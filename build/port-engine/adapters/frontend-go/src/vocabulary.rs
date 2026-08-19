@@ -200,6 +200,9 @@ pub const KNOWN_FLAGS: &[&str] = &[
     // the callee's copy is the opposite claim, and one flag carrying both would make every
     // rebound parameter demand an exclusive borrow.
     "rebound",
+    // The body reads this binding more than once. The source copies on read and the target moves,
+    // so a second read of a non-copying binding is a use after move.
+    "reread",
     // The body never mentions the parameter. Ordinary in the source and a warning in the target,
     // which the leading underscore answers without changing the signature.
     "unread",

@@ -13,10 +13,10 @@ package fallible
 
 import "errors"
 
-// Length reports the length of s, failing on the empty string.
-//
 // The one-value-and-a-failure shape: `(int, error)`, which is what most of a real package looks
 // like.
+
+// Length reports the length of s, failing on the empty string.
 func Length(s string) (int, error) {
 	if s == "" {
 		return 0, errors.New("empty")
@@ -24,10 +24,10 @@ func Length(s string) (int, error) {
 	return len(s), nil
 }
 
-// Check reports whether s is usable, returning only a failure.
-//
 // The no-value shape: `error` alone. The target has to invent the success value here, because a
 // function that returns only a failure still has to say it succeeded.
+
+// Check reports whether s is usable, returning only a failure.
 func Check(s string) error {
 	if s == "" {
 		return errors.New("empty")
@@ -35,12 +35,12 @@ func Check(s string) error {
 	return nil
 }
 
-// Twice returns the length of s doubled.
-//
 // The PROPAGATION shape, and the point of the whole exercise: `n, err := Length(s)` followed by
 // `if err != nil { return 0, err }` is two statements the caller could simply not have written.
 // The target spells it as one operator on a value that cannot be used without addressing the
 // failure.
+
+// Twice returns the length of s doubled.
 func Twice(s string) (int, error) {
 	n, err := Length(s)
 	if err != nil {
@@ -49,10 +49,10 @@ func Twice(s string) (int, error) {
 	return n + n, nil
 }
 
-// Validate checks s and reports nothing else.
-//
 // Propagation with NO value bound: the call is run for its failure alone, so there is nothing to
 // name and the target keeps it as a statement.
+
+// Validate checks s and reports nothing else.
 func Validate(s string) error {
 	err := Check(s)
 	if err != nil {

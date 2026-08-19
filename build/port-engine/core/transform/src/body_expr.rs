@@ -21,7 +21,7 @@ use crate::body_ops::{
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, IDIOM_EMPTY_STRING, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
+    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, FLAG_REREAD, IDIOM_EMPTY_STRING, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
 };
 
 /// Where an expression appears: a value is READ, a place is WRITTEN TO.
@@ -166,7 +166,7 @@ fn selector(
 /// An absent type is NOT treated as moving. The front end records a type on every selector it can
 /// resolve, so an absent one means the expression is not a field read at all — and cloning
 /// something the engine could not identify would be a guess.
-fn moves_on_read(type_ref: &TypeRef, cx: &Body<'_>) -> bool {
+pub(crate) fn moves_on_read(type_ref: &TypeRef, cx: &Body<'_>) -> bool {
     if type_ref.is_empty() {
         return false;
     }

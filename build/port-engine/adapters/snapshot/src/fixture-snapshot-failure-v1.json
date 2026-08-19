@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:e45977fac638e92fe5416b00ca7388048adfabb141e025242ef03d05bd3447f2",
+  "snapshot_digest": "sha256:44fa504025794b5d27a0a70ad4155cb22812d66b30d667d46cfd0d7aaf12d7e6",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-failure/corpus-failure/carried",
@@ -67,6 +67,13 @@
                             {
                               "kind": "ident",
                               "name": "s",
+                              "type": {
+                                "kind": "basic",
+                                "name": "string"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
                               "attrs": {
                                 "ref": "local"
                               }
@@ -101,6 +108,13 @@
                                 {
                                   "kind": "ident",
                                   "name": "len",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "invalid type"
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
                                   "attrs": {
                                     "ref": "builtin"
                                   }
@@ -108,6 +122,13 @@
                                 {
                                   "kind": "ident",
                                   "name": "s",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
+                                  "flags": [
+                                    "reread"
+                                  ],
                                   "attrs": {
                                     "ref": "local"
                                   }
@@ -187,6 +208,13 @@
                         {
                           "kind": "ident",
                           "name": "len",
+                          "type": {
+                            "kind": "basic",
+                            "name": "invalid type"
+                          },
+                          "flags": [
+                            "reread"
+                          ],
                           "attrs": {
                             "ref": "builtin"
                           }
@@ -194,6 +222,13 @@
                         {
                           "kind": "ident",
                           "name": "s",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "flags": [
+                            "reread"
+                          ],
                           "attrs": {
                             "ref": "local"
                           }

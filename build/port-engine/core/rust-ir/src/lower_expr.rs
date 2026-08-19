@@ -149,9 +149,18 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
             let rendered = fields
                 .iter()
                 .map(|(name, value)| {
-                    let name = parse_ident(name)?;
+                    // FIELD-INIT SHORTHAND. A field whose value is a binding of the same name is
+                    // written without the colon, which is defined as the long form and so changes
+                    // the spelling and not the program. The source has no shorthand and always
+                    // writes the long form, so a constructor passing a parameter straight into the
+                    // field it names would otherwise emit what `clippy::style` calls a redundant
+                    // field name on every one.
+                    let ident = parse_ident(name)?;
+                    if matches!(value, RustExpr::Path(path) if path == name) {
+                        return Ok(quote! { #ident });
+                    }
                     let value = lower_expr(value)?;
-                    Ok(quote! { #name: #value })
+                    Ok(quote! { #ident: #value })
                 })
                 .collect::<Result<Vec<_>, PortError>>()?;
             Ok(quote! { #path { #(#rendered),* } })

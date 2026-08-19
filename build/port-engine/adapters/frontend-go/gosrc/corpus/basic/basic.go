@@ -43,7 +43,7 @@ func Label(id ID, fallback string) string {
 	return id
 }
 
-// unexported is not part of the fixture's public surface.
+// unexported returns n unchanged, and is not part of this package's public surface.
 func unexported(n int) int {
 	return n
 }
