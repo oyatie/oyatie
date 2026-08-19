@@ -218,6 +218,8 @@ impl LoadedRulePack {
                 absent: failure.absent,
                 constructors: failure.constructors,
                 target_type_alternative_reason: failure.target_type_alternative_reason,
+                boxed_alias: failure.boxed_alias,
+                boxed_alias_reason: failure.boxed_alias_reason,
                 sentinel_enum: failure.sentinel_enum,
                 sentinel_enum_reason: failure.sentinel_enum_reason,
                 sentinel_enum_exhaustive: failure.sentinel_enum_exhaustive,

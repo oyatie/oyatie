@@ -37,7 +37,11 @@ pub(crate) fn preludes(
     let _ = convention;
     units
         .into_iter()
-        .filter_map(|unit| Some((unit.clone(), prelude_item(unit, semantics, model)?)))
+        .flat_map(|unit| {
+            prelude_items(unit, semantics, model)
+                .into_iter()
+                .map(move |item| (unit.clone(), item))
+        })
         .collect()
 }
 
@@ -47,29 +51,51 @@ pub(crate) fn preludes(
 /// assembly walks planned steps, and the survey walks the model directly with no plan at all. They
 /// asked different questions once, and the survey's emitted packages silently lacked the alias
 /// every fallible signature in them refers to.
-pub(crate) fn prelude_item(
+pub(crate) fn prelude_items(
     unit: &UnitId,
     semantics: &dyn PackSemantics,
     model: &dyn SourceModel,
-) -> Option<RustItem> {
-    let convention = semantics.failure_convention()?;
+) -> Vec<RustItem> {
+    let Some(convention) = semantics.failure_convention() else {
+        return Vec::new();
+    };
     if convention.alias.is_empty() || !unit_can_fail(unit, semantics, model) {
-        return None;
+        return Vec::new();
     }
-    Some(RustItem::TypeAlias {
+    // The failure type gets a NAME of its own when the pack gives it one, and the result alias then
+    // defaults to that name rather than to the spelling. Both aliases fit on a line; the one that
+    // carried the spelling in its default did not, and broke across four.
+    let failure = match convention.boxed_alias.is_empty() {
+        true => convention.target_type.clone(),
+        false => convention.boxed_alias.clone(),
+    };
+    let mut items = Vec::new();
+    if !convention.boxed_alias.is_empty() {
+        items.push(RustItem::TypeAlias {
+            docs: Vec::new(),
+            vis: Visibility::Public,
+            name: convention.boxed_alias.clone(),
+            generics: Vec::new(),
+            ty: RustType::path(convention.target_type.clone()),
+        });
+    }
+    items.push(RustItem::TypeAlias {
         // The alias documents itself: what it names is in the type, and a comment saying "the
         // crate's result type" adds nothing a reader cannot see.
         docs: Vec::new(),
         vis: Visibility::Public,
         name: convention.alias.clone(),
-        generics: vec!["T".to_owned()],
+        // The failure slot is a PARAMETER with a default, not a fixed type. Both spellings mean
+        // the same thing at every call site the engine emits — `Result<T>` resolves the default —
+        // and only this one can also be written with a different failure where a caller has one.
+        // Without it the alias is a fixed shape wearing a type parameter, which a reviewer read as
+        // an alias that could not be used for anything but what generated it.
+        generics: vec!["T".to_owned(), format!("E = {failure}")],
         // FULLY QUALIFIED on the right, because the alias shadows the prelude's own `Result`
         // inside this module and a bare one here would name itself.
-        ty: RustType::path(format!(
-            "std::result::Result<T, {}>",
-            convention.target_type
-        )),
-    })
+        ty: RustType::path("std::result::Result<T, E>".to_owned()),
+    });
+    items
 }
 
 /// The imports a set of EMITTED items needs.
@@ -163,8 +189,15 @@ pub(crate) fn assemble(
     ] {
         for (unit, item) in produced {
             let region = crate::naming::region_id_for_unit(&unit, what);
-            provenance.insert(RegionId(region.clone()), unit);
-            order.push((position, 0, region.clone()));
+            // ONCE per region, however many items land in it. A unit's prelude is two aliases now,
+            // and registering the region per item put it in the order twice — which renders the
+            // whole region twice and defines every name in it twice.
+            if provenance
+                .insert(RegionId(region.clone()), unit)
+                .is_none()
+            {
+                order.push((position, 0, region.clone()));
+            }
             items.push((region, item));
         }
     }

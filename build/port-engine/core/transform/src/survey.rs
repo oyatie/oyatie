@@ -111,12 +111,13 @@ where
     // why every package `port` emitted spelled the failure type out in full and named `std::fmt`
     // three times per sentinel.
     for unit in model.units() {
-        if let Some(item) = crate::prelude::prelude_item(&unit, pack, model) {
+        let prelude = crate::prelude::prelude_items(&unit, pack, model);
+        if !prelude.is_empty() {
             report.ported.push(PortedRegion {
                 region: crate::naming::region_id_for_unit(&unit, "prelude"),
                 unit: unit.clone(),
                 position: -1,
-                items: vec![item],
+                items: prelude,
             });
         }
         // Read from what this unit ACTUALLY emitted, which is the only evidence that cannot produce

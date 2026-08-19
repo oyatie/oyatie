@@ -3334,3 +3334,39 @@ them.
 All seven real packages still compile with zero rustc errors and zero clippy warnings, and coverage
 is unchanged — this is a change in how the same declarations are spelled, not in how many of them
 the engine can reach.
+
+## R1k — MERGE WITH CHANGES, and three findings from the review that said it
+
+The fourth blind review since the enum landed returned **MERGE WITH CHANGES** — the first non-refusal
+of the session. Its remaining evidence is almost all the source's own design, with one exception it
+was right about and two it named that the engine could fix.
+
+**A blank line between ITEMS, not only between regions.** The formatter emits none, because the tree
+it renders has none — a syntax tree records what the items ARE, not how far apart a reader wants them.
+So a type, its `Display` impl and its `Error` impl arrived as one unbroken block. Per item rather
+than per region: a region is one declaration's whole output and one declaration emits several.
+
+**A `match` used as an argument, bound first instead.** The hermetic formatter breaks
+`f.write_str(match self { .. })` across ten lines with a trailing comma after the block, where the
+formatter most authors run collapses it — and a reviewer read that, correctly, as output nobody had
+formatted. `let message = match self { .. };` then `f.write_str(message)` says exactly the same thing
+and survives both formatters. The engine's formatter is fixed by the determinism contract, so where
+its output and the common one differ, the fix is a shape both agree on rather than a different
+formatter.
+
+**And the alias, which took two tries.** The reviewer's point was narrow and correct: `pub type
+Result<T>` is a fixed shape wearing a type parameter — the failure slot cannot be anything else.
+Making it `Result<T, E = Box<dyn std::error::Error + Send + Sync>>` fixes that and is 92 characters,
+which the formatter breaks across four lines. Worse than what it replaced.
+
+So the failure type gets a NAME: `pub type BoxError = Box<dyn std::error::Error + Send + Sync>;` and
+`pub type Result<T, E = BoxError> = std::result::Result<T, E>;`. Both fit on a line, both say more
+than the one did, and `BoxError` is what real Rust that does this calls it. Worth stating as a
+general shape: when a decision is right and its spelling does not fit, the answer is usually a name.
+
+**One defect it surfaced.** The assembly registered a region once per ITEM, which was invisible while
+every unit-level region held exactly one. Two aliases put the prelude region in the order twice, and
+the whole region rendered twice — every name in it defined twice. Registered once per region now.
+
+All seven real packages compile with zero rustc errors and zero clippy warnings, all five corpora
+compile as crates, and coverage is unchanged.

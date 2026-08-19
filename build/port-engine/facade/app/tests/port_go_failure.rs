@@ -18,7 +18,7 @@ fn a_fallible_signature_becomes_a_result() {
         // The unit NAMES the failure type once and its signatures use that name. `Send + Sync` is
         // still part of the type — without them a ported error cannot cross a thread boundary,
         // which the source's error had no trouble doing — and the alias is where it is now said.
-        "pub type Result<T> = std::result::Result<T, Box<dyn std::error::Error + Send + Sync>>;",
+        "pub type Result<T, E = BoxError> = std::result::Result<T, E>;",
         "pub fn length(s: &str) -> Result<i64>",
         // A failure alone still has to say it succeeded.
         "pub fn check(s: &str) -> Result<()>",
