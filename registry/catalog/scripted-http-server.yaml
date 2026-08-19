@@ -1,9 +1,9 @@
 context: testing
-role: test-utility
+role: test
 capability: scripted-http-server
-plane: offline
+plane: control
 slo: cataloged-no-runtime-claim
-data_classes_owned: []
+data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview
 security_review: unreviewed
