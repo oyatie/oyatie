@@ -23,6 +23,8 @@
 use port_engine_api::Declaration;
 use port_engine_rust_ir::{RustExpr, RustFn, RustItem, RustStmt, RustType, Visibility};
 
+use port_engine_api::DocConvention;
+
 use crate::docs::docs_of;
 use crate::error::TransformError;
 use crate::naming::to_pascal_case;
@@ -61,7 +63,7 @@ fn build_impl(
         .collect::<Result<Vec<_>, _>>()?;
 
     Ok(RustItem::TraitImpl {
-        docs: satisfaction_docs(observed, &trait_path),
+        docs: satisfaction_docs(observed, &trait_path, resolver.doc_convention),
         trait_path,
         self_ty: self_ty.clone(),
         methods,
@@ -73,8 +75,12 @@ fn build_impl(
 /// A declared assertion is checked by the source compiler; a flow-derived one is the front end's
 /// inference from one use site. The two produce identical Rust, so a reader who needs to know
 /// which they are looking at can only be told — and the emitted code is where they are reading.
-fn satisfaction_docs(observed: &Declaration, trait_path: &RustType) -> Vec<String> {
-    let mut docs = docs_of(observed);
+fn satisfaction_docs(
+    observed: &Declaration,
+    trait_path: &RustType,
+    convention: &DocConvention,
+) -> Vec<String> {
+    let mut docs = docs_of(observed, convention);
     let site = observed.attr(ATTR_SITE).unwrap_or("an unrecorded position");
     docs.push(format!(
         " Ported from an implicit interface: the source was observed satisfying `{}` at {site}.",

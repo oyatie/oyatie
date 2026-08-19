@@ -155,6 +155,7 @@ pub fn apply_with_provenance(
                     signatures: &signatures,
                     function_map: semantics.function_map(),
                     integer_arithmetic: semantics.integer_arithmetic(),
+                    doc_convention: semantics.doc_convention(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,
                     unit: &step.unit,

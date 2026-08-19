@@ -62,7 +62,7 @@ fn build_const(
             datum: ATTR_VALUE,
         })?;
     Ok(RustItem::Const {
-        docs: docs_of(declaration),
+        docs: docs_of(declaration, resolver.doc_convention),
         vis: visibility(declaration),
         name: to_screaming_snake(&declaration.name),
         ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
@@ -75,7 +75,7 @@ fn build_type_alias(
     resolver: &Resolver<'_>,
 ) -> Result<RustItem, TransformError> {
     Ok(RustItem::TypeAlias {
-        docs: docs_of(declaration),
+        docs: docs_of(declaration, resolver.doc_convention),
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
         ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
@@ -94,7 +94,7 @@ fn build_newtype(
 ) -> Result<RustItem, TransformError> {
     let vis = visibility(declaration);
     Ok(RustItem::Struct {
-        docs: docs_of(declaration),
+        docs: docs_of(declaration, resolver.doc_convention),
         vis,
         name: to_pascal_case(&declaration.name),
         shape: StructShape::Tuple(vec![RustField {
@@ -115,7 +115,7 @@ fn build_struct(
     let mut fields = Vec::new();
     for field in declaration.children_of_kind(CHILD_FIELD) {
         fields.push(RustField {
-            docs: docs_of(field),
+            docs: docs_of(field, resolver.doc_convention),
             vis: visibility(field),
             name: to_snake_case(&field.name),
             ty: resolver.resolve_in(&field.type_ref, &field.name, POSITION_FIELD)?,
@@ -123,7 +123,7 @@ fn build_struct(
     }
 
     Ok(RustItem::Struct {
-        docs: docs_of(declaration),
+        docs: docs_of(declaration, resolver.doc_convention),
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
         shape: if fields.is_empty() {
@@ -140,7 +140,7 @@ fn build_trait(
     resolver: &Resolver<'_>,
 ) -> Result<RustItem, TransformError> {
     Ok(RustItem::Trait {
-        docs: docs_of(declaration),
+        docs: docs_of(declaration, resolver.doc_convention),
         vis: visibility(declaration),
         name: to_pascal_case(&declaration.name),
         supertraits: supertraits(declaration, resolver)?,
@@ -194,7 +194,7 @@ fn build_fn(
     };
 
     Ok(RustItem::Function(RustFn {
-        docs: docs_of(declaration),
+        docs: docs_of(declaration, resolver.doc_convention),
         vis: visibility(declaration),
         name: to_snake_case(&declaration.name),
         receiver: None,
