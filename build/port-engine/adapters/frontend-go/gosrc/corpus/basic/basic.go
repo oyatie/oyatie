@@ -35,14 +35,6 @@ func Scale(value float64, factor float64) float64 {
 	return value * factor
 }
 
-// Label renders a display name for the given identity.
-func Label(id ID, fallback string) string {
-	if id == "" {
-		return fallback
-	}
-	return id
-}
-
 // unexported returns n unchanged, and is not part of this package's public surface.
 func unexported(n int) int {
 	return n

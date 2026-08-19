@@ -1438,6 +1438,37 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   rather than started, because it is a mechanism change and this phase already spent its budget on
   the failure convention.
 
+- THE FIFTH BLIND REVIEW, and its classification is the useful part. Asked to say whether the
+  problems are correctness, idiom or design, it answered: "mostly design, then idiom, with a
+  correctness tail. There is no unsoundness. Only `mix`, the usize/i64 casts, and the blanket
+  `wrapping_*` are outright wrong answers." Reviews one to three each named several correctness
+  blockers; this one names three, and two of those are decisions held with reasons. That shift is
+  the measurement, not the verdict — which is still DO NOT MERGE.
+
+- THE SOURCE'S `string` IS A REFERENCE TYPE TOO, and was emitted owned. The reviewer's first
+  blocker: seven public functions take a `String` by value and only read it, so `check("")` does
+  not compile and `check(x.to_owned())` allocates and drops. A consumer-breaking API shape, and the
+  SAME finding as the map and the slice one, one type further on: the source's string is immutable
+  and shares its backing, so passing it costs nothing and the caller keeps it.
+  `string` joins the reference kinds and is answered by the same dispositions on the same facts.
+  Its borrowed form is `&str` rather than `&String`, composed the way a slice's is — `str` is the
+  unsized view, and `&str` takes every `&String` and also a literal and a subslice.
+  It is a BASIC kind rather than a composite one, so the reference test cannot key on kind alone;
+  it keys on the source type name the pack already owns.
+  AN ESCAPING STRING NOW REFUSES, and correctly. `Label(id, fallback string) string` returns one of
+  its arguments, so the target's signature needs a lifetime tying the result to them — and nothing
+  here emits lifetimes. It used to emit a signature that CONSUMED both, which the source never
+  does, so this is the same correction the map and slice change made. Moved to the refusal corpus.
+  A BORROWED VALUE REACHING A FIELD THAT OWNS has to be owned there, which the compile proof said
+  within seconds: `Driver { engine, label }` with `label: &str` into a `String` field. The source
+  never had to say this because its string was already shared. The transform asks the same question
+  the signature answered rather than re-deriving it — a parameter is borrowed exactly when its
+  disposition chose a borrow — and `to_owned` rather than `clone`, because `clone` on a `&str`
+  yields a `&str` and the field wants the owned form.
+  COVERAGE FELL AGAIN, for the fifth time and the fifth same reason: xxhash 61.8 → 58.8, errors
+  31.6 → 26.3, semver 34.5 → 31.0. Every declaration that moved was emitting a signature that
+  consumed a value the source shares.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

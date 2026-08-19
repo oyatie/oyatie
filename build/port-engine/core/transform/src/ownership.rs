@@ -149,8 +149,10 @@ pub(crate) fn reference_target(
     let Some(template) = decision.reference_target.as_ref() else {
         return Err(TransformError::Ownership {
             detail: format!(
-                "disposition `{}` has no reference form, so `{site}` cannot hold a map or a slice \
-                 the caller keeps: {}",
+                "disposition `{}` has no reference form, so `{site}` cannot hold a reference the \
+                 caller keeps — a map, a slice or a string. Returning one needs a lifetime tied to \
+                 the parameter, which nothing here emits yet; taking it owned would consume a \
+                 value the source never consumed: {}",
                 decision.rule_id, decision.reason
             ),
         });
