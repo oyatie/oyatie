@@ -215,7 +215,7 @@ fn a_struct_renders_fields_and_an_inherent_impl() {
             receiver: Some(Receiver::Shared),
             params: Vec::new(),
             ret: Some(RustType::path("i64")),
-            body: Some(vec![RustStmt::Tail(RustExpr::Todo)]),
+            body: Some(vec![RustStmt::Tail(RustExpr::Literal("0".to_owned()))]),
         }],
     }]);
     assert!(text.contains("pub struct Point"), "{text}");

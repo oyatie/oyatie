@@ -77,7 +77,10 @@ pub(crate) fn propagate_into_success(
     }
     let ok = match values.len() {
         0 => RustExpr::Tuple(Vec::new()),
-        1 => values.into_iter().next().unwrap_or(RustExpr::Todo),
+        1 => values
+            .into_iter()
+            .next()
+            .unwrap_or_else(|| unreachable!("the arm matched exactly one value")),
         _ => RustExpr::Tuple(values),
     };
     let success = RustStmt::Tail(RustExpr::Call {
@@ -142,7 +145,10 @@ pub(crate) fn fallible_return(
             .collect::<Result<Vec<_>, _>>()?;
         let ok = match values.len() {
             0 => RustExpr::Tuple(Vec::new()),
-            1 => values.into_iter().next().unwrap_or(RustExpr::Todo),
+            1 => values
+                .into_iter()
+                .next()
+                .unwrap_or_else(|| unreachable!("the arm matched exactly one value")),
             _ => RustExpr::Tuple(values),
         };
         return Ok(RustExpr::Call {

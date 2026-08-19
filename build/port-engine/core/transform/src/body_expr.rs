@@ -144,6 +144,8 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         return Ok(rendered);
     }
 
+    crate::body_wider::refuse_opaque_newtype(lhs, rhs, spelling, cx)?;
+
     // A guard comparing a LENGTH CONSTANT against a length: both sides are the target's index type,
     // so the conversion the length call's mapping adds is what is wrong. The constant's declaration
     // read the same proof, so the two sides cannot end up different types.

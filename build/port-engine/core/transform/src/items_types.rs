@@ -37,6 +37,7 @@ pub(crate) fn build_type_alias(
 pub(crate) fn build_newtype(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
+    body: Body,
 ) -> Result<RustItem, TransformError> {
     let vis = visibility(declaration);
     Ok(RustItem::Struct {
@@ -51,7 +52,7 @@ pub(crate) fn build_newtype(
         }]),
         // A newtype's one field is the source type itself, so the same rule answers for it.
         derives: resolver.derives_for(std::slice::from_ref(&declaration.type_ref)),
-        methods: inherent_methods(declaration, resolver, Body::Stub)?,
+        methods: inherent_methods(declaration, resolver, body)?,
     })
 }
 

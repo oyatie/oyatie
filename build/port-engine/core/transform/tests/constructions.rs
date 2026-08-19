@@ -46,8 +46,12 @@ fn function_renders_named_params_and_a_result() {
         child("param", "b", "int"),
         child("result", "", "int"),
     ];
+    // A BODY, because a function without one is now a refusal rather than a stub: emitting a
+    // signature whose body panics compiles and aborts at the caller. The shape this test is about
+    // is the signature, and the body is what makes it emittable at all.
+    add.children.push(child("body", "", ""));
     let pack = Pack::default()
-        .with_rule("funcs", CONSTRUCTION_RUST_FN, &["func"])
+        .with_rule("funcs", CONSTRUCTION_RUST_FN_BODY, &["func"])
         .with_types(&[("int", "i64")]);
     let ir = apply(&plan_with(&["funcs"]), &pack, &model_with(vec![add])).expect("apply");
     let text = rendered(&ir);
@@ -70,10 +74,12 @@ fn struct_renders_fields_and_an_inherent_impl() {
     let mut shift = child("method", "Shift", "");
     shift.flags.insert("exported".into());
     shift.children = vec![child("param", "dx", "int"), child("result", "", "Point")];
+    // Same reason as the function above: a method the rung will not translate is a refusal now.
+    shift.children.push(child("body", "", ""));
     point.children = vec![x, child("field", "label", "string"), shift];
 
     let pack = Pack::default()
-        .with_rule("structs", CONSTRUCTION_RUST_STRUCT, &["struct"])
+        .with_rule("structs", CONSTRUCTION_RUST_STRUCT_BODY, &["struct"])
         .with_types(&[("int", "i64"), ("string", "String")]);
     let ir = apply(&plan_with(&["structs"]), &pack, &model_with(vec![point])).expect("apply");
     let text = rendered(&ir);
