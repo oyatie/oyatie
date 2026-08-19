@@ -20,7 +20,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::Declaration;
 
-use crate::vocabulary::{ATTR_CALLEE, KIND_CALL, KIND_IDENT, REF_CONST, SOURCE_INT};
+use crate::vocabulary::{ATTR_CALLEE, KIND_CALL, KIND_IDENT, KIND_LITERAL, REF_CONST, SOURCE_INT};
 
 /// Every constant of this unit that is a length.
 pub(crate) fn length_constants(
@@ -92,6 +92,17 @@ fn count_reads(
         }
         return;
     }
+    // LENGTH ARITHMETIC is neutral, for the third time in the same family and for the same reason:
+    // it observes the value and says nothing about its type. A length times a count is a length, and
+    // a length plus a number is a length — so `byteLength * len(ksuids)` and `1 + byteLength` are
+    // not evidence that the signed value is observed. Counting them against was enough on its own to
+    // keep `ksuid`'s byte length signed, though the unit compares it to a length as well.
+    if is_length_arithmetic(node, candidates, lengths) {
+        for child in &node.children {
+            count_reads(child, &BTreeSet::new(), lengths, renders, takes_length, into);
+        }
+        return;
+    }
     if node.kind == KIND_IDENT
         && node.attr(crate::vocabulary::ATTR_REF) == Some(REF_CONST)
         && candidates.contains(&node.name)
@@ -123,4 +134,51 @@ fn is_length(operand: &Declaration, lengths: &BTreeSet<String>) -> bool {
         && operand
             .attr(ATTR_CALLEE)
             .is_some_and(|callee| lengths.contains(callee))
+}
+
+/// Whether this node is ARITHMETIC over things that are all lengths.
+///
+/// A length times a count is a length; a length plus a number is a length. What makes this safe to
+/// treat as neutral rather than as evidence either way is that every operand has to be one of three
+/// things the source already types as a length or a plain number — a candidate, a call whose value
+/// is a length, or a literal. One operand that is none of those and the whole expression is
+/// something else, and the read inside it counts.
+///
+/// Comparison operators are deliberately absent: a comparison against a length is POSITIVE evidence
+/// and is counted as such above, and folding it in here would lose the only proof the rule has.
+fn is_length_arithmetic(
+    node: &Declaration,
+    candidates: &BTreeSet<String>,
+    lengths: &BTreeSet<String>,
+) -> bool {
+    if node.kind != "binary" {
+        return false;
+    }
+    let arithmetic = matches!(
+        node.attr(crate::vocabulary::ATTR_OP),
+        Some("+" | "-" | "*" | "/" | "%")
+    );
+    arithmetic
+        && node
+            .children
+            .iter()
+            .all(|operand| is_lengthlike(operand, candidates, lengths))
+}
+
+/// Whether this operand is a length, a plain number, or arithmetic over them.
+fn is_lengthlike(
+    operand: &Declaration,
+    candidates: &BTreeSet<String>,
+    lengths: &BTreeSet<String>,
+) -> bool {
+    if operand.kind == KIND_LITERAL {
+        return true;
+    }
+    if operand.kind == KIND_IDENT && candidates.contains(&operand.name) {
+        return true;
+    }
+    if is_length(operand, lengths) {
+        return true;
+    }
+    is_length_arithmetic(operand, candidates, lengths)
 }
