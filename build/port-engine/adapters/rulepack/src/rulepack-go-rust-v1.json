@@ -154,6 +154,10 @@
     {
       "kind": "foreign_satisfaction",
       "reason": "An interface satisfaction whose concrete type this corpus does not declare — a standard-library value assigned where a standard-library interface is expected is the common case, and `var buf bytes.Buffer` passed as an `io.Writer` is the exact shape. There is nowhere to emit the impl: the type belongs to neither this corpus nor this crate, so the target's coherence rule forbids it outright. Recorded rather than dropped, because a satisfaction the engine cannot host must stay distinguishable from one that does not exist; deferred rather than refused, because refusing would reject every package that touches the standard library through an interface, which is most of them."
+    },
+    {
+      "kind": "package_init",
+      "reason": "The source runs package init work before main, in dependency order across packages and file order within one, with no way to observe or defer it. The target has no such phase. LazyLock runs on first use rather than before it, which is a different program whenever the work has side effects or whenever two packages' initialisation order matters; an explicit init function called from main is faithful but changes the library's API and pushes the ordering obligation onto every caller. Choosing between them is a decision about the ported program's startup, not a spelling, so it is declared rather than inferred. Recorded as a declaration so the work is VISIBLE: it was reaching the model nowhere at all, which is neither a translation nor a refusal, and three of eight surveyed packages declare one."
     }
   ],
   "rules": [

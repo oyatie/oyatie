@@ -557,6 +557,32 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   ever written, and `init` bodies are never indexed at all because go/types does not enter `init`
   into package scope), and a POLICY gap. Three fixes, not one rule.
 
+- `func init()` was reaching the model NOWHERE — not refused, not deferred, invisible.
+  Declarations come from package SCOPE, and go/types deliberately keeps `init` out of it: the name
+  is not addressable, several may exist in one package, and only the runtime calls them. So
+  `declFor` never saw one, `prove_every_declaration_is_accounted_for` had nothing to account for,
+  and a package whose `init` builds a lookup table ported to a program that never builds it. Three
+  of eight surveyed corpora declare one.
+  That is the exact failure this engine refuses everywhere else — output that compiles and means
+  something different — reached by a path no refusal covered, because the construct never became a
+  declaration at all. The coverage proof can only prove things it can see.
+  Two causes, both fixed. The body was never INDEXED, because the indexer read `Uses` for a
+  declaration's own name and fell back to a package-scope lookup — correct for everything
+  addressable, silently empty for `init`. A declaration's own name is a DEF, and reading `Defs`
+  first fixes it. And nothing COLLECTED it, so it is now gathered explicitly into one declaration
+  per package carrying every body in FILE ORDER — one rather than several, because that order is a
+  guarantee the source makes and splitting them would hand it to a name sort.
+  Deferred by the pack with the reason written out: the target has no phase that runs before
+  `main`. `LazyLock` runs on first use rather than before it, which is a different program whenever
+  the work has side effects or two packages' order matters; an explicit init called from `main` is
+  faithful but changes the library's API and pushes the ordering obligation onto every caller.
+  A name collision caught by the compiler: `kindInit` already existed for a `for` loop's init
+  CLAUSE. The two share a source keyword and nothing else, so the declaration kind is
+  `package_init`.
+  `xid` went from 24 declarations to 25, and its survey briefly showed `uncaptured=1` before the
+  deferral landed — the coverage proof reporting a kind nothing answers for, which is what it is
+  for.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil

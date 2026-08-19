@@ -99,13 +99,18 @@ const (
 // Declaration kinds. These strings are the vocabulary the rule pack's `captures` select
 // on, so they are part of the snapshot contract rather than an internal detail.
 const (
-	kindConst     = "const"
-	kindVar       = "var"
-	kindFunc      = "func"
-	kindStruct    = "struct"
-	kindInterface = "interface"
-	kindAlias     = "alias"
-	kindNamed     = "named"
+	kindConst = "const"
+	kindVar   = "var"
+	// kindPackageInit is the package's `init` work, as one declaration carrying every body in
+	// file order. Not in package scope and so invisible to the scope walk, which is how it used to
+	// reach the model not at all. Distinct from kindInit, which is a `for` loop's init CLAUSE —
+	// the two share a source keyword and nothing else.
+	kindPackageInit = "package_init"
+	kindFunc        = "func"
+	kindStruct      = "struct"
+	kindInterface   = "interface"
+	kindAlias       = "alias"
+	kindNamed       = "named"
 
 	kindField  = "field"
 	kindMethod = "method"

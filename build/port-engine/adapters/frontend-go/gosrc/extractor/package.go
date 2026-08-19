@@ -85,10 +85,15 @@ func extractPackage(
 				if typed.Name == nil {
 					continue
 				}
-				obj := info.Uses[typed.Name]
+				// A declaration's own name is a DEFINITION. Reading `Uses` first and falling back
+				// to a package-scope lookup worked for everything addressable and silently missed
+				// `init`, which go/types deliberately keeps out of package scope — so its body was
+				// never indexed and its code never reached the model at all.
+				obj := info.Defs[typed.Name]
 				if obj == nil {
-					// A declaration's own name is a definition, not a use, so it is not in Uses.
-					// Resolve it through the package scope or the receiver's method set.
+					obj = info.Uses[typed.Name]
+				}
+				if obj == nil {
 					obj = lookupFuncObject(tpkg, typed)
 				}
 				if obj == nil {
@@ -134,7 +139,39 @@ func extractPackage(
 		}
 		decls = append(decls, decl)
 	}
+	if initializer := packageInit(files, ctx); initializer != nil {
+		decls = append(decls, *initializer)
+	}
 	return decls, collectSatisfactions(files, info, unitID), tpkg, nil
+}
+
+// packageInit records every `func init()` in the package as ONE declaration.
+//
+// go/types keeps `init` out of package scope on purpose — it is not addressable, several may exist,
+// and only the runtime calls them — so the scope walk above cannot see it and the code was reaching
+// the model nowhere. A construct that is neither translated nor refused is the one outcome this
+// engine has no answer for.
+//
+// One declaration rather than several, carrying the bodies in FILE ORDER, because that order is a
+// guarantee the source makes: several inits run in the order their files are presented. Splitting
+// them into separate declarations would hand that order to a name sort.
+func packageInit(files []*ast.File, ctx *extractCtx) *node {
+	out := node{Kind: kindPackageInit, Name: "init"}
+	for _, file := range files {
+		for _, decl := range file.Decls {
+			fn, ok := decl.(*ast.FuncDecl)
+			if !ok || fn.Recv != nil || fn.Name == nil || fn.Name.Name != "init" || fn.Body == nil {
+				continue
+			}
+			inner := *ctx
+			inner.assigned = assignedLocals(fn.Body, ctx)
+			out.Children = append(out.Children, bodyNode(fn.Body, &inner))
+		}
+	}
+	if len(out.Children) == 0 {
+		return nil
+	}
+	return &out
 }
 
 // extractCtx carries what body and doc extraction need alongside the type qualifier.
