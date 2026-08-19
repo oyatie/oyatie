@@ -123,7 +123,12 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  bump proposer crate). Independent of the row movement above:
 ///                                  dev reached 772 on its own while this branch adds exactly
 ///                                  one row, so the merged face enumerates 772 + 1.
-const SLO_CATALOG_CENSUS: usize = 773;
+///   2026-08-19  773 -> pin 774     ROWS ADDED, not a widened enumeration: this branch adds
+///                                  exactly one catalog row, registry/catalog/port-engine-
+///                                  analysis.yaml, for the port-engine analysis crate.
+///                                  Verified by diff against dev: one A and thirteen M
+///                                  under registry/catalog/, so the face enumerates 773 + 1.
+const SLO_CATALOG_CENSUS: usize = 774;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
