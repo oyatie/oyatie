@@ -2,8 +2,7 @@
 
 > **STATUS 2026-08-19 — NOT EXECUTABLE AS WRITTEN. Deployment state UNKNOWN.**
 >
-> Every path this runbook names was **rehomed by the capability reorg, not deleted**. The work is
-> a repoint, not a rebuild:
+> Every path this runbook names was **rehomed by the capability reorg, not deleted**:
 >
 > | Runbook says | Actually at |
 > |---|---|
@@ -12,8 +11,10 @@
 > | `scripts/build/build-and-push-cloud-intelligence.sh` | absent from the tree — this one is genuinely gone |
 >
 > The `cloud-intelligence` Argo CD Application in `infra/gitops/values.yaml` still declares
-> `path: microservices/cloud-intelligence/k8s`, so it **cannot render**. The remediation is a
-> single field: repoint it at `intelligence/k8s`. That is tracked as `oyatie-6t5.22`.
+> `path: microservices/cloud-intelligence/k8s`, so it **cannot render**. Deleting or modifying
+> the dangling `cloud-intelligence` Application row without `cascadeDelete` would orphan any
+> surviving workload rather than remove it; that teardown follows the `oyatie-6t5.23` two-phase
+> pattern and needs cluster readback first.
 >
 > Until then, treat every `kubectl` and `argocd` step below as unverified. Cluster readback is
 > unavailable, so whether a `cloud-intelligence` workload survives from an earlier sync is
