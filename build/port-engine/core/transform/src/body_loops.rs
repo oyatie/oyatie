@@ -7,7 +7,8 @@
 use port_engine_api::Declaration;
 use port_engine_rust_ir::{MatchArm, RustExpr, RustStmt};
 
-use crate::body::{Body, TailPosition, branch, named_child, one_child, translate, two_children};
+use crate::body::{Body, TailPosition, translate};
+use crate::body_parts::{branch, named_child, one_child, two_children};
 use crate::body_expr::expression;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;

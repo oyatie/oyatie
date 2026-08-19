@@ -9,7 +9,8 @@ use port_engine_api::{Declaration, TypeRef};
 use port_engine_api::PointerConstruction;
 use port_engine_rust_ir::RustExpr;
 
-use crate::body::{Body, one_child, two_children, unsupported_source};
+use crate::body::{Body};
+use crate::body_parts::{one_child, two_children, unsupported_source};
 use crate::body_index::slice;
 use crate::body_call::{call, constructed};
 use crate::body_literal::{composite, zero_value};

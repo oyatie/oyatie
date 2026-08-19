@@ -8,7 +8,8 @@
 use port_engine_api::Declaration;
 use port_engine_rust_ir::RustExpr;
 
-use crate::body::{Body, one_child};
+use crate::body::{Body};
+use crate::body_parts::{one_child};
 use crate::body_call::render_operand;
 use crate::body_expr::{expression, moves_on_read};
 use crate::error::TransformError;

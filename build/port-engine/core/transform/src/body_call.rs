@@ -13,7 +13,8 @@
 use port_engine_api::{Declaration, FunctionMapping, PointerConstruction};
 use port_engine_rust_ir::RustExpr;
 
-use crate::body::{Body, one_child};
+use crate::body::{Body};
+use crate::body_parts::{one_child};
 use crate::body_expr::{Position, expression, in_position};
 use crate::body_ops::{operator_of, own_string_for, reference};
 use crate::error::TransformError;

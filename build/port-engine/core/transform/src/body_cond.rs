@@ -12,7 +12,8 @@
 use port_engine_api::Declaration;
 use port_engine_rust_ir::{RustExpr, RustStmt};
 
-use crate::body::{Body, TailPosition, named_child, one_child, statement, translate};
+use crate::body::{Body, TailPosition, statement, translate};
+use crate::body_parts::{named_child, one_child};
 use crate::body_expr::expression;
 use crate::error::TransformError;
 

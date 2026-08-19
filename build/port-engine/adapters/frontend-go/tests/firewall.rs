@@ -20,6 +20,7 @@ const PRODUCTION_SOURCES: &[(&str, &str)] = &[
     ("lib.rs", include_str!("../src/lib.rs")),
     ("model.rs", include_str!("../src/model.rs")),
     ("vocabulary.rs", include_str!("../src/vocabulary.rs")),
+    ("vocabulary_facts.rs", include_str!("../src/vocabulary_facts.rs")),
     ("wire.rs", include_str!("../src/wire.rs")),
     ("sources.rs", include_str!("../src/sources.rs")),
 ];
