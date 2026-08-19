@@ -37,6 +37,7 @@ mod lower_body;
 mod lower_expr;
 mod lower_precedence;
 mod item_parts;
+mod item_types;
 mod lower_parts;
 mod lower_sentinel;
 mod ops;

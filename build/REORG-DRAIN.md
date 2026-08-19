@@ -3370,3 +3370,42 @@ the whole region rendered twice — every name in it defined twice. Registered o
 
 All seven real packages compile with zero rustc errors and zero clippy warnings, all five corpora
 compile as crates, and coverage is unchanged.
+
+## R1l — one module importing `std::fmt` and spelling everything else out
+
+Three reviewers in a row named the same inconsistency, the last one ranking it sixth of seven pieces
+of evidence: the emitted module imports `std::fmt` and then writes `std::error::Error`,
+`std::result::Result` and `std::cmp::Ordering` out at every use. Their words — the source language's
+package-qualified reference model applied to the target's paths. Correct, and entirely the engine's.
+
+**Producers emit the short form; the import follows what is NAMED.** No rewriting pass: every place
+these paths come from is the engine's own — the pack's type map, the pack's failure type, the
+sentinel lowering's `impl` — so they emit `Ordering` and `StdError` directly, and a unit gains the
+import only where its emitted types actually name one. The failure mode is safe by construction: a
+missed import does not compile, which the compile proof catches, where a spurious one is a denied
+warning.
+
+**`StdError`, and why the table is keyed by the NAME.** A unit that declares failures emits its own
+type called `Error`, so importing the trait under the path's own last segment would collide with it.
+`use std::error::Error as StdError` is what real Rust writes in exactly this situation — and because
+the local name differs from the path, it cannot be derived from the path. The table is keyed by what
+the emitted code SAYS.
+
+**Asked of the types, not of the text.** A structural walk over the item tree collects every type
+spelling, and the match is on whole identifiers — `MyOrdering` does not name `Ordering`. A text scan
+would have matched it and emitted an import nothing uses, which is a build failure.
+
+**Imports are a BLOCK.** The item-separation rule put a blank line between every pair, including
+consecutive `use` lines, which nobody writes. The rule now knows that much about what it separates.
+
+**Three defects the change surfaced, all of them ordering or parsing.**
+- `use std::error::Error as StdError` refused to render, by name, because a rename is not part of a
+  path and the lowering parsed one. Right failure, wrong parser: it parses the whole `use` item now.
+- The assembly built the prelude and the imports from a LIST of both, and a list evaluates its
+  elements before the first is placed — so the import scan looked at a unit that did not have its
+  aliases yet. Every unit with a prelude and no sentinel came out naming `StdError` with no import
+  for it. Built one after the other now, and the order is the reason rather than a preference.
+- A region was registered once per ITEM, invisible while every unit-level region held exactly one.
+
+All seven real packages compile with zero rustc errors and zero clippy warnings; all five corpora
+compile as crates.

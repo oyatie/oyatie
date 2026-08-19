@@ -41,6 +41,10 @@ impl PackSemantics for LoadedRulePack {
     fn integer_arithmetic(&self) -> &IntegerArithmetic {
         &self.integer_arithmetic
     }
+    fn target_imports(&self) -> &BTreeMap<String, String> {
+        &self.target_imports
+    }
+
     fn format_calls(&self) -> &FormatCalls {
         &self.format_calls
     }

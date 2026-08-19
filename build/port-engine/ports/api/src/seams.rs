@@ -138,6 +138,11 @@ pub trait PackSemantics {
     /// after the plain one — it appears in six of the seven surveyed packages — and no table of
     /// fixed forms can answer it.
     fn format_calls(&self) -> &FormatCalls;
+    /// Library paths the pack names by their SHORT form, keyed by that form.
+    ///
+    /// Keyed by the short name because that is what the emitted code says and what a scan of it
+    /// looks for — and because one of them is a RENAME, so the name cannot be derived from the path.
+    fn target_imports(&self) -> &BTreeMap<String, String>;
     /// Source TYPE names a doc comment may name, and the target's spelling for each.
     ///
     /// Separate from the type map, which answers what a DECLARATION's type becomes. Prose is not a

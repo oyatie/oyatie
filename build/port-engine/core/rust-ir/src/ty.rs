@@ -39,6 +39,30 @@ impl RustType {
         Self::Path(spelling.into())
     }
 
+    /// Every path SPELLING this type is built from, outermost first.
+    ///
+    /// Read-only, and it exists for one question: which of the target's library paths does a module
+    /// actually name. A module that names one repeatedly imports it once, and a module that names it
+    /// nowhere must not gain an import it does not use — which is a denied warning, not a tidiness
+    /// point.
+    pub fn spellings(&self, into: &mut Vec<String>) {
+        match self {
+            Self::Path(spelling) => into.push(spelling.clone()),
+            Self::Reference { inner, .. } => inner.spellings(into),
+            Self::Tuple(members) => {
+                for member in members {
+                    member.spellings(into);
+                }
+            }
+            Self::Generic { path, args } => {
+                into.push(path.clone());
+                for arg in args {
+                    arg.spellings(into);
+                }
+            }
+        }
+    }
+
     /// The unit type, `()`.
     #[must_use]
     pub const fn unit() -> Self {

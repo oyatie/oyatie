@@ -119,7 +119,7 @@
     "byte": "u8",
     "complex128": "unsupported_complex128",
     "complex64": "unsupported_complex64",
-    "error": "std::error::Error",
+    "error": "StdError",
     "float32": "f32",
     "float64": "f64",
     "int": "i64",
@@ -609,7 +609,7 @@
   },
   "failure_convention": {
     "source_type": "error",
-    "target_type": "Box<dyn std::error::Error + Send + Sync>",
+    "target_type": "Box<dyn StdError + Send + Sync>",
     "absent": "nil",
     "reason": "The source's error is an interface value; the target's is a trait object, and a trait object needs an owner because it has no size. Boxed rather than borrowed: a failure outlives the call that produced it, so a reference would need a lifetime the caller cannot supply. SEND + SYNC IS NOT DECORATION. Without them the ported error cannot cross a thread boundary or enter any async runtime, which does not merely inconvenience a caller -- it makes the emitted crate unusable in concurrent code, where the source's error had no such limit. A reviewer reading the emitted API named this as breaking the crate for concurrent use, and they were right: the bound was missing, not declined. The source's own error values are ordinary data and satisfy both bounds; a source error that did not would not be shareable across the source's goroutines either. ON THE CRITICISM THAT A CONSUMER CANNOT MATCH ON IT, raised by two reviewers reading the emitted crate: that is the SOURCE's error model, carried across rather than introduced. The source's `errors.New(\"empty\")` gives its own callers exactly as little -- an opaque interface value with a string inside -- and a source caller who wants to branch uses `errors.Is`/`errors.As` against a sentinel value or a concrete type, which is what the target's boxed trait object plus a downcast supports. A concrete error enum would give the ported crate an API the source does not have. That is an IMPROVEMENT on the source, and improving is not porting: it invents a type upstream never declared, it cannot represent a failure propagated from a callee the package does not know, and the next upstream release would have to be reconciled against a shape nobody upstream wrote. The engine's job is to carry the source's design, including where that design is poor -- and to say so here rather than silently be blamed for it.",
     "discards_companion": true,
@@ -629,7 +629,7 @@
     "inferred_construction_reason": "How a failure value is built where the DESTINATION already fixes its type -- inside the target's failing return, which is the only place the engine builds one. The general mapping for the source's failure constructor is explicit about the type, and its reason says why: it fires in any position, and an inferring conversion only works where the destination type is already known. Inside `Err(..)` of a function whose return type names the failure, it IS known -- so the explicit form there is a turbofish that says something the signature has already said, which a reviewer reading the emitted crate called noise twice. Set to empty to use the general form everywhere, which is what the engine did before and is still correct -- just longer.",
     "identity_test": "{0}.downcast_ref::<{1}>().is_some()",
     "identity_test_reason": "How a caller asks whether a failure IS a particular sentinel. The source writes `err == ErrSize` or `errors.Is(err, ErrSize)` and compares identity; the target asks the trait object what concrete type it holds. This exists because the sentinel became a TYPE. While a sentinel was its message, there was nothing to compare -- a fresh failure built from a shared string is equal to nothing -- and the comparison REFUSED by name, with the loss recorded as the cost of that decision. The type restores it, and this is the form that spends it. Faithful in the direction that matters: the source's comparison is true exactly when the failure is that sentinel, and so is this. The one difference is what happens to a WRAPPED failure -- the source's `errors.Is` walks an unwrap chain and a downcast does not -- so a package that wraps its sentinels and tests them through the wrapper gets a test that says no where the source said yes. Recorded rather than hidden: no surveyed corpus does it, and the answer when one does is a chain the emitted failure type does not currently carry.",
-    "param_type": "&(dyn std::error::Error + 'static)",
+    "param_type": "&(dyn StdError + 'static)",
     "param_type_reason": "What the failure type is as a PARAMETER, which is the one interface position where the general form is wrong. Every other interface parameter is `&impl Trait`: it accepts every implementor, monomorphises, and needs no table. A FAILURE parameter is different because of what callers do with it -- they ask which sentinel it is, and that question is `downcast_ref`, which exists on the trait OBJECT and not on a generic. `&impl Error` accepts the value and then cannot answer the only question anyone asks of it. `'static` because downcasting requires it, and the source's error values are owned data that borrow nothing. `Send + Sync` are absent here on purpose: the owned form needs them so a ported failure can cross a thread boundary, and a BORROW of one crossing nothing does not, so requiring them of every caller's error would narrow the parameter for no gain.",
     "sentinel_prefix": "Err",
     "sentinel_prefix_reason": "The prefix the source puts on a sentinel's NAME, which the target drops. `var ErrEmptyString` is prefixed because the source has no namespacing inside a package and every sentinel would otherwise collide with an ordinary name; the target has modules, so `semver::EmptyString` says everything `semver::ErrEmptyString` does. And the prefix actively hurts there: the target's failure arm is literally called `Err`, so `Err(ErrEmptyString)` stutters at every return -- a reviewer named exactly that. Dropped only where the sentinel is one this engine PROVED, so the prefix is known to be the convention rather than part of a name; only where what is left is not empty; and only where nothing else the unit declares already answers to it, because a rename that collides is worse than a stutter. Set to empty to keep the source's name.",
@@ -645,7 +645,7 @@
   },
   "function_map": {
     "errors.New": {
-      "form": "Box::<dyn std::error::Error + Send + Sync>::from({0})",
+      "form": "Box::<dyn StdError + Send + Sync>::from({0})",
       "reason": "The source's error is an interface value carrying a message; the target's is a boxed trait object. `from` on a string is the constructor that exists for it, and boxing is what gives the trait object a size. The alternative -- a concrete error type per call site -- would invent a type the source does not have. The turbofish is explicit rather than `.into()`: this mapping fires in any position, and `.into()` only infers where the destination type is already known -- correct inside `Err(..)` and ambiguous inside a `let`."
     },
     "len": {
@@ -862,7 +862,7 @@
     {
       "id": "three_way_comparison_is_an_ordering",
       "shape": "function_returning_minus_one_zero_one",
-      "method": "std::cmp::Ordering",
+      "method": "Ordering",
       "reason": "A function whose every return is -1, 0 or 1 is a THREE-WAY COMPARISON, and the source has no other way to spell one: its sort and its comparison interfaces are defined in terms of a signed integer. The target has a type for exactly this, and it is the type its own sorting and its own `Ord` are defined in terms of. The integer form is not merely unidiomatic in the target, it is the bug class the type was introduced to remove: every consumer has to re-derive which way round the sign goes, and a sign convention inverted somewhere in that chain compiles and sorts backwards. A reviewer reading a real ported package said so of `compare_segment` before knowing anything about where it came from. EQUIVALENT because the three values are the whole range: a function that can return anything else is not this shape and keeps its integer. Applies only where every return is one of the three literals -- a returned VARIABLE could hold anything, and proving otherwise is a range analysis this does not have. AND THE LADDER GOES WITH IT where the branches are the comparison itself: `if v < o { Less } if v > o { Greater } Equal` over one pair of operands is what the target's `cmp` returns, and the ladder exists in the source only because it has no such method. A reviewer put it exactly: the ladder is NECESSARY there and dead here.",
       "seed_source": "github.com/jason931225/rust-skills/rules/api-guidelines.md",
       "seed_license": "MIT",
@@ -889,7 +889,7 @@
         "reason": "The source builds a string from a template and arguments; the target's macro does exactly that and yields the same owned string. Nothing wraps it -- the value IS the result."
       },
       "fmt.Errorf": {
-        "wrapper": "Box::<dyn std::error::Error + Send + Sync>::from",
+        "wrapper": "Box::<dyn StdError + Send + Sync>::from",
         "reason": "The same template, then the failure type this pack already carries for a constructed error. Spelled with the turbofish rather than `.into()` for the reason `errors.New` is: this fires in any position, and inference only has a destination type inside `Err(..)`. Note what this DOES NOT preserve: the source's `%w` records a cause that callers walk, and the wrap verb refuses for exactly that reason -- so every call that reaches this one builds a message and nothing else, which is what the source's other verbs do too."
       }
     },
@@ -907,5 +907,12 @@
     "macro": "format",
     "macro_reason": "The target's macro that builds an owned string from a template. Named here rather than in code because it is the target's spelling for the source's operation, and every other such spelling in this pack is data.",
     "wrapper_reason": "The target CALLEE that receives the formatted string, or empty when the string is the result. A callee path rather than a text template with a hole in it: the formatted value is a structured expression, and substituting one into text is what made every real formatting call in the corpus refuse -- its arguments are field reads and calls, which have no unambiguous text spelling."
+  },
+  "target_imports": {
+    "paths": {
+      "Ordering": "std::cmp::Ordering",
+      "StdError": "std::error::Error"
+    },
+    "reason": "Library paths this pack names by their SHORT form, and the import each one then needs. Keyed by the short name because that is what the emitted code says and what the scan looks for. Three reviewers in a row said the same thing: one module importing `std::fmt` while spelling `std::error::Error` and `std::cmp::Ordering` out at every use is not a choice anybody makes -- it is the source language's package-qualified reference model applied to the target's paths. `StdError` is a RENAME rather than the path's own last segment, and deliberately: a unit that declares failures emits its own type called `Error`, so importing the trait under that name would collide with it. `use std::error::Error as StdError` is what real Rust writes in exactly this situation, and it is the reason the table is keyed by the name rather than derived from the path. An import is emitted only where the unit's emitted types actually NAME the short form -- an import nothing uses is a denied warning, not a tidiness point."
   }
 }

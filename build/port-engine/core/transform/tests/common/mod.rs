@@ -37,6 +37,8 @@ pub struct Pack {
     /// tables above: these tests assert on structure, and the rule is exercised against the real
     /// pack over real source, where the template is one somebody wrote.
     pub format_calls: port_engine_api::FormatCalls,
+    /// Library paths named by their short form. Empty by default, like the tables above.
+    pub target_imports: BTreeMap<String, String>,
     pub copies: BTreeSet<String>,
     pub casts: BTreeSet<String>,
     pub zeroes: BTreeMap<String, String>,
@@ -230,6 +232,13 @@ impl Pack {
 }
 
 impl PackSemantics for Pack {
+    fn target_imports(&self) -> &BTreeMap<String, String> {
+        // EMPTY, so a fixture spells every library path out and the rule is exercised against the
+        // real pack over real source.
+        &self.target_imports
+    }
+
+
     fn format_calls(&self) -> &port_engine_api::FormatCalls {
         // EMPTY, so a fixture answers for no formatting call at all and the ones that want the rule
         // exercise it through the real pack over the corpus, where the template is real source.

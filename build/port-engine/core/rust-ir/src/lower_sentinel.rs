@@ -63,7 +63,7 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                     }
                 }
 
-                impl std::error::Error for #name {}
+                impl StdError for #name {}
             })
         }
 
@@ -89,7 +89,7 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                     }
                 }
 
-                impl std::error::Error for #name {}
+                impl StdError for #name {}
             })
         }
 

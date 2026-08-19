@@ -32,10 +32,14 @@ pub(crate) fn parse_generic_param(source: &str) -> Result<syn::GenericParam, Por
     })
 }
 
-/// A `use` path, parsed so an unparseable one refuses here rather than in the emitted file.
-pub(crate) fn parse_path(source: &str) -> Result<syn::Path, PortError> {
-    syn::parse_str(source).map_err(|err| PortError::Render {
-        detail: format!("`{source}` is not a valid target import path: {err}"),
+/// A whole `use` ITEM, parsed so an unparseable one refuses here rather than in the emitted file.
+///
+/// The item rather than the path, because an import may RENAME what it brings in — `use
+/// std::error::Error as StdError` — and a rename is not part of a path. Parsing it as one refused
+/// the whole imports region by name, which was the right failure and the wrong parser.
+pub(crate) fn parse_use(source: &str) -> Result<syn::ItemUse, PortError> {
+    syn::parse_str(&format!("use {source};")).map_err(|err| PortError::Render {
+        detail: format!("`{source}` is not a valid target import: {err}"),
     })
 }
 

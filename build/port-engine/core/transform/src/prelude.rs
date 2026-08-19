@@ -13,7 +13,7 @@
 //! uses; and the NAME and the reason are the pack's, so a pack that sets none gets the type spelled
 //! out at every site exactly as before.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{PackSemantics, RegionId, SourceModel, TransformPlan, UnitId};
 use port_engine_rust_ir::{RustItem, RustType, Visibility};
@@ -104,21 +104,62 @@ pub(crate) fn prelude_items(
 /// same evidence. Asked of the output rather than of the declarations because an import nothing
 /// uses is a denied warning, where an unused alias is only dead code — a unit whose sentinels all
 /// refused must not gain an import for them.
-pub(crate) fn import_items(items: &[RustItem]) -> Vec<RustItem> {
-    match items.iter().any(|item| {
+pub(crate) fn import_items(items: &[RustItem], declared: &BTreeMap<String, String>) -> Vec<RustItem> {
+    let mut paths: BTreeSet<String> = BTreeSet::new();
+    let has_sentinel = items.iter().any(|item| {
         matches!(
             item,
             RustItem::SentinelError { .. } | RustItem::SentinelEnum { .. }
         )
-    }) {
+    });
+    if has_sentinel {
         // The sentinel form spells `fmt::Display`, `fmt::Formatter` and `fmt::Result`, so a unit
         // with seven sentinels names one std module twenty-one times. The short form and this
         // import are one decision, derived from one fact, and cannot drift apart.
-        true => vec![RustItem::Use {
-            path: "std::fmt".to_owned(),
-        }],
-        false => Vec::new(),
+        paths.insert("std::fmt".to_owned());
     }
+
+    // What the unit's emitted TYPES actually name. Asked of the types rather than of the rendered
+    // text, because a type is a tree and a text scan would match a name inside a longer one — and
+    // an import nothing uses is a denied warning, so a false positive is a build failure.
+    let mut named: BTreeSet<String> = BTreeSet::new();
+    for item in items {
+        named.extend(item.type_spellings());
+    }
+    for (short, path) in declared {
+        // The sentinel form NAMES the error trait in its own impl, which no type field carries. A
+        // unit that emits one needs that import whatever its types say.
+        let by_sentinel = has_sentinel && path.ends_with("::Error");
+        if by_sentinel || named.iter().any(|spelling| names(spelling, short)) {
+            paths.insert(match path.rsplit("::").next() == Some(short.as_str()) {
+                true => path.clone(),
+                // A RENAME, because the short form and the path's own last segment differ — which
+                // is how the error trait is imported beside a unit that declares its own `Error`.
+                false => format!("{path} as {short}"),
+            });
+        }
+    }
+    paths
+        .into_iter()
+        .map(|path| RustItem::Use { path })
+        .collect()
+}
+
+/// Whether a type spelling NAMES this short form, as a whole identifier rather than as a substring.
+///
+/// `MyOrdering` does not name `Ordering`, and treating it as though it did would emit an import
+/// nothing uses — which the compile proof denies.
+fn names(spelling: &str, short: &str) -> bool {
+    spelling
+        .match_indices(short)
+        .any(|(at, _)| {
+            let before = spelling[..at].chars().next_back();
+            let after = spelling[at + short.len()..].chars().next();
+            let boundary = |ch: Option<char>| {
+                ch.is_none_or(|c| !c.is_alphanumeric() && c != '_')
+            };
+            boundary(before) && boundary(after)
+        })
 }
 
 /// Whether anything this unit declares can fail.
@@ -151,6 +192,7 @@ fn unit_can_fail(unit: &UnitId, semantics: &dyn PackSemantics, model: &dyn Sourc
 pub(crate) fn imports(
     items: &[(String, RustItem)],
     provenance: &BTreeMap<RegionId, UnitId>,
+    declared: &BTreeMap<String, String>,
 ) -> Vec<(UnitId, RustItem)> {
     let mut by_unit: BTreeMap<UnitId, Vec<RustItem>> = BTreeMap::new();
     for (region, item) in items {
@@ -161,7 +203,7 @@ pub(crate) fn imports(
     by_unit
         .into_iter()
         .flat_map(|(unit, unit_items)| {
-            import_items(&unit_items)
+            import_items(&unit_items, declared)
                 .into_iter()
                 .map(move |item| (unit.clone(), item))
         })
@@ -181,12 +223,12 @@ pub(crate) fn assemble(
     provenance: &mut BTreeMap<RegionId, UnitId>,
     order: &mut Vec<(isize, usize, String)>,
 ) {
-    // Imports LAST, because they are read from what the unit emitted — and the prelude is one of
-    // the things it emits.
-    for (what, position, produced) in [
-        ("prelude", -1, preludes(plan, semantics, model)),
-        ("imports", -2, imports(items, provenance)),
-    ] {
+    // Imports LAST, and that is an ORDER rather than a preference: they are read from what the unit
+    // emitted, and the prelude is one of the things it emits. Built one after the other rather than
+    // from a list of both, because a list evaluates its elements before the first is placed — which
+    // had the import scan looking at a unit that did not have its aliases yet.
+    let prelude = preludes(plan, semantics, model);
+    for (what, position, produced) in [("prelude", -1, prelude)] {
         for (unit, item) in produced {
             let region = crate::naming::region_id_for_unit(&unit, what);
             // ONCE per region, however many items land in it. A unit's prelude is two aliases now,
@@ -200,5 +242,17 @@ pub(crate) fn assemble(
             }
             items.push((region, item));
         }
+    }
+
+    let declared = semantics.target_imports();
+    for (unit, item) in imports(items, provenance, declared) {
+        let region = crate::naming::region_id_for_unit(&unit, "imports");
+        if provenance
+            .insert(RegionId(region.clone()), unit)
+            .is_none()
+        {
+            order.push((-2, 0, region.clone()));
+        }
+        items.push((region, item));
     }
 }

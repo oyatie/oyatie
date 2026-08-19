@@ -101,15 +101,86 @@ func initializerNode(init varInit, ctx *extractCtx) node {
 // the analysis stops at the package boundary and says nothing about an exported variable another
 // package may write.
 
-// packageVarWrites reports which package-scope variables some function in the package assigns to.
+// packageVarWrites reports which package-scope variables some function assigns to, and which of
+// those are assigned ONLY by the package initialiser.
 func packageVarWrites(
 	files []*ast.File,
 	info *types.Info,
 	tpkg *types.Package,
-) map[types.Object]bool {
+) (map[types.Object]bool, map[types.Object]bool) {
 	scope := tpkg.Scope()
 	written := map[types.Object]bool{}
-	mark := func(expr ast.Expr) {
+	initOnly := map[types.Object]bool{}
+
+	// WHERE the write happens, not only whether. A variable every write to which is a package
+	// initialiser is not a mutable global at all -- it is computed once before anything runs and
+	// never changes after -- and that is a different target form from one an ordinary function
+	// assigns to at run time. Walking per function declaration is the only way to tell them apart;
+	// walking the file says both happened somewhere.
+	inits := map[types.Object]bool{}
+	outside := map[types.Object]bool{}
+	for _, file := range files {
+		for _, decl := range file.Decls {
+			fn, isFunc := decl.(*ast.FuncDecl)
+			into := outside
+			if isFunc && isPackageInit(fn) {
+				into = inits
+			}
+			mark := marker(scope, info, written, into)
+			ast.Inspect(decl, func(n ast.Node) bool {
+				switch typed := n.(type) {
+				case *ast.AssignStmt:
+					// `=` writes; `:=` at package scope is not legal, and inside a body it binds a
+					// local that shadows rather than writing the global.
+					if typed.Tok != token.DEFINE {
+						for _, lhs := range typed.Lhs {
+							mark(lhs)
+						}
+					}
+				case *ast.IncDecStmt:
+					mark(typed.X)
+				case *ast.UnaryExpr:
+					// Taking the address hands out a licence to write through it, and the write may
+					// be anywhere. Conservative here costs a synchronization policy; being wrong
+					// costs a program that silently stops sharing state.
+					if typed.Op == token.AND {
+						mark(typed.X)
+					}
+				}
+				return true
+			})
+		}
+	}
+	for obj := range inits {
+		if !outside[obj] {
+			initOnly[obj] = true
+		}
+	}
+	return written, initOnly
+}
+
+// isPackageInit reports whether this declaration is the package initialiser Go runs before main.
+//
+// Named `init`, no receiver, no parameters and no results -- all four, because a method called
+// `init` is an ordinary method and a function called `init` that takes an argument is not the
+// initialiser either. go/types omits it from package scope, so it can only be recognised here.
+func isPackageInit(fn *ast.FuncDecl) bool {
+	if fn.Name == nil || fn.Name.Name != "init" || fn.Recv != nil || fn.Body == nil {
+		return false
+	}
+	params := fn.Type.Params != nil && len(fn.Type.Params.List) > 0
+	results := fn.Type.Results != nil && len(fn.Type.Results.List) > 0
+	return !params && !results
+}
+
+// marker records a write into both the overall set and the set for where it was found.
+func marker(
+	scope *types.Scope,
+	info *types.Info,
+	written map[types.Object]bool,
+	into map[types.Object]bool,
+) func(ast.Expr) {
+	return func(expr ast.Expr) {
 		ident, ok := expr.(*ast.Ident)
 		if !ok {
 			return
@@ -122,32 +193,7 @@ func packageVarWrites(
 		// already told us which one this is.
 		if v, ok := obj.(*types.Var); ok && scope.Lookup(v.Name()) == obj {
 			written[obj] = true
+			into[obj] = true
 		}
 	}
-
-	for _, file := range files {
-		ast.Inspect(file, func(n ast.Node) bool {
-			switch typed := n.(type) {
-			case *ast.AssignStmt:
-				// `=` writes; `:=` at package scope is not legal, and inside a body it binds a
-				// local that shadows rather than writing the global.
-				if typed.Tok != token.DEFINE {
-					for _, lhs := range typed.Lhs {
-						mark(lhs)
-					}
-				}
-			case *ast.IncDecStmt:
-				mark(typed.X)
-			case *ast.UnaryExpr:
-				// Taking the address hands out a licence to write through it, and the write may be
-				// anywhere. Conservative here costs a synchronization policy; being wrong costs a
-				// program that silently stops sharing state.
-				if typed.Op == token.AND {
-					mark(typed.X)
-				}
-			}
-			return true
-		})
-	}
-	return written
 }

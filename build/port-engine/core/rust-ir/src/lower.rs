@@ -14,7 +14,7 @@ use port_engine_api::PortError;
 use crate::item::RustItem;
 use crate::item_parts::{RustField, RustFn, RustParam, StructShape};
 use crate::lower_body::lower_block;
-use crate::lower_parts::{lower_docs, lower_vis, parse_expr, parse_ident, parse_path, parse_type};
+use crate::lower_parts::{lower_docs, lower_vis, parse_expr, parse_ident, parse_type};
 
 /// Lower a whole region's items into a parsed `syn::File`.
 ///
@@ -48,8 +48,8 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
         }
 
         RustItem::Use { path } => {
-            let path = parse_path(path)?;
-            Ok(quote! { use #path; })
+            let item = crate::lower_parts::parse_use(path)?;
+            Ok(quote! { #item })
         }
 
         RustItem::Nothing => Ok(quote! {}),

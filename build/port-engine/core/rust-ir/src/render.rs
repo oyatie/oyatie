@@ -183,15 +183,24 @@ fn separated(file: &syn::File) -> String {
     if !file.attrs.is_empty() || file.items.len() < 2 {
         return prettyplease::unparse(file);
     }
-    file.items
-        .iter()
-        .map(|item| {
-            prettyplease::unparse(&syn::File {
-                shebang: file.shebang.clone(),
-                attrs: Vec::new(),
-                items: vec![item.clone()],
-            })
-        })
-        .collect::<Vec<String>>()
-        .join("\n")
+    let mut out = String::new();
+    let mut previous: Option<&syn::Item> = None;
+    for item in &file.items {
+        // IMPORTS ARE A BLOCK. A break between two of them is not what anybody writes, and the rule
+        // that separates items has to know that much about what it is separating.
+        let both_imports = matches!(
+            (previous, item),
+            (Some(syn::Item::Use(_)), syn::Item::Use(_))
+        );
+        if previous.is_some() && !both_imports {
+            out.push('\n');
+        }
+        out.push_str(&prettyplease::unparse(&syn::File {
+            shebang: file.shebang.clone(),
+            attrs: Vec::new(),
+            items: vec![item.clone()],
+        }));
+        previous = Some(item);
+    }
+    out
 }
