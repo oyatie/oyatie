@@ -525,6 +525,26 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   Verified by execution: ten engine crates build under buck2 and 20 of their tests pass there.
   `rust-ir`, `transform` and `app` remain blocked on the third-party export.
 
+- R1b: two mappings that were silently wrong, and one that had nowhere to land.
+  `[N]T` is a VALUE array and was emitted as a growable heap type. Three things changed at once
+  under that mapping and none of them was visible in the output: assignment stopped copying and
+  started moving, the length left the type so nothing checked it, and a fixed-size value became an
+  allocation. The length had been extracted all along — a type node carries its non-type datum in
+  `name` — but a constructor template could only substitute ARGUMENTS, so the datum arrived with
+  nowhere to go. Templates now take `{name}`, and the pack says `[{0}; {name}]`.
+  THE INDEX MISMATCH had to land somewhere. The source indexes with its `int` and the target with
+  `usize`. The engine had put the conversion on `len`, so a value would type as the source's int —
+  right for `return len(s)` and wrong for the counter of `for i := 0; i < len(v); i++`, whose body
+  then would not compile. Every indexed loop in every real package is that shape.
+  Moving it to the index alone was also wrong, and the golden said so within a minute: `Ok(s.len())`
+  into a `Result<i64, _>` does not compile either. BOTH positions need it, because the same value
+  reaches both — so `len` casts to the source width and the index casts back. Where a counter makes
+  the round trip the pair is visible and redundant, and removable by the right-sizing analysis R6
+  plans, which is exactly why a cast is an IR NODE rather than characters in a string.
+  The trade is recorded rather than discovered: a negative index panics in both languages for
+  different reasons — the source bounds-checks a negative, the target wraps it to an enormous
+  `usize` and bounds-checks that. Same outcome, different message.
+
 - The ratchet stopped being one package's opinion. Eight reputable stdlib-only Go packages were
   surveyed in parallel, out of tree, and the work list is now ranked by how many PACKAGES a cause
   blocks rather than how many declarations one package has.
