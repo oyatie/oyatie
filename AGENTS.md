@@ -44,7 +44,7 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. In-repo short form: [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc). Canonical long form (docs tip; forever home may become `templates/checklists/`): [`docs/checklists/swarm-agent-ritual.md`](docs/checklists/swarm-agent-ritual.md).
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. In-repo short form: [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc). Canonical long form: [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md). `docs/checklists/swarm-agent-ritual.md` 404s; do not recreate it.
 - **ensure:** ritual file tracked under process_meta; receipts include role-scaled evidence.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 
@@ -81,6 +81,9 @@ Cargo workspace graph — the CI merge path (see [`README.md`](README.md#build--
 Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml). Merge authority is
 only the `oya-ci-required` context on the PR (ADR-0716).
 
+`make verify` is **not** this path. The Makefile target is now `make verify-deploy` (OpenTofu edge
++ deployment-ops contract). Do not treat Make as cargo verify.
+
 ## Coding & testing standards
 
 The full battery lives in [`docs/standards/`](docs/standards/INDEX.md). Load-bearing for every
@@ -114,8 +117,8 @@ bulkheads, regional failover); (2) constant-work / anti-fragility (same work idl
 backpressure, queue load-leveling, static pools over reactive autoscaling); (3) shared-nothing /
 eventual consistency (async events over sync; Saga/CQRS/outbox); (4) FinOps / unit-cost (cloud
 spend is an engineering metric; Protobuf over JSON, minimize cross-AZ); (5) telemetry-first
-(metrics/logs/traces + correlation IDs first-class; per-service `slos/*.openslo.yaml` gates
-promotion); (6) zero-trust / defense-in-depth (assume the internal network is compromised; mTLS,
+(metrics/logs/traces + correlation IDs first-class; per-capability `<capability>/observability/slos/`
+gates promotion per ADR-0706); (6) zero-trust / defense-in-depth (assume the internal network is compromised; mTLS,
 fail-closed authz via cloud-iam PDP, least privilege, secret rotation).
 
 **Engineering bars (every gate/capability/change clears these):** universal · productized ·
