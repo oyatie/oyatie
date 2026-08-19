@@ -11,6 +11,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("cli/seams.rs", include_str!("cli/seams.rs")),
     ("driver/mod.rs", include_str!("driver/mod.rs")),
     ("driver/pipeline.rs", include_str!("driver/pipeline.rs")),
+    ("driver/port_any.rs", include_str!("driver/port_any.rs")),
     ("driver/port_go.rs", include_str!("driver/port_go.rs")),
     ("driver/probe.rs", include_str!("driver/probe.rs")),
     ("driver/report.rs", include_str!("driver/report.rs")),

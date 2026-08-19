@@ -232,6 +232,35 @@ pub(crate) fn cmd_survey(path: Option<&str>) -> ExitCode {
     }
 }
 
+/// Emit a snapshot the engine has never seen, as far as it can take it.
+///
+/// PARTIAL on purpose. The declarations that refused are absent, and a real package always has
+/// some — refusing the whole package would leave the engine unable to show its work until it was
+/// finished, and what the work looks like is the bar it is held to.
+pub(crate) fn cmd_port(path: Option<&str>) -> ExitCode {
+    let Some(path) = path else {
+        eprintln!("port-engine-app: port needs a snapshot path");
+        return ExitCode::from(2);
+    };
+    match driver::port_snapshot(std::path::Path::new(path)) {
+        Ok(ported) => {
+            print!("{}", ported.source);
+            eprintln!(
+                "port=ok translated={} refused={} deferred={} uncaptured={}",
+                ported.report.translated.len(),
+                ported.report.refused.len(),
+                ported.report.deferred.len(),
+                ported.report.uncaptured.len()
+            );
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: port failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 pub(crate) fn cmd_port_go_source() -> ExitCode {
     match driver::port_go_source() {
         Ok((source, matches_golden)) => {

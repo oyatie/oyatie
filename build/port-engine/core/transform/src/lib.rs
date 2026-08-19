@@ -69,7 +69,7 @@ pub use naming::{
     sanitize_ident, to_pascal_case, to_screaming_snake, to_snake_case,
 };
 pub use ownership::{DispositionLog, DispositionRecord, OwnershipContext};
-pub use survey::{SurveyEntry, SurveyReport, survey};
+pub use survey::{PortedRegion, SurveyEntry, SurveyReport, survey};
 pub use vocabulary::{
     ATTR_DOC, ATTR_OP, ATTR_REF, ATTR_SOURCE_NODE, ATTR_VALUE, CONSTRUCTION_EMPTY_CANARY,
     CONSTRUCTION_PASS_THROUGH, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN,
