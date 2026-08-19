@@ -2246,3 +2246,32 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
 
 - Nothing about the program changed, and that is the point: order is the last thing a reader
   notices consciously and the first thing that tells them who wrote it.
+
+## A length is a `usize`, and three result facts become one
+
+- `pub fn size(table: &BTreeMap<String, i64>) -> i64 { table.len() as i64 }`. The source's `len`
+  yields its own `int`, which the type map sends to `i64` — right for a value the source TYPED
+  `int`, and wrong for a LENGTH, which the target types `usize`. A function that returns nothing but
+  a length is returning a length, and the conversion the call's mapping adds exists only to make the
+  value type as the source's integer: where the value never is one, the conversion is what is wrong.
+
+  Equivalent because a length is the same set of values in both — the source's cannot be negative
+  and cannot exceed what the target's `usize` holds — so no value the function can produce changes.
+  A caller that wanted a signed value is a call site that now has to say so, which is a refusal
+  where an assumption was.
+
+  Which callees yield a length is PACK DATA (`len`, `cap`), so a pack for another source language
+  names its own and the engine names none. The conversion comes off through the same function the
+  loop-counter idiom uses, which strips only the trailing form the pack declares.
+
+  `fallible::length` correctly declines: its failing return yields `0`, which is not a length, and
+  the proof requires every return to be one rather than most of them.
+
+- CLIPPY CAUGHT THE DESIGN, which is the part worth recording. `Body::new` reached eight arguments
+  and `too_many_arguments` fired — and it was right for a reason a lint cannot know: the three
+  booleans are not three parameters, they are ONE VALUE, the set of things the signature decided
+  that only the body can spend. They are now `ResultFacts`, gathered once and carried, and every
+  result idiom after this adds a field there rather than a parameter.
+
+  Three of them landed in three commits, each hitting the same splice and the same agreement
+  problem. The shape was visible after the first and the lint made it unavoidable after the third.

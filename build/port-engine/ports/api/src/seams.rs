@@ -127,6 +127,11 @@ pub trait PackSemantics {
     /// have. No real package can be ported without this table: every one of them calls its standard
     /// library, and a standard library is exactly the part that does not come along.
     fn function_map(&self) -> &BTreeMap<String, FunctionMapping>;
+    /// Callee identities whose value IS a length, and so is a `usize` in the target.
+    ///
+    /// The source types a length as its own integer, which the type map sends to a signed target
+    /// type — right for a value the source typed that way, and wrong for a length.
+    fn length_functions(&self) -> &BTreeSet<String>;
 
     /// How the source's integer arithmetic must be spelled, so overflow keeps its meaning.
     fn integer_arithmetic(&self) -> &IntegerArithmetic;

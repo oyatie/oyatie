@@ -19,7 +19,8 @@ use std::collections::BTreeSet;
 use port_engine_api::Declaration;
 
 use crate::vocabulary::{
-    ATTR_OP, CHILD_BODY, KIND_COMPOSITE, KIND_RETURN, KIND_UNARY, OPERATOR_ADDRESS_OF, TYPE_POINTER,
+    ATTR_CALLEE, ATTR_OP, CHILD_BODY, KIND_CALL, KIND_COMPOSITE, KIND_RETURN, KIND_UNARY,
+    OPERATOR_ADDRESS_OF, SOURCE_INT, TYPE_POINTER,
 };
 
 /// Whether this declaration is a GETTER whose result borrows from the receiver.
@@ -78,6 +79,52 @@ fn is_receiver_field(operand: &Declaration) -> bool {
             .is_some_and(crate::body_ops::is_receiver)
 }
 
+/// Whether this declaration's result IS a length, and so is a `usize`.
+///
+/// The source's `len` yields its own `int`, which the pack maps to `i64` — right for a value the
+/// source typed `int`, and wrong for a LENGTH, which the target types `usize`. A function that
+/// returns nothing but a length is returning a length, and the conversion the mapping adds exists
+/// only to make the value type as the source's `int`: where the value never is one, the conversion
+/// is what is wrong. `pub fn length(s: &str) -> i64 { Ok(s.len() as i64) }` becomes `-> usize`,
+/// and the cast at the return goes with it.
+///
+/// Equivalent because a length is the same set of values in both: the source's `len` cannot be
+/// negative and cannot exceed what the target's `usize` holds, so no value the function can produce
+/// changes. A CALLER that wanted a signed value is a call site that now has to say so, which is a
+/// refusal where the assumption was, not a silent narrowing.
+///
+/// Requires exactly one result of the source's integer type and a body whose EVERY return is a
+/// length. One return that is a computed value and the result is not a length at all.
+pub(crate) fn yields_a_length(declaration: &Declaration, lengths: &BTreeSet<String>) -> bool {
+    let results = declaration.children_of_kind(crate::vocabulary::CHILD_RESULT);
+    let [result] = results.as_slice() else {
+        return false;
+    };
+    if result.type_ref.name != SOURCE_INT {
+        return false;
+    }
+    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
+        return false;
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    !returns.is_empty()
+        && returns
+            .iter()
+            .all(|node| matches!(node.children.as_slice(), [only] if is_length(only, lengths)))
+}
+
+/// Whether this operand is a call to a callee the pack declares yields a LENGTH.
+///
+/// By the pack's table rather than by the name `len`, so a pack for another source language names
+/// its own and this code names none.
+fn is_length(operand: &Declaration, lengths: &BTreeSet<String>) -> bool {
+    operand.kind == KIND_CALL
+        && operand
+            .attr(ATTR_CALLEE)
+            .is_some_and(|callee| lengths.contains(callee))
+}
+
 /// Every result position whose pointer this declaration's body proves is never absent.
 ///
 /// The signature and the body must AGREE — one renders `T` and the other must produce a `T` rather
@@ -90,6 +137,42 @@ pub(crate) fn bare_pointer_results(declaration: &Declaration) -> BTreeSet<usize>
         .filter(|(_, result)| never_absent_pointer(declaration, result))
         .map(|(index, _)| index)
         .collect()
+}
+
+/// What a signature decided about a declaration's results, for the body to honour.
+///
+/// Gathered once and carried, because the two must AGREE: a signature that renders `T` needs a body
+/// that produces a `T`, and each deriving the answer separately is a disagreement waiting for a
+/// corpus that exercises it. Every result idiom adds a field here rather than a parameter.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub(crate) struct ResultFacts {
+    /// Result positions whose `*T` the body proves is never absent, so they render as `T`.
+    pub(crate) bare_pointers: BTreeSet<usize>,
+    /// Whether the single result BORROWS from the receiver, so a returned field read is a view.
+    pub(crate) borrows_receiver: bool,
+    /// Whether the single result IS a length, so a returned length keeps its `usize`.
+    pub(crate) is_a_length: bool,
+}
+
+impl ResultFacts {
+    /// Everything the signature proved, or nothing where a trait fixed the shape.
+    pub(crate) fn of(
+        declaration: &Declaration,
+        resolver: &crate::resolve::Resolver<'_>,
+        shape: crate::body::ResultShape,
+    ) -> Self {
+        let own = shape == crate::body::ResultShape::Own;
+        Self {
+            bare_pointers: bare_pointer_results(declaration),
+            borrows_receiver: own && borrows_from_receiver(declaration),
+            is_a_length: own && yields_a_length(declaration, resolver.length_functions),
+        }
+    }
+
+    /// No result idiom at all, for a body built outside a signature.
+    pub(crate) fn none() -> Self {
+        Self::default()
+    }
 }
 
 /// Whether this result is a pointer the declaration's body proves is never absent.

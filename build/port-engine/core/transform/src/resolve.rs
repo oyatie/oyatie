@@ -116,6 +116,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) deferred: &'a BTreeSet<String>,
     /// Source predeclared constant name → target expression.
     pub(crate) constant_map: &'a BTreeMap<String, String>,
+    /// Callee identities whose value IS a length, and so is a `usize` in the target.
+    pub(crate) length_functions: &'a BTreeSet<String>,
     /// Form id → the pack's recorded reason for not having decided it, so a refusal quotes the
     /// pack rather than restating it in code where the two could drift.
     pub(crate) undecided_forms: &'a BTreeMap<String, String>,

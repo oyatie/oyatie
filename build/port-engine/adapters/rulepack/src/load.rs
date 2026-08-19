@@ -109,6 +109,10 @@ impl LoadedRulePack {
             rules,
             loaded_rules,
             applies,
+            length_functions: doc
+                .length_functions
+                .map(|table| table.names)
+                .unwrap_or_default(),
             constant_map: doc
                 .constant_map
                 .map(|table| table.names)
