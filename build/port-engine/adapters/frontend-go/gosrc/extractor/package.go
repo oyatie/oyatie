@@ -193,7 +193,7 @@ type extractCtx struct {
 	// reread names the bindings the enclosing body reads MORE THAN ONCE. The source copies a
 	// value on every read and the target moves it, so a second read of a non-copying binding is a
 	// use after move — and a binding read once is moved, which is what someone would write.
-	reread map[types.Object]bool
+	reread map[types.Object]int
 	// varWrites names the package-scope variables some function in the package assigns to. A
 	// variable that is initialised and never written again is a constant with a computed value;
 	// only the ones that ARE written need the synchronization policy the deferral is about.

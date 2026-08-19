@@ -243,6 +243,12 @@ const (
 	// attrGoNode names the Go AST node an `unsupported` placeholder stands for, so a refusal can
 	// say what it refused rather than only that it refused.
 	attrGoNode = "go_node"
+	// attrReadCount is how many times the enclosing body reads this binding.
+	//
+	// Present only where that is more than one. A reader can MOVE the value when nothing reads it
+	// afterwards, and comparing this total against the reads inside one construction is how the
+	// last read is found without a liveness pass.
+	attrReadCount = "read_count"
 	// attrRef records what an identifier resolves to — a parameter, a constant, a function, a
 	// local. Rust cases each of those differently, and an identifier alone cannot say which it is:
 	// rendering a reference to `MaxRetries` as `max_retries` would be a dangling name, not a

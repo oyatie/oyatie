@@ -71,7 +71,7 @@ func assignedLocals(body *ast.BlockStmt, ctx *extractCtx) map[types.Object]bool 
 //
 // Counted over USES, which is what a read is — a `:=` binding's own name is a definition and does
 // not appear here, so introducing a name never counts as reading it.
-func rereadBindings(body *ast.BlockStmt, ctx *extractCtx) map[types.Object]bool {
+func rereadBindings(body *ast.BlockStmt, ctx *extractCtx) map[types.Object]int {
 	counts := map[types.Object]int{}
 	ast.Inspect(body, func(n ast.Node) bool {
 		ident, ok := n.(*ast.Ident)
@@ -83,11 +83,5 @@ func rereadBindings(body *ast.BlockStmt, ctx *extractCtx) map[types.Object]bool 
 		}
 		return true
 	})
-	out := map[types.Object]bool{}
-	for object, count := range counts {
-		if count > 1 {
-			out[object] = true
-		}
-	}
-	return out
+	return counts
 }

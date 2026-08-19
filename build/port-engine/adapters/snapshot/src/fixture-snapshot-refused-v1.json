@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:ec7c139b4b3f18f2721f71d9dd46918b4c4c27761a7c24e3a864cbd309d8188f",
+  "snapshot_digest": "sha256:b9adcee57d1cc708220af807b11b3d9999457ef1429439040b18a9b981e7cbdd",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -62,6 +62,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "package_var"
                       }
                     },
@@ -117,6 +118,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "package_var"
                       }
                     }
@@ -193,6 +195,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "local"
                       }
                     },
@@ -220,6 +223,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "local"
                       }
                     }
@@ -329,6 +333,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             },
@@ -375,6 +380,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             },
@@ -400,6 +406,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "3",
                                     "ref": "local"
                                   }
                                 },
@@ -414,6 +421,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "3",
                                     "ref": "local"
                                   }
                                 }
@@ -440,6 +448,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "3",
                         "ref": "local"
                       }
                     }
@@ -733,6 +742,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "local"
                       }
                     },
@@ -760,6 +770,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "local"
                       }
                     }

@@ -657,6 +657,15 @@
       "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    },
+    {
+      "id": "borrowed_sequence_is_a_slice",
+      "shape": "borrowed_slice_parameter",
+      "method": "",
+      "reason": "A BORROWED sequence parameter is spelled as a slice rather than as a borrow of the owned container. `&[T]` accepts every `&Vec<T>` and also an array, a boxed slice and a subrange, so it takes strictly more callers while promising strictly less -- which is why `clippy::style` flags the container form as `ptr_arg`. Nothing about the program changes: the parameter is borrowed either way, and the source's slice was never an owned container in the first place. It is composed structurally rather than by rewriting the spelling -- the disposition's borrow template substitutes `[element]` where it would have substituted the resolved container -- so a re-spelled container type cannot silently stop matching.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
     }
   ],
   "literal_constructors": {

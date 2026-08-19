@@ -13,7 +13,9 @@ use crate::body_call::render_operand;
 use crate::body_expr::{expression, moves_on_read};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::vocabulary::FLAG_REREAD;
+use std::collections::BTreeMap;
+
+use crate::vocabulary::{ATTR_READ_COUNT, FLAG_REREAD};
 /// rather than something inferred from a spelling here.
 /// A field's value, cloned when the binding it reads is read AGAIN.
 ///
@@ -28,9 +30,17 @@ use crate::vocabulary::FLAG_REREAD;
 ///
 /// # Errors
 /// [`TransformError`] from translating the value.
-fn owned_read(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
+fn owned_read(
+    node: &Declaration,
+    cx: &Body<'_>,
+    is_last_read: bool,
+) -> Result<RustExpr, TransformError> {
     let value = expression(node, cx)?;
-    if node.kind != "ident" || !node.has_flag(FLAG_REREAD) || !moves_on_read(&node.type_ref, cx) {
+    if is_last_read
+        || node.kind != "ident"
+        || !node.has_flag(FLAG_REREAD)
+        || !moves_on_read(&node.type_ref, cx)
+    {
         return Ok(value);
     }
     Ok(RustExpr::MethodCall {
@@ -61,10 +71,22 @@ pub(crate) fn composite(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, T
     })?;
 
     let keyed = node.children_of_kind("keyed");
+    // Where a literal holds EVERY read of a binding, its final read can move — nothing follows it.
+    // Counted rather than tracked: liveness would say which read is last on every path, and this
+    // says it for the one construction that can answer without.
+    let contained = fully_contained_reads(&keyed);
     let mut fields = Vec::with_capacity(keyed.len());
-    for entry in keyed {
+    let mut seen: BTreeMap<String, usize> = BTreeMap::new();
+    for entry in &keyed {
         let value = one_child(entry, cx, "keyed")?;
-        fields.push((to_snake_case(&entry.name), owned_read(value, cx)?));
+        let occurrence = *seen
+            .entry(value.name.clone())
+            .and_modify(|count| *count += 1)
+            .or_insert(1);
+        let is_last = contained
+            .get(&value.name)
+            .is_some_and(|total| occurrence == *total);
+        fields.push((to_snake_case(&entry.name), owned_read(value, cx, is_last)?));
     }
     Ok(RustExpr::StructLiteral {
         path: path.spelling(),
@@ -142,4 +164,36 @@ pub(crate) fn zero_value(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, 
                 node.type_ref.describe()
             ),
         })
+}
+
+/// Bindings whose EVERY read in the body happens inside this literal, and how many reads that is.
+///
+/// A binding read three times in the body and twice here has a third read elsewhere, so neither
+/// read here is the last one and both must clone. A binding read twice in the body and twice here
+/// is fully contained, so the second is the last and can take the value.
+///
+/// The front end records the body-wide count; this counts the occurrences here. Nothing else is
+/// needed, which is why this is counting rather than liveness — and why it answers for exactly one
+/// construction rather than for the body.
+fn fully_contained_reads(entries: &[&Declaration]) -> BTreeMap<String, usize> {
+    let mut here: BTreeMap<String, usize> = BTreeMap::new();
+    for entry in entries {
+        let Some(value) = entry.children.first() else {
+            continue;
+        };
+        if value.kind != "ident" || !value.has_flag(FLAG_REREAD) {
+            continue;
+        }
+        *here.entry(value.name.clone()).or_insert(0) += 1;
+    }
+    here.retain(|name, count| {
+        entries
+            .iter()
+            .filter_map(|entry| entry.children.first())
+            .find(|value| &value.name == name)
+            .and_then(|value| value.attr(ATTR_READ_COUNT))
+            .and_then(|total| total.parse::<usize>().ok())
+            .is_some_and(|total| total == *count)
+    });
+    here
 }

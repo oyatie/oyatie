@@ -2,7 +2,7 @@
 pub mod accumulate {
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__mix
     /// Folds the values together with the operators a hash uses.
-    pub fn mix(values: &Vec<i64>) -> i64 {
+    pub fn mix(values: &[i64]) -> i64 {
         let mut acc = 1i64;
         for i in 0..values.len() as i64 {
             acc ^= values[i as usize];
@@ -13,7 +13,7 @@ pub mod accumulate {
     }
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__total
     /// Sums the values, accumulating in place.
-    pub fn total(values: &Vec<i64>) -> i64 {
+    pub fn total(values: &[i64]) -> i64 {
         let mut sum = 0i64;
         for i in 0..values.len() as i64 {
             sum = sum.wrapping_add(values[i as usize]);
@@ -217,7 +217,7 @@ pub mod naming {
     pub fn new_label(prefix: String) -> Label {
         Label {
             prefix: prefix.clone(),
-            text: prefix.clone(),
+            text: prefix,
         }
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newtag

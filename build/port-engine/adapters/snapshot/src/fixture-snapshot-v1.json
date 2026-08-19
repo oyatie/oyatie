@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:6327850fbef0904859c63612db9e85cb2ae0e1ca4e7cad1e252fad96a9abae25",
+  "snapshot_digest": "sha256:db3e0feb94e8ce843dca50accb64021d2cb6879a005dacf9a4a20bb5d8dfc0a4",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -122,6 +122,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             },
@@ -155,6 +156,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "local"
                                   }
                                 }
@@ -203,6 +205,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "4",
                                 "ref": "local"
                               }
                             },
@@ -226,6 +229,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "local"
                                   }
                                 },
@@ -240,6 +244,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "3",
                                     "ref": "local"
                                   }
                                 }
@@ -269,6 +274,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "4",
                                 "ref": "local"
                               }
                             },
@@ -304,6 +310,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "4",
                                 "ref": "local"
                               }
                             },
@@ -336,6 +343,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "4",
                         "ref": "local"
                       }
                     }
@@ -460,6 +468,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             },
@@ -493,6 +502,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "local"
                                   }
                                 }
@@ -541,6 +551,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             },
@@ -564,6 +575,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "local"
                                   }
                                 },
@@ -578,6 +590,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "3",
                                     "ref": "local"
                                   }
                                 }
@@ -604,6 +617,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "local"
                       }
                     }
@@ -836,6 +850,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             },
@@ -888,6 +903,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "local"
                       }
                     }
@@ -1360,6 +1376,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "receiver"
                               }
                             }
@@ -1401,6 +1418,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "3",
                                     "ref": "receiver"
                                   }
                                 }
@@ -1447,6 +1465,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "receiver"
                               }
                             }
@@ -1748,6 +1767,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             },
@@ -1867,6 +1887,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "2",
                             "ref": "local"
                           }
                         }
@@ -1996,6 +2017,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             },
@@ -2010,6 +2032,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "nil"
                               }
                             }
@@ -2044,6 +2067,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             }
@@ -2079,6 +2103,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "2",
                             "ref": "local"
                           }
                         },
@@ -2093,6 +2118,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "2",
                             "ref": "local"
                           }
                         }
@@ -2109,6 +2135,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "nil"
                       }
                     }
@@ -2207,6 +2234,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             },
@@ -2221,6 +2249,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "nil"
                               }
                             }
@@ -2247,6 +2276,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             }
@@ -2271,6 +2301,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "2",
                         "ref": "nil"
                       }
                     }
@@ -2565,6 +2596,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "2",
                             "ref": "local"
                           }
                         }
@@ -2606,6 +2638,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             }
@@ -2807,6 +2840,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "2",
                             "ref": "func"
                           }
                         },
@@ -2829,6 +2863,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             }
@@ -2879,6 +2914,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "2",
                             "ref": "func"
                           }
                         },
@@ -2901,6 +2937,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             }
@@ -2947,6 +2984,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             }
@@ -3037,6 +3075,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "local"
                                   }
                                 },
@@ -3126,6 +3165,7 @@
                             "reread"
                           ],
                           "attrs": {
+                            "read_count": "2",
                             "ref": "local"
                           }
                         },
@@ -3359,6 +3399,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "receiver"
                               }
                             }
@@ -3389,6 +3430,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "receiver"
                               }
                             }
@@ -3505,6 +3547,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             }
@@ -3525,6 +3568,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             }
@@ -3828,6 +3872,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "receiver"
                               }
                             }
@@ -3869,6 +3914,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "receiver"
                                   }
                                 }
@@ -3997,6 +4043,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "receiver"
                               }
                             }
@@ -4038,6 +4085,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "receiver"
                                   }
                                 }
@@ -4238,6 +4286,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             },
@@ -4272,6 +4321,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             },
@@ -4286,6 +4336,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "3",
                                 "ref": "local"
                               }
                             }
@@ -4316,6 +4367,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "3",
                                     "ref": "local"
                                   }
                                 },
@@ -4341,6 +4393,7 @@
                                         "reread"
                                       ],
                                       "attrs": {
+                                        "read_count": "3",
                                         "ref": "local"
                                       }
                                     },
@@ -4377,6 +4430,7 @@
                         "reread"
                       ],
                       "attrs": {
+                        "read_count": "3",
                         "ref": "local"
                       }
                     }
@@ -4481,6 +4535,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             },
@@ -4515,6 +4570,7 @@
                                 "reread"
                               ],
                               "attrs": {
+                                "read_count": "2",
                                 "ref": "local"
                               }
                             }
@@ -5137,6 +5193,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "receiver"
                                   }
                                 }
@@ -5162,6 +5219,7 @@
                                     "reread"
                                   ],
                                   "attrs": {
+                                    "read_count": "2",
                                     "ref": "receiver"
                                   }
                                 }
@@ -5311,6 +5369,7 @@
                                             "reread"
                                           ],
                                           "attrs": {
+                                            "read_count": "3",
                                             "ref": "receiver"
                                           }
                                         }
@@ -5362,6 +5421,7 @@
                                             "reread"
                                           ],
                                           "attrs": {
+                                            "read_count": "3",
                                             "ref": "receiver"
                                           }
                                         }
@@ -5402,6 +5462,7 @@
                                         "reread"
                                       ],
                                       "attrs": {
+                                        "read_count": "3",
                                         "ref": "receiver"
                                       }
                                     }

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"go/ast"
 	"go/types"
+	"strconv"
 	"strings"
 )
 
@@ -57,19 +58,28 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 		// one.
 		var reread []string
 		var readType *typeNode
-		if object := ctx.info.Uses[typed]; object != nil && ctx.reread[object] {
+		readCount := ""
+		if object := ctx.info.Uses[typed]; object != nil && ctx.reread[object] > 1 {
 			reread = []string{flagReread}
 			readType = typeTree(object.Type())
+			// The COUNT, not just that there was more than one. A reader of this binding can move
+			// it when nothing reads it afterwards, and comparing the total against the reads in
+			// one construction is how that is known without liveness.
+			readCount = strconv.Itoa(ctx.reread[object])
 		}
 		if typed.Name == ctx.receiver && ctx.receiver != "" {
 			kind = "receiver"
+		}
+		attrs := map[string]string{attrRef: kind}
+		if readCount != "" {
+			attrs[attrReadCount] = readCount
 		}
 		return node{
 			Kind:  kindIdent,
 			Name:  typed.Name,
 			Type:  readType,
 			Flags: reread,
-			Attrs: map[string]string{attrRef: kind},
+			Attrs: attrs,
 		}
 
 	case *ast.ParenExpr:
