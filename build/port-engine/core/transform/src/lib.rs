@@ -17,6 +17,10 @@
 //! the source language it must stay ignorant of.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 mod apply;
 mod body;
 mod body_expr;

@@ -3,6 +3,7 @@
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
+use crate::engine::engine_digest;
 use port_engine_api::{
     Declaration, Digest, Receipt, RegionId, Renderer, RulePack, SourceModel, TargetIr, UnitId,
 };
@@ -10,7 +11,6 @@ use port_engine_emit::{
     CanaryArtifact, EmitError, emit_canary_checked, materialize_canary_roundtrip, select_canary,
 };
 use port_engine_hash::digest_str;
-use port_engine_identity::engine_digest;
 use port_engine_rulepack::{LoadedRulePack, RulepackError};
 use port_engine_rust_ir::{EmptyRenderer, RustFn, RustIr, RustItem, RustRenderer, Visibility};
 use port_engine_snapshot::{

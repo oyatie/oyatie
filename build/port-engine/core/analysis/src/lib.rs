@@ -20,6 +20,10 @@
 //! marked as such in the record below rather than blending into the proven ones.
 #![forbid(unsafe_code)]
 
+/// This crate's own sources, for the engine-identity axis assembled by the facade.
+mod sources;
+pub use sources::CRATE_SOURCES;
+
 use std::fmt;
 
 use port_engine_api::{OwnershipFacts, PointerDisposition};

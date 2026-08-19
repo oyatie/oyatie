@@ -24,10 +24,61 @@ pub fn format_receipt(receipt: &Receipt) -> String {
     )
 }
 
-/// True when `receipt` matches the embedded golden byte-for-byte (after normalize).
+/// The value the golden records for an axis it deliberately does not pin.
+pub const GOLDEN_VARIES: &str = "<varies>";
+
+/// True when `receipt` matches the embedded golden, axis by axis.
+///
+/// The comparison is per axis rather than byte-for-byte because the axes do not make the same kind
+/// of claim. Five of them SHOULD hold across an engine change, and pinning them catches a real
+/// defect: a snapshot digest that moved while the corpus did not is a bug, and so is a formatter
+/// digest that moved while the formatter did not.
+///
+/// `engine_digest` is different. It is a content hash of the engine's own sources, so it moves on
+/// every commit that touches the engine — which is the normal case, not a defect. Pinning it would
+/// mean refreshing the golden on every commit, and a golden refreshed reflexively is not a check.
+/// So the golden records `<varies>` for it and this asserts its SHAPE instead, which still catches
+/// the failure that matters: an axis gone empty or malformed.
 #[must_use]
 pub fn matches_golden(receipt: &Receipt) -> bool {
-    normalize(&format_receipt(receipt)) == normalize(GOLDEN_RECEIPT_V0)
+    let actual = normalize(&format_receipt(receipt));
+    let expected = normalize(GOLDEN_RECEIPT_V0);
+
+    let mut lines = actual.lines().zip(expected.lines());
+    let paired = lines
+        .by_ref()
+        .all(|(actual, expected)| match expected.split_once('=') {
+            Some((axis, GOLDEN_VARIES)) => actual.starts_with(axis) && well_formed_digest(actual),
+            _ => actual == expected,
+        });
+    // Arity is part of the claim: an axis added or dropped must not read as a match.
+    paired && actual.lines().count() == expected.lines().count()
+}
+
+/// Whether an axis line carries a digest of the expected shape.
+fn well_formed_digest(line: &str) -> bool {
+    let Some((_, value)) = line.split_once('=') else {
+        return false;
+    };
+    let Some(hex) = value.strip_prefix("sha256:") else {
+        return false;
+    };
+    hex.len() == 64 && hex.bytes().all(|byte| byte.is_ascii_hexdigit())
+}
+
+/// Per-region digests, sorted by region id.
+///
+/// The roll-up answers "did anything change"; this answers "how much, and where". A whole-program
+/// decision can touch a handful of declarations and every call site that uses them, and under one
+/// digest that is indistinguishable from an accidental one-line change.
+#[must_use]
+pub fn region_digests(
+    emitted: &std::collections::BTreeMap<port_engine_api::RegionId, Vec<u8>>,
+) -> Vec<(String, String)> {
+    emitted
+        .iter()
+        .map(|(region, bytes)| (region.0.clone(), digest_bytes(bytes).0))
+        .collect()
 }
 
 /// Content digest of an emitted region tree (sorted region id + bytes).
@@ -35,12 +86,18 @@ pub fn matches_golden(receipt: &Receipt) -> bool {
 pub fn emit_tree_digest(
     emitted: &std::collections::BTreeMap<port_engine_api::RegionId, Vec<u8>>,
 ) -> port_engine_api::Digest {
+    // LENGTH-PREFIXED, like the snapshot and engine preimages and for the same reason: a
+    // separator-delimited encoding is only unambiguous while the separator cannot appear in the
+    // content, and emitted source is arbitrary. Prefixing each field with its length makes the
+    // encoding injective without relying on that.
     let mut preimage = Vec::new();
     for (region, bytes) in emitted {
+        preimage.extend_from_slice(region.0.len().to_string().as_bytes());
+        preimage.push(b':');
         preimage.extend_from_slice(region.0.as_bytes());
-        preimage.push(0);
+        preimage.extend_from_slice(bytes.len().to_string().as_bytes());
+        preimage.push(b':');
         preimage.extend_from_slice(bytes);
-        preimage.push(0);
     }
     digest_bytes(&preimage)
 }

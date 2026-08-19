@@ -196,6 +196,25 @@ pub(crate) fn cmd_dispositions() -> ExitCode {
 /// Exits SUCCESS whatever the coverage. A survey that failed on incomplete coverage would be a
 /// gate, and this is an instrument — the number it reports is the thing being measured, not a
 /// threshold being enforced.
+/// Print the per-region digest manifest for the ported corpus.
+///
+/// One line per region, sorted, so two runs diff line-by-line and a change's blast radius is a
+/// count rather than an impression.
+pub(crate) fn cmd_region_digests() -> ExitCode {
+    match driver::port_go_pipeline() {
+        Ok(report) => {
+            for (region, digest) in crate::receipt_codec::region_digests(&report.emitted) {
+                println!("{digest}  {region}");
+            }
+            ExitCode::SUCCESS
+        }
+        Err(err) => {
+            eprintln!("port-engine-app: region-digests failed: {err}");
+            ExitCode::from(1)
+        }
+    }
+}
+
 pub(crate) fn cmd_survey(path: Option<&str>) -> ExitCode {
     let Some(path) = path else {
         eprintln!("port-engine-app: survey needs a snapshot path");

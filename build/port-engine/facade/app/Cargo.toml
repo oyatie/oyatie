@@ -14,6 +14,7 @@ name = "port-engine-app"
 path = "src/main.rs"
 
 [dependencies]
+port-engine-analysis = { path = "../../core/analysis" }
 port-engine-api = { path = "../../ports/api" }
 port-engine-kernel = { path = "../../core/kernel" }
 port-engine-rust-ir = { path = "../../core/rust-ir" }

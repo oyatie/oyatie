@@ -437,6 +437,48 @@ behaviourally against the Go original. Phased; the plan lives outside the repo, 
   stated), `DeclStmt` (10), `defer` (9), and a tail of type assertions, array types and one
   carried-value failing return.
 
+- R0: the determinism contract stops being vacuous.
+  `engine_digest` did not hash the engine. It hashed `engine-identity-v0.json` — a hand-maintained
+  list of crate NAMES plus a wave label — so no engine change ever moved it. By the kernel's own
+  rule, emitted bytes that change while every axis holds are `Unexplained` and RED, which means
+  every engine change was by definition an unexplained one; and nothing ever reported it, because
+  the delta check runs a single binary twice and can only answer `Unchanged`. **The six-axis
+  contract was sound in five directions and empty in the one where the engine is what changes** —
+  and every phase of the idiom work would have landed under that hole.
+  Now it is a content digest of the engine's own sources, 83 files across 14 crates.
+  WHERE THE ENUMERATION LIVES was the design question, and the first answer was wrong. Having
+  `port-engine-identity` reach across packages with `include_str!("../../../core/transform/...")`
+  is correct Rust and inverts the hexagon: an adapter reading `core/` and `facade/` points the
+  dependency direction backwards. It also put 83 files outside the package into the target's inputs,
+  which no package-relative build glob can express — the embedded-asset hermeticity gate refused the
+  whole BUCK expression and produced 83 born-blocking skips. Resolving that by editing the gate's
+  baseline would have been weakening a gate to fit a design.
+  So each crate embeds only what it OWNS, package-local, covered by the glob already there and
+  needing no BUCK change; the FACADE joins them, because the facade is the one place the whole
+  engine is legitimately visible; and `port-engine-identity` keeps the ENCODING — what hashing them
+  means — which is a different question from what the engine is made of.
+  The kernel carries its one-line manifest inline. It refuses a submodule declaration as a whole
+  identifier so that "the kernel is exactly this file" is a property of the build, and a generated
+  submodule would delete that proof to save four lines. Its scan then rejected the doc comment
+  explaining this, because the comment spelled the refused keyword — the gate working on its author.
+  TWO FENCES, because neither is worth anything alone: the manifest is the whole engine (a walk
+  compared against what the crates embed), and the digest moves when the manifest does (a perturbed
+  preimage). A complete manifest under an insensitive hash reports a constant; a sensitive hash over
+  a partial manifest reports a constant for everything it cannot see — which is precisely the
+  failure that shipped. A third asserts every crate contributes, since a crate with an empty
+  manifest contributes no paths and the set comparison would pass while it went unhashed.
+  THE GOLDEN SPLIT BY WHAT IT CLAIMS. With a real content hash the golden receipt would pin a value
+  that changes on every commit, and a golden refreshed every commit is refreshed reflexively — the
+  vacuous green this repo names by name. Five axes SHOULD hold across an engine change and pinning
+  them catches a real defect: a snapshot digest that moved while the corpus did not is a bug.
+  `engine_digest` moving is the normal case, so the golden records `<varies>` and the check asserts
+  its SHAPE instead, which still catches an axis gone empty or malformed.
+  Also length-prefixed `emit_tree_digest`, which was still NUL-separating where the snapshot and
+  engine preimages are length-prefixed. A separator-delimited encoding is unambiguous only while the
+  separator cannot appear in the content, and emitted source is arbitrary.
+  New: `port-engine-app region-digests` prints per-region digests, so a whole-program change's blast
+  radius is countable rather than one line of one golden diff.
+
 ## Still owed by this lane
   One class the ratchet surfaced and this lane is deliberately leaving refused: `return named, err`
   where `named` is a NAMED RESULT. Go's convention says a caller may not read it after a non-nil
