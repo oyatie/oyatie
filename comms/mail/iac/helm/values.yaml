@@ -8,12 +8,6 @@ global:
   imageRegistry: registry.oyatie.dev
   imageTag: "0.1.0"
   pullPolicy: IfNotPresent
-
-# Canonical-base resource tier (oya.resourceRequests dispatcher).
-# Tier letter resolves to canonical CPU/memory grids in
-# microservices/governance/iac/helm/_oya-helpers/templates/_helpers.tpl.
-# Mail's per-BC/per-layer Deployment template consumes this value.
-resourceTier: S
   mesh:
     enabled: true
     sidecar: linkerd                       # or istio
@@ -24,6 +18,12 @@ resourceTier: S
     minAvailable: "50%"
   networkPolicy:
     enabled: true
+
+# Canonical-base resource tier (oya.resourceRequests dispatcher).
+# Tier letter resolves to canonical CPU/memory grids in
+# microservices/governance/iac/helm/_oya-helpers/templates/_helpers.tpl.
+# Mail's per-BC/per-layer Deployment template consumes this value.
+resourceTier: S
 
 postfix:
   enabled: true
