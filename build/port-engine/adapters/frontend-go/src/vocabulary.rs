@@ -62,6 +62,11 @@ pub const KNOWN_TYPE_KINDS: &[&str] = &[
 pub const KNOWN_DECLARATION_KINDS: &[&str] = &[
     "alias",
     "const",
+    // An observed interface satisfaction whose concrete type this corpus does not declare, so
+    // there is nowhere to emit the impl. Admitted because the front end RECORDS it rather than
+    // dropping it — a satisfaction the engine cannot host must be distinguishable from one that
+    // does not exist — and deferred by the pack, which is where the decision belongs.
+    "foreign_satisfaction",
     "func",
     "interface",
     "named",

@@ -134,7 +134,7 @@ func recordUnattributable(observer *pkgNode, fact satisfaction) {
 		return
 	}
 	observer.Declarations = append(observer.Declarations, node{
-		Kind: kindUnsupported,
+		Kind: kindForeignSatisfaction,
 		Name: typeKey(fact.concrete),
 		Attrs: map[string]string{
 			attrGoNode: fmt.Sprintf(

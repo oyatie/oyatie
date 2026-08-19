@@ -256,6 +256,11 @@ impl Resolver<'_> {
                 let resolved = self.resolve_node(arg, declaration_name)?;
                 rendered = rendered.replace(&format!("{{{index}}}"), &resolved.spelling());
             }
+            // `{name}` is the type's own non-type datum — an array's LENGTH, a channel's direction.
+            // Without it an array could only be rendered as something that forgets how long it is,
+            // and forgetting is not a spelling difference: a fixed-size value that copies becomes a
+            // heap allocation that moves.
+            rendered = rendered.replace("{name}", &type_ref.name);
             if rendered.contains('{') {
                 return Err(TransformError::UnmappedType {
                     unit: self.unit.0.clone(),

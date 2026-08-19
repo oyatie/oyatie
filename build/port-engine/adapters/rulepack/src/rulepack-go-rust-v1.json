@@ -92,7 +92,19 @@
     "conversion to truncate and the target's cast does the same thing, so the two agree and the cast is",
     "faithful. A conversion the pack does not list is one where they disagree — string to byte slice is",
     "infallible and lossy in the source and fallible in the target — and those refuse, because what",
-    "happens to input the target rejects is a decision rather than a spelling."
+    "happens to input the target rejects is a decision rather than a spelling.",
+    "",
+    "The `array` template uses `{name}`, which is the type's own non-type datum — for an array that",
+    "is its LENGTH. `[N]T` is a VALUE type that copies on assignment and carries its size in its",
+    "type; rendering it as a growable heap type changed all three at once, and none of the three is",
+    "visible in the emitted text.",
+    "",
+    "",
+    "`len` casts to the source width, and the INDEX casts back. Both are needed and neither is",
+    "redundant on its own: `return len(s)` wants the source's int, and `v[i]` wants the target's",
+    "usize, and the same value reaches both. Where a counter makes the round trip the pair is visible",
+    "and removable — which is why a cast is an IR node rather than text, so the right-sizing analysis",
+    "can see it and delete it rather than parse it out of a string."
   ],
   "pair": {
     "source": "go",
@@ -138,6 +150,10 @@
     {
       "kind": "var",
       "reason": "A package-level var is a MUTABLE global. Rust's `static` is immutable, so emitting one would silently drop the mutability the declaration exists for; `static mut` is unsafe and `OnceLock`/`Mutex` each pick a synchronization policy the source never stated. Choosing among those is a rule decision, not a default. See docs/programs/k8s-port/census/ownership-escape.md and concurrency.md."
+    },
+    {
+      "kind": "foreign_satisfaction",
+      "reason": "An interface satisfaction whose concrete type this corpus does not declare — a standard-library value assigned where a standard-library interface is expected is the common case, and `var buf bytes.Buffer` passed as an `io.Writer` is the exact shape. There is nowhere to emit the impl: the type belongs to neither this corpus nor this crate, so the target's coherence rule forbids it outright. Recorded rather than dropped, because a satisfaction the engine cannot host must stay distinguishable from one that does not exist; deferred rather than refused, because refusing would reject every package that touches the standard library through an interface, which is most of them."
     }
   ],
   "rules": [
@@ -363,7 +379,7 @@
   "type_constructors": {
     "slice": "Vec<{0}>",
     "map": "std::collections::BTreeMap<{0}, {1}>",
-    "array": "Vec<{0}>",
+    "array": "[{0}; {name}]",
     "pointer": "Option<Box<{0}>>"
   },
   "pointer_dispositions": [
