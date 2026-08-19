@@ -13,7 +13,9 @@ use port_engine_rust_ir::RustType;
 use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case, to_snake_case};
 use crate::resolve::Resolver;
-use crate::vocabulary::{SOURCE_STRING, TYPE_ARRAY, TYPE_NAMED_INTERFACE};
+use crate::vocabulary::{
+    POSITION_PARAM, SOURCE_STRING, TYPE_ARRAY, TYPE_NAMED_INTERFACE,
+};
 
 impl Resolver<'_> {
     /// The target type a failure value becomes.
@@ -121,6 +123,18 @@ impl Resolver<'_> {
         if type_ref.kind != TYPE_NAMED_INTERFACE {
             return self.resolve(type_ref, declaration_name);
         }
+        // The FAILURE type is the one interface the pack has already answered for, and its reason
+        // covers every position that STORES the value: it chose an owned boxed form because a
+        // failure outlives the call that produced it, so a reference would need a lifetime the
+        // caller cannot supply. A field, a result and a composite element all have that problem.
+        //
+        // A PARAMETER does not, and is left refusing. The source's error is an interface value the
+        // caller keeps after passing it, so owning it in the target would CONSUME a value the
+        // source never consumed — the same reason a source string parameter borrows rather than
+        // taking a `String`. What a borrowed failure parameter should be is a decision of its own.
+        if self.is_failure_type(type_ref) && position != POSITION_PARAM {
+            return self.failure_target(declaration_name).map(RustType::path);
+        }
         let Some(template) = self.trait_object_forms.get(position) else {
             return Err(TransformError::UnmappedType {
                 unit: self.unit.0.clone(),
@@ -135,6 +149,17 @@ impl Resolver<'_> {
         };
         let path = self.named_path(type_ref, declaration_name)?;
         Ok(RustType::path(template.replace("{0}", &path.spelling())))
+    }
+
+    /// Whether this is the source type the pack's failure convention is about.
+    ///
+    /// By NAME rather than by kind, because the pack names the source type its convention governs
+    /// and a pack that governs a different one must not be silently overruled here.
+    fn is_failure_type(&self, type_ref: &TypeRef) -> bool {
+        type_ref.kind == TYPE_NAMED_INTERFACE
+            && self
+                .failure
+                .is_some_and(|convention| convention.source_type == type_ref.name)
     }
 
     /// The path a named type resolves to, ignoring the question of how a position holds it.
@@ -170,9 +195,14 @@ impl Resolver<'_> {
         type_ref: &TypeRef,
         declaration_name: &str,
     ) -> Result<RustType, TransformError> {
-        // A trait reaching here is a trait in a position the caller did not name — nested inside a
-        // slice, a map, a pointer. `Vec<crate::shapes::Named>` names a trait as an element type and
-        // does not compile, so this refuses rather than emitting it.
+        // Nested inside a composite, which STORES the value: same answer, same reason.
+        if self.is_failure_type(type_ref) {
+            return self.failure_target(declaration_name).map(RustType::path);
+        }
+
+        // Any OTHER trait reaching here is one in a position the caller did not name — nested
+        // inside a slice, a map, a pointer. `Vec<crate::shapes::Named>` names a trait as an element
+        // type and does not compile, so this refuses rather than emitting it.
         if type_ref.kind == TYPE_NAMED_INTERFACE {
             return Err(TransformError::UnmappedType {
                 unit: self.unit.0.clone(),

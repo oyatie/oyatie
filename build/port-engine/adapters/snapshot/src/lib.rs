@@ -20,6 +20,7 @@ pub use admit::{
     admit_embedded_fixture_buildtags_v1, admit_embedded_fixture_drift_before_v1,
     admit_embedded_fixture_failure_v1, admit_embedded_fixture_foreign_v1,
     admit_embedded_fixture_interface_v1, admit_embedded_fixture_ownership_v1,
+    admit_embedded_fixture_unproven_v1,
     admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1, admit_reproducible_pair,
 };
 pub use admitted::AdmittedSnapshot;
@@ -53,6 +54,14 @@ pub(crate) const FIXTURE_SNAPSHOT_INTERFACE_V1_JSON: &str =
 /// has no shape to become.
 pub(crate) const FIXTURE_SNAPSHOT_FAILURE_V1_JSON: &str =
     include_str!("fixture-snapshot-failure-v1.json");
+
+/// Embedded fixture for the corpus whose failing return the engine cannot PROVE is a failure.
+///
+/// `Cause` and `Wrapped` have the same signature and the same field and get different answers,
+/// because the proof is a property of the operand rather than of the signature. Its own corpus so
+/// the distinction is proven rather than shadowed by whichever package the transform reached first.
+pub(crate) const FIXTURE_SNAPSHOT_UNPROVEN_V1_JSON: &str =
+    include_str!("fixture-snapshot-unproven-v1.json");
 
 /// Embedded fixture for the corpus whose files are selected by BUILD CONSTRAINTS.
 ///

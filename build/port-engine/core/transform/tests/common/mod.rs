@@ -167,6 +167,10 @@ impl Pack {
             // when the pack has NOT granted the trust rather than the one that follows from it.
             discards_companion: false,
             discard_reason: "fixture decision".to_owned(),
+            // The fixture's failure constructor, so a fixture return of a fresh failure is proven
+            // exactly as a real pack's is rather than by a second rule these tests alone have.
+            constructors: BTreeSet::from(["errors.New".to_owned()]),
+            constructor_reason: "fixture decision".to_owned(),
         });
         self
     }

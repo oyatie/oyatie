@@ -125,6 +125,15 @@ pub struct FailureConvention {
     /// How the source spells the ABSENT failure value, which is what a success returns and what a
     /// check compares against.
     pub absent: String, // data_class: INTERNAL_ONLY
+    /// Callee identities that PRODUCE a failure, and so never produce the absent value.
+    ///
+    /// The target's failing return is `Err(..)` and the source's is a value that MAY be absent, so
+    /// wrapping an error-typed expression in `Err` is right only when that expression cannot be
+    /// nil — and silently wrong when it can, in the direction of reporting failure where the source
+    /// reported success.
+    pub constructors: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// Why those callees, and what admits a new one.
+    pub constructor_reason: String, // data_class: INTERNAL_ONLY
 }
 
 impl FailureConvention {

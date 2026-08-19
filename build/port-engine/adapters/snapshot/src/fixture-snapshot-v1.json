@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:40720a56b5ee89760d7c25d6b9f873ddcbd9ff78f7fe76b47961f4b0f7f0820a",
+  "snapshot_digest": "sha256:d1de84f143633ba9a1ba2c63a197e0d21a7b4aaf53e46540e653496520ef63cd",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -1851,6 +1851,40 @@
                   ]
                 }
               ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Report",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Report records a failure alongside what was being attempted."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "action",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "action names what was attempted."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "cause",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              },
+              "attrs": {
+                "doc": "cause is why it did not succeed."
+              }
             }
           ]
         },

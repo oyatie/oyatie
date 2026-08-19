@@ -75,6 +75,8 @@ pub const IDIOM_SELF_IN_IMPL: &str = "self_inside_own_impl";
 pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
 /// The node kind of a unary expression.
 pub const KIND_UNARY: &str = "unary";
+/// The node kind of a call.
+pub const KIND_CALL: &str = "call";
 /// The source spelling of the address-of operator.
 pub const OPERATOR_ADDRESS_OF: &str = "&";
 /// Attribute key holding a literal's lexical class, as the source spells it.

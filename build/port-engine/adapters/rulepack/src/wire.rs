@@ -80,6 +80,10 @@ pub(crate) struct FailureDoc {
     pub(crate) reason: String,
     pub(crate) target_type: String,
     pub(crate) absent: String,
+    #[serde(default)]
+    pub(crate) constructors: std::collections::BTreeSet<String>,
+    #[serde(default)]
+    pub(crate) constructor_reason: String,
 }
 
 #[derive(Deserialize)]
