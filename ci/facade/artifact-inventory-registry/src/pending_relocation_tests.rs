@@ -4,7 +4,7 @@
 //! Cases: a pending row retracts the named absorb; a non-pending row does not;
 //! a row naming a different capability does not; a malformed `from` is ignored.
 
-use crate::{derive_destination, CapabilityPlacement};
+use crate::{CapabilityPlacement, derive_destination};
 
 /// A `pending_relocations` row retracts the absorb claim it names. ADR-0615 §2 Q13 rules
 /// that `oya/governance` must NOT fold into `compliance`, while the absorb entry stays in
