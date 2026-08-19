@@ -69,11 +69,19 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
             docs,
             vis,
             name,
+            generics,
             ty,
         } => {
             let (docs, vis) = (lower_docs(docs), lower_vis(*vis));
             let (name, ty) = (parse_ident(name)?, parse_type(ty)?);
-            Ok(quote! { #docs #vis type #name = #ty; })
+            let parameters = generics
+                .iter()
+                .map(|generic| parse_ident(generic))
+                .collect::<Result<Vec<_>, _>>()?;
+            match parameters.is_empty() {
+                true => Ok(quote! { #docs #vis type #name = #ty; }),
+                false => Ok(quote! { #docs #vis type #name<#(#parameters),*> = #ty; }),
+            }
         }
 
         RustItem::Struct {

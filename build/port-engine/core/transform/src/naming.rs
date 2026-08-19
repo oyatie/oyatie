@@ -35,6 +35,16 @@ pub fn region_id_for(unit: &UnitId, rule: &RuleId) -> String {
     format!("{}__{}", sanitize_ident(&unit.0), sanitize_ident(&rule.0))
 }
 
+/// Region id for a unit's own PRELUDE, which belongs to no rule and no declaration.
+///
+/// Named from the unit and a fixed segment rather than from a rule, because there is no rule: a
+/// prelude is decided by a property of the whole unit. The segment cannot collide with a rule id,
+/// which is always the pack's own and never this word.
+#[must_use]
+pub fn region_id_for_unit(unit: &UnitId, what: &str) -> String {
+    format!("{}__{}", sanitize_ident(&unit.0), sanitize_ident(what))
+}
+
 /// Region id for one declaration-level plan step, extended with the declaration.
 ///
 /// The declaration segment is what keeps two rules capturing different kinds from colliding on one

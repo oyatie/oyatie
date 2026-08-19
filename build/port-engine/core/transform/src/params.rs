@@ -197,6 +197,11 @@ fn results_in(
         return Ok(value);
     }
     let ok = value.unwrap_or_else(|| RustType::path("()"));
+    // The unit's own name for the failure type, where the pack gives one. An alias is transparent,
+    // so this changes what the signature READS as and not what it means.
+    if let Some(alias) = resolver.failure_alias() {
+        return Ok(Some(RustType::path(format!("{alias}<{}>", ok.spelling()))));
+    }
     let error = resolver.failure_target(&declaration.name)?;
     Ok(Some(RustType::path(format!(
         "Result<{}, {}>",

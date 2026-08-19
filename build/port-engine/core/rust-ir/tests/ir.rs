@@ -240,6 +240,8 @@ fn an_unparseable_type_refuses_by_name() {
     ir.set_items(
         "r",
         vec![RustItem::TypeAlias {
+            // Concrete: only the failure alias takes a parameter.
+            generics: Vec::new(),
             docs: Vec::new(),
             vis: Visibility::Public,
             name: "Bad".into(),

@@ -46,6 +46,16 @@ impl Resolver<'_> {
     /// call to a value of function type, a conversion, or a method value — each a real shape with
     /// no path form, and each better refused by name than emitted as the source's own spelling,
     /// which would name nothing in the target.
+    /// The name this unit gives the failure type, when the pack declares one.
+    ///
+    /// `None` where it does not, and every signature then spells the type out — which is what the
+    /// engine did before, and is still what a pack that sets no alias gets.
+    pub(crate) fn failure_alias(&self) -> Option<&str> {
+        self.failure
+            .map(|convention| convention.alias.as_str())
+            .filter(|alias| !alias.is_empty())
+    }
+
     pub(crate) fn function_path(
         &self,
         identity: Option<&str>,

@@ -163,6 +163,12 @@ pub enum RustItem {
         vis: Visibility,
         /// Its name.
         name: String, // data_class: INTERNAL_ONLY
+        /// Type parameters, for an alias that takes one.
+        ///
+        /// Empty for the source's own aliases, which are always concrete. The failure alias takes
+        /// one — a `Result` names the success type its user supplies — and it is the only thing
+        /// this crate emits that does.
+        generics: Vec<String>, // data_class: INTERNAL_ONLY
         /// What it aliases.
         ty: RustType,
     },
