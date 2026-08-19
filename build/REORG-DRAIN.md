@@ -3534,3 +3534,34 @@ asks the source.
 
 Coverage: uuid 26.8% → 13.4%. Every point removed was a declaration counted as translated while
 emitting a method that panics or a body naming variables that do not exist.
+
+## R1p — a write the analysis could not see, twice
+
+Reading `uuid` again after the stub fix turned up `const POOL: [u8; 256] = [0; 256];`. A randomness
+pool, emitted as a constant — which in the target is materialised fresh at every use and cannot be
+written at all. The write analysis said nobody writes it. Two reasons, both real:
+
+**An assignment target is rarely a bare name.** `pool[i] = x` writes `pool`; `cfg.field = x` writes
+`cfg`; `*p = x` writes what `p` points at. The analysis matched only `*ast.Ident` and saw none of
+them, so a package array something fills element by element read as never written — and a
+never-written variable becomes a constant. Assignment targets are now walked down to the variable
+they reach.
+
+**And a slice is the same licence as an address.** The analysis already counted `&x` as a write,
+because taking the address hands out a licence to write through it and the write may be anywhere.
+`pool[:]` hands out exactly that, spelled differently: `io.ReadFull(rander, pool[:])` fills the array
+through a mutable view without ever assigning to the name. That is how this one got through.
+
+The correctness argument is the one already written beside the address case, and it is worth
+repeating because it decided this: being conservative here costs a synchronization policy, and being
+wrong costs a program that silently stops sharing state.
+
+**No fixture moved.** Every committed corpus was regenerated and none changed — the hermetic corpora
+have neither an indexed package-var assignment nor a slice of a package array. That is the gap that
+let this live: the corpus only contains what the engine already handles, so a construct it handles
+WRONGLY is invisible there until a real package shows it. Ratcheting against real third-party source
+is the method for exactly this reason, and it earned its keep twice in one phase.
+
+`POOL` and `NODE_ID` now refuse by name as written package variables. `ZERO_ID` and `XVALUES` stay
+constants, which is correct — nothing writes them. All seven real packages still compile with zero
+rustc errors and zero clippy warnings.
