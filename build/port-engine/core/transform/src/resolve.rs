@@ -31,6 +31,12 @@ use crate::vocabulary::TYPE_NAMED_INTERFACE;
 /// The type names one unit declares, and the target spelling each resolves to.
 pub struct LocalScope {
     pub(crate) types: BTreeMap<String, String>,
+    /// The unit's SENTINEL failures, by source name, with the message each carries.
+    ///
+    /// Held here because three places need the same answer — what the declaration emits, what a
+    /// reference to it renders as, and whether a return of it is provably a failure — and deriving
+    /// it three times would let them disagree.
+    pub(crate) sentinels: BTreeMap<String, String>,
 }
 
 impl LocalScope {
@@ -41,13 +47,22 @@ impl LocalScope {
     /// instead, and a collision is impossible because the front end already refuses two
     /// declarations sharing a name in one namespace.
     pub fn of(declarations: &[Declaration]) -> Self {
+        Self::with_failure(declarations, None)
+    }
+
+    /// The same, plus the unit's sentinels, which need the pack's failure convention to recognise.
+    pub fn with_failure(
+        declarations: &[Declaration],
+        failure: Option<&port_engine_api::FailureConvention>,
+    ) -> Self {
+        let sentinels = crate::sentinel::sentinels(declarations, failure);
         let mut types = BTreeMap::new();
         for declaration in declarations {
             if !declaration.name.is_empty() {
                 types.insert(declaration.name.clone(), to_pascal_case(&declaration.name));
             }
         }
-        Self { types }
+        Self { types, sentinels }
     }
 
     /// Whether the unit declares this source name.

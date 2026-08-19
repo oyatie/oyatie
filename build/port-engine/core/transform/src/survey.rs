@@ -150,7 +150,7 @@ where
         let Some(declarations) = model.declarations(&unit) else {
             continue;
         };
-        let scope = LocalScope::of(&declarations);
+        let scope = LocalScope::with_failure(&declarations, pack.failure_convention());
         for declaration in &declarations {
             survey_declaration(
                 &unit,

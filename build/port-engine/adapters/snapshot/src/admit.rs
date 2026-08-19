@@ -16,7 +16,7 @@ use crate::{
     FIXTURE_SNAPSHOT_FOREIGN_V1_JSON,
     FIXTURE_SNAPSHOT_INTERFACE_V1_JSON, FIXTURE_SNAPSHOT_JSON,
     FIXTURE_SNAPSHOT_OWNERSHIP_V1_JSON, FIXTURE_SNAPSHOT_REFUSED_V1_JSON,
-    FIXTURE_SNAPSHOT_UNPROVEN_V1_JSON, FIXTURE_SNAPSHOT_V1_JSON,
+    FIXTURE_SNAPSHOT_SENTINEL_V1_JSON, FIXTURE_SNAPSHOT_UNPROVEN_V1_JSON, FIXTURE_SNAPSHOT_V1_JSON,
 };
 
 /// Admit two byte-identical snapshot artifacts against the fleet pin.
@@ -148,6 +148,15 @@ pub fn admit_embedded_fixture_refused_v1() -> Result<AdmittedSnapshot, AdmitErro
 /// [`AdmitError`] on fixture defect.
 pub fn admit_embedded_fixture_ownership_v1() -> Result<AdmittedSnapshot, AdmitError> {
     let bytes = FIXTURE_SNAPSHOT_OWNERSHIP_V1_JSON.as_bytes();
+    admit_reproducible_pair(bytes, bytes)
+}
+
+/// Admit the sentinel-identity refusal fixture.
+///
+/// # Errors
+/// [`AdmitError`] on fixture defect.
+pub fn admit_embedded_fixture_sentinel_v1() -> Result<AdmittedSnapshot, AdmitError> {
+    let bytes = FIXTURE_SNAPSHOT_SENTINEL_V1_JSON.as_bytes();
     admit_reproducible_pair(bytes, bytes)
 }
 

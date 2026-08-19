@@ -1,0 +1,149 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:1442d698763ca8e8d4494f83311124ee89cacaf119e3ecf956f65dd95c4e5737",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture-sentinel/corpus-sentinel/identity",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "var",
+          "name": "ErrGone",
+          "type": {
+            "kind": "named_interface",
+            "name": "error"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "ErrGone is a sentinel, and this file is about what a sentinel CANNOT do."
+          },
+          "children": [
+            {
+              "kind": "call",
+              "name": "",
+              "attrs": {
+                "callee": "errors.New"
+              },
+              "children": [
+                {
+                  "kind": "selector",
+                  "name": "New",
+                  "type": {
+                    "kind": "func",
+                    "args": [
+                      {
+                        "kind": "tuple",
+                        "args": [
+                          {
+                            "kind": "basic",
+                            "name": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "tuple",
+                        "args": [
+                          {
+                            "kind": "named_interface",
+                            "name": "error"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "errors",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "literal",
+                  "name": "",
+                  "attrs": {
+                    "lit_kind": "STRING",
+                    "value": "\"gone\""
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Missing",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Missing reports whether the given failure is the sentinel one.\n\nREFUSED, and this is the cost the sentinel decision names. The source's `errors.New` returns a\nPOINTER, so `err == ErrGone` compares identity and is a comparison real code writes. The target's\nsentinel is its message and its failure is a boxed trait object, which has no equality at all —\nso there is no target expression that means what this line means. It refuses here rather than\nemitting a comparison against a freshly built value, which would be false at every call."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "err",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "bool"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "bool"
+                      },
+                      "attrs": {
+                        "op": "=="
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "err",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "ErrGone",
+                          "attrs": {
+                            "ref": "package_var"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

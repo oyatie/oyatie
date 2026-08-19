@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:d1de84f143633ba9a1ba2c63a197e0d21a7b4aaf53e46540e653496520ef63cd",
+  "snapshot_digest": "sha256:cf74672a11b3fbeeca49d72815d35bb3dfa0d4775ead332db0f8a99c99361fe7",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -1648,6 +1648,75 @@
           ]
         },
         {
+          "kind": "var",
+          "name": "ErrEmpty",
+          "type": {
+            "kind": "named_interface",
+            "name": "error"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "ErrEmpty is returned when the input string has no content."
+          },
+          "children": [
+            {
+              "kind": "call",
+              "name": "",
+              "attrs": {
+                "callee": "errors.New"
+              },
+              "children": [
+                {
+                  "kind": "selector",
+                  "name": "New",
+                  "type": {
+                    "kind": "func",
+                    "args": [
+                      {
+                        "kind": "tuple",
+                        "args": [
+                          {
+                            "kind": "basic",
+                            "name": "string"
+                          }
+                        ]
+                      },
+                      {
+                        "kind": "tuple",
+                        "args": [
+                          {
+                            "kind": "named_interface",
+                            "name": "error"
+                          }
+                        ]
+                      }
+                    ]
+                  },
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "errors",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "literal",
+                  "name": "",
+                  "attrs": {
+                    "lit_kind": "STRING",
+                    "value": "\"empty\""
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
           "kind": "func",
           "name": "Length",
           "flags": [
@@ -1748,57 +1817,11 @@
                               }
                             },
                             {
-                              "kind": "call",
-                              "name": "",
+                              "kind": "ident",
+                              "name": "ErrEmpty",
                               "attrs": {
-                                "callee": "errors.New"
-                              },
-                              "children": [
-                                {
-                                  "kind": "selector",
-                                  "name": "New",
-                                  "type": {
-                                    "kind": "func",
-                                    "args": [
-                                      {
-                                        "kind": "tuple",
-                                        "args": [
-                                          {
-                                            "kind": "basic",
-                                            "name": "string"
-                                          }
-                                        ]
-                                      },
-                                      {
-                                        "kind": "tuple",
-                                        "args": [
-                                          {
-                                            "kind": "named_interface",
-                                            "name": "error"
-                                          }
-                                        ]
-                                      }
-                                    ]
-                                  },
-                                  "children": [
-                                    {
-                                      "kind": "ident",
-                                      "name": "errors",
-                                      "attrs": {
-                                        "ref": "local"
-                                      }
-                                    }
-                                  ]
-                                },
-                                {
-                                  "kind": "literal",
-                                  "name": "",
-                                  "attrs": {
-                                    "lit_kind": "STRING",
-                                    "value": "\"empty\""
-                                  }
-                                }
-                              ]
+                                "ref": "package_var"
+                              }
                             }
                           ]
                         }

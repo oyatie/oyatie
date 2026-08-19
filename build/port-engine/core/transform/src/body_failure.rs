@@ -12,9 +12,9 @@ use crate::body::Body;
 use crate::body_expr::expression;
 use crate::body_ops::own_returned_string;
 use crate::error::TransformError;
-use crate::naming::to_snake_case;
+use crate::naming::{to_screaming_snake, to_snake_case};
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_OP, KIND_CALL, KIND_COMPOSITE, KIND_UNARY, OPERATOR_ADDRESS_OF,
+    ATTR_CALLEE, ATTR_OP, KIND_CALL, KIND_COMPOSITE, KIND_IDENT, KIND_UNARY, OPERATOR_ADDRESS_OF,
 };
 
 /// The source's bind-and-check pair as one operator.
@@ -147,10 +147,37 @@ pub(crate) fn fallible_return(
             });
         }
     }
+    let built = match sentinel_failure(failure, cx) {
+        Some(built) => built,
+        None => expression(failure, cx)?,
+    };
     Ok(RustExpr::Call {
         callee: Box::new(RustExpr::Path("Err".to_owned())),
-        args: vec![expression(failure, cx)?],
+        args: vec![built],
     })
+}
+
+/// The failure a SENTINEL operand builds, if the operand is one.
+///
+/// The one place a sentinel may be read: here the engine knows the operand IS the failure, which an
+/// identifier standing on its own does not. Built through the mapping the pack declares for the
+/// sentinel's own constructor, so a return of the sentinel and a direct call to that constructor
+/// spell the same thing and a pack that changes one changes both.
+fn sentinel_failure(operand: &Declaration, cx: &Body<'_>) -> Option<RustExpr> {
+    if operand.kind != KIND_IDENT {
+        return None;
+    }
+    cx.resolver.scope.sentinels.get(&operand.name)?;
+    let convention = cx.resolver.failure?;
+    let mapping = convention
+        .sentinel_constructors
+        .iter()
+        .find_map(|identity| cx.resolver.function_map.get(identity))?;
+    Some(RustExpr::Literal(
+        mapping
+            .form
+            .replace("{0}", &to_screaming_snake(&operand.name)),
+    ))
 }
 
 /// Whether this operand cannot be the ABSENT failure value.
@@ -190,6 +217,10 @@ fn is_certainly_a_failure(operand: &Declaration, cx: &Body<'_>) -> bool {
                     .first()
                     .is_some_and(|inner| inner.kind == KIND_COMPOSITE)
         }
+        // A SENTINEL, which the unit declares as a failure built by a declared constructor. Proven
+        // for the same reason the direct call is: the constructor has no absent result to return,
+        // and the sentinel is that call's value under a name.
+        KIND_IDENT => cx.resolver.scope.sentinels.contains_key(&operand.name),
         _ => false,
     }
 }

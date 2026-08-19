@@ -171,6 +171,8 @@ impl Pack {
             // exactly as a real pack's is rather than by a second rule these tests alone have.
             constructors: BTreeSet::from(["errors.New".to_owned()]),
             constructor_reason: "fixture decision".to_owned(),
+            sentinel_constructors: BTreeSet::from(["errors.New".to_owned()]),
+            sentinel_reason: "fixture decision".to_owned(),
         });
         self
     }

@@ -95,7 +95,7 @@ impl SignatureTable {
             let Some(declarations) = model.declarations(&unit) else {
                 continue;
             };
-            let scope = LocalScope::of(&declarations);
+            let scope = LocalScope::with_failure(&declarations, semantics.failure_convention());
             let resolver = Resolver {
                 scope: &scope,
                 type_map: semantics.type_map(),

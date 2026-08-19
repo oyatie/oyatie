@@ -316,6 +316,8 @@ impl LoadedRulePack {
                 absent: failure.absent,
                 constructors: failure.constructors,
                 constructor_reason: failure.constructor_reason,
+                sentinel_constructors: failure.sentinel_constructors,
+                sentinel_reason: failure.sentinel_reason,
             }),
             type_map_overrides: doc.type_map_overrides,
             undecided_form_reasons: doc

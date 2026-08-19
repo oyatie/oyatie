@@ -134,6 +134,13 @@ pub struct FailureConvention {
     pub constructors: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
     /// Why those callees, and what admits a new one.
     pub constructor_reason: String, // data_class: INTERNAL_ONLY
+    /// Constructors whose SOLE ARGUMENT is the message, so a sentinel built by one is its message.
+    ///
+    /// A subset of [`Self::constructors`]. `fmt.Errorf` is a constructor and not one of these: its
+    /// message is formatted from arguments, which is not a constant expression.
+    pub sentinel_constructors: std::collections::BTreeSet<String>, // data_class: INTERNAL_ONLY
+    /// What a sentinel becomes, why, and what it costs.
+    pub sentinel_reason: String, // data_class: INTERNAL_ONLY
 }
 
 impl FailureConvention {
