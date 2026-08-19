@@ -45,3 +45,13 @@ pub(crate) struct FormatCallsRule {
     #[serde(default)]
     pub(crate) brace_reason: String,
 }
+
+/// Wire shape for the library paths the pack names by their short form.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct TargetImportsRule {
+    #[serde(default)]
+    pub(crate) paths: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    pub(crate) reason: String,
+}

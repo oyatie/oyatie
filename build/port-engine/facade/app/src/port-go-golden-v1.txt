@@ -125,9 +125,10 @@ pub mod composite {
 }
 pub mod fallible {
     // region: oyatie_example_portengine_fixture_corpus_fallible__imports
+    use std::error::Error as StdError;
     use std::fmt;
     // region: oyatie_example_portengine_fixture_corpus_fallible__prelude
-    pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
+    pub type BoxError = Box<dyn StdError + Send + Sync>;
 
     pub type Result<T, E = BoxError> = std::result::Result<T, E>;
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_var__errempty
@@ -147,7 +148,7 @@ pub mod fallible {
         }
     }
 
-    impl std::error::Error for Error {}
+    impl StdError for Error {}
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__length
     /// Reports the length of s, failing on the empty string.
     pub fn length(s: &str) -> Result<i64> {
@@ -181,7 +182,7 @@ pub mod fallible {
         /// Names what was attempted.
         action: String,
         /// Why it did not succeed.
-        cause: Box<dyn std::error::Error + Send + Sync>,
+        cause: Box<dyn StdError + Send + Sync>,
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__measure
     /// Reports the length of s, failing on the empty string.
@@ -191,8 +192,10 @@ pub mod fallible {
     }
 }
 pub mod formatted {
+    // region: oyatie_example_portengine_fixture_corpus_formatted__imports
+    use std::error::Error as StdError;
     // region: oyatie_example_portengine_fixture_corpus_formatted__prelude
-    pub type BoxError = Box<dyn std::error::Error + Send + Sync>;
+    pub type BoxError = Box<dyn StdError + Send + Sync>;
 
     pub type Result<T, E = BoxError> = std::result::Result<T, E>;
     // region: oyatie_example_portengine_fixture_corpus_formatted__go_func__describe
@@ -230,9 +233,7 @@ pub mod formatted {
     pub fn checked(n: i64) -> Result<i64> {
         if n < 0 {
             return Err(
-                Box::<
-                    dyn std::error::Error + Send + Sync,
-                >::from(format!("negative count {}", n)),
+                Box::<dyn StdError + Send + Sync>::from(format!("negative count {}", n)),
             );
         }
         Ok(n)

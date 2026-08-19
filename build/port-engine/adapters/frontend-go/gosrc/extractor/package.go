@@ -124,8 +124,8 @@ func extractPackage(
 		docs:      docs,
 		fieldDocs: fieldDocs,
 		varInits:  indexVarInitializers(files, tpkg),
-		varWrites: packageVarWrites(files, info, tpkg),
 	}
+	ctx.varWrites, ctx.varInitOnly = packageVarWrites(files, info, tpkg)
 
 	scope := tpkg.Scope()
 	objNames := scope.Names() // go/types returns these sorted
@@ -262,6 +262,10 @@ type extractCtx struct {
 	// variable that is initialised and never written again is a constant with a computed value;
 	// only the ones that ARE written need the synchronization policy the deferral is about.
 	varWrites map[types.Object]bool
+	// varInitOnly names the subset of those whose every write is in the package initialiser. Such a
+	// variable is computed once before anything runs and never changes after, which is not the
+	// mutable global the deferral is about — a different fact, and so a different target form.
+	varInitOnly map[types.Object]bool
 	// fieldDocs is keyed by "TypeName.FieldName": a struct field is not a package-scope object, so
 	// it has no types.Object to index by, and matching by position would break the moment a field
 	// moves.

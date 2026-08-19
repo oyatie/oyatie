@@ -128,7 +128,7 @@ where
             .filter(|region| region.unit == unit)
             .flat_map(|region| region.items.clone())
             .collect();
-        let imports = crate::prelude::import_items(&emitted);
+        let imports = crate::prelude::import_items(&emitted, pack.target_imports());
         if !imports.is_empty() {
             report.ported.push(PortedRegion {
                 region: crate::naming::region_id_for_unit(&unit, "imports"),
