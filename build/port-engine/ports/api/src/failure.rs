@@ -116,6 +116,20 @@ pub struct FunctionMapping {
     pub reason: String, // data_class: INTERNAL_ONLY
 }
 
+/// How the source's `append` becomes the target's.
+///
+/// A STATEMENT rule, not an expression one: the source's returns a new sequence and the target's
+/// mutates in place and returns nothing.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct SequenceAppend {
+    /// Adding the ELEMENTS of `{1}` to `{0}`.
+    pub extend: String, // data_class: INTERNAL_ONLY
+    /// Adding `{1}` itself to `{0}`.
+    pub push: String, // data_class: INTERNAL_ONLY
+    /// Why only the same-name shape carries across, and what the spread decides.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// How the source's ALLOCATING builtin becomes the target's.
 ///
 /// Its own shape rather than a row in the function map because the builtin's first argument is a

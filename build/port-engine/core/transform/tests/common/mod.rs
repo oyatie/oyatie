@@ -47,6 +47,8 @@ pub struct Pack {
     pub binary_string: port_engine_api::BinaryString,
     /// How an allocating builtin translates. Empty by default, for the same reason.
     pub allocation: port_engine_api::Allocation,
+    /// How `append` translates. Empty by default, for the same reason.
+    pub sequence_append: port_engine_api::SequenceAppend,
     /// Callees that take a length. Empty by default, for the same reason.
     pub length_argument_callees: BTreeSet<String>,
     pub copies: BTreeSet<String>,
@@ -242,6 +244,13 @@ impl Pack {
 }
 
 impl PackSemantics for Pack {
+    fn sequence_append(&self) -> &port_engine_api::SequenceAppend {
+        // EMPTY, so a fixture's append refuses. Which shapes carry across is a judgement about the
+        // source language, exercised against real source.
+        &self.sequence_append
+    }
+
+
     fn allocation(&self) -> &port_engine_api::Allocation {
         // EMPTY, so a fixture's allocation refuses. Which shapes are exact is a judgement about the
         // source language, exercised against real source.

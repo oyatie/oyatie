@@ -4089,3 +4089,30 @@ shape change rather than an expression mapping.
 **What this phase is really about.** Coverage moved 52.9 → 58.8 in R2b and has not moved since, and
 that is not failure: each step replaced a wrong or vague reason with the true next one. A cascade
 root is only reachable one layer at a time, and the engine now says which layer it is at.
+
+## R2d — `append` is a statement, and the spread was never recorded
+
+`Digest` refused on `append`, which is the source's most common sequence operation and the shape the
+plan lists under "AssignStmt forms". Two things were wrong, and the first was a FACT the front end
+did not have.
+
+**The spread was never recorded.** `append(b, xs...)` adds the ELEMENTS of `xs`; `append(b, x)` adds
+`x` itself. Nothing in the tree distinguished them — the ellipsis was not carried at all — so the two
+arrived identical and any rule would have translated both the same way and one of them wrongly. The
+call now carries the flag.
+
+**And `append` is a STATEMENT, not an expression.** The source's returns a new sequence and the
+target's `extend` mutates in place and returns nothing, so there is no expression correspondence to
+write; the assignment as a whole is what translates.
+
+**The same name on both sides is what carries across, and that is the whole of the condition.** The
+source leaves whether the result shares the argument's storage to the capacity at run time, and that
+question has one answer only when the result replaces the original — nothing else can observe the
+difference. `c = append(b, ..)` refuses by name: both target answers, extending `b` and aliasing it
+or cloning it, are a different program on one of the two run-time paths. Several plain elements at
+once refuse too, because the target spells that as a temporary sequence, which allocates where the
+source did not.
+
+`Digest` now waits on `appendUint64`, which reads through `binary.LittleEndian` — a foreign package
+the pack has not mapped. Four layers of this cascade have been peeled and each one named the next
+honestly.

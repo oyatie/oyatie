@@ -21,6 +21,11 @@ pub const KNOWN_FLAGS: &[&str] = &[
     // the callee's copy is the opposite claim, and one flag carrying both would make every
     // rebound parameter demand an exclusive borrow.
     "rebound",
+    // A call passes its last argument's ELEMENTS rather than the argument itself — what the source
+    // writes `f(xs...)`. Nothing else in the tree distinguishes the two, and they mean different
+    // things to the same callee: `append(b, xs...)` adds the elements OF xs and `append(b, x)` adds
+    // x itself.
+    "spread",
     // The body reads this binding more than once. The source copies on read and the target moves,
     // so a second read of a non-copying binding is a use after move.
     "inferred",

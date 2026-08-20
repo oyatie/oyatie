@@ -139,6 +139,7 @@ impl SignatureTable {
                 unmappable_types: semantics.unmappable_types(),
                 binary_string: semantics.binary_string(),
                 allocation: semantics.allocation(),
+                sequence_append: semantics.sequence_append(),
                 integer_arithmetic: semantics.integer_arithmetic(),
                 doc_convention: semantics.doc_convention(),
                 derives: semantics.derives(),
