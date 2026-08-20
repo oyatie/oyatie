@@ -682,7 +682,7 @@ mod tests {
             Some("tasks".into())
         );
         assert_eq!(
-            microservice_name_for(Path::new("oya/payments/scorecards")),
+            microservice_name_for(Path::new("app/payments/scorecards")),
             Some("payments".into())
         );
         // Depth-1: the capability root itself owns the documents.

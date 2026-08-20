@@ -1480,9 +1480,13 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
         "the retired cloud root must leave every other governed root unchanged"
     );
     assert_eq!(
-        policy["manifest_inventory"]["expected_total"], 78,
+        policy["manifest_inventory"]["expected_total"], 77,
         "the governed corpus total is review-pinned: retiring the two cloud manifests moved it \
-         96 -> 94, and retiring the 51 unreferenced oya product crates moved it 94 -> 77"
+         96 -> 94, retiring the 51 unreferenced oya product crates moved it 94 -> 77, admitting \
+         `app` as a governed root moved it 77 -> 78 by making the long-invisible \
+         app/calendar/manifest.json countable, and draining the oya/calendar duplicate that \
+         PR #1671 left behind moved it back 78 -> 77 — the same product had briefly been \
+         counted at both paths"
     );
     let retirement = policy["manifest_inventory"]["_comment"]
         .as_str()
@@ -1514,7 +1518,13 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     // not a governed root. Substrate stays 54 — an app product is product-tier — which is
     // the control: a root admission that moved substrate would mean the walk changed, not
     // the corpus.
-    assert_eq!(projection["service_count"], 78);
+    // 78 -> 77 when oya/calendar was drained. Admitting `app` briefly counted the SAME
+    // product twice: app/calendar/manifest.json and the oya/calendar/manifest.json duplicate
+    // PR #1671 left behind. Draining the duplicate removes the double-count, so this is the
+    // 78 unwinding rather than a service being retired — calendar is still here, at
+    // app/calendar. Substrate stays 54 again, and remains the control: a drain that moved
+    // the substrate count would mean something other than a product duplicate was removed.
+    assert_eq!(projection["service_count"], 77);
     assert_eq!(projection["tier_distribution"]["substrate"], 54);
     assert!(
         projection["services"]

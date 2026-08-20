@@ -18,8 +18,7 @@
       "audit/manifest.json"
     ],
     "calendar": [
-      "app/calendar/manifest.json",
-      "oya/calendar/manifest.json"
+      "app/calendar/manifest.json"
     ],
     "drive": [
       "storage/drive/manifest.json"

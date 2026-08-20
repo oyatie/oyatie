@@ -3,7 +3,7 @@
   "rule_id": "synthesis-audit-P0-template-stamping",
   "_scope_floor_remeasure_2026_08_20": "scanned_markdown_files 3520 -> 3519. DOWNWARD by exactly one, and it is a DELETION rather than a narrowed scope: this change removes docs/governance-lanes/adr-citation.md, the lane doc for a retired gate. The scan configuration is untouched. Cross-check that the walk did not shrink: docs/governance-lanes carries NO entry in `groups`, so groups_total 44, files_total 268 and every per-directory group list are unchanged and were re-asserted by equality on the same run — a narrowed scope moves those too, a single-file delete does not.",
   "threshold": 0.7,
-  "scanned_markdown_files": 3519,
+  "scanned_markdown_files": 3498,
   "scanned_directories": 686,
   "groups_total": 44,
   "files_total": 268,
@@ -82,7 +82,7 @@
     "oya/intelligence/runbooks": [
       4
     ],
-    "oya/payments/runbooks": [
+    "app/payments/runbooks": [
       3
     ],
     "secrets": [
@@ -104,5 +104,6 @@
       5,
       3
     ]
-  }
+  },
+  "_scope_floor_remeasure_2026_08_20_calendar_drain": "scanned_markdown_files 3519 -> 3498. DOWNWARD by exactly 21, and every one is a DELETION rather than a narrowed scope: oya/calendar was a proven duplicate of app/calendar (all 64 tracked files present at the same relative path) and was drained, not moved. Verified attribution: `git status --porcelain | grep '^D ' | grep '\\.md$'` lists exactly 21 paths and all 21 are under oya/calendar/, so no file outside the drained tree left the detector's view. The drain deleted rather than moved because the oya/ copy is the OLDER one: 11 of its files still carried the retired CI brand that cloud-ci-brand-residue tracks (0 under app/), and its iac/k8s/helm/values.yaml carries a blanket permit(principal, action, resource) that the app/ copy had already replaced with an explicit fail-closed default-deny block. Naming that brand literally here is what the brand-residue ratchet counts, so this note describes it instead."
 }

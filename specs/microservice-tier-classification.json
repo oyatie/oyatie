@@ -14,11 +14,11 @@
   },
   "tier_distribution": {
     "substrate": 54,
-    "product": 24,
+    "product": 23,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 78,
+  "service_count": 77,
   "services": {
     "app/calendar/manifest.json": {
       "service": "app/calendar",
@@ -814,14 +814,6 @@
       "tier_subtype": "product-developer-application-shell",
       "dr_tier": "T1"
     },
-    "oya/calendar/manifest.json": {
-      "service": "oya/calendar",
-      "manifest": "oya/calendar/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-calendar",
-      "dr_tier": "T0"
-    },
     "app/community/manifest.json": {
       "service": "app/community",
       "manifest": "app/community/manifest.json",
@@ -916,9 +908,9 @@
       "tier_subtype": "product-consumer-notes",
       "dr_tier": "T0"
     },
-    "oya/payments/manifest.json": {
+    "app/payments/manifest.json": {
       "service": "oya/payments",
-      "manifest": "oya/payments/manifest.json",
+      "manifest": "app/payments/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer",
