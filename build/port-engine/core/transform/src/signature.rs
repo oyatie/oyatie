@@ -63,6 +63,9 @@ pub(crate) fn inherent_methods(
     }
     methods.extend(crate::promote::promoted_methods(declaration, resolver, &claimed)?);
     methods.extend(emptiness_companion(&methods));
+    for method in &mut methods {
+        borrow_constant_text(method);
+    }
     Ok(methods)
 }
 
@@ -343,4 +346,80 @@ fn emptiness_companion(methods: &[RustFn]) -> Option<RustFn> {
             },
         )]),
     })
+}
+
+/// A method whose every exit is a string LITERAL hands back a borrow of it.
+///
+/// The source has to return a `string` because that is the only string it has, and the target then
+/// allocates a copy of text that never changes — `"mock".to_owned()` on every call, immediately
+/// dropped by most callers. A `&'static str` is the same text with the same lifetime a caller can
+/// keep, and the caller who wants an owned one still says so.
+///
+/// INHERENT METHODS ONLY, which is why this runs here rather than over every emitted function: a
+/// method implementing a trait owes that trait its signature, and changing one end of a contract is
+/// not an improvement.
+///
+/// EVERY exit, and only literals. A method with one computed branch has no static text to hand back,
+/// and rewriting the branches that do would leave arms that no longer agree.
+fn borrow_constant_text(method: &mut RustFn) {
+    let Some(ty) = &method.ret else {
+        return;
+    };
+    if ty.spelling() != "String" {
+        return;
+    }
+    let Some(body) = &method.body else {
+        return;
+    };
+    if !body.iter().all(yields_constant_text) {
+        return;
+    }
+    let Some(body) = method.body.take() else {
+        return;
+    };
+    method.body = Some(body.into_iter().map(borrowed_text).collect());
+    method.ret = Some(port_engine_rust_ir::RustType::Reference {
+        mutable: false,
+        inner: Box::new(port_engine_rust_ir::RustType::path("'static str")),
+    });
+}
+
+/// Whether every exit in this statement yields an owned STRING LITERAL.
+fn yields_constant_text(statement: &port_engine_rust_ir::RustStmt) -> bool {
+    match statement {
+        port_engine_rust_ir::RustStmt::Tail(expr)
+        | port_engine_rust_ir::RustStmt::Return(Some(expr)) => is_owned_literal(expr),
+        // Anything else in the body is a step rather than an exit, and a body with steps is not
+        // this shape — a constant-valued method is one expression.
+        _ => false,
+    }
+}
+
+/// `"text".to_owned()`, and nothing else.
+fn is_owned_literal(expr: &port_engine_rust_ir::RustExpr) -> bool {
+    matches!(
+        expr,
+        port_engine_rust_ir::RustExpr::MethodCall { receiver, method, args }
+            if method == "to_owned"
+                && args.is_empty()
+                && matches!(receiver.as_ref(),
+                    port_engine_rust_ir::RustExpr::Literal(text) if text.starts_with('"'))
+    )
+}
+
+/// The same statement with the ownership taken back off its literal.
+fn borrowed_text(statement: port_engine_rust_ir::RustStmt) -> port_engine_rust_ir::RustStmt {
+    let unwrap = |expr: port_engine_rust_ir::RustExpr| match expr {
+        port_engine_rust_ir::RustExpr::MethodCall { receiver, .. } => *receiver,
+        other => other,
+    };
+    match statement {
+        port_engine_rust_ir::RustStmt::Tail(expr) => {
+            port_engine_rust_ir::RustStmt::Tail(unwrap(expr))
+        }
+        port_engine_rust_ir::RustStmt::Return(Some(expr)) => {
+            port_engine_rust_ir::RustStmt::Return(Some(unwrap(expr)))
+        }
+        other => other,
+    }
 }
