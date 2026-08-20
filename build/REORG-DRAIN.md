@@ -4437,3 +4437,66 @@ after a front-end or pack change, the first `cargo test` is a cold build.
 Verification: Go tests green; 11 crates' Rust tests green by exit code; clippy `-D warnings` green;
 `delta` Green/Unchanged; golden byte-identical; `clippy-driver --deny=warnings` green over all five
 packages that emit, under `#![forbid(unsafe_code)]`.
+
+## R2k — the rule was right, the call path was not
+
+A blind review of the current output (xxhash + semver, three files, reviewer unaware of provenance)
+moved the verdict from DO NOT MERGE to **MERGE WITH CHANGES**, and `SliceHeader` — the most decisive
+tell in four consecutive reviews — is gone from the list entirely. R2j worked.
+
+The new number-one tell was `errors.Is`, named in a Rust doc comment on a public enum variant. The
+reviewer called it "the single most decisive line in the corpus": a Go standard-library function left
+in prose the port is supposed to own.
+
+**The rule that forbids it was already written and already correct.** `docs_refuse` drops any
+sentence naming `pkg.Ident` where `pkg` is not a unit of this model — the prose mirror of the code
+rule that refuses reading through a package the snapshot does not contain. It would have caught this
+sentence on the first pass.
+
+It never ran. `docs_of` dropped the sentences and then called `docs_from_block` to format them; the
+grouped failure enum builds a variant per sentinel and calls `docs_from_block` DIRECTLY, so every
+variant's prose skipped the check. The doc comment above that function says it was factored precisely
+so "two spellings of a doc rewrite would drift exactly as two spellings of a name did" — and they
+drifted anyway, because what was factored out was the REWRITING and not the REFUSING. One path
+remembered to refuse first and the other did not.
+
+Fixed by moving the drop inside `docs_from_block`, where every path goes through it and the bypass
+cannot recur. The only thing the check needed from the declaration was its own name, so it takes a
+name now instead — which is exactly why it was possible to forget: it never really needed the
+declaration at all.
+
+**The general lesson, and it is not about documentation.** A rule that lives in the caller is a rule
+that is optional. This engine's whole contract is that what it cannot prove it refuses, and a refusal
+sited one level above the thing it guards is one new call site away from silence. Worth checking
+wherever else a check and the operation it guards are separated: the check belongs inside the
+narrowest function that every path must go through.
+
+The emitted variant now reads "Incrementing a version segment would exceed the maximum value of a
+u64." — true, complete, and no longer describing an error design this port has not made.
+
+**What the review ranks next, all still open.** In its order: `xxhsum::contains`, a hand-rolled
+linear search over a slice where the target has had `.iter().any()` since 1.0 and which the reviewer
+called "the single most recognizable Go helper in existence"; `MAGIC`/`MARSHALED_SIZE` as an
+undocumented wire format; the `inc_major_e`/`inc_minor_e` naming convention, which is Go's workaround
+for having no `Result`; `compare_segment`, a wrapper around `u64::cmp` that exists only in a language
+without an ordering trait; and `NUM`/`ALLOWED` as character tables where the target has `char`
+predicates. The `PRIMES` comment persists at rank 7.
+
+**Separately measured this phase, not yet built.** `errors` sits at 0% because its central types
+refuse, and they refuse for one reason: a method whose SOLE result is the source's error type is
+treated as fallible, so `Cause() error` becomes `Result<(), E>` and `return w.cause` must be PROVEN a
+failure, which a stored field cannot be. The mapping is wrong before the proof is: `Ok(())` would
+mean "there is no cause" and `Err(e)` would mean "the cause is e", which is the failure channel used
+to carry data.
+
+A sole `error` result is ambiguous in the source between the failure channel and an error returned as
+data, and the discriminator is measurable. Counting across the corpus: 45 functions have a sole error
+result; 13 never return the absent value on any path and 32 do. The split is exactly right — every
+`Cause`, `Unwrap` and `StackTrace` getter falls on the data side along with the `New`/`Errorf`
+constructors, and every `Unmarshal*`, `Scan` and `validate*` falls on the channel side. Ten of the 13
+are in `errors`. The target form for the data side is `Option<E>`, where absent is `None` and no
+proof is required of anything.
+
+Verification: 11 crates' tests green by exit code; clippy `-D warnings` green; `delta` Green/Unchanged;
+golden byte-identical; `clippy-driver --deny=warnings` green over all five packages that emit, under
+`#![forbid(unsafe_code)]`. Coverage unchanged, as expected for a prose rule.

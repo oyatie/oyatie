@@ -22,8 +22,6 @@
 
 use std::collections::BTreeMap;
 
-use port_engine_api::Declaration;
-
 use crate::resolve::Resolver;
 
 /// The doc block with every sentence that names something absent removed.
@@ -33,12 +31,12 @@ use crate::resolve::Resolver;
 /// not honour.
 pub(crate) fn without_dangling_sentences(
     block: &str,
-    declaration: &Declaration,
+    subject: &str,
     resolver: &Resolver<'_>,
 ) -> String {
     let kept: Vec<&str> = sentences(block)
         .into_iter()
-        .filter(|sentence| !names_something_absent(sentence, declaration, resolver))
+        .filter(|sentence| !names_something_absent(sentence, subject, resolver))
         .collect();
     kept.join(" ")
 }
@@ -75,7 +73,7 @@ fn sentences(block: &str) -> Vec<&str> {
 /// Whether this sentence names something the emitted crate does not contain.
 fn names_something_absent(
     sentence: &str,
-    declaration: &Declaration,
+    subject: &str,
     resolver: &Resolver<'_>,
 ) -> bool {
     for word in sentence.split(|ch: char| !(ch.is_alphanumeric() || ch == '_' || ch == '.')) {
@@ -90,7 +88,7 @@ fn names_something_absent(
         {
             return true;
         }
-        if names_an_unemitted_declaration(word, declaration, resolver) {
+        if names_an_unemitted_declaration(word, subject, resolver) {
             return true;
         }
     }
@@ -118,11 +116,11 @@ fn names_the_source_language(word: &str, resolver: &Resolver<'_>) -> bool {
 /// A MEMBER is emitted exactly when its owner is, so that is what is asked about it.
 fn names_an_unemitted_declaration(
     word: &str,
-    declaration: &Declaration,
+    subject: &str,
     resolver: &Resolver<'_>,
 ) -> bool {
     let exported = word.chars().next().is_some_and(char::is_uppercase);
-    if !exported || word == declaration.name || !resolver.scope.renames.contains_key(word) {
+    if !exported || word == subject || !resolver.scope.renames.contains_key(word) {
         return false;
     }
     let subject = resolver
