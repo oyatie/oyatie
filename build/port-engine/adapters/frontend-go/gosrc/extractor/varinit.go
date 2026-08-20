@@ -284,3 +284,58 @@ func baseIdent(expr ast.Expr) ast.Expr {
 		}
 	}
 }
+
+// packageConstUses names, for each UNTYPED package constant, the single type its uses agree on.
+//
+// An untyped constant has no type in the source until it is used, and it takes a DIFFERENT one at
+// each use: `const offset = 10` is a byte in `offset + (digit - 'A')` and an int in `n + offset`.
+// The target has no such thing — a `const` must state one type at its declaration.
+//
+// `types.Default` answers "what type does this take when it must have one", which is the right
+// answer when there is no other evidence. Where the uses AGREE it is the wrong one: ksuid's
+// `offsetUppercase` defaulted to the source's `int`, and every use of it was byte arithmetic, so
+// the emitted constant could not be added to anything it was declared to serve.
+//
+// Only unanimity counts. A constant used at two different types has no single target declaration —
+// the engine already records that cost for body-scoped constants — so disagreement yields nothing
+// here and the default stands, which fails to compile rather than silently picking one use over
+// another.
+func packageConstUses(files []*ast.File, info *types.Info, tpkg *types.Package) map[types.Object]types.Type {
+	scope := tpkg.Scope()
+	agreed := map[types.Object]types.Type{}
+	conflicted := map[types.Object]bool{}
+	for _, file := range files {
+		ast.Inspect(file, func(n ast.Node) bool {
+			ident, ok := n.(*ast.Ident)
+			if !ok {
+				return true
+			}
+			konst, ok := info.Uses[ident].(*types.Const)
+			if !ok || scope.Lookup(konst.Name()) != konst {
+				return true
+			}
+			basic, ok := konst.Type().(*types.Basic)
+			if !ok || basic.Info()&types.IsUntyped == 0 {
+				return true
+			}
+			at := info.Types[ident].Type
+			if at == nil {
+				return true
+			}
+			if used, isBasic := at.(*types.Basic); !isBasic || used.Info()&types.IsUntyped != 0 {
+				return true
+			}
+			switch previous, seen := agreed[konst]; {
+			case !seen:
+				agreed[konst] = at
+			case !types.Identical(previous, at):
+				conflicted[konst] = true
+			}
+			return true
+		})
+	}
+	for obj := range conflicted {
+		delete(agreed, obj)
+	}
+	return agreed
+}

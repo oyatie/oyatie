@@ -266,7 +266,12 @@ pub(crate) fn lower_slice_place(expr: &RustExpr) -> Result<TokenStream, PortErro
     let RustExpr::Slice { base, low, high } = expr else {
         return lower_expr(expr);
     };
-    let base = lower_expr(base)?;
+    // THE BASE OF A SLICE IS A PLACE, and lowering it as a value borrows it. That is invisible
+    // until a slice's base is ITSELF a slice, at which point `&x[a..b]` gains `[..n]` and the
+    // borrow — which binds looser than everything — swallows the whole method chain that follows:
+    // `&x[a..b][..n].try_into()` is a reference to the conversion rather than a conversion of the
+    // slice, and the type error it produces names neither.
+    let base = crate::lower_precedence::lower_postfix_base(base)?;
     let range = match (low, high) {
         (Some(low), Some(high)) => {
             let (low, high) = (lower_expr(low)?, lower_expr(high)?);
