@@ -92,6 +92,15 @@ pub enum RustItem {
         self_ty: RustType,
         /// The method's translated body, whose tail is the message.
         body: Vec<crate::stmt::RustStmt>,
+        /// Whether the type is a FAILURE, and so also implements the target's error trait.
+        ///
+        /// The two constructions render identically and mean different things. A type satisfying
+        /// the source's error interface is an error and gets both impls; a type with a `String`
+        /// method is merely printable, and giving it the error trait makes it coerce into a boxed
+        /// error, satisfy `?` in any failing function, and appear in the documentation as a failure
+        /// — none of which the source says. A JSON value tag, a context key and a network address
+        /// all became errors that way.
+        is_failure: bool,
     },
     SentinelError {
         /// Documentation carried over from the source.

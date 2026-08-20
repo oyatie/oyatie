@@ -130,6 +130,7 @@ fn display_impl(
         docs: built.docs,
         self_ty: self_ty.clone(),
         body,
+        is_failure: false,
     }))
 }
 
@@ -328,6 +329,7 @@ fn message_impl(
         docs: built.docs,
         self_ty: self_ty.clone(),
         body,
+        is_failure: true,
     }))
 }
 

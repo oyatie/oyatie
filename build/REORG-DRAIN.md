@@ -6452,3 +6452,35 @@ been asked. `unwrapped_in` now takes the position, and each site states which on
 
 Clones across the five goal repositories: uuid 0, gjson 0, chi 0, multierror 0, memberlist 1 — and
 the last one is real, an owned string returned out of a field.
+
+## R3x — a printable type is not an error
+
+Round 4. The blind gate holds at MERGE_WITH_CHANGES and its top blocker was made by R3s:
+
+> Four types that are not errors implement `std::error::Error`: `gjson::Type` (a JSON value tag),
+> `chi::ContextKey`, `chi::middleware::ContextKey`, and `memberlist::MockAddress` (a network
+> address). This looks like Go's `String()` method being mistaken for `Error()`.
+
+It was exactly that. `RustItem::MessageImpl` renders a display impl AND the error trait, because it
+was built for the source's error interface where both are true. Reusing it for the stringer carried
+the second one along — and the consequence is not cosmetic: those types then coerce into a boxed
+error, satisfy `?` in any failing function, and are documented as failures. None of which the source
+says.
+
+The variant now carries `is_failure`, and the two constructions differ by exactly that.
+
+Which is where the interesting part is. The flag was set BACKWARDS on the first attempt — the two
+call sites were distinguished by their order in the file, and `display_impl` had been inserted above
+`message_impl` rather than below it. The corpus said so immediately: `Type`, `ContextKey` and
+`MockAddress` kept their error impls and `Error`, `Chain` and `NoPingResponseError` lost theirs. A
+check that reads the OUTPUT catches an inverted boolean; a check that reads the diff does not.
+
+    uuid: Error, UrnPrefixError, InvalidLengthError    multierror: Chain
+    memberlist: Error, NoPingResponseError            gjson, chi: none
+
+### `UUIDs` is an acronym and its plural, not two words
+
+R3s's rule — the last letter of an uppercase run belongs to the next word when a lower-case letter
+follows — got `UUIDFormat` right and `UUIDs` wrong, producing `UuiDs`, which a reviewer called a
+mangled public type name. One letter is never a word. The rule now requires at least TWO lower-case
+letters to follow before the run is broken.
