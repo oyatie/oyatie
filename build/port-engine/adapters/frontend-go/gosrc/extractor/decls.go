@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"go/ast"
+	"go/token"
 	"go/types"
 	"sort"
 )
@@ -22,7 +24,28 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		// where the constant-position override says `&str`. `types.Default` is the source's own
 		// answer to "what type does this take when it must have one", which is exactly the
 		// question a target declaration asks.
-		base.Type = typeTree(types.Default(typed.Type()))
+		// THE TYPE ITS USES AGREE ON, and `types.Default` only when they do not. See
+		// packageConstUses: the default is the source's answer to "what type when it must have
+		// one", which is right with no other evidence and wrong when every use in the package says
+		// something else.
+		// SELF-CONTAINED ONLY. Retyping a constant whose initialiser is an EXPRESSION over other
+		// constants types only that constant: `const g1582ns100 = g1582 * 10000000` would be
+		// declared at the type its uses agree on while `g1582` keeps the type ITS uses agree on,
+		// and the target then rejects the multiplication. The source has no such problem because
+		// untyped arithmetic is exact and typeless until it lands somewhere.
+		//
+		// Making the whole constant graph agree is a transitive problem and a different rule, so
+		// the narrow one is applied where it is sound and the default stands elsewhere.
+		derived := false
+		if init, ok := ctx.varInits[typed]; ok {
+			derived = init.expr == nil || !isLiteralExpr(init.expr)
+		}
+		agreed, unanimous := ctx.constUses[typed]
+		if unanimous && !derived {
+			base.Type = typeTree(agreed)
+		} else {
+			base.Type = typeTree(types.Default(typed.Type()))
+		}
 		if value := typed.Val(); value != nil {
 			base.Attrs = withAttr(base.Attrs, attrValue, value.String())
 		}
@@ -235,4 +258,22 @@ func methodChildren(named *types.Named, ctx *extractCtx) ([]node, error) {
 	}
 	sortNodes(methods)
 	return methods, nil
+}
+
+// isLiteralExpr reports whether this initialiser is a literal, possibly signed.
+//
+// A literal carries its own value and nothing else's, so retyping the constant it initialises
+// cannot disagree with any other declaration. Anything with a NAME in it can: the name has a type
+// of its own, decided by its own uses, and the two need not match.
+func isLiteralExpr(expr ast.Expr) bool {
+	switch typed := expr.(type) {
+	case *ast.BasicLit:
+		return true
+	case *ast.UnaryExpr:
+		return typed.Op == token.SUB && isLiteralExpr(typed.X)
+	case *ast.ParenExpr:
+		return isLiteralExpr(typed.X)
+	default:
+		return false
+	}
 }

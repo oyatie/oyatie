@@ -50,11 +50,52 @@ pub(crate) fn byte_order_call(
         let [source] = args else {
             return Ok(None);
         };
-        // The source's read PANICS when the slice is short, and so does the fit — so the unwrap is
-        // the source's own behaviour restated, not a failure mode this engine introduced.
+        // THE PREFIX, and this is the whole correctness of the translation.
+        //
+        // The source's read takes the first N bytes of the slice it is given and IGNORES the rest;
+        // it panics only when there are fewer than N. The target's fit requires EXACTLY N and
+        // panics on a longer slice too. Those are different functions, and the difference is
+        // invisible on the only input a hermetic fixture ever supplies — a slice of exactly N.
+        //
+        // The previous comment here read: "The source's read PANICS when the slice is short, and so
+        // does the fit — so the unwrap is the source's own behaviour restated." Half of that is
+        // true. `consumeUint64(b)` in `cespare/xxhash` reads eight bytes from a buffer of
+        // seventy-six and returns the remaining sixty-eight, and the emitted version panicked on
+        // every call it exists to serve. A reviewer found it by RUNNING it, which is the only way
+        // it could have been found: it compiles.
+        //
+        // Slicing to N first restores the source's exact condition — panic when short, ignore the
+        // rest when long.
+        let width = byte_width(target).ok_or_else(|| TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!(
+                "a byte-order read produces `{target}`, and the engine has no byte width for it — \
+                 the read takes exactly that many bytes from the front of the slice, so without \
+                 the width there is no way to spell the same read"
+            ),
+        })?;
+        // A source that is ALREADY exactly N bytes wide needs nothing. `self.0[8..10]` is two bytes
+        // by construction, and slicing it again to two would say the same thing twice.
+        //
+        // Where a prefix IS needed it slices the PLACE, not the borrow of it: `&x[a..b]` sliced
+        // again becomes `&x[a..b][..n]`, where the `&` has swallowed the whole chain and the fit
+        // then receives a reference to a reference. The fit auto-borrows its receiver, so the
+        // borrow was never load-bearing.
+        let place = match &source {
+            RustExpr::Reference { inner, .. } => inner.as_ref(),
+            other => other,
+        };
+        let prefix = match exact_width(place, width) {
+            true => source.clone(),
+            false => RustExpr::Slice {
+                base: Box::new(place.clone()),
+                low: None,
+                high: Some(Box::new(RustExpr::Literal(width.to_string()))),
+            },
+        };
         let fitted = RustExpr::MethodCall {
             receiver: Box::new(RustExpr::MethodCall {
-                receiver: Box::new(source.clone()),
+                receiver: Box::new(prefix),
                 method: rule.fit_method.clone(),
                 args: Vec::new(),
             }),
@@ -118,4 +159,43 @@ pub(crate) fn writes_into_first_argument(node: &Declaration, resolver: &crate::r
         .is_some_and(|pkg| {
             pkg.kind == KIND_IDENT && pkg.attr(ATTR_PACKAGE_PATH) == Some(rule.package.as_str())
         })
+}
+
+/// How many bytes a target integer type occupies.
+///
+/// A property of the TARGET LANGUAGE rather than a decision, which is why it is code and not pack
+/// data: `u32` is four bytes wherever this engine runs, and a pack that said otherwise would be
+/// wrong rather than different. An unrecognised type has no width and refuses by name.
+fn byte_width(target: &str) -> Option<usize> {
+    match target {
+        "u8" | "i8" => Some(1),
+        "u16" | "i16" => Some(2),
+        "u32" | "i32" | "f32" => Some(4),
+        "u64" | "i64" | "f64" => Some(8),
+        "u128" | "i128" => Some(16),
+        _ => None,
+    }
+}
+
+/// Whether this expression is a slice whose CONSTANT bounds already span exactly `width` bytes.
+///
+/// Only literal bounds count. A slice whose ends are computed has a length nobody here knows, and
+/// treating it as exact is how the defect this guard sits beside was introduced in the first place.
+fn exact_width(expr: &RustExpr, width: usize) -> bool {
+    let RustExpr::Slice {
+        low: Some(low),
+        high: Some(high),
+        ..
+    } = expr
+    else {
+        return false;
+    };
+    let (RustExpr::Literal(low), RustExpr::Literal(high)) = (low.as_ref(), high.as_ref()) else {
+        return false;
+    };
+    let parse = |text: &str| text.replace('_', "").parse::<usize>().ok();
+    match (parse(low), parse(high)) {
+        (Some(low), Some(high)) => high.checked_sub(low) == Some(width),
+        _ => false,
+    }
 }

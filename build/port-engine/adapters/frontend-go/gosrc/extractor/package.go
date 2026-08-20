@@ -127,6 +127,7 @@ func extractPackage(
 		unsafeOnly: indexUnsafeOnlyTypes(files, info, tpkg),
 	}
 	ctx.varWrites, ctx.varInitOnly = packageVarWrites(files, info, tpkg)
+	ctx.constUses = packageConstUses(files, info, tpkg)
 	ctx.initAssignments = indexInitAssignments(files, tpkg)
 
 	scope := tpkg.Scope()
@@ -272,6 +273,11 @@ type extractCtx struct {
 	// variable is computed once before anything runs and never changes after, which is not the
 	// mutable global the deferral is about — a different fact, and so a different target form.
 	varInitOnly map[types.Object]bool
+	// constUses names, for each UNTYPED package constant, the single type every use agrees on. An
+	// untyped constant takes its type from each use and the target must state one at the
+	// declaration; where the uses agree, that is what it is, and `types.Default` is only the
+	// fallback for when they do not.
+	constUses map[types.Object]types.Type
 	// initAssignments keys a package variable by what the package INITIALISER assigns it. go/types
 	// omits `init` from package scope, so without this the engine could see THAT a variable is
 	// computed and never with what.

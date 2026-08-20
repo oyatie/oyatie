@@ -6069,3 +6069,61 @@ on whether any capture is written, because that is a different missing decision.
 
 That is the R3d class — an input that changes the output and moves no digest — caught by a gate
 rather than by a person, on the first run after the file appeared.
+
+## R3p — a byte-order read takes the FRONT of the slice, and the engine required the whole of it
+
+Second round of review gates, on output that had changed substantially. Still DO_NOT_MERGE, and the
+findings are a different KIND: the first round was mostly shape, this one found defects by RUNNING
+the code. The most important:
+
+    fn u64(b: &[u8]) -> u64 { u64::from_le_bytes(b.try_into().unwrap()) }
+    fn consume_uint64(b: &[u8]) -> (Vec<u8>, u64) { let x = u64(b); (b[8..].to_vec(), x) }
+
+`binary.LittleEndian.Uint64(b)` reads the first eight bytes of `b` and IGNORES the rest; it panics
+only when there are fewer than eight. `b.try_into()` requires EXACTLY eight and panics on a longer
+slice too. Those are different functions.
+
+`consumeUint64` in `cespare/xxhash` reads eight bytes out of a seventy-six byte buffer and returns
+the remaining sixty-eight — so the emitted version panicked on every call it exists to serve. It
+compiles, and no fixture could ever have caught it: the difference is invisible on a slice of
+exactly eight, which is the only input a hermetic corpus supplies.
+
+The comment sitting on that code said:
+
+> The source's read PANICS when the slice is short, and so does the fit — so the unwrap is the
+> source's own behaviour restated, not a failure mode this engine introduced.
+
+Half true, and the missing half is the defect. Slicing to the width first restores the source's
+exact condition — panic when short, ignore the rest when long. The width is a property of the
+TARGET language rather than a decision, so it is code and not pack data, and a type with no known
+width refuses by name.
+
+### Two bugs the fix uncovered, both about places
+
+A source already exactly N bytes wide needs no second slice: `self.0[8..10]` is two bytes by
+construction. Only LITERAL bounds count as proof of that — a computed bound has a length nobody
+here knows, and treating it as exact is the same mistake one level down.
+
+And `lower_slice_place` lowered a slice's BASE as a value, which borrows it. Invisible until a
+slice's base is itself a slice: `&x[a..b]` gains `[..n]`, and the borrow — which binds looser than
+everything — swallows the method chain that follows. `&x[a..b][..n].try_into()` is a reference to
+the conversion rather than a conversion of the slice, and the type error names neither. The base of
+a slice is a place.
+
+### An untyped constant takes the type its uses agree on
+
+    const offsetUppercase = 10        // used only as `offsetUppercase + (digit - 'A')`
+
+An untyped constant has no type until it is used and takes a different one at each use. The target
+must state one at the declaration, and `types.Default` — the source's own answer to "what type when
+it must have one" — is right with no other evidence and wrong when every use says otherwise.
+ksuid's offsets defaulted to `int`, and every use of them was byte arithmetic.
+
+Only unanimity counts, and only for a constant whose initialiser is a LITERAL. Retyping one whose
+initialiser is an expression over other constants types only that constant:
+`const g1582ns100 = g1582 * 10000000` would be declared at its own agreed type while `g1582` keeps
+the type ITS uses agree on, and the target rejects the multiplication. Making the whole constant
+graph agree is a transitive problem and a different rule. That regression appeared and was caught by
+the compile check within one cycle.
+
+ksuid: 8 compile errors → 3. Every other package still compiles.
