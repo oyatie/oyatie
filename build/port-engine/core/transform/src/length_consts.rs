@@ -44,12 +44,97 @@ pub(crate) fn length_constants(
     for declaration in declarations {
         count_reads(declaration, &candidates, lengths, renders, takes_length, &mut reads);
     }
-    reads
+    let proven: BTreeSet<String> = reads
         .into_iter()
         .filter(|(_, (total, against_length))| *total > 0 && total == against_length)
         .map(|(name, _)| name)
-        .collect()
+        .collect();
+    derived_lengths(declarations, &candidates, proven)
 }
+
+/// The proven set, closed over the constants DERIVED from it.
+///
+/// `byteLength = timestampLengthInBytes + payloadLengthInBytes` is a length because what it is built
+/// from are lengths, and nothing else about it needs proving. Without this the rule retypes one
+/// constant and leaves its neighbour signed, and the sum of the two no longer typechecks — which is
+/// exactly what happened the first time the index rule proved `timestampLengthInBytes` on its own.
+///
+/// A FIXPOINT, because a derived constant can feed another. The set only grows and every round adds
+/// at least one member or stops, so it terminates for the same reason the emittability fixpoint does
+/// — read in the other direction.
+///
+/// Every operand must be a member or a literal. One operand that is neither and the value is
+/// something else, which is the same bar `is_length_arithmetic` sets for a read.
+fn derived_lengths(
+    declarations: &[Declaration],
+    candidates: &BTreeSet<String>,
+    mut proven: BTreeSet<String>,
+) -> BTreeSet<String> {
+    loop {
+        let mut grew = false;
+        for declaration in declarations {
+            if declaration.kind != "const"
+                || declaration.type_ref.name != SOURCE_INT
+                || proven.contains(&declaration.name)
+            {
+                continue;
+            }
+            let Some(value) = declaration.children.first() else {
+                continue;
+            };
+            // UNIFICATION, not one-way derivation. `byteLength = timestampLengthInBytes +
+            // payloadLengthInBytes` proves nothing on its own about the second operand — the source
+            // types all three the same and says no more. What supplies the missing constraint is the
+            // TARGET: an index type and a signed integer do not add, so if one operand must be the
+            // index type its partner must be too, and so must the sum. That is a fact about the
+            // language being emitted, not a guess about the one being read.
+            //
+            // So a group is: the declaration and every int constant its value names. If any member
+            // is proven, all of them are. This is what makes the rule safe to apply at all — proving
+            // one constant and leaving its neighbour signed does not typecheck, and did not.
+            let mut group = names_in(value, candidates);
+            if group.is_empty() {
+                continue;
+            }
+            group.insert(declaration.name.clone());
+            if !built_from(value, candidates) || !group.iter().any(|name| proven.contains(name)) {
+                continue;
+            }
+            for name in group {
+                grew |= proven.insert(name);
+            }
+        }
+        if !grew {
+            return proven;
+        }
+    }
+}
+
+/// Whether every leaf of this expression is one of the unit's int constants or a literal.
+///
+/// The bar is the same one `is_length_arithmetic` sets for a read: one operand that is neither and
+/// the value is something else, and nothing about it can be concluded.
+fn built_from(node: &Declaration, candidates: &BTreeSet<String>) -> bool {
+    match node.kind.as_str() {
+        KIND_LITERAL => true,
+        KIND_IDENT => candidates.contains(&node.name),
+        "binary" | "paren" => node.children.iter().all(|child| built_from(child, candidates)),
+        _ => false,
+    }
+}
+
+/// The unit's int constants this expression names.
+fn names_in(node: &Declaration, candidates: &BTreeSet<String>) -> BTreeSet<String> {
+    let mut out = BTreeSet::new();
+    if node.kind == KIND_IDENT && candidates.contains(&node.name) {
+        out.insert(node.name.clone());
+    }
+    for child in &node.children {
+        out.extend(names_in(child, candidates));
+    }
+    out
+}
+
 
 /// Count every read of a candidate, and how many of those are compared against a length.
 fn count_reads(
@@ -108,6 +193,46 @@ fn count_reads(
         && candidates.contains(&node.name)
     {
         into.entry(node.name.clone()).or_default().0 += 1;
+    }
+    // A SWITCH ON A LENGTH makes every case label a comparison against one. `switch len(b) { case
+    // byteLength: ... }` is the same guard as `len(b) == byteLength` written as a table, and the
+    // rule saw nothing because a case label is not a binary node. That single shape is why `ksuid`'s
+    // byte length stayed signed after the bound rule below fixed its neighbour.
+    if node.kind == "switch"
+        && node
+            .children
+            .iter()
+            .find(|child| child.kind == "tag")
+            .and_then(|tag| tag.children.first())
+            .is_some_and(|tagged| is_length(tagged, lengths))
+    {
+        for label in node
+            .children
+            .iter()
+            .filter(|child| child.kind == "case")
+            .flat_map(|case| case.children.iter())
+            .filter(|part| part.kind == "patterns")
+            .flat_map(|patterns| patterns.children.iter())
+        {
+            if label.kind == KIND_IDENT && candidates.contains(&label.name) {
+                into.entry(label.name.clone()).or_default().1 += 1;
+            }
+        }
+    }
+    // An INDEX or a SLICE BOUND is positive evidence, and of a stronger kind than a comparison:
+    // a comparison says the value is measured against a length, while this says the value IS one —
+    // the position it sits in indexes a sequence, and in the target that position has exactly one
+    // type. `ksuid` proves the point: its byte length and timestamp length are never compared to
+    // anything, only sliced with, so the comparison rule had no evidence and left them signed, and
+    // every use then carried a cast the source never wrote.
+    //
+    // The BASE is not a bound and is skipped: `xs[n]` says nothing about `xs`.
+    if matches!(node.kind.as_str(), "index" | "slice") {
+        for bound in node.children.iter().skip(1) {
+            if bound.kind == KIND_IDENT && candidates.contains(&bound.name) {
+                into.entry(bound.name.clone()).or_default().1 += 1;
+            }
+        }
     }
     // A COMPARISON with a candidate on one side and a length on the other. Both orders, because
     // `n > max` and `max < n` are the same guard written by different people.

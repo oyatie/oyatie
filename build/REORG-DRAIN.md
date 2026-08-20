@@ -5017,3 +5017,50 @@ And nothing in the gate suite could see it. Tests, clippy, the delta, the golden
 all pass on a tree with `ci/` and `specs/` deleted, because none of them reads those trees. The check
 that caught it was preparing a PR and looking at the diffstat — which is to say, a human-shaped
 question about the whole change rather than a machine-shaped question about the part under work.
+
+## R2u — a length is a length wherever it is used, and its neighbours are too
+
+A blind review named the signed length constants twice: once as blocking (`BYTE_LENGTH: i64` cannot
+size an array, so `[u8; 20]` hard-codes a literal beside a constant that is decorative) and once as
+evidence of translation (`self.0[TIMESTAMP_LENGTH_IN_BYTES as usize..]` — "a Rust author would have
+written `usize` and never needed the cast").
+
+The rule that proves a constant is a length already existed and is careful: a constant is one when
+every read of it compares it against a length, with rendering, length arithmetic, and being passed AS
+a length all counted as neutral. It had two holes and neither was in its reasoning.
+
+**An index or a slice bound is positive evidence, and stronger than a comparison.** A comparison says
+the value is measured against a length; an index says the value IS one, because the position it sits
+in indexes a sequence and in the target that position has exactly one type. `ksuid`'s timestamp length
+is never compared to anything — only sliced with — so the rule had no evidence at all and left it
+signed.
+
+**A switch on a length makes every case label a comparison against one.** `switch len(b) { case
+byteLength: ... }` is `len(b) == byteLength` written as a table, and the rule saw nothing because a
+case label is not a binary node.
+
+**Then the interesting part.** Proving one constant broke the build: `byteLength =
+timestampLengthInBytes + payloadLengthInBytes` became `usize + i64`. The source types all three the
+same and says no more about them — so nothing on the source side could have decided it.
+
+What supplies the missing constraint is the TARGET. An index type and a signed integer do not add, so
+if one operand must be the index type, its partner must be too, and so must the sum. That is a fact
+about the language being emitted rather than a guess about the one being read, and it turns the rule
+from one-way derivation into UNIFICATION: a declaration and every int constant its value names form a
+group, and if any member is proven, all of them are. Run to a fixpoint, growing only.
+
+This is worth stating generally. The engine's rules have mostly been inferences about the SOURCE —
+what the Go says, what its conventions mean. This one is an inference from the TARGET's type system
+about what the source left underdetermined, and it is sound for a reason the others are not: where
+Go's untyped constants make two things interchangeable and Rust's types do not, the target's
+constraint is information the source could not have carried.
+
+**And one end of a proven fact must not keep guessing.** With the constant retyped, the index path
+still cast it — `TIMESTAMP_LENGTH_IN_BYTES as usize` on something already `usize`, which the target's
+own lint rejects. The declaration and the use site now read the same proof, which is the third time
+this session that two ends of one decision had to be made to consult one answer.
+
+`ksuid`'s signed integers drop from 12 to 9, the three that are lengths become `usize`, the cast
+disappears, and all seven packages still compile clean. What remains signed in `ksuid` are the wire
+tag bytes and the epoch — none of which is a length, and the reviewer's separate point that they want
+`u8` and a `repr` is a different rule about a different fact.
