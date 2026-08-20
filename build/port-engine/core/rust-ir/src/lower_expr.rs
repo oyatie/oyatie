@@ -313,3 +313,45 @@ pub(crate) fn lower_slice_place(expr: &RustExpr) -> Result<TokenStream, PortErro
     };
     Ok(quote! { #base[#range] })
 }
+
+/// A `match` whose every arm yields an OWNED string literal, with the arms borrowed instead.
+///
+/// `"Null".to_owned()` in every arm makes the match a `String`, which costs an allocation per call
+/// for text that never changes. Borrowing the arms makes it a `&'static str`, which is the same
+/// text and no allocation.
+///
+/// `None` unless EVERY arm qualifies. A match with one computed arm has no single borrowed type,
+/// and rewriting the rest would leave arms that do not agree.
+pub(crate) fn static_str_match(expr: &RustExpr) -> Option<RustExpr> {
+    let RustExpr::Match { scrutinee, arms } = expr else {
+        return None;
+    };
+    let mut borrowed = Vec::with_capacity(arms.len());
+    for arm in arms {
+        let [crate::stmt::RustStmt::Tail(RustExpr::MethodCall {
+            receiver,
+            method,
+            args,
+        })] = arm.body.as_slice()
+        else {
+            return None;
+        };
+        if method != "to_owned" || !args.is_empty() {
+            return None;
+        }
+        let RustExpr::Literal(text) = receiver.as_ref() else {
+            return None;
+        };
+        if !text.starts_with('"') {
+            return None;
+        }
+        borrowed.push(crate::expr::MatchArm {
+            patterns: arm.patterns.clone(),
+            body: vec![crate::stmt::RustStmt::Tail(RustExpr::Literal(text.clone()))],
+        });
+    }
+    Some(RustExpr::Match {
+        scrutinee: scrutinee.clone(),
+        arms: borrowed,
+    })
+}

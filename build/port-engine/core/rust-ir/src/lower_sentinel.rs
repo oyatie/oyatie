@@ -111,6 +111,20 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                         .collect::<Result<Vec<_>, _>>()?;
                     quote! { write!(f, #template #(, #args)*) }
                 }
+                // EVERY ARM A LITERAL. The source's method returns a string, so each arm was made
+                // to own one — `"Null".to_owned()` — and the whole match is then borrowed and
+                // written and dropped. One allocation per call, for text that is static.
+                //
+                // Borrowed arms make the match a `&'static str`, which `write_str` takes directly.
+                // Done here rather than in the transform because it is a property of THIS
+                // destination: the same match returned from an ordinary method still owes its
+                // caller an owned string.
+                Some(crate::stmt::RustStmt::Tail(
+                    expr @ crate::expr::RustExpr::Match { .. },
+                )) if let Some(borrowed) = crate::lower_expr::static_str_match(expr) => {
+                    let matched = crate::lower_expr::lower_expr(&borrowed)?;
+                    quote! { f.write_str(#matched) }
+                }
                 // ALREADY A REFERENCE. `write_str` takes one, so a tail that is already a borrow
                 // needs no second `&` — and adding one is `clippy::needless_borrow`, which the
                 // deny-warnings policy makes a build failure. The borrow is added only where the

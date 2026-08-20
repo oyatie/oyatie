@@ -29,7 +29,15 @@ func indexGenDeclDocs(
 	docs map[types.Object]string,
 	fieldDocs map[string]string,
 ) {
+	// The GROUP comment documents the BLOCK, and the target has no block to hang it on. It is
+	// given to the FIRST member and to nothing else: fanning it out repeated one sentence fifteen
+	// times across `memberlist`'s message types, which a reviewer counted and named — and every
+	// copy after the first says nothing the reader has not just read.
+	//
+	// Dropping it instead would lose the only place the block's own meaning is written down, and
+	// "WARNING: ONLY APPEND TO THIS LIST" is exactly the kind of thing a port must not lose.
 	groupDoc := commentText(decl.Doc)
+	groupUsed := false
 	for _, spec := range decl.Specs {
 		switch typed := spec.(type) {
 		case *ast.TypeSpec:
@@ -37,7 +45,12 @@ func indexGenDeclDocs(
 				continue
 			}
 			if obj := tpkg.Scope().Lookup(typed.Name.Name); obj != nil {
-				if text := firstNonEmpty(commentText(typed.Doc), groupDoc); text != "" {
+				own := commentText(typed.Doc)
+				text := own
+				if text == "" && !groupUsed {
+					text, groupUsed = groupDoc, true
+				}
+				if text != "" {
 					docs[obj] = text
 				}
 			}
@@ -48,7 +61,12 @@ func indexGenDeclDocs(
 				if obj == nil {
 					continue
 				}
-				if text := firstNonEmpty(commentText(typed.Doc), groupDoc); text != "" {
+				own := commentText(typed.Doc)
+				text := own
+				if text == "" && !groupUsed {
+					text, groupUsed = groupDoc, true
+				}
+				if text != "" {
 					docs[obj] = text
 				}
 			}

@@ -6522,3 +6522,42 @@ That change cost two declarations before it gained them back, and the reason is 
 blank binding hit in R3e: `parse_ident` refuses `_`, correctly, because it is not an identifier. A
 parameter is a PATTERN, and the blank is one — so it is spelled directly rather than parsed as a
 name. The same mistake in the same shape, one layer along, three phases apart.
+
+## R3z — the owned string literal was text, and that cost the display impl its one optimisation
+
+Two more of the Go-aware gate's findings, and the second is a case of the engine's own principle
+paying off exactly as it was written down.
+
+### A block comment documents the block
+
+The source hangs one comment on a `const (..)` group and Go readers understand it covers the block.
+The target has no block to hang it on, and the extractor gave the comment to EVERY member:
+
+    /// The list of available message types. WARNING: ONLY APPEND TO THIS LIST! ...
+    const PING_MSG: MessageType = MessageType(0);
+    /// The list of available message types. WARNING: ONLY APPEND TO THIS LIST! ...
+    const INDIRECT_PING_MSG: MessageType = MessageType(1);
+
+Fifteen times, and a reviewer counted them. It goes to the FIRST member now and to nothing else.
+Dropping it instead would lose the only place the block's meaning is written down, and "ONLY APPEND
+TO THIS LIST" is exactly what a port must not lose.
+
+### A match of literals needs no allocation
+
+    f.write_str(&match *self { NULL => "Null".to_owned(), FALSE => "False".to_owned(), .. })
+
+One allocation per call, for text that never changes, immediately written and dropped. Borrowed arms
+make the match a `&'static str`, which `write_str` takes directly.
+
+The rule that recognises this looks for a method call in every arm, and found none — because the
+owned literal was built as `RustExpr::Literal(format!("{text}.to_owned()"))`. TEXT, which renders
+identically and is opaque to everything downstream. That is the exact defect R3f went and fixed in
+two other places, with the principle written down as "a mapped call is a tree, not text", and it was
+still here in a third.
+
+Built as a tree, the rule fires:
+
+    f.write_str(match *self { NULL => "Null", FALSE => "False", .. })
+
+The borrowing is done in the RENDERER rather than the transform, because it is a property of this
+destination: the same match returned from an ordinary method still owes its caller an owned string.
