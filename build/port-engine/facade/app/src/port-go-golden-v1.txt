@@ -39,7 +39,7 @@ pub mod basic {
     pub type Id = String;
     // region: oyatie_example_portengine_fixture_corpus_basic__go_defined_type__celsius
     /// A temperature in degrees Celsius.
-    #[derive(Debug, Clone, Default, PartialEq)]
+    #[derive(Debug, Clone, Copy, Default, PartialEq)]
     pub struct Celsius(pub f64);
     // region: oyatie_example_portengine_fixture_corpus_basic__go_func__add
     /// Returns the sum of a and b.
@@ -78,7 +78,7 @@ pub mod composite {
     impl<T: Runner + Describer> Job for T {}
     // region: oyatie_example_portengine_fixture_corpus_composite__go_struct_body__engine
     /// Counts the work it has done.
-    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
     pub struct Engine {
         /// How many times run has been called.
         calls: i64,
@@ -273,7 +273,7 @@ pub mod globals {
 pub mod handoff {
     // region: oyatie_example_portengine_fixture_corpus_handoff__go_struct_body__counter
     /// Counts.
-    #[derive(Debug, Clone, Default, PartialEq, Eq, Hash)]
+    #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Hash)]
     pub struct Counter {
         total: i64,
     }
