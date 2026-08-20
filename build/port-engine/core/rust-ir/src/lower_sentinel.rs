@@ -67,6 +67,59 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
             })
         }
 
+        RustItem::MessageImpl {
+            docs,
+            self_ty,
+            body,
+        } => {
+            let docs = lower_docs(docs);
+            let self_ty = crate::lower_parts::parse_type(self_ty)?;
+            let (head, tail) = body.split_at(body.len().saturating_sub(1));
+            let leading = crate::lower_body::lower_block(head)?;
+            // The TAIL is the message, and how it is written depends on what it is. A formatting
+            // call is handed to the formatter directly — writing its result would allocate a string
+            // only to copy it, which the target's own lint objects to. Anything else is written as
+            // the string it is.
+            let write = match tail.first() {
+                Some(crate::stmt::RustStmt::Tail(crate::expr::RustExpr::MacroCall {
+                    name,
+                    template,
+                    args,
+                })) if name == "format" => {
+                    let template: proc_macro2::TokenStream = format!("{template:?}").parse().map_err(
+                        |err| PortError::Render {
+                            detail: format!("a message template is not a target literal: {err}"),
+                        },
+                    )?;
+                    let args = args
+                        .iter()
+                        .map(crate::lower_expr::lower_expr)
+                        .collect::<Result<Vec<_>, _>>()?;
+                    quote! { write!(f, #template #(, #args)*) }
+                }
+                Some(crate::stmt::RustStmt::Tail(expr)) => {
+                    let expr = crate::lower_expr::lower_expr(expr)?;
+                    quote! { f.write_str(&#expr) }
+                }
+                _ => {
+                    return Err(PortError::Render {
+                        detail: "a message method's body does not end in the message".to_owned(),
+                    });
+                }
+            };
+            Ok(quote! {
+                #docs
+                impl fmt::Display for #self_ty {
+                    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+                        #leading
+                        #write
+                    }
+                }
+
+                impl StdError for #self_ty {}
+            })
+        }
+
         RustItem::SentinelError {
             docs,
             vis,

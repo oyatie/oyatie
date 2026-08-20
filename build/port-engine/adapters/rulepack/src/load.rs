@@ -250,6 +250,8 @@ impl LoadedRulePack {
                 message_method_source: failure.message_method_source,
                 message_method: failure.message_method,
                 message_method_reason: failure.message_method_reason,
+                field_derives: failure.field_derives,
+                field_derives_reason: failure.field_derives_reason,
                 identity_test: failure.identity_test,
                 identity_test_reason: failure.identity_test_reason,
                 inferred_construction: failure.inferred_construction,

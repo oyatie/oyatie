@@ -74,6 +74,25 @@ pub enum RustItem {
     ///
     /// Three items that are one concept — the type, its message, and its `Error` impl — so they are
     /// one IR item. Emitting them separately would let a message drift from the type it belongs to.
+    /// The target's rendering of a type that the source satisfied its error interface with.
+    ///
+    /// The source's interface is satisfied by ONE method returning the message; the target's error
+    /// trait declares no such method and takes the message from its display trait. So the method
+    /// becomes a display impl, and the error impl follows from it — which is what makes the ported
+    /// type usable everywhere the source's was, instead of carrying an inherent method nothing calls
+    /// and no trait knows about.
+    ///
+    /// Held as its own item rather than assembled by the transform because the target spellings for
+    /// this — the display trait, the formatter, the write method — are the renderer's to know, and
+    /// they are already spelled once for the sentinel enum. Two spellings of one decision drift.
+    MessageImpl {
+        /// The source's documentation for the method.
+        docs: Vec<String>,
+        /// The type the impl is for.
+        self_ty: RustType,
+        /// The method's translated body, whose tail is the message.
+        body: Vec<crate::stmt::RustStmt>,
+    },
     SentinelError {
         /// Documentation carried over from the source.
         docs: Vec<String>, // data_class: INTERNAL_ONLY

@@ -177,6 +177,7 @@ pub mod fallible {
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_struct_body__report
     /// Records a failure alongside what was being attempted.
+    #[derive(Debug)]
     pub struct Report {
         /// Names what was attempted.
         action: String,

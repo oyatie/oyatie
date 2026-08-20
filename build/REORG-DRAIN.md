@@ -4929,3 +4929,54 @@ array lengths; `Uint128([u64; 2])` reimplementing a type the target has natively
 public fields and a derived `Default` that yields invalid variants; and `pub fn error(&self) -> String`
 sitting beside a real `Display` impl, which is the method-definition half of the correspondence this
 phase mapped for calls.
+
+## R2s — the source's error satisfaction becomes a display impl
+
+The blind review's second-most-decisive tell was `pub fn error(&self) -> String` sitting in the same
+file as a real `Display` impl for a different type — Go's `Error() string` transcribed method for
+method, beside the template that shows what the target actually wants. R2p had refused to emit the
+satisfaction as a trait impl and left the method inherent, which is what produced that pair.
+
+**Both halves are now answered, and they are one answer.** The source's interface is satisfied by one
+method returning the message; the target's error trait declares no such method and takes the message
+from its display trait. So:
+
+- the CALL maps — `err.Error()` becomes the target's display method (R2r);
+- the SATISFACTION becomes a display impl built from that very method, plus the error impl that
+  follows from it (here).
+
+What the type had in the source it now has here: it can be printed, boxed as an error, and accepted
+by `?`. Refusing the satisfaction was right and still is — the two traits do not take the same
+methods — but the method was never the problem.
+
+**Where the target spellings live.** `MessageImpl` is its own IR item rather than something the
+transform assembles, because the display trait, the formatter and the write method are the renderer's
+to know and are already spelled once for the sentinel enum. That file's own doc says the point of
+spelling them in one place is that they cannot diverge; a second spelling would have been the drift
+it warns about.
+
+The tail decides how the message is written: a formatting call is handed to the formatter directly,
+because writing its result would allocate a string only to copy it — which the target's own lint
+objects to and this engine is held to. Anything else is written as the string it is.
+
+**Two consequences, both found by the compile proof rather than reasoned out.**
+
+The import scan asks whether a unit emits a sentinel, to decide whether it needs the formatting
+module. A message impl renders the same three names for the same reason, so it belongs in that same
+question rather than a second one — `multierror` failed on a missing import until it was.
+
+And the error impl REQUIRES debug, which a type holding the failure type could not earn: the derive
+rules block on the interface kind, correctly for interfaces in general, because a bare interface has
+no target form. The failure interface is the one that does — a boxed trait object, which is debug —
+so the pack now names which derives survive it. One derive, not a lifted block: the boxed form is
+neither clonable nor defaultable nor comparable.
+
+That check had to be asked at EVERY node of a type, not just its root. `[]error` is the shape that
+found it: the failure sits inside a sequence as often as it stands alone, and a check that looked
+only at the outermost type answered for neither. Where the derive survives, the walk does not descend
+into the interface at all — its target form is opaque and already known to carry it.
+
+**All seven packages compile clean.** Translated moves 99 → 97, and the direction is right: two
+message methods stopped being counted as declarations of their own because they are now the body of
+an impl. The golden gained one line, `#[derive(Debug)]` on the hermetic corpus's `Report`, which
+holds a boxed failure and had been denied a derive it earns.
