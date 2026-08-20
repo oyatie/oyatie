@@ -6,7 +6,6 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use check_adr_citation::{AdrCitationDocument, validate_adr_citations};
 use check_glossary_vocabulary::{
     GlossaryVocabularyWarning, GlossaryVocabularyWarningKind, GlossaryVocabularyWarningSource,
     IgnoredUppercaseWord, VocabularyDocument,
@@ -97,7 +96,6 @@ mod path_format;
 mod placeholder_debt_gates;
 mod planning_ssot_coverage_gate;
 mod platform_substrate_defaults_gate;
-mod pre_push_contract_gate;
 mod protection_context_match_gate;
 mod quality_lane_gates;
 mod retired_vocabulary_gate;
@@ -275,9 +273,6 @@ pub(crate) use placeholder_debt_gates::{
 pub(crate) use platform_substrate_defaults_gate::{
     parse_platform_substrate_defaults_args, validate_platform_substrate_defaults_gate,
 };
-pub(crate) use pre_push_contract_gate::{
-    parse_pre_push_contract_validate_args, validate_pre_push_contract_gate,
-};
 pub(crate) use protection_context_match_gate::{
     parse_protection_context_match_validate_args, validate_protection_context_match_gate,
 };
@@ -301,11 +296,7 @@ pub(crate) use scalar_parse::{
     parse_u64_field, required_field, required_scalar, scalar_value,
 };
 pub(crate) use supply_chain_gates::{
-    parse_image_promotion_validate_args, parse_release_evidence_pack_validate_args,
-    parse_release_supply_chain_validate_args, parse_supply_chain_validate_args,
-    release_supply_chain_phase_name, validate_image_promotion_gate,
-    validate_release_evidence_pack_gate, validate_release_supply_chain_gate,
-    validate_supply_chain_gate,
+    parse_release_evidence_pack_validate_args, validate_release_evidence_pack_gate,
 };
 pub(crate) use team_ownership_gates::{
     list_team_ids, parse_codeowners_mirror_validate_args, parse_raci_team_coverage_validate_args,
@@ -396,13 +387,9 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate foundry-capability-schema [--capabilities-dir <registry/capability-templates>] [--internal-registry <registry/capabilities/foundry-internal.json>]"
         + "\n       oya gate validate foundry-eval [--capabilities-dir <registry/capability-templates>]"
         + "\n       oya gate validate cross-tenant-access-fuzz"
-        + "\n       oya gate validate adr-citation [--docs-dir <docs>] [--decisions-dir <docs/decisions>] [--inheritance-registry <registry/adr/inherited-bominal-adrs.yaml>]"
         + "\n       oya gate validate brand-residue [--docs-dir <docs>]"
         + "\n       oya gate validate no-grouping [--microservices-dir <specs/microservices>]"
         + "\n       oya gate validate api-semver [--contracts-dir <contracts>]"
-        + "\n       oya gate validate supply-chain [--registry <registry/catalog>] [--deny <deny.toml>] [--check-script <scripts/check.sh>] [--adr0039-script <scripts/supply-chain-adr0039.sh>] [--adr0039-rust <crates/oya-dev-cli/src/commands/supply_chain.rs>] [--workflows-dir <.github/workflows>] [--release-images <registry/release/images.yaml>] [--branch-protection <.github/branch-protection.yaml>] [--admission-policy <infra/kyverno/policies/require-signed-images.yaml>] [--require-adr0039-evidence]"
-        + "\n       oya gate validate release-supply-chain [--release-images <registry/release/images.yaml>] [--evidence-dir <registry/release/supply-chain>] [--phase <pre-release|release>]"
-        + "\n       oya gate validate image-promotion [--promotion-dir <registry/release/image-promotions>]"
         + "\n       oya gate validate release-evidence-pack [--manifest <registry/release/evidence-packs.tsv>] [--compliance <docs/machine-readable/compliance.json>] [--require-records]"
         + "\n       oya gate validate typescript-workspace --lane <typecheck|test> [--repo-root <.>]"
 
@@ -423,7 +410,6 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate glossary-vocabulary [--docs-dir <docs>] [--glossary <docs/GLOSSARY.md>] [--baseline <registry/glossary-vocabulary/warning-baseline.tsv>] [--ignored-uppercase-words <registry/glossary-vocabulary/ignored-uppercase-words.tsv>] [--write-baseline <path>] [--write-warning-report <path>]"
         + "\n       oya gate validate placeholder-debt [--docs-dir <docs>] [--registry <registry/placeholder-debt/registry.tsv>] [--write-registry <path>] [--write-report <path>]"
         + "\n       oya gate validate loop-recovery-patterns [--agent-durable-goal <specs/agent-durable-goal.json>] [--score-cards <specs/score-cards.json>] [--patterns-dir <registry/loop-recovery-patterns>] [--mistakes-ledger <registry/mistakes-ledger.json>]"
-        + "\n       oya gate validate pre-push-contract [--done-definition <docs/checklists/done-definition-checklist.md>] [--cli-dispatch-source <crates/oya-dev-cli/src/lib.rs>] [--hook-script <scripts/hooks/pre-push.sh>]"
         + "\n       oya gate validate freshness [--repo-root <.>]"
         + "\n       oya gate validate protection-context-match [--branch-protection <.github/branch-protection.yaml>] [--workflows-dir <.github/workflows>] [--branch <dev>] [--applied-branch-protection <infra/branch-protection/dev.json>] [--skip-applied-branch-protection] [--live-required-contexts <required_status_checks.json>]"
         + "\n       oya gate validate retired-vocabulary [--registry <registry/vocabulary/retired.yaml>] [--corpus-root <path>] (repeatable) [--exclude-root <path>] (repeatable)"
@@ -851,213 +837,6 @@ pub(crate) fn extract_first_backticked_value(value: &str) -> Option<String> {
 #[derive(Clone, Debug, Eq, PartialEq)]
 struct LicensePolicyValidateArgs {
     workspace_manifest_path: PathBuf,
-}
-
-#[derive(Clone, Debug, Eq, PartialEq)]
-struct AdrCitationValidateArgs {
-    docs_dir: PathBuf,
-    decisions_dir: PathBuf,
-    inheritance_registry: PathBuf,
-}
-
-fn parse_adr_citation_validate_args(args: Vec<String>) -> Result<AdrCitationValidateArgs, String> {
-    let mut parsed = AdrCitationValidateArgs {
-        docs_dir: PathBuf::from("docs"),
-        decisions_dir: PathBuf::from("docs/decisions"),
-        inheritance_registry: PathBuf::from("registry/adr/inherited-bominal-adrs.yaml"),
-    };
-    let mut iter = args.into_iter();
-    while let Some(flag) = iter.next() {
-        let Some(path) = iter.next() else {
-            return Err(usage());
-        };
-        match flag.as_str() {
-            "--docs-dir" => parsed.docs_dir = PathBuf::from(path),
-            "--decisions-dir" => parsed.decisions_dir = PathBuf::from(path),
-            "--inheritance-registry" => parsed.inheritance_registry = PathBuf::from(path),
-            _ => return Err(usage()),
-        }
-    }
-    Ok(parsed)
-}
-
-fn validate_adr_citation_gate(
-    args: AdrCitationValidateArgs,
-) -> Result<(usize, usize, usize), String> {
-    let mut allowed_pack_adrs = read_pack_adr_ids(&args.decisions_dir)?;
-    allowed_pack_adrs.extend(read_inherited_adr_ids(&args.inheritance_registry)?);
-    allowed_pack_adrs.sort();
-    allowed_pack_adrs.dedup();
-    let allowed_count = allowed_pack_adrs.len();
-    let documents = read_adr_citation_documents(&args.docs_dir)?;
-    let report = validate_adr_citations(documents, allowed_pack_adrs)
-        .map_err(|error| format!("ADR citations invalid: {error:?}"))?;
-    Ok((
-        report.documents_checked,
-        report.citations_checked,
-        allowed_count,
-    ))
-}
-
-fn read_pack_adr_ids(decisions_dir: &Path) -> Result<Vec<String>, String> {
-    let entries = fs::read_dir(decisions_dir).map_err(|error| {
-        format!(
-            "ADR decisions directory unreadable {}: {error}",
-            decisions_dir.display()
-        )
-    })?;
-    let mut adrs = Vec::new();
-    for entry in entries {
-        let entry = entry.map_err(|error| format!("ADR decisions entry unreadable: {error}"))?;
-        let path = entry.path();
-        if path.extension().and_then(|extension| extension.to_str()) != Some("md") {
-            continue;
-        }
-        let Some(name) = path.file_name().and_then(|name| name.to_str()) else {
-            continue;
-        };
-        if name.len() < 8 || !name.starts_with("ADR-") {
-            continue;
-        }
-        let adr = &name[..8];
-        if adr[4..].bytes().all(|byte| byte.is_ascii_digit()) {
-            adrs.push(adr.to_string());
-        }
-    }
-    adrs.sort();
-    adrs.dedup();
-    if adrs.is_empty() {
-        Err(format!(
-            "ADR decisions directory contains no ADR-NNNN markdown files: {}",
-            decisions_dir.display()
-        ))
-    } else {
-        Ok(adrs)
-    }
-}
-
-fn read_inherited_adr_ids(registry_path: &Path) -> Result<Vec<String>, String> {
-    if !registry_path.exists() {
-        return Ok(Vec::new());
-    }
-    let contents = fs::read_to_string(registry_path).map_err(|error| {
-        format!(
-            "ADR inheritance registry unreadable {}: {error}",
-            registry_path.display()
-        )
-    })?;
-    let mut adrs = Vec::new();
-    for (line_index, raw_line) in contents.lines().enumerate() {
-        let trimmed = raw_line.trim();
-        let Some(value) = trimmed
-            .strip_prefix("- id:")
-            .or_else(|| trimmed.strip_prefix("id:"))
-        else {
-            continue;
-        };
-        let adr = value
-            .split('#')
-            .next()
-            .unwrap_or_default()
-            .trim()
-            .trim_matches('"')
-            .trim_matches('\'');
-        if !is_adr_id(adr) {
-            return Err(format!(
-                "ADR inheritance registry {} line {} has invalid id {:?}",
-                registry_path.display(),
-                line_index + 1,
-                adr
-            ));
-        }
-        adrs.push(adr.to_string());
-    }
-    adrs.sort();
-    adrs.dedup();
-    if adrs.is_empty() {
-        Err(format!(
-            "ADR inheritance registry contains no `id: ADR-NNNN` entries: {}",
-            registry_path.display()
-        ))
-    } else {
-        Ok(adrs)
-    }
-}
-
-fn is_adr_id(value: &str) -> bool {
-    value.len() == 8
-        && value.starts_with("ADR-")
-        && value[4..].bytes().all(|byte| byte.is_ascii_digit())
-}
-
-fn read_adr_citation_documents(docs_dir: &Path) -> Result<Vec<AdrCitationDocument>, String> {
-    let mut documents = Vec::new();
-    collect_adr_citation_documents(docs_dir, docs_dir, &mut documents)?;
-    if documents.is_empty() {
-        Err(format!(
-            "ADR citation docs directory contains no markdown files: {}",
-            docs_dir.display()
-        ))
-    } else {
-        Ok(documents)
-    }
-}
-
-fn collect_adr_citation_documents(
-    root: &Path,
-    current: &Path,
-    documents: &mut Vec<AdrCitationDocument>,
-) -> Result<(), String> {
-    for entry in fs::read_dir(current)
-        .map_err(|error| format!("ADR citation docs directory unreadable: {error}"))?
-    {
-        let entry = entry
-            .map_err(|error| format!("ADR citation docs directory entry unreadable: {error}"))?;
-        let path = entry.path();
-        if path_has_component(&path, "raw") || path_has_component(&path, "machine-readable") {
-            continue;
-        }
-        if path.is_dir() {
-            collect_adr_citation_documents(root, &path, documents)?;
-            continue;
-        }
-        if !path.is_file()
-            || path.extension().and_then(|extension| extension.to_str()) != Some("md")
-        {
-            continue;
-        }
-        let relative = path
-            .strip_prefix(root)
-            .map_err(|error| format!("ADR citation doc path not under docs dir: {error}"))?;
-        let normalized_path = format!("docs/{}", slash_path(relative));
-        let contents = fs::read_to_string(&path)
-            .map_err(|error| format!("ADR citation doc unreadable: {error}"))?;
-        let forensic_allowed = adr_citation_forensic_path(&normalized_path);
-        documents.push(AdrCitationDocument {
-            path: normalized_path,
-            contents,
-            forensic_allowed,
-        });
-    }
-    Ok(())
-}
-
-fn adr_citation_forensic_path(path: &str) -> bool {
-    matches!(
-        path,
-        "docs/ADR-CONSOLIDATION-PLAN.md"
-            | "docs/ADR-LEGACY-REGRESSION-MAPPING.md"
-            | "docs/CONTRADICTION-LEDGER.md"
-            | "docs/decisions/RETIRED.md"
-    ) || path.ends_with("-LEGACY.md")
-        || (path.starts_with("docs/architecture/")
-            && (path.contains("audit")
-                || path.contains("deep-dive")
-                || path.contains("synthesis")
-                || path.contains("adjudication")
-                || path.contains("lessons-learned")
-                || path.contains("executive-briefing")
-                || path.contains("scorecard")))
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]

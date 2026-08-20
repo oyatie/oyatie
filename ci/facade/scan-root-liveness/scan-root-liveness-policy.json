@@ -94,7 +94,6 @@
   "baselined_dark_gate_crates": [
     "a11y-discipline",
     "active-artifact-contract",
-    "adr-citation",
     "aspirational-enforcement",
     "audit-chain-seal-coverage",
     "benchmark",
@@ -170,7 +169,6 @@
     "oya-governance-upstream-api-drift-kernel",
     "perf-budget",
     "placeholder-debt",
-    "pre-push",
     "protection-context-match",
     "quality-lane",
     "raci-coverage",
@@ -183,7 +181,6 @@
     "shardability",
     "slsa-l3-evidence-grounded",
     "statelessness",
-    "supply-chain",
     "tenant-cost-labels-coverage",
     "typescript-workspace",
     "vector-store-discipline",

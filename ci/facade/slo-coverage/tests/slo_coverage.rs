@@ -139,7 +139,17 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  introduces. The enumeration did NOT widen -- the corpus
 ///                                  gained exactly one row and the face gained exactly one,
 ///                                  which is the disambiguation this pin exists to force.
-const SLO_CATALOG_CENSUS: usize = 743;
+///   2026-08-20  743 -> pin 740     ROWS DELETED, downward, on top of the 743 base: the three
+///                                  catalog rows check-{adr-citation,supply-chain,pre-push}.yaml
+///                                  go with their crates, retired because each doctrine's
+///                                  successor is already live (adr-citation-closure;
+///                                  ci/facade/supply-chain-audit; the ADR-0515 protected
+///                                  context). Attributable one-for-one: exactly three `git rm`s
+///                                  under registry/catalog/ in this change, so the same producer
+///                                  enumerates three fewer rows than the rebased base. Not a
+///                                  collapsed enumeration. The pin moved 742 -> 739 before the
+///                                  rebase; the base's own +1 is what makes it 740.
+const SLO_CATALOG_CENSUS: usize = 740;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
