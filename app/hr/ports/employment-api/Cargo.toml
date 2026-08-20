@@ -1,0 +1,23 @@
+[package]
+name = "hr-employment-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+hr-employment-app = { path = "../../facade/employment-app" }
+hr-employment-domain = { path = "../../core/employment-domain" }
+serde = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lib]
+name = "hr_employment_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -1,0 +1,50 @@
+rust_library(
+    name = "hr-employment-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "hr_employment_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//app/hr/core/employment-domain:hr-employment-domain",
+    ],
+)
+
+rust_test(
+    name = "hr-employment-app-app-envelopes",
+    srcs = ["tests/app_envelopes.rs"],
+    crate = "hr_employment_app_app_envelopes",
+    crate_root = "tests/app_envelopes.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":hr-employment-app",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//app/hr/core/employment-domain:hr-employment-domain",
+    ],
+)
+
+rust_test(
+    name = "hr-employment-app-leave",
+    srcs = ["tests/leave.rs"],
+    crate = "hr_employment_app_leave",
+    crate_root = "tests/leave.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":hr-employment-app",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//app/hr/core/employment-domain:hr-employment-domain",
+    ],
+)
+
+rust_test(
+    name = "hr-employment-app-privacy",
+    srcs = ["tests/privacy.rs"],
+    crate = "hr_employment_app_privacy",
+    crate_root = "tests/privacy.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":hr-employment-app",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//app/hr/core/employment-domain:hr-employment-domain",
+    ],
+)
