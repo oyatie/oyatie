@@ -69,17 +69,30 @@ pub(crate) fn statement(
             // A binding with NO recorded type is separate from both and always bare: a body-scoped
             // constant has no type in the source until something uses it, so there is nothing to
             // annotate with and nothing is claimed.
-            ty: match node.type_ref.is_empty()
-                || (node.has_flag(FLAG_INFERRED) && !starts_as_untyped_number(node))
-            {
-                true => None,
-                false => Some(cx.resolver.resolve_in(
-                    &node.type_ref,
-                    cx.owner,
-                    crate::vocabulary::POSITION_PARAM,
-                )?),
+            // A CURSOR is the target's index type. The source types it as its own integer and
+            // every use then converts; proven to reach nothing but an index, a length comparison
+            // and its own increment, the signed type exists only to be cast away.
+            ty: match cx.usize_counters.contains(&node.name) {
+                true => Some(port_engine_rust_ir::RustType::path("usize")),
+                false => match node.type_ref.is_empty()
+                    || (node.has_flag(FLAG_INFERRED) && !starts_as_untyped_number(node))
+                {
+                    true => None,
+                    false => Some(cx.resolver.resolve_in(
+                        &node.type_ref,
+                        cx.owner,
+                        crate::vocabulary::POSITION_PARAM,
+                    )?),
+                },
             },
             value: match node.children.first() {
+                // A CURSOR's initialiser is at the index type too. `let l: usize = key.len() as
+                // i64` states one type and supplies another — the length mapping adds the
+                // conversion the binding exists to remove, and the two ends must agree or nothing
+                // compiles. Same helper the counted loop's bound reads, so there is one answer.
+                Some(child) if cx.usize_counters.contains(&node.name) => {
+                    Some(crate::counters::unsigned_bound(child, cx)?)
+                }
                 Some(child) => Some(expression(child, cx)?),
                 None => None,
             },

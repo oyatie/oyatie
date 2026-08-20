@@ -51,8 +51,13 @@ pub(crate) fn compares_lengths(node: &Declaration, cx: &Body<'_>) -> bool {
         return false;
     };
     [(left, right), (right, left)].iter().any(|(a, b)| {
+        // A LENGTH CONSTANT, or a binding the body proved is an INDEX. Both are already the
+        // target's index type, so the conversion the length call's mapping adds is what is wrong —
+        // and a cursor compared against a length is the shape this exists for, not a special case
+        // of it. Reading one set for both is what keeps the binding and the comparison agreeing.
         a.kind == crate::vocabulary::KIND_IDENT
-            && cx.resolver.scope.length_constants.contains(&a.name)
+            && (cx.resolver.scope.length_constants.contains(&a.name)
+                || cx.usize_counters.contains(&a.name))
             && b.kind == crate::vocabulary::KIND_CALL
     })
 }
