@@ -233,7 +233,15 @@ fn own_string(expr: RustExpr) -> RustExpr {
     if !text.starts_with('"') {
         return expr;
     }
-    RustExpr::Literal(format!("{text}.to_owned()"))
+    // A TREE, not text. `format!("{text}.to_owned()")` renders identically and is opaque to every
+    // rule downstream — which cost the display impl its one real optimisation: a match whose arms
+    // are all owned string literals can be borrowed instead, and the rule that recognises it looks
+    // for a method call and found a literal whose spelling happened to end in one.
+    RustExpr::MethodCall {
+        receiver: Box::new(RustExpr::Literal(text.clone())),
+        method: "to_owned".to_owned(),
+        args: Vec::new(),
+    }
 }
 
 /// Refuse a body that reads a declaration the pack DEFERS.
