@@ -5309,3 +5309,70 @@ This is the second time a refusal has outlived what it described. The first (R2h
 cause in the corpus and pointed at the wrong component entirely. The lesson generalises past
 documentation: **a reason is code that nobody compiles.** Every rule that changes behaviour has to be
 asked whether some other rule's stated reason was describing the behaviour it just changed.
+
+## R3b — the corpus was measuring the wrong thing, and the front end cannot load the right thing
+
+Two claims were put to this engine: that it must survive JSON/YAML tag reflection, interface-based
+composition and concurrent mutex models; and that "best practice" Rust is unreachable without an
+explicit account of how ownership maps to the borrow checker. Both are correct, and the measurements
+below are worse than the coverage number suggested.
+
+**The ratchet corpus does not contain the destination's problems.** Counted, not assumed:
+
+| | Go files | struct tags | interfaces | mutexes | channels |
+|---|---|---|---|---|---|
+| siderolabs/talos | 2077 | **5674** | **358** | 98 | 514 |
+| k8s.io/apimachinery | 349 | 782 | 104 | 23 | 160 |
+| the whole 7-package corpus | ~60 | **3** | **0** | 5 | 2 |
+
+Zero declared interfaces. Three struct tags. `apimachinery` alone calls `reflect.DeepEqual` 208 times
+and `reflect.TypeOf` 108. The corpus is near-pure functions over bytes, which is exactly why per-site
+ownership rules and no lifetime inference have carried it this far. **23% on this corpus is not 23% of
+the problem.**
+
+**Measured against the three domains, on real self-contained packages:**
+
+| package | domain | coverage |
+|---|---|---|
+| `go-yaml/yaml` | YAML tags, 218 reflect calls | 45.7% |
+| `mitchellh/mapstructure` | 52 tags, 427 reflect calls | **6.1%** |
+| `patrickmn/go-cache` | 8 mutexes | **0.0%** |
+
+The yaml figure flatters: that package is largely a transliterated C state machine, so what ported is
+the mechanical parser core rather than the tag layer. On the concurrency package the engine emits
+**nothing at all**.
+
+**And the front end cannot load a repository with third-party dependencies.** `extract.go` resolves
+imports with `importer.ForCompiler(fset, "source", nil)` plus an intra-corpus importer — so a package
+type-checks only if every non-stdlib import it has lives inside the corpus directory. Every one of
+the seven corpus packages is dependency-free. That is not a coincidence; it is a selection effect,
+and a sharper version of the goal's own warning: the SCRATCH corpus contains only what the front end
+can load, which is why it looks like a set of dependency-free byte utilities.
+
+Confirmed by trying: `gjson`, `chi`, `memberlist` and `apimachinery` all fail to extract, before any
+translation question is reached. Vendoring does not help, because the importer never consults the
+module graph. The fix is `golang.org/x/tools/go/packages`, which resolves modules and vendor
+directories properly; that is a front-end change with a full fixture regeneration behind it.
+
+**Why per-site ownership cannot reach the three domains.** Each one is a whole-program ownership
+question, not a local one:
+
+- **Tags.** `json:"name,omitempty"` is a serialization contract, and `omitempty` on a non-pointer
+  field decides whether the target field is `Option<T>` or carries a default. The tag constrains the
+  TYPE, which constrains every construction of it.
+- **Interfaces.** Go's interface is always dynamic. The target's choice between `&dyn Trait`,
+  `Box<dyn Trait>` and a generic parameter depends on whether values are stored heterogeneously
+  anywhere in the program — a question no single site can answer.
+- **Mutexes.** Go's mutex sits BESIDE what it guards; the target's `Mutex<T>` OWNS it. Deciding which
+  fields a mutex guards means analysing what is touched between lock and unlock. The pack currently
+  refuses `sync.Mutex` and says why, which is honest and is also why `go-cache` is at zero.
+
+This is the R2n finding arriving from a second direction: the engine decides ownership per site from
+local facts, and all three domains need a solver over the whole program. C2Rust's permission lattice
+and Polonius's Datalog borrow model are the shapes to copy.
+
+**What this means for the four completion conditions.** They are measured against a corpus that
+cannot exercise the destination, so meeting all four today would not mean the engine can port Talos.
+The corpus has to become representative before the conditions mean what they say — and the front end
+has to be able to load a real repository before the corpus can become representative. That ordering
+is the plan: `go/packages` first, then the phased oracle repos, then the ownership solver.
