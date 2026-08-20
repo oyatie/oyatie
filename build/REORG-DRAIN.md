@@ -3852,3 +3852,40 @@ be a wire format the engine guessed.
 Coverage unchanged across all seven packages. `items.rs` crossed the 300-line bar and split along the
 seam that was already there: which ITEM a declaration becomes, versus what goes on the right of the
 `=`.
+
+## R1x — the chain with a longer neck, and a bug I wrote and caught by reading
+
+All three `xxhash` reviews named `merge_round` as statement-for-statement source style, and the last
+one wrote out what it should be. It now is:
+
+```rust
+fn merge_round(acc: u64, val: u64) -> u64 {
+    (acc ^ round(0, val)).wrapping_mul(PRIME1).wrapping_add(PRIME4)
+}
+```
+
+**The invariant is a property of each ASSIGNMENT, not of each name.** The first version required
+every statement to assign the same name, which folded `round` and not this. What actually makes a
+sequence foldable is that the value a statement produces is read exactly ONCE before that name is
+assigned again — read twice and the fold evaluates it twice, read never and the fold drops what it
+did. `val = f(val); acc ^= val; acc = g(acc); return acc` satisfies that on two names, which is the
+same chain with a longer neck rather than a different shape.
+
+**A read-modify-write is that same link spelled shorter.** `acc ^= v` means `acc = acc ^ v`, and the
+implicit read is what the chain hands forward. Rebuilding it explicitly is how the fold sees the link
+at all — without it the body kept its statements while the signature had already dropped the `mut`,
+which is precisely the disagreement deciding this from one fact is supposed to prevent.
+
+**And a correctness bug I wrote, found by reading the output.** Substituting each held name over the
+RUNNING result lets a name inside something already substituted be substituted again: `acc = g(acc)`
+after `val = f(val)` emitted `round(0, round(0, val))` — the source's call applied twice. A program
+that compiles and computes something else, in the engine that exists to prevent exactly that. The
+substitution now takes only the names the ORIGINAL value mentions, each once.
+
+Worth recording as method rather than as trivia: the compile proof would not have caught it. Both
+spellings type-check. It was caught by reading eight lines of emitted output, which is the one check
+that sees meaning rather than form.
+
+**Every name the chain consumes drops its `mut`,** not only the one returned — a `mut` left on a name
+the fold substituted away is a mutability nothing uses, which the target warns about and the proof
+denies. Verified by exit code rather than by grepping for the word "error".
