@@ -261,6 +261,46 @@ pub fn validate_authority(
             });
         }
     }
+    // An adjunct claim over a path ANOTHER owner's envelope already covers creates
+    // two writers for one path. Each is individually legal — the claimant is
+    // admitted by its claim, the envelope owner by its envelope — so a per-PR check
+    // passes both and the conflict only surfaces as a deadlock when they try to
+    // land. The authority requires claimed sets to be disjoint; this is where that
+    // is checkable.
+    //
+    // Live example this was written for: root `Cargo.toml` is claimed by
+    // `integ/specs` while the `root_manifests` plane names `integ/build` its sole
+    // writer, so integ/build cannot perform a root-manifest edit while the claim
+    // stands.
+    for claim in &authority.adjunct_claims {
+        if authority.hub_paths.contains(&claim.path_glob) {
+            findings.push(Finding {
+                code: CODE_MALFORMED_CLAIM.to_owned(),
+                subject: claim.path_glob.clone(),
+                detail: format!(
+                    "`{}` is a hub path, so `{}` must hold a WAIVER, not an adjunct claim — the \
+                     authority states hub paths are never adjuncts",
+                    claim.path_glob, claim.claiming_branch
+                ),
+            });
+            continue;
+        }
+        if let Ok(Some(owner)) = owner_of(authority, &claim.path_glob)
+            && owner.branch != claim.claiming_branch
+        {
+            findings.push(Finding {
+                code: CODE_FOREIGN_ENVELOPE.to_owned(),
+                subject: claim.path_glob.clone(),
+                detail: format!(
+                    "adjunct claim gives `{}` a path that `{}` already owns by envelope. Two \
+                     writers for one path is a deadlock, not shared access: each is individually \
+                     admissible, so no per-PR check refuses it — release the claim or narrow the \
+                     envelope.",
+                    claim.claiming_branch, owner.branch
+                ),
+            });
+        }
+    }
     for waiver in &authority.hub_waivers {
         if !authority.hub_paths.contains(&waiver.hub) {
             findings.push(Finding {
