@@ -118,10 +118,15 @@ pub fn forbidden_crates(policy: &Value) -> Vec<String> {
 /// `third-party/BUCK` local labels and records reachable forbidden targets. Also probes the
 /// first-party manifest census from local `Cargo.toml` files so a broken repo root fails closed via
 /// `CBP-EMPTY-SCAN` rather than passing as a false-green. Emits:
-/// `{ "workspace_packages_found": <usize>, "backends": [ { "crate": <name>,
-///    "activated_dependents": [ <line>, .. ] } ] }`.
+/// `{ "workspace_packages_found": <usize>, "workspace_package_dirs": [ <dir>, .. ],
+///    "backends": [ { "crate": <name>, "activated_dependents": [ <line>, .. ] } ] }`.
+///
+/// `workspace_package_dirs` is the SET behind `workspace_packages_found`: the evaluator's
+/// `CBP-EMPTY-SCAN` floor still reads the number, but the set is what lets the self-test say
+/// WHICH manifests a collapsed walk stopped seeing instead of only that there were fewer.
 pub fn collect_activated_backends(root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let census = workspace_package_count(root)?;
+    let package_dirs = workspace_package_dirs(root)?;
+    let census = package_dirs.len() as u64;
     let graph = ThirdPartyGraph::load(root)?;
     let roots = collect_first_party_third_party_roots(root)?;
 
@@ -136,6 +141,7 @@ pub fn collect_activated_backends(root: &Path, policy: &Value) -> Result<Value, 
 
     Ok(json!({
         "workspace_packages_found": census,
+        "workspace_package_dirs": package_dirs.into_iter().collect::<Vec<_>>(),
         "backends": backends,
     }))
 }
@@ -237,17 +243,31 @@ impl ThirdPartyGraph {
     }
 }
 
-/// Probe the first-party package census from local manifests. A too-small census trips
-/// `CBP-EMPTY-SCAN`, catching a broken repo root that would otherwise pass as a false-green.
-fn workspace_package_count(root: &Path) -> Result<u64, CollectError> {
-    let mut count = 0u64;
+/// Probe the first-party package census from local manifests, as the SET of repo-relative
+/// directories that hold a `Cargo.toml`.
+///
+/// A too-small census trips `CBP-EMPTY-SCAN`, catching a broken repo root that would otherwise
+/// pass as a false-green — but the policy floor that check reads is a single magic number
+/// (`min_expected_workspace_packages`), and a number cannot say WHICH manifests a collapsed walk
+/// stopped seeing. Emitting the set as well as its size lets the gate's self-test compare this
+/// walk against an independently resolved workspace-member census and name the missing
+/// directories. The count is derived from the set, so the two can never disagree.
+fn workspace_package_dirs(root: &Path) -> Result<BTreeSet<String>, CollectError> {
+    let mut dirs = BTreeSet::new();
     visit_files(root, &mut |path| {
         if path.file_name().and_then(|name| name.to_str()) == Some("Cargo.toml") {
-            count += 1;
+            let dir = path.parent().unwrap_or(path);
+            let rel = dir.strip_prefix(root).map_or_else(
+                |_| dir.display().to_string(),
+                |p| p.to_string_lossy().replace('\\', "/"),
+            );
+            // The repo root's own manifest strips to the empty string; name it so a diagnostic
+            // never prints a blank key.
+            dirs.insert(if rel.is_empty() { ".".to_owned() } else { rel });
         }
         Ok(())
     })?;
-    Ok(count)
+    Ok(dirs)
 }
 
 fn collect_first_party_third_party_roots(root: &Path) -> Result<BTreeSet<String>, CollectError> {

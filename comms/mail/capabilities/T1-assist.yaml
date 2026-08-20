@@ -150,7 +150,7 @@ capabilities:
     latency_budget_p99_ms: 500
     audit_event: MailThreadPriorityScored (sampled)
     risk_classification: limited-risk
-    user_label: "AI-prioritized" badge on each scored thread
+    user_label: '"AI-prioritized" badge on each scored thread'
 
 constraints_all_capabilities:
   - principle: dual-context-strict

@@ -1,9 +1,0 @@
-apiVersion: oyatie.dev/v1
-kind: EchConfig
-metadata:
-  name: oya-treasury-ech
-spec:
-  rotationCadenceDays: 90
-  httpsRecord: true
-  gracefulFallback: true
-  auditEventClass: EVT-TREASURY-CASH_POSITION-ECH_ROTATED

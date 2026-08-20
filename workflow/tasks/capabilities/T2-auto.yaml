@@ -47,7 +47,7 @@ capabilities:
     triggers:
       - new task created without assignee in opted-in project
       - tenant-admin policy "auto-assign on creation" set
-      - **NOT triggered in employment-context** until conformity ADR ships per pack
+      - '**NOT triggered in employment-context** until conformity ADR ships per pack'
     consent_basis:
       personal_context: explicit-on-opt-in
       professional_context: explicit-on-opt-in + tenant-policy-admission + per-employee opt-in (GDPR Art. 22) + works-council consultation evidence
@@ -68,9 +68,9 @@ capabilities:
       - TaskAutoAssignPolicyEnabled (one-shot; Ed25519-sealed)
       - TaskAutoAssigned (per-assignment; Ed25519-sealed; payload — task id hash + assignee id hash + model id + version + feature-vector hash + decision rationale token)
       - TaskAutoAssignPolicyDisabled (one-shot; Ed25519-sealed)
-      - **TaskAutoAssignFairnessAudit** (weekly; per-protected-class accept-rate; Ed25519-sealed)
-    risk_classification: **high-risk (Annex III §4)** in employment-context — REFUSED at Cedar layer pending ADR-TASKS-XXXX conformity-assessment ADR per pack
-    user_label: "AI assigned this task — review by [date]" (Art. 50 + per-decision banner)
+      - '**TaskAutoAssignFairnessAudit** (weekly; per-protected-class accept-rate; Ed25519-sealed)'
+    risk_classification: '**high-risk (Annex III §4)** in employment-context — REFUSED at Cedar layer pending ADR-TASKS-XXXX conformity-assessment ADR per pack'
+    user_label: "AI assigned this task — review by [date]"  # Art. 50 + per-decision banner
     cedar_admission_path: |
       tenant-scope.cedar :: action::TaskT2AutoAssign admits when:
         - tenant.tenant_class IN {demo_trial, paid} AND usage caps allow T2 auto-assign AND
@@ -115,7 +115,7 @@ capabilities:
       - TaskStatusAutoAdvanced (per-transition; Ed25519-sealed; payload — task id hash + old state + new state + triggering dependency id hash)
       - TaskStatusAutoAdvancePolicyDisabled (Ed25519-sealed)
     risk_classification: minimal-risk (deterministic; no LLM; no employment-context decision)
-    user_label: "Task auto-advanced to Ready by AI" (Art. 50)
+    user_label: "Task auto-advanced to Ready by AI"  # Art. 50
     cedar_admission_path: |
       tenant-scope.cedar :: action::TaskT2StatusAutoAdvance admits when
       tenant.tenant_class IN {demo_trial, paid} AND usage caps allow status auto-advance
@@ -149,7 +149,7 @@ capabilities:
     audit_event:
       - TaskRecurrenceMaterialised (Ed25519-sealed; payload — recurrence rule id hash + window + materialised task id list hash)
     risk_classification: minimal-risk (deterministic; no LLM)
-    user_label: "Recurring task auto-created" (Art. 50)
+    user_label: "Recurring task auto-created"  # Art. 50
     cedar_admission_path: |
       tenant-scope.cedar :: action::TaskT2RecurrenceMaterialise admits when
       project.has_recurrence_rule AND tenant.tenant_class IN {demo_trial, paid}
@@ -159,11 +159,11 @@ verification:
   - All T2 actions emit a Cedar-evaluable principal/action/resource triple to `policy/tenant-scope.cedar` BEFORE acting AND on each scheduled tick.
   - All T2 actions emit an audit-chain event (Ed25519-sealed) on policy-enabled, on each action, on policy-disabled.
   - All T2 actions are tenant_class-gated: Cedar policy `tenant-class-admission.cedar` admits T2 when tenant_class and usage caps allow the action; paid billing components determine metering, not feature entitlement.
-  - **T2-task-auto-assign in employment-context is REFUSED at the Cedar layer for pack-eu / pack-us / pack-kr / pack-jp / pack-au pending EU AI Act Annex III §4 + EEOC + 근로기준법 + Labour Standards Act + Fair Work Act conformity-assessment ADRs**.
+  - '**T2-task-auto-assign in employment-context is REFUSED at the Cedar layer for pack-eu / pack-us / pack-kr / pack-jp / pack-au pending EU AI Act Annex III §4 + EEOC + 근로기준법 + Labour Standards Act + Fair Work Act conformity-assessment ADRs**.'
   - T2 actions respect dual-context isolation: Personal-context T2 actions NEVER touch Professional-context data; Professional-context T2 actions NEVER touch Personal-context data.
   - T2 actions emit user-visible labelling per EU AI Act Art. 50 at each affected user/assignee.
   - T2 actions are continuously reviewed: annual conformity-assessment cycle for any T2 capability that touches EU AI Act Annex III §4 scope.
-  - **T2-task-auto-assign fairness audit** is weekly; per-protected-class accept-rate < 0.8 triggers auto-rollback per `runbooks/ai-assign-classifier-rollback.md`.
+  - '**T2-task-auto-assign fairness audit** is weekly; per-protected-class accept-rate < 0.8 triggers auto-rollback per `runbooks/ai-assign-classifier-rollback.md`.'
   - T2 actions never bypass dependency-cycle prevention (per ADR-TASKS-0002); auto-status-advance refuses if it would create a cycle (impossible by construction, but invariant-tested).
 
 references:

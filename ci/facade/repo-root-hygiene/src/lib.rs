@@ -1060,8 +1060,6 @@ spec:
                 ".grok/one.md",
                 "specs/reorg/one.json",
                 "oya/one.rs",
-                "a/one.yaml",
-                "a/one.json",
             ]),
         );
         assert!(
@@ -1091,10 +1089,11 @@ spec:
                 "specs/reorg/two.json",
                 "oya/one.rs",
                 "libs/two.rs",
-                "a/one.yaml",
-                "a/two.yaml",
-                "a/one.json",
-                "a/two.json",
+                // Two .yaml rows against a fixture ceiling of 1. `.github/two.yml` above
+                // is .yml and does not match the fixture's .yaml suffix, so without these
+                // the yaml code would be declared but unreachable.
+                "config/one.yaml",
+                "config/two.yaml",
             ]),
         );
         for code in [
@@ -1104,9 +1103,9 @@ spec:
             "corpus_budget_live_adrs_grew",
             "corpus_budget_dotdir_files_grew",
             "corpus_budget_reorg_paths_grew",
-            "corpus_budget_oya_legacy_root_files_grew",
             "corpus_budget_yaml_files_grew",
             "corpus_budget_json_files_grew",
+            "corpus_budget_oya_legacy_root_files_grew",
         ] {
             assert!(
                 findings.iter().any(|f| f.code == code),
@@ -1300,8 +1299,7 @@ spec:
                 ".grok/x.md",
                 "specs/reorg/x.json",
                 "oya/x.rs",
-                "a/x.yaml",
-                "a/x.json",
+                "config/x.yaml",
             ]),
         );
         findings.extend(evaluate_talos_machine_config_documents([(
