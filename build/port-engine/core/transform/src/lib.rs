@@ -39,6 +39,7 @@ mod body_wider;
 mod body_closure;
 mod body_cond;
 mod body_derived;
+mod body_escape;
 mod body_expr;
 mod body_forward;
 mod body_idiom;

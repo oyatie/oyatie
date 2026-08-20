@@ -38,7 +38,18 @@ import (
 const (
 	defaultGOOS    = "linux"
 	defaultGOARCH  = "amd64"
-	defaultRelease = 21
+	// The engine's MINIMUM SUPPORTED release, raised from 21 deliberately.
+	//
+	// go1.22 gave each loop iteration its own variables. A corpus written for 1.22 and checked at
+	// 1.21 is the same syntax and a different program -- a closure made in a loop captures one
+	// shared variable under the old rule and a fresh one under the new -- and nothing downstream
+	// can see the difference. Supporting 1.21 would mean modelling BOTH capture rules and deciding
+	// per module which applies; making 1.22 the floor deletes the choice instead of answering it.
+	//
+	// The cost is stated rather than hidden: a module declaring go1.21 or earlier is now refused by
+	// the ceiling check, which is the correct outcome for a release whose semantics this engine
+	// does not implement.
+	defaultRelease = 22
 )
 
 // buildConfig is the configuration a snapshot is extracted FOR. Every field is an input, so two

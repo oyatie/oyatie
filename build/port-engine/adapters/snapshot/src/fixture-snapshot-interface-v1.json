@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
-  "snapshot_digest": "sha256:08600d792f09d066cbc365d8b18f71e68baada82e85b5f8c3f3344398ee8eb36",
+  "build_config": "linux/amd64 go1.22 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:00d8d7f76c9d61d0ff19bc023712ef0d1ead8f6503cf7d57a28e4cceb00e3adb",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-interface/corpus-interface/positions",

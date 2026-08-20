@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
-  "snapshot_digest": "sha256:a001cb3915a4ee81a2622acdf97b445dccfd98fa261cd23481ce8ee24fa4af8d",
+  "build_config": "linux/amd64 go1.22 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:b1e064681f7114c0c62cd5d20030660bb0eee0a3704abeedecb93b0b6c5b14d3",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -2691,8 +2691,7 @@
                                     "kind": "slice",
                                     "args": [
                                       {
-                                        "kind": "named",
-                                        "name": "any"
+                                        "kind": "interface"
                                       }
                                     ]
                                   }
@@ -2813,8 +2812,7 @@
                                     "kind": "slice",
                                     "args": [
                                       {
-                                        "kind": "named",
-                                        "name": "any"
+                                        "kind": "interface"
                                       }
                                     ]
                                   }
@@ -2934,8 +2932,7 @@
                                     "kind": "slice",
                                     "args": [
                                       {
-                                        "kind": "named",
-                                        "name": "any"
+                                        "kind": "interface"
                                       }
                                     ]
                                   }
@@ -3040,8 +3037,7 @@
                                     "kind": "slice",
                                     "args": [
                                       {
-                                        "kind": "named",
-                                        "name": "any"
+                                        "kind": "interface"
                                       }
                                     ]
                                   }
@@ -3147,8 +3143,7 @@
                                     "kind": "slice",
                                     "args": [
                                       {
-                                        "kind": "named",
-                                        "name": "any"
+                                        "kind": "interface"
                                       }
                                     ]
                                   }
@@ -3261,8 +3256,7 @@
                                     "kind": "slice",
                                     "args": [
                                       {
-                                        "kind": "named",
-                                        "name": "any"
+                                        "kind": "interface"
                                       }
                                     ]
                                   }
@@ -3452,8 +3446,7 @@
                                             "kind": "slice",
                                             "args": [
                                               {
-                                                "kind": "named",
-                                                "name": "any"
+                                                "kind": "interface"
                                               }
                                             ]
                                           }

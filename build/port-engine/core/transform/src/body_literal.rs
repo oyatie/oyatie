@@ -356,19 +356,32 @@ fn rune_literal(
         }))
     };
     match resolved.as_str() {
-        // A CHARACTER, which is what the source spelled and what the target spells the same way.
-        "char" => Some(Ok(RustExpr::Literal(value.to_owned()))),
+        // A CHARACTER, which is what the source spelled and, for the escapes the two languages
+        // share, what the target spells the same way. The rest are respelled by CODE POINT.
+        "char" => match crate::body_escape::shared_escape(value) {
+            true => Some(Ok(RustExpr::Literal(value.to_owned()))),
+            false => match crate::body_escape::rune_code_point(value) {
+                Some(code) => Some(Ok(RustExpr::Literal(format!("'\\u{{{code:x}}}'")))),
+                None => refuse("the target has no form for that escape and its value is not known"),
+            },
+        },
         "u8" => {
-            // The target's byte literal admits the ASCII range and the escapes that stay inside it.
-            // `\u{..}` names a code point rather than a byte and has no byte form at all, and a
-            // literal character outside ASCII is not one byte in either language.
+            // A rune outside ASCII is not one byte in either language.
             if !value.is_ascii() {
                 return refuse("a rune outside ASCII is not one byte");
             }
-            if value.contains("\\u") || value.contains("\\U") {
-                return refuse("a `\\u` escape names a code point and the target has no byte form for one");
+            if crate::body_escape::shared_escape(value) {
+                return Some(Ok(RustExpr::Literal(format!("b{value}"))));
             }
-            Some(Ok(RustExpr::Literal(format!("b{value}"))))
+            match crate::body_escape::rune_code_point(value) {
+                // The target's byte literal admits the whole octet through `\xHH`, so an escape it
+                // does not share is spelled as the byte it denotes.
+                Some(code) if code <= u32::from(u8::MAX) => {
+                    Some(Ok(RustExpr::Literal(format!("b'\\x{code:02x}'"))))
+                }
+                Some(_) => refuse("a code point above one byte has no byte form"),
+                None => refuse("the target has no form for that escape and its value is not known"),
+            }
         }
         _ => refuse("the target has no literal of that type for a rune"),
     }

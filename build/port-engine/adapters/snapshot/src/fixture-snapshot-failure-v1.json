@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
-  "snapshot_digest": "sha256:a4728fcbb4c1ce2dc7d0e3346e36fff46c17515d5fd2f73a0af9a2f1fedeff02",
+  "build_config": "linux/amd64 go1.22 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:4d6d4a089ebb438a69cc498fdc6ae5d5c7ffa57200ad02edf0b24e83bfbffe63",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-failure/corpus-failure/carried",
