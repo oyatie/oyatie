@@ -19,6 +19,7 @@ use crate::wire::SnapshotDocument;
 pub struct GoSourceModel {
     schema_version: u32,
     language: String,
+    build_config: String,
     snapshot_digest: Digest,
     units: Vec<UnitId>,
     /// Parallel to [`Self::units`] — ADR-0638 D3 package→producer map (one producer per package).
@@ -99,6 +100,7 @@ impl GoSourceModel {
         Ok(Self {
             schema_version: doc.schema_version,
             language: doc.language,
+            build_config: doc.build_config,
             snapshot_digest: Digest(doc.snapshot_digest),
             units,
             producers,
@@ -110,6 +112,13 @@ impl GoSourceModel {
     #[must_use]
     pub fn language(&self) -> &str {
         &self.language
+    }
+
+    /// The build configuration the snapshot was extracted FOR, or empty for one written before the
+    /// field existed.
+    #[must_use]
+    pub fn build_config(&self) -> &str {
+        &self.build_config
     }
 
     /// Semantic digest claimed by the decoded snapshot.

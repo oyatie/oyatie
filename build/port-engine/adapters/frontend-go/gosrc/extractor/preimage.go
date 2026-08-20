@@ -36,6 +36,9 @@ func preimage(model *snapshot) []byte {
 	out := make([]byte, 0, 4096)
 	field(&out, "snapshot")
 	field(&out, model.Language)
+	// The BUILD CONFIGURATION, so a semantics change moves the digest. Mirrored byte-for-byte on
+	// the Rust side, like every other field here.
+	field(&out, model.BuildConfig)
 	field(&out, strconv.Itoa(len(model.Packages)))
 	for _, pkg := range model.Packages {
 		field(&out, "package")

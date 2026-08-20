@@ -77,7 +77,11 @@ fn admit_one(bytes: &[u8], artifact_digest: Digest) -> Result<AdmittedSnapshot, 
                     }))?;
             packages.push((unit.as_str(), producer.as_str(), declarations));
         }
-        digest_bytes(&snapshot_preimage_v1(model.language(), &packages))
+        digest_bytes(&snapshot_preimage_v1(
+            model.language(),
+            model.build_config(),
+            &packages,
+        ))
     } else {
         let refs: Vec<(&str, &str)> = pairs
             .iter()

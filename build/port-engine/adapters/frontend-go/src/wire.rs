@@ -25,6 +25,13 @@ pub(crate) struct SnapshotDocument {
     #[serde(default)]
     pub(crate) schema_version: u32,
     pub(crate) language: String,
+    /// The configuration the corpus was type-checked FOR, canonicalised.
+    ///
+    /// An input that changes what is extracted, and was the one input that changed nothing
+    /// observable: two extractions at Go 1.21 and Go 1.24 produced identical digests, while Go 1.22
+    /// rescoped the loop variable. Defaulted so a snapshot written before this field still admits.
+    #[serde(default)]
+    pub(crate) build_config: String,
     pub(crate) snapshot_digest: String,
     pub(crate) packages: Vec<PackageEntry>,
 }

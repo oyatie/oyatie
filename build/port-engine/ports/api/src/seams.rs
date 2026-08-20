@@ -30,6 +30,15 @@ use crate::ownership::PointerDisposition;
 pub trait SourceModel {
     /// Slug of the language this model was read from.
     fn language(&self) -> &str;
+
+    /// The build configuration the snapshot was extracted FOR, canonicalised, or empty.
+    ///
+    /// DEFAULTED, because a model that predates the field is not lying about it — it has nothing to
+    /// say. An empty value reproduces the digest such a snapshot already claims, so existing
+    /// artifacts keep admitting while new ones record what they were type-checked for.
+    fn build_config(&self) -> &str {
+        ""
+    }
     /// Digest of the snapshot this model was derived from (the receipt's `snapshot_digest`).
     fn snapshot_digest(&self) -> Digest;
     /// The translatable units, in deterministic order.

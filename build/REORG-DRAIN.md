@@ -5416,3 +5416,45 @@ would make this a k8s porter rather than a Go porter. The criterion is coverage 
 surface — closures, interfaces, type assertions, channels, select, tags, reflection — ranked by how
 common each is across the ecosystem, with k8s and Talos as consumers of the result rather than its
 specification.
+
+## R3d — the Go release was an input that changed nothing observable
+
+Asked directly whether the engine checks every Go release from 1.21 to latest. It did not, and the
+answer had two parts, of which the second is the dangerous one.
+
+**We type-check at ONE release.** `defaultRelease = 21`, overridable by `-go-release`, and no workflow
+runs a matrix. That is a coverage gap.
+
+**And the release was invisible.** Proven rather than reasoned: extracting `xxhash` at go1.21 and at
+go1.24 produced **byte-identical snapshots and the same digest**. Go 1.22 rescoped the loop variable —
+same syntax, different program — so the engine could have emitted a different program with every
+receipt axis holding. That is precisely the false Green the six-axis receipt exists to refuse, hiding
+in the one input nobody had recorded.
+
+The extractor's own `buildConfig` doc had already stated the invariant this violated: *"Every field is
+an input, so two configurations of one corpus are two snapshots rather than one snapshot with a hidden
+variable."* The release was the hidden variable.
+
+**Fixed on both sides.** The snapshot now carries `build_config` (`linux/amd64 go1.24`, canonicalised
+by the configuration's own `describe`), and the preimage covers it — mirrored byte-for-byte in the Go
+encoder and the Rust one, as every other field is. The model seam gained a DEFAULTED accessor so a
+snapshot written before the field still admits: it has nothing to say about its configuration rather
+than a false claim about it.
+
+**The matrix, measured.** Every release from 1.21 through 1.26 now yields a distinct digest for one
+corpus. 1.27 fails, and correctly: the installed toolchain is go1.26.6 and refuses to type-check
+against a release it does not know. So the engine can check any release its own toolchain understands,
+and the ceiling moves when the toolchain does.
+
+**Two recorded lessons re-learned, both cheaply this time because they were written down.**
+
+The fixture regeneration lost a hand edit. R2m added a `Check` method to
+`fixture-snapshot-unproven-v1.json` by editing the GENERATED JSON, and regenerating from the corpus
+wiped it. The right home was always the Go source; it is now in `corpus-unproven/stored/stored.go`,
+where regeneration reproduces it. **Editing a generated artifact is a change that survives only until
+the next generation.**
+
+And the drift pair broke exactly as the drain says it broke once before: regenerated under the module
+id `...-upstream` instead of the plain one, the plan stopped selecting the unit and the delta went
+`Unchanged` where the test demands `Explained`. The entry describing that was read and applied rather
+than rediscovered — which is what the record is for.

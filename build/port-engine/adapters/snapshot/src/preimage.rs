@@ -56,11 +56,16 @@ fn push_field(out: &mut Vec<u8>, value: &str) {
 #[must_use]
 pub fn snapshot_preimage_v1(
     language: &str,
+    build_config: &str,
     packages: &[(&str, &str, Vec<Declaration>)],
 ) -> Vec<u8> {
     let mut out = Vec::new();
     push_field(&mut out, "snapshot");
     push_field(&mut out, language);
+    // The BUILD CONFIGURATION, mirroring the extractor. It is an input that decides what gets
+    // extracted, and it was the one input the digest could not see: two extractions at Go 1.21 and
+    // Go 1.24 agreed byte for byte while Go 1.22 rescoped the loop variable between them.
+    push_field(&mut out, build_config);
     push_field(&mut out, &packages.len().to_string());
     for (unit, producer, declarations) in packages {
         push_field(&mut out, "package");

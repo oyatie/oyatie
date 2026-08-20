@@ -21,11 +21,13 @@ type Stored struct {
 
 // Cause returns why the attempt did not succeed.
 //
-// REFUSED. The operand is a stored field that may be absent, and neither proof the engine has
-// applies to it: it is not a call to a declared failure constructor, and it is not the address of a
-// fresh composite. What the source means here is a GETTER, and the target spells a getter as an
-// optional rather than as a result — but choosing that would be reading intent from a shape, not
-// proving it, so this refuses and says which proof is missing.
+// TRANSLATED, and this comment previously said the opposite. The earlier reading was that a getter's
+// optional form would be reading intent from a shape rather than proving it. What changed is that
+// there IS a proof: every return of this sole-failure-result function reads a field of the RECEIVER,
+// the same proof the borrowed string getter one type over already makes. The claim is not that this
+// is semantically a getter — it is that the value handed back is a stored field that may be absent,
+// and an optional borrow says exactly that. `Result` would say an operation succeeded or failed,
+// which is a claim about an operation that is not here.
 func (s *Stored) Cause() error {
 	return s.cause
 }
@@ -36,4 +38,17 @@ func (s *Stored) Cause() error {
 // is a call to a declared failure constructor, which has no absent result to return.
 func (s *Stored) Wrapped() error {
 	return errors.New("attempt failed")
+}
+
+// Check reports the stored count and whether the attempt failed.
+//
+// REFUSED, and this is the fence. The trailing operand is the CHANNEL: the target spells it
+// `Err(..)`, which reports failure unconditionally, and this operand is a stored field that may be
+// absent — so the emitted program would report failure at exactly the points the source reported
+// success. Unlike `Cause` there is no alternative spelling to fall back on, because the companion
+// result makes the signature a fallible operation rather than a value handed back. The refusal must
+// name the OPERAND rather than the signature, which is what makes the distinction from `Wrapped`
+// possible at all.
+func (s *Stored) Check() (int, error) {
+	return 0, s.cause
 }
