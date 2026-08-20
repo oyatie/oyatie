@@ -63,6 +63,8 @@ pub const TYPE_POINTER: &str = "pointer";
 /// The node kind of a literal.
 pub const KIND_IDENT: &str = "ident";
 pub const KIND_LITERAL: &str = "literal";
+/// A TYPE standing where an expression would, which a few source builtins take.
+pub const KIND_TYPE: &str = "type";
 /// The node kind of a composite literal.
 pub const KIND_COMPOSITE: &str = "composite";
 /// The node kind of one keyed element of a composite literal.

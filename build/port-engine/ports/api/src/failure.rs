@@ -116,6 +116,25 @@ pub struct FunctionMapping {
     pub reason: String, // data_class: INTERNAL_ONLY
 }
 
+/// How the source's ALLOCATING builtin becomes the target's.
+///
+/// Its own shape rather than a row in the function map because the builtin's first argument is a
+/// TYPE and its meaning changes with its arity — neither of which a form keyed by callee identity
+/// can express.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct Allocation {
+    /// A sequence with no elements and room for `{0}`.
+    pub empty_with_capacity: String, // data_class: INTERNAL_ONLY
+    /// Why the zero length is required rather than incidental.
+    pub empty_with_capacity_reason: String, // data_class: INTERNAL_ONLY
+    /// A sequence of `{0}` elements, each the zero `{1}`.
+    pub filled: String, // data_class: INTERNAL_ONLY
+    /// Why an unknown zero refuses.
+    pub filled_reason: String, // data_class: INTERNAL_ONLY
+    /// Why the map and channel shapes are absent.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// What a source STRING becomes when its content is not text.
 ///
 /// The source's string is a byte string and the target's is guaranteed UTF-8, so the ordinary

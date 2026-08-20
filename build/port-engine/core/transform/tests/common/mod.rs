@@ -45,6 +45,8 @@ pub struct Pack {
     pub unmappable_types: BTreeMap<String, String>,
     /// What a binary string becomes. Empty by default, for the same reason.
     pub binary_string: port_engine_api::BinaryString,
+    /// How an allocating builtin translates. Empty by default, for the same reason.
+    pub allocation: port_engine_api::Allocation,
     /// Callees that take a length. Empty by default, for the same reason.
     pub length_argument_callees: BTreeSet<String>,
     pub copies: BTreeSet<String>,
@@ -240,6 +242,13 @@ impl Pack {
 }
 
 impl PackSemantics for Pack {
+    fn allocation(&self) -> &port_engine_api::Allocation {
+        // EMPTY, so a fixture's allocation refuses. Which shapes are exact is a judgement about the
+        // source language, exercised against real source.
+        &self.allocation
+    }
+
+
     fn binary_string(&self) -> &port_engine_api::BinaryString {
         // EMPTY, so a fixture's string constant stays a string. Which strings are binary is a
         // judgement about real source, exercised against the corpus.
