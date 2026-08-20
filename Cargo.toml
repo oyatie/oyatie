@@ -34,7 +34,6 @@ members = [
   # nothing as `oya/`, `libs/`, `tools/` and `cloud/` empty out.
   "libs/oya-*",
   "oya/*/crates/oya-*",
-  "oya/office/oya-*",
   "tools/oya-*",
   "tools/*-app",
 

@@ -1,9 +1,0 @@
-apiVersion: oyatie.dev/v1
-kind: EchConfig
-metadata:
-  name: oya-production-planning-ech
-spec:
-  rotationCadenceDays: 90
-  httpsRecord: true
-  gracefulFallback: true
-  auditEventClass: EVT-PRODUCTION_PLANNING-BOM_REVISION-ECH_ROTATED

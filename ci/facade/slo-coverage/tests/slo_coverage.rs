@@ -128,7 +128,12 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  analysis.yaml, for the port-engine analysis crate.
 ///                                  Verified by diff against dev: one A and thirteen M
 ///                                  under registry/catalog/, so the face enumerates 773 + 1.
-const SLO_CATALOG_CENSUS: usize = 774;
+///   2026-08-19  774 -> pin 742     ROWS DELETED: 31 registry/catalog rows whose crate was
+///                                  removed by the unreferenced-oya-product deletion (51
+///                                  crates, zero inbound deps, zero deployment refs). The
+///                                  row set shrinks with its subjects; nothing was retired
+///                                  to make room.
+const SLO_CATALOG_CENSUS: usize = 742;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
