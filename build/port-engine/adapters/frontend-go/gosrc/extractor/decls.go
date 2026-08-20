@@ -154,12 +154,25 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 		// positional composite literals), so it is deliberately not sorted.
 		for i := 0; i < underlying.NumFields(); i++ {
 			field := underlying.Field(i)
+			attrs := withDoc(nil, ctx.fieldDocs[obj.Name()+"."+field.Name()])
+			// THE STRUCT TAG. It is not decoration: a tag is what a serialization library reads to
+			// decide the WIRE NAME of a field and whether it may be omitted, so a type carrying one
+			// has a wire contract written in its field names. Dropping the tag and casing the name
+			// changes the bytes on the wire while the program still compiles -- `memberlist`'s ten
+			// message structs are msgpack maps keyed by field name, and the port renamed every key.
+			//
+			// Recorded rather than interpreted. WHICH library reads a given tag, and what the
+			// target's counterpart is, are decisions; that the tag EXISTS is a fact, and the
+			// transform cannot refuse what it cannot see.
+			if tag := underlying.Tag(i); tag != "" {
+				attrs = withAttr(attrs, attrStructTag, tag)
+			}
 			base.Children = append(base.Children, node{
 				Kind:  kindField,
 				Name:  field.Name(),
 				Type:  typeTree(field.Type()),
 				Flags: flagsFor(field.Exported(), false, field.Embedded(), false),
-				Attrs: withDoc(nil, ctx.fieldDocs[obj.Name()+"."+field.Name()]),
+				Attrs: attrs,
 			})
 		}
 		base.Children = append(base.Children, methods...)

@@ -35,6 +35,34 @@ fn refuse_unportable_facts(
             });
         }
     }
+    // A SERIALIZATION TAG is a wire contract written on a field, and the field's NAME is half of
+    // it: a library that reads the tag keys the encoded form by that name unless the tag overrides
+    // it. The target's convention cases the name differently, so emitting the struct silently
+    // changes the bytes it produces — `memberlist`'s messages are msgpack maps keyed by field name,
+    // and every key in them moved.
+    //
+    // The engine has no serialization decision to spend: which library reads a given tag, and what
+    // the target's counterpart is, is a choice about the ported program. So the type refuses, by
+    // name, and says which field carries the contract it cannot keep.
+    if let Some(tagged) = declaration
+        .children_of_kind(crate::vocabulary::CHILD_FIELD)
+        .into_iter()
+        .find(|field| field.attr(crate::vocabulary::ATTR_STRUCT_TAG).is_some())
+    {
+        return Err(TransformError::Unsupported {
+            name: declaration.name.clone(),
+            detail: format!(
+                "field `{}` carries the source tag `{}`, which names its identity in a serialized \
+                 form — and the target's field naming would change that identity while still \
+                 compiling. Preserving it is a decision about which serialization the ported \
+                 program uses, and the pack declares none",
+                tagged.name,
+                tagged
+                    .attr(crate::vocabulary::ATTR_STRUCT_TAG)
+                    .unwrap_or_default()
+            ),
+        });
+    }
     Ok(())
 }
 
