@@ -6793,3 +6793,25 @@ Zero inherent `string()` methods remain across the five goal repositories.
 The first attempt emitted `f.write_str(&write!(f, ..))` — double-wrapped, because the renderer's old
 tail decision was still there beside the new node. Two spellings of one decision, for the length of
 one build.
+
+## R4g — a dropped sentence takes its pronouns with it
+
+    /// It's used as
+    /// a pointer so it fits in an interface{} without allocation.
+    pub struct ContextKey { name: String }
+
+A reviewer read that and said it had no subject. It did not: the sentence before it —
+"contextKey is a value for use with context.WithValue." — names `context.WithValue`, which the
+emitted crate does not contain, so the dangling-reference rule dropped it. The rule is right, and
+its INTERACTION with what follows was not: removing a sentence strands every pronoun that referred
+to it.
+
+A sentence whose subject was dropped is now dropped too, and the rule carries forward — three
+sentences where the first goes and the second refers to it lose both, and the third survives only if
+it does not refer to the second. `ContextKey` ends up with no documentation rather than documentation
+about nothing, which is the honest outcome: every sentence the source wrote about it referred to
+something that did not come along.
+
+The pronoun list is CLOSED, and the cost of being wrong runs one way only. A sentence wrongly held
+to lean on its predecessor is dropped with it and the documentation is shorter; one wrongly kept is
+prose referring to something no longer there.
