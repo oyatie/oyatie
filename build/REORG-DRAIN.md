@@ -4792,3 +4792,75 @@ a reference to an integer, an equality on an option, and two derive bounds — `
 on a struct holding a field that implements neither, which is a provable rule since the engine knows
 every field's type. `semver` has two type mismatches. `ksuid` has two empty composite literals of a
 newtype, `Uint128 {}`, which should be the type's zero rather than a struct literal with no fields.
+
+## R2q — the cascade break LANDS
+
+Located in R2h, built and reverted in R2i, prerequisites landed in R2o and R2p. It lands here with the
+compile proof green over every package that emits.
+
+**The change, once more, because it is the important one.** `items_types.rs` built a struct with
+`inherent_methods(declaration, resolver, body)?`. That `?` meant one method the engine could not
+translate refused the ENTIRE TYPE, the type was then not emitted, and every declaration mentioning it
+refused in turn. A package's coverage was capped by its single hardest method. Both languages declare
+a type and its methods separately, and a type's shape owes nothing to any method body — so a method
+that cannot be written is now dropped, and the type stands.
+
+**Absolute translated declarations across the corpus: 63 → 87.** Per package: `uuid` 11 → 26,
+`ksuid` 16 → 19, `semver` 14 → 17, `xid` 3 → 4, `errors` 0 → 2, `xxhash` 19 unchanged. Coverage
+PERCENTAGES fall in places and must not be quoted as a regression: a type with N untranslatable
+methods used to be one refusal and is now one translation plus N, so the denominator moved.
+
+**Six rules were needed to make it compile, each measured by what it removed.**
+
+*A dropped method refuses its callers* — the hole the break itself opens, and R2i recorded it as
+written-but-inert because it asked the receiver node for a type receivers do not carry.
+
+*A composite literal that loses its operands refuses.* This one is the reason the phase was worth
+doing carefully. `makeUint128` returns `uint128{low, high}`, the elements are positional, the struct
+path looked for KEYED children, found none, and emitted `Uint128 {}` — **both operands silently
+gone**. It surfaced only because the target newtype has a field to be missing; had the type been
+empty it would have compiled and meant something different, which is the exact failure this engine
+exists to prevent. Two rules came out of it: a composite of a local newtype builds a literal of what
+it WRAPS, and — the general one — a literal the source gave operands may never be emitted with none.
+
+*A derive is only earned if every field earns it.* `derives_for` carried a written assumption that a
+field naming another emitted type "cannot block anything, because every emitted struct gets the same
+list". A NEWTYPE breaks it: one over a slice earns no total equality, and a struct holding it derived
+`Eq` and did not compile. The check now follows references into this unit's own declarations, with a
+visited set for the cycle a pointer can make.
+
+*A promotion through an absent-capable field refuses.* A promoted method's body is SYNTHESISED rather
+than translated, so nothing on the call path ever sees it and the receiver rule could not fire. The
+source panics at the embedding when the pointer is absent, which is not a behaviour to reproduce
+deliberately.
+
+*Concatenation is not symmetric.* The source adds two strings and gets a third; the target's `+`
+takes a borrow on the right. *A returned string SLICE must be owned* where the result is an owned
+string — and constructed rather than converted, because a slice renders with its own leading borrow
+and a method call binds tighter than it does: `&s[..1].to_owned()` is a reference to an owned string.
+*A conversion FROM a newtype reaches through the wrapper*, the same helper the index path uses.
+
+**The two refusal invariants, decided rather than deleted.** R2i deferred this and it had to be
+settled: `an_escaping_receiver_is_refused_with_its_reason` and
+`a_failure_the_engine_cannot_prove_is_refused_by_its_operand` both failed, because their corpora now
+drop a method where they used to refuse a declaration.
+
+Investigating rather than editing the tests found a real defect behind them. The plan-driven path used
+a THROWAWAY drop log — so on the path that produces the golden and feeds the receipt, a dropped method
+vanished with no report at all. The survey reported drops and `apply` did not. That is precisely the
+silent hole the drop mechanism was written to avoid, reintroduced one layer down.
+
+So `TransformOutput` now carries `dropped`, for the reason the dispositions travel with the IR and a
+sharper one: a drop is invisible in the output BY CONSTRUCTION — what it leaves is a type with one
+fewer method, which reads exactly like a type that never had it. Only this channel can say otherwise.
+The refusal corpora then refuse again, on the same reasons, named at the method rather than at the
+declaration — which is finer, not weaker. The two transform-level unit tests were updated to assert
+the property they were always about: the undeclared decision is refused and its reason reported, never
+invented.
+
+Verification: 11 crates' tests green by exit code; clippy `-D warnings` green; `delta` Green/Unchanged;
+golden byte-identical; `clippy-driver --deny=warnings` green over all six packages that emit, compiled
+under `#![forbid(unsafe_code)]`.
+
+**What is left.** `multierror` alone still emits nothing, blocked by `TypeSwitchStmt` and `sync.Mutex`
+rather than by anything this phase touched.

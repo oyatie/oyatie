@@ -83,6 +83,46 @@ pub(crate) fn composite(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, T
     // single refusal in the corpus by both count and package spread, and it named the wrong
     // component: a reader following it went to the front end, where there was nothing to find.
     // A refusal that misdescribes what is missing is worse than no refusal, because it is acted on.
+    // A composite of a local NEWTYPE is the wrapper around a literal of what it WRAPS. The source
+    // writes `uint128{high, low}` because there the name and the array are one thing; the target's
+    // newtype has one unnamed field holding the array.
+    //
+    // This is the case that produced a silent loss rather than a compile error: the literal's
+    // elements are positional, the struct path looks for KEYED children, found none, and emitted
+    // `Uint128 {}` — both operands gone. It was caught only because the target type has a field to
+    // be missing. See the arity guard below, which is what makes the class impossible rather than
+    // this one instance fixed.
+    if let Some(underlying) = cx.resolver.scope.newtypes.get(&node.type_ref.name).cloned() {
+        let inner = Declaration {
+            type_ref: underlying,
+            ..node.clone()
+        };
+        if let Some(rendered) = sequence_literal(&inner, cx)? {
+            return Ok(RustExpr::Call {
+                callee: Box::new(RustExpr::Path(
+                    cx.resolver.resolve(&node.type_ref, cx.owner)?.spelling(),
+                )),
+                args: vec![rendered],
+            });
+        }
+    }
+
+    // An EMPTY literal of a local NEWTYPE is the wrapper around what it wraps, zeroed. The source
+    // writes `uint128{}` and means two zero words; the target's newtype has one unnamed field, so a
+    // struct literal with no fields names none of it and does not compile. The type's own zero is
+    // the answer for the same reason `[20]byte{}` is twenty zero bytes rather than an empty array.
+    if node.children.is_empty()
+        && let Some(underlying) = cx.resolver.scope.newtypes.get(&node.type_ref.name).cloned()
+        && let Some(zero) = cx.resolver.zero_value(&underlying)
+    {
+        return Ok(RustExpr::Call {
+            callee: Box::new(RustExpr::Path(
+                cx.resolver.resolve(&node.type_ref, cx.owner)?.spelling(),
+            )),
+            args: vec![RustExpr::Literal(zero)],
+        });
+    }
+
     let path = cx.resolver.resolve(&node.type_ref, cx.owner)?;
 
     let keyed = node.children_of_kind("keyed");
@@ -102,6 +142,22 @@ pub(crate) fn composite(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, T
             .get(&value.name)
             .is_some_and(|total| occurrence == *total);
         fields.push((to_snake_case(&entry.name), owned_read(value, cx, is_last)?));
+    }
+    // A literal the source gave OPERANDS may not come out with none. Nothing else in this function
+    // can tell the difference between a struct with no fields and a struct whose fields were all
+    // dropped, and the second is a silent loss of every value the source wrote — which is the exact
+    // failure this engine exists to prevent, and which reached the output once.
+    if fields.is_empty() && !node.children.is_empty() {
+        return Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!(
+                "a composite literal of `{}` carries {} operand(s) in the source and none of them \
+                 survived translation — the target literal would construct the type while dropping \
+                 every value the source put in it",
+                node.type_ref.describe(),
+                node.children.len()
+            ),
+        });
     }
     Ok(RustExpr::StructLiteral {
         path: path.spelling(),

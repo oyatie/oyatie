@@ -137,7 +137,12 @@ pub(crate) fn moves_on_read(type_ref: &TypeRef, cx: &Body<'_>) -> bool {
 /// refuses: converting between a string and a byte slice is infallible and lossy in the source and
 /// FALLIBLE in the target, which is a decision about invalid input rather than a spelling.
 pub(crate) fn convert(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
-    let operand = expression(one_child(node, cx, "convert")?, cx)?;
+    let source = one_child(node, cx, "convert")?;
+    // Converting FROM a newtype reaches through the wrapper. The source's named type and its
+    // underlying are one thing there, so `uintptr(f)` is a no-op it spells as a conversion; the
+    // target's newtype wraps, and casting the wrapper is not a cast the language has. Same helper
+    // the index path uses, because it is the same question about the same receiver.
+    let operand = crate::body_index::unwrapped_base(source, cx)?;
     let target = &node.type_ref;
 
     // A named type the corpus declares emits as a newtype, so converting to it is construction.

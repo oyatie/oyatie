@@ -52,6 +52,13 @@ pub struct TransformOutput {
     pub region_units: BTreeMap<RegionId, UnitId>,
     /// Every ownership decision, in the order it was made.
     pub dispositions: Vec<DispositionRecord>,
+    /// Every method dropped from a type that was otherwise emitted.
+    ///
+    /// Travels WITH the IR for the same reason the dispositions do, and for a sharper one: a drop
+    /// is invisible in the output by construction — what it leaves behind is a type with one fewer
+    /// method, which reads exactly like a type that never had it. A caller that does not look here
+    /// cannot learn the conformance is missing, so this is the only channel that says so.
+    pub dropped: Vec<crate::dropped::DroppedMethod>,
 }
 
 /// [`apply`], plus which unit each emitted region came from.
@@ -69,6 +76,9 @@ pub fn apply_with_provenance(
     semantics: &dyn PackSemantics,
     model: &dyn SourceModel,
 ) -> Result<TransformOutput, TransformError> {
+    // ONE log for the run, not one per declaration: a drop is reported to the caller, and a log
+    // that goes out of scope with the declaration reports to nobody.
+    let drops = crate::dropped::DropLog::new();
     let model_units: BTreeSet<String> = model.units().into_iter().map(|u| u.0).collect();
     let mut provenance: BTreeMap<RegionId, UnitId> = BTreeMap::new();
 
@@ -160,9 +170,6 @@ pub fn apply_with_provenance(
             .filter(|(_, d)| captures.contains(&d.kind))
         {
             let region = region_id_for_declaration(&step.unit, &step.rule, &declaration.name);
-            // A THROWAWAY log: this path assembles a plan and reports nothing; a method dropped
-            // here is reported by the survey against the same declarations.
-            let drops = crate::dropped::DropLog::new();
             let built = build_item(
                 construction,
                 declaration,
@@ -247,6 +254,7 @@ pub fn apply_with_provenance(
     }
     Ok(TransformOutput {
         ir,
+        dropped: drops.records(),
         region_units: provenance,
         dispositions: log.records(),
     })

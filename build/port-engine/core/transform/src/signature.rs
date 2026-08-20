@@ -41,21 +41,24 @@ pub(crate) fn inherent_methods(
     // inherent wins path resolution, and deleting the inherent one turns the trait impl's forward
     // into infinite recursion — a stack overflow introduced by removing code.
     let claimed = methods_claimed_by_traits(declaration, resolver);
-    let mut methods = declaration
+    let mut methods = Vec::new();
+    for method in declaration
         .children_of_kind(CHILD_METHOD)
         .into_iter()
         .filter(|method| !claimed.contains(&method.name))
-        .map(|method| {
-            method_signature(
-                method,
-                resolver,
-                Visibility::Public,
-                body,
-                &declaration.name,
-                crate::body::ResultShape::Own,
-            )
-        })
-        .collect::<Result<Vec<_>, _>>()?;
+    {
+        match method_signature(
+            method, resolver, Visibility::Public, body, &declaration.name,
+            crate::body::ResultShape::Own,
+        ) {
+            Ok(built) => methods.push(built),
+            Err(error) => resolver.drops.record(crate::dropped::DroppedMethod {
+                owner: declaration.name.clone(),
+                name: method.name.clone(),
+                reason: crate::survey_cause::refusal_of(&error),
+            }),
+        }
+    }
     methods.extend(crate::promote::promoted_methods(declaration, resolver, &claimed)?);
     Ok(methods)
 }

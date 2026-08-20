@@ -300,13 +300,15 @@ fn refuse_absent_capable_receiver(
     method: &str,
     cx: &Body<'_>,
 ) -> Result<(), TransformError> {
-    if receiver.type_ref.kind != crate::vocabulary::TYPE_POINTER {
+    if receiver.type_ref.name.is_empty() && receiver.type_ref.kind.is_empty() {
         return Ok(());
     }
-    // ASKED of the resolver rather than assumed from the node's kind. A source pointer does not
-    // always become an option — the ownership rules give some of them a borrow, which has no absent
-    // case and whose methods resolve fine — so the question is what THIS occurrence resolved to.
-    // Guessing from the syntax would refuse calls that translate correctly today.
+    // ASKED of the resolver, and of EVERY receiver rather than only the pointer-typed ones. What
+    // makes a receiver unusable is that its target type is absent-capable, and a pointer is not
+    // the only way there: a stored failure is an option too, because the source's error interface
+    // admits its absent value. Gating on the source's kind missed exactly that. A source pointer,
+    // meanwhile, does not always become an option -- the ownership rules give some a borrow, which
+    // has no absent case -- so the question is only ever what THIS occurrence resolved to.
     let position = match receiver.kind == crate::vocabulary::KIND_SELECTOR {
         true => crate::vocabulary::POSITION_FIELD,
         false => crate::vocabulary::POSITION_PARAM,

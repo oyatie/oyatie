@@ -146,7 +146,7 @@ pub(crate) fn returns_owned_string(declaration: &Declaration, resolver: &Resolve
 /// now and belongs in pack data with the rest of the idiom rules.
 pub(crate) fn own_returned_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
     match cx.result_is_owned_string {
-        true => own_string(expr),
+        true => own_string(expr, cx),
         false => expr,
     }
 }
@@ -159,12 +159,28 @@ pub(crate) fn own_returned_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
 /// spelled differently for the same decision.
 pub(crate) fn own_string_for(expr: RustExpr, wanted: &str, cx: &Body<'_>) -> RustExpr {
     match cx.resolver.owned_string_target().is_some_and(|owned| owned == wanted) {
-        true => own_string(expr),
+        true => own_string(expr, cx),
         false => expr,
     }
 }
 
-fn own_string(expr: RustExpr) -> RustExpr {
+fn own_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
+    // A SLICE of a string is a string in the source and a borrow in the target. `v.original[0:1]`
+    // is a value the source hands back, and the target's `&s[..1]` borrows what `s` owns — so a
+    // result position that wants an owned string has to own it. This owns the SLICE rather than
+    // what it slices, which is the whole point: the substring is the value, not the original.
+    if matches!(expr, RustExpr::Slice { .. })
+        && let Some(owned) = cx.resolver.owned_string_target()
+    {
+        // CONSTRUCTED rather than converted with a method. A slice renders with its own leading
+        // borrow, so a method call on it binds tighter than the borrow does — `&s[..1].to_owned()`
+        // is a reference to an owned string, which is not what the signature asked for. Naming the
+        // owned type takes the precedence question away entirely.
+        return RustExpr::Call {
+            callee: Box::new(RustExpr::Path(format!("{owned}::from"))),
+            args: vec![expr],
+        };
+    }
     let RustExpr::Literal(text) = &expr else {
         return expr;
     };

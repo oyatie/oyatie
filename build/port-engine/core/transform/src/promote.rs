@@ -87,6 +87,14 @@ fn forwarding_method(
         crate::body::ResultShape::Inherited,
     )?;
 
+    // A promotion through an ABSENT-CAPABLE field is not a forward the target can spell. The
+    // source embeds a POINTER and promotes the pointee's methods, so calling one when the pointer is
+    // absent is legal there and panics at the embedding; the target holds the field as an option,
+    // which has no method of that name at all. The same question the ordinary call path asks — and
+    // it must be asked here too, because a promoted method's body is synthesised rather than
+    // translated, so nothing on the call path ever sees it.
+    refuse_absent_capable_promotion(promoted, declaration, via, resolver)?;
+
     // The field path is walked OUTWARD from `self`, one field per segment, because embedding
     // nests: a method promoted through two levels is reached through two fields, and the source
     // spells that as one name.
@@ -113,4 +121,55 @@ fn forwarding_method(
         RustStmt::Semi(call)
     }]);
     Ok(rendered)
+}
+
+/// Refuse a promotion whose embedded field may hold NOTHING in the target.
+///
+/// The source embeds a pointer and promotes what it points at; the target holds that field as an
+/// option, and an option has none of the pointee's methods. Neither repair is faithful: unwrapping
+/// claims a value the source never promised, and the source's own behaviour when the pointer is
+/// absent is to panic at the embedding, which is not something to reproduce deliberately.
+///
+/// Asked of the RESOLVER, like the ordinary call path, so a pointer the ownership rules gave a
+/// borrow — which has no absent case — is not refused.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] naming the field, the method, and what is missing.
+fn refuse_absent_capable_promotion(
+    promoted: &Declaration,
+    declaration: &Declaration,
+    via: &str,
+    resolver: &Resolver<'_>,
+) -> Result<(), TransformError> {
+    let Some(first) = via.split('.').next() else {
+        return Ok(());
+    };
+    let Some(field) = declaration
+        .children_of_kind(crate::vocabulary::CHILD_FIELD)
+        .into_iter()
+        .find(|field| field.name == first)
+    else {
+        return Ok(());
+    };
+    let Ok(resolved) = resolver.resolve_in(
+        &field.type_ref,
+        &declaration.name,
+        crate::vocabulary::POSITION_FIELD,
+    ) else {
+        return Ok(());
+    };
+    if !resolved.spelling().starts_with("Option<") {
+        return Ok(());
+    }
+    Err(TransformError::Unsupported {
+        name: promoted.name.clone(),
+        detail: format!(
+            "`{}` is promoted through `{first}`, an embedded field the target holds as a value that \
+             may be ABSENT, and `{}` is a method of what it holds rather than of the option. The \
+             source panics at the embedding when the pointer is absent, which is not a behaviour to \
+             reproduce deliberately, and unwrapping would claim a value the source never promised. \
+             What is missing is a proof that this field is never absent",
+            first, promoted.name
+        ),
+    })
 }
