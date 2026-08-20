@@ -46,6 +46,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-crypto-backend-policy",
+        "//ci/adapters/corpus-census:ci-corpus-census-adapters",
         "third-party//:serde_json",
     ],
 )

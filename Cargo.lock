@@ -1558,6 +1558,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-corpus-census-adapters"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
+]
+
+[[package]]
 name = "ci-corpus-index-coverage"
 version = "0.1.0"
 dependencies = [
@@ -1577,10 +1585,10 @@ dependencies = [
 name = "ci-crate-layer-suffix"
 version = "0.1.0"
 dependencies = [
+ "ci-corpus-census-adapters",
  "ci-path-resolver-adapters",
  "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
- "oya-workspace-members-kernel",
  "serde_json",
 ]
 
@@ -1630,6 +1638,7 @@ dependencies = [
 name = "ci-crypto-backend-policy"
 version = "0.1.0"
 dependencies = [
+ "ci-corpus-census-adapters",
  "oya-buck-syntax-kernel",
  "serde_json",
 ]
@@ -1791,9 +1800,8 @@ dependencies = [
 name = "ci-package-manifest-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-corpus-census-adapters",
  "ci-path-resolver-adapters",
- "oya-ci-config-kernel",
- "oya-workspace-members-kernel",
  "serde_json",
 ]
 

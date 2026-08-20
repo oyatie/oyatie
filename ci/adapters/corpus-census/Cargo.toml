@@ -1,0 +1,32 @@
+[package]
+name = "ci-corpus-census-adapters"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# ci/adapters: the SHARED independent corpus census. A gate that enumerates the repo answers
+# "did I see everything?" only if something ELSE re-derives the corpus and the two are compared
+# as SETS. Two gates (package-manifest-hygiene §2.5#7, crate-layer-suffix §2.5#4) each carried a
+# verbatim copy of that census plus its should_panic proofs; this crate is the single copy both
+# now depend on, and the proofs are its own tests — they are the reason to trust it, so they live
+# with it.
+#
+# Filesystem I/O over the live worktree (member resolution, manifest reads) is why this is an
+# ADAPTER and not a core/ leaf: the pure part is three lines of BTreeSet difference.
+#
+# Consumers depend on this as a DEV-dependency: it is test-support for the gate self-tests, never
+# a runtime edge of any gate evaluator.
+
+[lib]
+name = "ci_corpus_census_adapters"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+
+[lints]
+workspace = true
