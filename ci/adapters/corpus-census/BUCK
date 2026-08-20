@@ -1,0 +1,26 @@
+# ci/adapters: the SHARED independent corpus census the CENSUS-rated gate self-tests re-derive
+# the repo with. Two gates carried a verbatim copy of it; this is the single copy, and the
+# should_panic proofs that are the reason to trust it are this crate's own unit tests.
+rust_library(
+    name = "ci-corpus-census-adapters",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_corpus_census_adapters",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "ci-corpus-census-adapters-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_corpus_census_adapters",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+    ],
+)
