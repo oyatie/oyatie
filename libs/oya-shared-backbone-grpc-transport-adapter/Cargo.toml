@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-community-post-store-domain = { path = "../../oya/community/crates/oya-community-post-store-domain" }
+community-post-store-domain = { path = "../../app/community/core/post-store-domain" }
 comms-mail-mailbox-api = { path = "../../comms/ports/mail-mailbox-api" }
 oya-shared-backbone-grpc-generated-adapter = { path = "../oya-shared-backbone-grpc-generated-adapter" }
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }

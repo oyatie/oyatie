@@ -131,7 +131,7 @@ fn baseline_is_nonempty_and_covers_a_known_instance() {
         "iam/ports/cloud-api/src/lib.rs#validate_authorization:",
         "storage/ports/object-api/src/lib.rs#validate_authorization:",
         "data/ports/ontology-api/src/lib.rs#validate_authorization:",
-        "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_authorization:",
+        "app/application/ports/workspace-chat-api/src/lib.rs#validate_authorization:",
     ] {
         assert!(
             baseline.iter().any(|k| k.starts_with(expected_prefix)),

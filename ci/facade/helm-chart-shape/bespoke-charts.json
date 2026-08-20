@@ -1,5 +1,5 @@
 {
-  "_comment": "FROZEN shrink-only list of services that still carry their OWN Helm chart instead of rendering from iac/charts/oyatie-microservice. Every other service supplies only a values.yaml. Growth is RED: a NEW service must use the shared chart. Shrink is the goal \u2014 as each of these is reconciled, delete its entry in the same change. Each one is here because its rendered output genuinely differs from the shared chart, proven by render comparison, not because it was skipped.",
+  "_comment": "FROZEN shrink-only list of services that still carry their OWN Helm chart instead of rendering from iac/charts/oyatie-microservice. Every other service supplies only a values.yaml. Growth is RED: a NEW service must use the shared chart. Shrink is the goal — as each of these is reconciled, delete its entry in the same change. Each one is here because its rendered output genuinely differs from the shared chart, proven by render comparison, not because it was skipped.",
   "count": 11,
   "bespoke_charts": [
     "ci/controller",
@@ -11,7 +11,7 @@
     "intelligence",
     "observability",
     "app/ci-webhook-gateway",
-    "oya/community",
+    "app/community",
     "secrets/kms"
   ]
 }

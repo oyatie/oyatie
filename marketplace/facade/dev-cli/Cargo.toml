@@ -15,7 +15,7 @@ layer = "cli"
 purpose = "Gate-runner CLI homed to marketplace/facade; retirement-marked per founder CLI-retirement directive (2026-06-09); zero merge authority — verification and merge authority live in cloud-ci gate apps behind oya-ci-required."
 
 [dependencies]
-oya-application-app = { path = "../../../oya/application/crates/oya-application-app" }
+application-app = { path = "../../../app/application/facade/app" }
 check-active-artifact-contract = { path = "../../../governance/check/active-artifact-contract" }
 oya-check-adr-index = { path = "../../../libs/oya-check-adr-index" }
 check-cedar-fragment-coverage = { path = "../../../governance/check/cedar-fragment-coverage" }

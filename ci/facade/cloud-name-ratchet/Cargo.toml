@@ -25,6 +25,9 @@ path = "src/bin/oya-ci-cloud-name-baseline.rs"
 serde_json = { workspace = true }
 
 [dev-dependencies]
+# The rename-relabel kernel, shared with the firewall ratchet rather than reimplemented:
+# two copies of "did this key move or is it new debt?" would drift apart silently.
+ci-baseline-ratchet = { path = "../baseline-ratchet" }
 
 [lints]
 workspace = true

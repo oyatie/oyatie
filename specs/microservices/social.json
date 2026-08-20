@@ -22,8 +22,8 @@
     ],
     "crate_refs_planned": [
       "oya-community-social-kernel",
-      "oya-community-social-domain",
-      "oya-community-social-app",
+      "community-social-domain",
+      "community-social-app",
       "oya-community-social-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
@@ -50,8 +50,8 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       },
       {
-        "crate": "oya-community-social-domain",
-        "crate_name": "oya-community-social-domain",
+        "crate": "community-social-domain",
+        "crate_name": "community-social-domain",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "social",
@@ -71,8 +71,8 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       },
       {
-        "crate": "oya-community-social-app",
-        "crate_name": "oya-community-social-app",
+        "crate": "community-social-app",
+        "crate_name": "community-social-app",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "social",

@@ -1,0 +1,21 @@
+# Product-scaffold package for the slides capability rehomed from oya/slides.
+# These YAML artifacts (contracts, catalog, capabilities, SLOs, IaC) were carried in the
+# Buck2 corpus graph (ADR-0541) by oya/BUCK's glob; absorbing the product out of oya/ drops
+# them from that glob, so without this package the corpus-index-coverage ratchet counts
+# every one of them as unpackaged debt. Mirrors app/calendar/BUCK.
+
+load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
+
+# Hermetic input set for gates that must validate every live service manifest.
+filegroup(
+    name = "live-service-manifest-corpus",
+    srcs = glob(["**/manifest.json"]),
+    visibility = ["PUBLIC"],
+)
+
+# Corpus graph extraction (ADR-0541). Fixed-size faces bound configured action inputs while keeping
+# all YAML ownership in this existing package.
+corpus_yaml_facts_shards(
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    shard_size = 256,
+)

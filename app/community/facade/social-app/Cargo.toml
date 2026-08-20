@@ -1,0 +1,24 @@
+[package]
+name = "community-social-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+oya-shared-protocol-parity-kernel = { path = "../../../../libs/oya-shared-protocol-parity-kernel" }
+oya-shared-protocol-transport-kernel = { path = "../../../../libs/oya-shared-protocol-transport-kernel" }
+oya-shared-transactional-outbox-kernel = { path = "../../../../libs/oya-shared-transactional-outbox-kernel" }
+community-social-post-composition-adapter-postgres = { path = "../../adapters/social-post-composition-adapter-postgres" }
+community-social-post-composition-api = { path = "../../ports/social-post-composition-api" }
+community-social-post-composition-usecase = { path = "../../core/social-post-composition-usecase" }
+
+[lib]
+name = "community_social_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -1,4 +1,4 @@
-use oya_application_app::{
+use application_app::{
     AdversarialKind, EvalCaseInput, EvalMetric, EvalRunInput, EvalSetInput, Foundation,
     FoundationError, PolicyEffect, PolicyRuleInput, PolicyScope, PolicyVersion, PrivacyDataClass,
     REQUIRED_LINGUISTIC_COHORT_LOCALES,

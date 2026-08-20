@@ -6,7 +6,7 @@
 //!    nor over-broad.
 #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use ci_cloud_name_ratchet::{compare, findings, parse_baseline};
@@ -77,7 +77,7 @@ const PROTECTED_BASE_REF: &str = "origin/dev";
 fn baseline() -> BTreeSet<String> {
     let root = repo_root();
     if let Some(frozen) = frozen_baseline_from_merge_base(&root) {
-        return parse_baseline(&frozen);
+        return relabel_for_renames(&root, parse_baseline(&frozen));
     }
     let path = root.join(BASELINE_REPO_PATH);
     let text = std::fs::read_to_string(&path).expect("frozen baseline is readable");
@@ -88,6 +88,130 @@ fn baseline() -> BTreeSet<String> {
          against the merge-base copy instead of its own."
     );
     parse_baseline(&text)
+}
+
+/// Relabel frozen keys through git's own rename detection, so a crate that MOVED is not
+/// scored as new debt.
+///
+/// This baseline is PATH-KEYED and anchored to the merge-base, which is what stops a PR
+/// laundering its own copy — but it also means a pure relocation reads as a brand-new
+/// `cloud-` name at the destination while the source entry goes stale. The ADR-0562 absorb
+/// moves whole products, so without this every relocated `cloud-`-named crate REDs a gate
+/// whose entire purpose is to track whether that debt is shrinking.
+///
+/// Not a waiver, and the guards are what make that true: the key count is unchanged, the
+/// name stays tracked at its new path, and a genuinely new `cloud-` name still fails. The
+/// pairing itself comes from `derive_directory_renames`, which pairs a directory only when
+/// it moved WHOLESALE and unambiguously — the same kernel the firewall ratchet uses, shared
+/// rather than reimplemented so the two cannot drift.
+fn relabel_for_renames(root: &Path, frozen: BTreeSet<String>) -> BTreeSet<String> {
+    let (renames, scores) = file_renames_since_merge_base(root);
+    if renames.is_empty() {
+        return frozen;
+    }
+    let mut all = renames.clone();
+    all.extend(ci_baseline_ratchet::derive_directory_renames_scored(
+        &renames,
+        &scores,
+        &head_tracked_paths(root),
+    ));
+    // Longest source first: a shorter path must never consume a longer one's prefix.
+    let mut pairs: Vec<_> = all.into_iter().collect();
+    pairs.sort_by(|left, right| right.0.len().cmp(&left.0.len()));
+    frozen
+        .into_iter()
+        .map(|key| {
+            for (old, new) in &pairs {
+                if key.contains(old.as_str()) {
+                    return key.replacen(old.as_str(), new, 1);
+                }
+            }
+            key
+        })
+        .collect()
+}
+
+/// `git diff --find-renames` from the merge-base to HEAD. The 30% threshold matches the
+/// firewall's, and for the same measured reason: a relocated `Cargo.toml` must rewrite its
+/// package name, lib name and every relative path dep, which on a short manifest drops the
+/// similarity index below git's 50% default and reports add+delete instead of a rename.
+fn file_renames_since_merge_base(root: &Path) -> (BTreeMap<String, String>, BTreeMap<String, u32>) {
+    let mut out = BTreeMap::new();
+    let mut scores = BTreeMap::new();
+    let Some(merge_base) = merge_base(root) else {
+        return (out, scores);
+    };
+    let Ok(diff) = std::process::Command::new("git")
+        .args([
+            "diff",
+            "--find-renames=30%",
+            "--diff-filter=R",
+            "--name-status",
+            "-z",
+            &merge_base,
+        ])
+        .current_dir(root)
+        .output()
+    else {
+        return (out, scores);
+    };
+    if !diff.status.success() {
+        return (out, scores);
+    }
+    let fields: Vec<&str> = std::str::from_utf8(&diff.stdout)
+        .unwrap_or_default()
+        .split('\0')
+        .filter(|field| !field.is_empty())
+        .collect();
+    let mut i = 0;
+    while i + 2 < fields.len() + 1 {
+        let Some(status) = fields.get(i) else { break };
+        if !status.starts_with('R') {
+            i += 1;
+            continue;
+        }
+        let (Some(old), Some(new)) = (fields.get(i + 1), fields.get(i + 2)) else {
+            break;
+        };
+        // `R100` means byte-identical; the digits are git's similarity index.
+        if let Ok(score) = status.trim_start_matches('R').parse::<u32>() {
+            scores.insert((*old).to_owned(), score);
+        }
+        out.insert((*old).to_owned(), (*new).to_owned());
+        i += 3;
+    }
+    (out, scores)
+}
+
+/// Tracked paths at HEAD: the directory derivation needs them to tell a WHOLESALE move from
+/// a partial one, because a directory that still holds tracked files has not moved.
+fn head_tracked_paths(root: &Path) -> BTreeSet<String> {
+    let Ok(out) = std::process::Command::new("git")
+        .args(["ls-files", "-z"])
+        .current_dir(root)
+        .output()
+    else {
+        return BTreeSet::new();
+    };
+    if !out.status.success() {
+        return BTreeSet::new();
+    }
+    std::str::from_utf8(&out.stdout)
+        .unwrap_or_default()
+        .split('\0')
+        .filter(|path| !path.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
+fn merge_base(root: &Path) -> Option<String> {
+    let out = std::process::Command::new("git")
+        .args(["merge-base", PROTECTED_BASE_REF, "HEAD"])
+        .current_dir(root)
+        .output()
+        .ok()
+        .filter(|out| out.status.success())?;
+    Some(String::from_utf8(out.stdout).ok()?.trim().to_owned())
 }
 
 /// `git show <merge-base>:<baseline>` — `None` when the file does not exist there yet.

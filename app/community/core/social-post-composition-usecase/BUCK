@@ -1,0 +1,36 @@
+rust_library(
+    name = "community-social-post-composition-usecase",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_social_post_composition_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/community/core/social-domain:community-social-domain",
+        "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
+    ],
+)
+
+rust_test(
+    name = "community-social-post-composition-usecase-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_social_post_composition_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/community/core/social-domain:community-social-domain",
+        "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
+    ],
+)
+
+rust_test(
+    name = "community-social-post-composition-usecase-feed-ranking-scope",
+    srcs = ["tests/feed_ranking_scope.rs"],
+    crate = "community_social_post_composition_usecase_feed_ranking_scope",
+    crate_root = "tests/feed_ranking_scope.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":community-social-post-composition-usecase",
+        "//app/community/core/social-domain:community-social-domain",
+        "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
+    ],
+)

@@ -10,8 +10,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 #[test]
 fn client_stack_gate_scans_crate_shaped_active_manifest() {
     let temp = temp_dir("client-stack-crate-shape");
-    let manifest =
-        temp.join("oya/application/crates/oya-application-shell-frontend/client-manifest.json");
+    let manifest = temp.join("app/application/core/shell-frontend/client-manifest.json");
     write_manifest(
         &manifest,
         r#"{
@@ -27,7 +26,7 @@ fn client_stack_gate_scans_crate_shaped_active_manifest() {
             "validate",
             "client-stack-discipline",
             "--microservices-root",
-            temp.join("oya").to_str().expect("utf8 root"),
+            temp.join("app").to_str().expect("utf8 root"),
         ])
         .output()
         .expect("client-stack gate command runs");
@@ -51,8 +50,7 @@ fn client_stack_gate_scans_crate_shaped_active_manifest() {
 #[test]
 fn client_stack_gate_rejects_solidjs_in_crate_shaped_manifest() {
     let temp = temp_dir("client-stack-solidjs-crate-shape");
-    let manifest =
-        temp.join("oya/application/crates/oya-application-shell-frontend/client-manifest.json");
+    let manifest = temp.join("app/application/core/shell-frontend/client-manifest.json");
     write_manifest(
         &manifest,
         r#"{
@@ -68,7 +66,7 @@ fn client_stack_gate_rejects_solidjs_in_crate_shaped_manifest() {
             "validate",
             "client-stack-discipline",
             "--microservices-root",
-            temp.join("oya").to_str().expect("utf8 root"),
+            temp.join("app").to_str().expect("utf8 root"),
         ])
         .output()
         .expect("client-stack gate command runs");

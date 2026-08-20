@@ -806,9 +806,9 @@
         ]
       }
     },
-    "oya/application/manifest.json": {
-      "service": "oya/application",
-      "manifest": "oya/application/manifest.json",
+    "app/application/manifest.json": {
+      "service": "app/application",
+      "manifest": "app/application/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-developer-application-shell",
@@ -822,25 +822,25 @@
       "tier_subtype": "product-consumer-calendar",
       "dr_tier": "T0"
     },
-    "oya/community/manifest.json": {
-      "service": "oya/community",
-      "manifest": "oya/community/manifest.json",
+    "app/community/manifest.json": {
+      "service": "app/community",
+      "manifest": "app/community/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-community",
       "dr_tier": "T1"
     },
-    "oya/docs/manifest.json": {
-      "service": "oya/docs",
-      "manifest": "oya/docs/manifest.json",
+    "app/docs/manifest.json": {
+      "service": "app/docs",
+      "manifest": "app/docs/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-docs",
       "dr_tier": "T1"
     },
-    "oya/global-trade/manifest.json": {
-      "service": "oya/global-trade",
-      "manifest": "oya/global-trade/manifest.json",
+    "app/global-trade/manifest.json": {
+      "service": "app/global-trade",
+      "manifest": "app/global-trade/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer",
@@ -908,9 +908,9 @@
         ]
       }
     },
-    "oya/notes/manifest.json": {
-      "service": "oya/notes",
-      "manifest": "oya/notes/manifest.json",
+    "app/notes/manifest.json": {
+      "service": "app/notes",
+      "manifest": "app/notes/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-notes",
@@ -924,33 +924,33 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
     },
-    "oya/sheets/manifest.json": {
-      "service": "oya/sheets",
-      "manifest": "oya/sheets/manifest.json",
+    "app/sheets/manifest.json": {
+      "service": "app/sheets",
+      "manifest": "app/sheets/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-sheets",
       "dr_tier": "T2"
     },
-    "oya/sites/manifest.json": {
-      "service": "oya/sites",
-      "manifest": "oya/sites/manifest.json",
+    "app/sites/manifest.json": {
+      "service": "app/sites",
+      "manifest": "app/sites/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-sites",
       "dr_tier": "T2"
     },
-    "oya/slides/manifest.json": {
-      "service": "oya/slides",
-      "manifest": "oya/slides/manifest.json",
+    "app/slides/manifest.json": {
+      "service": "app/slides",
+      "manifest": "app/slides/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-slides",
       "dr_tier": "T2"
     },
-    "oya/translate/manifest.json": {
-      "service": "oya/translate",
-      "manifest": "oya/translate/manifest.json",
+    "app/translate/manifest.json": {
+      "service": "app/translate",
+      "manifest": "app/translate/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-translate",

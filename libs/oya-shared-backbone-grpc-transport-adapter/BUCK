@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//libs/oya-shared-backbone-grpc-generated-adapter:oya-shared-backbone-grpc-generated-adapter",
         "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
-        "//oya/community/crates/oya-community-post-store-domain:oya-community-post-store-domain",
+        "//app/community/core/post-store-domain:community-post-store-domain",
         "//comms/ports/mail-mailbox-api:comms-mail-mailbox-api",
         "third-party//:tokio",
         "third-party//:tonic",

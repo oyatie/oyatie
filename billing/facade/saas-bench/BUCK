@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//marketplace/core/plugin-kernel:marketplace-plugin-kernel",
-        "//oya/application/crates/oya-saas-plugin-app:oya-saas-plugin-app",
+        "//app/application/facade/saas-plugin-app:saas-plugin-app",
         "//workflow/facade/saas-app:workflow-saas-app",
         "//workflow/facade/saas-domain:workflow-saas-domain",
         "//workflow/facade/saas-kernel:workflow-saas-kernel",
@@ -21,7 +21,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//marketplace/core/plugin-kernel:marketplace-plugin-kernel",
-        "//oya/application/crates/oya-saas-plugin-app:oya-saas-plugin-app",
+        "//app/application/facade/saas-plugin-app:saas-plugin-app",
         "//workflow/facade/saas-app:workflow-saas-app",
         "//workflow/facade/saas-domain:workflow-saas-domain",
         "//workflow/facade/saas-kernel:workflow-saas-kernel",

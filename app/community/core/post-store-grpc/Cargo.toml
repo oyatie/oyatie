@@ -1,0 +1,22 @@
+[package]
+name = "community-post-store-grpc"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+community-post-store-api = { path = "../../ports/post-store-api" }
+community-post-store-app = { path = "../../facade/post-store-app" }
+community-post-store-domain = { path = "../post-store-domain" }
+oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+oya-shared-protocol-transport-kernel = { path = "../../../../libs/oya-shared-protocol-transport-kernel" }
+
+[lib]
+name = "community_post_store_grpc"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

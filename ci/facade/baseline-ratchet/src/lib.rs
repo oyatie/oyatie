@@ -538,8 +538,32 @@ pub fn derive_directory_renames(
     file_renames: &BTreeMap<String, String>,
     head_paths: &BTreeSet<String>,
 ) -> BTreeMap<String, String> {
+    derive_directory_renames_scored(file_renames, &BTreeMap::new(), head_paths)
+}
+
+/// As [`derive_directory_renames`], but able to break a tie using git's similarity score.
+///
+/// Scaffolded products make this necessary. A generated `Cargo.toml` or `BUCK` is nearly
+/// identical across crates, so over a large diff git's best-match pairs them ACROSS crates:
+/// one real move was reported with its `Cargo.toml` paired to a different product's crate,
+/// its `BUCK` to a third, and only `src/lib.rs` paired correctly — at R100, byte-identical.
+/// Unanimity alone therefore rejects moves that plainly happened.
+///
+/// The scores separate the cases: a byte-identical pairing is near-proof, an 80% match on
+/// boilerplate is not. A destination also wins if it is the STRICT maximum — ties still emit
+/// nothing, so this only ever resolves cases unanimity would have abandoned, and never
+/// overrides an unambiguous one. `scores` maps a renamed source path to git's `R<score>`
+/// value; absent entries score zero, which is why the unscored wrapper keeps the old
+/// behaviour exactly.
+pub fn derive_directory_renames_scored(
+    file_renames: &BTreeMap<String, String>,
+    scores: &BTreeMap<String, u32>,
+    head_paths: &BTreeSet<String>,
+) -> BTreeMap<String, String> {
     // old_dir -> new_dir -> how many file renames support that exact pairing.
     let mut candidates: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+    // old_dir -> new_dir -> the BEST similarity score among the renames supporting it.
+    let mut best: BTreeMap<String, BTreeMap<String, u32>> = BTreeMap::new();
     // old_dir -> how many file renames leave it at all, by any destination.
     let mut departures: BTreeMap<String, usize> = BTreeMap::new();
 
@@ -559,6 +583,13 @@ pub fn derive_directory_renames(
             if old_dir.is_empty() || new_dir.is_empty() || old_dir == new_dir {
                 continue;
             }
+            let score = scores.get(old).copied().unwrap_or(0);
+            let slot = best
+                .entry(old_dir.clone())
+                .or_default()
+                .entry(new_dir.clone())
+                .or_default();
+            *slot = (*slot).max(score);
             *candidates
                 .entry(old_dir)
                 .or_default()
@@ -574,14 +605,27 @@ pub fn derive_directory_renames(
 
     let mut out = BTreeMap::new();
     for (old_dir, destinations) in candidates {
-        // Exactly one destination, and it accounts for EVERY departure from old_dir.
-        if destinations.len() != 1 {
-            continue;
-        }
-        let (new_dir, supporting) = destinations.into_iter().next().expect("one destination");
-        if departures.get(&old_dir).copied().unwrap_or(0) != supporting {
-            continue;
-        }
+        let new_dir = if destinations.len() == 1 {
+            // Unanimous: one destination accounting for EVERY departure from old_dir.
+            let (only, supporting) = destinations.into_iter().next().expect("one destination");
+            if departures.get(&old_dir).copied().unwrap_or(0) != supporting {
+                continue;
+            }
+            only
+        } else {
+            // Disagreement. Resolve it ONLY on a strict maximum similarity — a tie, or no
+            // scores at all, still emits nothing.
+            let Some(ranked) = best.get(&old_dir) else {
+                continue;
+            };
+            let mut by_score: Vec<(&String, u32)> =
+                ranked.iter().map(|(dir, score)| (dir, *score)).collect();
+            by_score.sort_by(|left, right| right.1.cmp(&left.1));
+            match by_score.as_slice() {
+                [(winner, top), (_, runner_up), ..] if top > runner_up => (*winner).clone(),
+                _ => continue,
+            }
+        };
         // WHOLESALE: nothing tracked may remain behind.
         let prefix = format!("{old_dir}/");
         if head_paths.iter().any(|path| path.starts_with(&prefix)) {
@@ -947,6 +991,70 @@ mod tests {
             dirs.get("oya/gw/crates/oya-gw-github").map(String::as_str),
             Some("app/gw/adapters/github")
         );
+    }
+
+    #[test]
+    fn a_strict_similarity_maximum_resolves_a_scaffold_mispairing() {
+        // The real case: over a large diff git paired this crate's generated Cargo.toml to a
+        // DIFFERENT product's crate and its BUCK to a third, because scaffold boilerplate is
+        // near-identical. Only src/lib.rs paired correctly — byte-identical, R100.
+        let renames = files(&[
+            (
+                "oya/app/crates/oya-surface/src/lib.rs",
+                "app/x/core/surface/src/lib.rs",
+            ),
+            (
+                "oya/app/crates/oya-surface/Cargo.toml",
+                "app/payroll/core/run-domain/Cargo.toml",
+            ),
+            (
+                "oya/app/crates/oya-surface/BUCK",
+                "app/community/core/social-domain/BUCK",
+            ),
+        ]);
+        let scores: BTreeMap<String, u32> = [
+            ("oya/app/crates/oya-surface/src/lib.rs".to_owned(), 100u32),
+            ("oya/app/crates/oya-surface/Cargo.toml".to_owned(), 81),
+            ("oya/app/crates/oya-surface/BUCK".to_owned(), 80),
+        ]
+        .into_iter()
+        .collect();
+        let dirs = derive_directory_renames_scored(&renames, &scores, &BTreeSet::new());
+        assert_eq!(
+            dirs.get("oya/app/crates/oya-surface").map(String::as_str),
+            Some("app/x/core/surface"),
+            "the byte-identical pairing must win over two boilerplate mis-pairings"
+        );
+    }
+
+    #[test]
+    fn a_similarity_tie_still_emits_nothing() {
+        let renames = files(&[
+            ("oya/app/crates/oya-surface/a.rs", "app/x/core/surface/a.rs"),
+            ("oya/app/crates/oya-surface/b.rs", "app/y/core/other/b.rs"),
+        ]);
+        let scores: BTreeMap<String, u32> = [
+            ("oya/app/crates/oya-surface/a.rs".to_owned(), 90u32),
+            ("oya/app/crates/oya-surface/b.rs".to_owned(), 90),
+        ]
+        .into_iter()
+        .collect();
+        let dirs = derive_directory_renames_scored(&renames, &scores, &BTreeSet::new());
+        assert!(
+            !dirs.contains_key("oya/app/crates/oya-surface"),
+            "a tie is still ambiguous and must not be resolved"
+        );
+    }
+
+    #[test]
+    fn without_scores_disagreement_still_emits_nothing() {
+        // The unscored wrapper must keep its original, stricter behaviour exactly.
+        let renames = files(&[
+            ("oya/app/crates/oya-surface/a.rs", "app/x/core/surface/a.rs"),
+            ("oya/app/crates/oya-surface/b.rs", "app/y/core/other/b.rs"),
+        ]);
+        let dirs = derive_directory_renames(&renames, &BTreeSet::new());
+        assert!(!dirs.contains_key("oya/app/crates/oya-surface"));
     }
 
     #[test]

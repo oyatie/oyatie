@@ -42,35 +42,35 @@
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "intelligence/core/api -> oya/application/crates/oya-application-app"
+      "subject": "intelligence/core/api -> app/application/facade/app"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-post-store-adapter-postgres"
+      "subject": "intelligence/core/backbone-workload-live-app -> app/community/adapters/post-store-adapter-postgres"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-post-store-api"
+      "subject": "intelligence/core/backbone-workload-live-app -> app/community/ports/post-store-api"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-post-store-domain"
+      "subject": "intelligence/core/backbone-workload-live-app -> app/community/core/post-store-domain"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-post-store-usecase"
+      "subject": "intelligence/core/backbone-workload-live-app -> app/community/core/post-store-usecase"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-adapter-postgres"
+      "subject": "intelligence/core/backbone-workload-live-app -> app/community/adapters/social-post-composition-adapter-postgres"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-api"
+      "subject": "intelligence/core/backbone-workload-live-app -> app/community/ports/social-post-composition-api"
     },
     {
       "code": "TDA-SUBSTRATE-UPWARD",
-      "subject": "intelligence/core/backbone-workload-live-app -> oya/community/crates/oya-community-social-post-composition-usecase"
+      "subject": "intelligence/core/backbone-workload-live-app -> app/community/core/social-post-composition-usecase"
     },
     {
       "code": "TDA-UNCLASSIFIED-ROOT-NOT-META",

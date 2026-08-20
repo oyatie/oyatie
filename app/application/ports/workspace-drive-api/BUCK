@@ -1,0 +1,24 @@
+rust_library(
+    name = "workspace-drive-api",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "workspace_drive_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//storage/facade/drive:storage-drive-domain",
+    ],
+)
+
+rust_test(
+    name = "workspace-drive-api-workspace-drive-api",
+    srcs = ["tests/workspace_drive_api.rs"],
+    crate = "workspace_drive_api_workspace_drive_api",
+    crate_root = "tests/workspace_drive_api.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":workspace-drive-api",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//storage/facade/drive:storage-drive-domain",
+    ],
+)

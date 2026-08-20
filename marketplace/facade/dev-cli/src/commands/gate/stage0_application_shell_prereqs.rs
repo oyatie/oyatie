@@ -14,15 +14,15 @@ use crate::usage;
 
 const REQUIRED_PATHS: &[&str] = &[
     "Cargo.toml",
-    "crates/oya-application-app/Cargo.toml",
-    "crates/oya-application-app/src/lib.rs",
+    "crates/application-app/Cargo.toml",
+    "crates/application-app/src/lib.rs",
     "docs/decisions/ADR-0709-general-live-apex.md",
 ];
 
 const EXPECTED_APP_EDITION: &str = "2024";
 const EXPECTED_APP_RUST_VERSION: &str = "1.97.1";
-const APP_PACKAGE_NAME: &str = "oya-application-app";
-const APP_WORKSPACE_MEMBER: &str = "crates/oya-application-app";
+const APP_PACKAGE_NAME: &str = "application-app";
+const APP_WORKSPACE_MEMBER: &str = "crates/application-app";
 
 type PackageToolchainMetadata = (String, String);
 type RepoCheckResult = Result<(Vec<String>, Option<PackageToolchainMetadata>), String>;
@@ -270,7 +270,7 @@ mod tests {
         let result = parse_application_app_metadata(r#"{"packages":[]}"#);
         assert_eq!(
             result,
-            Err("cargo metadata does not include oya-application-app".to_string())
+            Err("cargo metadata does not include application-app".to_string())
         );
     }
 }

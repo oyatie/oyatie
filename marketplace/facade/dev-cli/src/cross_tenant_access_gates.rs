@@ -1,4 +1,4 @@
-use oya_application_app::{
+use application_app::{
     AutonomyTier, CapabilityAction, CapabilityInvocationPrincipal, CapabilityInvocationRequest,
     CapabilityRegistration, CostBudgetRegistration, DISCOVER_SCOPE, Foundation, FoundationError,
     IdentityRegistration, McpAccessTokenClaims, McpDiscoveryRequest, McpToolCallRequest, Purpose,
