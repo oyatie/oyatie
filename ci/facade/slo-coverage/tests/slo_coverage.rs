@@ -154,7 +154,12 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  owned test server replacing httpmock. Corpus gained
 ///                                  exactly one row, face gained exactly one; the
 ///                                  enumeration did not widen.
-const SLO_CATALOG_CENSUS: usize = 741;
+///   2026-08-20  741 -> pin 742     ROW ADDED, legitimately: registry/catalog/
+///                                  ci-scan-root-derivation-adapters.yaml, the catalog row
+///                                  for the new ci/adapters/scan-root-derivation crate this
+///                                  change introduces. Corpus gained exactly one row, face
+///                                  gained exactly one; the enumeration did not widen.
+const SLO_CATALOG_CENSUS: usize = 742;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
