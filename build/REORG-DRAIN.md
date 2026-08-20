@@ -4864,3 +4864,68 @@ under `#![forbid(unsafe_code)]`.
 
 **What is left.** `multierror` alone still emits nothing, blocked by `TypeSwitchStmt` and `sync.Mutex`
 rather than by anything this phase touched.
+
+## R2r — a regression found by ranking refusals, and the seven rules behind it
+
+Ranking refusal causes after R2q put an unfamiliar one near the top: *"renderer refused: `0` is not a
+valid target identifier"* — 7 sites across **six of seven packages**, the widest spread in the corpus.
+It was mine, introduced in R2p.
+
+`self.0` is a TUPLE INDEX, not a field named `0`. The IR had only `Field`, whose lowering parses its
+name as an identifier, and `0` is not one — so every declaration reaching a newtype unwrap refused.
+`xid::Id`, the package's principal export, was not emitted at all.
+
+**The dangerous part is how it hid.** R2p's compile proof was green, and I reported the newtype index
+rule as working. It was green because the affected types stopped being emitted — a rule whose bug
+produces a REFUSAL rather than bad output is invisible to a proof that only compiles what survives.
+Refusal is this engine's safety mechanism and it doubles as a place for defects to hide: **a compile
+proof cannot see a rule that refuses everything it touches.** The refusal histogram can, which is why
+ranking causes is not just prioritisation — it is a check.
+
+Fixed by giving the IR a `TupleIndex` node that says what it means. **Translated declarations across
+the corpus: 87 → 99.**
+
+That unlocked five further causes, each becoming a rule:
+
+*A returned slice becomes the owned sequence* where the result is one — the sequence twin of the
+string rule, and the failure result comes off first, because a fallible function returning a sequence
+has two results and one value.
+
+*A slice in POSTFIX position is a place, not a borrowed value.* Three attempts converged here, which
+is worth recording. `&x[..].to_vec()` is a reference to a vector, because the method binds to what is
+borrowed. Bracketing it into `(&x[..]).to_vec()` compiles and trips the target's own lint for
+borrowing what the compiler borrows anyway. The right answer is that a slice under a postfix operator
+renders as `x[..]` and autoref does the rest — one place in the lowering, not a special case at each
+call site. `lower_postfix_base` already existed for exactly this class and already documented the
+`Cast` instance of it; `Slice` simply was not in the list.
+
+*A conversion that changes nothing is not written* — reaching through a newtype already produced the
+underlying type, and the source's conversion was a no-op there too.
+
+*The source interface's MESSAGE METHOD maps to the target's display method.* This is the same
+correspondence R2p refused to emit as a trait impl, from the other side: the interface is not
+implementable because the two traits take different methods, and the CALL is mappable for exactly
+that reason — the message is available even though the method is not. Recognised by the receiver's
+TYPE, never by the method's name, so a corpus type with its own `Error` method is not rewritten.
+
+*A receiver's type is derived where the front end records none.* Two rules that ask what a receiver IS
+were both silently inert on an index into a sequence, which carries no recorded type. The body can
+reconstruct the one case the corpus has — an index whose base is a newtype over a sequence has the
+sequence's element type — and deliberately no more, because a general expression-typer is the front
+end's job.
+
+**One ordering bug, and the rule it produced.** Mapping the message method BEFORE checking the
+receiver turned `self.cause.Error()` into `self.cause.to_string()` on an option — a different method
+that does not exist either. What the receiver IS has to be settled before what the call BECOMES.
+
+**All seven packages now compile clean under `#![forbid(unsafe_code)]`** with
+`clippy-driver --deny=warnings`, including `multierror`, which had emitted nothing all session.
+
+A blind review of the current `uuid` and `ksuid` output ran alongside this and returned DO NOT MERGE
+on API grounds, with every data table independently verified correct — 256 `XVALUES` entries, the
+ksuid alphabet byte-sorted, `MAX_STRING_ENCODED` decoding to exactly 2^160-1. Its findings are
+recorded for the next phase: `i64` where `usize` is required so length constants cannot be used as
+array lengths; `Uint128([u64; 2])` reimplementing a type the target has natively; scalar newtypes with
+public fields and a derived `Default` that yields invalid variants; and `pub fn error(&self) -> String`
+sitting beside a real `Display` impl, which is the method-definition half of the correspondence this
+phase mapped for calls.

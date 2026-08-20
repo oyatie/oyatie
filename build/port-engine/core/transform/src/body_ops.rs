@@ -115,6 +115,22 @@ pub(crate) fn unary_operator(spelling: &str) -> Option<UnaryOp> {
 /// Single result only. Several results leave as a tuple, and which member a literal lands in is a
 /// question about position inside the tuple that this does not answer — so it says no rather than
 /// answering for the wrong member.
+/// Whether the sole result is a SEQUENCE the target owns.
+pub(crate) fn returns_owned_sequence(declaration: &Declaration, resolver: &Resolver<'_>) -> bool {
+    let mut results = declaration.children_of_kind(CHILD_RESULT);
+    // The FAILURE result comes off first, exactly as the signature takes it off. A fallible function
+    // returning a sequence has two results and one value, and asking for a sole result would answer
+    // "no" for every one of them — which is how `Ok(&self.0[..])` reached the output with the
+    // signature saying the owned form.
+    if crate::failure::is_fallible(declaration, resolver.failure) {
+        results.pop();
+    }
+    let [result] = results.as_slice() else {
+        return false;
+    };
+    result.type_ref.kind == "slice"
+}
+
 pub(crate) fn returns_owned_string(declaration: &Declaration, resolver: &Resolver<'_>) -> bool {
     let results = declaration.children_of_kind(CHILD_RESULT);
     let [result] = results.as_slice() else {
@@ -144,9 +160,33 @@ pub(crate) fn returns_owned_string(declaration: &Declaration, resolver: &Resolve
 /// `.to_owned()` rather than `.to_string()`: both allocate, and `to_owned` names a borrow-to-owned
 /// conversion rather than a formatting call. That spelling is an IDIOM decision living in code for
 /// now and belongs in pack data with the rest of the idiom rules.
+/// Own a returned SEQUENCE where the signature says the result is owned.
+///
+/// The source's slice of an array is a value it hands back — `id[:]` on a value receiver slices the
+/// receiver's own copy — and the target's `&self.0[..]` borrows what the receiver owns, which is not
+/// what a result declared as the owned sequence asks for. The method that converts is the pack's to
+/// name; where it names none this leaves the expression alone.
+pub(crate) fn own_returned_sequence(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
+    if !cx.result_is_owned_sequence {
+        return expr;
+    }
+    let method = cx.resolver.allocation.owned_from_slice.clone();
+    if method.is_empty() {
+        return expr;
+    }
+    match expr {
+        expr @ RustExpr::Slice { .. } => RustExpr::MethodCall {
+            receiver: Box::new(expr),
+            method,
+            args: Vec::new(),
+        },
+        expr => expr,
+    }
+}
+
 pub(crate) fn own_returned_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
     match cx.result_is_owned_string {
-        true => own_string(expr, cx),
+        true => own_string(expr),
         false => expr,
     }
 }
@@ -159,26 +199,24 @@ pub(crate) fn own_returned_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
 /// spelled differently for the same decision.
 pub(crate) fn own_string_for(expr: RustExpr, wanted: &str, cx: &Body<'_>) -> RustExpr {
     match cx.resolver.owned_string_target().is_some_and(|owned| owned == wanted) {
-        true => own_string(expr, cx),
+        true => own_string(expr),
         false => expr,
     }
 }
 
-fn own_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
+fn own_string(expr: RustExpr) -> RustExpr {
     // A SLICE of a string is a string in the source and a borrow in the target. `v.original[0:1]`
     // is a value the source hands back, and the target's `&s[..1]` borrows what `s` owns — so a
     // result position that wants an owned string has to own it. This owns the SLICE rather than
     // what it slices, which is the whole point: the substring is the value, not the original.
-    if matches!(expr, RustExpr::Slice { .. })
-        && let Some(owned) = cx.resolver.owned_string_target()
-    {
-        // CONSTRUCTED rather than converted with a method. A slice renders with its own leading
-        // borrow, so a method call on it binds tighter than the borrow does — `&s[..1].to_owned()`
-        // is a reference to an owned string, which is not what the signature asked for. Naming the
-        // owned type takes the precedence question away entirely.
-        return RustExpr::Call {
-            callee: Box::new(RustExpr::Path(format!("{owned}::from"))),
-            args: vec![expr],
+    // A SLICE of a string is a string in the source and a borrow in the target, so a result position
+    // that wants an owned string has to own it. The precedence this needs is the lowering's job —
+    // see `lower_postfix_base`, which parenthesises a slice for exactly this reason.
+    if matches!(expr, RustExpr::Slice { .. }) {
+        return RustExpr::MethodCall {
+            receiver: Box::new(expr),
+            method: "to_owned".to_owned(),
+            args: Vec::new(),
         };
     }
     let RustExpr::Literal(text) = &expr else {

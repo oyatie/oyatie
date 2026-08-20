@@ -118,6 +118,10 @@ pub(crate) struct AllocationRule {
     #[serde(default)]
     pub(crate) filled_reason: String,
     #[serde(default)]
+    pub(crate) owned_from_slice: String,
+    #[serde(default)]
+    pub(crate) owned_from_slice_reason: String,
+    #[serde(default)]
     pub(crate) reason: String,
 }
 

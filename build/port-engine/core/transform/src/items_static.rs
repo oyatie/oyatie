@@ -167,6 +167,7 @@ pub(crate) fn build_static(
                 fallible: false,
                 borrowed: std::collections::BTreeSet::new(),
                 result_is_owned_string: false,
+            result_is_owned_sequence: false,
                 results: crate::returns::ResultFacts::none(),
                 usize_counters: std::collections::BTreeSet::new(),
                 walked: None,

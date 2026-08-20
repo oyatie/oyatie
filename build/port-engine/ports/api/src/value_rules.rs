@@ -37,6 +37,10 @@ pub struct Allocation {
     pub filled: String, // data_class: INTERNAL_ONLY
     /// Why an unknown zero refuses.
     pub filled_reason: String, // data_class: INTERNAL_ONLY
+    /// The method turning a borrowed sequence into the owned one.
+    pub owned_from_slice: String, // data_class: INTERNAL_ONLY
+    /// Why a returned slice is owned.
+    pub owned_from_slice_reason: String, // data_class: INTERNAL_ONLY
     /// Why the map and channel shapes are absent.
     pub reason: String, // data_class: INTERNAL_ONLY
 }

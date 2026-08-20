@@ -56,6 +56,8 @@ pub(crate) struct Body<'a> {
     /// string literal being returned is a `&'static str` in the target and a `string` in the
     /// source, and nothing inside the `return` says which the destination wants.
     pub(crate) result_is_owned_string: bool,
+    /// Whether the sole result is a SEQUENCE the target owns, so a returned borrow must be owned.
+    pub(crate) result_is_owned_sequence: bool,
     /// The sequence a counted loop WALKS, and the name its element took.
     ///
     /// Set inside a loop the iterator idiom rewrote, so `xs[i]` inside it renders as the element
@@ -98,6 +100,7 @@ impl<'a> Body<'a> {
         resolver: &'a Resolver<'a>,
         fallible: bool,
         result_is_owned_string: bool,
+        result_is_owned_sequence: bool,
         borrowed: BTreeSet<String>,
         results: crate::returns::ResultFacts,
     ) -> Self {
@@ -106,6 +109,7 @@ impl<'a> Body<'a> {
             resolver,
             fallible,
             result_is_owned_string,
+            result_is_owned_sequence,
             borrowed,
             results,
             usize_counters: BTreeSet::new(),
@@ -179,6 +183,7 @@ pub(crate) fn statements(
             resolver,
             fallible,
             returns_owned_string(declaration, resolver),
+            crate::body_ops::returns_owned_sequence(declaration, resolver),
             crate::params::borrowed_parameters(declaration, resolver),
             crate::returns::ResultFacts::of(declaration, resolver, result),
         )

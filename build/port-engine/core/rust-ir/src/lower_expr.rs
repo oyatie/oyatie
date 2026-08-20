@@ -23,24 +23,9 @@ use crate::ty::RustType;
 /// Lower an expression, parenthesising an operand only where the tree says it needs it.
 pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
     match expr {
-        RustExpr::Slice { base, low, high } => {
-            let base = lower_expr(base)?;
-            let range = match (low, high) {
-                (Some(low), Some(high)) => {
-                    let (low, high) = (lower_expr(low)?, lower_expr(high)?);
-                    quote! { #low..#high }
-                }
-                (Some(low), None) => {
-                    let low = lower_expr(low)?;
-                    quote! { #low.. }
-                }
-                (None, Some(high)) => {
-                    let high = lower_expr(high)?;
-                    quote! { ..#high }
-                }
-                (None, None) => quote! { .. },
-            };
-            Ok(quote! { &#base[#range] })
+        RustExpr::Slice { .. } => {
+            let inner = lower_slice_place(expr)?;
+            Ok(quote! { &#inner })
         }
         RustExpr::Cast { expr, ty } => {
             // A COMPOUND operand is bracketed. `as` binds tighter than every binary operator, so
@@ -122,6 +107,11 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 .map(lower_expr)
                 .collect::<Result<Vec<_>, _>>()?;
             Ok(quote! { ( #(#rendered),* ) })
+        }
+        RustExpr::TupleIndex { base, index } => {
+            let base = lower_postfix_base(base)?;
+            let index = syn::Index::from(*index);
+            Ok(quote! { #base.#index })
         }
         RustExpr::Field { base, name } => {
             let base = lower_postfix_base(base)?;
@@ -221,4 +211,34 @@ fn lower_arm(arm: &MatchArm) -> Result<TokenStream, PortError> {
     }
     let patterns = lower_each(&arm.patterns)?;
     Ok(quote! { #(#patterns)|* => { #body } })
+}
+
+/// A slice as a PLACE — `x[a..b]` — without the borrow that reading it as a value needs.
+///
+/// The borrow and the place are different things and only one of them belongs in postfix position.
+/// `&x[..].to_vec()` is a reference to a vector, because the method binds to what is borrowed; and
+/// bracketing it into `(&x[..]).to_vec()` compiles but borrows a value the compiler would borrow
+/// anyway, which the target's own lint rejects and this engine is held to. A place takes the method
+/// directly and autoref does the rest.
+pub(crate) fn lower_slice_place(expr: &RustExpr) -> Result<TokenStream, PortError> {
+    let RustExpr::Slice { base, low, high } = expr else {
+        return lower_expr(expr);
+    };
+    let base = lower_expr(base)?;
+    let range = match (low, high) {
+        (Some(low), Some(high)) => {
+            let (low, high) = (lower_expr(low)?, lower_expr(high)?);
+            quote! { #low..#high }
+        }
+        (Some(low), None) => {
+            let low = lower_expr(low)?;
+            quote! { #low.. }
+        }
+        (None, Some(high)) => {
+            let high = lower_expr(high)?;
+            quote! { ..#high }
+        }
+        (None, None) => quote! { .. },
+    };
+    Ok(quote! { #base[#range] })
 }
