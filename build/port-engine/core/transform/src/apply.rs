@@ -152,6 +152,7 @@ pub fn apply_with_provenance(
             semantics.length_functions(),
             &semantics.format_calls().functions.keys().cloned().collect(),
             semantics.length_argument_callees(),
+            &semantics.format_calls().verbs,
         );
         // EVERY name, because this pipeline requires every declaration to translate: one that does
         // not fails the whole run, so there is no fixpoint to compute and nothing to exclude.

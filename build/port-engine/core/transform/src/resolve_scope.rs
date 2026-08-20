@@ -69,6 +69,8 @@ pub struct LocalScope {
     /// reference to it renders as, and whether a return of it is provably a failure — and deriving
     /// it three times would let them disagree.
     pub(crate) sentinels: BTreeMap<String, String>,
+    /// Per sentinel, the CONSTANTS its message interpolates — empty for a plain literal.
+    pub(crate) sentinel_arguments: BTreeMap<String, Vec<String>>,
     /// The unit's sentinels in the order the SOURCE declares them, with their raw doc blocks.
     ///
     /// A name-keyed map cannot carry either. The grouped enum needs the order, because a reader
@@ -100,6 +102,7 @@ impl LocalScope {
             &BTreeSet::new(),
             &BTreeSet::new(),
             &BTreeSet::new(),
+            &BTreeMap::new(),
         )
     }
 
@@ -110,10 +113,22 @@ impl LocalScope {
         lengths: &BTreeSet<String>,
         renders: &BTreeSet<String>,
         takes_length: &BTreeSet<String>,
+        verbs: &BTreeMap<String, String>,
     ) -> Self {
         let length_constants =
             crate::length_consts::length_constants(declarations, lengths, renders, takes_length);
-        let sentinels = crate::sentinel::sentinels(declarations, failure);
+        // Carried WITH their arguments: a sentinel built by a formatting constructor over constants
+        // has a fixed message that is not one literal, and dropping the values would emit a format
+        // string with nothing to fill it.
+        let carried = crate::sentinel::sentinels_with(declarations, failure, verbs);
+        let sentinels: BTreeMap<String, String> = carried
+            .iter()
+            .map(|(name, (message, _))| (name.clone(), message.clone()))
+            .collect();
+        let sentinel_arguments: BTreeMap<String, Vec<String>> = carried
+            .into_iter()
+            .map(|(name, (_, args))| (name, args))
+            .collect();
         let sentinel_order = declarations
             .iter()
             .filter(|declaration| sentinels.contains_key(&declaration.name))
@@ -179,6 +194,7 @@ impl LocalScope {
             }
         }
         Self {
+            sentinel_arguments,
             newtypes,
             derive_inputs,
             types,

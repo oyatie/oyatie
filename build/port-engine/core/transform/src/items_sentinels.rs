@@ -37,6 +37,20 @@ pub(crate) fn grouped_sentinels(resolver: &Resolver<'_>) -> RustItem {
                 // emitted crate does not have. See `docs::rename_types_in_text` for why this one
                 // rewrite reaches text the program emits, when no other does.
                 message: crate::docs::rename_types_in_text(message, resolver.prose_type_names),
+                // The CONSTANTS the message interpolates, as the target names them.
+                arguments: resolver
+                    .scope
+                    .sentinel_arguments
+                    .get(source)
+                    .map(|names| {
+                        names
+                            .iter()
+                            .map(|name| {
+                                port_engine_rust_ir::RustExpr::Path(crate::naming::to_screaming_snake(name))
+                            })
+                            .collect()
+                    })
+                    .unwrap_or_default(),
             })
         })
         .collect();

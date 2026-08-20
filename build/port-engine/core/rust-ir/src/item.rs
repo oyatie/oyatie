@@ -237,4 +237,11 @@ pub struct SentinelVariant {
     pub name: String, // data_class: INTERNAL_ONLY
     /// The message it carries, as a target string literal spelling.
     pub message: String, // data_class: INTERNAL_ONLY
+    /// The values the message interpolates, empty when it is a plain literal.
+    ///
+    /// A source sentinel is sometimes built by a FORMATTING constructor over constants —
+    /// `fmt.Errorf("Valid KSUIDs are %v bytes", byteLength)`. Its message is still fixed at compile
+    /// time, so it is still a sentinel; it is simply not spelled as one literal. Carrying the values
+    /// separately is what lets the display arm write them rather than pretend they are not there.
+    pub arguments: Vec<RustExpr>, // data_class: INTERNAL_ONLY
 }

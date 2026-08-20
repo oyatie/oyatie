@@ -5190,3 +5190,41 @@ signature said no and left a borrow where the type said otherwise.
 compile clean. The new top is the failing-return proof at 12 sites across four packages.
 
 An extractor change means every snapshot fixture was regenerated, per the standing verification list.
+
+## R2y — a sentinel whose message is formatted is still a sentinel
+
+Next round of the histogram. Top cause was the failing-return proof — 12 sites, four packages — and
+reading an actual site rather than the summary is what found the real problem. `ksuid.Parse` refuses
+on `return Nil, errStrSize`, and `errStrSize` is a package-level error value: exactly the thing the
+proof already accepts, since a sentinel is a declared constructor's value under a name.
+
+It was not recognised. Two reasons, both in the same place: the pack admitted only the plain
+constructor, and the recogniser required the call to carry exactly ONE literal and nothing else.
+`fmt.Errorf("Valid KSUIDs are %v bytes", byteLength)` fails both.
+
+**Ten of the corpus's seventeen sentinels are built that way.** Every one was invisible, and every
+`return Nil, errStrSize` in four packages refused for want of the proof the sentinel itself would have
+supplied.
+
+**The rule, and where its boundary is.** A sentinel built by a FORMATTING constructor is still a
+sentinel when every operand beside the template is a package CONSTANT: the message is one string,
+fixed before anything runs, and it is simply not spelled as one literal. A NON-CONSTANT operand
+disqualifies it, and that boundary is the whole rule — a message depending on a runtime value is a
+different string per call, which is a formatted error rather than a sentinel, and the difference is
+exactly what a caller comparing against the value relies on.
+
+The verbs are translated through the same table the inline formatting calls use, so a sentinel's
+message and a formatted message cannot disagree about what `%v` becomes.
+
+**One shape change, and why the old one could not carry this.** The enum's display bound the message
+first and wrote it once — which works only while every message is a literal, because a plain `&str`
+and a formatted `String` do not share a type. Each arm now WRITES instead of yielding, so both sit in
+one match: `Self::ShortBuffer => f.write_str("…")` beside
+`Self::Size => write!(f, "Valid KSUIDs are {} bytes", BYTE_LENGTH)`.
+
+The binding it replaces had a recorded reason — a `match` used as a CALL ARGUMENT formats across ten
+lines, which a reviewer read as output nobody had formatted. That reason does not apply here: this
+match is the function's tail expression, not an argument, and the formatter leaves it alone. Checked
+in the emitted golden rather than assumed.
+
+**Translated 100 → 107**, all seven packages still compiling clean: ksuid 23 → 27, semver 18 → 21.
