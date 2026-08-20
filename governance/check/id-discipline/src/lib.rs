@@ -122,17 +122,9 @@ fn declarations(doc: &SchemaDocument, policy: &Policy) -> Vec<(String, usize, Op
             let mut declared: Option<String> = None;
             for next in lines.iter().take(idx + 9).skip(idx + 1) {
                 let nt = next.trim_start().to_ascii_lowercase();
-                let value = if let Some(rest) = nt.strip_prefix("format:") {
-                    Some(rest)
-                } else if let Some(rest) = nt.strip_prefix("\"format\":") {
-                    Some(rest)
-                } else if let Some(rest) = nt.strip_prefix("pattern:") {
-                    Some(rest)
-                } else if let Some(rest) = nt.strip_prefix("\"pattern\":") {
-                    Some(rest)
-                } else {
-                    None
-                };
+                let value = ["format:", "\"format\":", "pattern:", "\"pattern\":"]
+                    .iter()
+                    .find_map(|key| nt.strip_prefix(key));
                 if let Some(v) = value {
                     declared = Some(v.trim().trim_end_matches(',').trim_matches('"').to_owned());
                     break;
