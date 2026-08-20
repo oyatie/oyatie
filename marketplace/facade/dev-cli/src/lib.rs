@@ -104,6 +104,7 @@ mod retired_vocabulary_gate;
 mod runbook_gates;
 mod scalability_gates;
 mod scalar_parse;
+mod service_roots;
 mod supply_chain_gates;
 mod team_ownership_gates;
 mod tier_a_gates;
