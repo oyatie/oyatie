@@ -134,6 +134,36 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 false => Ok(quote! { #name!(#template, #(#args),*) }),
             }
         }
+        RustExpr::Closure {
+            moves,
+            params,
+            ret,
+            body,
+        } => {
+            let mut bound = Vec::with_capacity(params.len());
+            for param in params {
+                let name = crate::lower_parts::parse_ident(&param.name)?;
+                bound.push(match &param.ty {
+                    None => quote! { #name },
+                    Some(ty) => {
+                        let ty = crate::lower_parts::parse_type(ty)?;
+                        quote! { #name: #ty }
+                    }
+                });
+            }
+            let block = crate::lower_body::lower_block(body)?;
+            let head = match moves {
+                true => quote! { move },
+                false => quote! {},
+            };
+            match ret {
+                None => Ok(quote! { #head |#(#bound),*| { #block } }),
+                Some(ty) => {
+                    let ty = crate::lower_parts::parse_type(ty)?;
+                    Ok(quote! { #head |#(#bound),*| -> #ty { #block } })
+                }
+            }
+        }
         RustExpr::Deref(inner) => {
             let inner = crate::lower_precedence::lower_postfix_base(inner)?;
             Ok(quote! { *#inner })

@@ -121,7 +121,12 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "binary",
     "break",
     "call",
+    "capture",
     "case",
+    // A function literal. Its captures are recorded as `capture` members rather than left to be
+    // rediscovered, because which identifiers inside a literal are captures is a SCOPING question
+    // and the transform receives names rather than objects.
+    "closure",
     "continue",
     "composite",
     "convert",

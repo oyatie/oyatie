@@ -121,6 +121,7 @@ pub(crate) fn in_position(
                 index: Box::new(crate::body_index::index_operand(index, cx)?),
             })
         }
+        "closure" => crate::body_closure::closure(node, cx),
         "composite" => composite(node, cx),
         "convert" => convert(node, cx),
         "slice" => slice(node, cx),

@@ -36,6 +36,7 @@ mod body_place;
 mod body_stmt;
 mod body_swap;
 mod body_wider;
+mod body_closure;
 mod body_cond;
 mod body_derived;
 mod body_expr;
