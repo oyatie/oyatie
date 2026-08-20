@@ -11,7 +11,9 @@ rust_library(
 
 # Pure-kernel unit tests: dead-root detection, forward-declaration handling (both the
 # not-yet-created and the landed-must-retire cases), per-policy-file baseline scoping,
-# the completeness check that stops this gate going vacuous, and the corpus floor —
+# the completeness check that stops this gate going vacuous, the corpus floor, and the
+# mirror defect — a LIVE root no root-enumerating site declares, plus the collapsed-
+# universe guard that stops an unloadable registry excusing every site —
 # all proven WITHOUT a filesystem.
 rust_test(
     name = "ci-scan-root-liveness-unittest",
@@ -26,8 +28,11 @@ rust_test(
 
 # Live-corpus gate: walks every ci/facade/*/*.json gate policy, collects the
 # coverage-bearing root declarations, resolves each against the real tree (glob-aware),
-# and evaluates. Carries the RED fixture proving a dead root fails, so the gate is
-# demonstrated capable of failing rather than merely observed passing.
+# and evaluates. Derives the governed root universe from governance/capability-registry.json
+# intersected with disk plus the carried legacy roots, and holds every root-enumerating
+# declaration site to it. Carries RED fixtures proving BOTH a dead root and an undeclared
+# live root fail, so the gate is demonstrated capable of failing rather than merely
+# observed passing.
 rust_test(
     name = "ci-scan-root-liveness-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),

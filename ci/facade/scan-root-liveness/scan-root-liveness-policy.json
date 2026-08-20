@@ -1,4 +1,5 @@
 {
+  "_comment2_undeclared_live_roots": "The MIRROR half, added 2026-08-19. The rest of this file is about a DECLARED root that stopped resolving. This half is about a LIVE root nobody declared - the same shrink arriving from the other side, and the worse one, because a dead root at least leaves a trace in the policy while an undeclared root leaves nothing at all and no ratchet makes it awkward. Mechanism: a declaration SITE (one array, keyed policy_file::json_pointer) is ROOT-ENUMERATING when at least ROOT_ENUMERATION_MIN_HITS=2 of its entries are root references into the live universe; such a site owes the WHOLE universe, and every live root it omits is an undeclared_live_root. WHAT EXISTS is derived, never enumerated here: governance/capability-registry.json (the ADR-0562 closed registry) intersected with what is on disk, plus carried_legacy_roots. Deriving it is the entire point - a capability that lands is expected everywhere BY CONSTRUCTION, with no edit to this file, exactly as the root Cargo.toml's four shape globs made a conforming capability a workspace member by construction after its 24 per-capability globs had turned the member array into a mutex every reorg move serialized on. Registry names supply VOCABULARY and the filesystem supplies LIVENESS: `policy` is registered with no directory, and demanding a root that does not exist would be dead_scan_root issued as an order. baselined_undeclared_live_roots is FROZEN, shrink-only and TWO-SIDED (frozen_undeclared_baseline_is_exactly_the_live_gap_set): a new gap is blocking, and a gap that CLOSES must be un-frozen in the same change, because a one-sided ceiling cannot tell a widened gate from a collapsed collector. It is a SET of named keys and not a count, so closing it is a reviewable diff.",
   "_comment": "Scan-root liveness. Every COVERAGE-BEARING root a gate policy declares must resolve to a real path (or, for a glob, match at least one). A dead root means the gate scans less than it claims and reports GREEN over an empty set - and because the fleet's anti-narrowing ratchet forbids REMOVING a root, a reorg move that empties one leaves it permanently dead AND unremovable. Keys are the FULL JSON POINTER, not the leaf name: `roots` appears at three different nesting levels inside rust-first-automation-policy.json alone, so leaf-name keying would collapse distinct declarations and let one baselined entry silently tolerate another. Only coverage-bearing keys are in scope; vocabulary lists (exclude_prefixes, allowed_paths, forbidden_prefixes) are excluded because a dead entry there excludes or permits nothing. forward_declarations hold paths declared deliberately BEFORE they exist - flagging those would punish declaring a reorg destination ahead of the move - and a forward declaration whose path LANDS must be retired so it cannot become a permanent unaudited exemption. baselined_dead_roots is FROZEN and shrink-only.",
   "gate_id": "cloud-ci-scan-root-liveness",
   "_provenance": {
@@ -7,34 +8,60 @@
       "scan_roots",
       "crate_root_globs",
       "manifest_paths",
-      "store_manifest_paths"
+      "store_manifest_paths",
+      "governed_roots"
     ],
-    "declared_roots_total": 200,
+    "declared_roots_total": 225,
     "key_format": "<policy_file>::<json_pointer>::<declared_value>",
     "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired",
     "_build_root_retired_2026_08_09": "The three `::build` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage) were RETIRED here because build/ landed its first crate — build/port-engine/core/port-engine-kernel, PR #1621 — which is verbatim the event their own reason strings named (`Created when build/ lands its first crate`). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `build` stays in all three policies' scan_roots arrays untouched, and now resolves, so it is a live audited root rather than an unaudited standing exemption. That is the whole point of forward_declarations being pinned by forward_declarations_are_all_still_absent: a declaration whose path arrives must stop being tolerated in the same change that makes it real. Sibling roots base/ and policy/ remain absent and remain declared; whoever lands their first crate owes the same one-line retirement. app/ was later retired in _app_root_retired_2026_08_11. NOT retired here: module-membership declared no `build` entry, so it had nothing to retire.",
     "_build_widening_measured_2026_08_09": "The widening is not free of consequence and was measured rather than assumed. embedded-asset-hermeticity now walks build/, and the new crate carries four include_str! sites (src/lib.rs:78 `lib.rs`, src/lib.rs:93 `../tests/seams.rs`, tests/neutrality.rs:42 `../src/lib.rs`, tests/neutrality.rs:48 `seams.rs`). All four resolve inside targets whose BUCK srcs already provide them — the library globs `src/**/*.rs` plus `tests/seams.rs`, and the neutrality test globs all three — so the gate stays green with no baseline movement. caller-supplied-authorization and endpoint-authorization-coverage now walk build/ too; the kernel exposes no DTO deserialization and no HTTP endpoint, so both are likewise zero-delta. Verified by running all three gates, not by reading the policies.",
     "_app_root_retired_2026_08_11": "The four `::app` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage, module-membership) were RETIRED here because app/ landed its first tracked path — app/README.md on integ/app (PR #1668, OVERRULE 3d glue-only). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `app` stays in each policy's scan_roots arrays untouched, and now resolves, so it is a live audited root. README-only (zero crates) keeps hermeticity/authz widening zero-delta. Sibling roots base/ and policy/ remain absent and remain declared.",
+    "_coverage_keys_widened_2026_08_19": "MEASURED, not assumed. `governed_roots` was added to coverage_bearing_keys because two live gate policies were outside this gate's universe entirely: canonical-json declares `governed_roots` and product-protocol-policy declares it nested under `manifest_inventory`. Before: 202 declared roots across 7 policy files and 12 declaration sites. After: 225 roots across 9 files and 14 sites - and note the pre-existing `declared_roots_total: 200` in this same block was already two stale, which is the drift this crate exists to catch, in this crate. Both newly covered files' roots RESOLVE, so the dead-root baseline is unchanged at eleven. NOT added: `manifest_inventory`. It is an OBJECT everywhere it occurs, never an array, so the collector could never match it; a key that cannot fire is dead vocabulary and is indistinguishable from a working entry, which is the same false assurance as a dead scan root. If it ever becomes an array, add it then.",
+    "_undeclared_root_baseline_frozen_2026_08_19": "96 undeclared_live_root gaps across 9 of the 14 declaration sites, frozen against a 32-root universe (29 registered-and-on-disk, plus the 4 carried legacy roots, minus third-party/). They are DEBT MADE VISIBLE, not tolerated design, and they are the work queue for the per-gate widening: embedded-asset-hermeticity misses 19 live roots including comms/ (24 crate directories - a dangling embedded asset planted there was mutation-proven GREEN); product-protocol-policy misses 11; automation-language-policy's cli_package_authority misses 29 and interpreter_command_authority 28, both scanning for classes (a `-cli` package name, a spawned python/node) that can be born under any capability; layer-dependency-acyclicity misses app/, infra/ and kernel/ while still carrying the 31-glob per-capability form the root Cargo.toml retired. Each entry is a named key, so each widening is a reviewable deletion from this list. Nothing here was tuned green: the only root removed from the universe is third-party/, under universe_exclusions, because it is vendored upstream source the repo does not author.",
     "_cloud_root_retired_2026_08_17": "The top-level cloud/ tree is intentionally retired, but its seven remaining coverage-bearing declarations stay in their owning policies so future reintroduction is scanned immediately and anti-narrowing cannot be bypassed as cleanup. Those exact fully qualified declarations move into the frozen shrink-only baseline; the live exact-set test binds the baseline to all and only currently dead non-forward roots."
   },
   "min_expected_roots": 150,
+  "min_expected_live_roots": 25,
   "coverage_bearing_keys": [
     "roots",
     "scan_roots",
     "crate_root_globs",
     "manifest_paths",
-    "store_manifest_paths"
+    "store_manifest_paths",
+    "governed_roots"
   ],
   "registered_policy_files": [
     "ci/facade/automation-language-policy/rust-first-automation-policy.json",
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json",
+    "ci/facade/canonical-json/canonical-json-policy.json",
     "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json",
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json",
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
     "ci/facade/module-membership/capability-membership-policy.json",
-    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json"
+    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json"
   ],
   "exempt_policy_files": {},
+  "carried_legacy_roots": {
+    "oya": {
+      "deletion_condition": "Delete this entry when the last oya/<service>/crates/ crate has been moved under ADR-0562 and the oya/ directory no longer exists. Until then oya/ holds the bulk of the un-migrated fleet, and a gate that does not scan it is blind to most of the repo."
+    },
+    "libs": {
+      "deletion_condition": "Delete this entry when libs/ has been consolidated into base/ and the capability faces per ADR-0562 and the directory no longer exists. libs/oya-* is still a live crate root today."
+    },
+    "tools": {
+      "deletion_condition": "Delete this entry when the tools/ removal-candidate root is gone (ADR-0701). It still holds tools/oya-* crates and repo automation that the language and tier gates must see."
+    },
+    "infra": {
+      "deletion_condition": "Delete this entry when infra/ has finished draining into k8s/ and iac/ and the directory no longer exists. It is the live GitOps and external-secrets surface today, so it is first-party ground a gate must not skip."
+    }
+  },
+  "universe_exclusions": {
+    "third-party": {
+      "reason": "reindeer-vendored upstream crate sources (the buck2 cell root third-party//, top-level per the ADR-0615 amendment). It owns zero first-party crates and the repo does not author its contents, so a gate widened into it would lint code nobody here can fix. This is a category error, not deferred work: unlike every entry in baselined_undeclared_live_roots, no future change is supposed to make a gate scan it."
+    }
+  },
   "forward_declarations": {
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::base": {
       "value": "base",
@@ -81,5 +108,103 @@
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::cloud",
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::cloud/*/crates/oya-*",
     "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::cloud"
+  ],
+  "baselined_undeclared_live_roots": [
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::app",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::audit",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::billing",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::build",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::cell",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::ci",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::comms",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::compliance",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::compute",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::console",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::data",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::flags",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::gateway",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::governance",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::iac",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::iam",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::intelligence",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::k8s",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::kernel",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::libs",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::marketplace",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::messaging",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::network",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::observability",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::oya",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::secrets",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::storage",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::tenancy",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::workflow",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::app",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::audit",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::billing",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::build",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::cell",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::comms",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::compliance",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::compute",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::console",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::data",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::flags",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::gateway",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::governance",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::iac",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::iam",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::infra",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::intelligence",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::k8s",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::kernel",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::marketplace",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::messaging",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::network",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::observability",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::oya",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::secrets",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::storage",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::tenancy",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::workflow",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::app",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::build",
+    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::infra",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::audit",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::billing",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::cell",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::comms",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::compliance",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::compute",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::console",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::flags",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::gateway",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::iac",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::k8s",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::kernel",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::messaging",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::network",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::observability",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::secrets",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::storage",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::tenancy",
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::workflow",
+    "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::infra",
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::app",
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::infra",
+    "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::kernel",
+    "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::build",
+    "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::infra",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::app",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::build",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::ci",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::compute",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::governance",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::infra",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::kernel",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::libs",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::messaging",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::os",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json::/manifest_inventory/governed_roots::tools"
   ]
 }
