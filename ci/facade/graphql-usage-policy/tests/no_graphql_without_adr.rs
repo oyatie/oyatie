@@ -130,7 +130,6 @@ fn live_owned_stack_has_no_active_graphql_layer_vocabulary() {
         "marketplace/observability/slos",
         "marketplace",
         "data/ontology/decisions/ADR-ONT-001-rdf-shape-vs-property-graph-storage.md",
-        "oya/workplace-integration",
     ];
     let forbidden_needles = [
         "Layer::Graphql",
