@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:98b806bc23692f36cd192f4a215f622b9c1c0b131ce81413ecf0aeb4925295ad",
+  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:a001cb3915a4ee81a2622acdf97b445dccfd98fa261cd23481ce8ee24fa4af8d",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",

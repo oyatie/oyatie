@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:8010a85a19a4a607ffdbd5fae34905ce0a73424c6e99b210b8ed233f27da670c",
+  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:75c3ee4cccd2bd9f7f5bf9a65e0e0e9b5ce789677164be53705d021e4f44bda9",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-sentinel/corpus-sentinel/identity",
