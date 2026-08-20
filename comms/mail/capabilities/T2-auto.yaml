@@ -32,7 +32,7 @@ capabilities:
     surface: mailbox-store-worker (daily sweep)
     triggers: time-based (daily sweep); per-thread last-activity > threshold
     consent_basis:
-      personal_context: explicit-opt-in at mailbox creation (default: OFF)
+      personal_context: "explicit-opt-in at mailbox creation (default: OFF)"
       professional_context: tenant-policy-basis (admin opt-in; per-user opt-out)
     data_class_processed: [BEHAVIORAL_TENANT_PRODUCT]
     data_class_emitted: AUDIT (per-thread archive event)
@@ -68,10 +68,10 @@ capabilities:
     safety_net:
       - RFC 3834 §5 loop detection (do not reply to bulk mail; do not reply to mailer-daemon)
       - per-recipient throttle: 1 OOO reply per 7 days
-      - mailing list detection (List-Id / Precedence: bulk): NO reply
+      - "mailing list detection (List-Id / Precedence: bulk)": NO reply
       - bounce-suppression: do not reply to bounces (per RFC 3834 §4)
     user_visibility:
-      - "OOO active" indicator in compose UI
+      - '"OOO active" indicator in compose UI'
       - daily count of OOO replies sent
 
   - id: T2-mail-auto-categorize
@@ -83,7 +83,7 @@ capabilities:
     surface: inbound-smtp adapter + mailbox-store domain
     triggers: every inbound message
     consent_basis:
-      personal_context: explicit-opt-in (default: OFF; can be enabled in settings)
+      personal_context: "explicit-opt-in (default: OFF; can be enabled in settings)"
       professional_context: tenant-policy-basis (some tenants disable; some mandate)
     data_class_processed: [PII_IDENTIFYING, BEHAVIORAL_TENANT_PRODUCT]
     data_class_emitted: AUDIT (per-message category assignment)
@@ -118,7 +118,7 @@ capabilities:
       - sender notified within 60s
       - per-tenant SLA for reviewer decision (default 2h; configurable)
       - escalation to two-reviewer (four-eyes) for PHI / PCI per `policy/data-residency.md` pack overlay
-      - false-positive surge runbook: `runbooks/dlp-quarantine-release.md` + `runbooks/spam-rule-rollback.md`
+      - false-positive surge runbook: "`runbooks/dlp-quarantine-release.md` + `runbooks/spam-rule-rollback.md`"
 
   - id: T2-mail-retention-expiry-sweep
     name: "Retention expiry sweep"
