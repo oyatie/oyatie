@@ -211,6 +211,15 @@ pub(crate) fn statements(
         // index through the same set a proven loop counter does — so one place decides, and the
         // signature and the body cannot disagree about whether a conversion is needed.
         .with_usize_parameters(crate::index_params::index_parameters(declaration, resolver))
+        // A LOCAL that only ever walks a sequence is the target's index type, for the same reason
+        // a parameter and a loop counter are — and it reaches the same set, so the binding, every
+        // index through it and every comparison against a length all read ONE answer. Decided
+        // before the body is translated because the binding and its uses have to agree, and the
+        // body is walked once.
+        .with_usize_parameters(crate::counters::cursor_locals(
+            nodes,
+            resolver.length_functions,
+        ))
         .with_newtype_parameters(crate::index_params::newtype_parameters(declaration, resolver))
         .with_receiver_type(receiver_type),
         TailPosition::Yes,

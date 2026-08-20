@@ -6672,3 +6672,41 @@ carries the contract it cannot keep.
     the pack declares none
 
 memberlist: 78 → 76 translated. Two declarations, for a whole class of silent wire-format change.
+
+## R4d — a local that only walks a sequence is the target's index type
+
+The most-cited surviving Go shape, in both gates and across four rounds. The Go-aware gate counted
+it: 119 conversions across the five packages, and named `gjson::string_less_insensitive` the worst
+case.
+
+    while i < a.len() as i64 && i < b.len() as i64 {
+        if a.as_bytes()[i as usize] >= b'A' && a.as_bytes()[i as usize] <= b'Z' {
+
+The source types a cursor `int`, the pack maps that to a signed 64-bit integer, and every use then
+converts. The engine already decided this for a LOOP COUNTER and for a PARAMETER used only to
+index — a local was the one place nobody asked.
+
+A binding qualifies when EVERY read of it is an index operand, a slice bound, a comparison against a
+length or a literal, or its own increment. The disqualifying use is the point: `parse_int`'s `n`
+accumulates a value the caller receives, so it stays the source's integer, while `i` beside it walks
+the string and becomes an index. A rule that could not tell them apart would have to leave both.
+
+Three ends had to agree, and each was a separate place that had never been asked:
+
+- the BINDING states `usize`;
+- its INITIALISER is built at the index type, or `let l: usize = key.len() as i64` states one type
+  and supplies another;
+- a COMPARISON against a length drops the conversion the length mapping adds — `compares_lengths`
+  knew about length CONSTANTS and not about proven cursors, so the binding changed and the
+  comparison did not.
+
+All three read the same set, which is what stops them disagreeing.
+
+    fn string_less_insensitive(a: &str, b: &str) -> bool {
+        let mut i: usize = 0;
+        while i < a.len() && i < b.len() {
+            if a.as_bytes()[i] >= b'A' && a.as_bytes()[i] <= b'Z' {
+
+No conversions at all, in the function the reviewer picked out. Casts across the five: 37 → 31, and
+the ones left are on values the source's own signatures hand back as integers — `validstring`
+RETURNS its cursor, so it is an `int` to its caller and changing it would change the signature.

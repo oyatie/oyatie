@@ -199,3 +199,115 @@ pub(crate) fn unsigned_bound(
         other => Ok(other),
     }
 }
+
+/// The body's own `let` bindings that are CURSORS — read only to reach into a sequence.
+///
+/// The source types these `int`, which this pack maps to a signed 64-bit integer, and every use
+/// then converts: `data[i as usize]`, `i < data.len() as i64`, `i.wrapping_add(1)`. A reviewer
+/// counted 119 such conversions across five ported packages and named the shape as the most
+/// pervasive thing carrying Go across. The target's index type is unsigned, and a cursor's every
+/// value reaches it.
+///
+/// A binding qualifies when EVERY read of it is one of:
+///
+///   * an index operand — `data[i]`;
+///   * a bound of a slice — `data[i:j]`;
+///   * a side of a comparison whose other side is a LENGTH or a literal;
+///   * the place of an increment or a compound assignment to itself.
+///
+/// Anything else disqualifies it, and the whole point is that the disqualifying use is common:
+/// `parse_int`'s `n` accumulates a value the caller receives, so it is the source's integer and
+/// stays one, while `i` beside it walks the string and becomes an index. A rule that could not
+/// tell them apart would have to leave both alone.
+pub(crate) fn cursor_locals(
+    nodes: &[Declaration],
+    lengths: &std::collections::BTreeSet<String>,
+) -> std::collections::BTreeSet<String> {
+    let mut declared = Vec::new();
+    collect_int_locals(nodes, &mut declared);
+    declared
+        .into_iter()
+        .filter(|name| {
+            let mut total = 0usize;
+            let mut cursor = 0usize;
+            for node in nodes {
+                count_cursor_reads(node, name, lengths, &mut total, &mut cursor);
+            }
+            total > 0 && total == cursor
+        })
+        .collect()
+}
+
+/// Every `let` in this subtree whose declared type is the source's own integer.
+fn collect_int_locals(nodes: &[Declaration], into: &mut Vec<String>) {
+    for node in nodes {
+        if node.kind == "let"
+            && node.type_ref.kind == "basic"
+            && node.type_ref.name == "int"
+            && !node.name.is_empty()
+        {
+            into.push(node.name.clone());
+        }
+        collect_int_locals(&node.children, into);
+    }
+}
+
+/// Reads of the name, and how many of them are cursor uses.
+fn count_cursor_reads(
+    node: &Declaration,
+    name: &str,
+    lengths: &std::collections::BTreeSet<String>,
+    total: &mut usize,
+    cursor: &mut usize,
+) {
+    if node.kind == KIND_IDENT && node.name == name {
+        *total += 1;
+    }
+    // An INDEX operand, and a SLICE bound: both reach into a sequence and both are the target's
+    // index type.
+    if node.kind == KIND_INDEX || node.kind == "slice" {
+        for operand in node.children.iter().skip(1) {
+            if is_name(operand, name) {
+                *cursor += 1;
+            }
+        }
+    }
+    // A COMPARISON against a length or a constant. The length side already renders as the target's
+    // index type, and the conversion the engine adds beside it is exactly what this removes.
+    if node.kind == "binary"
+        && matches!(
+            node.attr(crate::vocabulary::ATTR_OP),
+            Some("<" | "<=" | ">" | ">=" | "==" | "!=")
+        )
+        && let [lhs, rhs] = node.children.as_slice()
+    {
+        for (side, other) in [(lhs, rhs), (rhs, lhs)] {
+            if is_name(side, name) && (is_length(other, lengths) || other.kind == crate::vocabulary::KIND_LITERAL) {
+                *cursor += 1;
+            }
+        }
+    }
+    // ITS OWN INCREMENT. `i++` and `i += 1` read the place to write it, and neither observes the
+    // value anywhere the sign could matter.
+    if (node.kind == "incdec" || node.kind == "assign")
+        && let Some(place) = node.children.first()
+        && is_name(place, name)
+    {
+        *cursor += 1;
+    }
+    for child in &node.children {
+        count_cursor_reads(child, name, lengths, total, cursor);
+    }
+}
+
+fn is_name(node: &Declaration, name: &str) -> bool {
+    node.kind == KIND_IDENT && node.name == name
+}
+
+/// Whether this expression IS a length — a call to one of the pack's length callees.
+fn is_length(node: &Declaration, lengths: &std::collections::BTreeSet<String>) -> bool {
+    node.kind == crate::vocabulary::KIND_CALL
+        && node
+            .attr(crate::vocabulary::ATTR_CALLEE)
+            .is_some_and(|callee| lengths.contains(callee))
+}
