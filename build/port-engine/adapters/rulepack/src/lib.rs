@@ -15,6 +15,7 @@ pub use sources::CRATE_SOURCES;
 
 mod error;
 mod load;
+mod load_values;
 mod pack;
 mod policy;
 mod rule;

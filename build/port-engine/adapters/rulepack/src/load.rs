@@ -7,9 +7,10 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{SequenceAppend, Allocation, BinaryString, FormatFunction, FormatCalls, 
-    DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
-    LanguagePair, PointerConstruction, PointerDisposition, RuleId, UnitId,
+use port_engine_api::{
+    Allocation, BinaryString, BitPatternConstants, DeriveRule, DocConvention, FailureConvention,
+    FormatCalls, FormatFunction, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
+    PointerConstruction, PointerDisposition, RuleId, SequenceAppend, UnitId,
 };
 use port_engine_hash::digest_bytes;
 
@@ -161,8 +162,9 @@ impl LoadedRulePack {
                     reason: rule.reason,
                 })
                 .collect(),
-            doc_convention: doc.doc_convention.map_or_else(DocConvention::default, |rule| {
-                DocConvention {
+            doc_convention: doc
+                .doc_convention
+                .map_or_else(DocConvention::default, |rule| DocConvention {
                     strip_leading_name: rule.strip_leading_name,
                     copulas: rule.copulas.into_iter().collect(),
                     source_language_words: rule.source_language_words,
@@ -170,8 +172,7 @@ impl LoadedRulePack {
                     passive_openings: rule.passive_openings,
                     passive_openings_reason: rule.passive_openings_reason,
                     reason: rule.reason,
-                }
-            }),
+                }),
             integer_arithmetic: doc.integer_arithmetic.map_or_else(
                 IntegerArithmetic::default,
                 |rule| IntegerArithmetic {
@@ -192,56 +193,13 @@ impl LoadedRulePack {
                 .unmappable_types
                 .map(|rule| rule.types)
                 .unwrap_or_default(),
-            sequence_append: doc
-                .sequence_append
-                .map(|rule| SequenceAppend {
-                    extend: rule.extend,
-                    push: rule.push,
-                    reason: rule.reason,
-                })
-                .unwrap_or_default(),
-            allocation: doc
-                .allocation
-                .map(|rule| Allocation {
-                    empty_with_capacity: rule.empty_with_capacity,
-                    empty_with_capacity_reason: rule.empty_with_capacity_reason,
-                    filled: rule.filled,
-                    filled_reason: rule.filled_reason,
-                    reason: rule.reason,
-                })
-                .unwrap_or_default(),
-            binary_string: doc
-                .binary_string
-                .map(|rule| BinaryString {
-                    target_type: rule.target_type,
-                    literal_form: rule.literal_form,
-                    reason: rule.reason,
-                })
-                .unwrap_or_default(),
-            format_calls: doc.format_calls.map(|rule| FormatCalls {
-                macro_name: rule.r#macro,
-                macro_reason: rule.macro_reason,
-                functions: rule
-                    .functions
-                    .into_iter()
-                    .map(|(identity, entry)| {
-                        (
-                            identity,
-                            FormatFunction {
-                                wrapper: entry.wrapper,
-                                reason: entry.reason,
-                            },
-                        )
-                    })
-                    .collect(),
-                wrapper_reason: rule.wrapper_reason,
-                verbs: rule.verbs,
-                verbs_reason: rule.verbs_reason,
-                wrap_verb: rule.wrap_verb,
-                wrap_verb_reason: rule.wrap_verb_reason,
-                literal_only_reason: rule.literal_only_reason,
-                brace_reason: rule.brace_reason,
-            }).unwrap_or_default(),
+            sequence_append: crate::load_values::sequence_append(doc.sequence_append),
+            allocation: crate::load_values::allocation(doc.allocation),
+            binary_string: crate::load_values::binary_string(doc.binary_string),
+            bit_pattern_constants: crate::load_values::bit_pattern_constants(
+                doc.bit_pattern_constants,
+            ),
+            format_calls: crate::load_values::format_calls(doc.format_calls),
             function_map: doc
                 .function_map
                 .into_iter()

@@ -14,6 +14,7 @@ pub use sources::CRATE_SOURCES;
 
 mod declaration;
 mod error;
+mod value_rules;
 mod failure;
 mod identity;
 mod ownership;
@@ -24,10 +25,9 @@ mod type_ref;
 
 pub use declaration::Declaration;
 pub use error::PortError;
+pub use value_rules::{Allocation, BinaryString, BitPatternConstants, FormatCalls, FormatFunction, SequenceAppend};
 pub use failure::{
-    Allocation, BinaryString, DeriveRule, SequenceAppend, DocConvention, FailureConvention, FormatCalls, FormatFunction,
-    FunctionMapping, IdiomRule,
-    IntegerArithmetic,
+    DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };
 pub use identity::{Digest, LanguagePair, PAIR_SEPARATOR, RegionId, RuleId, UnitId};
 pub use ownership::{OwnershipFacts, PointerConstruction, PointerDisposition};

@@ -110,9 +110,13 @@ fn build_const(
         // not typecheck. This is the same operation a conversion to a defined type performs, and it
         // was missing here only because a constant reaches its type by declaration rather than by
         // call — nine of uuid's constants came out ill-typed for exactly that reason.
+        // A BIT PATTERN is spelled as one. The source's base is not recorded and would not bind
+        // the target anyway; what the target owes a reader is the spelling in which the value can
+        // be checked against whatever defines it.
         value: match crate::items_value::constructs_at_type(declaration, resolver) {
             true => format!("{}({})", ty.spelling(), value),
-            false => value.to_owned(),
+            false => crate::items_value::bit_pattern(declaration, resolver)
+                .unwrap_or_else(|| value.to_owned()),
         },
         ty,
     })

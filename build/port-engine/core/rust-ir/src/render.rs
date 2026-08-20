@@ -179,6 +179,20 @@ impl Renderer for RustRenderer {
 ///
 /// A file carrying inner attributes is rendered whole: they belong to the file rather than to any
 /// item, and splitting would lose them.
+/// What a set of items would LOOK LIKE, for a rule that must ask about the output rather than
+/// about the model that produced it.
+///
+/// `None` when they do not assemble, which a caller reads as "cannot say" — never as "does not
+/// appear".
+///
+/// # Errors
+/// None: assembly failure is reported as `None` rather than as an error, because every caller of
+/// this is asking a question whose safe answer is to assume the name IS present.
+#[must_use]
+pub fn rendered_text(items: &[crate::item::RustItem]) -> Option<String> {
+    crate::lower::lower_file(items).ok().as_ref().map(separated)
+}
+
 fn separated(file: &syn::File) -> String {
     if !file.attrs.is_empty() || file.items.len() < 2 {
         return prettyplease::unparse(file);

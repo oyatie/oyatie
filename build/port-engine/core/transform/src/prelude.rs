@@ -98,70 +98,6 @@ pub(crate) fn prelude_items(
     items
 }
 
-/// The imports a set of EMITTED items needs.
-///
-/// Pure, and asked of the items themselves, so both emission paths get the same answer from the
-/// same evidence. Asked of the output rather than of the declarations because an import nothing
-/// uses is a denied warning, where an unused alias is only dead code — a unit whose sentinels all
-/// refused must not gain an import for them.
-pub(crate) fn import_items(items: &[RustItem], declared: &BTreeMap<String, String>) -> Vec<RustItem> {
-    let mut paths: BTreeSet<String> = BTreeSet::new();
-    let has_sentinel = items.iter().any(|item| {
-        matches!(
-            item,
-            RustItem::SentinelError { .. } | RustItem::SentinelEnum { .. }
-        )
-    });
-    if has_sentinel {
-        // The sentinel form spells `fmt::Display`, `fmt::Formatter` and `fmt::Result`, so a unit
-        // with seven sentinels names one std module twenty-one times. The short form and this
-        // import are one decision, derived from one fact, and cannot drift apart.
-        paths.insert("std::fmt".to_owned());
-    }
-
-    // What the unit's emitted TYPES actually name. Asked of the types rather than of the rendered
-    // text, because a type is a tree and a text scan would match a name inside a longer one — and
-    // an import nothing uses is a denied warning, so a false positive is a build failure.
-    let mut named: BTreeSet<String> = BTreeSet::new();
-    for item in items {
-        named.extend(item.type_spellings());
-    }
-    for (short, path) in declared {
-        // The sentinel form NAMES the error trait in its own impl, which no type field carries. A
-        // unit that emits one needs that import whatever its types say.
-        let by_sentinel = has_sentinel && path.ends_with("::Error");
-        if by_sentinel || named.iter().any(|spelling| names(spelling, short)) {
-            paths.insert(match path.rsplit("::").next() == Some(short.as_str()) {
-                true => path.clone(),
-                // A RENAME, because the short form and the path's own last segment differ — which
-                // is how the error trait is imported beside a unit that declares its own `Error`.
-                false => format!("{path} as {short}"),
-            });
-        }
-    }
-    paths
-        .into_iter()
-        .map(|path| RustItem::Use { path })
-        .collect()
-}
-
-/// Whether a type spelling NAMES this short form, as a whole identifier rather than as a substring.
-///
-/// `MyOrdering` does not name `Ordering`, and treating it as though it did would emit an import
-/// nothing uses — which the compile proof denies.
-fn names(spelling: &str, short: &str) -> bool {
-    spelling
-        .match_indices(short)
-        .any(|(at, _)| {
-            let before = spelling[..at].chars().next_back();
-            let after = spelling[at + short.len()..].chars().next();
-            let boundary = |ch: Option<char>| {
-                ch.is_none_or(|c| !c.is_alphanumeric() && c != '_')
-            };
-            boundary(before) && boundary(after)
-        })
-}
-
 /// Whether anything this unit declares can fail.
 ///
 /// Asked of the DECLARATIONS rather than of what was emitted, because the prelude is decided before
@@ -203,7 +139,7 @@ pub(crate) fn imports(
     by_unit
         .into_iter()
         .flat_map(|(unit, unit_items)| {
-            import_items(&unit_items, declared)
+            crate::emitted_names::import_items(&unit_items, declared)
                 .into_iter()
                 .map(move |item| (unit.clone(), item))
         })

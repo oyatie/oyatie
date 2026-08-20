@@ -50,7 +50,7 @@ pub use item::{RustItem, SentinelVariant};
 pub use item_parts::{Receiver, RustField, RustFn, RustParam, StructShape, Visibility};
 pub use lower::lower_file;
 pub use ops::{BinaryOp, Precedence, UnaryOp};
-pub use render::{EmptyRenderer, FORMATTER_ID, RustIr, RustRenderer};
+pub use render::{EmptyRenderer, FORMATTER_ID, RustIr, RustRenderer, rendered_text};
 pub use ty::RustType;
 
 /// Fail-closed readiness gate. `true` once the typed IR and its renderer are present.

@@ -9,9 +9,9 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
+use crate::value_rules::{Allocation, BinaryString, BitPatternConstants, FormatCalls, FormatFunction, SequenceAppend};
 use crate::failure::{
-    Allocation, SequenceAppend, BinaryString, DeriveRule, DocConvention, FailureConvention, FormatCalls, FunctionMapping, IdiomRule,
-    IntegerArithmetic,
+    DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
 use crate::ownership::PointerDisposition;
@@ -157,6 +157,9 @@ pub trait PackSemantics {
     fn unmappable_types(&self) -> &BTreeMap<String, String>;
     /// What a source string constant becomes when its content is not text.
     fn binary_string(&self) -> &BinaryString;
+
+    /// Which integer constants the target spells in hexadecimal, and how wide each is.
+    fn bit_pattern_constants(&self) -> &BitPatternConstants;
     /// How the source's allocating builtin becomes the target's.
     fn allocation(&self) -> &Allocation;
     /// How the source's `append` becomes the target's.

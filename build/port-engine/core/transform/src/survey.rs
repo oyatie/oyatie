@@ -112,7 +112,17 @@ where
     // why every package `port` emitted spelled the failure type out in full and named `std::fmt`
     // three times per sentinel.
     for unit in model.units() {
-        let prelude = crate::prelude::prelude_items(&unit, pack, model);
+        // Against what this unit ACTUALLY emitted, not against what its source could do. A unit
+        // whose every fallible function refused needs no failure alias, and gaining one anyway is
+        // an engine introduction that nothing asked for.
+        let already: Vec<port_engine_rust_ir::RustItem> = report
+            .ported
+            .iter()
+            .filter(|region| region.unit == unit)
+            .flat_map(|region| region.items.clone())
+            .collect();
+        let prelude =
+            crate::emitted_names::retain_used(crate::prelude::prelude_items(&unit, pack, model), &already);
         if !prelude.is_empty() {
             report.ported.push(PortedRegion {
                 region: crate::naming::region_id_for_unit(&unit, "prelude"),
@@ -129,7 +139,7 @@ where
             .filter(|region| region.unit == unit)
             .flat_map(|region| region.items.clone())
             .collect();
-        let imports = crate::prelude::import_items(&emitted, pack.target_imports());
+        let imports = crate::emitted_names::import_items(&emitted, pack.target_imports());
         if !imports.is_empty() {
             report.ported.push(PortedRegion {
                 region: crate::naming::region_id_for_unit(&unit, "imports"),
@@ -223,6 +233,7 @@ pub(crate) fn survey_declaration<P>(
         unmappable_calls: pack.unmappable_calls(),
         unmappable_types: pack.unmappable_types(),
         binary_string: pack.binary_string(),
+        bit_pattern_constants: pack.bit_pattern_constants(),
         allocation: pack.allocation(),
         sequence_append: pack.sequence_append(),
         integer_arithmetic: pack.integer_arithmetic(),
