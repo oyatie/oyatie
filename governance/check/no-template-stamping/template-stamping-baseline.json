@@ -2,10 +2,10 @@
   "_comment": "FROZEN shrink-only baseline of template-stamped document groups, keyed <directory> -> the sorted sizes of every stamped group in that directory. A directory can hold MORE THAN ONE group, so the value is a list and not a count: keying by count alone silently dropped 27 of the 66 groups when this file was first drafted. Grandfathers what the detector finds today so the gate is born-blocking on NEW stamping without demanding the existing corpus be rewritten first. Provenance: the scan scope was ['docs','microservices'] until this change -- microservices/ held zero tracked files and docs/ excluded every capability runbook, so the detector saw 1435 of 3990 markdown files and reported 10 of these 66 groups.",
   "rule_id": "synthesis-audit-P0-template-stamping",
   "threshold": 0.7,
-  "scanned_markdown_files": 3990,
-  "scanned_directories": 789,
-  "groups_total": 66,
-  "files_total": 367,
+  "scanned_markdown_files": 3520,
+  "scanned_directories": 686,
+  "groups_total": 44,
+  "files_total": 268,
   "groups": {
     "audit": [
       3
@@ -55,6 +55,12 @@
       4,
       3
     ],
+    "governance/check/no-template-stamping/tests/fixtures/fail_microservice/microservices/mail/runbooks": [
+      3
+    ],
+    "governance/check/no-template-stamping/tests/fixtures/fail_three_adjacent/docs/a": [
+      3
+    ],
     "intelligence/detection": [
       24,
       7,
@@ -66,70 +72,16 @@
     "intelligence/detection/runbooks": [
       5
     ],
-    "governance/check/no-template-stamping/tests/fixtures/fail_microservice/microservices/mail/runbooks": [
-      3
-    ],
-    "governance/check/no-template-stamping/tests/fixtures/fail_three_adjacent/docs/a": [
-      3
-    ],
     "marketplace/runbooks": [
       4
     ],
-    "oya/contract-lifecycle-management/runbooks": [
-      5,
-      3
-    ],
-    "oya/design-collaboration/runbooks": [
-      10
-    ],
-    "oya/financial-planning/runbooks": [
-      7
-    ],
     "oya/governance/runbooks": [
-      3
-    ],
-    "oya/incident-management/runbooks": [
-      4,
       3
     ],
     "oya/intelligence/runbooks": [
       4
     ],
-    "oya/itsm/runbooks": [
-      4,
-      3,
-      3
-    ],
-    "oya/learning-management/runbooks": [
-      8,
-      4,
-      3
-    ],
-    "oya/marketing-automation/runbooks": [
-      4,
-      4,
-      3
-    ],
     "oya/payments/runbooks": [
-      3
-    ],
-    "oya/performance-management/runbooks": [
-      8,
-      3
-    ],
-    "oya/production-planning/runbooks": [
-      4
-    ],
-    "oya/quality-management/runbooks": [
-      4
-    ],
-    "oya/supply-chain-planning/runbooks": [
-      4
-    ],
-    "oya/whiteboard/runbooks": [
-      5
-    ],
-    "oya/workplace-integration/runbooks": [
       3
     ],
     "secrets": [
