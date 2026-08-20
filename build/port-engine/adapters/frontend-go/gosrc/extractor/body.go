@@ -59,6 +59,15 @@ func localDeclaration(stmt *ast.DeclStmt, ctx *extractCtx) node {
 	}
 	if len(spec.Values) == 1 {
 		out.Children = []node{expressionNode(spec.Values[0], ctx)}
+	} else if spec.Type != nil {
+		// `var x T` INITIALISES. The source guarantees the zero value of the type, so the binding
+		// has a value here exactly as `x := T{}` would -- recorded the same way a composite
+		// literal's omitted field is, as a `zero` node carrying the type the value comes from.
+		//
+		// Recording nothing said "a binding the body fills in later", which is what the target's
+		// bare `let x: T;` means and is NOT what the source wrote: the target then refuses to read
+		// the name on any path that does not assign it first, and the source reads zero there.
+		out.Children = []node{{Kind: kindZero, Type: typeTree(ctx.info.TypeOf(spec.Type))}}
 	}
 	return out
 }

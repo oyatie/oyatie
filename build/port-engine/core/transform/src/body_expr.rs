@@ -64,7 +64,7 @@ pub(crate) fn in_position(
             };
             // A RUNE resolves to a TYPE before it resolves to a spelling, because the target spells
             // a byte and a character differently and has no untyped constant to defer the choice to.
-            if let Some(spelled) = crate::body_literal::rune_literal(node, cx, value) {
+            if let Some(spelled) = crate::body_literal::typed_literal(node, cx, value) {
                 return spelled;
             }
             Ok(RustExpr::Literal(
@@ -180,6 +180,26 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
             receiver: Box::new(left),
             method: method.to_owned(),
             args: vec![right],
+        });
+    }
+
+    // CONCATENATION ONTO A LITERAL. The target's `+` on strings takes an OWNED left operand and
+    // reuses its allocation; a literal is a borrowed `&'static str` and owns nothing, so
+    // `"a" + &b` is not an operation the target has at all. The source has one string type and
+    // cannot express the difference.
+    //
+    // Built as the target's formatting macro rather than by making the literal owned. `format!`
+    // allocates once for the result, which is what the source's concatenation does;
+    // `String::from("a") + &b` allocates for the literal and then again whenever the result
+    // outgrows it, and reads like a workaround because it is one.
+    if spelling == "+"
+        && node.type_ref.name == crate::vocabulary::SOURCE_STRING
+        && lhs.kind == KIND_LITERAL
+    {
+        return Ok(RustExpr::MacroCall {
+            name: "format".to_owned(),
+            template: "{}{}".to_owned(),
+            args: vec![left, right],
         });
     }
 

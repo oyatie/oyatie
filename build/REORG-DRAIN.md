@@ -5806,3 +5806,65 @@ decidable, which is a port that covers every importer.
 
 Found by a subagent, verified here before being acted on. Both halves of its report were useful and
 only one of them was right: the rule is not a false refusal, the NAME on it was.
+
+## R3k — four of the five goal repositories compile
+
+`uuid`, `gjson`, `chi` and `multierror` now emit Rust that `rustc` accepts. `memberlist` still does
+not extract. Eight of the nine measured packages compile; only `ksuid` remains, with 8 errors.
+
+Five rules, each found by compiling rather than by the histogram, and each universal.
+
+### `var x T` INITIALISES
+
+    let mut i: i64;
+    if i == s.len() as i64 {          // E0381: used binding `i` isn't initialized
+
+The front end recorded a `var` with no initialiser as a binding with no value, and `RustStmt::Let`
+documented that as "a binding the body fills in later, which the source spells as a `var` with no
+initializer". That is what the TARGET's bare `let x: T;` means and it is not what the source wrote:
+Go guarantees the zero value, and reads it on every path. The target then refuses to read the name
+on any path that does not assign first.
+
+It is now recorded the same way a composite literal's omitted field already was — a `zero` node
+carrying the type — so one rule answers both.
+
+### An untyped constant resolves at the OUTERMOST node of its expression
+
+    if f < -9_007_199_254_740_991 || f > 9_007_199_254_740_991.0
+
+The positive literal took the float spelling and the negated one did not. `go/types` records the
+literal inside `-9007199254740991` as `untyped int` and puts the conversion to the context's type on
+the UNARY, so a translator reading only the literal sees a type it cannot map. The unary's resolved
+type is now pushed down to its operand, and `isUntyped` refuses to treat `untyped ...` as a target
+type anywhere — it is the source saying "this takes its type from where it is used", and anything
+that spells it is guessing.
+
+### Concatenation onto a literal is a formatting call
+
+    "chi context value " + &self.name          // E0369
+
+The target's `+` on strings takes an OWNED left operand and reuses its allocation. A literal is a
+borrowed `&'static str` and owns nothing, so this is not an operation the target has. The source has
+one string type and cannot express the difference. It becomes `format!("{}{}", ..)`, which allocates
+once for the result — which is what the source's concatenation does. `String::from("a") + &b`
+allocates twice and reads like a workaround because it is one.
+
+### A sequence constant is an ARRAY, and this was a hole in an "exact" test
+
+    const DEFAULT_COMPRESSIBLE_CONTENT_TYPES: Vec<String> = vec![ "text/html", .. ];
+
+Two defects in one line, and the second is the interesting one. `prove_constant` documents itself as
+CLOSED and exact, admitting "a COMPOSITE literal ... because a struct, tuple and array constructor
+are all const in the target". True of all three — and the source's slice was becoming none of them.
+The pack maps it to the growable sequence, which is right for a value a body builds and allocates,
+so it cannot stand in a constant.
+
+The length is known: it is how many elements the source wrote. So a package-scope sequence of
+literals now declares `[&str; 15]` and emits an array literal, built from the SAME element
+translation a body uses so the two cannot differ. The elements are borrowed strings for exactly the
+reason a scalar string constant already was — a literal is static storage, and owning it would
+allocate per element where nothing may allocate at all.
+
+`RustType::Array` and `RustExpr::ArrayLiteral` are separate from the growable forms on purpose: one
+is a constant expression in the target and the other is not, and a shape that blurred them would
+produce this same error somewhere else.

@@ -23,6 +23,17 @@ pub enum RustType {
         inner: Box<RustType>,
     },
     /// A tuple. Empty is the unit type.
+    /// `[T; N]` — a fixed-size array.
+    ///
+    /// Distinct from a growable sequence and not interchangeable with one: an array is a CONSTANT
+    /// EXPRESSION in the target and `vec![..]` allocates, so a package-scope constant holding a
+    /// sequence has to be this or it does not compile at all.
+    Array {
+        /// The element type.
+        inner: Box<RustType>,
+        /// How many elements, known at compile time.
+        len: usize,
+    },
     Tuple(Vec<RustType>),
     /// A path applied to type arguments: `Vec<T>`, `Option<T>`, `BTreeMap<K, V>`.
     Generic {
@@ -49,6 +60,7 @@ impl RustType {
         match self {
             Self::Path(spelling) => into.push(spelling.clone()),
             Self::Reference { inner, .. } => inner.spellings(into),
+            Self::Array { inner, .. } => inner.spellings(into),
             Self::Tuple(members) => {
                 for member in members {
                     member.spellings(into);
@@ -90,6 +102,7 @@ impl RustType {
                 let prefix = if *mutable { "&mut " } else { "&" };
                 format!("{prefix}{}", inner.spelling())
             }
+            Self::Array { inner, len } => format!("[{}; {len}]", inner.spelling()),
             Self::Tuple(args) => {
                 let rendered: Vec<String> = args.iter().map(Self::spelling).collect();
                 format!("({})", rendered.join(", "))

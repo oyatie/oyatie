@@ -134,6 +134,10 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 false => Ok(quote! { #name!(#template, #(#args),*) }),
             }
         }
+        RustExpr::ArrayLiteral(elements) => {
+            let elements = lower_each(elements)?;
+            Ok(quote! { [#(#elements),*] })
+        }
         RustExpr::VecRepeat { value, count } => {
             let (value, count) = (lower_expr(value)?, lower_expr(count)?);
             Ok(quote! { vec![#value; #count] })
