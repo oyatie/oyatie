@@ -5763,3 +5763,46 @@ module and a crate root that declares them, and chi drops to 5.
 Worth stating plainly because it happened twice in one day: a compile check is only evidence about
 the engine after it is evidence about itself. The first version of this script also reported six
 packages broken because `rustc -o /dev/null` cannot create its temporary directory.
+
+## R3j — the ranking instrument was hiding the largest cause in the corpus
+
+`survey_cause.rs` exists to answer one question, and its own doc states the rule:
+
+> the reason is carried verbatim and the declaration's own name is not part of it: a cause that
+> carried the site would count once per site and rank a rule nobody needs above one that blocks six
+> packages.
+
+`UndecidedForm` had no arm. It fell through to `other => other.to_string()`, which renders the whole
+message INCLUDING the interpolated declaration name — so one undecided form read as eighteen causes
+of one site each, and sorting by count put every one of them below the noise floor.
+
+With the arm added, package-scope variable state is **57 sites across the corpus** in three rows:
+
+    6pkg 19  `written_package_var` is a form the pack has not decided
+    5pkg 19  `init_written_package_var` is a form the pack has not decided
+    5pkg 19  `exported_package_var` is a form the pack has not decided
+
+That is larger than `FuncLit`, which has been the headline blocker for three phases. In `google/uuid`
+alone, package-scope mutable state and its cascades account for 23 of 98 refusals, and everything in
+`node.go`, `time.go`, `version1.go`, `version4.go` and `version7.go` sits downstream of it.
+
+Every rule chosen from this histogram since it was built was chosen with this cause invisible. The
+rules were not wrong; the ordering was.
+
+### A refusal that misdescribes what is missing is worse than no refusal
+
+`google/uuid`'s `Nil` is declared `Nil UUID` with no initialiser and is never assigned anywhere in
+the package — verified by grep, not assumed. The engine refused it as a `written_package_var`.
+
+The DECISION is right and was made for a recorded reason: an exported package variable is part of
+the source's API, a consumer writes `pkg.Setting = false` because the documentation says to, and a
+reviewer reading a real ported package caught the engine deleting exactly that feature by making one
+a constant. So the rule asks whether anyone COULD write it rather than whether this package does.
+
+What was wrong is that the refusal reused the WRITTEN form's id, so its first clause told the reader
+that a variable nothing assigns to is assigned to. It is now `exported_package_var`, with its own
+reason naming the actual missing decision — including the condition under which it becomes
+decidable, which is a port that covers every importer.
+
+Found by a subagent, verified here before being acted on. Both halves of its report were useful and
+only one of them was right: the rule is not a false refusal, the NAME on it was.

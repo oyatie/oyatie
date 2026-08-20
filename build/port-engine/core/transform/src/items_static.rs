@@ -30,7 +30,7 @@ use crate::naming::{to_pascal_case, to_screaming_snake, visibility};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
     ATTR_REF, CONSTRUCTION_RUST_STATIC, FLAG_EXPORTED, FLAG_INIT_WRITTEN, FLAG_REBOUND, FORM_INIT_WRITTEN_PACKAGE_VAR,
-    FORM_WRITTEN_PACKAGE_VAR, KIND_COMPOSITE, KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING, TARGET_STR,
+    FORM_EXPORTED_PACKAGE_VAR, FORM_WRITTEN_PACKAGE_VAR, KIND_COMPOSITE, KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING, TARGET_STR,
 };
 
 /// `static NAME: T = value;` for a package variable nothing writes.
@@ -125,12 +125,16 @@ pub(crate) fn build_static(
     // whether anyone COULD write it rather than whether this package does.
     if declaration.flags.iter().any(|flag| flag == FLAG_EXPORTED) {
         return Err(TransformError::UndecidedForm {
-            form: FORM_WRITTEN_PACKAGE_VAR.to_owned(),
+            // ITS OWN FORM. The decision is the same shape as the written one and it is not the
+            // same decision: nothing in this package assigns to `Nil`, and calling it
+            // `written_package_var` told every reader of the refusal that something does.
+            form: FORM_EXPORTED_PACKAGE_VAR.to_owned(),
             name: declaration.name.clone(),
             reason: format!(
                 "`{}` is EXPORTED, so anything that imports this package may write it — which is \
                  the same mutable global the undecided form is about, arrived at from outside \
-                 rather than from within. Nothing here can observe those writes. {}",
+                 rather than from within. Nothing in this package writes it, and nothing here can \
+                 observe the writes that could come from outside. {}",
                 declaration.name,
                 resolver
                     .undecided_forms

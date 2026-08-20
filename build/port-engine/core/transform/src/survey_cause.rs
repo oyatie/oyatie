@@ -34,6 +34,14 @@ pub(crate) fn refusal_of(error: &TransformError) -> String {
             construction, kind, ..
         } => format!("construction `{construction}` does not fit a `{kind}`"),
         TransformError::Unsupported { detail, .. } => detail.clone(),
+        // The FORM, and not the reason and not the name. The reason interpolates the declaration's
+        // name, so rendering it here made one undecided form read as eighteen causes of one site
+        // each — which is exactly what this module exists to prevent, and it hid the largest
+        // structural cause in `google/uuid` for as long as the histogram has been used to choose
+        // work. The form is the missing decision; every declaration waiting on it is one row.
+        TransformError::UndecidedForm { form, .. } => {
+            format!("`{form}` is a form the pack has not decided")
+        }
         other => other.to_string(),
     }
 }
