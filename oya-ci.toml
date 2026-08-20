@@ -52,6 +52,16 @@ value = "ci/facade/cloud-name-ratchet/cloud-name-baseline.json"
 reason = "the frozen cloud-/oya- rename baseline ENUMERATES the identifiers still to be renamed, and some of those identifiers contain a forbidden stem. Listing the debt is the census, not the debt — the same rationale that carves out oya-check-brand-residue's own source and this file."
 
 [[vocab.carve_outs]]
+kind = "path_exact"
+value = "governance/check/event-schema-versioning/event-schema-versioning-policy.json"
+reason = "the frozen unversioned-AsyncAPI baseline ENUMERATES the contract paths still owing an ADR-0154 event version header, and two of those tracked paths carry a forbidden stem in their own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by renaming the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs."
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "governance/check/idempotency-key-coverage/idempotency-key-coverage-policy.json"
+reason = "the frozen uncovered-operation baseline ENUMERATES the OpenAPI operations still owing an ADR-0149 Idempotency-Key, keyed by their tracked document path; some of those paths carry a forbidden stem in their own filename. Same rationale as the sibling entry above."
+
+[[vocab.carve_outs]]
 kind = "path_prefix"
 value = "libs/oya-check-brand-residue/"
 reason = "the deny-list patterns themselves are not residue"

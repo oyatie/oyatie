@@ -810,7 +810,7 @@ fn archive_epoch_e4_inputs_seed_cross_artifact_agreement_gate() {
     let required = "root//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement-gate";
     for path in [
         "docs/ideas/archive/e4-transition.md",
-        "specs/markdown-retirement-policy.json",
+        "ci/facade/cross-artifact-agreement/idea-archive-policy.json",
     ] {
         let seeds = shipped_seeds(path);
         assert!(

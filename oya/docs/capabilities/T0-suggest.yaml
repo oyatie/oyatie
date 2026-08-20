@@ -41,7 +41,7 @@ capabilities:
     audit_event: DocsGrammarSuggestionShown (per-suggestion; minimal payload — block id hash + suggestion type)
     fallback_on_model_failure: silent skip — falls back to rule-based grammar
     risk_classification: minimal-risk (Annex III §3 NOT triggered — grammar-check is not employment/HR decision-making)
-    user_label: "AI suggestion — click to accept" (Art. 50 transparency)
+    user_label: "AI suggestion — click to accept"  # Art. 50 transparency
 
   - id: T0-docs-title-suggest
     name: "Document title suggestion (from content)"
@@ -60,7 +60,7 @@ capabilities:
     data_class_emitted: INTERNAL_ONLY (title text)
     model:
       primary: tenant-default-llm
-      fallback: "Untitled — <timestamp>" template
+      fallback: '"Untitled — <timestamp>" template'
       private_inference: tenant-DEK-wrapped prompt; no cross-tenant training
     latency_budget_p99_ms: 300
     audit_event: DocsTitleSuggestionShown

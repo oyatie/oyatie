@@ -4492,7 +4492,7 @@
       ]
     },
     {
-      "key": "oya-governance-no-template-stamping",
+      "key": "check-no-template-stamping",
       "context": "governance",
       "role": "test",
       "capability": "governance-no-template-stamping",

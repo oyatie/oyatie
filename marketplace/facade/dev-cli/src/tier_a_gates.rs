@@ -16,7 +16,6 @@
 //!
 //! Authored 2026-05-18 per the Fix-Agent-I Tier-A landing.
 
-use std::ffi::OsStr;
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
@@ -29,11 +28,22 @@ use check_image_signing_discipline as image_check;
 use check_metric_cardinality as metric_check;
 use check_rpo_rto_coverage as rpo_rto_check;
 
-/// Canonical service roots scanned when no explicit `--microservices-root` is given.
-/// Order: cloud first (infra services), then oya (application services), then the
-/// legacy microservices/ tree for backward compatibility.
-const DEFAULT_SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
 const DEFAULT_WORKFLOWS_DIR: &str = ".github/workflows";
+
+/// Resolve the roots this gate scans: the explicit `--microservices-root`
+/// when given, otherwise the shared registry-derived default set.
+///
+/// The default set used to be a hardcoded `["cloud", "oya",
+/// "microservices"]` here and in six other modules. Two of those roots were
+/// deleted from the tree and the absence was swallowed into an empty scan,
+/// so the gates reported success over a fraction of the repository. See
+/// `crate::service_roots`.
+fn resolve_roots(args: &[String]) -> Result<Vec<PathBuf>, String> {
+    match parse_flag_with_value(args, "--microservices-root") {
+        Some(explicit) => Ok(vec![PathBuf::from(explicit)]),
+        None => crate::service_roots::default_service_roots(),
+    }
+}
 
 fn parse_flag_with_value(args: &[String], flag: &str) -> Option<String> {
     let mut iter = args.iter();
@@ -50,37 +60,6 @@ fn parse_flag_with_value(args: &[String], flag: &str) -> Option<String> {
 
 fn read_optional_string(path: &Path) -> Option<String> {
     fs::read_to_string(path).ok()
-}
-
-fn microservice_name_for(path: &Path) -> Option<String> {
-    let mut iter = path.components();
-    while let Some(c) = iter.next() {
-        if c.as_os_str() == OsStr::new("microservices")
-            && let Some(next) = iter.next()
-        {
-            return Some(next.as_os_str().to_string_lossy().to_string());
-        }
-    }
-    None
-}
-
-/// Collect all first-level service directories from a list of root paths.
-/// For `cloud/` and `oya/`, each direct child of the root is a service dir.
-/// For `microservices/`, same pattern. Silently skips roots that don't exist.
-fn service_dirs_from_roots(roots: &[PathBuf]) -> Vec<PathBuf> {
-    let mut out = Vec::new();
-    for root in roots {
-        let Ok(entries) = fs::read_dir(root) else {
-            continue;
-        };
-        for entry in entries.flatten() {
-            let p = entry.path();
-            if p.is_dir() {
-                out.push(p);
-            }
-        }
-    }
-    out
 }
 
 /// Recursively walk a directory and collect files matching one of
@@ -110,21 +89,19 @@ fn walk(dir: &Path, extensions: &[&str], out: &mut Vec<PathBuf>) {
 // ---------- Gate 1: idempotency-key-coverage ----------
 
 pub(crate) fn run_idempotency_key_coverage(args: Vec<String>) -> ExitCode {
-    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
-    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
-        vec![PathBuf::from(r)]
-    } else {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    let roots = match resolve_roots(&args) {
+        Ok(roots) => roots,
+        Err(error) => {
+            eprintln!("idempotency-key-coverage: {error}");
+            return ExitCode::FAILURE;
+        }
     };
 
     let mut documents = Vec::new();
     // Glob <root>/*/contracts/openapi/*.yaml across all service roots.
-    for p in service_dirs_from_roots(&roots) {
-        let ms = p
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default()
-            .to_string();
+    for unit in crate::service_roots::service_units_from_roots(&roots) {
+        let p = &unit.path;
+        let ms = unit.microservice.clone();
         let openapi_dir = p.join("contracts").join("openapi");
         if !openapi_dir.exists() {
             continue;
@@ -173,19 +150,17 @@ pub(crate) fn run_idempotency_key_coverage(args: Vec<String>) -> ExitCode {
 // ---------- Gate 2: cursor-pagination-coverage ----------
 
 pub(crate) fn run_cursor_pagination_coverage(args: Vec<String>) -> ExitCode {
-    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
-    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
-        vec![PathBuf::from(r)]
-    } else {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    let roots = match resolve_roots(&args) {
+        Ok(roots) => roots,
+        Err(error) => {
+            eprintln!("cursor-pagination-coverage: {error}");
+            return ExitCode::FAILURE;
+        }
     };
     let mut documents = Vec::new();
-    for p in service_dirs_from_roots(&roots) {
-        let ms = p
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default()
-            .to_string();
+    for unit in crate::service_roots::service_units_from_roots(&roots) {
+        let p = &unit.path;
+        let ms = unit.microservice.clone();
         let openapi_dir = p.join("contracts").join("openapi");
         if !openapi_dir.exists() {
             continue;
@@ -232,19 +207,17 @@ pub(crate) fn run_cursor_pagination_coverage(args: Vec<String>) -> ExitCode {
 // ---------- Gate 3: rpo-rto-coverage ----------
 
 pub(crate) fn run_rpo_rto_coverage(args: Vec<String>) -> ExitCode {
-    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
-    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
-        vec![PathBuf::from(r)]
-    } else {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    let roots = match resolve_roots(&args) {
+        Ok(roots) => roots,
+        Err(error) => {
+            eprintln!("rpo-rto-coverage: {error}");
+            return ExitCode::FAILURE;
+        }
     };
     let mut documents = Vec::new();
-    for p in service_dirs_from_roots(&roots) {
-        let ms = p
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default()
-            .to_string();
+    for unit in crate::service_roots::service_units_from_roots(&roots) {
+        let p = &unit.path;
+        let ms = unit.microservice.clone();
         let backfill = p.join("backfill-replay.md");
         if !backfill.exists() {
             continue;
@@ -283,21 +256,29 @@ pub(crate) fn run_rpo_rto_coverage(args: Vec<String>) -> ExitCode {
 // ---------- Gate 4: metric-cardinality ----------
 
 pub(crate) fn run_metric_cardinality(args: Vec<String>) -> ExitCode {
-    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
-    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
-        vec![PathBuf::from(r)]
-    } else {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    let roots = match resolve_roots(&args) {
+        Ok(roots) => roots,
+        Err(error) => {
+            eprintln!("metric-cardinality: {error}");
+            return ExitCode::FAILURE;
+        }
     };
 
     let mut documents = Vec::new();
-    for p in service_dirs_from_roots(&roots) {
-        for sm in collect_files(&p, &["yaml"]) {
+    // Nested service dirs only: this walker RECURSES from each unit, so
+    // including the root would re-walk every service beneath it and file
+    // the findings under the root's name.
+    for unit in crate::service_roots::nested_service_dirs_from_roots(&roots) {
+        for sm in collect_files(&unit.path, &["yaml"]) {
             let name = sm.file_name().and_then(|n| n.to_str()).unwrap_or_default();
             if !(name == "servicemonitor.yaml" || name == "prometheusrule.yaml") {
                 continue;
             }
-            let ms = microservice_name_for(&sm).unwrap_or_default();
+            // The owning service is the directory we descended FROM. The
+            // predecessor searched `sm` for a literal `microservices` path
+            // component, which no longer exists in the tree, so every
+            // document was filed under the empty-string microservice.
+            let ms = unit.microservice.clone();
             if let Some(contents) = read_optional_string(&sm) {
                 documents.push(metric_check::ServiceMonitorDocument {
                     path: sm.to_string_lossy().to_string(),
@@ -335,20 +316,18 @@ pub(crate) fn run_metric_cardinality(args: Vec<String>) -> ExitCode {
 // ---------- Gate 5: event-schema-versioning ----------
 
 pub(crate) fn run_event_schema_versioning(args: Vec<String>) -> ExitCode {
-    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
-    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
-        vec![PathBuf::from(r)]
-    } else {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    let roots = match resolve_roots(&args) {
+        Ok(roots) => roots,
+        Err(error) => {
+            eprintln!("event-schema-versioning: {error}");
+            return ExitCode::FAILURE;
+        }
     };
 
     let mut documents = Vec::new();
-    for p in service_dirs_from_roots(&roots) {
-        let ms = p
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default()
-            .to_string();
+    for unit in crate::service_roots::service_units_from_roots(&roots) {
+        let p = &unit.path;
+        let ms = unit.microservice.clone();
         let asyncapi_dir = p.join("contracts").join("asyncapi");
         if !asyncapi_dir.exists() {
             continue;
@@ -389,20 +368,18 @@ pub(crate) fn run_event_schema_versioning(args: Vec<String>) -> ExitCode {
 // ---------- Gate 6: id-discipline ----------
 
 pub(crate) fn run_id_discipline(args: Vec<String>) -> ExitCode {
-    let explicit_root = parse_flag_with_value(&args, "--microservices-root");
-    let roots: Vec<PathBuf> = if let Some(r) = explicit_root {
-        vec![PathBuf::from(r)]
-    } else {
-        DEFAULT_SERVICE_ROOTS.iter().map(PathBuf::from).collect()
+    let roots = match resolve_roots(&args) {
+        Ok(roots) => roots,
+        Err(error) => {
+            eprintln!("id-discipline: {error}");
+            return ExitCode::FAILURE;
+        }
     };
 
     let mut documents = Vec::new();
-    for p in service_dirs_from_roots(&roots) {
-        let ms = p
-            .file_name()
-            .and_then(|n| n.to_str())
-            .unwrap_or_default()
-            .to_string();
+    for unit in crate::service_roots::service_units_from_roots(&roots) {
+        let p = &unit.path;
+        let ms = unit.microservice.clone();
         let contracts = p.join("contracts");
         if !contracts.exists() {
             continue;
@@ -514,9 +491,41 @@ mod tests {
         assert_eq!(parse_flag_with_value(&args, "--microservices-root"), None);
     }
 
+    /// Service units must carry a real name in BOTH live layout shapes.
+    ///
+    /// This test previously asserted that a
+    /// `microservices/tasks/contracts/openapi/tasks.yaml` path resolved to
+    /// "tasks". That path shape has not existed since the `microservices/`
+    /// tree was renamed away, so the test passed against a world that was
+    /// gone while the production lookup returned `None` for every real
+    /// path and every document was filed under the empty-string
+    /// microservice.
     #[test]
-    fn microservice_name_for_extracts_correctly() {
-        let path = PathBuf::from("microservices/tasks/contracts/openapi/tasks.yaml");
-        assert_eq!(microservice_name_for(&path), Some("tasks".into()));
+    fn service_units_name_both_live_shapes() {
+        let mut root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        while !root.join("governance/capability-registry.json").is_file() {
+            assert!(root.pop(), "repository root not found");
+        }
+
+        let units = crate::service_roots::service_units_from_roots(&[root.join("workflow")]);
+        // Depth-2: <root>/<service> carries the service name.
+        assert!(
+            units
+                .iter()
+                .any(|u| u.microservice == "tasks" && u.path.ends_with("workflow/tasks")),
+            "depth-2 unit workflow/tasks missing: {units:?}"
+        );
+        // Depth-1: the root itself is a unit, under its own name.
+        assert!(
+            units
+                .iter()
+                .any(|u| u.microservice == "workflow" && u.path.ends_with("workflow")),
+            "depth-1 unit workflow missing: {units:?}"
+        );
+        // No unit may carry the empty name — that is the collapse this fixes.
+        assert!(
+            units.iter().all(|u| !u.microservice.is_empty()),
+            "a service unit has an empty microservice name: {units:?}"
+        );
     }
 }

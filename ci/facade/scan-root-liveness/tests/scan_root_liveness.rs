@@ -24,6 +24,18 @@ use serde_json::Value;
 const POLICY_PATH: &str = "ci/facade/scan-root-liveness/scan-root-liveness-policy.json";
 const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 
+/// The reviewed ceiling on tolerated dark gate crates.
+///
+/// The evaluator alone does NOT stop this list growing. A crate that is genuinely
+/// dark and is listed here produces no finding, and a listed crate that is
+/// genuinely dark produces no stale finding — so a PR that adds a new dark gate
+/// AND baselines it in the same change satisfies both directions silently. That
+/// is the laundering path this constant closes: the number cannot move without a
+/// reviewer seeing it move.
+///
+/// Lower it in the same change that wires a gate to the live tree.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 97;
+
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
@@ -82,6 +94,21 @@ fn load_policy(root: &Path) -> (Policy, Vec<String>) {
             .map(|v| v.as_str().expect("string").to_owned())
             .collect(),
         min_expected_roots: doc["min_expected_roots"].as_u64().expect("floor") as usize,
+        baselined_dark_gate_crates: doc["baselined_dark_gate_crates"]
+            .as_array()
+            .expect("baselined_dark_gate_crates")
+            .iter()
+            .map(|v| v.as_str().expect("string").to_owned())
+            .collect(),
+        min_expected_gate_crates: doc["min_expected_gate_crates"]
+            .as_u64()
+            .expect("gate-crate floor") as usize,
+        exempt_gate_crates: doc["exempt_gate_crates"]
+            .as_object()
+            .expect("exempt_gate_crates")
+            .iter()
+            .map(|(k, v)| (k.clone(), v.as_str().expect("exemption reason").to_owned()))
+            .collect(),
     };
     (policy, coverage_keys)
 }
@@ -235,7 +262,91 @@ fn collect(root: &Path, coverage_keys: &[String]) -> Observed {
     Observed {
         roots,
         policy_files_with_roots: files_with_roots,
+        gate_crates: collect_gate_crates(root),
     }
+}
+
+/// Substrings that mean a test reads the REAL repository rather than a fixture: walking up
+/// to the repo root, resolving the manifest dir, reading the scm-facts face, or shelling to
+/// the producer with `--repo-root`. A test containing none of these cannot be looking at
+/// this tree.
+const LIVE_CORPUS_MARKERS: [&str; 5] = [
+    "repo_root",
+    "CARGO_MANIFEST_DIR",
+    "scm-facts",
+    "--repo-root",
+    "PRODUCER_ENV",
+];
+
+/// The crate-path prefixes that make a crate a GATE crate. Kept here rather than in the
+/// policy because it is the definition of the gate's universe, not tunable debt.
+const GATE_CRATE_PREFIXES: [&str; 4] = [
+    "ci/facade/",
+    "governance/check/",
+    "libs/oya-check-",
+    "libs/oya-governance-",
+];
+
+/// Map every gate crate to whether ANY of its test code reads the real tree.
+fn collect_gate_crates(root: &Path) -> BTreeMap<String, bool> {
+    let mut out = BTreeMap::new();
+    for prefix in GATE_CRATE_PREFIXES {
+        let (dir, stem) = match prefix.rsplit_once('/') {
+            Some((d, s)) if !s.is_empty() => (root.join(d), Some(s.to_owned())),
+            _ => (root.join(prefix.trim_end_matches('/')), None),
+        };
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_dir() {
+                continue;
+            }
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if let Some(stem) = &stem
+                && !name.starts_with(stem)
+            {
+                continue;
+            }
+            if !path.join("Cargo.toml").is_file() {
+                continue;
+            }
+            out.insert(name, crate_has_live_corpus_test(&path));
+        }
+    }
+    out
+}
+
+fn crate_has_live_corpus_test(crate_dir: &Path) -> bool {
+    let mut stack = vec![crate_dir.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                if path.file_name().and_then(|n| n.to_str()) != Some("target") {
+                    stack.push(path);
+                }
+                continue;
+            }
+            if path.extension().and_then(|e| e.to_str()) != Some("rs") {
+                continue;
+            }
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                continue;
+            };
+            let is_test_code = path.components().any(|c| c.as_os_str() == "tests")
+                || text.contains("#[test]")
+                || text.contains("#[cfg(test)]");
+            if is_test_code && LIVE_CORPUS_MARKERS.iter().any(|m| text.contains(m)) {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 #[test]
@@ -275,6 +386,7 @@ fn red_fixture_dead_root_fails_closed() {
             resolves: false,
         }],
         policy_files_with_roots: ["p.json".to_owned()].into_iter().collect(),
+        ..Default::default()
     };
     let policy = Policy {
         registered_policy_files: ["p.json".to_owned()].into_iter().collect(),
@@ -347,6 +459,45 @@ fn frozen_baseline_is_exactly_the_live_non_forward_debt_set() {
         EXPECTED_BASELINED_DEAD_ROOTS,
         "the reviewed frozen ceiling is four pre-existing roots plus exactly seven retired \
          top-level cloud roots"
+    );
+}
+
+#[test]
+fn the_dark_gate_baseline_is_exactly_the_live_dark_set_and_cannot_grow() {
+    // Mirrors `frozen_baseline_is_exactly_the_live_non_forward_debt_set`, which the
+    // dead-roots list has had all along and this list has not.
+    let root = repo_root();
+    let (policy, keys) = load_policy(&root);
+    let observed = collect(&root, &keys);
+
+    let live_dark: BTreeSet<String> = observed
+        .gate_crates
+        .iter()
+        .filter(|(_, has_live_test)| !**has_live_test)
+        .map(|(krate, _)| krate.clone())
+        .filter(|krate| {
+            // An exempted crate is not a gate at all, so it is not dark debt.
+            // A blank reason is not an exemption — the evaluator refuses those,
+            // and this filter must agree with it or the two would disagree about
+            // what the debt set is.
+            !policy
+                .exempt_gate_crates
+                .get(krate)
+                .is_some_and(|reason| !reason.trim().is_empty())
+        })
+        .collect();
+
+    assert_eq!(
+        policy.baselined_dark_gate_crates, live_dark,
+        "the frozen baseline must equal all and only the live dark gate crates"
+    );
+    assert_eq!(
+        policy.baselined_dark_gate_crates.len(),
+        EXPECTED_BASELINED_DARK_GATE_CRATES,
+        "the reviewed dark-gate ceiling moved. Wiring a gate to the live tree LOWERS \
+         it — lower the constant in the same change. If this went UP, a new dark gate \
+         was added and baselined in one step, which is the laundering path the \
+         constant exists to refuse."
     );
 }
 
