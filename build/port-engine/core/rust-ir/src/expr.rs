@@ -124,6 +124,12 @@ pub enum RustExpr {
         /// The values the template consumes, in order.
         args: Vec<RustExpr>,
     },
+    /// `*<inner>` — a dereference.
+    ///
+    /// Not a [`RustExpr::Unary`]: those are arithmetic and logical operators on a VALUE, and this
+    /// is how a place is reached through a reference. Keeping it apart means neither has to carry
+    /// the other's precedence rule.
+    Deref(Box<RustExpr>),
     /// `[a, b, c]` — a fixed-size array literal.
     ///
     /// Not a growable sequence. Kept apart for the same reason [`crate::ty::RustType::Array`] is:
@@ -237,6 +243,7 @@ impl RustExpr {
             | Self::MacroCall { .. }
             | Self::VecRepeat { .. }
             | Self::ArrayLiteral(_)
+            | Self::Deref(_)
             | Self::Index { .. }
             | Self::StructLiteral { .. }
             | Self::Try(_)

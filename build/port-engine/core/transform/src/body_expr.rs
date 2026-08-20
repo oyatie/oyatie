@@ -177,7 +177,12 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
 
     if let Some(method) = cx.resolver.wrapping_method(node, spelling) {
         return Ok(RustExpr::MethodCall {
-            receiver: Box::new(left),
+            // A BARE INTEGER LITERAL has no type of its own in the target until something gives it
+            // one, and a method call is not something that does: `2.wrapping_add(n)` is ambiguous
+            // and does not compile. Every other position infers from its neighbours; this one has
+            // to say. The type comes from the OPERATION, which is the type the source gave the
+            // whole expression -- so the literal is spelled at the type it already had.
+            receiver: Box::new(typed_receiver(left, node, cx)),
             method: method.to_owned(),
             args: vec![right],
         });
@@ -217,6 +222,31 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         // be added here rather than recovered from the operand.
         rhs: Box::new(borrowed_concat_operand(node, right, spelling, cx)),
     })
+}
+
+/// A method-call receiver that is a bare integer literal, given the type the operation has.
+///
+/// Only a LITERAL, and only when the operation's type resolves to something the target spells as an
+/// integer suffix. Anything else is returned untouched: a receiver that already has a type does not
+/// need one, and suffixing an expression that is not a literal is not a thing the target allows.
+fn typed_receiver(receiver: RustExpr, node: &Declaration, cx: &Body<'_>) -> RustExpr {
+    let RustExpr::Literal(spelled) = &receiver else {
+        return receiver;
+    };
+    if !spelled.bytes().all(|byte| byte.is_ascii_digit() || byte == b'_') {
+        return receiver;
+    }
+    let Ok(resolved) = cx.resolver.resolve(&node.type_ref, cx.owner) else {
+        return receiver;
+    };
+    let suffix = resolved.spelling();
+    match matches!(
+        suffix.as_str(),
+        "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8" | "u16" | "u32" | "u64" | "u128" | "usize"
+    ) {
+        true => RustExpr::Literal(format!("{spelled}{suffix}")),
+        false => receiver,
+    }
 }
 
 /// An operand of an ARITHMETIC or ORDERING operator, reaching through a newtype wrapper.

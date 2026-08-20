@@ -349,7 +349,8 @@ pub(crate) fn switch(
         arms.push(fallback);
     }
 
-    let tag_expr = expression(one_child(tag, cx, "tag")?, cx)?;
+    let tag_node = one_child(tag, cx, "tag")?;
+    let tag_expr = match_scrutinee(tag_node, &arms, cx)?;
 
     // A MEMBERSHIP TEST, which the target has a macro for. Recognised after the arms are built,
     // from what they yield rather than from the source shape, so it cannot fire on a match that
@@ -451,4 +452,48 @@ fn condition_chain(
                  conditional with nothing to test"
             .to_owned(),
     })
+}
+
+/// The scrutinee of a `match`, at the type its PATTERNS have.
+///
+/// The source guarantees these agree — a switch compares its tag against each case with `==`, and
+/// the source would not compile if they were different types. The target breaks that agreement in
+/// two ways the source has no counterpart for, and each needs the opposite correction.
+///
+/// A NEWTYPE scrutinee whose cases are literals. `switch vsn { case 0: }` on a `type
+/// encryptionVersion uint8` compares numbers, because there the defined type and its underlying are
+/// one thing. The target's newtype is a struct and `0` is not one, so the scrutinee reaches through
+/// the wrapper — the patterns cannot, since a pattern has no field access.
+///
+/// A BORROWED RECEIVER whose cases are constants. A method on a value receiver still takes `&self`
+/// here, so `match self` has type `&T` while every constant the source names has type `T`. The
+/// scrutinee is dereferenced rather than the patterns being wrapped, because `&CONST` is not a
+/// pattern the target accepts either. Nothing moves: a constant pattern binds nothing, so the place
+/// is only read.
+fn match_scrutinee(
+    tag: &Declaration,
+    arms: &[MatchArm],
+    cx: &Body<'_>,
+) -> Result<RustExpr, TransformError> {
+    let patterns = || arms.iter().flat_map(|arm| arm.patterns.iter());
+    let mut any = false;
+    let all_literals = patterns().all(|pattern| {
+        any = true;
+        matches!(pattern, RustExpr::Literal(_))
+    }) && any;
+    if all_literals && crate::body_index::unwraps_newtype(tag, cx) {
+        return crate::body_index::unwrapped_base(tag, cx);
+    }
+
+    let translated = expression(tag, cx)?;
+    let all_paths = patterns().all(|pattern| matches!(pattern, RustExpr::Path(_))) && any;
+    if all_paths
+        && crate::body_ops::is_receiver(tag)
+        && cx
+            .receiver_type
+            .is_some_and(|owner| cx.resolver.scope.newtypes.contains_key(owner))
+    {
+        return Ok(RustExpr::Deref(Box::new(translated)));
+    }
+    Ok(translated)
 }
