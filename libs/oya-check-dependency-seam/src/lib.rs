@@ -670,7 +670,7 @@ mod tests {
                 .and_then(allowed_crates_for_rationale)
                 .unwrap_or_default();
             assert!(
-                allowed.contains("oya-application-shell-frontend"),
+                allowed.contains("application-shell-frontend"),
                 "{dependency} must explicitly allow only the app-shell render-envelope boundary"
             );
         }

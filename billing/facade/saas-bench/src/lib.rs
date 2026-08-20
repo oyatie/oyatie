@@ -2,7 +2,7 @@
 //!
 //! Composes [`workflow_saas_app::WorkflowEngine`] with
 //! [`marketplace_plugin_kernel::MarketplaceRegistry`] +
-//! [`oya_saas_plugin_app::PluginRuntime`] to exercise the full
+//! [`saas_plugin_app::PluginRuntime`] to exercise the full
 //! `definition.publish` -> `run.start` -> `plugin.invocation` -> `run.complete`
 //! sequence. Used by the M03-P04 acceptance lane to record SLO counters per
 //! tenant and to verify cross-crate contracts compose without any external
@@ -14,7 +14,7 @@
 use marketplace_plugin_kernel::{
     MarketplaceListingPublish, MarketplaceRegistry, PluginManifestRegister, TrustTier, Vertical,
 };
-use oya_saas_plugin_app::{
+use saas_plugin_app::{
     PluginContext, PluginInvocation, PluginInvocationOutcome, PluginInvoke, PluginRuntime,
     PluginRuntimeError,
 };

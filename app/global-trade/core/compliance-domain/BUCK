@@ -1,0 +1,22 @@
+rust_library(
+    name = "global-trade-compliance-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "global_trade_compliance_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)
+
+rust_test(
+    name = "global-trade-compliance-domain-global-trade-compliance",
+    srcs = ["tests/global_trade_compliance.rs"],
+    crate = "global_trade_compliance_domain_global_trade_compliance",
+    crate_root = "tests/global_trade_compliance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":global-trade-compliance-domain",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+    ],
+)

@@ -14,26 +14,26 @@ use comms_messenger_stream_api::{
 };
 use comms_messenger_stream_postgres::{PersistMessageRecord, build_message_write_batch};
 use comms_messenger_stream_usecase::send_message;
-use oya_community_post_store_adapter_postgres::{
+use community_post_store_adapter_postgres::{
     PersistCommunityModerationRecord, PersistCommunityPostRecord, PersistCommunityVoteRecord,
     build_moderation_write_batch, build_post_write_batch as build_community_post_write_batch,
     build_vote_write_batch,
 };
-use oya_community_post_store_api::{
+use community_post_store_api::{
     AuthorizedCommunityContext, CastVoteRequest, CommunityApiMode, CreatePostRequest,
     ModeratePostRequest, ModerationVerb, VoteDirection, moderation_actioned_event_envelope,
     post_created_event_envelope, vote_cast_event_envelope,
 };
-use oya_community_post_store_domain::{CommunityPost, VoteLedger};
-use oya_community_post_store_usecase::{cast_vote, create_post, moderate_post};
-use oya_community_social_post_composition_adapter_postgres::{
+use community_post_store_domain::{CommunityPost, VoteLedger};
+use community_post_store_usecase::{cast_vote, create_post, moderate_post};
+use community_social_post_composition_adapter_postgres::{
     PersistSocialPostRecord, build_post_write_batch as build_social_post_write_batch,
 };
-use oya_community_social_post_composition_api::{
+use community_social_post_composition_api::{
     AuthorizedSocialContext, ComposePostRequest, SocialApiArtifactKind, SocialApiContext,
     post_published_event_envelope,
 };
-use oya_community_social_post_composition_usecase::{compose_post, plan_story_purge};
+use community_social_post_composition_usecase::{compose_post, plan_story_purge};
 use oya_shared_postgres_command_adapter_sqlx::{
     SqlxPostgresBatchExecutor, SqlxPostgresCommandError, SqlxPostgresConnectionConfig,
 };
@@ -466,8 +466,8 @@ fn workload_migrations() -> &'static [&'static str] {
     &[
         comms_messenger_stream_postgres::MIGRATION_0001,
         comms_mail_mailbox_postgres::MIGRATION_0001,
-        oya_community_social_post_composition_adapter_postgres::MIGRATION_0001,
-        oya_community_post_store_adapter_postgres::MIGRATION_0001,
+        community_social_post_composition_adapter_postgres::MIGRATION_0001,
+        community_post_store_adapter_postgres::MIGRATION_0001,
     ]
 }
 

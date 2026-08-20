@@ -21,8 +21,8 @@
     ],
     "crate_refs_planned": [
       "oya-hr-employment-kernel",
-      "oya-hr-employment-domain",
-      "oya-hr-employment-app",
+      "hr-employment-domain",
+      "hr-employment-app",
       "oya-hr-employment-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"

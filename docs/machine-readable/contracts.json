@@ -449,7 +449,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-drive-v1.yaml",
       "operation_id": "putWorkspaceDriveObject",
-      "runtime_crate": "oya-workspace-drive-api"
+      "runtime_crate": "workspace-drive-api"
     },
     {
       "id": "workspace.drive.get",
@@ -461,7 +461,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-drive-v1.yaml",
       "operation_id": "getWorkspaceDriveObject",
-      "runtime_crate": "oya-workspace-drive-api"
+      "runtime_crate": "workspace-drive-api"
     },
     {
       "id": "workspace.meet.session.start",
@@ -473,7 +473,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-meet-v1.yaml",
       "operation_id": "startWorkspaceMeetSession",
-      "runtime_crate": "oya-workspace-meet-api"
+      "runtime_crate": "workspace-meet-api"
     },
     {
       "id": "workspace.chat.message.send",
@@ -485,7 +485,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-chat-v1.yaml",
       "operation_id": "sendWorkspaceChatMessage",
-      "runtime_crate": "oya-workspace-chat-api"
+      "runtime_crate": "workspace-chat-api"
     },
     {
       "id": "workspace.forms.submission.ingest",
@@ -497,7 +497,7 @@
       "contract_stability": "preview",
       "contract_path": "contracts/openapi/workspace/workspace-forms-v1.yaml",
       "operation_id": "ingestWorkspaceFormsSubmission",
-      "runtime_crate": "oya-workspace-forms-api"
+      "runtime_crate": "workspace-forms-api"
     },
     {
       "id": "cloud.iam.role.create",

@@ -11,7 +11,7 @@ workflow-saas-kernel = { path = "../../../workflow/facade/saas-kernel" }
 workflow-saas-domain = { path = "../../../workflow/facade/saas-domain" }
 workflow-saas-app = { path = "../../../workflow/facade/saas-app" }
 marketplace-plugin-kernel = { path = "../../../marketplace/core/plugin-kernel" }
-oya-saas-plugin-app = { path = "../../../oya/application/crates/oya-saas-plugin-app" }
+saas-plugin-app = { path = "../../../app/application/facade/saas-plugin-app" }
 
 [lib]
 name = "billing_saas_bench"

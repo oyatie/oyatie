@@ -1275,8 +1275,8 @@
       "wt-1616/": "delete_permanently",
       "docs/checklists/": "reorg_now",
       "docs/audits/": "delete_permanently",
-      "oya/application/": "reorg_now",
-      "oya/community/": "reorg_now",
+      "app/application/": "reorg_now",
+      "app/community/": "reorg_now",
       "oya/design-collaboration/": "reorg_now",
       "oya/financial-planning/": "reorg_now",
       "oya/learning-management/": "reorg_now",
@@ -3154,7 +3154,7 @@
         "land_when": "Phase 1a: integ/governance absorbs authority slice (contracts/cedar/policy/packs/…) into governance/ WITHOUT wholesale tree dump; Phase 1b: integ/iac absorbs iac/ (esp. cedar.yaml for cedar-deploy-parity); Phase 1c: integ/ci|gateway|cell absorb SLO slices; Phase 2: integ/oya shrink-only delete oya/governance/** after absorbs verified; forbid wholesale fold into META governance/; hold #1661 land"
       },
       {
-        "path": "oya/translate/",
+        "path": "app/translate/",
         "action": "reorg_now",
         "greenfield_destination": "app/translate/",
         "destination": "app/translate/",
@@ -3172,7 +3172,7 @@
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
-        "name_now": "oya/translate/",
+        "name_now": "app/translate/",
         "name_forever": "app/translate/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3186,7 +3186,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/sites/",
+        "path": "app/sites/",
         "action": "reorg_now",
         "greenfield_destination": "app/sites/",
         "destination": "app/sites/",
@@ -3203,7 +3203,7 @@
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
-        "name_now": "oya/sites/",
+        "name_now": "app/sites/",
         "name_forever": "app/sites/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3217,7 +3217,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/docs/",
+        "path": "app/docs/",
         "action": "reorg_now",
         "greenfield_destination": "app/docs/",
         "destination": "app/docs/",
@@ -3235,7 +3235,7 @@
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
-        "name_now": "oya/docs/",
+        "name_now": "app/docs/",
         "name_forever": "app/docs/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3249,7 +3249,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/sheets/",
+        "path": "app/sheets/",
         "action": "reorg_now",
         "greenfield_destination": "app/sheets/",
         "destination": "app/sheets/",
@@ -3267,7 +3267,7 @@
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
-        "name_now": "oya/sheets/",
+        "name_now": "app/sheets/",
         "name_forever": "app/sheets/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3311,7 +3311,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/notes/",
+        "path": "app/notes/",
         "action": "reorg_now",
         "greenfield_destination": "app/notes/",
         "destination": "app/notes/",
@@ -3329,7 +3329,7 @@
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
-        "name_now": "oya/notes/",
+        "name_now": "app/notes/",
         "name_forever": "app/notes/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3342,7 +3342,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/slides/",
+        "path": "app/slides/",
         "action": "reorg_now",
         "greenfield_destination": "app/slides/",
         "destination": "app/slides/",
@@ -3360,7 +3360,7 @@
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
-        "name_now": "oya/slides/",
+        "name_now": "app/slides/",
         "name_forever": "app/slides/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3404,7 +3404,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/hr/",
+        "path": "app/hr/",
         "action": "reorg_now",
         "greenfield_destination": "app/hr/",
         "destination": "app/hr/",
@@ -3423,7 +3423,7 @@
         "kind": "app-product",
         "grammar_compliant": true,
         "judgment_status": "done",
-        "name_now": "oya/hr/",
+        "name_now": "app/hr/",
         "name_forever": "app/hr/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3436,7 +3436,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/payroll/",
+        "path": "app/payroll/",
         "action": "reorg_now",
         "greenfield_destination": "app/payroll/",
         "destination": "app/payroll/",
@@ -3455,7 +3455,7 @@
         "kind": "app-product",
         "grammar_compliant": true,
         "judgment_status": "done",
-        "name_now": "oya/payroll/",
+        "name_now": "app/payroll/",
         "name_forever": "app/payroll/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3468,7 +3468,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/ci-webhook-gateway/",
+        "path": "app/ci-webhook-gateway/",
         "action": "reorg_now",
         "greenfield_destination": "ci/",
         "destination": "ci/",
@@ -3487,7 +3487,7 @@
         "kind": "product-service",
         "grammar_compliant": true,
         "judgment_status": "done",
-        "name_now": "oya/ci-webhook-gateway/",
+        "name_now": "app/ci-webhook-gateway/",
         "name_forever": "ci/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -3567,7 +3567,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/global-trade/",
+        "path": "app/global-trade/",
         "action": "reorg_now",
         "greenfield_destination": "app/global-trade/",
         "destination": "app/global-trade/",
@@ -3586,7 +3586,7 @@
         "kind": "product-dump",
         "grammar_compliant": false,
         "judgment_status": "done",
-        "name_now": "oya/global-trade/",
+        "name_now": "app/global-trade/",
         "name_forever": "app/global-trade/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -4866,7 +4866,7 @@
         "land_status": "landed"
       },
       {
-        "path": "oya/application/",
+        "path": "app/application/",
         "action": "reorg_now",
         "greenfield_destination": "app/application/",
         "destination": "app/application/",
@@ -4885,7 +4885,7 @@
         "kind": "app-product",
         "grammar_compliant": true,
         "judgment_status": "done",
-        "name_now": "oya/application/",
+        "name_now": "app/application/",
         "name_forever": "app/application/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -4898,7 +4898,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/community/",
+        "path": "app/community/",
         "action": "reorg_now",
         "greenfield_destination": "app/community/",
         "destination": "app/community/",
@@ -4917,7 +4917,7 @@
         "kind": "app-product",
         "grammar_compliant": true,
         "judgment_status": "done",
-        "name_now": "oya/community/",
+        "name_now": "app/community/",
         "name_forever": "app/community/",
         "lenses_applied": "scoped",
         "challenges": [
@@ -5322,7 +5322,7 @@
       },
       {
         "id": "W-oya-leaf-sheets",
-        "path": "oya/sheets/",
+        "path": "app/sheets/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5334,7 +5334,7 @@
       },
       {
         "id": "W-oya-leaf-translate",
-        "path": "oya/translate/",
+        "path": "app/translate/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5347,7 +5347,7 @@
       },
       {
         "id": "W-oya-leaf-sites",
-        "path": "oya/sites/",
+        "path": "app/sites/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5360,7 +5360,7 @@
       },
       {
         "id": "W-oya-leaf-docs-product",
-        "path": "oya/docs/",
+        "path": "app/docs/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5448,10 +5448,10 @@
         "products": [
           "oya/calendar/",
           "oya/governance/",
-          "oya/translate/",
-          "oya/sites/",
-          "oya/docs/",
-          "oya/sheets/",
+          "app/translate/",
+          "app/sites/",
+          "app/docs/",
+          "app/sheets/",
           "oya/ci-controller/"
         ],
         "product_destinations": {
@@ -5468,25 +5468,25 @@
             "land_status": "ready_for_integ_governance",
             "note": "OVERRULE 1.16.12: close batch1b residual delete_permanently (row already reorg_now since 1.16.10); multi-destination decompose — authority first; NOT wholesale META dump"
           },
-          "oya/translate/": {
+          "app/translate/": {
             "action": "reorg_now",
             "destination_integ": "integ/translate",
             "shrink_source_integ": "integ/oya",
             "land_status": "ready_for_integ_translate"
           },
-          "oya/sites/": {
+          "app/sites/": {
             "action": "reorg_now",
             "destination_integ": "integ/sites",
             "shrink_source_integ": "integ/oya",
             "land_status": "ready_for_integ_sites"
           },
-          "oya/docs/": {
+          "app/docs/": {
             "action": "reorg_now",
             "destination_integ": "integ/app-docs",
             "shrink_source_integ": "integ/oya",
             "land_status": "ready_for_integ_app-docs"
           },
-          "oya/sheets/": {
+          "app/sheets/": {
             "action": "reorg_now",
             "destination_integ": "integ/sheets",
             "shrink_source_integ": "integ/oya",
@@ -5503,7 +5503,7 @@
       },
       {
         "id": "W-oya-leaf-notes",
-        "path": "oya/notes/",
+        "path": "app/notes/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5515,7 +5515,7 @@
       },
       {
         "id": "W-oya-leaf-slides",
-        "path": "oya/slides/",
+        "path": "app/slides/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5540,7 +5540,7 @@
       },
       {
         "id": "W-oya-leaf-hr",
-        "path": "oya/hr/",
+        "path": "app/hr/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5553,7 +5553,7 @@
       },
       {
         "id": "W-oya-leaf-payroll",
-        "path": "oya/payroll/",
+        "path": "app/payroll/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5566,7 +5566,7 @@
       },
       {
         "id": "W-oya-leaf-ci-webhook-gateway",
-        "path": "oya/ci-webhook-gateway/",
+        "path": "app/ci-webhook-gateway/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5600,22 +5600,22 @@
         "land_status": "ready_for_batch_path_drain",
         "status": "judgment_closed_on_integ_specs_oya_batch1c",
         "products": [
-          "oya/notes/",
-          "oya/slides/",
+          "app/notes/",
+          "app/slides/",
           "oya/workplace-integration/",
-          "oya/hr/",
-          "oya/payroll/",
-          "oya/ci-webhook-gateway/",
+          "app/hr/",
+          "app/payroll/",
+          "app/ci-webhook-gateway/",
           "oya/incident-management/"
         ],
         "product_destinations": {
-          "oya/notes/": {
+          "app/notes/": {
             "action": "reorg_now",
             "destination_integ": "integ/notes",
             "shrink_source_integ": "integ/oya",
             "land_status": "ready_for_integ_notes"
           },
-          "oya/slides/": {
+          "app/slides/": {
             "action": "reorg_now",
             "destination_integ": "integ/slides",
             "shrink_source_integ": "integ/oya",
@@ -5627,19 +5627,19 @@
             "shrink_source_integ": "integ/oya",
             "land_status": "ready_for_integ_workplace-integration"
           },
-          "oya/hr/": {
+          "app/hr/": {
             "action": "reorg_now",
             "destination_integ": "integ/hr",
             "shrink_source_integ": "integ/oya",
             "land_status": "ready_for_integ_hr"
           },
-          "oya/payroll/": {
+          "app/payroll/": {
             "action": "reorg_now",
             "destination_integ": "integ/payroll",
             "shrink_source_integ": "integ/oya",
             "land_status": "ready_for_integ_payroll"
           },
-          "oya/ci-webhook-gateway/": {
+          "app/ci-webhook-gateway/": {
             "action": "reorg_now",
             "destination_integ": "integ/ci",
             "shrink_source_integ": "integ/oya",
@@ -5669,7 +5669,7 @@
       },
       {
         "id": "W-oya-leaf-global-trade",
-        "path": "oya/global-trade/",
+        "path": "app/global-trade/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5769,7 +5769,7 @@
         "status": "judgment_closed_on_integ_specs_oya_batch1d",
         "products": [
           "oya/contract-lifecycle-management/",
-          "oya/global-trade/",
+          "app/global-trade/",
           "oya/plant-maintenance/",
           "oya/quality-management/",
           "oya/real-estate/",
@@ -5784,7 +5784,7 @@
             "shrink_source_integ": "integ/oya",
             "land_status": "ready_for_integ_contract-lifecycle-management"
           },
-          "oya/global-trade/": {
+          "app/global-trade/": {
             "action": "reorg_now",
             "destination_integ": "integ/global-trade",
             "shrink_source_integ": "integ/oya",
@@ -5884,35 +5884,35 @@
           "forever": "app/itsm/**",
           "shrink_source_integ": "integ/oya"
         },
-        "oya/sheets/": {
+        "app/sheets/": {
           "destination_integ": "integ/sheets",
           "forever": "app/sheets/**",
           "shrink_source_integ": "integ/oya"
         },
-        "oya/translate/": {
+        "app/translate/": {
           "destination_integ": "integ/translate",
           "forever": "app/translate/**",
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d OVERRULE: integ/translate owns app/translate/**; integ/app glue only"
         },
-        "oya/sites/": {
+        "app/sites/": {
           "destination_integ": "integ/sites",
           "forever": "app/sites/**",
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d OVERRULE: integ/sites owns app/sites/**; integ/app glue only"
         },
-        "oya/docs/": {
+        "app/docs/": {
           "destination_integ": "integ/app-docs",
           "forever": "app/docs/**",
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d OVERRULE: integ/app-docs owns app/docs/**; integ/app glue only; NOT docs/ plane (integ/docs)"
         },
-        "oya/notes/": {
+        "app/notes/": {
           "destination_integ": "integ/notes",
           "forever": "app/notes/**",
           "shrink_source_integ": "integ/oya"
         },
-        "oya/slides/": {
+        "app/slides/": {
           "destination_integ": "integ/slides",
           "forever": "app/slides/**",
           "shrink_source_integ": "integ/oya"
@@ -5923,19 +5923,19 @@
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d OVERRULE: integ/workplace-integration owns app/workplace-integration/**; integ/app glue only"
         },
-        "oya/hr/": {
+        "app/hr/": {
           "destination_integ": "integ/hr",
           "forever": "app/hr/**",
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d OVERRULE: integ/hr owns app/hr/**; integ/app glue only"
         },
-        "oya/payroll/": {
+        "app/payroll/": {
           "destination_integ": "integ/payroll",
           "forever": "app/payroll/**",
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d OVERRULE: integ/payroll owns app/payroll/**; integ/app glue only"
         },
-        "oya/ci-webhook-gateway/": {
+        "app/ci-webhook-gateway/": {
           "destination_integ": "integ/ci",
           "forever": "ci/**",
           "shrink_source_integ": "integ/oya"
@@ -5952,7 +5952,7 @@
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d OVERRULE: integ/contract-lifecycle-management owns app/contract-lifecycle-management/**; integ/app glue only"
         },
-        "oya/global-trade/": {
+        "app/global-trade/": {
           "destination_integ": "integ/global-trade",
           "forever": "app/global-trade/**",
           "shrink_source_integ": "integ/oya",
@@ -6042,13 +6042,13 @@
           "shrink_source_integ": "integ/crm",
           "note": "CRM-misplaced source-to-pay crate → app/procurement/** via integ/procurement (#1672 DONE); NOT marketplace"
         },
-        "oya/application/": {
+        "app/application/": {
           "destination_integ": "integ/application",
           "forever": "app/application/**",
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d: integ/application owns app/application/**; integ/app glue only"
         },
-        "oya/community/": {
+        "app/community/": {
           "destination_integ": "integ/community",
           "forever": "app/community/**",
           "shrink_source_integ": "integ/oya",
@@ -6231,20 +6231,20 @@
       "toolchains/",
       "oya/calendar/",
       "oya/governance/",
-      "oya/translate/",
-      "oya/sites/",
-      "oya/docs/",
-      "oya/sheets/",
+      "app/translate/",
+      "app/sites/",
+      "app/docs/",
+      "app/sheets/",
       "oya/ci-controller/",
-      "oya/notes/",
-      "oya/slides/",
+      "app/notes/",
+      "app/slides/",
       "oya/workplace-integration/",
-      "oya/hr/",
-      "oya/payroll/",
-      "oya/ci-webhook-gateway/",
+      "app/hr/",
+      "app/payroll/",
+      "app/ci-webhook-gateway/",
       "oya/incident-management/",
       "oya/contract-lifecycle-management/",
-      "oya/global-trade/",
+      "app/global-trade/",
       "oya/plant-maintenance/",
       "oya/quality-management/",
       "oya/real-estate/",
@@ -6262,8 +6262,8 @@
       "oya/emr/",
       "oya/pharmacy/",
       "oya/patient-monitoring/",
-      "oya/application/",
-      "oya/community/",
+      "app/application/",
+      "app/community/",
       "oya/design-collaboration/",
       "oya/financial-planning/",
       "oya/learning-management/",

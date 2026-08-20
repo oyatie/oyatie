@@ -41,7 +41,6 @@ members = [
   # can never break cargo resolution. These lines are the reorg's remaining debt and shrink to
   # nothing as `oya/`, `libs/`, `tools/` and `cloud/` empty out.
   "libs/oya-*",
-  "oya/*/crates/oya-*",
   "tools/oya-*",
   "tools/*-app",
 

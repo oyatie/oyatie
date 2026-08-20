@@ -1,0 +1,27 @@
+rust_library(
+    name = "community-social-post-composition-grpc",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_social_post_composition_grpc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//app/community/facade/social-app:community-social-app",
+        "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
+    ],
+)
+
+rust_test(
+    name = "community-social-post-composition-grpc-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_social_post_composition_grpc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//app/community/facade/social-app:community-social-app",
+        "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
+    ],
+)

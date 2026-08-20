@@ -19,7 +19,7 @@ use std::sync::OnceLock;
 
 use ci_baseline_ratchet::{
     Baseline, FROZEN_SNAPSHOT_PATH, FrozenBaseline, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND,
-    SIGNOFF_PATH, SignOff, baseline_keys_map, derive_directory_renames, evaluate_firewall,
+    SIGNOFF_PATH, SignOff, baseline_keys_map, derive_directory_renames_scored, evaluate_firewall,
     ratchet_growth, relabel_baseline_for_renames,
 };
 use serde_json::Value;
@@ -99,10 +99,14 @@ fn head_tracked_paths(root: &Path) -> BTreeSet<String> {
         .collect()
 }
 
-fn detect_renames(root: &Path, merge_base: &str) -> BTreeMap<String, String> {
+fn detect_renames(
+    root: &Path,
+    merge_base: &str,
+) -> (BTreeMap<String, String>, BTreeMap<String, u32>) {
     let mut renames = BTreeMap::new();
+    let mut scores = BTreeMap::new();
     if merge_base.is_empty() {
-        return renames;
+        return (renames, scores);
     }
     let Ok(out) = Command::new("git")
         .current_dir(root)
@@ -128,10 +132,10 @@ fn detect_renames(root: &Path, merge_base: &str) -> BTreeMap<String, String> {
         ])
         .output()
     else {
-        return renames;
+        return (renames, scores);
     };
     if !out.status.success() {
-        return renames;
+        return (renames, scores);
     }
     // `-z` output for a rename is three NUL-terminated fields: "R<score>", old, new.
     let fields: Vec<&str> = std::str::from_utf8(&out.stdout)
@@ -150,10 +154,15 @@ fn detect_renames(root: &Path, merge_base: &str) -> BTreeMap<String, String> {
         let (Some(old), Some(new)) = (fields.get(i + 1), fields.get(i + 2)) else {
             break;
         };
+        // `R100` means byte-identical; the digits are git's similarity index. Scaffold
+        // boilerplate mis-pairs across crates, so the score is what breaks the tie.
+        if let Ok(score) = status.trim_start_matches('R').parse::<u32>() {
+            scores.insert((*old).to_owned(), score);
+        }
         renames.insert((*old).to_owned(), (*new).to_owned());
         i += 3;
     }
-    renames
+    (renames, scores)
 }
 
 /// Load the FROZEN merge-base reference. FAIL-CLOSED: a missing or invalid snapshot is a
@@ -569,14 +578,15 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
     // an in-place edit and the debt follows the file. Not a waiver: the key count per code
     // is unchanged, the violation stays tolerated, and debt ADDED alongside a move still
     // regresses. See `relabel_baseline_for_renames` for the existence/non-collision guards.
-    let mut renames = detect_renames(&root, &frozen.merge_base);
+    let (mut renames, rename_scores) = detect_renames(&root, &frozen.merge_base);
     // Git reports FILE renames, but some gates key their debt by crate DIRECTORY
     // (`cloud-ci-target-parity` keys a workspace member dir). Without this, a wholesale
     // directory move leaves those keys unrelabelled and scores as a regression at the
     // destination plus a fix at the source — net-zero debt that still REDs the gate.
     // The derivation only pairs directories that moved WHOLESALE and unambiguously.
-    renames.extend(derive_directory_renames(
+    renames.extend(derive_directory_renames_scored(
         &renames.clone(),
+        &rename_scores,
         &head_tracked_paths(&root),
     ));
     if !renames.is_empty() {

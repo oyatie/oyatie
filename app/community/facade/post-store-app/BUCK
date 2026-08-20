@@ -1,0 +1,35 @@
+rust_library(
+    name = "community-post-store-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_post_store_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//libs/oya-shared-transactional-outbox-kernel:oya-shared-transactional-outbox-kernel",
+        "//app/community/adapters/post-store-adapter-postgres:community-post-store-adapter-postgres",
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/core/post-store-domain:community-post-store-domain",
+        "//app/community/core/post-store-usecase:community-post-store-usecase",
+    ],
+)
+
+rust_test(
+    name = "community-post-store-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_post_store_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//libs/oya-shared-transactional-outbox-kernel:oya-shared-transactional-outbox-kernel",
+        "//app/community/adapters/post-store-adapter-postgres:community-post-store-adapter-postgres",
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/core/post-store-domain:community-post-store-domain",
+        "//app/community/core/post-store-usecase:community-post-store-usecase",
+    ],
+)

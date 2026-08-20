@@ -8,20 +8,20 @@ license = "Apache-2.0"
 build = "build.rs"
 
 [dependencies]
-oya-community-social-app = { path = "../../oya/community/crates/oya-community-social-app" }
+community-social-app = { path = "../../app/community/facade/social-app" }
 comms-messenger-stream-app = { path = "../../comms/core/messenger-stream-app" }
 comms-mail-mailbox-app = { path = "../../comms/core/mail-mailbox-app" }
-oya-community-post-store-app = { path = "../../oya/community/crates/oya-community-post-store-app" }
-oya-community-post-store-api = { path = "../../oya/community/crates/oya-community-post-store-api" }
-oya-community-post-store-domain = { path = "../../oya/community/crates/oya-community-post-store-domain" }
-oya-community-post-store-grpc = { path = "../../oya/community/crates/oya-community-post-store-grpc" }
+community-post-store-app = { path = "../../app/community/facade/post-store-app" }
+community-post-store-api = { path = "../../app/community/ports/post-store-api" }
+community-post-store-domain = { path = "../../app/community/core/post-store-domain" }
+community-post-store-grpc = { path = "../../app/community/core/post-store-grpc" }
 comms-mail-mailbox-api = { path = "../../comms/ports/mail-mailbox-api" }
 comms-mail-mailbox-grpc = { path = "../../comms/facade/mail-mailbox-grpc" }
 comms-messenger-stream-api = { path = "../../comms/ports/messenger-stream-api" }
 comms-messenger-stream-grpc = { path = "../../comms/facade/messenger-stream-grpc" }
 oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
-oya-community-social-post-composition-api = { path = "../../oya/community/crates/oya-community-social-post-composition-api" }
-oya-community-social-post-composition-grpc = { path = "../../oya/community/crates/oya-community-social-post-composition-grpc" }
+community-social-post-composition-api = { path = "../../app/community/ports/social-post-composition-api" }
+community-social-post-composition-grpc = { path = "../../app/community/core/social-post-composition-grpc" }
 oya-shared-backbone-proto-contracts-kernel = { path = "../oya-shared-backbone-proto-contracts-kernel" }
 prost.workspace = true
 tonic.workspace = true

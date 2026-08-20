@@ -1,0 +1,81 @@
+rust_library(
+    name = "application-shell-frontend",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "application_shell_frontend",
+    crate_root = "src/lib.rs",
+    rustc_flags = ["--cfg", "feature=\"ssr\""],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-oidc-client-kernel:oya-shared-oidc-client-kernel",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "third-party//:any_spawner",
+        "third-party//:axum",
+        "third-party//:leptos",
+        "third-party//:leptos_axum",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:wasm-bindgen",
+        "third-party//:wasm-bindgen-futures",
+        "third-party//:web-sys",
+    ],
+)
+
+rust_test(
+    name = "application-shell-frontend-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "application_shell_frontend",
+    crate_root = "src/lib.rs",
+    rustc_flags = ["--cfg", "feature=\"ssr\""],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-oidc-client-kernel:oya-shared-oidc-client-kernel",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "third-party//:any_spawner",
+        "third-party//:axum",
+        "third-party//:leptos",
+        "third-party//:leptos_axum",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:wasm-bindgen",
+        "third-party//:wasm-bindgen-futures",
+        "third-party//:web-sys",
+    ],
+)
+
+rust_binary(
+    name = "application-shell-frontend-bin",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    rustc_flags = ["--cfg", "feature=\"ssr\""],
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/application/core/shell-frontend:application-shell-frontend",
+        "//libs/oya-shared-oidc-client-kernel:oya-shared-oidc-client-kernel",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "third-party//:any_spawner",
+        "third-party//:axum",
+        "third-party//:leptos",
+        "third-party//:leptos_axum",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:wasm-bindgen",
+        "third-party//:wasm-bindgen-futures",
+        "third-party//:web-sys",
+    ],
+)
+
+rust_test(
+    name = "application-shell-frontend-live-server-integration",
+    srcs = ["tests/live_server.rs", "src/app.rs", "src/lib.rs"],
+    crate = "application_shell_frontend_live_server",
+    crate_root = "tests/live_server.rs",
+    rustc_flags = ["--cfg", "feature=\"ssr\""],
+    visibility = ["PUBLIC"],
+    deps = [
+        ":application-shell-frontend",
+        "third-party//:tokio",
+    ],
+)

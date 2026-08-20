@@ -3,7 +3,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_application_app::{
+use application_app::{
     AutonomyTier, Capability, CapabilityCostProfile, CapabilityMcpContract, DataClass,
     privacy_data_classes_from,
 };

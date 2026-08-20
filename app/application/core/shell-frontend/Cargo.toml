@@ -1,0 +1,85 @@
+[package]
+name = "application-shell-frontend"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Production Leptos portal-shell for the Oyatie console (ADR-0393): SSR+hydration shell whose module visibility derives from the locked shell-BFF capability-registry contracts."
+
+[lib]
+name = "application_shell_frontend"
+path = "src/lib.rs"
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[[bin]]
+name = "application-shell-frontend"
+path = "src/main.rs"
+
+[features]
+default = ["csr"]
+csr = ["dep:wasm-bindgen", "leptos/csr"]
+hydrate = ["dep:wasm-bindgen", "leptos/hydrate"]
+ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "leptos/ssr"]
+
+[dependencies]
+leptos = { version = "=0.8.19", default-features = false }
+oya-shared-oidc-client-kernel = { path = "../../../../libs/oya-shared-oidc-client-kernel" }
+oya-shared-platform-contracts-kernel = { path = "../../../../libs/oya-shared-platform-contracts-kernel" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+axum = { workspace = true, optional = true }
+# `server::router_for_package_root` calls `any_spawner::Executor::init_tokio`, which is gated
+# behind any_spawner's `tokio` feature. Declare the feature here rather than inheriting it from
+# `leptos_axum`'s own dependency edge: feature unification makes that work today, but it would
+# vanish silently if leptos_axum changed its features, leaving a confusing missing-function error.
+any_spawner = { workspace = true, optional = true, features = ["tokio"] }
+tokio = { workspace = true, features = ["fs", "sync"], optional = true }
+wasm-bindgen = { version = "=0.2.121", optional = true }
+
+# Integration tests compile this library without `cfg(test)`, so the server
+# modules remain disabled under the default `csr` feature. Enable the crate's
+# explicit `ssr` contract for its test target without broadening production
+# defaults, and add only the Tokio I/O capability used by the live server.
+[dev-dependencies]
+application-shell-frontend = { path = ".", default-features = false, features = ["ssr"] }
+tokio = { workspace = true, features = ["io-util"] }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+leptos_axum = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = "=0.4.71"
+web-sys = { version = "=0.3.98", features = [
+    "Document",
+    "DomTokenList",
+    "Element",
+    "Event",
+    "EventTarget",
+    "HtmlCollection",
+    "HtmlElement",
+    "KeyboardEvent",
+    "MouseEvent",
+    "Node",
+    "Response",
+    "Window",
+    "console",
+] }
+
+[package.metadata.leptos]
+output-name = "application_shell_frontend"
+site-root = "target/site"
+site-pkg-dir = "pkg"
+style-file = "style/app.css"
+site-addr = "127.0.0.1:3000"
+reload-port = 3001
+browserquery = "defaults"
+env = "DEV"
+bin-features = ["ssr"]
+bin-default-features = false
+lib-features = ["hydrate"]
+lib-default-features = false
+
+[lints]
+workspace = true

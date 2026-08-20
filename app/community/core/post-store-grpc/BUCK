@@ -1,0 +1,29 @@
+rust_library(
+    name = "community-post-store-grpc",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_post_store_grpc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/facade/post-store-app:community-post-store-app",
+        "//app/community/core/post-store-domain:community-post-store-domain",
+    ],
+)
+
+rust_test(
+    name = "community-post-store-grpc-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_post_store_grpc",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/facade/post-store-app:community-post-store-app",
+        "//app/community/core/post-store-domain:community-post-store-domain",
+    ],
+)

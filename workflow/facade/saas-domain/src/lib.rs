@@ -6,7 +6,7 @@
 //! * `workflow.run.event` ordering tied to definition step order.
 //!
 //! Per ADR-0023 the engine never executes plugin code itself — plugin step
-//! invocations are dispatched to [`oya_saas_plugin_app`] from the app
+//! invocations are dispatched to [`saas_plugin_app`] from the app
 //! layer; the domain only records audit events.
 // ADR-0083 Tier 3: tests legitimately use `.unwrap()` / `.expect()` /
 // `panic!()` to assert invariants under the `cfg(test)` exemption.

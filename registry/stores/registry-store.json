@@ -321,7 +321,7 @@
       ]
     },
     {
-      "key": "oya-application-app",
+      "key": "application-app",
       "context": "application",
       "role": "app",
       "capability": "application",
@@ -336,7 +336,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-application-shell-frontend",
+      "key": "application-shell-frontend",
       "context": "application",
       "role": "app",
       "capability": "shell-frontend",
@@ -946,7 +946,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-ci-webhook-gateway-authz-cedar-adapter",
+      "key": "ci-webhook-gateway-authz-cedar-adapter",
       "context": "ci-webhook-gateway",
       "role": "adapter",
       "capability": "webhook-authz-cedar-gate",
@@ -970,7 +970,7 @@
       ]
     },
     {
-      "key": "oya-ci-webhook-gateway-ed25519-adapter",
+      "key": "ci-webhook-gateway-ed25519-adapter",
       "context": "ci-webhook-gateway",
       "role": "adapter",
       "capability": "github-webhook-ed25519-signature-verification",
@@ -992,7 +992,7 @@
       ]
     },
     {
-      "key": "oya-ci-webhook-gateway-github-adapter",
+      "key": "ci-webhook-gateway-github-adapter",
       "context": "ci-webhook-gateway",
       "role": "adapter",
       "capability": "github-commit-status-poster",
@@ -2945,7 +2945,7 @@
       ]
     },
     {
-      "key": "oya-cloud-surface-domain",
+      "key": "application-surface-domain",
       "context": "cloud",
       "role": "domain",
       "capability": "cloud-surface",
@@ -3021,7 +3021,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-post-store-adapter-postgres",
+      "key": "community-post-store-adapter-postgres",
       "context": "community",
       "role": "adapter",
       "capability": "community-post-store-postgres",
@@ -3040,7 +3040,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-post-store-api",
+      "key": "community-post-store-api",
       "context": "community",
       "role": "domain",
       "capability": "community-post-store",
@@ -3059,7 +3059,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-post-store-app",
+      "key": "community-post-store-app",
       "context": "community",
       "role": "app",
       "capability": "post-store-write-orchestration",
@@ -3077,7 +3077,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-post-store-domain",
+      "key": "community-post-store-domain",
       "context": "community",
       "role": "domain",
       "capability": "community-post-store",
@@ -3096,7 +3096,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-post-store-grpc",
+      "key": "community-post-store-grpc",
       "context": "community",
       "role": "grpc",
       "capability": "community-post-store",
@@ -3114,7 +3114,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-post-store-rest",
+      "key": "community-post-store-rest",
       "context": "community",
       "role": "rest",
       "capability": "community-post-store",
@@ -3133,7 +3133,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-post-store-usecase",
+      "key": "community-post-store-usecase",
       "context": "community",
       "role": "usecase",
       "capability": "community-post-store",
@@ -3152,7 +3152,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-app",
+      "key": "community-social-app",
       "context": "community-social",
       "role": "app",
       "capability": "app",
@@ -3285,7 +3285,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-domain",
+      "key": "community-social-domain",
       "context": "community-social",
       "role": "domain",
       "capability": "community-social",
@@ -3494,7 +3494,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-adapter-postgres",
+      "key": "community-social-post-composition-adapter-postgres",
       "context": "community-social",
       "role": "adapter",
       "capability": "post-composition",
@@ -3532,7 +3532,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-api",
+      "key": "community-social-post-composition-api",
       "context": "community-social",
       "role": "domain",
       "capability": "post-composition",
@@ -3551,7 +3551,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-grpc",
+      "key": "community-social-post-composition-grpc",
       "context": "community-social",
       "role": "grpc",
       "capability": "post-composition",
@@ -3589,7 +3589,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-rest",
+      "key": "community-social-post-composition-rest",
       "context": "community-social",
       "role": "rest",
       "capability": "post-composition",
@@ -3608,7 +3608,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-community-social-post-composition-usecase",
+      "key": "community-social-post-composition-usecase",
       "context": "community-social",
       "role": "usecase",
       "capability": "post-composition",
@@ -4135,7 +4135,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-docs-domain",
+      "key": "docs-domain",
       "context": "docs",
       "role": "domain",
       "capability": "docs",
@@ -4346,7 +4346,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-global-trade-compliance-domain",
+      "key": "global-trade-compliance-domain",
       "context": "global-trade",
       "role": "domain",
       "capability": "compliance",
@@ -4570,7 +4570,7 @@
       ]
     },
     {
-      "key": "oya-hr-employment-api",
+      "key": "hr-employment-api",
       "context": "hr",
       "role": "api",
       "capability": "employment",
@@ -4586,7 +4586,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-hr-employment-app",
+      "key": "hr-employment-app",
       "context": "hr",
       "role": "app",
       "capability": "employment",
@@ -4602,7 +4602,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-hr-employment-domain",
+      "key": "hr-employment-domain",
       "context": "hr",
       "role": "domain",
       "capability": "employment",
@@ -6621,7 +6621,7 @@
       ]
     },
     {
-      "key": "oya-notes-domain",
+      "key": "notes-domain",
       "context": "notes",
       "role": "domain",
       "capability": "notes",
@@ -8208,7 +8208,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-saas-plugin-app",
+      "key": "saas-plugin-app",
       "context": "saas",
       "role": "app",
       "capability": "saas-plugin",
@@ -9240,7 +9240,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-sheets-domain",
+      "key": "sheets-domain",
       "context": "sheets",
       "role": "domain",
       "capability": "sheets",
@@ -9279,7 +9279,7 @@
       ]
     },
     {
-      "key": "oya-sites-domain",
+      "key": "sites-domain",
       "context": "sites",
       "role": "domain",
       "capability": "sites",
@@ -9294,7 +9294,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-slides-domain",
+      "key": "slides-domain",
       "context": "slides",
       "role": "domain",
       "capability": "slides",
@@ -10457,7 +10457,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-translate-domain",
+      "key": "translate-domain",
       "context": "translate",
       "role": "domain",
       "capability": "translate",
@@ -11318,7 +11318,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-chat-api",
+      "key": "workspace-chat-api",
       "context": "workspace",
       "role": "api",
       "capability": "chat",
@@ -11432,7 +11432,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-drive-api",
+      "key": "workspace-drive-api",
       "context": "workspace",
       "role": "api",
       "capability": "drive",
@@ -11508,7 +11508,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-forms-api",
+      "key": "workspace-forms-api",
       "context": "workspace",
       "role": "api",
       "capability": "forms",
@@ -11566,7 +11566,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-workspace-meet-api",
+      "key": "workspace-meet-api",
       "context": "workspace",
       "role": "api",
       "capability": "meet",

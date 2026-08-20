@@ -23,14 +23,14 @@ use comms_mail_mailbox_api::{DmarcApiAction, MailApiEnvelope};
 use comms_mail_mailbox_rest as mail_rest;
 use comms_messenger_stream_api::MessengerApiEnvelope;
 use comms_messenger_stream_rest as messenger_rest;
-use oya_community_post_store_api::{
+use community_post_store_api::{
     CastVoteRequest, CommunityApiMode, CreatePostRequest, ModeratePostRequest, ModerationVerb,
     VoteDirection,
 };
-use oya_community_post_store_domain::{CommunityPost, VoteLedger};
-use oya_community_post_store_rest as community_rest;
-use oya_community_social_post_composition_api::SocialApiArtifactKind;
-use oya_community_social_post_composition_rest as social_rest;
+use community_post_store_domain::{CommunityPost, VoteLedger};
+use community_post_store_rest as community_rest;
+use community_social_post_composition_api::SocialApiArtifactKind;
+use community_social_post_composition_rest as social_rest;
 use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, MiddlewareChain, Next};
 use oya_http_router_kernel::{HttpMethod, Router, RouterError};
 use oya_http_runtime_hyper_adapter::{HyperRuntimeError, ServerConfig, serve_listener};
@@ -2404,7 +2404,7 @@ fn community_dependencies(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_community_post_store_domain::{CommunityAuthor, CommunityMode, CommunityPost};
+    use community_post_store_domain::{CommunityAuthor, CommunityMode, CommunityPost};
     use std::collections::BTreeMap;
     use std::io::{Read, Write};
     use std::net::{SocketAddr, TcpStream};

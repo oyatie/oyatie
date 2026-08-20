@@ -1,0 +1,25 @@
+[package]
+name = "community-post-store-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+community-post-store-adapter-postgres = { path = "../../adapters/post-store-adapter-postgres" }
+community-post-store-api = { path = "../../ports/post-store-api" }
+community-post-store-domain = { path = "../../core/post-store-domain" }
+community-post-store-usecase = { path = "../../core/post-store-usecase" }
+oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+oya-shared-protocol-parity-kernel = { path = "../../../../libs/oya-shared-protocol-parity-kernel" }
+oya-shared-protocol-transport-kernel = { path = "../../../../libs/oya-shared-protocol-transport-kernel" }
+oya-shared-transactional-outbox-kernel = { path = "../../../../libs/oya-shared-transactional-outbox-kernel" }
+
+[lib]
+name = "community_post_store_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
