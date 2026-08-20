@@ -14,7 +14,7 @@ use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case, to_snake_case};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    POSITION_FIELD, POSITION_PARAM, SOURCE_STRING, TYPE_ARRAY, TYPE_NAMED_INTERFACE,
+    POSITION_FIELD, POSITION_PARAM, POSITION_SUPERTRAIT, POSITION_TRAIT, SOURCE_STRING, TYPE_ARRAY, TYPE_NAMED_INTERFACE,
 };
 
 impl Resolver<'_> {
@@ -192,7 +192,19 @@ impl Resolver<'_> {
         // caller keeps after passing it, so owning it in the target would CONSUME a value the
         // source never consumed — the same reason a source string parameter borrows rather than
         // taking a `String`. What a borrowed failure parameter should be is a decision of its own.
-        if self.is_failure_type(type_ref) {
+        // A TRAIT POSITION is not a value position, and the failure convention answers only for
+        // values. The source's error is one interface with several target spellings chosen by where
+        // it appears: as a bound or an impl target it is the TRAIT, and as a value it is the boxed
+        // object that implements it. Answering both with the value form emitted
+        // `impl Box<dyn StdError + Send + Sync> for Fundamental`, which names a struct where a trait
+        // belongs and does not compile — three packages failed on exactly that.
+        //
+        // Falling through hands the question to `trait_object_forms`, which is the table that maps
+        // POSITION to form for interface types and already declares this one.
+        if self.is_failure_type(type_ref)
+            && position != POSITION_TRAIT
+            && position != POSITION_SUPERTRAIT
+        {
             // A PARAMETER of the failure type has its own form, and the reason is what callers do
             // with it: they ask which sentinel it is, and that question exists on the trait OBJECT.
             // Where the pack declares none it still refuses, which is what it did before there was

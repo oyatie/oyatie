@@ -4671,3 +4671,70 @@ produced more of this session's real bugs than any other.
 
 Sources: c2rust.com/manual (ownership analysis), CAV'23 ownership-guided C-to-Rust,
 arxiv 2501.14257 (C2SaferRust), Pnueli et al. translation validation, Alive2.
+
+## R2o — two position rules the cascade break needs, landed ahead of it
+
+R2n said the engine holds fewer target spellings than the source has positions. Both of these are
+that finding, made concrete, and both were found by re-applying the R2i cascade break and reading
+what stopped compiling. They land alone because they are correct alone.
+
+**A failure type in TRAIT position is the trait.** The failure convention answers for VALUES, and its
+branch ran before the table that maps position to form for interface types — so an observed
+satisfaction of the source's error interface emitted
+`impl Box<dyn StdError + Send + Sync> for Fundamental`, which names a struct where a trait belongs.
+Three packages failed on it. Letting the trait and supertrait positions fall through to
+`trait_object_forms` — which already declares `trait: "{0}"` — gives `impl StdError for Fundamental`.
+
+**An index or slice through a NEWTYPE reaches through the wrapper.** `type ID [12]byte` admits
+`id[:]` because in the source the name and the array are the same thing; the target's newtype wraps
+it, so the same expression needs the field first. Emitting the source's spelling gave `cannot index
+into a value of type &Id` in five packages.
+
+The interesting part is what the body can actually know. The front end records a type on an
+expression only where one is needed, and a receiver carries none — so the identifier says nothing.
+What the body does know is which declaration it is inside, and the scope now maps a unit's named
+types (those whose underlying is not a struct or interface, which are exactly the ones emitted as
+newtypes) so the receiver case can be answered. An index through any other binding of a newtype is a
+shape the corpus does not have and arrives unchanged rather than being guessed at.
+
+**Both are latent right now, and saying so matters.** Coverage is unchanged across all seven
+packages, because the declarations these rules govern only get emitted once the type/method cascade
+is broken. They are prerequisites, verified by the compile proof under the break and landed without
+it because neither depends on it.
+
+**Where the cascade break stands, measured this phase.** Re-applied on top of R2j–R2m it is
+materially better than in R2i, because the error-model fix landed in between: `errors` goes 0 → 7
+translated (0% → 22.6%), `multierror` 0 → 1, `uuid` 11 → 29, `semver` 14 → 24, `ksuid` 16 → 25.
+Every package gains in absolute translated count.
+
+With these two rules applied, **`xxhash` and `xid` compile clean under the break**; four packages do
+not. The remaining tail, ranked:
+
+1. **A method called through an absent-capable receiver — 39 of semver's 51 errors, one cause.** A
+   source pointer maps to an option and the call lands on the option rather than on what it holds.
+   This is precisely the qualifier mismatch R2n named, and the honest answer is the engine's own
+   contract: refuse the call by name unless absence is disproved.
+2. `E0277` and `E0407` in three packages: a trait impl whose method set is not the target trait's.
+   The source's `Error() string` becomes `fn error(&self) -> String` inside `impl StdError`, which
+   has no such method — the correspondence between a source interface's methods and a target trait's
+   is a pack decision that does not exist yet.
+3. `E0308`, `E0063`, `E0425`, `E0369`, `E0606`, one or two each, not yet diagnosed.
+
+One consequence worth keeping: under the break `multierror` went from 1 translated to 0, and that is
+the contract working rather than a regression. Its type refused because the trait impl it would need
+does not compile, so the engine now declines instead of emitting something broken.
+
+**An operational incident, recorded because it nearly corrupted the evidence.** The worktree was
+deleted mid-session by something outside it. Every commit survived on the branch, but the recreated
+worktree lacked the root `Cargo.toml` — which is NOT tracked on this branch, only in the main
+checkout. Cargo therefore walked up and resolved the workspace to the main repository, which is on
+another lane's branch: for several commands the builds and tests were compiling somebody else's code
+while reporting success for mine. It surfaced only because a deliberate `missing field` error failed
+to appear when it should have.
+
+Two lessons. A verification that cannot fail is not a verification, and the tell was a gate that went
+green when it had no right to. And `cargo metadata --format-version 1 | workspace_root` is the
+one-line check that says which tree is actually being built — worth running after any change to the
+working directory. The lane now builds with a generated minimal workspace listing only the
+port-engine crates, kept untracked, and with its own `CARGO_TARGET_DIR` so it no longer shares the
+other lane's artifacts.
