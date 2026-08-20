@@ -1,0 +1,55 @@
+#!/usr/bin/env python3
+"""Record a delivery-fabric class heartbeat (called by workflows)."""
+from __future__ import annotations
+
+import argparse
+import json
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/harness/pipeline.json").is_file():
+            return p
+        if (p / ".git").exists() and (p / ".grok").exists():
+            return p
+    return cur
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--cwd", default=".")
+    ap.add_argument(
+        "--class",
+        dest="cls",
+        required=True,
+        choices=[
+            "portfolio-work-manager",
+            "implement-claimed-lane",
+            "pr-babysit-lanes",
+            "workflow-productivity-watch",
+            "northstar-portfolio-audit",
+        ],
+    )
+    ap.add_argument("--note", default="")
+    args = ap.parse_args()
+    repo = find_repo(Path(args.cwd))
+    path = repo / ".grok/mm-runs/_fabric/heartbeats.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    data = {}
+    if path.is_file():
+        data = json.loads(path.read_text())
+    data[args.cls] = {
+        "at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "note": args.note,
+    }
+    path.write_text(json.dumps(data, indent=2) + "\n")
+    print(json.dumps({"ok": True, "class": args.cls, "path": str(path)}, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

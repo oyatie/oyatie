@@ -1,0 +1,24 @@
+{
+  "$id": "scorecard.v1",
+  "type": "object",
+  "required": ["run_id", "scored_at", "dimensions", "hard_fails", "mode"],
+  "properties": {
+    "run_id": { "type": "string" },
+    "scored_at": { "type": "string" },
+    "mode": { "type": "string", "enum": ["plan_only", "execute", "unknown"] },
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["score", "max", "signals"],
+        "properties": {
+          "score": { "type": "number" },
+          "max": { "type": "number" },
+          "signals": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
+    "hard_fails": { "type": "array", "items": { "type": "string" } },
+    "evidence_refs": { "type": "array", "items": { "type": "string" } }
+  }
+}

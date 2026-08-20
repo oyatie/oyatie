@@ -1,0 +1,1593 @@
+#!/usr/bin/env python3
+"""Autonomous outer drive loop for the single mm-delivery pipeline.
+
+Ultragoal/Ralph behaviors without gjc/omc/omx/hermes:
+  - classify workstreams (resolvable vs human_blocked vs waiting_ci …)
+  - Stop-hook adapter (block continue when resolvable work remains)
+  - checkpoint-check fail-closed quality gate before goal complete
+  - never merge authority; never false-complete ultragoal from draft/local green
+
+Commands: status | tick | briefs | stop-hook | checkpoint-check | merge-check | merge | preflight-ci
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import re
+import shutil
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def load_json(path: Path) -> Any:
+    return json.loads(path.read_text(encoding="utf-8"))
+
+
+def write_json(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n", encoding="utf-8")
+
+
+def find_grok(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        g = p / ".grok"
+        if (g / "harness" / "pipeline.json").is_file():
+            return g
+    # kit may live at cwd/.grok
+    if (start / ".grok" / "harness" / "pipeline.json").is_file():
+        return start / ".grok"
+    return cur / ".grok"
+
+
+def load_drive_cfg(grok: Path) -> dict:
+    path = grok / "harness" / "drive.v1.json"
+    if path.is_file():
+        return load_json(path)
+    return {
+        "stop_hook": {
+            "max_blocks_per_turn": 3,
+            "wait_ci_blocks_stop": False,
+            "block_on_resolvable": True,
+            "allow_stop_if_only": [
+                "human_blocked",
+                "waiting_ci",
+                "idle_complete",
+                "sequenced_blocked",
+                "unknown",
+            ],
+        },
+        "re_query": {"gh_pr_checks": True, "timeout_s": 30},
+        "ledger": "mm-runs/_ledger/drive-tick.jsonl",
+    }
+
+
+def append_ledger(grok: Path, row: dict) -> None:
+    cfg = load_drive_cfg(grok)
+    rel = cfg.get("ledger") or "mm-runs/_ledger/drive-tick.jsonl"
+    path = grok / rel
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as f:
+        f.write(json.dumps({**row, "ts": now()}, separators=(",", ":")) + "\n")
+
+
+def gh_available() -> bool:
+    return shutil.which("gh") is not None
+
+
+def run_gh(args: List[str], timeout: int = 30) -> Tuple[int, str, str]:
+    try:
+        p = subprocess.run(
+            ["gh", *args],
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+        return p.returncode, p.stdout or "", p.stderr or ""
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return 1, "", str(e)
+
+
+def pr_check_summary(pr: int, timeout: int = 30) -> dict:
+    if not gh_available():
+        return {"ok": False, "reason": "gh_not_found"}
+    code, out, err = run_gh(
+        [
+            "pr",
+            "view",
+            str(pr),
+            "--json",
+            "number,isDraft,state,headRefOid,reviewDecision,statusCheckRollup,url,"
+            "mergeable,mergeStateStatus,author,reviews,reviewRequests",
+        ],
+        timeout=timeout,
+    )
+    if code != 0:
+        return {"ok": False, "reason": err.strip() or "gh_pr_view_failed"}
+    try:
+        data = json.loads(out)
+    except json.JSONDecodeError:
+        return {"ok": False, "reason": "gh_json_decode_failed"}
+    checks = data.get("statusCheckRollup") or []
+    pending = 0
+    failed = 0
+    success = 0
+    oya = None
+    for c in checks:
+        if not isinstance(c, dict):
+            continue
+        name = c.get("name") or ""
+        st = (c.get("status") or "").upper()
+        conc = (c.get("conclusion") or "").upper()
+        if st in ("IN_PROGRESS", "QUEUED", "PENDING") or conc in ("", "null", "None"):
+            if st != "COMPLETED":
+                pending += 1
+        if conc in ("FAILURE", "CANCELLED", "TIMED_OUT", "ACTION_REQUIRED"):
+            failed += 1
+        if conc == "SUCCESS":
+            success += 1
+        if name == "oya-ci-required":
+            oya = {"status": st, "conclusion": conc}
+    author = ""
+    if isinstance(data.get("author"), dict):
+        author = str(data["author"].get("login") or "")
+    reviews = data.get("reviews") or []
+    approvers: List[str] = []
+    changes_requested = False
+    for r in reviews:
+        if not isinstance(r, dict):
+            continue
+        st = (r.get("state") or "").upper()
+        who = ""
+        if isinstance(r.get("author"), dict):
+            who = str(r["author"].get("login") or "")
+        if st == "APPROVED" and who:
+            approvers.append(who)
+        if st == "CHANGES_REQUESTED":
+            changes_requested = True
+    return {
+        "ok": True,
+        "pr": data.get("number"),
+        "url": data.get("url"),
+        "draft": bool(data.get("isDraft")),
+        "head": data.get("headRefOid"),
+        "reviewDecision": data.get("reviewDecision") or "",
+        "mergeable": data.get("mergeable") or "",
+        "mergeStateStatus": data.get("mergeStateStatus") or "",
+        "author": author,
+        "approvers": sorted(set(approvers)),
+        "changes_requested": changes_requested,
+        "pending": pending,
+        "failed": failed,
+        "success": success,
+        "oya_ci_required": oya,
+        "check_count": len(checks),
+    }
+
+
+def gh_viewer_login(timeout: int = 15) -> str:
+    code, out, _err = run_gh(["api", "user", "--jq", ".login"], timeout=timeout)
+    if code != 0:
+        return ""
+    return (out or "").strip()
+
+
+def repo_root_from_grok(grok: Path) -> Path:
+    """Repository root is parent of .grok (harness kit root)."""
+    return grok.parent
+
+
+def pr_changed_paths(pr: int, timeout: int = 60) -> List[str]:
+    """Files changed on the PR (gh). Empty on failure — caller fail-soft."""
+    code, out, _err = run_gh(
+        ["pr", "diff", str(pr), "--name-only"],
+        timeout=timeout,
+    )
+    if code != 0 or not (out or "").strip():
+        return []
+    return [ln.strip() for ln in out.splitlines() if ln.strip()]
+
+
+def path_is_ci_infra(path: str, prefixes: List[str]) -> bool:
+    p = path.lstrip("./")
+    if p == "oya-ci.toml":
+        return True
+    for pref in prefixes:
+        if p.startswith(pref):
+            return True
+    return False
+
+
+def find_ci_infra_preflight_receipt(
+    grok: Path, pr: int, head: str, policy: dict
+) -> Tuple[bool, Optional[str], List[str]]:
+    """
+    Fail-closed for CI-infra PRs: require preflight receipt with matching head and ok=true.
+    Tool and receipts live under .grok — never under infra/* (reorg target).
+    """
+    reasons: List[str] = []
+    if not policy.get("require_ci_infra_preflight_receipt", False):
+        return True, None, []
+    prefixes = list(
+        policy.get("ci_infra_path_prefixes")
+        or [
+            ".github/workflows/",
+            "infra/ci/",
+            "infra/arc/",
+            "ci/facade/",
+            "cloud/cloud-ci/",
+        ]
+    )
+    files = pr_changed_paths(pr)
+    if not files:
+        # Cannot prove scope offline — do not block merge solely on missing file list.
+        return True, None, []
+    if not any(path_is_ci_infra(f, prefixes) for f in files):
+        return True, None, []  # not a CI-infra PR
+
+    head = (head or "").strip()
+    candidates: List[Path] = []
+    for pattern in policy.get("ci_infra_preflight_receipt_globs") or []:
+        rel = str(pattern).replace("{pr}", str(pr))
+        candidates.append(grok / rel)
+    # Also accept any matching receipt under hyperscaler evidence
+    evidence = grok / "programs" / "hyperscaler-delivery-lanes" / "evidence"
+    if evidence.is_dir():
+        for p in sorted(evidence.glob(f"preflight-ci-infra-pr-{pr}.json")):
+            candidates.append(p)
+        latest = evidence / "preflight-ci-infra-latest.json"
+        if latest.is_file():
+            candidates.append(latest)
+
+    seen: set = set()
+    for path in candidates:
+        try:
+            key = str(path.resolve())
+        except OSError:
+            key = str(path)
+        if key in seen or not path.is_file():
+            continue
+        seen.add(key)
+        try:
+            data = load_json(path)
+        except (OSError, json.JSONDecodeError, TypeError):
+            continue
+        if not isinstance(data, dict):
+            continue
+        if data.get("schema") not in (None, "preflight-ci-infra.v1"):
+            # accept missing schema for forward compat only if ok+head present
+            pass
+        rhead = str(data.get("head") or "").strip()
+        if head and rhead and not (
+            rhead == head or rhead.startswith(head[:12]) or head.startswith(rhead[:12])
+        ):
+            reasons.append(f"ci_infra_preflight_head_mismatch:{path.name}")
+            continue
+        if data.get("ok") is True:
+            return True, str(path), []
+        reasons.append(f"ci_infra_preflight_not_ok:{path.name}")
+
+    if not reasons:
+        reasons.append("ci_infra_preflight_receipt_missing")
+    tool = policy.get("ci_infra_preflight_tool") or ".grok/bin/preflight-ci-infra"
+    reasons.append(f"run:{tool} --pr {pr} then re-merge-check")
+    return False, None, reasons
+
+
+def find_agent_dual_critic(pr: int, policy: dict) -> Tuple[bool, Optional[str]]:
+    """Locate dual-critic review packet under .grok/programs and docs disposition evidence."""
+    admit = {
+        str(v).upper()
+        for v in (policy.get("agent_review_admit_verdicts") or ["APPROVE", "CLEAR", "ADMIT"])
+    }
+    require_xm = bool(policy.get("require_cross_model_critics", False))
+    admit_indep = {
+        str(v).lower()
+        for v in (policy.get("agent_review_admit_independence") or ["cross_model"])
+    }
+    # Search common grok roots + disposition evidence + worktrees
+    roots: List[Path] = []
+    for start in [Path.cwd(), Path("/Users/jasonlee/Developer/oyatie")]:
+        for rel in (
+            ".grok/programs",
+            "docs/decisions/_disposition/evidence",
+            ".grok/programs/delivery-fabric/evidence",
+        ):
+            g = start / rel
+            if g.is_dir() and g not in roots:
+                roots.append(g)
+        for p in start.parents:
+            g2 = p / ".grok" / "programs"
+            if g2.is_dir() and g2 not in roots:
+                roots.append(g2)
+            if p == Path("/Users/jasonlee"):
+                break
+    for extra in (
+        Path("/Users/jasonlee/Developer/oyatie-adr-disposition-20260806/docs/decisions/_disposition/evidence"),
+        Path("/Users/jasonlee/Developer/oyatie-kit-land-dev/.grok/programs"),
+        Path("/Users/jasonlee/Developer/oyatie-mm-harness-20260805/.grok/programs"),
+    ):
+        if extra.is_dir() and extra not in roots:
+            roots.append(extra)
+
+    candidates: List[Path] = []
+    for root in roots:
+        for pat in (
+            f"**/pr-{pr}-dual-critic.json",
+            f"**/pr-{pr}-dual-critic-*.json",
+            f"**/*{pr}*dual-critic*.json",
+            f"**/*{pr}*review*.json",
+        ):
+            candidates.extend(root.glob(pat))
+    # prefer newest
+    candidates = sorted({c.resolve() for c in candidates if c.is_file()}, key=lambda p: p.stat().st_mtime, reverse=True)
+    for path in candidates:
+        try:
+            data = load_json(path)
+        except (OSError, json.JSONDecodeError):
+            continue
+        if int(data.get("pr") or 0) != int(pr) and str(data.get("pr")) != str(pr):
+            # allow filename match only if pr field missing
+            if f"-{pr}-" not in path.name and not path.name.startswith(f"pr-{pr}"):
+                continue
+        verdict = str(data.get("verdict") or data.get("admit_recommendation") or "").upper()
+        critics = data.get("critics") or data.get("reviews") or []
+        if not isinstance(critics, list) or len(critics) < 2:
+            continue
+        # each critic should admit
+        ok_n = 0
+        providers = []
+        for c in critics:
+            if not isinstance(c, dict):
+                continue
+            v = str(c.get("verdict") or c.get("admit") or c.get("admit_recommendation") or "").upper()
+            if v in admit or v in ("APPROVE", "CLEAR", "ADMIT", "SHIP"):
+                ok_n += 1
+            if c.get("provider"):
+                providers.append(str(c.get("provider")))
+        indep = str(data.get("independence") or "unknown").lower()
+        if require_xm:
+            if indep not in admit_indep:
+                continue
+            if indep == "cross_model" and len(set(providers)) < 2:
+                continue
+        if ok_n >= 2 and (verdict in admit or verdict in ("APPROVE", "CLEAR", "ADMIT", "SHIP") or ok_n >= 2):
+            # overall verdict optional if both critics admit
+            if not verdict or verdict in admit or verdict in ("APPROVE", "CLEAR", "ADMIT", "SHIP", "PASS"):
+                return True, str(path)
+        if verdict in admit and ok_n >= 2:
+            return True, str(path)
+    return False, None
+
+
+def merge_check(pr: int, cfg: dict, *, timeout: int = 30, grok: Optional[Path] = None) -> dict:
+    """Evaluate whether autonomous squash-merge is allowed (user directive)."""
+    policy = cfg.get("merge_policy") or {}
+    reasons: List[str] = []
+    preflight_path: Optional[str] = None
+    if not policy.get("enabled", False):
+        return {"ok": False, "pr": pr, "reasons": ["merge_policy.enabled=false"], "info": {}}
+
+    info = pr_check_summary(pr, timeout=timeout)
+    if not info.get("ok"):
+        return {"ok": False, "pr": pr, "reasons": [str(info.get("reason") or "pr_query_failed")], "info": info}
+
+    # auto undraft handled at merge time; still report draft as reason unless auto_undraft
+    if policy.get("require_not_draft", True) and info.get("draft") and not policy.get("auto_undraft", False):
+        reasons.append("pr_is_draft")
+    elif policy.get("require_not_draft", True) and info.get("draft") and policy.get("auto_undraft", False):
+        # draft OK if we will undraft before merge — do not block check
+        pass
+    if policy.get("require_mergeable", True):
+        if str(info.get("mergeable") or "").upper() not in ("MERGEABLE", "TRUE"):
+            reasons.append(f"not_mergeable:{info.get('mergeable')}")
+    mss = str(info.get("mergeStateStatus") or "").upper()
+    if not policy.get("require_merge_state_clean_or_unstable_ok", False):
+        if mss and mss not in ("CLEAN", "HAS_HOOKS", "UNSTABLE"):
+            # UNSTABLE = failing non-required; CLEAN required when possible
+            if mss in ("DIRTY", "BLOCKED", "BEHIND", "DRAFT"):
+                reasons.append(f"mergeStateStatus:{mss}")
+    if policy.get("require_oya_ci_required_success", True):
+        oya = info.get("oya_ci_required") or {}
+        if (oya.get("conclusion") or "").upper() != "SUCCESS":
+            reasons.append(f"oya_ci_required:{(oya.get('conclusion') or oya.get('status') or 'missing')}")
+    if policy.get("forbid_changes_requested", True) and info.get("changes_requested"):
+        reasons.append("changes_requested_present")
+
+    # Review bar: agent dual-critic packet (default) and/or independent GH APPROVE.
+    # Human GH APPROVE is NOT mandatory when require_agent_dual_critic is satisfied.
+    author = str(info.get("author") or "")
+    approvers = list(info.get("approvers") or [])
+    independent = [a for a in approvers if a and a != author]
+    decision = str(info.get("reviewDecision") or "").upper()
+    gh_ok = bool(decision == "APPROVED" and independent) or bool(independent)
+    if policy.get("forbid_self_approve", True) and author and approvers and not independent:
+        # self-approve only — never sufficient
+        gh_ok = False
+
+    agent_ok = False
+    agent_path = None
+    if policy.get("require_agent_dual_critic", False) or not policy.get(
+        "require_independent_approve", False
+    ):
+        agent_ok, agent_path = find_agent_dual_critic(pr, policy)
+        if policy.get("require_agent_dual_critic", False) and not agent_ok:
+            reasons.append("agent_dual_critic_missing_or_not_admit")
+    if policy.get("require_independent_approve", False) and not gh_ok:
+        reasons.append("no_independent_approve")
+    # If neither bar required fails, ensure at least one review bar when both optional
+    if (
+        not policy.get("require_agent_dual_critic", False)
+        and not policy.get("require_independent_approve", False)
+        and not agent_ok
+        and not gh_ok
+    ):
+        reasons.append("no_agent_dual_critic_and_no_independent_approve")
+
+    # R4: CI-infra path PRs need a local preflight receipt (tool under .grok/bin, not infra/*).
+    if policy.get("require_ci_infra_preflight_receipt", False):
+        grok_for_receipt = grok if grok is not None else find_grok(Path.cwd())
+        ok_pf, preflight_path, pf_reasons = find_ci_infra_preflight_receipt(
+            grok_for_receipt,
+            pr,
+            str(info.get("head") or ""),
+            policy,
+        )
+        if not ok_pf:
+            reasons.extend(pf_reasons)
+
+    if policy.get("forbid_unresolved_conversations", True):
+        code, out, err = run_gh(
+            [
+                "api",
+                f"repos/{{owner}}/{{repo}}/pulls/{pr}/comments",
+                "--jq",
+                "length",
+            ],
+            timeout=timeout,
+        )
+        # Better: GraphQL reviewThreads - use gh pr view for reviewThreads if available
+        code2, out2, _e2 = run_gh(
+            [
+                "pr",
+                "view",
+                str(pr),
+                "--json",
+                "reviewThreads",
+            ],
+            timeout=timeout,
+        )
+        if code2 == 0 and out2.strip():
+            try:
+                th = json.loads(out2)
+                threads = th.get("reviewThreads") or []
+                unresolved = [t for t in threads if isinstance(t, dict) and not t.get("isResolved", True)]
+                # also check comments
+                blocking = [
+                    t
+                    for t in unresolved
+                    if t.get("isOutdated") is not True
+                ]
+                if blocking:
+                    reasons.append(f"unresolved_review_threads:{len(blocking)}")
+            except json.JSONDecodeError:
+                pass
+
+    viewer = gh_viewer_login(timeout=timeout)
+    ok = len(reasons) == 0
+    return {
+        "ok": ok,
+        "pr": pr,
+        "reasons": reasons,
+        "info": info,
+        "viewer": viewer,
+        "agent_review_path": agent_path,
+        "ci_infra_preflight_path": preflight_path if policy.get("require_ci_infra_preflight_receipt") else None,
+        "gh_independent_approve": gh_ok,
+        "action": "squash_merge" if ok else "wait_or_fix",
+        "policy": {
+            "merge_method": policy.get("merge_method") or "squash",
+            "enabled": True,
+            "require_agent_dual_critic": bool(policy.get("require_agent_dual_critic")),
+            "require_independent_approve": bool(policy.get("require_independent_approve")),
+            "require_ci_infra_preflight_receipt": bool(
+                policy.get("require_ci_infra_preflight_receipt")
+            ),
+            "auto_undraft": bool(policy.get("auto_undraft")),
+        },
+    }
+
+
+def load_workstreams(grok: Path) -> List[dict]:
+    pipe = load_json(grok / "harness" / "pipeline.json")
+    ws = (pipe.get("workstreams") or {}).get("active") or []
+    if not isinstance(ws, list):
+        return []
+    return [w for w in ws if isinstance(w, dict)]
+
+
+def load_program(grok: Path, program_rel: str) -> dict:
+    # programs may live under session .grok or kit .grok
+    candidates = [
+        grok / program_rel,
+        grok.parent / ".grok" / program_rel if grok.name == ".grok" else grok / program_rel,
+    ]
+    # session programs often on primary repo .grok
+    for c in candidates:
+        if c.is_file():
+            try:
+                return load_json(c)
+            except (OSError, json.JSONDecodeError):
+                pass
+    # also try absolute-ish from worktree parents
+    for parent in list(grok.parents)[:4]:
+        p = parent / ".grok" / program_rel
+        if p.is_file():
+            try:
+                return load_json(p)
+            except (OSError, json.JSONDecodeError):
+                pass
+    return {}
+
+
+def classify_lane(lane: dict, program: dict, pr_info: Optional[dict], cfg: dict) -> dict:
+    lid = str(lane.get("id") or "unknown")
+    story = str(lane.get("story") or "")
+    worktree = str(lane.get("worktree") or "")
+    agent_drive = lane.get("agent_drive")
+    layer = str(lane.get("layer") or "")
+    out: Dict[str, Any] = {
+        "id": lid,
+        "story": story,
+        "worktree": worktree,
+        "layer": layer,
+        "agent_drive": agent_drive,
+        "program_path": lane.get("program"),
+        "class": "unknown",
+        "next": "",
+        "hard_stops": [],
+        "pr": lane.get("pr"),
+        "ci": None,
+    }
+
+    # Explicit non-agent lanes (ops / security / sequenced) — never thrash Stop
+    if agent_drive is False:
+        if "1541" in lid or "security" in layer.lower() or "credential" in story.lower():
+            out["class"] = "human_blocked"
+            out["next"] = "Security/ops lane: human-only (see hyperscaler-delivery-lanes)"
+            out["hard_stops"] = ["no_secret_exposure", "no_auto_rotation"]
+            return out
+        if "re-sandbox" in lid or "re-after" in story or layer == "L6":
+            out["class"] = "sequenced_blocked"
+            out["next"] = "RE sequenced after CAS terminal proof — do not start"
+            return out
+        if "runner" in lid or "premerge" in lid or "postmerge" in lid:
+            out["class"] = "human_blocked"
+            out["next"] = (
+                f"Planned/ops lane {lid}: separate PR or human ops; "
+                "do not couple into product CAS/k8s branches"
+            )
+            return out
+        if "1561" in lid or "k8s" in lid or "w0a" in lid.lower():
+            # fall through to PR classification but prefer human when green
+            pass
+        else:
+            out["class"] = "human_blocked"
+            out["next"] = f"agent_drive=false for {lid}"
+            return out
+
+    # Security / sequenced heuristics from id and program
+    if "1541" in lid or "talos" in lid.lower() or "security" in story.lower():
+        out["class"] = "human_blocked"
+        out["next"] = "Security/credential lane: human-only; do not auto-rotate secrets"
+        out["hard_stops"] = ["no_secret_exposure", "no_auto_rotation"]
+        return out
+
+    if (
+        "kit" in lid
+        or "R8" in lid
+        or story.startswith("pipeline-kit")
+        or "local-prepush" in story
+        or "R4" in lid
+    ):
+        # Kit / local-assist: optional — do not thrash Stop hooks unless forced
+        force = os.environ.get("MM_DRIVE_KIT", "").strip() in ("1", "true", "yes")
+        if "R4" in lid or "local-prepush" in story:
+            # R4 is done when tip exists
+            tip = find_grok(Path(worktree or ".")) / "memory" / "tips" / "local-prepush-new-yaml.md"
+            if tip.is_file() and not force:
+                out["class"] = "idle_complete"
+                out["next"] = "R4 tip landed (local-prepush-new-yaml.md); optional polish with MM_DRIVE_KIT=1"
+                return out
+        todo = find_grok(Path(worktree or ".")) / "tasks" / "todo.md"
+        open_kit = False
+        if todo.is_file():
+            try:
+                text = todo.read_text(encoding="utf-8", errors="replace")
+                open_kit = any(
+                    line.strip().startswith("- [ ]")
+                    and (
+                        "drive" in line.lower()
+                        or "mm-drive" in line.lower()
+                        or "kit" in line.lower()
+                    )
+                    for line in text.splitlines()
+                )
+            except OSError:
+                open_kit = False
+        if force or open_kit:
+            out["class"] = "resolvable"
+            out["next"] = "Continue kit/local-assist slice; set MM_DRIVE_KIT=0 to silence"
+        else:
+            out["class"] = "idle_complete"
+            out["next"] = "Kit/local-assist idle (export MM_DRIVE_KIT=1 to treat as resolvable)"
+        return out
+
+    # PR-bearing lanes from lane.pr, PROGRAM parallel_lanes, or id heuristics
+    pr = lane.get("pr")
+    if pr is not None:
+        try:
+            pr = int(pr)
+        except (TypeError, ValueError):
+            pr = None
+    pl = program.get("parallel_lanes") or {}
+    if pr is None and isinstance(pl, dict):
+        for _k, v in pl.items():
+            if isinstance(v, dict) and v.get("pr"):
+                if ("cas" in lid.lower() or "1558" in lid or "g039" in lid.lower()) and int(
+                    v.get("pr") or 0
+                ) == 1558:
+                    pr = int(v["pr"])
+                    out["hard_stops"] = [v.get("hard_stop") or "keep_draft"]
+                    break
+                if ("k8s" in lid.lower() or "1561" in lid or "w0a" in lid.lower()) and int(
+                    v.get("pr") or 0
+                ) == 1561:
+                    pr = int(v["pr"])
+                    out["hard_stops"] = [v.get("hard_stop") or "no_self_approve"]
+                    break
+    if pr is None:
+        if "1558" in lid or "g039" in lid.lower() or "cas" in lid.lower():
+            pr = 1558
+        elif "1561" in lid or "k8s" in lid.lower() or "w0a" in lid.lower():
+            pr = 1561
+
+    out["pr"] = pr
+    if pr is None:
+        out["class"] = "unknown"
+        out["next"] = "No PR bound; re-check PROGRAM.json"
+        return out
+
+    info = pr_info if pr_info is not None else pr_check_summary(pr, timeout=int((cfg.get("re_query") or {}).get("timeout_s") or 30))
+    out["ci"] = info
+    if not info.get("ok"):
+        out["class"] = "unknown"
+        out["next"] = f"Could not re-query PR #{pr}: {info.get('reason')}"
+        return out
+
+    failed = int(info.get("failed") or 0)
+    pending = int(info.get("pending") or 0)
+    oya = info.get("oya_ci_required") or {}
+    oya_conc = (oya.get("conclusion") or "").upper()
+    review = (info.get("reviewDecision") or "").upper()
+    draft = bool(info.get("draft"))
+
+    # sequenced: W0-B only after G001 — if story is G001 incomplete, k8s later stories sequenced
+    ug = str(program.get("ultragoal_status") or "")
+    if "awaiting_review" in ug or review in ("", "REVIEW_REQUIRED", "CHANGES_REQUESTED"):
+        if failed == 0 and pending == 0 and oya_conc == "SUCCESS":
+            out["class"] = "human_blocked"
+            out["next"] = (
+                f"PR #{pr} oya-ci-required green; needs independent formal APPROVE "
+                f"(author cannot self-approve); then squash merge + post-merge packet"
+            )
+            out["hard_stops"] = list(out["hard_stops"]) + ["no_self_approve", "no_auto_merge"]
+            return out
+
+    if failed > 0:
+        out["class"] = "resolvable"
+        out["next"] = f"PR #{pr} has failing checks — diagnose logs, fix on worktree, push, keep draft={draft}"
+        return out
+
+    if pending > 0 or oya_conc in ("", "NULL") and pending >= 0:
+        if pending > 0 or (oya and oya.get("status") not in ("COMPLETED",) and oya_conc != "SUCCESS"):
+            out["class"] = "waiting_ci"
+            out["next"] = f"PR #{pr} checks pending — wait for oya-ci-required; do not thrash"
+            return out
+
+    # Autonomous merge path (user directive): APPROVE + green + no critical blockers
+    mc = merge_check(pr, cfg)
+    if mc.get("ok"):
+        out["class"] = "merge_ready"
+        out["next"] = (
+            f"PR #{pr} merge_ready — run `mm-drive merge --pr {pr}` "
+            f"(squash; independent APPROVE + oya-ci-required green)"
+        )
+        out["merge_check"] = {"ok": True, "approvers": (mc.get("info") or {}).get("approvers")}
+        return out
+
+    if oya_conc == "SUCCESS":
+        out["class"] = "human_blocked"
+        reasons = mc.get("reasons") or ["independent_approve_required"]
+        out["next"] = f"PR #{pr} CI green; merge blocked: {', '.join(reasons)}"
+        out["merge_check"] = {"ok": False, "reasons": reasons}
+        return out
+
+    out["class"] = "unknown"
+    out["next"] = f"PR #{pr} unclassified CI state"
+    return out
+
+
+def build_board(grok: Path, *, do_gh: bool = True) -> dict:
+    cfg = load_drive_cfg(grok)
+    lanes_in = load_workstreams(grok)
+    # Enrich with 1541 awareness lane if programs mention it
+    timeout = int((cfg.get("re_query") or {}).get("timeout_s") or 30)
+    want_gh = do_gh and bool((cfg.get("re_query") or {}).get("gh_pr_checks", True))
+
+    pr_cache: Dict[int, dict] = {}
+    classified: List[dict] = []
+    for lane in lanes_in:
+        prog_rel = str(lane.get("program") or "")
+        program = load_program(grok, prog_rel) if prog_rel else {}
+        pr_guess = None
+        lid = str(lane.get("id") or "")
+        if "1558" in lid or "cas" in lid:
+            pr_guess = 1558
+        elif "1561" in lid or "k8s" in lid:
+            pr_guess = 1561
+        pr_info = None
+        if want_gh and pr_guess:
+            if pr_guess not in pr_cache:
+                pr_cache[pr_guess] = pr_check_summary(pr_guess, timeout=timeout)
+            pr_info = pr_cache[pr_guess]
+        classified.append(classify_lane(lane, program, pr_info, cfg))
+
+    classes = [c["class"] for c in classified]
+    resolvable = [c for c in classified if c["class"] in ("resolvable", "merge_ready")]
+    human = [c for c in classified if c["class"] == "human_blocked"]
+    waiting = [c for c in classified if c["class"] == "waiting_ci"]
+    merge_ready = [c for c in classified if c["class"] == "merge_ready"]
+
+    return {
+        "ts": now(),
+        "lanes": classified,
+        "counts": {
+            "resolvable": len([c for c in classified if c["class"] == "resolvable"]),
+            "merge_ready": len(merge_ready),
+            "human_blocked": len(human),
+            "waiting_ci": len(waiting),
+            "total": len(classified),
+        },
+        "resolvable_ids": [c["id"] for c in resolvable],
+        "merge_ready_ids": [c["id"] for c in merge_ready],
+        "human_blocked_ids": [c["id"] for c in human],
+        "policy": cfg.get("stop_hook") or {},
+        "merge_policy": cfg.get("merge_policy") or {},
+        "forbidden_clis": cfg.get("forbidden_clis") or ["gjc", "omc", "omx", "hermes"],
+        "autonomous_merge": "allowed_only_when_merge_check_ok",
+        "ultragoal_not_completed": True,
+    }
+
+
+def should_block_stop(board: dict, cfg: dict, stop_hook_active: bool, blocks_so_far: int) -> Tuple[bool, str]:
+    sh = cfg.get("stop_hook") or {}
+    max_blocks = int(sh.get("max_blocks_per_turn") or 3)
+    if blocks_so_far >= max_blocks:
+        return False, f"max_blocks_per_turn={max_blocks} reached; allow stop and resume next turn/scheduler"
+    if stop_hook_active and blocks_so_far >= max_blocks - 1:
+        # leave headroom before Grok's 8-cap
+        pass
+
+    resolvable = board.get("resolvable_ids") or []
+    waiting = [L for L in board.get("lanes") or [] if L.get("class") == "waiting_ci"]
+    block_on_resolvable = bool(sh.get("block_on_resolvable", True))
+    wait_blocks = bool(sh.get("wait_ci_blocks_stop", False))
+
+    merge_ready = board.get("merge_ready_ids") or []
+    if merge_ready:
+        lines = [
+            "mm-drive: merge_ready PR(s) — continue and run merge-check/merge.",
+            f"merge_ready: {', '.join(merge_ready)}",
+            "Actions: for each PR, `mm-drive merge-check --pr N` then `mm-drive merge --pr N` if ok.",
+            "Hard stops: no self-approve; no merge without independent APPROVE; no false ultragoal complete.",
+        ]
+        for L in board.get("lanes") or []:
+            if L.get("class") == "merge_ready":
+                lines.append(f"- {L.get('id')}: {L.get('next')}")
+        return True, "\n".join(lines)
+
+    if block_on_resolvable and resolvable:
+        lines = [
+            "mm-drive: resolvable work remains — do not idle-stop.",
+            f"Resolvable lanes: {', '.join(resolvable)}",
+            "Actions: run `.grok/bin/mm-drive status --json` then spawn path-disjoint subagents per resolvable lane.",
+            "Hard stops: no self-approve, no gjc/omc/omx/hermes, no false ultragoal complete; merge only if merge-check ok.",
+        ]
+        for L in board.get("lanes") or []:
+            if L.get("class") == "resolvable":
+                lines.append(f"- {L.get('id')}: {L.get('next')}")
+        return True, "\n".join(lines)
+
+    if wait_blocks and waiting:
+        return True, (
+            "mm-drive: waiting_ci with wait_ci_blocks_stop=true — poll CI then re-tick. "
+            "Process: waiting_ci is not idle_complete; arm a monitor or schedule re-tick."
+        )
+
+    # allow stop — summarize human blockers
+    humans = board.get("human_blocked_ids") or []
+    parts = ["mm-drive: no resolvable agent work; allowing stop."]
+    if humans:
+        parts.append(f"Human-blocked: {', '.join(humans)}")
+    if waiting:
+        wait_ids = ", ".join(L.get("id") for L in waiting)
+        parts.append(f"Waiting CI: {wait_ids}")
+        # Process fix (anti-passive): allow stop only with armed re-poll or explicit next action
+        if sh.get("waiting_ci_requires_armed_repoll", True):
+            parts.append(
+                "PROCESS: waiting_ci ≠ idle_complete. Prefer fabric W3 sole babysit "
+                "(BABYSIT-SINGLE-FLIGHT.md): ensure board lane is ready_for_babysit with pr=N, "
+                "then claim a path-disjoint ready lane OR one-shot status later — do NOT multi-arm "
+                "sleep+gh poll loops for a PR W3 already owns. If you are explicit sole babysit owner "
+                "for that PR, arm at most one waiter per (pr, head_sha). tip-sync when origin/dev moves."
+            )
+    parts.append("ultragoal_not_completed remains true.")
+    parts.append(
+        "process_fix_definition: edit harness/workflow/tool so agents cannot repeat mistakes "
+        "(not one-off rebases alone). See BUN-PARALLEL-DISCIPLINE.md."
+    )
+    return False, "\n".join(parts)
+
+
+def briefs_from_board(board: dict) -> List[dict]:
+    out = []
+    preflight_cmd = ".grok/bin/preflight-ci-infra"
+    for L in board.get("lanes") or []:
+        if L.get("class") != "resolvable":
+            continue
+        pr = L.get("pr")
+        pr_s = str(pr) if pr else ""
+        preflight_line = (
+            f"MANDATORY before push when touching CI/admission paths "
+            f"(.github/workflows, infra/ci|arc, ci/facade, cloud/cloud-ci): "
+            f"from the PR worktree AT PR head only, run `{preflight_cmd}"
+            + (f" --pr {pr_s}" if pr_s else "")
+            + "`. Tool fails closed if cwd HEAD != PR headRefOid (process gate). "
+            "mm-drive merge-check fails closed without a matching head receipt. "
+            "Tool is under .grok/bin (not infra/*). Batch local reds; one push; never mid-run push. "
+            "After any merge: tip-sync remaining open PRs onto origin/dev."
+        )
+        verify = []
+        if pr:
+            verify.append(
+                f"{preflight_cmd} --pr {pr}"
+            )
+            verify.append("gh pr checks " + str(pr))
+        else:
+            verify.append(preflight_cmd)
+        out.append(
+            {
+                "id": L.get("id"),
+                "class": "resolvable",
+                "worktree": L.get("worktree"),
+                "pr": pr,
+                "brief": (
+                    f"Lane {L.get('id')}: {L.get('next')}. "
+                    f"Worktree={L.get('worktree')}. PR={pr}. "
+                    f"Hard stops={L.get('hard_stops')}. "
+                    f"{preflight_line} "
+                    "Keep draft until green+review policy; never merge from drive without merge-check ok."
+                ),
+                "verify": verify,
+                "preflight": {
+                    "tool": preflight_cmd,
+                    "required_for_ci_infra_paths": True,
+                    "note": "receipt under .grok/programs/hyperscaler-delivery-lanes/evidence/",
+                },
+            }
+        )
+    return out
+
+
+def cmd_preflight_ci(args: argparse.Namespace) -> int:
+    """Run .grok/bin/preflight-ci-infra (R4). Never installs tooling under infra/*."""
+    grok = find_grok(Path(args.cwd))
+    root = repo_root_from_grok(grok)
+    tool = root / ".grok" / "bin" / "preflight-ci-infra"
+    if not tool.is_file():
+        print(
+            json.dumps(
+                {
+                    "ok": False,
+                    "reasons": [f"missing_tool:{tool}"],
+                    "hint": "harness tool must live at .grok/bin/preflight-ci-infra (not infra/*)",
+                },
+                indent=2,
+            )
+        )
+        return 2
+    cmd = [str(tool)]
+    if args.pr:
+        cmd.extend(["--pr", str(args.pr)])
+    if args.base:
+        cmd.extend(["--base", args.base])
+    if args.skip_buck:
+        cmd.append("--skip-buck")
+    if args.require_buck:
+        cmd.append("--require-buck")
+    if args.json:
+        cmd.append("--json")
+    try:
+        proc = subprocess.run(cmd, cwd=str(root), check=False)
+    except OSError as e:
+        print(json.dumps({"ok": False, "reasons": [f"exec_failed:{e}"]}, indent=2))
+        return 2
+    return int(proc.returncode)
+
+
+def cmd_status(args: argparse.Namespace) -> int:
+    grok = find_grok(Path(args.cwd))
+    board = build_board(grok, do_gh=not args.offline)
+    print(json.dumps(board, indent=2))
+    return 0
+
+
+def cmd_tick(args: argparse.Namespace) -> int:
+    grok = find_grok(Path(args.cwd))
+    repo_root = grok.parent if grok.name == ".grok" else grok
+    # Soft reds / blocks → task board (never silent). Best-effort; never block tick.
+    queue_ingest = {"ok": False, "note": "skipped"}
+    dev_status = {"ok": False, "note": "skipped"}
+    reorg_enqueue = {"ok": False, "note": "skipped"}
+    try:
+        if not args.offline:
+            for tool_name, key_holder, extra in (
+                ("mm-dev-status", "dev_status", ["--fetch"]),
+                ("mm-queue-ingest", "queue_ingest", ["--base", "dev"]),
+                ("mm-reorg-enqueue", "reorg_enqueue", ["--waves", "W0,W1,W2"]),
+            ):
+                tool = grok / "bin" / tool_name
+                if not tool.is_file():
+                    continue
+                p = subprocess.run(
+                    [sys.executable, str(tool), "--cwd", str(repo_root), *extra],
+                    text=True,
+                    capture_output=True,
+                    timeout=180,
+                    check=False,
+                )
+                try:
+                    parsed = (
+                        json.loads(p.stdout)
+                        if (p.stdout or "").strip()
+                        else {"ok": False, "stderr": (p.stderr or "")[:300]}
+                    )
+                except json.JSONDecodeError:
+                    parsed = {"ok": False, "stderr": (p.stderr or p.stdout or "")[:400]}
+                if tool_name == "mm-dev-status":
+                    dev_status = parsed
+                elif tool_name == "mm-queue-ingest":
+                    queue_ingest = parsed
+                else:
+                    reorg_enqueue = parsed
+    except Exception as e:  # noqa: BLE001 — tick must continue
+        queue_ingest = {"ok": False, "error": str(e)[:200]}
+
+    board = build_board(grok, do_gh=not args.offline)
+    board["briefs"] = briefs_from_board(board)
+    board["queue_ingest"] = queue_ingest
+    board["dev_status"] = dev_status
+    board["reorg_enqueue"] = reorg_enqueue
+    try:
+        tb_path = repo_root / ".grok/programs/delivery-fabric/task-board.v1.json"
+        if tb_path.is_file():
+            tb = load_json(tb_path)
+            board["task_board_queue_stats"] = tb.get("queue_stats")
+            board["origin_dev"] = tb.get("origin_dev") or (dev_status.get("origin_dev") if isinstance(dev_status, dict) else None)
+            board["reorg_queue"] = tb.get("reorg_queue")
+            board["soft_red_ready"] = sum(
+                1
+                for L in (tb.get("lanes") or [])
+                if isinstance(L, dict)
+                and L.get("source") == "soft_red"
+                and L.get("status") == "ready"
+            )
+            board["ci_red_ready"] = sum(
+                1
+                for L in (tb.get("lanes") or [])
+                if isinstance(L, dict)
+                and L.get("source") == "ci_red"
+                and L.get("status") == "ready"
+            )
+            board["block_ready"] = sum(
+                1
+                for L in (tb.get("lanes") or [])
+                if isinstance(L, dict)
+                and L.get("source") == "block"
+                and L.get("status") == "ready"
+            )
+            board["reorg_ready"] = sum(
+                1
+                for L in (tb.get("lanes") or [])
+                if isinstance(L, dict)
+                and L.get("source") == "reorg"
+                and L.get("status") == "ready"
+            )
+    except Exception:
+        pass
+    append_ledger(
+        grok,
+        {
+            "event": "tick",
+            "counts": board.get("counts"),
+            "resolvable": board.get("resolvable_ids"),
+            "soft_red_ready": board.get("soft_red_ready"),
+            "reorg_ready": board.get("reorg_ready"),
+            "origin_dev": (board.get("origin_dev") or {}).get("sha12")
+            if isinstance(board.get("origin_dev"), dict)
+            else None,
+            "queue_ingest_ok": bool(queue_ingest.get("ok")),
+        },
+    )
+    print(json.dumps(board, indent=2))
+    return 0
+
+
+def cmd_briefs(args: argparse.Namespace) -> int:
+    grok = find_grok(Path(args.cwd))
+    board = build_board(grok, do_gh=not args.offline)
+    print(json.dumps({"ts": now(), "briefs": briefs_from_board(board)}, indent=2))
+    return 0
+
+
+def cmd_merge_check(args: argparse.Namespace) -> int:
+    grok = find_grok(Path(args.cwd))
+    cfg = load_drive_cfg(grok)
+    result = merge_check(int(args.pr), cfg, grok=grok)
+    append_ledger(grok, {"event": "merge_check", "pr": int(args.pr), "ok": result.get("ok"), "reasons": result.get("reasons")})
+    print(json.dumps(result, indent=2))
+    return 0 if result.get("ok") else 2
+
+
+def cmd_merge(args: argparse.Namespace) -> int:
+    """Squash-merge only when merge_check ok (independent APPROVE + green + no critical blockers)."""
+    grok = find_grok(Path(args.cwd))
+    cfg = load_drive_cfg(grok)
+    pr = int(args.pr)
+    check = merge_check(pr, cfg, grok=grok)
+    if not check.get("ok"):
+        print(json.dumps({"merged": False, "check": check}, indent=2))
+        return 2
+    if args.dry_run:
+        print(json.dumps({"merged": False, "dry_run": True, "check": check, "would": "gh pr merge --squash"}, indent=2))
+        return 0
+    policy = cfg.get("merge_policy") or {}
+    method = str(policy.get("merge_method") or "squash")
+    args_gh = ["pr", "merge", str(pr), f"--{method}"]
+    if policy.get("delete_branch"):
+        args_gh.append("--delete-branch")
+    info = check.get("info") or {}
+    if info.get("draft"):
+        if policy.get("auto_undraft", False):
+            ucode, uout, uerr = run_gh(["pr", "ready", str(pr)], timeout=60)
+            if ucode != 0:
+                print(json.dumps({"merged": False, "reasons": ["auto_undraft_failed"], "stderr": (uerr or "")[:300]}, indent=2))
+                return 2
+        else:
+            print(json.dumps({"merged": False, "reasons": ["still_draft_refuse"]}, indent=2))
+            return 2
+    code, out, err = run_gh(args_gh, timeout=120)
+    ok = code == 0
+    append_ledger(
+        grok,
+        {
+            "event": "merge",
+            "pr": pr,
+            "ok": ok,
+            "method": method,
+            "head": info.get("head"),
+            "stderr": (err or "")[:500],
+        },
+    )
+    print(
+        json.dumps(
+            {
+                "merged": ok,
+                "pr": pr,
+                "method": method,
+                "head": info.get("head"),
+                "url": info.get("url"),
+                "stdout": (out or "")[:500],
+                "stderr": (err or "")[:500],
+                "next": "fill R3 post-merge packet from promoted origin/dev SHA + trunk oya-ci-required run",
+            },
+            indent=2,
+        )
+    )
+    return 0 if ok else 3
+
+
+def cmd_stop_hook(args: argparse.Namespace) -> int:
+    """Grok Stop hook entry: read event JSON from stdin, write decision to stdout."""
+    raw = sys.stdin.read() if not args.fixture else Path(args.fixture).read_text(encoding="utf-8")
+    try:
+        event = json.loads(raw) if raw.strip() else {}
+    except json.JSONDecodeError:
+        # fail open
+        return 0
+
+    reason = event.get("reason") or ""
+    # Session-end stop: never block
+    if reason in ("channel_closed", "shutdown"):
+        return 0
+
+    grok = find_grok(Path(event.get("workspaceRoot") or event.get("cwd") or args.cwd))
+    cfg = load_drive_cfg(grok)
+    board = build_board(grok, do_gh=not args.offline)
+
+    stop_hook_active = bool(event.get("stopHookActive"))
+    # Approximate blocks_so_far: if stopHookActive, count as at least 1; optional env
+    blocks_so_far = int(os.environ.get("MM_DRIVE_STOP_BLOCKS", "1" if stop_hook_active else "0"))
+
+    block, msg = should_block_stop(board, cfg, stop_hook_active, blocks_so_far)
+    append_ledger(
+        grok,
+        {
+            "event": "stop_hook",
+            "block": block,
+            "stopHookActive": stop_hook_active,
+            "blocks_so_far": blocks_so_far,
+            "counts": board.get("counts"),
+            "resolvable": board.get("resolvable_ids"),
+        },
+    )
+
+    if block:
+        # decision block feeds reason back to the model
+        sys.stdout.write(json.dumps({"decision": "block", "reason": msg}))
+        sys.stdout.write("\n")
+        return 0
+    # allow stop — empty stdout
+    return 0
+
+
+# --- D3: quality-gated checkpoint preflight (drive ↔ goals) ---
+
+# Promoted / cloud-CI proof markers (sha, run URL, post-merge packet fields).
+_PROMOTED_MARKERS = re.compile(
+    r"(?:"
+    r"promoted[_\s-]?commit"
+    r"|promoted[_\s-]?sha"
+    r"|post[-_\s]?merge"
+    r"|origin/dev"
+    r"|oya-ci-required"
+    r"|actions/runs/\d+"
+    r"|run[_\s-]?url"
+    r"|https?://github\.com/\S+/actions/runs/\d+"
+    r"|\b[0-9a-f]{40}\b"
+    r")",
+    re.I,
+)
+
+# Draft-only / local-green-only claim language.
+_DRAFT_LOCAL_CLAIM = re.compile(
+    r"(?:"
+    r"local\s*green"
+    r"|local-green"
+    r"|local[_\s-]?only"
+    r"|draft[-_\s]?only"
+    r"|draft\s+green"
+    r"|green\s+on\s+draft"
+    r"|ci\s+green\s+on\s+draft"
+    r"|keep\s+draft"
+    r")",
+    re.I,
+)
+
+_LOCAL_GREEN_ONLY = re.compile(r"local\s*green|local-green|local[_\s-]?only", re.I)
+_DRAFT_ONLY = re.compile(r"draft[-_\s]?only|draft\s+green|green\s+on\s+draft|keep\s+draft", re.I)
+
+
+def _load_quality_gate(path_or_json: str) -> Tuple[Optional[dict], List[str]]:
+    """Load quality-gate JSON from file path or inline JSON string."""
+    reasons: List[str] = []
+    raw = (path_or_json or "").strip()
+    if not raw:
+        return None, ["quality_gate_missing"]
+    p = Path(raw)
+    text: Optional[str] = None
+    if p.is_file():
+        try:
+            text = p.read_text(encoding="utf-8")
+        except OSError as e:
+            return None, [f"quality_gate_unreadable:{e}"]
+    elif raw.startswith("{") or raw.startswith("["):
+        text = raw
+    elif "/" in raw or raw.endswith((".json", ".JSON")):
+        # path-shaped but missing → missing, not invalid
+        return None, ["quality_gate_missing"]
+    else:
+        text = raw
+    try:
+        data = json.loads(text)
+    except json.JSONDecodeError:
+        return None, ["quality_gate_json_invalid"]
+    if not isinstance(data, dict):
+        return None, ["quality_gate_not_object"]
+    return data, reasons
+
+
+def _resolve_evidence_blob(evidence: str, evidence_path: str) -> str:
+    """Combine --evidence text and optional file/path contents into one blob."""
+    parts: List[str] = []
+    if evidence and evidence.strip():
+        parts.append(evidence.strip())
+    for token in (evidence_path or "").split(","):
+        token = token.strip()
+        if not token:
+            continue
+        p = Path(token)
+        if p.is_file():
+            try:
+                parts.append(p.read_text(encoding="utf-8", errors="replace"))
+            except OSError:
+                parts.append(token)
+        else:
+            parts.append(token)
+    return "\n".join(parts)
+
+
+def _goal_evidence_blob(grok: Path, goal_id: str, run_id: str = "") -> str:
+    """Pull evidence list from mm-runs goals.json when --goal-id is set."""
+    roots: List[Path] = []
+    mm = grok / "mm-runs"
+    if run_id:
+        roots.append(mm / run_id)
+    if mm.is_dir():
+        # newest first
+        roots.extend(sorted([p for p in mm.iterdir() if p.is_dir()], reverse=True))
+    for rd in roots:
+        gpath = rd / "goals.json"
+        if not gpath.is_file():
+            continue
+        try:
+            doc = load_json(gpath)
+        except (OSError, json.JSONDecodeError):
+            continue
+        for g in doc.get("goals") or []:
+            if not isinstance(g, dict):
+                continue
+            if str(g.get("id") or "") != goal_id:
+                continue
+            ev = g.get("evidence")
+            if isinstance(ev, list):
+                return "\n".join(str(x) for x in ev)
+            if isinstance(ev, str):
+                return ev
+    return ""
+
+
+def evidence_draft_local_only_reasons(blob: str, ac: dict) -> List[str]:
+    """Refuse complete when evidence is draft-only / local-green-only without promotion proof."""
+    reasons: List[str] = []
+    text = (blob or "").strip()
+    if not text:
+        reasons.append("evidence_missing")
+        return reasons
+
+    has_promoted = bool(_PROMOTED_MARKERS.search(text))
+    looks_claim = bool(_DRAFT_LOCAL_CLAIM.search(text))
+
+    # Pure "local green" / "draft only" messages with no sha / run url / promoted markers.
+    if looks_claim and not has_promoted:
+        if ac.get("forbid_from_local_green_only", True) and _LOCAL_GREEN_ONLY.search(text):
+            reasons.append("evidence_local_green_only")
+        if ac.get("forbid_from_draft_only", True) and _DRAFT_ONLY.search(text):
+            reasons.append("evidence_draft_only")
+        if not reasons:
+            # generic draft/local claim without a more specific tag
+            reasons.append("evidence_draft_or_local_green_without_promoted_proof")
+
+    # Path/name heuristics: evidence paths that are only draft/local markers.
+    for line in text.splitlines():
+        s = line.strip()
+        if not s:
+            continue
+        lower = s.lower()
+        pathish = "/" in s or s.endswith((".md", ".json", ".jsonl", ".txt"))
+        if not pathish:
+            continue
+        if has_promoted:
+            break
+        if ac.get("forbid_from_local_green_only", True) and any(
+            t in lower for t in ("local-green", "local_green", "localgreen")
+        ):
+            reasons.append("evidence_path_local_green_only")
+        if ac.get("forbid_from_draft_only", True) and any(
+            t in lower for t in ("draft-only", "draft_only", "draftonly")
+        ):
+            reasons.append("evidence_path_draft_only")
+
+    # de-dupe preserve order
+    seen = set()
+    out: List[str] = []
+    for r in reasons:
+        if r not in seen:
+            seen.add(r)
+            out.append(r)
+    return out
+
+
+def checkpoint_check(
+    *,
+    grok: Path,
+    goal_id: str = "",
+    quality_gate_json: str = "",
+    evidence: str = "",
+    evidence_path: str = "",
+    run_id: str = "",
+    status: str = "complete",
+) -> dict:
+    """Fail-closed preflight for complete checkpoints. Returns {ok, reasons, ...}."""
+    cfg = load_drive_cfg(grok)
+    ac = cfg.get("aggregate_complete") or {}
+    reasons: List[str] = []
+
+    # Non-complete status is informational — do not refuse.
+    if status and status != "complete":
+        return {
+            "ok": True,
+            "reasons": [],
+            "goal_id": goal_id or None,
+            "status": status,
+            "note": "non_complete_status_not_gated",
+        }
+
+    require_qg = bool(ac.get("require_quality_gate", True))
+    qg: Optional[dict] = None
+    if quality_gate_json.strip():
+        qg, q_reasons = _load_quality_gate(quality_gate_json)
+        reasons.extend(q_reasons)
+        if qg is not None and qg.get("pass") is not True:
+            reasons.append("quality_gate_pass_not_true")
+    elif require_qg:
+        reasons.append("quality_gate_missing")
+
+    blob = _resolve_evidence_blob(evidence, evidence_path)
+    if not blob.strip() and goal_id:
+        blob = _goal_evidence_blob(grok, goal_id, run_id=run_id)
+
+    # When require_quality_gate is on we always want some evidence for complete.
+    if not blob.strip():
+        # Only force evidence_missing if policy forbids draft/local-only (always for complete).
+        reasons.append("evidence_missing")
+    else:
+        reasons.extend(evidence_draft_local_only_reasons(blob, ac))
+
+    # de-dupe
+    seen = set()
+    uniq: List[str] = []
+    for r in reasons:
+        if r not in seen:
+            seen.add(r)
+            uniq.append(r)
+
+    return {
+        "ok": len(uniq) == 0,
+        "reasons": uniq,
+        "goal_id": goal_id or None,
+        "status": "complete",
+        "quality_gate_pass": (qg.get("pass") is True) if isinstance(qg, dict) else None,
+        "has_promoted_markers": bool(_PROMOTED_MARKERS.search(blob)) if blob else False,
+        "policy": {
+            "require_quality_gate": require_qg,
+            "forbid_from_draft_only": bool(ac.get("forbid_from_draft_only", True)),
+            "forbid_from_local_green_only": bool(ac.get("forbid_from_local_green_only", True)),
+        },
+    }
+
+
+def cmd_checkpoint_check(args: argparse.Namespace) -> int:
+    """D3: refuse complete if quality gate missing/fail or evidence is draft/local-green only."""
+    grok = find_grok(Path(args.cwd))
+    result = checkpoint_check(
+        grok=grok,
+        goal_id=args.goal_id or "",
+        quality_gate_json=args.quality_gate_json or "",
+        evidence=args.evidence or "",
+        evidence_path=args.evidence_path or "",
+        run_id=args.run_id or "",
+        status=args.status or "complete",
+    )
+    append_ledger(
+        grok,
+        {
+            "event": "checkpoint_check",
+            "ok": result.get("ok"),
+            "reasons": result.get("reasons"),
+            "goal_id": result.get("goal_id"),
+        },
+    )
+    print(json.dumps(result, indent=2))
+    # Exit 0 always so callers parse JSON; ok=false is the refuse signal.
+    # Shell fail-closed: MM_DRIVE_CHECKPOINT_EXIT=1 maps ok=false → exit 1.
+    if not result.get("ok") and os.environ.get("MM_DRIVE_CHECKPOINT_EXIT", "").strip() in (
+        "1",
+        "true",
+        "yes",
+    ):
+        return 1
+    return 0
+
+
+
+def cmd_packet(args: argparse.Namespace) -> int:
+    """R3 post-merge product-completion packet (delegates to mm-packet)."""
+    packet_bin = Path(__file__).resolve().parent / "mm-packet"
+    if not packet_bin.is_file():
+        print(json.dumps({"ok": False, "reasons": ["mm_packet_missing"], "ultragoal_complete": False}, indent=2))
+        return 1
+    argv = [sys.executable, str(packet_bin), "--cwd", str(args.cwd)]
+    mapping = [
+        ("--pr", "pr"),
+        ("--sha", "sha"),
+        ("--program", "program"),
+        ("--out", "out"),
+        ("--timeout", "timeout"),
+        ("--title", "title"),
+        ("--rollout-class", "rollout_class"),
+        ("--rollout-verification", "rollout_verification"),
+        ("--rollback-note", "rollback_note"),
+        ("--observability-check", "observability_check"),
+        ("--browser-user-story", "browser_user_story"),
+        ("--release-impact", "release_impact"),
+        ("--harvest-cards", "harvest_cards"),
+        ("--harvest-rationale", "harvest_rationale"),
+    ]
+    for flag, attr in mapping:
+        val = getattr(args, attr, None)
+        if val is None or val == "":
+            continue
+        argv.extend([flag, str(val)])
+    for flag, attr in (
+        ("--dry-run", "dry_run"),
+        ("--force", "force"),
+        ("--closed", "closed"),
+        ("--no-merge-existing", "no_merge_existing"),
+    ):
+        if getattr(args, attr, False):
+            argv.append(flag)
+    try:
+        return int(subprocess.run(argv, check=False).returncode)
+    except OSError as e:
+        print(json.dumps({"ok": False, "reasons": [f"mm_packet_exec_failed:{e}"], "ultragoal_complete": False}, indent=2))
+        return 1
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="mm-drive: ultragoal/Ralph outer loop (no omc/omx/gjc)")
+    common = argparse.ArgumentParser(add_help=False)
+    common.add_argument("--cwd", default=".")
+    common.add_argument("--offline", action="store_true", help="skip gh re-query")
+    common.add_argument(
+        "--json",
+        action="store_true",
+        help="accepted for CLI symmetry; output is always JSON",
+    )
+    sub = ap.add_subparsers(dest="cmd", required=True)
+
+    sp = sub.add_parser("status", parents=[common], help="classify workstreams")
+    sp.set_defaults(func=cmd_status)
+
+    sp = sub.add_parser("tick", parents=[common], help="status + briefs + ledger")
+    sp.set_defaults(func=cmd_tick)
+
+    sp = sub.add_parser("briefs", parents=[common], help="resolvable lane briefs only")
+    sp.set_defaults(func=cmd_briefs)
+
+    sp = sub.add_parser(
+        "preflight-ci",
+        parents=[common],
+        help="R4: run .grok/bin/preflight-ci-infra before push (CI-infra paths; not under infra/*)",
+    )
+    sp.add_argument("--pr", type=int, default=0, help="PR number for receipt filename")
+    sp.add_argument("--base", default="origin/dev")
+    sp.add_argument("--skip-buck", action="store_true")
+    sp.add_argument("--require-buck", action="store_true")
+    sp.set_defaults(func=cmd_preflight_ci)
+
+    sp = sub.add_parser(
+        "stop-hook", parents=[common], help="Grok Stop hook adapter (stdin JSON)"
+    )
+    sp.add_argument("--fixture", default="", help="path to sample Stop event JSON")
+    sp.set_defaults(func=cmd_stop_hook)
+
+    sp = sub.add_parser(
+        "checkpoint-check",
+        parents=[common],
+        help="D3: fail-closed preflight before goal complete (quality gate + evidence heuristics)",
+    )
+    sp.add_argument("--goal-id", default="", help="optional goal id (loads evidence from mm-runs)")
+    sp.add_argument(
+        "--quality-gate-json",
+        default="",
+        help="path to quality-gate JSON (must include pass:true for complete) or inline JSON",
+    )
+    sp.add_argument(
+        "--evidence",
+        default="",
+        help="evidence message/blob for draft-only and local-green-only heuristics",
+    )
+    sp.add_argument(
+        "--evidence-path",
+        default="",
+        help="comma-separated evidence file paths (content joined into the heuristic blob)",
+    )
+    sp.add_argument("--run-id", default="", help="optional mm-runs id when resolving --goal-id")
+    sp.add_argument(
+        "--status",
+        default="complete",
+        choices=["complete", "failed", "blocked", "active"],
+        help="checkpoint intent (only complete is gated)",
+    )
+    sp.set_defaults(func=cmd_checkpoint_check)
+
+    sp = sub.add_parser(
+        "merge-check",
+        parents=[common],
+        help="check if PR may be autonomously squash-merged (independent APPROVE + green + no critical blockers)",
+    )
+    sp.add_argument("--pr", type=int, required=True)
+    sp.set_defaults(func=cmd_merge_check)
+
+    sp = sub.add_parser(
+        "merge",
+        parents=[common],
+        help="squash-merge PR only when merge-check ok",
+    )
+    sp.add_argument("--pr", type=int, required=True)
+    sp.add_argument("--dry-run", action="store_true")
+    sp.set_defaults(func=cmd_merge)
+
+    sp = sub.add_parser(
+        "packet",
+        parents=[common],
+        help="R3 post-merge product-completion packet (fail-closed; never ultragoal complete)",
+    )
+    sp.add_argument("--pr", type=int, default=None)
+    sp.add_argument("--sha", default="")
+    sp.add_argument("--program", default="")
+    sp.add_argument("--out", default="")
+    sp.add_argument("--dry-run", action="store_true")
+    sp.add_argument("--force", action="store_true")
+    sp.add_argument("--closed", action="store_true")
+    sp.add_argument("--no-merge-existing", action="store_true")
+    sp.add_argument("--timeout", type=int, default=45)
+    sp.add_argument("--title", default="")
+    sp.add_argument("--rollout-class", default="")
+    sp.add_argument("--rollout-verification", default="")
+    sp.add_argument("--rollback-note", default="")
+    sp.add_argument("--observability-check", default="")
+    sp.add_argument("--browser-user-story", default="")
+    sp.add_argument("--release-impact", default="")
+    sp.add_argument("--harvest-cards", default="")
+    sp.add_argument("--harvest-rationale", default="")
+    sp.set_defaults(func=cmd_packet)
+
+
+    args = ap.parse_args()
+    return int(args.func(args))
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,328 @@
+#!/usr/bin/env python3
+"""Ingest soft reds + blocks into delivery-fabric task board (fail closed on silence).
+
+Scans open PRs against base `dev` (or --base). Every failed check becomes a board
+lane if soft or binding. Soft legs (name contains 'soft', or conclusion FAILURE
+while overall job is non-required soft) are NEVER dropped — they get
+status=ready, source=soft_red. Binding failures get source=ci_red. Merge blocks
+(DIRTY, CHANGES_REQUESTED, agent dual-critic missing, etc.) get source=block.
+
+Not merge authority. Exit 0 always when scan completes (writes board);
+exit 2 only on gh/board I/O failure.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/programs/delivery-fabric/task-board.v1.json").is_file():
+            return p
+        if (p / ".git").exists() and (p / ".grok").exists():
+            return p
+    return cur
+
+
+def run_gh(args: List[str], timeout: int = 60) -> Tuple[int, str, str]:
+    try:
+        p = subprocess.run(
+            ["gh", *args],
+            text=True,
+            capture_output=True,
+            timeout=timeout,
+            check=False,
+        )
+        return p.returncode, p.stdout or "", p.stderr or ""
+    except (OSError, subprocess.TimeoutExpired) as e:
+        return 2, "", str(e)
+
+
+def is_soft_check(name: str) -> bool:
+    n = (name or "").lower()
+    return "soft" in n or "non-binding" in n or "nonbinding" in n
+
+
+def lane_id(pr: int, kind: str, key: str) -> str:
+    slug = re.sub(r"[^a-zA-Z0-9]+", "-", key).strip("-").lower()[:48]
+    return f"Q-PR{pr}-{kind}-{slug}"
+
+
+def load_board(path: Path) -> dict:
+    if path.is_file():
+        return json.loads(path.read_text())
+    return {
+        "schema": "task-board.v1",
+        "version": 1,
+        "lanes": [],
+        "prs": [],
+        "notes": [],
+        "min_fabric_workflows_active": 4,
+        "fabric_classes": [
+            "portfolio-work-manager",
+            "implement-claimed-lane",
+            "pr-babysit-lanes",
+            "workflow-productivity-watch",
+        ],
+    }
+
+
+def upsert_lane(lanes: List[dict], lane: dict) -> None:
+    lid = lane["id"]
+    for i, existing in enumerate(lanes):
+        if existing.get("id") == lid:
+            # preserve claim if already claimed
+            if existing.get("status") in ("claimed", "in_progress", "implementing"):
+                lane["status"] = existing["status"]
+                lane["claimed_by"] = existing.get("claimed_by")
+                lane["claimed_at"] = existing.get("claimed_at")
+                lane["worktree"] = existing.get("worktree")
+                lane["branch"] = existing.get("branch") or lane.get("branch")
+            lane["updated_at"] = now()
+            lane["first_seen_at"] = existing.get("first_seen_at") or existing.get("updated_at") or now()
+            lanes[i] = {**existing, **lane}
+            return
+    lane["first_seen_at"] = now()
+    lane["updated_at"] = now()
+    lanes.append(lane)
+
+
+def classify_check(name: str, conclusion: str) -> Optional[str]:
+    conc = (conclusion or "").upper()
+    if conc not in ("FAILURE", "ERROR", "TIMED_OUT", "CANCELLED", "ACTION_REQUIRED"):
+        return None
+    # CANCELLED often means tip push thrash — still queue as block awareness
+    if conc == "CANCELLED":
+        return "ci_cancelled"
+    if is_soft_check(name):
+        return "soft_red"
+    return "ci_red"
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--cwd", default=".")
+    ap.add_argument("--base", default="dev")
+    ap.add_argument("--repo", default="", help="owner/name override")
+    ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--include-cancelled", action="store_true", default=True)
+    args = ap.parse_args()
+
+    repo = find_repo(Path(args.cwd))
+    board_path = repo / ".grok/programs/delivery-fabric/task-board.v1.json"
+    board = load_board(board_path)
+    lanes: List[dict] = list(board.get("lanes") or [])
+    pr_rows: List[dict] = []
+
+    gh_args = [
+        "pr",
+        "list",
+        "--base",
+        args.base,
+        "--state",
+        "open",
+        "--limit",
+        "50",
+        "--json",
+        "number,title,headRefName,isDraft,mergeable,mergeStateStatus,url,statusCheckRollup,reviewDecision",
+    ]
+    if args.repo:
+        gh_args.extend(["--repo", args.repo])
+    code, out, err = run_gh(gh_args, timeout=90)
+    if code != 0:
+        print(json.dumps({"ok": False, "error": "gh_pr_list_failed", "stderr": err[:500]}, indent=2))
+        return 2
+
+    try:
+        prs = json.loads(out) if out.strip() else []
+    except json.JSONDecodeError as e:
+        print(json.dumps({"ok": False, "error": f"json:{e}"}, indent=2))
+        return 2
+
+    added = []
+    soft_n = bind_n = block_n = 0
+
+    for pr in prs:
+        if not isinstance(pr, dict):
+            continue
+        num = int(pr.get("number") or 0)
+        if not num:
+            continue
+        title = pr.get("title") or ""
+        branch = pr.get("headRefName") or ""
+        url = pr.get("url") or ""
+        mss = str(pr.get("mergeStateStatus") or "")
+        mergeable = str(pr.get("mergeable") or "")
+        decision = str(pr.get("reviewDecision") or "")
+
+        pr_soft: List[str] = []
+        pr_bind: List[str] = []
+
+        for c in pr.get("statusCheckRollup") or []:
+            if not isinstance(c, dict):
+                continue
+            name = c.get("name") or c.get("context") or "unknown"
+            conc = c.get("conclusion") or ""
+            kind = classify_check(name, conc)
+            if not kind:
+                continue
+            if kind == "ci_cancelled" and not args.include_cancelled:
+                continue
+            if kind == "soft_red":
+                soft_n += 1
+                pr_soft.append(name)
+                source = "soft_red"
+                priority = "P2"
+            elif kind == "ci_cancelled":
+                block_n += 1
+                source = "block"
+                priority = "P3"
+            else:
+                bind_n += 1
+                pr_bind.append(name)
+                source = "ci_red"
+                priority = "P1"
+
+            lid = lane_id(num, source, name)
+            upsert_lane(
+                lanes,
+                {
+                    "id": lid,
+                    "title": f"PR #{num}: {kind} — {name}",
+                    "status": "ready",
+                    "priority": priority,
+                    "paths": [],
+                    "depends_on": [],
+                    "source": source,
+                    "source_ref": f"pr:{num}:{name}",
+                    "bead_id": None,
+                    "pr": num,
+                    "branch": branch,
+                    "pr_url": url,
+                    "check_name": name,
+                    "check_conclusion": conc,
+                    "dod": [
+                        f"Diagnose authoritative log for check `{name}` on PR #{num}",
+                        "Fix or document explicit waiver with founder/human note if truly non-actionable",
+                        "Re-queue until check no longer FAILURE (soft reds still count)",
+                    ],
+                    "blockers": [],
+                    "claimed_by": None,
+                    "claimed_at": None,
+                    "mm_run_id": None,
+                },
+            )
+            added.append(lid)
+
+        # Merge / review blocks (even if CI green)
+        block_reasons = []
+        if mergeable.upper() in ("CONFLICTING", "FALSE"):
+            block_reasons.append(f"mergeable:{mergeable}")
+        if mss.upper() in ("DIRTY", "BEHIND", "DRAFT"):
+            block_reasons.append(f"mergeStateStatus:{mss}")
+        if decision.upper() == "CHANGES_REQUESTED":
+            block_reasons.append("changes_requested")
+
+        for br in block_reasons:
+            block_n += 1
+            lid = lane_id(num, "block", br)
+            upsert_lane(
+                lanes,
+                {
+                    "id": lid,
+                    "title": f"PR #{num}: block — {br}",
+                    "status": "ready",
+                    "priority": "P1" if "DIRTY" in br or "CONFLICT" in br.upper() or "changes" in br else "P2",
+                    "paths": [],
+                    "depends_on": [],
+                    "source": "block",
+                    "source_ref": f"pr:{num}:{br}",
+                    "pr": num,
+                    "branch": branch,
+                    "pr_url": url,
+                    "dod": [
+                        f"Clear block `{br}` on PR #{num}",
+                        "Re-run merge-check; do not leave BLOCKED silent",
+                    ],
+                    "blockers": [br],
+                    "claimed_by": None,
+                    "claimed_at": None,
+                },
+            )
+            added.append(lid)
+
+        pr_rows.append(
+            {
+                "pr": num,
+                "title": title,
+                "branch": branch,
+                "url": url,
+                "soft_reds": pr_soft,
+                "binding_reds": pr_bind,
+                "mergeStateStatus": mss,
+                "mergeable": mergeable,
+                "reviewDecision": decision,
+            }
+        )
+
+    board["lanes"] = lanes
+    board["prs"] = pr_rows
+    board["updated_at"] = now()
+    board["updated_by"] = "mm-queue-ingest"
+    board.setdefault("notes", [])
+    note = (
+        f"mm-queue-ingest {now()}: soft_red={soft_n} ci_red={bind_n} block={block_n} "
+        f"open_prs={len(prs)} (soft reds MUST stay on board until cleared)"
+    )
+    board["notes"] = [note] + [n for n in board["notes"] if not str(n).startswith("mm-queue-ingest ")][:20]
+    board["queue_stats"] = {
+        "soft_red": soft_n,
+        "ci_red": bind_n,
+        "block": block_n,
+        "ready_lanes": sum(1 for L in lanes if L.get("status") == "ready"),
+        "ingested_at": now(),
+    }
+
+    if not args.dry_run:
+        board_path.parent.mkdir(parents=True, exist_ok=True)
+        board_path.write_text(json.dumps(board, indent=2) + "\n")
+
+    print(
+        json.dumps(
+            {
+                "ok": True,
+                "board": str(board_path),
+                "dry_run": bool(args.dry_run),
+                "open_prs": len(prs),
+                "soft_red": soft_n,
+                "ci_red": bind_n,
+                "block": block_n,
+                "lanes_total": len(lanes),
+                "upserted": len(set(added)),
+                "note": note,
+            },
+            indent=2,
+        )
+    )
+    # Exit 0 even with soft reds — they're now queued. Exit 1 if any binding red/block for urgency signal.
+    if bind_n or any(
+        (L.get("source") == "block" and L.get("status") == "ready") for L in lanes
+    ):
+        return 0  # still 0: queue written; productivity watch uses stats
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

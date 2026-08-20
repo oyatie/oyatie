@@ -1,0 +1,9 @@
+# Optional ML extras for .grok/python/mm_ml workers.
+# Core pipeline path is stdlib-only; install only when you want richer estimators.
+#
+#   python3 -m pip install -r .grok/python/requirements-ml.txt
+#
+numpy>=1.26,<3
+scikit-learn>=1.4,<2
+# joblib comes with sklearn; pin only if standalone serialization needed
+# joblib>=1.3

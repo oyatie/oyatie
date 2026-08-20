@@ -1,0 +1,720 @@
+#!/usr/bin/env python3
+"""Adversarial north-star portfolio audit (first principles).
+
+Does NOT accept the current tree, board, or registry multi-absorb lists as the
+desired end state. Registry absorbs_current_dirs = migration inventory debt.
+W5 discovery only — not merge authority.
+
+Exit: 0 = no critical/high; 1 = high/medium work remains; 2 = critical policy break.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Set, Tuple
+
+
+# Zones where *new* surface is debt (migration), not target homes.
+DEBT_PREFIXES = (
+    "oya/",
+    "cloud/",
+    "libs/",
+    "tools/",
+    "microservices/",
+)
+
+# Registered capability roots are targets — multi-home is when 2+ of these exist
+# for one capability OR debt prefix + target both non-empty.
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/harness/pipeline.json").is_file():
+            return p
+        if (p / ".git").exists() and (p / ".grok").exists():
+            return p
+    return cur
+
+
+def sh(repo: Path, args: List[str], timeout: int = 90) -> Tuple[int, str]:
+    try:
+        r = subprocess.run(
+            args, cwd=str(repo), capture_output=True, text=True, timeout=timeout
+        )
+        return r.returncode, (r.stdout or "") + (r.stderr or "")
+    except Exception as e:
+        return 99, str(e)
+
+
+def git_ls(repo: Path, prefix: str) -> List[str]:
+    # normalize prefix without trailing issues
+    prefix = prefix.rstrip("/") 
+    code, out = sh(repo, ["git", "ls-tree", "-r", "--name-only", "HEAD", prefix])
+    if code != 0:
+        return []
+    return [ln for ln in out.splitlines() if ln.strip()]
+
+
+def count_crates(paths: List[str]) -> int:
+    return sum(1 for p in paths if p.endswith("Cargo.toml"))
+
+
+def load_json(p: Path) -> Any:
+    if not p.is_file():
+        return None
+    return json.loads(p.read_text())
+
+
+def live_move_plans(repo: Path) -> List[str]:
+    root = repo / "specs" / "reorg"
+    if not root.is_dir():
+        return []
+    live = []
+    for p in sorted(root.glob("*-move-plan.json")):
+        if "PARKED" in p.name or "BLOCKED" in p.name:
+            continue
+        live.append(str(p.relative_to(repo)))
+    return live
+
+
+def tracked_generated(repo: Path) -> List[str]:
+    code, out = sh(repo, ["git", "ls-files", "*.generated.json"])
+    if code != 0:
+        return []
+    return [ln for ln in out.splitlines() if ln.strip()]
+
+
+def path_exists_nonempty(repo: Path, rel: str) -> Tuple[int, int]:
+    files = git_ls(repo, rel)
+    return len(files), count_crates(files)
+
+
+def classify_path(rel: str) -> str:
+    rel = rel.strip().strip("/")
+    if not rel:
+        return "empty"
+    if rel.startswith("oya/") or rel == "oya":
+        return "debt_oya"
+    if rel.startswith("cloud/") or rel == "cloud":
+        return "debt_cloud"
+    if rel.startswith("libs/") or rel == "libs":
+        return "debt_libs"
+    if rel.startswith("tools/") or rel == "tools":
+        return "debt_tools"
+    if rel.startswith("microservices/"):
+        return "debt_microservices"
+    if rel.startswith("infra/"):
+        return "transitional_infra"
+    # top-level capability-ish
+    return "target_or_other"
+
+
+def dual_homes_from_registry(repo: Path) -> List[dict]:
+    """Derive multi-home debt from capability-registry absorbs — do not hardcode caps."""
+    reg = load_json(repo / "governance/capability-registry.json") or {}
+    caps = reg.get("capabilities") or []
+    rows = []
+    for c in caps:
+        name = c.get("name") or c.get("dag_node") or "?"
+        absorbs = [a for a in (c.get("absorbs_current_dirs") or []) if a]
+        if len(absorbs) < 2:
+            continue
+        homes = []
+        present = 0
+        crate_homes = 0
+        for a in absorbs:
+            nfiles, ncrates = path_exists_nonempty(repo, a)
+            kind = classify_path(a)
+            if nfiles > 0:
+                present += 1
+            if ncrates > 0:
+                crate_homes += 1
+            homes.append(
+                {
+                    "path": a,
+                    "files": nfiles,
+                    "crates": ncrates,
+                    "zone": kind,
+                }
+            )
+        if present < 2:
+            continue  # historical multi-absorb but only one path left — not dual-active
+        # Severity: crates in 2+ homes is critical architecture split;
+        # zero-crate residual under debt zone is high (delete/rehome residual).
+        if crate_homes >= 2:
+            severity = "critical"
+            posture = "split_brain_crates"
+        elif any(h["crates"] == 0 and h["files"] > 0 and h["zone"].startswith("debt") for h in homes) and any(
+            h["crates"] > 0 for h in homes
+        ):
+            severity = "high"
+            posture = "residual_scaffold_plus_live"
+        else:
+            severity = "medium"
+            posture = "multi_path_docs_or_empty"
+        rows.append(
+            {
+                "capability": name,
+                "absorbs_current_dirs": absorbs,
+                "homes": homes,
+                "present_paths": present,
+                "crate_homes": crate_homes,
+                "severity": severity,
+                "posture": posture,
+                "northstar": "absorbs list is migration inventory — burn down to one durable home",
+            }
+        )
+    # rank critical first
+    order = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    rows.sort(key=lambda r: (order.get(r["severity"], 9), -r["crate_homes"], r["capability"]))
+    return rows
+
+
+
+def rehome_disposition(row: dict) -> dict:
+    """Per-capability rehome audit vs NORTH-STAR-SHAPE (one durable home).
+
+    Class is REORG-DOCTRINE: delete|refactor|rewrite|remove|reshape|move|mixed.
+    shape_clean=False while multi-path debt remains.
+    """
+    homes = row.get("homes") or []
+    live = [h for h in homes if h.get("files", 0) > 0]
+    target_homes = [h for h in live if h.get("zone") == "target_or_other"]
+    debt_homes = [h for h in live if str(h.get("zone") or "").startswith("debt")]
+    transitional = [h for h in live if h.get("zone") == "transitional_infra"]
+    # Prefer registered capability root (non-debt) with most crates, else most files
+    def score(h):
+        return (h.get("crates") or 0, h.get("files") or 0)
+    durable = None
+    if target_homes:
+        durable = max(target_homes, key=score)["path"]
+    elif live:
+        durable = max(live, key=score)["path"]
+    debt_paths = [h["path"] for h in debt_homes]
+    posture = row.get("posture") or ""
+    crate_homes = int(row.get("crate_homes") or 0)
+    if posture == "split_brain_crates" or crate_homes >= 2:
+        # crates in multiple absorbs — not a pure delete
+        cls = "mixed"
+        primary = "move" if any(h.get("crates", 0) > 0 and str(h.get("zone","")).startswith("debt") for h in live) else "rewrite"
+        actions = [
+            f"Pick durable home: {durable}",
+            "Rehome or delete crate surface from debt paths (move/rewrite per REORG-DOCTRINE)",
+            "Retarget consumers (Cargo/BUCK/registry/cedar); net_path_debt<=0",
+            "Collapse absorbs_current_dirs to one home after empty",
+        ]
+        reshape = "split_brain: do not treat dual crate homes as design; execute reduce to one home"
+    elif posture == "residual_scaffold_plus_live":
+        # live target + zero-crate residual debt
+        # Docs/contracts may need reshape into durable home before delete
+        has_meaningful = any(
+            h.get("files", 0) >= 20 for h in debt_homes
+        )
+        cls = "reshape" if has_meaningful else "delete"
+        primary = "reshape" if has_meaningful else "delete"
+        actions = [
+            f"Durable home (keep): {durable}",
+            "For each debt path: merge unique contracts/docs into durable home OR prove duplicate → delete",
+            "Retarget facade/cedar/gitops consumers; then remove residual path",
+            "Do not add new crates under debt zones",
+        ]
+        reshape = "residual scaffold burn-down; content-preserving reshape then delete empty residual"
+    else:
+        cls = "delete"
+        primary = "delete"
+        actions = [
+            f"Durable home: {durable}",
+            "Delete empty/docs-only multi-path residue after consumer proof",
+        ]
+        reshape = "multi_path residual"
+    return {
+        "capability": row.get("capability"),
+        "shape_clean": False,  # dual-active by construction
+        "northstar_violation": "one_home_per_concern",
+        "severity": row.get("severity"),
+        "posture": posture,
+        "class": cls,
+        "primary_action": primary,
+        "durable_home": durable,
+        "debt_paths": debt_paths,
+        "transitional_paths": [h["path"] for h in transitional],
+        "live_homes": [
+            {"path": h["path"], "crates": h.get("crates"), "files": h.get("files"), "zone": h.get("zone")}
+            for h in live
+        ],
+        "actions": actions,
+        "reshape_note": reshape,
+        "lane_id": f"REORG-DUAL-{str(row.get('capability') or 'X').upper().replace('_','-')}-BURNDOWN",
+        "parallel_safe": posture == "residual_scaffold_plus_live",  # path-disjoint residual leaves OK
+        "blocks_move_plan": posture == "split_brain_crates",
+    }
+
+
+def board_index(board: dict) -> dict:
+    lanes = board.get("lanes") or []
+    by_status: Dict[str, List[dict]] = {}
+    for L in lanes:
+        st = (L or {}).get("status") or "unknown"
+        by_status.setdefault(st, []).append(L)
+
+    def is_reorg(L: dict) -> bool:
+        return (L or {}).get("source") == "reorg" or str((L or {}).get("id") or "").startswith(
+            "REORG-"
+        )
+
+    ready = by_status.get("ready") or []
+    return {
+        "total": len(lanes),
+        "by_status": {k: len(v) for k, v in by_status.items()},
+        "ready": ready,
+        "claimed": by_status.get("claimed") or [],
+        "blocked": by_status.get("blocked") or [],
+        "ready_for_babysit": by_status.get("ready_for_babysit") or [],
+        "reorg_ready": [L for L in ready if is_reorg(L)],
+        "mega_lanes": [
+            L
+            for L in lanes
+            if len((L or {}).get("paths") or []) >= 6
+            or (
+                isinstance((L or {}).get("paths"), list)
+                and sum(
+                    1
+                    for p in (L.get("paths") or [])
+                    if any(str(p).startswith(z) for z in ("cloud/", "oya/", "infra/", "tools/", "libs/"))
+                )
+                >= 3
+            )
+        ],
+        "stale_soft_ci": [
+            L
+            for L in ready
+            if (L or {}).get("source") in ("soft_red", "ci_red")
+            and "PR #" in str((L or {}).get("title") or "")
+        ],
+    }
+
+
+def backlog_coverage(repo: Path, board: dict) -> dict:
+    seed_ids: Set[str] = set()
+    enq = repo / ".grok/bin/mm-reorg-enqueue"
+    if enq.is_file():
+        for m in re.finditer(r'"id":\s*"(RR-[A-Z0-9-]+)"', enq.read_text()):
+            seed_ids.add(m.group(1))
+    board_text_ids = " ".join(str((L or {}).get("id") or "") for L in board.get("lanes") or [])
+    missing = [s for s in sorted(seed_ids) if s not in board_text_ids and s.replace("RR-", "") not in board_text_ids]
+    return {"seed_count": len(seed_ids), "missing_from_board": missing}
+
+
+def open_prs(repo: Path) -> List[dict]:
+    code, out = sh(
+        repo,
+        [
+            "gh",
+            "pr",
+            "list",
+            "--base",
+            "dev",
+            "--state",
+            "open",
+            "--limit",
+            "40",
+            "--json",
+            "number,title,headRefName",
+        ],
+    )
+    if code != 0:
+        return []
+    try:
+        return json.loads(out)
+    except Exception:
+        return []
+
+
+def process_theater(bidx: dict, dual: List[dict], heartbeats: dict) -> List[dict]:
+    """Flag false productivity: heartbeats green while migration debt ignored."""
+    out = []
+    dual_n = len(dual)
+    reorg_ready = len(bidx["reorg_ready"])
+    claimed_reorg = [
+        L
+        for L in bidx["claimed"]
+        if (L or {}).get("source") == "reorg" or str((L or {}).get("id") or "").startswith("REORG-")
+    ]
+    if dual_n >= 3 and reorg_ready == 0 and not claimed_reorg:
+        out.append(
+            {
+                "severity": "high",
+                "kind": "false_green_empty_reorg_queue",
+                "msg": f"{dual_n} multi-home capabilities still present but zero reorg ready/claimed lanes",
+                "northstar": "empty board ≠ done; dual-home is burn-down work",
+            }
+        )
+    if dual_n >= 3 and reorg_ready >= 5 and not claimed_reorg:
+        out.append(
+            {
+                "severity": "medium",
+                "kind": "queue_starvation",
+                "msg": f"{reorg_ready} reorg ready lanes but none claimed — implement starved / over-babysit",
+                "northstar": "W2 must claim path-disjoint leaves; W3 only babysits open PRs",
+            }
+        )
+    # W4 heartbeating without W5
+    w4 = heartbeats.get("workflow-productivity-watch") or {}
+    w5 = heartbeats.get("northstar-portfolio-audit") or {}
+    if w4.get("at") and not w5.get("at"):
+        out.append(
+            {
+                "severity": "medium",
+                "kind": "w4_without_w5",
+                "msg": "productivity heartbeat present but northstar-portfolio-audit never ran",
+                "northstar": "W4 liveness ≠ north-star progress; arm W5",
+            }
+        )
+    if bidx["mega_lanes"]:
+        out.append(
+            {
+                "severity": "medium",
+                "kind": "mega_lane_risk",
+                "msg": f"{len(bidx['mega_lanes'])} lanes look multi-zone/mega (paths spanning many debt zones)",
+                "northstar": "one concern / path-disjoint leaf; AREA×CLASS×SLICE",
+                "samples": [L.get("id") for L in bidx["mega_lanes"][:5]],
+            }
+        )
+    return out
+
+
+def findings_from(
+    dual: List[dict],
+    live_plans: List[str],
+    generated: List[str],
+    bidx: dict,
+    coverage: dict,
+    prs: List[dict],
+    theater: List[dict],
+    northstar_present: bool,
+) -> List[dict]:
+    findings: List[dict] = list(theater)
+
+    if not northstar_present:
+        findings.append(
+            {
+                "severity": "critical",
+                "kind": "northstar_missing",
+                "msg": "NORTH-STAR-SHAPE.md missing from tree",
+                "northstar": "attractor document required",
+            }
+        )
+
+    if len(live_plans) > 1:
+        findings.append(
+            {
+                "severity": "critical",
+                "kind": "move_plan_singleton",
+                "msg": f"multiple live move-plans: {live_plans}",
+                "northstar": "ADR-0614 singleton",
+            }
+        )
+    elif len(live_plans) == 0:
+        findings.append(
+            {
+                "severity": "info",
+                "kind": "move_plan_slot_free",
+                "msg": "no live *-move-plan.json — slot free; prefer delete/rewrite leaves until a move is intentional",
+                "northstar": "do not unpark move casually; path-disjoint non-move first",
+            }
+        )
+
+    if generated:
+        findings.append(
+            {
+                "severity": "critical",
+                "kind": "generated_faces_tracked",
+                "msg": f"tracked *.generated.json n={len(generated)} sample={generated[:5]}",
+                "northstar": "materialize only; never hand truth",
+            }
+        )
+
+    for row in dual:
+        disp = rehome_disposition(row)
+        findings.append(
+            {
+                "severity": row["severity"],
+                "kind": "dual_home_migration_debt",
+                "capability": row["capability"],
+                "posture": row["posture"],
+                "msg": (
+                    f"{row['capability']}: {row['present_paths']} paths live, "
+                    f"{row['crate_homes']} with crates; absorbs={row['absorbs_current_dirs']}"
+                ),
+                "northstar": row["northstar"],
+                "suggested_lane": disp["lane_id"],
+                "homes": row["homes"],
+                "rehome": disp,
+            }
+        )
+
+    if bidx["stale_soft_ci"]:
+        findings.append(
+            {
+                "severity": "medium",
+                "kind": "stale_soft_ci_board",
+                "msg": f"{len(bidx['stale_soft_ci'])} soft/ci red ready lanes (verify PR still open)",
+                "northstar": "board hygiene; false work signals",
+            }
+        )
+
+    if coverage.get("missing_from_board"):
+        findings.append(
+            {
+                "severity": "low",
+                "kind": "backlog_not_on_board",
+                "msg": f"enqueue seeds not visible on board: {coverage['missing_from_board'][:15]}",
+                "northstar": "portfolio must surface backlog for claim",
+            }
+        )
+
+    board_prs: Set[int] = set()
+    for L in (
+        bidx["ready"]
+        + bidx["claimed"]
+        + bidx["ready_for_babysit"]
+        + bidx["blocked"]
+    ):
+        if (L or {}).get("pr"):
+            try:
+                board_prs.add(int(L["pr"]))
+            except Exception:
+                pass
+    for pr in prs:
+        n = pr.get("number")
+        if n and n not in board_prs:
+            findings.append(
+                {
+                    "severity": "low",
+                    "kind": "open_pr_not_on_board",
+                    "msg": f"open PR #{n} ({str(pr.get('title') or '')[:50]}) not on board",
+                    "pr": n,
+                    "northstar": "handoff visibility for W3",
+                }
+            )
+
+    # Challenge: many "done" reorg inventory lanes while dual homes remain is OK only if execute leaves exist
+    critical_dual = sum(1 for r in dual if r["severity"] == "critical")
+    if critical_dual:
+        findings.append(
+            {
+                "severity": "critical",
+                "kind": "split_brain_capabilities",
+                "msg": f"{critical_dual} capabilities have crates in multiple absorbs paths — architecture split, not residual docs",
+                "northstar": "priority burn-down: one crate home before polish",
+            }
+        )
+
+    order = {"critical": 0, "high": 1, "medium": 2, "low": 3, "info": 4}
+    findings.sort(key=lambda f: order.get(f.get("severity", "info"), 9))
+    return findings
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__)
+    ap.add_argument("--cwd", default=".")
+    ap.add_argument("--json", action="store_true")
+    ap.add_argument(
+        "--write-board-gaps",
+        action="store_true",
+        help="upsert ready lanes for critical/high dual-home debt (not for every medium)",
+    )
+    ap.add_argument("--dry-run", action="store_true")
+    args = ap.parse_args()
+    repo = find_repo(Path(args.cwd))
+    northstar = repo / ".grok/programs/delivery-fabric/NORTH-STAR-SHAPE.md"
+    board_path = repo / ".grok/programs/delivery-fabric/task-board.v1.json"
+    board = load_json(board_path) or {"lanes": []}
+    heartbeats = load_json(repo / ".grok/mm-runs/_fabric/heartbeats.json") or {}
+
+    dual = dual_homes_from_registry(repo)
+    live_plans = live_move_plans(repo)
+    generated = tracked_generated(repo)
+    bidx = board_index(board)
+    coverage = backlog_coverage(repo, board)
+    prs = open_prs(repo)
+    theater = process_theater(bidx, dual, heartbeats)
+    findings = findings_from(
+        dual,
+        live_plans,
+        generated,
+        bidx,
+        coverage,
+        prs,
+        theater,
+        northstar.is_file(),
+    )
+
+    upserted: List[str] = []
+    if args.write_board_gaps:
+        lanes = board.setdefault("lanes", [])
+        ids = {str(L.get("id") or "") for L in lanes}
+        for f in findings:
+            if f.get("kind") != "dual_home_migration_debt":
+                continue
+            if f.get("severity") not in ("critical", "high"):
+                continue
+            cap = f.get("capability") or "unknown"
+            sug = f"REORG-DUAL-{str(cap).upper().replace('_', '-')}-BURNDOWN"
+            if sug in ids:
+                continue
+            if args.dry_run:
+                upserted.append(f"(dry-run) {sug}")
+                continue
+            disp = f.get("rehome") or {}
+            debt = disp.get("debt_paths") or []
+            durable = disp.get("durable_home") or ""
+            paths = ([durable + "/"] if durable else []) + [d.rstrip("/") + "/" for d in debt]
+            lanes.append(
+                {
+                    "id": sug,
+                    "status": "ready",
+                    "source": "reorg",
+                    "class": disp.get("class")
+                    or ("delete" if f.get("posture") == "residual_scaffold_plus_live" else "mixed"),
+                    "primary_action": disp.get("primary_action"),
+                    "wave": "W0" if f.get("severity") == "high" else "W1",
+                    "priority": "P0" if f.get("severity") == "critical" else "P1",
+                    "title": (
+                        f"[northstar/{disp.get('primary_action') or 'rehome'}] "
+                        f"burn-down dual-home {cap} → {durable or '?'}"
+                    ),
+                    "notes": f"mm-northstar-audit adversarial: {f.get('msg')}",
+                    "northstar": "one durable home; absorbs is inventory not design",
+                    "paths": paths,
+                    "debt_paths": debt,
+                    "durable_home": durable,
+                    "parallel_safe": bool(disp.get("parallel_safe")),
+                    "reshape_note": disp.get("reshape_note"),
+                    "actions": disp.get("actions") or [],
+                }
+            )
+            ids.add(sug)
+            upserted.append(sug)
+        if upserted and not args.dry_run:
+            board["updated_at"] = now()
+            board["updated_by"] = "mm-northstar-audit"
+            board_path.write_text(json.dumps(board, indent=2) + "\n")
+
+    report = {
+        "ok": not any(f.get("severity") == "critical" for f in findings),
+        "has_high": any(f.get("severity") == "high" for f in findings),
+        "adversarial": True,
+        "audited_at": now(),
+        "repo": str(repo),
+        "northstar_path": str(northstar),
+        "northstar_present": northstar.is_file(),
+        "principles": [
+            "one_home_per_concern",
+            "registry_absorbs_is_debt_inventory",
+            "process_only_under_dot_grok",
+            "net_path_debt_le_0",
+            "empty_board_not_done_if_dual_homes",
+            "w4_liveness_ne_northstar_progress",
+        ],
+        "live_move_plans": live_plans,
+        "tracked_generated_json": len(generated),
+        "dual_homes": dual,
+        "rehomes": [rehome_disposition(r) for r in dual],
+        "rehomes_not_clean": [rehome_disposition(r) for r in dual],  # all dual-active fail shape
+        "parallel_rehome_claims": [
+            rehome_disposition(r)
+            for r in dual
+            if r.get("posture") == "residual_scaffold_plus_live"
+        ],
+        "serial_split_brain_claims": [
+            rehome_disposition(r)
+            for r in dual
+            if r.get("posture") == "split_brain_crates"
+        ],
+        "dual_home_counts": {
+            "critical": sum(1 for r in dual if r["severity"] == "critical"),
+            "high": sum(1 for r in dual if r["severity"] == "high"),
+            "medium": sum(1 for r in dual if r["severity"] == "medium"),
+            "total_active": len(dual),
+        },
+        "board": {
+            "path": str(board_path),
+            "by_status": bidx["by_status"],
+            "reorg_ready_ids": [L.get("id") for L in bidx["reorg_ready"]],
+            "claimed_ids": [L.get("id") for L in bidx["claimed"]],
+            "blocked_ids": [L.get("id") for L in bidx["blocked"]],
+        },
+        "backlog_coverage": coverage,
+        "open_prs": prs,
+        "findings": findings,
+        "board_gaps_upserted": upserted,
+        "recommendation": _recommend(findings, dual, bidx),
+    }
+
+    out_dir = repo / ".grok/mm-runs/_fabric"
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "northstar-audit.latest.json").write_text(json.dumps(report, indent=2) + "\n")
+
+    if args.json:
+        print(json.dumps(report, indent=2))
+    else:
+        print(
+            f"northstar-audit adversarial ok={report['ok']} high={report['has_high']} "
+            f"findings={len(findings)} dual_active={len(dual)}"
+        )
+        print(f"  dual_counts={report['dual_home_counts']}")
+        print(f"  live_move_plans={live_plans or []}")
+        print(f"  tracked_generated={len(generated)}")
+        print(f"  reorg_ready={report['board']['reorg_ready_ids'][:12]}")
+        print(f"  rehomes_not_clean={len(report.get('rehomes_not_clean') or [])} "
+              f"parallel_safe={len(report.get('parallel_rehome_claims') or [])} "
+              f"split_brain={len(report.get('serial_split_brain_claims') or [])}")
+        for rh in (report.get("rehomes") or [])[:12]:
+            print(
+                f"  [rehome/{rh.get('severity')}] class={rh.get('class')} "
+                f"action={rh.get('primary_action')} durable={rh.get('durable_home')} "
+                f"debt={rh.get('debt_paths')}"
+            )
+        for f in findings[:15]:
+            print(f"  [{f.get('severity')}] {f.get('kind')}: {str(f.get('msg'))[:110]}")
+        print(f"  recommendation: {report['recommendation']}")
+
+    if any(f.get("severity") == "critical" for f in findings):
+        return 2
+    if any(f.get("severity") in ("high", "medium") for f in findings):
+        return 1
+    return 0
+
+
+def _recommend(findings: List[dict], dual: List[dict], bidx: dict) -> str:
+    crit = [f for f in findings if f.get("severity") == "critical"]
+    if crit:
+        return (
+            "STOP treating multi-crate multi-home as normal: claim burn-down for "
+            "split_brain capabilities first; one durable crate home per capability"
+        )
+    high = [r for r in dual if r["severity"] == "high"]
+    if high and not bidx["claimed"]:
+        caps = ",".join(r["capability"] for r in high[:5])
+        return (
+            f"W2 claim path-disjoint residual scaffold deletes for: {caps}; "
+            "W3 babysit only; do not open second live move-plan until non-move leaves land"
+        )
+    if bidx["reorg_ready"] and not bidx["claimed"]:
+        return "Claim one reorg_ready leaf now — queue starvation is process failure"
+    return "Maintain W1–W4 liveness + W5 audit; re-query origin/dev before any reorg execute"
+
+
+if __name__ == "__main__":
+    sys.exit(main())

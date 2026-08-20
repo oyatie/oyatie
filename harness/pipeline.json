@@ -1,0 +1,410 @@
+{
+  "version": "1.2.0",
+  "name": "mm-delivery",
+  "description": "Intent \u2192 harden \u2192 decompose \u2192 dispatch \u2192 multi-model delivery. Grok orchestrates; workers via mm-role. Doctrine: programs/INTENT-LIFECYCLE.md",
+  "base_ref": "origin/dev",
+  "pr_target": "dev",
+  "entry": {
+    "on_prompt_submit": [
+      "CAPTURE_INTENT",
+      "PROMPT_HARDEN",
+      "DECOMPOSE",
+      "DISPATCH",
+      "PREFLIGHT"
+    ],
+    "forbid_raw_execute": true,
+    "note": "Raw chat/objective must not jump to EXECUTE. Short-circuit is a process defect."
+  },
+  "stages": [
+    {
+      "id": "CAPTURE_INTENT",
+      "kind": "harness",
+      "action": "capture_intent",
+      "fail_closed": true,
+      "output_schema": "intent.v1",
+      "description": "Record raw user prompt + refs only; no scope invention"
+    },
+    {
+      "id": "PROMPT_HARDEN",
+      "kind": "role",
+      "role": "PROMPT_HARDENER",
+      "fail_closed": true,
+      "output_schema": "hardened_prompt.v1",
+      "description": "LLM-assisted mechanical rewrite: objective, DoD, non-goals, constraints, verify, ambiguities"
+    },
+    {
+      "id": "DECOMPOSE",
+      "kind": "role",
+      "role": "PLANNER",
+      "fail_closed": true,
+      "output_schema": "work_graph.v1",
+      "description": "Mechanical slices with paths, depends_on, parallel_ok, DoD"
+    },
+    {
+      "id": "DISPATCH",
+      "kind": "harness",
+      "action": "dispatch",
+      "fail_closed": true,
+      "description": "Path-overlap fail closed; assign mm-role + worktrees; journal dispatch ledger"
+    },
+    {
+      "id": "PREFLIGHT",
+      "kind": "harness",
+      "action": "preflight",
+      "fail_closed": true,
+      "description": "Fetch origin/dev; enforce behind=0, dirty allowlist, auth probes, kit presence when multi-model"
+    },
+    {
+      "id": "CONTRACT",
+      "kind": "role",
+      "role": "ARCHITECT",
+      "fail_closed": true,
+      "description": "Lock authority, non-goals, focus surfaces, blast radius (from hardened prompt)"
+    },
+    {
+      "id": "THREAT_LIGHT",
+      "kind": "role",
+      "role": "SECURITY",
+      "fail_closed": true,
+      "skip_if_risk_in": [
+        "low"
+      ],
+      "description": "Light security/threat pass on objective and surfaces"
+    },
+    {
+      "id": "PLAN",
+      "kind": "role",
+      "role": "PLANNER",
+      "fail_closed": true,
+      "description": "Sequenced slices + verify + DoD"
+    },
+    {
+      "id": "CRITIC_PLAN",
+      "kind": "dual_critic",
+      "role": "CRITIC",
+      "instances": 2,
+      "target": "plan",
+      "fail_closed": true,
+      "description": "Dual adversarial review of plan (split context)"
+    },
+    {
+      "id": "ADMIT_PLAN",
+      "kind": "harness",
+      "action": "admit_plan",
+      "fail_closed": true,
+      "human_gate_if_risk_in": [
+        "high",
+        "critical"
+      ],
+      "description": "Code admit: dual critic both real; schema ok; human if high risk"
+    },
+    {
+      "id": "TRIAL",
+      "kind": "optional",
+      "description": "Optional small shard before full execute"
+    },
+    {
+      "id": "RED_TEST",
+      "kind": "role",
+      "role": "TEST_ENGINEER",
+      "requires_preflight_green": true,
+      "requires_admitted_plan": true,
+      "fail_closed": true,
+      "output_schema": "red_test_report.v1",
+      "description": "Write failing tests first (unit and/or contract). Proof: test command exits non-zero for the intended failure. No product implementation yet."
+    },
+    {
+      "id": "IMPLEMENT",
+      "kind": "role",
+      "role": "EXECUTOR",
+      "requires_preflight_green": true,
+      "requires_red_test_proof": true,
+      "fail_closed": true,
+      "output_schema": "execute_report.v1",
+      "description": "Minimal implementation to satisfy RED tests only. No scope expansion. No deleting/skipping tests."
+    },
+    {
+      "id": "GREEN_TEST",
+      "kind": "role",
+      "role": "VERIFIER",
+      "fail_closed": true,
+      "output_schema": "green_test_report.v1",
+      "description": "Re-run the same RED suite; must exit 0. Record exact commands + exit codes."
+    },
+    {
+      "id": "INTEGRATION_TEST",
+      "kind": "role",
+      "role": "TEST_ENGINEER",
+      "fail_closed": true,
+      "skip_if_risk_in": [],
+      "output_schema": "integration_test_report.v1",
+      "description": "Add/run integration or cross-boundary tests appropriate to slice. Prefer real interfaces over mocks where cheap."
+    },
+    {
+      "id": "FALSE_GREEN_SCAN",
+      "kind": "harness",
+      "action": "false_green_scan",
+      "fail_closed": true,
+      "output_schema": "false_green_scan.v1",
+      "description": "Mechanical anti-false-green: no skipped tests, no weakened asserts, no deleted RED tests, no hand-edit *.generated.json, no empty verify, dual-critic independence fields if present"
+    },
+    {
+      "id": "REVIEW_DIFF",
+      "kind": "dual_critic",
+      "role": "CRITIC",
+      "instances": 2,
+      "target": "diff",
+      "fail_closed": true,
+      "description": "Dual adversarial review of implementation + tests (cross_model when required)"
+    },
+    {
+      "id": "SECURITY_DIFF",
+      "kind": "role",
+      "role": "SECURITY",
+      "skip_if_risk_in": [
+        "low"
+      ],
+      "fail_closed": true,
+      "description": "Security review of diff when risk warrants"
+    },
+    {
+      "id": "SIMPLIFY",
+      "kind": "role",
+      "role": "SIMPLIFIER",
+      "fail_closed": true,
+      "output_schema": "simplify_report.v1",
+      "description": "Reduce complexity without behavior change; re-run GREEN suite after. YAGNI / delete dead paths."
+    },
+    {
+      "id": "HARDEN",
+      "kind": "role",
+      "role": "HARDENER",
+      "fail_closed": true,
+      "output_schema": "harden_report.v1",
+      "description": "Fail-closed edges, telemetry, error paths, constant-work; re-run GREEN + integration; no feature creep."
+    },
+    {
+      "id": "VERIFY",
+      "kind": "role",
+      "role": "VERIFIER",
+      "fail_closed": true,
+      "output_schema": "verify_report.v1",
+      "description": "Final fail-closed verification packet: unit+integration commands, no skipped tests"
+    },
+    {
+      "id": "ADMIT_SLICE",
+      "kind": "harness",
+      "action": "admit_slice",
+      "fail_closed": true,
+      "description": "Admit slice only if RED proof + GREEN + false_green_scan clean + dual critic admit + verify.ok; loop next slice"
+    },
+    {
+      "id": "PR_PACKET",
+      "kind": "harness",
+      "action": "pr_packet",
+      "fail_closed": true,
+      "description": "DoD checklist + evidence index for PR against dev"
+    },
+    {
+      "id": "POST_MERGE_HINT",
+      "kind": "harness",
+      "action": "post_merge_hint",
+      "fail_closed": false,
+      "description": "Post-merge product-completion checklist (human executes)"
+    },
+    {
+      "id": "SCORE_GRADE",
+      "kind": "harness",
+      "action": "score_grade",
+      "fail_closed": true,
+      "description": "mm-score + mm-grade (deterministic primary) then mm-quant reward/features (advisory)",
+      "workers": [
+        "bin/mm-score",
+        "bin/mm-grade",
+        "bin/mm-quant reward --write",
+        "bin/mm-quant features --write"
+      ]
+    },
+    {
+      "id": "LEARN",
+      "kind": "harness",
+      "action": "learn",
+      "fail_closed": true,
+      "description": "ALWAYS on wave end: mm-learn + mm-quant process + bandit suggest (human-gated promote) \u2014 self-improve the loop",
+      "workers": [
+        "bin/mm-learn from-run",
+        "bin/mm-quant process --write",
+        "bin/mm-quant bandit --write"
+      ]
+    },
+    {
+      "id": "POSTMORTEM",
+      "kind": "role",
+      "role": "CRITIC",
+      "fail_closed": false,
+      "description": "Reflection: what failed, process edit, verified empty ok; feeds process_edits"
+    }
+  ],
+  "forbidden_clis": [
+    "gjc",
+    "omc",
+    "omx",
+    "hermes"
+  ],
+  "fine_tune": {
+    "lenses": ".grok/harness/lenses.v1.json",
+    "stage_lens_packs": ".grok/harness/stage-lens-packs.v1.json",
+    "model_routing": ".grok/harness/model-routing.v1.json",
+    "learning_loop": ".grok/harness/learning-loop.v1.json",
+    "parallelism": ".grok/harness/parallelism.v1.json",
+    "rubric": ".grok/harness/rubrics/run-grade.v1.json",
+    "quantitative_methods": ".grok/harness/quantitative-methods.v1.json",
+    "drive": ".grok/harness/drive.v1.json",
+    "external_harness": "/Users/jasonlee/Developer/harness",
+    "note": "Edit these JSON files to improve the pipeline over time. Do not spawn new workflow files per program or lane. Outer autonomous loop: bin/mm-drive + Stop hook. Quantitative/ML workers under .grok/python/mm_ml may import Developer/harness."
+  },
+  "workstreams": {
+    "description": "Concurrent contexts under the SAME pipeline stages \u2014 not separate products. Full lane board: programs/hyperscaler-delivery-lanes/LANES.md. agent_drive=false \u2192 mm-drive classifies human/ops/sequenced, does not thrash.",
+    "board": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+    "active": [
+      {
+        "id": "R5-cas-g039-1558",
+        "layer": "L0+L2+L5-prep",
+        "agent_drive": true,
+        "program": "programs/cas-fabric/PROGRAM.json",
+        "worktree": "/Users/jasonlee/Developer/oyatie-lanes-20260805/cas-proof-bootstrap",
+        "story": "G003-fix-1558-ci",
+        "pr": 1558
+      },
+      {
+        "id": "R7-k8s-w0a-1561",
+        "layer": "L2+L3",
+        "agent_drive": false,
+        "program": "programs/k8s-port/PROGRAM.json",
+        "worktree": "/Users/jasonlee/Developer/oyatie/.worktrees/k8s-port-w0a",
+        "story": "G001-w0a-admission",
+        "pr": 1561
+      },
+      {
+        "id": "R8-mm-drive-kit",
+        "layer": "L7",
+        "agent_drive": true,
+        "program": "harness/kit.v1.json",
+        "worktree": "/Users/jasonlee/Developer/oyatie-mm-harness-20260805",
+        "story": "pipeline-kit-improve"
+      },
+      {
+        "id": "R4-local-assist",
+        "layer": "L0-L1",
+        "agent_drive": true,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "/Users/jasonlee/Developer/oyatie-mm-harness-20260805",
+        "story": "local-prepush-yaml-recipe"
+      },
+      {
+        "id": "R1-runner-capacity",
+        "layer": "L2-ops",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "scale-ci-runners-queue-wait"
+      },
+      {
+        "id": "R2-premerge-shape",
+        "layer": "L2-workflow",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "path-filter-materialize-once-planned"
+      },
+      {
+        "id": "R3-postmerge-trunk",
+        "layer": "L4",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "trunk-packet-writers-planned"
+      },
+      {
+        "id": "R6-re-sandbox",
+        "layer": "L6",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "re-after-cas-sequenced"
+      },
+      {
+        "id": "R9-talos-1541",
+        "layer": "security",
+        "agent_drive": false,
+        "program": "programs/hyperscaler-delivery-lanes/PROGRAM.json",
+        "worktree": "",
+        "story": "credential-rotation",
+        "issue": 1541
+      }
+    ]
+  },
+  "admit_rules": {
+    "dual_critic_both_must_confirm": true,
+    "missing_evidence_is_reject": true,
+    "test_skip_is_reject": true,
+    "generated_face_hand_edit_is_reject": true,
+    "behind_origin_dev_blocks_execute": true,
+    "require_hardened_prompt_before_plan": true,
+    "require_work_graph_before_dispatch": true,
+    "path_overlap_blocks_parallel_dispatch": true,
+    "open_ambiguities_block_high_risk_execute": true,
+    "require_red_test_proof_before_implement": true,
+    "require_green_same_suite_as_red": true,
+    "skipped_tests_is_reject": true,
+    "weakened_assert_is_reject": true,
+    "deleted_red_test_is_reject": true,
+    "require_false_green_scan_clean": true,
+    "require_simplify_and_harden_or_explicit_waiver": true
+  },
+  "improvement_loop": {
+    "entry": "PROMPT_SUBMIT \u2192 CAPTURE_INTENT \u2192 PROMPT_HARDEN \u2192 DECOMPOSE \u2192 DISPATCH \u2192 PREFLIGHT \u2192 \u2026",
+    "after_run": [
+      "SCORE_GRADE",
+      "LEARN",
+      "POSTMORTEM"
+    ],
+    "edit_surface": "harness/*.v1.json + pipeline.json stages + multi-model-roles.json",
+    "anti_pattern": "new workflow file per lane/program; free-form execute from raw chat",
+    "forbid_raw_execute": true,
+    "doctrine": "programs/INTENT-LIFECYCLE.md"
+  },
+  "self_improvement": {
+    "always_learn": true,
+    "process_edit_on_classes": [
+      "F-SAME-FAMILY-CRITIC-LAUNDER",
+      "F-CI-PUSH-THRASH",
+      "F-KIT-NOT-ON-DEV",
+      "F-WORKTREE-MISSING-KIT",
+      "F-BABYSIT-WITHOUT-MM-DRIVE",
+      "F-STATIC-EVAL-FALSE-GREEN",
+      "raw_execute_without_harden"
+    ],
+    "promote_skills_human_gated": true
+  },
+  "implement_loop": {
+    "sequence": [
+      "RED_TEST",
+      "IMPLEMENT",
+      "GREEN_TEST",
+      "INTEGRATION_TEST",
+      "FALSE_GREEN_SCAN",
+      "REVIEW_DIFF",
+      "SECURITY_DIFF",
+      "SIMPLIFY",
+      "HARDEN",
+      "VERIFY",
+      "ADMIT_SLICE"
+    ],
+    "tdd_required": true,
+    "forbid_implement_without_red_proof": true,
+    "forbid_delete_or_skip_failing_tests": true,
+    "re_run_green_after_simplify_and_harden": true,
+    "doctrine": "programs/IMPLEMENT-LIFECYCLE.md"
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "run": 31026658918,
+  "attempt": 1,
+  "head": "468f87acc5df",
+  "binding_failures": [
+    {
+      "target": "root//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness-unittest",
+      "test": "active_artifact_graph_regeneration_is_bound_to_the_determinism_canary",
+      "error": "Text file busy (os error 26) / ETXTBSY during first graph regeneration",
+      "class": "likely_flake_under_parallel_FULL_cone",
+      "note": "capacity optional-mount fix held; this is a different error than attempt-on-0d6e6ec"
+    }
+  ],
+  "soft_failures": [
+    "windows-amd64 platform smoke"
+  ],
+  "discipline": "no push until attempt 2 complete; if same flake, re-run or harden write_executable with ETXTBSY retry; do not mid-run push"
+}
