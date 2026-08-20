@@ -1,0 +1,23 @@
+[package]
+name = "payroll-run-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+payroll-run-domain = { path = "../../core/run-domain" }
+serde = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+payroll-run-app = { path = "../../facade/run-app" }
+serde_json = { workspace = true }
+
+[lib]
+name = "payroll_run_api"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

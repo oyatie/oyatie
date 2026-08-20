@@ -15,13 +15,13 @@ iam-tenant-rbac-storage-inmemory = { path = "../../adapters/tenant-rbac-storage-
 iam-tenant-rbac-workflow-inmemory = { path = "../../adapters/tenant-rbac-workflow-inmemory" }
 hr-employment-app = { path = "../../../app/hr/facade/employment-app" }
 hr-employment-storage-inmemory = { path = "../../../app/hr/adapters/employment-storage-inmemory" }
-oya-payroll-run-app = { path = "../../../oya/payroll/crates/oya-payroll-run-app" }
-oya-payroll-run-storage-adapter-inmemory = { path = "../../../oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory" }
+payroll-run-app = { path = "../../../app/payroll/facade/run-app" }
+payroll-run-storage-inmemory = { path = "../../../app/payroll/adapters/run-storage-inmemory" }
 
 [dev-dependencies]
 iam-tenant-rbac-domain = { path = "../../core/tenant-rbac-domain" }
 hr-employment-domain = { path = "../../../app/hr/core/employment-domain" }
-oya-payroll-run-domain = { path = "../../../oya/payroll/crates/oya-payroll-run-domain" }
+payroll-run-domain = { path = "../../../app/payroll/core/run-domain" }
 
 [lib]
 name = "iam_tenant_rbac_local_inmemory_harness"

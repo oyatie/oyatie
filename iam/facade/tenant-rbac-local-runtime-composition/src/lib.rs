@@ -57,7 +57,7 @@ pub fn tenant_rbac_local_runtime_composition() -> TenantRbacLocalRuntimeComposit
             }),
     );
     routes.extend(
-        oya_payroll_run_infrastructure::payroll_runtime_routes()
+        payroll_run_infrastructure::payroll_runtime_routes()
             .into_iter()
             .map(|route| TenantRbacLocalRuntimeRoute {
                 service: "payroll",
