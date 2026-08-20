@@ -5673,3 +5673,37 @@ meant, and reaching through there would churn every existing comparison to say t
 more characters.
 
 gjson 60 → 20 errors, ksuid 15 → 8, uuid back to compiling.
+
+## R3h — the snapshot was a property of the machine that took it
+
+Found by a subagent reading the extractor for an unrelated reason, then verified here rather than
+taken on trust.
+
+`buildConfig.context()` copies `build.Default` and overrides GOOS, GOARCH, build tags, cgo, compiler
+and release tags. It does not override `ToolTags`, which `go/build` computes AT INIT FROM THE HOST.
+On this machine that is:
+
+    [goexperiment.regabiwrappers goexperiment.regabiargs goexperiment.greenteagc
+     goexperiment.randomizedheapbase64 arm64.v8.0]
+
+Those are not decoration. `arm64.v8.0` and `amd64.v1` each select different files in the standard
+library and in `x/sys/cpu`, so the same commit at the same declared `linux/amd64` extracted to a
+DIFFERENT snapshot depending on the architecture of the machine running the extractor. Two
+identities for one input, which is exactly what the receipt exists to prevent — the same failure as
+the Go release in R3d, one field away from it.
+
+The function's own doc had already stated the principle it was violating: excluding cgo
+deterministically "is a refusal the snapshot can state; excluding it because the host happened to
+lack a C compiler is not."
+
+Tool tags are now DECLARED, from the architecture the caller asked for, through a closed table; an
+architecture with no entry gets none rather than the host's. They are stated in `build_config`, so
+they are covered by the preimage and therefore by `snapshot_digest`:
+
+    linux/amd64   go1.21 tooltags=amd64.v1
+    linux/arm64   go1.21 tooltags=arm64.v8.0
+    linux/riscv64 go1.21 tooltags=riscv64.rva20u64   — three distinct digests
+
+The `goexperiment.*` tags are deliberately NOT reproduced. They are properties of the toolchain that
+compiled the extractor rather than of the configuration being described, and a source file selected
+because of how this binary was built is not a file the snapshot can account for.

@@ -83,7 +83,49 @@ func (c *buildConfig) describe() string {
 	if len(c.tags) > 0 {
 		out += " tags=" + strings.Join(c.tags, ",")
 	}
+	// The TOOL TAGS are stated, because they select files and are not derivable from the rest of
+	// this line by a reader who does not have this table.
+	if tags := toolTags(c.goarch); len(tags) > 0 {
+		out += " tooltags=" + strings.Join(tags, ",")
+	}
 	return out
+}
+
+// toolTags is the microarchitecture baseline for a declared GOARCH.
+//
+// `go/build` computes these at init FROM THE HOST, and they gate real files -- `arm64.v8.0` and
+// `amd64.v1` each select different sources in the standard library and in `x/sys/cpu`. Inheriting
+// them means the same commit extracts to a different snapshot on an arm64 machine than on an amd64
+// one, which is the failure the receipt exists to prevent and the same one the Go release was.
+//
+// So they are DECLARED, from the architecture the caller asked for. The goexperiment tags
+// `build.Default` also carries are deliberately NOT reproduced: they are properties of the
+// toolchain that built the extractor rather than of the configuration being described, and a file
+// selected because of how this binary was compiled is not a file the snapshot can account for.
+//
+// The table is CLOSED. An architecture with no entry gets no tool tags rather than the host's,
+// because a wrong tag selects the wrong file and an absent one selects the baseline.
+func toolTags(goarch string) []string {
+	switch goarch {
+	case "amd64":
+		return []string{"amd64.v1"}
+	case "arm64":
+		return []string{"arm64.v8.0"}
+	case "386":
+		return []string{"386.sse2"}
+	case "arm":
+		return []string{"arm.5"}
+	case "mips", "mipsle":
+		return []string{"mips.hardfloat"}
+	case "mips64", "mips64le":
+		return []string{"mips64.hardfloat"}
+	case "ppc64", "ppc64le":
+		return []string{"ppc64.power8"}
+	case "riscv64":
+		return []string{"riscv64.rva20u64"}
+	default:
+		return nil
+	}
 }
 
 // context builds the go/build context that answers the selection question.
@@ -101,6 +143,9 @@ func (c *buildConfig) context() *build.Context {
 	ctx.Compiler = "gc"
 	ctx.UseAllFiles = false
 	ctx.ReleaseTags = releaseTags(c.release)
+	// DECLARED rather than inherited. See toolTags: `build.Default` fills these in from the host,
+	// and they select files.
+	ctx.ToolTags = toolTags(c.goarch)
 	return &ctx
 }
 

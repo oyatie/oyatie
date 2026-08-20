@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:1254074cc38eed09e511c5701867ab21bd8e3fffabc7173b0612bf4178bbf016",
+  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:51202658cc038771494676bb3bd18c786553d6a1f225532ad2b7bd1a7a2bc8cf",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored",
