@@ -37,9 +37,17 @@ fn product_prd_rows(root: &Path) -> Vec<Value> {
             continue;
         }
         let prd = entry.path().join("PRD.md");
-        if !prd.is_file() {
-            continue;
-        }
+        // Every product directory owes a PRD. Skipping the ones without it made a RENAMED PRD
+        // indistinguishable from a product that was never covered: the product's acceptance and
+        // verification rows simply stopped being observed, and the maturity evaluator went green
+        // over the shrunken set.
+        assert!(
+            prd.is_file(),
+            "product directory {} carries no PRD.md — a product whose PRD is missing or renamed \
+             drops out of the maturity corpus silently; add the PRD or retire the directory in \
+             the same change",
+            entry.path().display()
+        );
         let text =
             fs::read_to_string(&prd).unwrap_or_else(|e| panic!("read {}: {e}", prd.display()));
         let lower = text.to_ascii_lowercase();
