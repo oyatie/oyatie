@@ -181,6 +181,51 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 }
             }
         }
+        // HOW a value reaches the formatter, decided by what it IS. See `RustExpr::FormatterWrite`.
+        // The formatter is named `f` because the impl this appears in binds it so — the two are
+        // written once, in `lower_sentinel`, and this is the other half.
+        RustExpr::FormatterWrite(value) => match value.as_ref() {
+            // A FORMATTING CALL goes to the formatter directly. Writing its result would allocate a
+            // string only to copy it, which the target's own lint objects to.
+            RustExpr::MacroCall {
+                name,
+                template,
+                args,
+            } if name == "format" => {
+                let template: proc_macro2::TokenStream = format!("{template:?}")
+                    .parse()
+                    .map_err(|err| PortError::Render {
+                        detail: format!("a message template is not a target literal: {err}"),
+                    })?;
+                let args = lower_each(args)?;
+                Ok(quote! { write!(f, #template #(, #args)*) })
+            }
+            // EVERY ARM A LITERAL: borrowed arms make the match a `&'static str`, which the
+            // formatter takes directly, instead of one allocation per call for static text.
+            expr @ RustExpr::Match { .. } if static_str_match(expr).is_some() => {
+                let borrowed = static_str_match(expr).expect("checked by the guard");
+                let matched = lower_expr(&borrowed)?;
+                Ok(quote! { f.write_str(#matched) })
+            }
+            // A VALUE THAT CAN WRITE ITSELF does, rather than rendering to a string to be copied.
+            RustExpr::MethodCall {
+                receiver,
+                method,
+                args,
+            } if method == "to_string" && args.is_empty() => {
+                let inner = lower_expr(receiver)?;
+                Ok(quote! { fmt::Display::fmt(&#inner, f) })
+            }
+            // ALREADY A REFERENCE, so no second borrow — which would be `needless_borrow`.
+            expr @ RustExpr::Reference { mutable: false, .. } => {
+                let expr = lower_expr(expr)?;
+                Ok(quote! { f.write_str(#expr) })
+            }
+            other => {
+                let expr = lower_expr(other)?;
+                Ok(quote! { f.write_str(&#expr) })
+            }
+        },
         RustExpr::Deref(inner) => {
             let inner = crate::lower_precedence::lower_postfix_base(inner)?;
             Ok(quote! { *#inner })
