@@ -134,6 +134,17 @@ fn build_fn(
     // The BODY first, and what it FOLDED with it: the signature below is built from what the fold
     // did rather than from a prediction of it, because a parameter it substituted away needs no
     // `mut` and one it could not needs its own.
+    // A SHORTHAND emits nothing of its own. Every call to it became the call it wraps, so the
+    // declaration has no callers left — and eight one-line wrappers around an intrinsic were, in
+    // three reviewers' words, the clearest sign the source's structure had been carried rather than
+    // its meaning. It still TRANSLATED: what it becomes is at each of its call sites.
+    if resolver
+        .signatures
+        .eta(&format!("{}.{}", resolver.unit.0, declaration.name))
+        .is_some()
+    {
+        return Ok(RustItem::Nothing);
+    }
     let consumed;
     let body = if translate_body {
         let source = declaration

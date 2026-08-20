@@ -158,7 +158,12 @@ impl SignatureTable {
             for declaration in declarations.iter().filter(|d| d.kind == KIND_FUNC) {
                 // Keyed by the same IDENTITY a call site carries — the unit path and the name —
                 // because that is what the call names. Keyed by the bare name it matched nothing.
-                if let Some(shorthand) = crate::eta::wrapper(declaration, &mapped, &units) {
+                // Keyed by the same IDENTITY a call site carries, and only where nothing takes
+                // the function as a VALUE: every call becomes the call it wraps, so the declaration
+                // can go — but a `f := rol31` would be left pointing at nothing.
+                if let Some(shorthand) = crate::eta::wrapper(declaration, &mapped, &units)
+                    && !crate::eta::used_as_value(&declarations, &declaration.name)
+                {
                     eta.insert(format!("{}.{}", unit.0, declaration.name), shorthand);
                 }
                 // EMPTY: this table answers about signatures, and whether a body folds is a fact

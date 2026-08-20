@@ -120,3 +120,31 @@ fn mentions(node: &Declaration, name: &str) -> usize {
             .map(|child| mentions(child, name))
             .sum::<usize>()
 }
+
+/// Whether anything in this unit uses the name as a VALUE rather than calling it.
+///
+/// A wrapper is only droppable if every use is a call, because every call becomes the call it wraps
+/// and nothing is left pointing at it. The source can also take a function as a value — `f := rol31`
+/// — and that use has nowhere to go once the declaration is gone.
+///
+/// The callee child of a call is not such a use: it names the function being called, which is
+/// exactly the case that inlines.
+pub(crate) fn used_as_value(declarations: &[Declaration], name: &str) -> bool {
+    declarations
+        .iter()
+        .any(|declaration| value_use(declaration, name))
+}
+
+fn value_use(node: &Declaration, name: &str) -> bool {
+    if node.kind == KIND_CALL {
+        // Skip the callee, walk the arguments. A call OF the name is the case that inlines; a call
+        // that passes the name is a value use like any other.
+        return node.children[1..]
+            .iter()
+            .any(|argument| value_use(argument, name));
+    }
+    if node.kind == KIND_IDENT && node.name == name {
+        return true;
+    }
+    node.children.iter().any(|child| value_use(child, name))
+}
