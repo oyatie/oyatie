@@ -189,7 +189,7 @@ pub(crate) fn statements(
     let mut consumed = BTreeSet::new();
     if let Some((name, names)) = crate::accumulator::folded_parameters(declaration)
         && let Some(folded) =
-            crate::accumulator::fold(translated.clone(), &to_snake_case(&name))
+            crate::accumulator_fold::fold(translated.clone(), &to_snake_case(&name))
     {
         translated = folded;
         consumed = names;

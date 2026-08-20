@@ -7,6 +7,7 @@
 /// Crate-relative path and contents of each source this crate owns, sorted by path.
 pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("accumulator.rs", include_str!("accumulator.rs")),
+    ("accumulator_fold.rs", include_str!("accumulator_fold.rs")),
     ("apply.rs", include_str!("apply.rs")),
     ("body.rs", include_str!("body.rs")),
     ("body_argument.rs", include_str!("body_argument.rs")),
@@ -22,6 +23,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("body_index.rs", include_str!("body_index.rs")),
     ("body_literal.rs", include_str!("body_literal.rs")),
     ("body_loops.rs", include_str!("body_loops.rs")),
+    ("body_mapped.rs", include_str!("body_mapped.rs")),
     ("body_operand.rs", include_str!("body_operand.rs")),
     ("body_ops.rs", include_str!("body_ops.rs")),
     ("body_parts.rs", include_str!("body_parts.rs")),
