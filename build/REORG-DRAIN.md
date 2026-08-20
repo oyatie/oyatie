@@ -5868,3 +5868,79 @@ allocate per element where nothing may allocate at all.
 `RustType::Array` and `RustExpr::ArrayLiteral` are separate from the growable forms on purpose: one
 is a constant expression in the target and the other is not, and a shape that blurred them would
 produce this same error somewhere else.
+
+## R3l — memberlist was three stacked loader defects, and two of them were R3d again
+
+`hashicorp/memberlist` — the Phase 3 "ultimate proof" repository — did not extract, and the drain
+recorded the cause as "type-checks into `golang.org/x/sys/unix`, a transitive syscall dependency".
+That was where the first defect surfaced, not what it was. Diagnosed by a subagent and verified
+here; all three fixed, and memberlist now extracts **186 declarations, 78 translated (41.9%)**.
+
+### Defect 1 — one release applied to other people's modules
+
+    conf := types.Config{Importer: c, GoVersion: c.cfg.goVersion()}
+
+Every package the importer resolved — corpus, vendored dependency, anything — was type-checked at
+the CORPUS's declared release. A package's language version comes from the `go` directive of the
+module that OWNS it. `x/sys` declares `go 1.25` and uses `for range n` over an int, so checking it at
+go1.21 fails.
+
+Failing false is the visible half. The other direction is the serious one: a dependency whose module
+declares go1.22, checked at go1.21, gets the pre-1.22 loop-variable scoping — the same syntax and a
+different program. That is R3d, reintroduced once per dependency, three phases after R3d was fixed
+for the corpus.
+
+### Defect 2 — the standard library was resolved for the host
+
+    fallback: importer.ForCompiler(fset, "source", nil)
+
+`go/importer`'s source compiler is `srcimporter` over `build.Default` and takes no build context. So
+the corpus and its dependencies were file-selected for the DECLARED `linux/amd64` while the standard
+library they import was type-checked for the host — darwin/arm64 here — and `x/sys/unix` failed on
+`syscall.Setresuid`, which exists only on Linux. Another instance of R3h: the declared configuration
+is what makes a snapshot independent of the machine, and half the type-check was ignoring it.
+
+Fixed by reading what the COMPILER reads. `go list -deps -json -export` produces export data for the
+declared target, at the release each module declares, from the real toolchain; the importer is
+`ForCompiler(fset, "gc", lookup)` over those files. No new dependency — the ban on adding
+`golang.org/x/tools` to this module holds.
+
+### Defect 3 — the resolver was asked the host's question
+
+`go list` ran with no environment, so the DEPENDENCY SET was the host's. `miekg/dns` reaches
+`x/net/ipv4` on linux and not on darwin, so the map handed to the importer was missing packages the
+declared build imports, and the failure read as "cannot find package in GOROOT". It now runs with
+the declared GOOS, GOARCH and `CGO_ENABLED=0`, which is the same configuration the walk selects
+files with.
+
+### Two things the fix exposed
+
+**`unsafe` is not a package.** It is built into the type-checker, and `types.Unsafe` is the only
+value of it that compares equal to itself. The resolver lists it like any other import, so it was
+being type-checked from GOROOT's source — producing a SECOND `unsafe` whose `Pointer` is a different
+type from the real one, after which `unsafe.Pointer(&sliceHeader{..})` stopped being legal. That is
+correct Go failing to type-check, in `xxhash`, which had extracted fine for twenty phases.
+
+**The corpus's own release is a ceiling, and it is now refused BY NAME.** memberlist declares
+`go 1.25`; at the default 21 it used to fail as a syntax error six imports deep inside a vendored
+file, naming neither the corpus, nor the release, nor the mismatch. It now says so:
+
+    corpus module github.com/hashicorp/memberlist declares go1.25 and extraction is configured for
+    go1.21: the configured release is a ceiling, and a corpus is not silently checked below the
+    release its own module requires
+
+That refusal immediately caught `gjson` and `chi`, which declare `go 1.23` and had been extracted at
+go1.21 for two phases — every measurement of them before this was taken at the wrong release.
+
+### The weaker importer is recorded rather than hidden
+
+Not every corpus can be built. The fixtures in this repository deliberately cannot, so `go list
+-export` produces nothing for them and source is the only answer. Source is a WEAKER answer — it
+resolves the standard library for the host — so taking it is recorded in `build_config`, which the
+preimage covers:
+
+    linux/amd64 go1.21 tooltags=amd64.v1 imports=source   — the fixtures
+    linux/amd64 go1.25 tooltags=amd64.v1                  — memberlist
+
+A degradation that changes what was checked has to change the identity of what was produced, or the
+receipt is certifying two different things under one digest.
