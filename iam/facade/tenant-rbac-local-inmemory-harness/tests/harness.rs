@@ -6,7 +6,7 @@ use hr_employment_app::plan_leave_payroll_impact_envelope;
 use hr_employment_domain::{
     LeaveDecision, LeavePayrollImpactInput, LeaveRoutingMode, PayrollImpactKind,
 };
-use hr_employment_storage_adapter_inmemory::HrStorageError;
+use hr_employment_storage_inmemory::HrStorageError;
 use iam_tenant_rbac_domain::{
     CrossServiceWorkflowInput, DeterministicGate, GateClosureAuthority,
     ObjectGraphRelationshipOwner, TenantRbacService, WorkflowRoutingOwner,
