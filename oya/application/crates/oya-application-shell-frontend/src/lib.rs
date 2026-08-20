@@ -4,6 +4,8 @@
 pub const DASHBOARD_MOUNT_HOST_ID: &str = "oya-dashboard-island-root";
 
 pub mod app;
+#[cfg(all(target_arch = "wasm32", any(feature = "csr", feature = "hydrate")))]
+mod browser_panic_hook;
 pub mod client_session_state;
 pub mod design_system;
 pub mod render_envelope;
@@ -25,7 +27,7 @@ pub fn mount_app() {
 #[cfg(all(target_arch = "wasm32", any(feature = "csr", feature = "hydrate")))]
 #[wasm_bindgen::prelude::wasm_bindgen]
 pub fn mount_dashboard_islands() {
-    console_error_panic_hook::set_once();
+    browser_panic_hook::set_once();
     mount_dashboard_island_by_id(DASHBOARD_MOUNT_HOST_ID);
 }
 
