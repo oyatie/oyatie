@@ -43,6 +43,11 @@ func declFor(obj types.Object, ctx *extractCtx) (node, error) {
 		// child instead of as silence.
 		if init, ok := ctx.varInits[typed]; ok {
 			base.Children = []node{initializerNode(init, ctx)}
+		} else if assigned, ok := ctx.initAssignments[typed]; ok {
+			// The package INITIALISER's assignment, which is this variable's value just as a
+			// declaration's initialiser is. Recorded the same way so nothing downstream has to know
+			// which of the two the source used.
+			base.Children = []node{expressionNode(assigned, ctx)}
 		}
 		// Written somewhere in the package, so the mutability the deferral is about is real here
 		// and absent elsewhere. Observed rather than assumed, in both directions.

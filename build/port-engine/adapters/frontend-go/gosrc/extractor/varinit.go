@@ -33,6 +33,55 @@ type varInit struct {
 	spec *ast.ValueSpec
 }
 
+// indexInitAssignments keys a package variable by the expression the package INITIALISER assigns it.
+//
+// `go/types` omits `init` from package scope, so the engine could see THAT such a variable is
+// computed and never WITH WHAT -- the third of three stacked gaps the plan names for package-scope
+// variables, after the missing initialiser and the missing write analysis.
+//
+// Only where the initialiser assigns it EXACTLY ONCE, and only a plain `=`. A variable the
+// initialiser writes twice has no single expression that is its value, and a read-modify-write reads
+// a value from before the initialiser ran, which is the zero and is a different question.
+func indexInitAssignments(files []*ast.File, tpkg *types.Package) map[types.Object]ast.Expr {
+	found := map[types.Object]ast.Expr{}
+	twice := map[types.Object]bool{}
+	scope := tpkg.Scope()
+	for _, file := range files {
+		for _, decl := range file.Decls {
+			fn, isFunc := decl.(*ast.FuncDecl)
+			if !isFunc || !isPackageInit(fn) {
+				continue
+			}
+			ast.Inspect(fn.Body, func(n ast.Node) bool {
+				assign, ok := n.(*ast.AssignStmt)
+				if !ok || assign.Tok != token.ASSIGN || len(assign.Lhs) != len(assign.Rhs) {
+					return true
+				}
+				for at, lhs := range assign.Lhs {
+					ident, ok := lhs.(*ast.Ident)
+					if !ok {
+						continue
+					}
+					obj := scope.Lookup(ident.Name)
+					if obj == nil || obj != tpkg.Scope().Lookup(ident.Name) {
+						continue
+					}
+					if _, seen := found[obj]; seen {
+						twice[obj] = true
+						continue
+					}
+					found[obj] = assign.Rhs[at]
+				}
+				return true
+			})
+		}
+	}
+	for obj := range twice {
+		delete(found, obj)
+	}
+	return found
+}
+
 // indexVarInitializers keys every package-scope variable's initialiser by its object.
 //
 // Keyed by object rather than by name because that is what the declaration walk holds, and because

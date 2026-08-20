@@ -4116,3 +4116,30 @@ source did not.
 `Digest` now waits on `appendUint64`, which reads through `binary.LittleEndian` — a foreign package
 the pack has not mapped. Four layers of this cascade have been peeled and each one named the next
 honestly.
+
+## R2e — the third of three stacked gaps
+
+Ranked by PACKAGES blocked rather than by count — which is the method's criterion and not the one I
+had been reading — the top decidable cause is the package-scope `var`: 4 packages and 42 refusals
+across its two variants, plus 14 more that read one. It is also the first item in the plan's blocker
+list, which names three stacked gaps: no initializer recorded, no package-var write analysis, `init`
+bodies never indexed.
+
+Two were closed earlier this session — the write analysis learned where a write happens and that an
+indexed assignment or a slice hands out the same licence an address does, and constants got their
+initialising expression. **The third is closed now.** `go/types` omits `init` from package scope, so
+the extractor indexes those bodies itself and records what the initialiser assigns.
+
+Only where it assigns the variable EXACTLY ONCE, and only a plain `=`. A variable the initialiser
+writes twice has no single expression that is its value, and a read-modify-write reads a value from
+before the initialiser ran — which is the zero, and a different question.
+
+**What this changes is the refusal, not the coverage, and that is the honest result.** The reason
+used to say the missing thing was a FACT the front end could not see. It is not any more: the fact is
+there, and what remains is the FORM. The target's lazily-initialised global computes at first use
+where the source computed before `main` — invisible for a value the expression merely computes, and
+a different program for one whose computation has effects. Deciding it needs a purity proof, and the
+reason now says so rather than implying a decision is being weighed.
+
+A variable the initialiser fills in a LOOP still lacks the fact and is named separately: there is no
+single expression that is its value, and `xid`'s decoding table is one.

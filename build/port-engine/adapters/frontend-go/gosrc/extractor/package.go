@@ -126,6 +126,7 @@ func extractPackage(
 		varInits:  indexVarInitializers(files, tpkg),
 	}
 	ctx.varWrites, ctx.varInitOnly = packageVarWrites(files, info, tpkg)
+	ctx.initAssignments = indexInitAssignments(files, tpkg)
 
 	scope := tpkg.Scope()
 	objNames := scope.Names() // go/types returns these sorted
@@ -266,6 +267,10 @@ type extractCtx struct {
 	// variable is computed once before anything runs and never changes after, which is not the
 	// mutable global the deferral is about — a different fact, and so a different target form.
 	varInitOnly map[types.Object]bool
+	// initAssignments keys a package variable by what the package INITIALISER assigns it. go/types
+	// omits `init` from package scope, so without this the engine could see THAT a variable is
+	// computed and never with what.
+	initAssignments map[types.Object]ast.Expr
 	// fieldDocs is keyed by "TypeName.FieldName": a struct field is not a package-scope object, so
 	// it has no types.Object to index by, and matching by position would break the moment a field
 	// moves.
