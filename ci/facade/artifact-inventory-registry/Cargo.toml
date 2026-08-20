@@ -32,6 +32,7 @@ path = "src/bin/oya-cloud-ci-cargo-test-producer-adapter.rs"
 [dependencies]
 oya-reorg-codemod-app = { path = "../../../tools/oya-reorg-codemod-app" }
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
+ci-path-resolver-ports = { path = "../../ports/path-resolver" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }

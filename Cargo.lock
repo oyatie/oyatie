@@ -1416,6 +1416,7 @@ dependencies = [
  "ci-license-policy",
  "ci-package-manifest-hygiene",
  "ci-path-resolver-adapters",
+ "ci-path-resolver-ports",
  "ci-service-catalog-parity",
  "ci-slo-coverage",
  "ci-stale-artifact-detection",
@@ -1849,6 +1850,7 @@ dependencies = [
 name = "ci-repo-root-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-ports",
  "ci-scm-facts-snapshot",
  "serde_json",
  "tempfile",
