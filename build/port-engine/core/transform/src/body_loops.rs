@@ -487,7 +487,10 @@ fn match_scrutinee(
         return crate::body_index::unwrapped_base(tag, cx);
     }
 
-    let translated = expression(tag, cx)?;
+    // A PLACE. A match reads its scrutinee and constant patterns bind nothing, so nothing is
+    // consumed — and a value position would clone a field read of a non-copying type for a copy no
+    // arm keeps. `match self.r#type.clone()` allocated on every call to ask which variant it was.
+    let translated = crate::body_expr::in_position(tag, cx, crate::body_expr::Position::Place)?;
     let all_paths = patterns().all(|pattern| matches!(pattern, RustExpr::Path(_))) && any;
     if all_paths
         && crate::body_ops::is_receiver(tag)

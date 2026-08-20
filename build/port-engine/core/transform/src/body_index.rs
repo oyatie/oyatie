@@ -115,7 +115,21 @@ pub(crate) fn slice(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Trans
 /// index through any other binding of a newtype is a shape the corpus does not have, and it arrives
 /// here unchanged rather than being guessed at.
 pub(crate) fn unwrapped_base(base: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
-    let translated = expression(base, cx)?;
+    unwrapped_in(base, cx, crate::body_expr::Position::Value)
+}
+
+/// The same, at a stated position.
+///
+/// A BORROW position does not need the copy a value position asks for. A field read of a
+/// non-copying type clones, because reading one moves in the target — and a receiver, an index base
+/// and a formatting operand are all borrowed rather than consumed, so the clone there is an
+/// allocation nothing keeps.
+pub(crate) fn unwrapped_in(
+    base: &Declaration,
+    cx: &Body<'_>,
+    position: crate::body_expr::Position,
+) -> Result<RustExpr, TransformError> {
+    let translated = crate::body_expr::in_position(base, cx, position)?;
     let wraps = unwraps_newtype(base, cx);
     if !wraps {
         return Ok(translated);

@@ -215,11 +215,15 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
                 .map(|text| format!("{}{{}}", text.replace('{', "{{").replace('}', "}}"))),
             _ => None,
         };
+        // A FORMAT ARGUMENT IS BORROWED. The macro takes its operands by reference, so the value
+        // position's copy is an allocation the formatting drops — rebuilt as a place rather than
+        // reusing the operand already built for the `+` this is replacing.
+        let operand = in_position(rhs, cx, Position::Place)?;
         return Ok(match inlined {
             Some(template) => RustExpr::MacroCall {
                 name: "format".to_owned(),
                 template,
-                args: vec![right],
+                args: vec![operand],
             },
             None => RustExpr::MacroCall {
                 name: "format".to_owned(),
