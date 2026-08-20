@@ -6,7 +6,7 @@ use quote::{ToTokens, quote};
 use port_engine_api::PortError;
 
 use crate::expr::{MatchArm, RustExpr};
-use crate::stmt::{RustStmt};
+use crate::stmt::{ForBinding, RustStmt};
 use crate::lower_parts::{parse_expr, parse_ident, parse_type};
 use crate::lower_expr::lower_expr;
 use crate::lower_precedence::is_block_like;
@@ -121,8 +121,18 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             iter,
             body,
         } => {
-            let binding = parse_ident(binding)?;
             let (iter, body) = (lower_expr(iter)?, lower_block(body)?);
+            let binding = match binding {
+                ForBinding::Blank => quote! { _ },
+                ForBinding::Name(name) => {
+                    let name = parse_ident(name)?;
+                    quote! { #name }
+                }
+                ForBinding::Indexed { index, item } => {
+                    let (index, item) = (parse_ident(index)?, parse_ident(item)?);
+                    quote! { (#index, #item) }
+                }
+            };
             Ok(quote! { for #binding in #iter { #body } })
         }
         RustStmt::Break => Ok(quote! { break; }),

@@ -37,6 +37,11 @@ pub const KNOWN_FLAGS: &[&str] = &[
     "reread",
     // The body never mentions the parameter. Ordinary in the source and a warning in the target,
     // which the leading underscore answers without changing the signature.
+    // The enclosing body writes this captured variable somewhere -- not necessarily inside the
+    // literal that captures it. Go's closure shares the variable's STORAGE, so a write through any
+    // path is visible to every holder; a target closure that OWNS its captures gets a copy, and
+    // copies stop agreeing at the first write. This is what decides whether owning is faithful.
+    "reassigned",
     "unread",
     "variadic",
     "unsafe_layout_only",
@@ -45,6 +50,7 @@ pub const KNOWN_FLAGS: &[&str] = &[
 /// The closed attribute-key vocabulary, closed for the same reason as the flags.
 pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_BUNDLE,
+    ATTR_DESTINATION,
     ATTR_CALLEE,
     ATTR_CALLEE_KIND,
     ATTR_DOC,
@@ -111,6 +117,13 @@ pub const ATTR_RECEIVER: &str = "receiver";
 /// structurally — every type with the embedded method sets has it. The target says that once with a
 /// blanket impl, and a per-type impl beside one is a coherence conflict rather than a redundancy.
 pub const ATTR_BUNDLE: &str = "bundle";
+
+/// Where a function literal GOES, when that is a position outliving its enclosing frame.
+///
+/// A source fact, not a decision: the front end can see that a literal sits among a `return`'s
+/// operands and the transform cannot, but what the target does about it belongs to the transform.
+/// Distinct from the `escapes` FLAG, which is the ownership analysis's own answer.
+pub const ATTR_DESTINATION: &str = "destination";
 
 pub const ATTR_SITE: &str = "site";
 

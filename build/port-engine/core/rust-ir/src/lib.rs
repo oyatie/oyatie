@@ -45,7 +45,7 @@ mod render;
 mod ty;
 
 pub use expr::{ClosureParam, MatchArm, RustExpr};
-pub use stmt::{RustStmt, TupleBind};
+pub use stmt::{ForBinding, RustStmt, TupleBind};
 pub use item::{RustItem, SentinelVariant};
 pub use item_parts::{Receiver, RustField, RustFn, RustParam, StructShape, Visibility};
 pub use lower::lower_file;

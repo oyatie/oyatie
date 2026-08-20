@@ -6945,3 +6945,60 @@ lists changes emitted bytes with no axis movement. The step was documented as re
 source change and had no tool, so it was done by hand or not at all. `regen-sources.sh` does it, and
 its first run reproduced all thirteen existing manifests byte-for-byte while adding the one missing
 line — which is the evidence that it matches what was there.
+
+## R4m — ownership is a property of the DESTINATION, and one destination is visible
+
+The largest cause in the corpus by declarations — 35 across five packages — was the closure that
+captures. The refusal was true: which of the target's four answers a capture takes is decided by
+where the literal GOES, and for most destinations the engine cannot see that.
+
+For one it can. A literal among a `return`'s operands OUTLIVES the frame it is written in, so its
+captures cannot be borrowed from that frame. That is a SOURCE fact — the front end sees the literal
+sitting in return position and the transform never can — so the extractor records it as
+`destination`, and the transform decides what to do about it. Named `destination` rather than
+`escapes` because an `escapes` FLAG already exists and means the ownership analysis's own answer.
+
+Owning is not automatically faithful, and this is the half that matters. Go's closure shares the
+variable's STORAGE: where anything reassigns a capture — the enclosing body, or a second literal
+over the same variable — the source has ONE value and `move` would make several, which stop
+agreeing at the first write. So the extractor also records `reassigned`, and a returned literal
+whose capture is reassigned KEEPS REFUSING, naming the capture that forced it.
+
+    n := 0
+    f := func() { print(n) }
+    n = 5
+    return f            // Go prints 5; `move` captures 0. Refused.
+
+chi's closure cause went 26 → 12. Coverage did not move, and that is the finding worth recording:
+those declarations hit their NEXT blocker — `net/http.HandlerFunc`, `TypeAssertExpr`. A corpus
+declaration has several blockers and the survey reports the first, so clearing a cause moves the
+HISTOGRAM while coverage stays flat until a declaration's LAST blocker falls.
+
+Checked and DISPROVED along the way: that foreign standard-library types are what gate the goal
+repositories. They are 8–19% of refusals, not the majority. The blockers are ordinary language
+constructs.
+
+## R4n — what the source's `range` means depends on what is ranged
+
+`for i, v := range xs` refused. The reason given was that binding the index "needs a rule for
+whether the element is a copy or a reference", and the real question is a different one: the source's
+`range` binds different things by TYPE. Over a sequence the first name is an INDEX; over a map it is
+a KEY; over a string it is a BYTE OFFSET with decoded runes for values. The loop's shape does not
+say which — the ranged expression's type does, and it was never consulted.
+
+Sequences translate:
+
+    for i, v := range xs      ->  for (i, v) in xs.iter().enumerate()
+    for i := range xs         ->  for i in 0..xs.len()
+
+`enumerate` yields the index first and the item second, which is the order the source binds them in,
+so the pattern is a transcription rather than a reordering.
+
+A MAP refuses, for the reason its literal already does: the source's map has no order, the target's
+has one, and iterating it would make an order observable that the source never promised. The same
+decision in two places, and it should be made once.
+
+The binding stopped being a `String`. A single name is an identifier and a pair is a PATTERN, and
+the renderer parses what it is handed — so `ForBinding` is `Blank`, `Name` or `Indexed`, and the
+blank is a variant rather than the name `_`. That is the third time the blank has been spelled as a
+name and reached `parse_ident`; modelling it closes the trap rather than avoiding it again.

@@ -95,6 +95,12 @@ pub const IDIOM_INDEX_COUNTER: &str = "index_counter_is_usize";
 /// The idiom that a loop counting to reach each element is an iterator over the sequence.
 pub const IDIOM_INDEX_LOOP: &str = "index_loop_is_an_iterator";
 /// The idiom that a parallel assignment exchanging two elements is the sequence's own swap.
+/// Where a function literal GOES, when that is a position outliving its enclosing frame.
+pub const ATTR_DESTINATION: &str = "destination";
+
+/// That the enclosing body reassigns this captured variable, so owning a copy is not sharing it.
+pub const FLAG_REASSIGNED: &str = "reassigned";
+
 pub const IDIOM_SWAP: &str = "parallel_exchange_is_a_swap";
 /// The idiom that a three-way comparison is the target's ordering type.
 pub const IDIOM_ORDERING: &str = "three_way_comparison_is_an_ordering";

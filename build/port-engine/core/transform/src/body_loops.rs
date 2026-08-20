@@ -5,7 +5,7 @@
 //! which is the class of defect no golden and no parse check would ever surface.
 
 use port_engine_api::Declaration;
-use port_engine_rust_ir::{MatchArm, RustExpr, RustStmt};
+use port_engine_rust_ir::{ForBinding, MatchArm, RustExpr, RustStmt};
 
 use crate::body::{Body, TailPosition, translate};
 use crate::body_parts::{branch, named_child, one_child, two_children};
@@ -191,7 +191,7 @@ fn counted_range(
         && crate::counters::elements_copy(body, counter, cx)
     {
         return Ok(RustStmt::ForIn {
-            binding: to_snake_case(&element),
+            binding: ForBinding::Name(to_snake_case(&element)),
             // Borrow the sequence and COPY each element, which is exactly what the source's index
             // read does: it takes a copy and leaves the sequence usable. Consuming the sequence
             // would end its life at the loop, and handing out references would give the body a
@@ -231,8 +231,8 @@ fn counted_range(
         // way to repeat a fixed number of times except by counting, and a name nobody reads is a
         // denied warning here.
         binding: match crate::counters::reads_name(body, counter) {
-            true => to_snake_case(counter),
-            false => "_".to_owned(),
+            true => ForBinding::Name(to_snake_case(counter)),
+            false => ForBinding::Blank,
         },
         iter: RustExpr::Range {
             start: Box::new(expression(one_child(init, cx, "let")?, inner)?),
@@ -256,17 +256,42 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
     let key = node.attr("key").unwrap_or_default();
     let value = node.attr("value").unwrap_or_default();
 
+    let sequence_kind = one_child(over, cx, "over")?.type_ref.kind.clone();
+    // WHAT THE SOURCE'S `range` MEANS depends on what is ranged, and the forms do not agree: over a
+    // sequence the first name is an INDEX, over a map it is a KEY, over a string it is a BYTE
+    // OFFSET with runes for values. Only the sequences are answered here, and the type is what says
+    // which this is — the loop's shape alone does not.
+    let indexable = matches!(sequence_kind.as_str(), "slice" | "array");
     let binding = match (key.is_empty() || key == "_", value.is_empty()) {
-        (true, false) => value,
+        (true, false) => ForBinding::Name(to_snake_case(value)),
+        // `for i, v := range xs` over a sequence. The target's `enumerate` yields the index first
+        // and the item second, which is the order the source binds them in, so the pattern is a
+        // direct transcription rather than a reordering.
+        (false, false) if indexable => ForBinding::Indexed {
+            index: to_snake_case(key),
+            item: to_snake_case(value),
+        },
+        // `for i := range xs`. The source binds the INDEX and reads elements itself; there is no
+        // item to yield, so this is a range over the positions rather than over the sequence.
+        (false, true) if indexable => ForBinding::Name(to_snake_case(key)),
         _ => {
+            // A MAP is refused for the reason its literal already is: the source's map has no
+            // order and the target's has one, so iterating it makes an order observable that the
+            // source never promised. That is a decision about which map the port uses, not a loop
+            // shape, and it is the same decision in both places.
+            let why = match sequence_kind.as_str() {
+                "map" => "ranging a map binds its KEYS in an order the source does not define, and                           the target's ordered map would make that order observable — the same                           decision its literal refuses, and it belongs with that one",
+                "basic" => "ranging the source's string binds BYTE OFFSETS with decoded runes for                             values, and the target's string iterators yield one or the other but                             not the pair",
+                _ => "binding the index needs to know what is ranged, and the type of this                       expression does not say — only a sequence has indices to bind",
+            };
             return Err(TransformError::Unsupported {
                 name: cx.owner.to_owned(),
-                detail: "only `for _, v := range xs` translates: binding the index too needs a \
-                         rule for whether the element is a copy or a reference"
-                    .to_owned(),
+                detail: why.to_owned(),
             });
         }
     };
+    // The POSITIONS, not the elements: `for i := range xs` never names an item.
+    let over_positions = !value.is_empty() || key.is_empty() || key == "_";
 
     // Iterate by REFERENCE. The source's range copies the element and leaves the sequence usable;
     // consuming it here would end the sequence's life at the loop.
@@ -277,6 +302,9 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
     // unconditionally, so it is added only where the expression does not already carry it.
     let sequence = one_child(over, cx, "over")?;
     let rendered = expression(sequence, cx)?;
+    // Kept UNBORROWED for the positional form: `0..xs.len()` asks the sequence its length and never
+    // iterates it, so the reference the iterating forms need would be a borrow of nothing.
+    let rendered_len = rendered.clone();
     // Already borrowed when the sequence IS a parameter the signature borrows — the same answer the
     // signature gave, read rather than derived a second time.
     let already_borrowed =
@@ -289,8 +317,34 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
         },
     };
 
+    let iter = match (&binding, over_positions) {
+        // `xs.iter().enumerate()`
+        (ForBinding::Indexed { .. }, _) => RustExpr::MethodCall {
+            receiver: Box::new(RustExpr::MethodCall {
+                receiver: Box::new(iter),
+                method: "iter".to_owned(),
+                args: Vec::new(),
+            }),
+            method: "enumerate".to_owned(),
+            args: Vec::new(),
+        },
+        // `0..xs.len()` — the positions, because nothing here names an item.
+        (ForBinding::Name(_), false) => RustExpr::Range {
+            start: Box::new(RustExpr::Literal("0".to_owned())),
+            end: Box::new(RustExpr::MethodCall {
+                receiver: Box::new(rendered_len),
+                method: "len".to_owned(),
+                args: Vec::new(),
+            }),
+            inclusive: false,
+        },
+        // Named or blank, this form iterates the items themselves.
+        (ForBinding::Name(_) | ForBinding::Blank, true) => iter,
+        (ForBinding::Blank, false) => iter,
+    };
+
     Ok(RustStmt::ForIn {
-        binding: to_snake_case(binding),
+        binding,
         iter,
         body: translate(&body.children, cx, TailPosition::No)?,
     })

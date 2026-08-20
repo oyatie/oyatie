@@ -249,6 +249,14 @@ type extractCtx struct {
 	// the body never writes again needs nothing from the target; one it does write needs to say so,
 	// and which it is cannot be told from the binding itself.
 	assigned map[types.Object]bool
+	// destination names WHERE the function literal currently being extracted is going, empty when it
+	// is not in a position that outlives the enclosing frame. A closure's captures cannot be owned
+	// or borrowed on the strength of the literal alone -- that is a property of its destination --
+	// and the destination is a SOURCE fact the front end can see and the transform cannot.
+	//
+	// Set while descending into the operands of a `return` and cleared while descending into a
+	// literal's own body, so a closure nested inside a returned one is judged on its own position.
+	destination string
 	// receiver is the name the enclosing method binds its receiver to, so an identifier that
 	// refers to it can be marked as such. Without it `c.total` and `other.total` are the same
 	// shape and only one of them is `self`.
