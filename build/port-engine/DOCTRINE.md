@@ -274,8 +274,16 @@ State on 2026-08-20. Update with measurements, not impressions.
 ### Measure `compiles`, never `translated`
 
 `survey` reports how many declarations TRANSLATED. That is the engine's confidence, not a fact about
-Rust. Run `compile-corpus.sh` after every rule. Current: 6 of 9 emitted packages compile; gjson (6
-errors), chi (5), ksuid (8) do not.
+Rust. Run `compile-corpus.sh` after every rule.
+
+**State on 2026-08-20:** nine of ten emitted packages pass `rustc` AND `clippy-driver` with
+`--deny=warnings` under `#![forbid(unsafe_code)]`. All five repositories the goal names are among
+them — `uuid`, `gjson`, `chi`, `go-multierror`, `memberlist`. `semver` remains, on
+`len_without_is_empty`.
+
+Run the gate at the policy the engine is actually held to. Running `rustc` alone, without
+`-D warnings`, measured a weaker claim and reported "compiles" for a crate that does not build:
+`pub const K: PrivateType` is a warning.
 
 A rule is finished when its cause has left the histogram AND the output still compiles. Coverage is
 not the test in either direction — a rule that lowers coverage by refusing something it cannot spell
@@ -290,6 +298,9 @@ Three separate times a measurement was wrong before the engine was:
 - `rustc -o /dev/null` cannot create its temporary directory. Six packages read as broken.
 - Concatenating the emitted modules into one file made names collide across two source packages.
   Nine of chi's fourteen errors were the harness.
+- Nesting each package's single module under a directory of the same name produced `uuid::uuid`,
+  which clippy calls `module_inception` and a reviewer called a Go shape. Also the harness.
+  `review-bundle.sh` exists so this stops recurring.
 - `survey_cause` had no arm for `UndecidedForm`, so one cause split into eighteen single-site rows
   and the largest structural blocker in the corpus never appeared in the ranking at all.
 
@@ -318,8 +329,10 @@ accidental, not designed, and the deep-copy variant of the same mistake would co
 
 ### Other open gaps
 
-- **Closures (`FuncLit`) have no translation.** Measured top cause: 30 sites across gjson and chi.
-  Closures are a capture-ownership problem, so the ownership solver is underneath them, not after.
+- **Closures translate only when they capture NOTHING.** A literal with captures refuses by name.
+  The target infers borrow-versus-mutable-borrow for a closure that does not outlive its scope, so
+  that case needs no analysis either; what needs an answer is the ESCAPING case, and its proof is
+  whether a callee RETAINS the value — unknowable for a callee outside the corpus.
 - **Go strings are bytes.** Indexing goes through `as_bytes()`; SLICING refuses, because `&s[a..b]`
   panics when a bound falls inside a multi-byte character and the source cannot fail there at all.
   Deciding the ported program's string type is what unblocks it.
