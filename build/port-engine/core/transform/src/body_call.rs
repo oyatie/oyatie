@@ -108,6 +108,17 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
             return Ok(rendered);
         }
     }
+    // THE LENGTH OF AN ARRAY IS A CONSTANT. The source defines `len(a)` on an array type as a
+    // constant expression — the length is part of the type — so folding it is the source's own
+    // rule rather than an optimisation applied to it.
+    //
+    // It also removes a borrow the source does not have. `PutUint16(id[len(id)-2:], n)` writes into
+    // a slice of `id` whose bound READS `id`, which the source allows and the target does not: the
+    // read and the mutable borrow overlap. With the length folded there is no read, and the
+    // emitted code is what someone would write.
+    if let Some(folded) = array_length(node, cx) {
+        return Ok(folded);
+    }
     if let Some(rendered) = mapped_call(node, &args, cx)? {
         return Ok(rendered);
     }
@@ -473,4 +484,44 @@ fn receiver_type_ref(receiver: &Declaration, cx: &Body<'_>) -> Option<port_engin
     };
     let underlying = cx.resolver.scope.newtypes.get(owner)?;
     underlying.args.first().cloned()
+}
+
+/// `len(a)` where `a`'s type is an ARRAY, folded to the length the type states.
+///
+/// Only an array. A slice's length is a run-time property and folding it would be a different
+/// program; the source draws the same line, which is why `len` of an array is a constant expression
+/// there and `len` of a slice is not.
+///
+/// Reaches through a NEWTYPE, because the source's named array IS the array: `type KSUID [20]byte`
+/// makes `len(id)` twenty for the same reason `len([20]byte{})` is.
+fn array_length(node: &Declaration, cx: &Body<'_>) -> Option<RustExpr> {
+    let identity = node.attr(ATTR_CALLEE)?;
+    if !cx.resolver.length_functions.contains(identity) {
+        return None;
+    }
+    let [_, argument] = node.children.as_slice() else {
+        return None;
+    };
+    let mut declared = argument.type_ref.clone();
+    // A RECEIVER carries no type, so the newtype it belongs to is what the body knows instead.
+    if declared.is_empty() && crate::body_ops::is_receiver(argument) {
+        declared = cx
+            .resolver
+            .scope
+            .newtypes
+            .get(cx.receiver_type?)
+            .cloned()?;
+    }
+    if let Some(underlying) = cx.resolver.scope.newtypes.get(&declared.name) {
+        declared = underlying.clone();
+    }
+    if declared.kind != "array" {
+        return None;
+    }
+    declared.name.parse::<usize>().ok().map(|length| {
+        RustExpr::Literal(
+            crate::items_value::readable_literal(&length.to_string(), cx.resolver)
+                .unwrap_or_else(|| length.to_string()),
+        )
+    })
 }

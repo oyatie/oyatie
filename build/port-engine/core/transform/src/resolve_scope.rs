@@ -47,6 +47,17 @@ pub struct LocalScope {
     /// receiver carries none. What the body knows is which declaration it is inside, and this maps
     /// that to whether its target shape wraps.
     pub(crate) newtypes: BTreeMap<String, port_engine_api::TypeRef>,
+    /// Unexported types this unit's EXPORTED declarations reach.
+    ///
+    /// Go lets an exported declaration have an unexported type — `var RequestIDKey ctxKeyRequestID`
+    /// is idiomatic there, and a consumer can hold the value without being able to name the type.
+    /// The target has no such asymmetry: a `pub` item whose type is private is
+    /// `private_interfaces`, which `--deny=warnings` makes a build failure.
+    ///
+    /// So the TYPE is promoted rather than the declaration hidden. Hiding the declaration would
+    /// delete an exported name from the ported API, which is the source's contract; widening the
+    /// type keeps every consumer able to do exactly what the source let them do.
+    pub(crate) publicly_reachable: BTreeSet<String>,
     /// Per local declaration, the source type refs that decide which traits it EARNS.
     ///
     /// A newtype's is its own underlying type; a struct's are its fields'. Held so the derive rule
@@ -194,6 +205,7 @@ impl LocalScope {
             }
         }
         Self {
+            publicly_reachable: publicly_reachable(declarations),
             sentinel_arguments,
             newtypes,
             derive_inputs,
@@ -255,5 +267,63 @@ fn record_rename(into: &mut BTreeMap<String, Option<String>>, source: &str, targ
         None => {
             into.insert(source.to_owned(), Some(target));
         }
+    }
+}
+
+/// The unit's type names that an EXPORTED declaration reaches.
+///
+/// One level, not a closure over the graph. A type reached by an exported declaration is promoted,
+/// and promoting it makes ITS own members exported for the same reason — so the walk is repeated
+/// until nothing new appears, because a `pub struct` whose field type is private is the identical
+/// diagnostic one level down.
+fn publicly_reachable(declarations: &[Declaration]) -> BTreeSet<String> {
+    let mut reachable = BTreeSet::new();
+    let mut settled = false;
+    while !settled {
+        settled = true;
+        for declaration in declarations {
+            let exported = declaration.flags.iter().any(|flag| flag == "exported")
+                || reachable.contains(&declaration.name);
+            if !exported {
+                continue;
+            }
+            let mut named = Vec::new();
+            collect_named_types(declaration, &mut named);
+            for name in named {
+                if declarations.iter().any(|other| other.name == name) && reachable.insert(name) {
+                    settled = false;
+                }
+            }
+        }
+    }
+    reachable
+}
+
+/// Every LOCAL type name this declaration's types mention, at any depth.
+///
+/// Reads the type refs rather than the values: what makes a type reachable is being NAMED in a
+/// signature, a field or a declared type, and a body that merely constructs one privately does not
+/// expose it.
+fn collect_named_types(node: &Declaration, into: &mut Vec<String>) {
+    collect_from_type(&node.type_ref, into);
+    for child in &node.children {
+        // A BODY is not an interface. Names it mentions are implementation, and promoting them
+        // would make every private helper a type reaches part of the public API.
+        if child.kind == "body" {
+            continue;
+        }
+        collect_named_types(child, into);
+    }
+}
+
+fn collect_from_type(type_ref: &port_engine_api::TypeRef, into: &mut Vec<String>) {
+    if !type_ref.name.is_empty() {
+        // The LAST path segment, because a local type is recorded by its own name and a foreign one
+        // is qualified — and a foreign name matches no local declaration, so it falls out below.
+        let local = type_ref.name.rsplit('.').next().unwrap_or(&type_ref.name);
+        into.push(local.to_owned());
+    }
+    for arg in &type_ref.args {
+        collect_from_type(arg, into);
     }
 }

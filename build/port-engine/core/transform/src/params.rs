@@ -40,6 +40,17 @@ pub(crate) fn params(
     // to fold — a signature alone answers a different question and must not guess this one.
     consumed: &BTreeSet<String>,
 ) -> Result<Vec<RustParam>, TransformError> {
+    // WRITTEN THROUGH A CALL. The source spells a write into a value as a call — `PutUint16(id[..],
+    // n)` fills the array it is given — and the target spells it as a mutation of the receiver. A
+    // parameter that only ever appears as such an argument is never SEEN assigned, so it came out
+    // immutable and the emitted body did not compile.
+    //
+    // The same walk the named results already use, and which callees write is the pack's to say:
+    // it names them, because they are the same ones it maps.
+    let mut written = BTreeSet::new();
+    for child in &declaration.children {
+        crate::body_wider::collect_assigned(child, resolver, &mut written);
+    }
     declaration
         .children_of_kind(CHILD_PARAM)
         .into_iter()
@@ -106,7 +117,8 @@ pub(crate) fn params(
                 // is gone, and a `mut` on it would be a mutability nothing uses. Read from what the
                 // fold DID rather than from what the recogniser predicted, because the two differ
                 // whenever a value arrives as opaque target text.
-                rebound: param.has_flag(FLAG_REBOUND) && !consumed.contains(&param.name),
+                rebound: (param.has_flag(FLAG_REBOUND) || written.contains(&param.name))
+                    && !consumed.contains(&param.name),
                 unread: param.has_flag(FLAG_UNREAD),
                 ty,
             })

@@ -194,8 +194,14 @@ pub enum RustExpr {
     Range {
         /// Inclusive lower bound.
         start: Box<RustExpr>,
-        /// Exclusive upper bound.
+        /// The upper bound, included only when `inclusive`.
         end: Box<RustExpr>,
+        /// Whether the upper bound is INCLUDED — `..=` rather than `..`.
+        ///
+        /// A value rather than a default. A counted loop's bound is exclusive and a `<=` test's is
+        /// inclusive, and the two differ by exactly the boundary value — which is where a bounds
+        /// test is most often wrong and least often noticed.
+        inclusive: bool,
     },
     /// `&<inner>` or `&mut <inner>`
     Reference {

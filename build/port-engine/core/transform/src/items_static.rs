@@ -184,6 +184,23 @@ pub(crate) fn build_static(
             // here the type says otherwise, and the two must agree or the constant does not
             // compile. Built from the SAME element translation rather than by re-rendering, so an
             // element in an array constant and the same element in a body cannot differ.
+            // A sequence of BYTE LITERALS is a byte string, however the type is spelled. Same type,
+            // same bytes, and the target has a form a reader takes in at a glance where sixteen
+            // comma-separated byte literals have to be counted. `clippy::byte_char_slices` refuses
+            // the long form under the deny-warnings policy this engine is held to.
+            //
+            // Keyed on the ELEMENTS rather than on the declared type, because the source spells a
+            // fixed-size sequence two ways — `[16]byte` and `[...]byte{..}` — and they arrive here
+            // as different type kinds while being the same thing to a reader.
+            if let Some(bytes) = byte_string(initialiser, &body) {
+                return Ok(RustItem::PackageValue {
+                    docs: docs_of(declaration, resolver)?,
+                    vis: visibility(declaration),
+                    name: to_screaming_snake(&declaration.name),
+                    ty,
+                    value: bytes,
+                });
+            }
             match &ty {
                 RustType::Array { .. } => RustExpr::ArrayLiteral(
                     initialiser
@@ -361,3 +378,32 @@ fn names_a_constant(node: &Declaration, resolver: &Resolver<'_>) -> bool {
 
 /// The construction this module answers for.
 pub(crate) const CONSTRUCTION: &str = CONSTRUCTION_RUST_STATIC;
+
+/// A sequence of BYTE LITERALS as the target's byte-string literal.
+///
+/// Every element must be a byte literal in the printable ASCII range and none may need escaping:
+/// `b"..."` carries its bytes literally, so a quote, a backslash or anything unprintable would have
+/// to be escaped by rules this does not implement, and getting one wrong changes a byte.
+fn byte_string(initialiser: &Declaration, body: &Body<'_>) -> Option<RustExpr> {
+    let mut bytes = String::new();
+    for element in &initialiser.children {
+        let RustExpr::Literal(spelled) = expression(element, body).ok()? else {
+            return None;
+        };
+        let inner = spelled.strip_prefix("b'")?.strip_suffix('\'')?;
+        let [byte] = inner.as_bytes() else {
+            return None;
+        };
+        if !byte.is_ascii_graphic() || *byte == b'"' || *byte == b'\\' {
+            return None;
+        }
+        bytes.push(char::from(*byte));
+    }
+    match bytes.is_empty() {
+        true => None,
+        // DEREFERENCED, because `b"..."` has type `&[u8; N]` and the declared type is `[u8; N]`.
+        false => Some(RustExpr::Deref(Box::new(RustExpr::Literal(format!(
+            "b\"{bytes}\""
+        ))))),
+    }
+}

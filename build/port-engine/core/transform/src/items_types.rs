@@ -9,7 +9,7 @@ use port_engine_rust_ir::{RustField, RustItem, RustType, StructShape};
 
 use crate::docs::docs_of;
 use crate::error::TransformError;
-use crate::naming::{to_pascal_case, to_snake_case, visibility};
+use crate::naming::{to_pascal_case, to_snake_case, visibility, type_visibility};
 use crate::resolve::Resolver;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{CHILD_EMBEDS, CHILD_FIELD, POSITION_FIELD, POSITION_SUPERTRAIT};
@@ -47,7 +47,7 @@ pub(crate) fn build_type_alias(
         // The source's own aliases are concrete; only the failure alias takes a parameter.
         generics: Vec::new(),
         docs: docs_of(declaration, resolver)?,
-        vis: visibility(declaration),
+        vis: type_visibility(declaration, resolver),
         name: to_pascal_case(&declaration.name),
         ty: resolver.resolve(&declaration.type_ref, &declaration.name)?,
     })
@@ -65,7 +65,7 @@ pub(crate) fn build_newtype(
     body: Body,
 ) -> Result<RustItem, TransformError> {
     refuse_unportable_facts(declaration, resolver)?;
-    let vis = visibility(declaration);
+    let vis = type_visibility(declaration, resolver);
     Ok(RustItem::Struct {
         docs: docs_of(declaration, resolver)?,
         vis,
@@ -104,7 +104,7 @@ pub(crate) fn build_struct(
 
     Ok(RustItem::Struct {
         docs: docs_of(declaration, resolver)?,
-        vis: visibility(declaration),
+        vis: type_visibility(declaration, resolver),
         name: to_pascal_case(&declaration.name),
         shape: if fields.is_empty() {
             StructShape::Unit
@@ -123,7 +123,7 @@ pub(crate) fn build_trait(
     refuse_unportable_facts(declaration, resolver)?;
     Ok(RustItem::Trait {
         docs: docs_of(declaration, resolver)?,
-        vis: visibility(declaration),
+        vis: type_visibility(declaration, resolver),
         name: to_pascal_case(&declaration.name),
         supertraits: supertraits(declaration, resolver)?,
         methods: trait_methods(declaration, resolver)?,

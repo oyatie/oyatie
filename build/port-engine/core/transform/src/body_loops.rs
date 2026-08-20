@@ -231,6 +231,8 @@ fn counted_range(
         iter: RustExpr::Range {
             start: Box::new(expression(one_child(init, cx, "let")?, inner)?),
             end: Box::new(end),
+            // EXCLUSIVE, because the loop this came from tests `<`.
+            inclusive: false,
         },
         body: translate(&body.children, inner, TailPosition::No)?,
     })

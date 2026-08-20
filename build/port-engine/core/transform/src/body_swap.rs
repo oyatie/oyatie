@@ -10,7 +10,7 @@
 //! idiom firing, and nothing would say so.
 
 use port_engine_api::Declaration;
-use port_engine_rust_ir::{MatchArm, RustExpr, RustStmt};
+use port_engine_rust_ir::{BinaryOp, MatchArm, RustExpr, RustStmt};
 
 use crate::body::Body;
 use crate::body_call::render_operand;
@@ -207,4 +207,140 @@ pub(crate) fn identity_test(
         true => format!("!{test}"),
         false => test,
     })))
+}
+
+/// `a >= LOW && a <= HIGH` as the target's RANGE test.
+///
+/// Recognised from the built operands rather than from the source shape, so it cannot fire on a
+/// conjunction that merely looks like one: both sides must test the same subject, the low bound
+/// must be `>=` and the high `<=`, and both bounds must be literals.
+///
+/// The subject must be a value that READING TWICE IS THE SAME AS READING ONCE. The source evaluates
+/// it on both sides of the `&&`; the range evaluates it once. For a name or a field that is the
+/// same program, and for a call or an index it is not — so anything else is left exactly alone.
+pub(crate) fn bounded_range(rendered: &RustExpr) -> Option<RustExpr> {
+    // OUTSIDE the range is the same test negated, and the source spells it with `||` because it has
+    // no range to be outside of. Recognised here rather than in a second function so the two forms
+    // cannot disagree about what counts as a subject or a bound.
+    if let RustExpr::Binary {
+        op: BinaryOp::Or,
+        lhs,
+        rhs,
+    } = rendered
+        && let Some((subject, low)) = bound(lhs, BinaryOp::Lt)
+        && let Some((again, high)) = bound(rhs, BinaryOp::Gt)
+        && subject == again
+        && reads_once(subject)
+    {
+        return Some(RustExpr::Unary {
+            op: port_engine_rust_ir::UnaryOp::Not,
+            operand: Box::new(RustExpr::MethodCall {
+                receiver: Box::new(RustExpr::Range {
+                    start: Box::new(low.clone()),
+                    end: Box::new(high.clone()),
+                    inclusive: true,
+                }),
+                method: "contains".to_owned(),
+                args: vec![RustExpr::Reference {
+                    mutable: false,
+                    inner: Box::new(subject.clone()),
+                }],
+            }),
+        });
+    }
+    let RustExpr::Binary {
+        op: BinaryOp::And,
+        lhs,
+        rhs,
+    } = rendered
+    else {
+        return None;
+    };
+    let (subject, low) = bound(lhs, BinaryOp::Ge)?;
+    let (again, high) = bound(rhs, BinaryOp::Le)?;
+    if subject != again || !reads_once(subject) {
+        return None;
+    }
+    // A NAMED CHARACTER CLASS where the bounds are one. The target has a predicate for each of
+    // these and every reader knows what it means; the range says the same thing and makes the
+    // reader check the endpoints. Recognised from the rendered BOUNDS, so a class is claimed only
+    // when the two bytes actually delimit it.
+    if let Some(class) = ascii_class(low, high) {
+        return Some(RustExpr::MethodCall {
+            receiver: Box::new(subject.clone()),
+            method: class.to_owned(),
+            args: Vec::new(),
+        });
+    }
+    Some(RustExpr::MethodCall {
+        receiver: Box::new(RustExpr::Range {
+            start: Box::new(low.clone()),
+            end: Box::new(high.clone()),
+            // INCLUSIVE. `<=` includes its bound and `..` does not, so the exclusive range would
+            // reject the highest value the source accepts — off by one, on the boundary, which is
+            // where a character classification is most often wrong.
+            inclusive: true,
+        }),
+        method: "contains".to_owned(),
+        args: vec![RustExpr::Reference {
+            mutable: false,
+            inner: Box::new(subject.clone()),
+        }],
+    })
+}
+
+/// One side of the conjunction, as the subject it tests and the bound it tests against.
+fn bound(side: &RustExpr, wanted: BinaryOp) -> Option<(&RustExpr, &RustExpr)> {
+    let RustExpr::Binary { op, lhs, rhs } = side else {
+        return None;
+    };
+    if *op != wanted {
+        return None;
+    }
+    match is_constant_bound(rhs) {
+        true => Some((lhs.as_ref(), rhs.as_ref())),
+        false => None,
+    }
+}
+
+/// Whether this operand is a CONSTANT bound — a literal, or a negated one.
+///
+/// A negative literal is a unary negation of a literal in the IR, not a literal, and requiring a
+/// bare literal here silently declined every range with a negative lower bound. `gjson` has exactly
+/// one and it is the widest test in the file.
+fn is_constant_bound(expr: &RustExpr) -> bool {
+    match expr {
+        RustExpr::Literal(_) => true,
+        RustExpr::Unary {
+            op: port_engine_rust_ir::UnaryOp::Neg,
+            operand,
+        } => matches!(operand.as_ref(), RustExpr::Literal(_)),
+        _ => false,
+    }
+}
+
+/// Whether evaluating this expression twice is the same as evaluating it once.
+fn reads_once(expr: &RustExpr) -> bool {
+    match expr {
+        RustExpr::Path(_) | RustExpr::SelfValue | RustExpr::Literal(_) => true,
+        RustExpr::Field { base, .. } | RustExpr::TupleIndex { base, .. } => reads_once(base),
+        _ => false,
+    }
+}
+
+/// The target's predicate for a byte range that IS a standard character class.
+///
+/// Closed, and matched on the exact byte literals that delimit each class. A range that merely
+/// overlaps one is not it — `b'0'..=b'8'` is not `is_ascii_digit`, and answering as though it were
+/// would accept one fewer character than the source does.
+fn ascii_class(low: &RustExpr, high: &RustExpr) -> Option<&'static str> {
+    let (RustExpr::Literal(low), RustExpr::Literal(high)) = (low, high) else {
+        return None;
+    };
+    match (low.as_str(), high.as_str()) {
+        ("b'0'", "b'9'") => Some("is_ascii_digit"),
+        ("b'a'", "b'z'") => Some("is_ascii_lowercase"),
+        ("b'A'", "b'Z'") => Some("is_ascii_uppercase"),
+        _ => None,
+    }
 }
