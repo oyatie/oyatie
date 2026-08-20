@@ -9,15 +9,17 @@
       "manifest_paths",
       "store_manifest_paths"
     ],
-    "declared_roots_total": 200,
+    "declared_roots_total": 150,
     "key_format": "<policy_file>::<json_pointer>::<declared_value>",
     "policy": "shrink-only; a NEW dead root fails, and a landed forward declaration must be retired",
     "_build_root_retired_2026_08_09": "The three `::build` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage) were RETIRED here because build/ landed its first crate — build/port-engine/core/port-engine-kernel, PR #1621 — which is verbatim the event their own reason strings named (`Created when build/ lands its first crate`). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `build` stays in all three policies' scan_roots arrays untouched, and now resolves, so it is a live audited root rather than an unaudited standing exemption. That is the whole point of forward_declarations being pinned by forward_declarations_are_all_still_absent: a declaration whose path arrives must stop being tolerated in the same change that makes it real. Sibling roots base/ and policy/ remain absent and remain declared; whoever lands their first crate owes the same one-line retirement. app/ was later retired in _app_root_retired_2026_08_11. NOT retired here: module-membership declared no `build` entry, so it had nothing to retire.",
     "_build_widening_measured_2026_08_09": "The widening is not free of consequence and was measured rather than assumed. embedded-asset-hermeticity now walks build/, and the new crate carries four include_str! sites (src/lib.rs:78 `lib.rs`, src/lib.rs:93 `../tests/seams.rs`, tests/neutrality.rs:42 `../src/lib.rs`, tests/neutrality.rs:48 `seams.rs`). All four resolve inside targets whose BUCK srcs already provide them — the library globs `src/**/*.rs` plus `tests/seams.rs`, and the neutrality test globs all three — so the gate stays green with no baseline movement. caller-supplied-authorization and endpoint-authorization-coverage now walk build/ too; the kernel exposes no DTO deserialization and no HTTP endpoint, so both are likewise zero-delta. Verified by running all three gates, not by reading the policies.",
     "_app_root_retired_2026_08_11": "The four `::app` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage, module-membership) were RETIRED here because app/ landed its first tracked path — app/README.md on integ/app (PR #1668, OVERRULE 3d glue-only). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `app` stays in each policy's scan_roots arrays untouched, and now resolves, so it is a live audited root. README-only (zero crates) keeps hermeticity/authz widening zero-delta. Sibling roots base/ and policy/ remain absent and remain declared.",
-    "_cloud_root_retired_2026_08_17": "The top-level cloud/ tree is intentionally retired, but its seven remaining coverage-bearing declarations stay in their owning policies so future reintroduction is scanned immediately and anti-narrowing cannot be bypassed as cleanup. Those exact fully qualified declarations move into the frozen shrink-only baseline; the live exact-set test binds the baseline to all and only currently dead non-forward roots."
+    "_cloud_root_retired_2026_08_17": "The top-level cloud/ tree is intentionally retired, but its seven remaining coverage-bearing declarations stay in their owning policies so future reintroduction is scanned immediately and anti-narrowing cannot be bypassed as cleanup. Those exact fully qualified declarations move into the frozen shrink-only baseline; the live exact-set test binds the baseline to all and only currently dead non-forward roots.",
+    "_embedded_asset_hermeticity_roots_derived_2026_08_19": "The 16 hand-enumerated scan_roots of embedded-asset-hermeticity were replaced by derivation from the closed capability registry. THREE entries retire here as a consequence, and all three retire because the property they were buying is now structural rather than bookkept. (1) forward declarations ::base and ::policy - a registered root that has not materialized is now resolved as PENDING by the resolver, reported by name, and frozen TWO-SIDED in the gate's own baseline (_provenance.pending_roots). It is covered the moment it lands with zero policy edit, and the gate REDS until the landed key is struck from the frozen set. That is strictly stronger than a hand-maintained exemption whose retirement depended on somebody noticing: these two had already outlived the ::app and ::build retirements by two separate events. (2) baselined dead root ::cloud - the gate no longer enumerates `cloud` at all. cloud/ is not in the closed capability registry, so a reintroduced cloud capability would be scanned the moment its registry row lands. Removing the entry deletes a name, not a scan, so it is not narrowing. This is the shape the rest of the fleet should follow. The five sibling gates (automation-language-policy, caller-supplied-authorization, endpoint-authorization-coverage, module-membership, layer-dependency-acyclicity) still hand-enumerate and still need their forward declarations and dead-root baselines; each retires the same way when it is routed.",
+    "_dto_authz_trust_roots_derived_2026_08_19": "The 34 hand-enumerated scan_roots of caller-supplied-authorization were replaced by derivation from the closed capability registry, retiring its two forward declarations (::base, ::policy) and its baselined dead root (::cloud) for exactly the reasons recorded in the embedded-asset-hermeticity note above. Measured, not assumed: the walked set went from 31 live roots to 32 (it had omitted the legacy root infra/ entirely) and functions_scanned was unchanged at 31280, because infra/ holds one Rust file and it sits under a tests/ directory this gate excludes. The value here is therefore structural rather than a new finding: three dead names removed, and every future capability covered without an edit."
   },
-  "min_expected_roots": 150,
+  "min_expected_roots": 20,
   "coverage_bearing_keys": [
     "roots",
     "scan_roots",
@@ -27,31 +29,16 @@
   ],
   "registered_policy_files": [
     "ci/facade/automation-language-policy/rust-first-automation-policy.json",
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json",
-    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json",
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json",
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
     "ci/facade/module-membership/capability-membership-policy.json",
     "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json"
   ],
-  "exempt_policy_files": {},
+  "exempt_policy_files": {
+    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json": "DERIVED, not declared. This gate no longer carries a scan_roots array: it resolves its roots from governance/capability-registry.json through ci/adapters/scan-root-derivation, so every materialized capability and meta directory is scanned BY CONSTRUCTION and a root that the registry calls materialized but that is absent is a hard error naming the path inside the gate itself. Exempt from the unregistered-file code only; if a scan_roots array is ever re-added here it is still liveness-checked like any other, because the exemption suppresses unregistered_policy_file and nothing else.",
+    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json": "DERIVED, not declared - routed second, after the pattern was mutation-proven on embedded-asset-hermeticity. This gate no longer carries a scan_roots array: it resolves its roots from governance/capability-registry.json through ci/adapters/scan-root-derivation, so every materialized capability and meta directory is scanned BY CONSTRUCTION and a root the registry calls materialized but that is absent is a hard error naming the path inside the gate itself. Exempt from the unregistered-file code only; a re-added scan_roots array here is still liveness-checked like any other."
+  },
   "forward_declarations": {
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::base": {
-      "value": "base",
-      "reason": "Same pre-widening as app/ above. base/ is the ADR-0562 shared floor (>=3 capability consumers); a primitive there can carry an authorization DTO, so the class-fix must see it from the moment it lands. Created by the first libs/ consolidation move."
-    },
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::policy": {
-      "value": "policy",
-      "reason": "Same pre-widening as app/ above. policy is the capability ADR-0615 extracted from iam and is where PBAC/PDP code lands — the single root where a caller-supplied-authz defect would be most consequential. Created when the policy capability lands its first crate."
-    },
-    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::base": {
-      "value": "base",
-      "reason": "Same pre-widening as app/ above; base/ is the ADR-0562 shared floor and an embedded asset there must be BUCK-srcs-mapped like any other. Created by the first libs/ consolidation move."
-    },
-    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::policy": {
-      "value": "policy",
-      "reason": "Same pre-widening as app/ above; the policy capability (ADR-0615, extracted from iam) will embed Cedar/policy assets, exactly the include_str! class this gate maps. Created when the policy capability lands its first crate."
-    },
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::base": {
       "value": "base",
       "reason": "Same pre-widening as app/ above. A shared-floor primitive can expose an HTTP control plane; new-surface detection must cover base/ before it holds code."
@@ -76,10 +63,9 @@
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::cloud",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_forbidden_uses/roots::.github/actions",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_inline_shell/roots::.github/actions",
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json::/scan_roots::cloud",
-    "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json::/scan_roots::cloud",
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json::/scan_roots::cloud",
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json::/crate_root_globs::cloud/*/crates/oya-*",
     "ci/facade/module-membership/capability-membership-policy.json::/scan_roots::cloud"
-  ]
+  ],
+  "_min_expected_roots_note": "LOWERED from 150 to 20 on 2026-08-19, and it goes DOWN from here, never up. 150 was set when seven gate policies hand-enumerated roughly 200 root declarations between them; the live count had already fallen to 152 with two gates routed through the registry-derived resolver in ci/adapters/scan-root-derivation, and the remaining four routings remove about 130 more. A floor that a successful burn-down trips punishes progress and gets lowered until it means nothing - which is exactly how min_expected_unpackaged_yaml_files died. The real broken-walk guard is now every_registered_policy_file_yields_declared_roots, which asserts a per-file SET property that does not decay as gates route: a registered file declaring nothing is either a routed gate that owes an exempt_policy_files entry, or a broken collector. This number remains only as a coarse 'the walk returned something at all' tripwire."
 }

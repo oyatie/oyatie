@@ -1468,6 +1468,7 @@ dependencies = [
 name = "ci-caller-supplied-authorization"
 version = "0.1.0"
 dependencies = [
+ "ci-scan-root-derivation-adapters",
  "serde_json",
 ]
 
@@ -1663,6 +1664,7 @@ dependencies = [
 name = "ci-embedded-asset-hermeticity"
 version = "0.1.0"
 dependencies = [
+ "ci-scan-root-derivation-adapters",
  "oya-buck-syntax-kernel",
  "serde_json",
 ]
@@ -1885,6 +1887,13 @@ dependencies = [
  "ci-dependency-automation",
  "ci-generated-artifact-freshness",
  "proptest",
+]
+
+[[package]]
+name = "ci-scan-root-derivation-adapters"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
 ]
 
 [[package]]
