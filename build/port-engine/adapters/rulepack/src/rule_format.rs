@@ -93,6 +93,20 @@ pub(crate) struct BinaryStringRule {
     pub(crate) reason: String,
 }
 
+/// Wire shape for how a long decimal literal is grouped.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ReadableLiteralsRule {
+    #[serde(default)]
+    pub(crate) min_digits: usize,
+    #[serde(default)]
+    pub(crate) group: usize,
+    #[serde(default)]
+    pub(crate) separator: String,
+    #[serde(default)]
+    pub(crate) reason: String,
+}
+
 /// Wire shape for which integer constants are bit patterns.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]

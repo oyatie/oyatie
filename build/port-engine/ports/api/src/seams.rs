@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::value_rules::{Allocation, BinaryString, BitPatternConstants, FormatCalls, FormatFunction, SequenceAppend};
+use crate::value_rules::{Allocation, BinaryString, BitPatternConstants, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
 use crate::failure::{
     DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };
@@ -162,6 +162,9 @@ pub trait PackSemantics {
 
     /// Which integer constants the target spells in hexadecimal, and how wide each is.
     fn bit_pattern_constants(&self) -> &BitPatternConstants;
+
+    /// How a long decimal literal is grouped so its magnitude is readable.
+    fn readable_literals(&self) -> &ReadableLiterals;
     /// How the source's allocating builtin becomes the target's.
     fn allocation(&self) -> &Allocation;
     /// How the source's `append` becomes the target's.

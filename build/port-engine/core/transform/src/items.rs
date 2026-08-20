@@ -116,6 +116,7 @@ fn build_const(
         value: match crate::items_value::constructs_at_type(declaration, resolver) {
             true => format!("{}({})", ty.spelling(), value),
             false => crate::items_value::bit_pattern(declaration, resolver)
+                .or_else(|| crate::items_value::readable_literal(value, resolver))
                 .unwrap_or_else(|| value.to_owned()),
         },
         ty,

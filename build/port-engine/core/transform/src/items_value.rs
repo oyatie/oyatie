@@ -187,3 +187,30 @@ pub(crate) fn bit_pattern(declaration: &Declaration, resolver: &Resolver<'_>) ->
     }
     Some(format!("0x{value:0>width$X}", width = (width / 4) as usize))
 }
+
+/// A long DECIMAL literal, grouped so its magnitude can be read.
+///
+/// The target groups digits and the source does not, so a value carried over unchanged is correct
+/// and unreadable: two reviewers independently picked `10000000` and `1000000` off nearby lines as
+/// indistinguishable at a glance, and they differ by a factor of ten.
+///
+/// Only where the literal STAYS decimal. A value the type says is a bit pattern is spelled in
+/// hexadecimal by `bit_pattern`, which groups by its own convention, and running both would produce
+/// a hex literal grouped in threes.
+pub(crate) fn readable_literal(value: &str, resolver: &Resolver<'_>) -> Option<String> {
+    let rule = resolver.readable_literals;
+    if rule.group == 0 || rule.separator.is_empty() || value.len() < rule.min_digits {
+        return None;
+    }
+    if !value.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    // From the RIGHT, which is what makes the groups mean thousands.
+    let grouped: Vec<String> = value
+        .as_bytes()
+        .rchunks(rule.group)
+        .rev()
+        .map(|chunk| String::from_utf8_lossy(chunk).into_owned())
+        .collect();
+    Some(grouped.join(&rule.separator))
+}

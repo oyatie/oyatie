@@ -241,6 +241,7 @@ pub(crate) fn survey_declaration<P>(
         unmappable_facts: pack.unmappable_facts(),
         binary_string: pack.binary_string(),
         bit_pattern_constants: pack.bit_pattern_constants(),
+        readable_literals: pack.readable_literals(),
         allocation: pack.allocation(),
         sequence_append: pack.sequence_append(),
         integer_arithmetic: pack.integer_arithmetic(),

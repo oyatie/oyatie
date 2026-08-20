@@ -6,7 +6,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Allocation, BinaryString, BitPatternConstants, DeriveRule, Digest, DocConvention,
+    Allocation, BinaryString, BitPatternConstants, ReadableLiterals, DeriveRule, Digest, DocConvention,
     FailureConvention, FormatCalls, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
     PackSemantics, PointerDisposition, RuleId, RulePack, SequenceAppend, UnitId,
 };
@@ -63,6 +63,10 @@ impl PackSemantics for LoadedRulePack {
 
     fn bit_pattern_constants(&self) -> &BitPatternConstants {
         &self.bit_pattern_constants
+    }
+
+    fn readable_literals(&self) -> &ReadableLiterals {
+        &self.readable_literals
     }
 
     fn unmappable_types(&self) -> &BTreeMap<String, String> {

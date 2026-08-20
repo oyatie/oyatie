@@ -8,7 +8,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Allocation, BinaryString, BitPatternConstants, DeriveRule, DocConvention, FailureConvention,
+    Allocation, BinaryString, BitPatternConstants, DeriveRule, DocConvention, FailureConvention, ReadableLiterals,
     FormatCalls, FormatFunction, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
     PointerConstruction, PointerDisposition, RuleId, SequenceAppend, UnitId,
 };
@@ -206,6 +206,15 @@ impl LoadedRulePack {
             bit_pattern_constants: crate::load_values::bit_pattern_constants(
                 doc.bit_pattern_constants,
             ),
+            readable_literals: doc
+                .readable_literals
+                .map(|rule| ReadableLiterals {
+                    min_digits: rule.min_digits,
+                    group: rule.group,
+                    separator: rule.separator,
+                    reason: rule.reason,
+                })
+                .unwrap_or_default(),
             format_calls: crate::load_values::format_calls(doc.format_calls),
             function_map: doc
                 .function_map

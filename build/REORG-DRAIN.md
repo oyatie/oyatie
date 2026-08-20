@@ -5101,3 +5101,42 @@ different files.
 
 `Result<` disappears entirely from four of the seven emitted packages, because the only ones they had
 were the impossible ones. All seven still compile clean.
+
+## R2w — grouped literals, and a finding declined with its reason
+
+**Grouping.** Two blind reviews independently picked the same pair out of the emitted output —
+`10000000` and `1000000` on nearby lines, indistinguishable at a glance and different by a factor of
+ten. The target groups digits and the source does not, so a value carried across unchanged is correct
+and unreadable. Thirteen literals across four packages now group from the right.
+
+Two things the rule has to know. It applies only where the literal STAYS decimal — a value the type
+says is a bit pattern is spelled in hexadecimal by `bit_pattern_constants` and grouped by its own
+convention, and running both would produce a hex literal grouped in threes. And the threshold is five
+digits rather than four, because a four-digit number is read at a glance and the common one is a year:
+`2026_` reads worse than `2026`.
+
+It also had to be applied in two places, which is the fifth instance of that shape this session. A
+constant declared as a literal carries its value as an attribute; a constant declared as an
+EXPRESSION carries its numbers through the body path. `EPOCH * 86400` came out ungrouped beside
+neighbours that were grouped, until both paths asked.
+
+**A finding declined, and why.** The same review called `pub struct Uuid(pub [u8; 16])` blocking:
+"lets any caller do `u.0[6] = 0xFF` and produce a UUID whose version nibble is garbage". The reasoning
+is sound for a crate somebody sits down and writes. It is the wrong change for this engine to make.
+
+The source declares `type UUID [16]byte`. In Go the named type IS the array, and any holder of one can
+index and assign to it — `u[6] = 0xFF` is exactly as legal there. The public field is therefore a
+FAITHFUL port of the access the source grants. Making it private would add an invariant the source
+does not enforce, and the engine would be improving on the program it was given rather than porting
+it. That is a decision for whoever owns the ported crate, not for a translator; and an engine that
+starts inventing invariants has no principle left for deciding which ones.
+
+Recorded rather than fixed, because the reviewer's premise — that a caller can corrupt the value — is
+true of the source too, and a port that hides it would be describing a program that does not exist.
+The same answer covers `Ksuid`, `Domain`, `Version` and `Variant`.
+
+The neighbouring finding on the SAME line is different and is not declined: `CompressedSet`'s doc says
+"An immutable data type" over a public growable field. That prose is false about the target type
+whatever the source allowed, and belongs to the doc rules that already drop a sentence naming
+something the crate does not contain — a sentence naming a property the type does not have is the
+same defect one step further in. Not yet built; recorded here as the next doc rule.
