@@ -392,8 +392,8 @@
       "live_adr_files": 19,
       "dotdir_files": 242,
       "reorg_paths": 25,
-      "oya_legacy_root_files": 2359,
-      "yaml_files": 3516,
+      "oya_legacy_root_files": 1868,
+      "yaml_files": 3025,
       "json_files": 1279
     },
     "reviewed_raises": {
