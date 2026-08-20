@@ -51,11 +51,29 @@ const DEFAULT_CORPUS_ROOTS: &[&str] = &["docs", "registry", "templates", "script
 // - `docs/decisions/` — ADRs document decisions at a point in time;
 //   amending them in-place breaks ADR doctrine. New decisions
 //   reference the canonical replacement.
+// - `docs/adr-archive/` — the SAME reasoning as `docs/decisions/`, one
+//   directory over. An archived ADR is still a decision record at a
+//   point in time (its own frontmatter carries a "HISTORICAL /
+//   NON-AUTHORITY" banner, not a license to rewrite it); 5 archived
+//   ADRs legitimately cite a retired term while explaining the
+//   retirement itself (e.g. "`scripts/check.sh` (descended from
+//   legacy boundary-validator ancestry; here-canonical)"). This entry
+//   was missing -- `docs/decisions/` was added when ADRs lived in one
+//   directory, and the archive split off later without the exclusion
+//   following it.
+// - `registry/fixuptasks.jsonl` — a structured task LEDGER, not free
+//   prose; two of its rows are CLOSED remediation tasks whose `result`
+//   field is itself the retirement evidence ("Legacy scripts/check.sh
+//   is absent on dev"). Scanning a completed-task record for the term
+//   it retired is the same category error `evidence/audits/` exists
+//   to prevent, one root over.
 const DEFAULT_EXCLUDE_ROOTS: &[&str] = &[
     "evidence/audits",
     "docs/CHANGELOG.md",
     "docs/plans",
     "docs/decisions",
+    "docs/adr-archive",
+    "registry/fixuptasks.jsonl",
     ".grit",
     ".omc",
     ".omx",
