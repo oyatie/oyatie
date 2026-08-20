@@ -1263,6 +1263,16 @@ name = "check-no-grouping"
 version = "0.1.0"
 
 [[package]]
+name = "check-no-template-stamping"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "walkdir",
+]
+
+[[package]]
 name = "check-olap-tier-discipline"
 version = "0.1.0"
 
@@ -8574,16 +8584,6 @@ dependencies = [
  "serde_json",
  "serde_yaml",
  "toml 0.8.23",
- "walkdir",
-]
-
-[[package]]
-name = "oya-governance-no-template-stamping"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
  "walkdir",
 ]
 

@@ -2,7 +2,7 @@ use std::path::PathBuf;
 use std::process::ExitCode;
 
 use anyhow::{Result, anyhow};
-use oya_governance_no_template_stamping::{enforce_no_template_stamping, format_text_report};
+use check_no_template_stamping::{enforce_no_template_stamping, format_text_report};
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 enum OutputFormat {
@@ -73,7 +73,7 @@ fn parse_args(args: impl IntoIterator<Item = String>) -> Result<Option<CliArgs>>
             "--strict" => strict = true,
             "--help" | "-h" => {
                 println!(
-                    "usage: oya-governance-no-template-stamping [--root PATH] [--format json|text] [--strict]\n       violations fail closed by default; --strict is accepted for compatibility"
+                    "usage: check-no-template-stamping [--root PATH] [--format json|text] [--strict]\n       violations fail closed by default; --strict is accepted for compatibility"
                 );
                 return Ok(None);
             }

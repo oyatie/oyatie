@@ -1,5 +1,5 @@
 [package]
-name = "oya-governance-no-template-stamping"
+name = "check-no-template-stamping"
 version = "0.1.0"
 edition = "2024"
 license = "Apache-2.0 OR MIT"
@@ -8,7 +8,7 @@ license = "Apache-2.0 OR MIT"
 path = "src/lib.rs"
 
 [[bin]]
-name = "oya-governance-no-template-stamping"
+name = "check-no-template-stamping"
 path = "src/cli.rs"
 
 [dependencies]
