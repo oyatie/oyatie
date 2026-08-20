@@ -394,7 +394,7 @@
       "reorg_paths": 25,
       "oya_legacy_root_files": 1868,
       "yaml_files": 3022,
-      "json_files": 1284
+      "json_files": 1285
     },
     "reviewed_raises": {
       "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
@@ -414,9 +414,9 @@
         "reason": "Same single file as the docs_markdown_files raise above — ADR-0718 is counted by both classes. Recorded as its own exact from->to because the ratchet evaluates each class independently and an unrecorded class is born-blocking."
       },
       "json_files": {
-        "from": 1279,
-        "to": 1284,
-        "reason": "Five gate POLICY documents, one per doctrine this change connects to the live tree: shardability, layered-architecture-discipline, cursor-pagination-coverage, ontology-projection-coverage, active-artifact-contract. Each is the two-sided frozen finding set its live-corpus test asserts against, so the file IS the enforcement -- deleting one to stay under the ceiling would delete the gate's subject. This is a one-in-none-out raise and it is the intended shape of a doctrine connection: the corpus of governance DATA grows by exactly one file per doctrine that stops being dark. Three crates are retired in the same change (adr-citation, pre-push, supply-chain) but they carried no policy JSON, so they offset none of this."
+        "from": 1284,
+        "to": 1285,
+        "reason": "One gate policy document: governance/check/data-class/data-class-policy.json, the two-sided frozen field map its live-corpus test asserts against. #2171 raised this ceiling 1279 to 1284 for the five doctrines it connected and that entry is now STALE (stale from/to fails closed), so it is replaced rather than appended -- one sanctioned raise per class is the contract. Same shape and same justification: the policy file IS the enforcement, so retiring one to stay under the ceiling would delete the gate's own subject. One-in-none-out."
       }
     }
   }
