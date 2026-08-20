@@ -312,6 +312,24 @@ fn collect_named_types(node: &Declaration, into: &mut Vec<String>) {
         if child.kind == "body" {
             continue;
         }
+        // NEITHER IS A PRIVATE MEMBER. A private field of a public struct, or an unexported method
+        // on an exported type, leaks nothing — the target's own rule is about what a PUBLIC item's
+        // signature names, and a private field is not part of one.
+        //
+        // Walking them promoted nine of memberlist's unexported wire structs — `ping`, `ackResp`,
+        // `alive`, `messageType` — to `pub`, which the Go-aware gate correctly called a meaning
+        // change rather than a style one: the source says who may name these and the port said
+        // something else.
+        if matches!(child.kind.as_str(), "field" | "method")
+            && !child.flags.iter().any(|flag| flag == "exported")
+        {
+            continue;
+        }
+        // A SATISFACTION is not a signature either. It records that this type was seen implementing
+        // an interface, which says nothing about who may name the type.
+        if child.kind == "implements" {
+            continue;
+        }
         collect_named_types(child, into);
     }
 }

@@ -262,14 +262,22 @@ fn lower_fn(function: &RustFn) -> Result<TokenStream, PortError> {
             true => format!("_{name}"),
             false => name.clone(),
         };
-        let (name, ty) = (parse_ident(&spelling)?, parse_type(ty)?);
+        // A PARAMETER IS A PATTERN, and the blank is one. `parse_ident` refuses `_` because the
+        // target reserves it — correctly, since it is not an identifier — so the blank is spelled
+        // directly rather than parsed as a name. Without this a source parameter the author
+        // deliberately left unnamed refused the whole declaration it belongs to.
+        let bound = match spelling.as_str() {
+            "_" => quote! { _ },
+            other => parse_ident(other)?.into_token_stream(),
+        };
+        let ty = parse_type(ty)?;
         // `mut` on a parameter binds the callee's own copy and is invisible in the function's
         // type, so it never changes what a caller may pass.
         let mutability = match rebound {
             true => quote! { mut },
             false => quote! {},
         };
-        inputs.push(quote! { #mutability #name: #ty });
+        inputs.push(quote! { #mutability #bound: #ty });
     }
 
     let ret = match &function.ret {

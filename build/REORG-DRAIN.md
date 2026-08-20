@@ -6484,3 +6484,41 @@ R3s's rule — the last letter of an uppercase run belongs to the next word when
 follows — got `UUIDFormat` right and `UUIDs` wrong, producing `UuiDs`, which a reviewer called a
 mangled public type name. One letter is never a word. The rule now requires at least TWO lower-case
 letters to follow before the run is broken.
+
+## R3y — two meaning changes, and both were the engine's
+
+The Go-aware gate held at DO_NOT_MERGE and led with two findings it classified as MEANING CHANGES
+rather than style. It was right about both, and both were mine.
+
+### Unexported types published as `pub`
+
+R3q widened any type an exported declaration REACHED, so that a `pub` item whose type is private
+would not trip `private_interfaces`. The walk descended into struct FIELDS, and a private field of a
+public struct leaks nothing — so nine of memberlist's unexported wire structs (`ping`, `ackResp`,
+`alive`, `messageType`, `encryptionVersion`) became public API the source does not have.
+
+> Map Go exportedness mechanically: leading-lowercase Go identifier → private, leading-uppercase →
+> `pub`.
+
+Which is what `visibility` always did. The promotion now walks only the PUBLIC SURFACE — a
+declaration's own type, and its EXPORTED members — because that is the only thing the target's rule
+is about. A satisfaction is skipped too: it records that a type was seen implementing an interface,
+which says nothing about who may name the type.
+
+### The blank identifier is not a name
+
+    let (n, item) = parse_int(&self.str);      // Go: n, _ := parseInt(t.Str)
+    fn notify_msg(&self, arg0: &[u8]);         // Go: NotifyMsg([]byte)
+    fn pkcs7decode(buf: &[u8], arg1: usize)    // Go: pkcs7decode(buf []byte, _ int)
+
+Three fabricated names for three values the source deliberately refused to name. `item` came from
+`to_snake_case`'s empty-name fallback; `arg0` and `arg1` from a rule that argued it invented nothing
+because "the position is already its identity". A name is not a position: `arg0` appears in the
+emitted documentation, and every downstream implementor of a trait method has to write it out.
+
+All three are now `_`, which is what the source wrote.
+
+That change cost two declarations before it gained them back, and the reason is the same one the
+blank binding hit in R3e: `parse_ident` refuses `_`, correctly, because it is not an identifier. A
+parameter is a PATTERN, and the blank is one — so it is spelled directly rather than parsed as a
+name. The same mistake in the same shape, one layer along, three phases apart.

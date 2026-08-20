@@ -70,8 +70,7 @@ pub(crate) fn params_at(
     declaration
         .children_of_kind(CHILD_PARAM)
         .into_iter()
-        .enumerate()
-        .map(|(index, param)| {
+        .map(|param| {
             // A POINTER parameter is an ownership question and gets a decision; anything else is
             // just a type. The split is deliberate: a pointer inside a field or a result has no
             // call site to borrow across, so it stays a plain type-map answer.
@@ -116,11 +115,16 @@ pub(crate) fn params_at(
             } else {
                 resolver.resolve_in(&param.type_ref, &declaration.name, position)?
             };
-            // An unnamed parameter is legal in the source and illegal in the target, so it is
-            // given a positional name. The position is already its identity, so nothing is
-            // invented that was not already true.
+            // AN UNNAMED PARAMETER STAYS UNNAMED. The source writes `pkcs7decode(buf []byte, _ int)`
+            // and `NotifyMsg([]byte)` — in both the name is absent on purpose, and the body cannot
+            // refer to the value because there is nothing to refer to. The target spells that `_`.
+            //
+            // It used to become `arg{index}`, argued as inventing nothing because the position was
+            // already its identity. But a NAME is not a position: `arg0` appears in the emitted
+            // documentation, and every downstream implementor of a trait method has to write it
+            // out. Both review gates named it as a placeholder that should not ship.
             let name = if param.name.is_empty() || param.name == "_" {
-                format!("arg{index}")
+                "_".to_owned()
             } else {
                 to_snake_case(&param.name)
             };
