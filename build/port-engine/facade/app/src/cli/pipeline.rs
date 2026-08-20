@@ -290,3 +290,68 @@ pub(crate) fn cmd_port_go_source() -> ExitCode {
         }
     }
 }
+
+/// Classify the drift between two ports of ONE package at two upstream revisions.
+///
+/// The engine's claim is not only that it ports, but that it KEEPS a package ported as upstream
+/// moves — and until now that claim was exercised only by a hermetic fixture pair built to exhibit
+/// it. This runs it against a real repository at two real commits: extract each, port each, and ask
+/// the classifier whether the emitted change is accounted for.
+///
+/// `Explained` on exactly the snapshot axis is the answer that means the engine works. `Unexplained`
+/// means the bytes moved with nothing to account for them, which is a defect in the engine rather
+/// than something to repair in the output.
+pub(crate) fn cmd_drift(args: &[String]) -> ExitCode {
+    let [before, before_pin, after, after_pin] = args else {
+        eprintln!("usage: drift <before.json> <before-pin> <after.json> <after-pin>");
+        return ExitCode::from(2);
+    };
+    let ported = |path: &String, pin: &String| {
+        driver::port_snapshot_pinned(std::path::Path::new(path), pin)
+    };
+    let (previous, current) = match (ported(before, before_pin), ported(after, after_pin)) {
+        (Ok(previous), Ok(current)) => (previous, current),
+        (Err(err), _) | (_, Err(err)) => {
+            eprintln!("port-engine-app: drift failed: {err}");
+            return ExitCode::from(1);
+        }
+    };
+    let verification = port_engine_kernel::verify(
+        &previous.receipt,
+        &previous.emitted,
+        &current.receipt,
+        &current.emitted,
+    );
+    // The axes the classifier ACCEPTED as the explanation, which is the part that matters: an
+    // emitted change accounted for by the snapshot axis alone is upstream moving, and one accounted
+    // for by any other axis is the engine moving under a fixed upstream.
+    let axes: Vec<String> = match &verification.delta {
+        port_engine_kernel::Delta::Explained { axes, .. } => {
+            axes.iter().map(|axis| format!("{axis:?}")).collect()
+        }
+        _ => Vec::new(),
+    };
+    println!(
+        "drift={} regions_changed={} axes_moved=[{}]",
+        match &verification.delta {
+            port_engine_kernel::Delta::Unchanged => "Unchanged",
+            port_engine_kernel::Delta::Explained { .. } => "Explained",
+            port_engine_kernel::Delta::Unexplained { .. } => "Unexplained",
+            port_engine_kernel::Delta::IncompleteReceipt { .. } => "IncompleteReceipt",
+        },
+        match &verification.delta {
+            port_engine_kernel::Delta::Unchanged => 0,
+            port_engine_kernel::Delta::Explained { regions, .. }
+            | port_engine_kernel::Delta::Unexplained { regions }
+            | port_engine_kernel::Delta::IncompleteReceipt { regions } => regions.len(),
+        },
+        axes.join(",")
+    );
+    match verification.delta {
+        // UNEXPLAINED is the only red. `Unchanged` means upstream moved without changing what the
+        // engine emits, which is a true and useful answer rather than a failure.
+        port_engine_kernel::Delta::Unexplained { .. }
+        | port_engine_kernel::Delta::IncompleteReceipt { .. } => ExitCode::from(1),
+        _ => ExitCode::SUCCESS,
+    }
+}

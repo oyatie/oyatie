@@ -5228,3 +5228,52 @@ match is the function's tail expression, not an argument, and the formatter leav
 in the emitted golden rather than assumed.
 
 **Translated 100 → 107**, all seven packages still compiling clean: ksuid 23 → 27, semver 18 → 21.
+
+## R2z — the fourth condition, tested on a real repository for the first time
+
+The standing goal defines done as four things. Three are measured every phase. The fourth — **"it
+stays ported": re-porting after upstream moves classifies `Explained`** — had only ever been
+exercised by a hermetic fixture pair built to exhibit it. A fixture that exists to demonstrate a
+property cannot be evidence for it; that is the engine's own rule about evidence originating outside
+itself, applied to the one condition nobody had applied it to.
+
+It is now tested against `cespare/xxhash` at two real commits.
+
+**What had to be built.** `port_snapshot` emitted bytes and no receipt, so there was no way to compare
+two ports of one package — the classifier existed and had nothing to classify. The arbitrary-snapshot
+path now carries a six-axis receipt, and a `drift <before> <before-pin> <after> <after-pin>` command
+ports both and asks the kernel.
+
+The PIN is an argument rather than something read from the snapshot, and that is not a shortcut: the
+front end records what the source says, and a Go package does not know its own revision. A caller who
+extracted it does. (Recording it at extraction would be better and is what `os/` was faulted for
+lacking — noted for later.)
+
+**The result, and why the first answer was not the interesting one.** Across
+`998dce2 "Add initial support for custom seeds"` the classification is **`Unchanged`** — and that is
+TRUE rather than broken. The commit adds one declaration, `NewWithSeed`, which refuses; the emitted
+bytes are byte-identical either side, verified by digest. Upstream moved and the output did not.
+
+So the test was run again across `3686901 "Consolidate array of primes"`, which changes code the
+engine does emit:
+
+```
+drift=Explained regions_changed=6 axes_moved=[Pin,Snapshot]
+```
+
+Six regions changed, accounted for by the two axes that describe upstream identity, with engine,
+rulepack, toolchain and formatter all held. That is the fourth condition, on a real repository.
+
+**The counter-tests matter more than the result.** A classifier that says `Explained` for everything
+is worthless, so all three discriminating cases were run:
+
+- same snapshot, DIFFERENT pin → `Unchanged`. A moved pin does not manufacture an explanation for a
+  change that did not happen.
+- EMPTY pin → `IncompleteReceipt`, exit 1. The unusable axis refuses to buy an explanation, which is
+  the false-Green defence working on a real package rather than on the fixture written for it.
+- planted defect → `Unexplained`, Red. Unchanged.
+
+**What this does not yet prove.** The corpus is still static snapshots for every other purpose, and
+nothing runs this in CI. `drift` is a command, not a gate — and the goal's own lesson is that a check
+you retype by hand is one you eventually skip. Making it a gate needs the pin recorded at extraction
+so a snapshot is self-describing; that is the next piece of this thread rather than a detail.

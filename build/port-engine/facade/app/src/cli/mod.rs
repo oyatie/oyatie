@@ -12,7 +12,7 @@ use std::process::ExitCode;
 use pipeline::{
     cmd_canary_defect, cmd_delta, cmd_dispositions, cmd_emit_canary, cmd_materialize_canary,
     cmd_pipeline, cmd_port_go, cmd_port_go_source, cmd_receipt, cmd_region_digests, cmd_render,
-    cmd_port, cmd_survey, cmd_transform, cmd_verify_e2e,
+    cmd_drift, cmd_port, cmd_survey, cmd_transform, cmd_verify_e2e,
 };
 use seams::{
     cmd_admit_snapshot, cmd_declarations, cmd_digest, cmd_emit_stub, cmd_emit_syn, cmd_engine,
@@ -43,6 +43,8 @@ Commands:
   port-go           Port the hermetic Go corpus; print the emitted Rust per region
   port-go-source    Print the assembled per-unit modules (fail closed vs golden)
   survey <path>     Measure this engine against an extracted snapshot it has never seen
+  drift <before.json> <before-pin> <after.json> <after-pin>
+                    Classify the drift between two ports of one package
   port <path>       EMIT that snapshot, as far as the engine can take it (partial by design)
   region-digests    Per-region digests, so a change's blast radius is countable
   dispositions      Print every ownership decision and its justification
@@ -84,6 +86,7 @@ pub fn run(args: &[String]) -> ExitCode {
         "port-go-source" => cmd_port_go_source(),
         "survey" => cmd_survey(args.get(1).map(String::as_str)),
         "port" => cmd_port(args.get(1).map(String::as_str)),
+        "drift" => cmd_drift(&args[1..]),
         "region-digests" => cmd_region_digests(),
         "dispositions" => cmd_dispositions(),
         "transform" => cmd_transform(),
