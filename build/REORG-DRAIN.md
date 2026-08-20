@@ -3957,3 +3957,20 @@ This is the same lesson as the formatting call two phases back: **text is the wr
 rules.** A rule that emits text ends every rule downstream of it, silently, by producing something
 nothing else can read. Both times the symptom was a later rule quietly declining to fire, and both
 times the fix was a tree.
+
+**And the wrappers themselves are gone.** Inlining every call left eight declarations with no
+callers; they emit nothing now. Dropped only where nothing takes the function as a VALUE — the
+source can write `f := rol31`, and that use has nowhere to go once the declaration does. The callee
+child of a call is not such a use, which is exactly the case that inlines.
+
+The emitted `xxhash` is now:
+
+```rust
+fn round(acc: u64, input: u64) -> u64 {
+    acc.wrapping_add(input.wrapping_mul(PRIME2)).rotate_left(31).wrapping_mul(PRIME1)
+}
+
+fn merge_round(acc: u64, val: u64) -> u64 {
+    (acc ^ round(0, val)).wrapping_mul(PRIME1).wrapping_add(PRIME4)
+}
+```
