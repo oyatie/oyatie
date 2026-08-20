@@ -19,12 +19,6 @@
   "min_advisories": 1000,
   "ignore": [
     {
-      "id": "RUSTSEC-2025-0052",
-      "reason": "async-std is unmaintained; no maintained drop-in is wired yet. Time-boxed grandfather moved from the reverted #974 deny.toml.",
-      "pull_chain": "transitive dependency in the workspace graph (async-std 1.13.2 in Cargo.lock)",
-      "remove_by": "2026-12-31"
-    },
-    {
       "id": "RUSTSEC-2024-0436",
       "reason": "paste is unmaintained; it is a widely-used proc-macro shim with no maintained drop-in replacement. Time-boxed grandfather moved from the reverted #974 deny.toml.",
       "pull_chain": "transitive proc-macro dependency (paste 1.0.15 in Cargo.lock)",
@@ -41,6 +35,6 @@
     "born_blocking": "Born-blocking: the exact workspace-owned lock projection from the materialized tracked-tree facts must equal lockfile_corpus, then every declared lock is matched against the advisory mirror. A third workspace lock or any affected security advisory/unmaintained crate in the root or kernel lockfile blocks.",
     "pack_shaped": "Neutral engine; repo-specific workspace/lockfile pairs, scm_facts_path, min_lockfiles, mirror_dir, and ignores are DATA here. Legacy adopters using one lockfile_path remain supported without multi-workspace projection.",
     "hermetic": "Pure Rust predicate: serde_json + toml + semver only (no rustsec/git2/libgit2, shell, network, clock, or recursive filesystem discovery). The separately materialized scm-facts tracked-path universe supplies totality; only tracked sibling manifests are parsed to identify explicit [workspace] owners. Declared paths are normalized repo-relative sibling pairs; symlinks, missing files, type errors, malformed manifests, zero-package locks, malformed package rows, projection mismatch, and policy underflow fail closed. The collected JSON schema remains locked/name/version + advisories + manifest.",
-    "remediation_doctrine": "Upgrade the affected crate to a patched version, or — for an unmaintained dep with no maintained drop-in — add a time-boxed ignore[] entry with reason/pull_chain/remove_by."
+    "remediation_doctrine": "Upgrade the affected crate to a patched version, or \u2014 for an unmaintained dep with no maintained drop-in \u2014 add a time-boxed ignore[] entry with reason/pull_chain/remove_by."
   }
 }
