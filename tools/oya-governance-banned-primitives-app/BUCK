@@ -1,0 +1,9 @@
+rust_binary(
+    name = "oya-governance-banned-primitives-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-governance-banned-primitives-kernel:oya-governance-banned-primitives-kernel",
+    ],
+)

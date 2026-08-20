@@ -1,0 +1,150 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_id": "EXE-CLOUD-CONTROL-PLANE-CANONICAL",
+  "spec_kind": "target-architecture-canonical",
+  "authoring_adr": "ADR-0358",
+  "roadmap_phase": "P-TARGET (masterplan.ideal_production_roadmap)",
+  "related_adrs": [
+    "ADR-0242 (oyatie-is-a-tenant)",
+    "ADR-0243 (Cedar universal gate)",
+    "ADR-0244 (tenant universal scoping)",
+    "ADR-0248 (Amazon-shape cellular)",
+    "ADR-0254 (deployment-model spectrum)",
+    "ADR-0340 (per-microservice capacity/SLO)",
+    "ADR-0343 (DR + RTO/RPO matrix)",
+    "ADR-0344 (FinOps dimensional cost)",
+    "ADR-0348 (autosharding/auto-rebalance)",
+    "ADR-0349/0359 (Jenkins CI) + ADR-0111 (merge queue)"
+  ],
+  "source_directive": "masterplan.json#_meta.session_directives_2026_05_25.cloud_control_plane_directives (CS-LAUNCH-CLOUD-CONTROL-PLANE-DIRECTIVES)",
+  "status": "Proposed-target",
+  "date": "2026-05-25",
+  "title": "Cloud Control Plane — canonical target architecture for the Oyatie Cloud IaaS/PaaS substrate",
+  "purpose": "Target-architecture spec for the spine of the production-100 substrate-as-product (P-DEFINE: full cloud-* set live as a multi-region IaaS/PaaS across shared+dedicated deployment). Defines the canonical resource model, ORN, control-plane pipeline, per-resource-type contract, durable long-running operations, and the nine control-plane facets every cloud-* resource service must expose. Hyperscaler-shaped (AWS/GCP/Azure control planes: declarative resource registry + reconcilers + long-running operations + per-resource quota/billing/audit). Honest: target spec only — no control-plane API, registry, operation-ledger persistence, reconciler runtime, or provider provisioning is implemented or claimed here.",
+  "resource_model": {
+    "hierarchy": [
+      "Organization",
+      "Account",
+      "Project",
+      "Region",
+      "Cell",
+      "Resource Group",
+      "Resource"
+    ],
+    "rules": [
+      "Region and Cell are first-class in the hierarchy (not hidden in IaC internals).",
+      "Resource Group is required before any Resource.",
+      "tenant scope must include organization + account + project (ADR-0244).",
+      "every Resource is pinned to exactly one Region + Cell (ADR-0248 cellular; ADR-0254 shared logical / dedicated physical pinning)."
+    ],
+    "orn": {
+      "acronym": "ORN",
+      "format": "orn:oya:{region}:{account}:{service}:{resource-type}/{resource-id}",
+      "globally_unique": true,
+      "stable_across_lifecycle": true
+    }
+  },
+  "control_plane_pipeline": {
+    "ordering": "API Gateway -> Resource Registry -> Operation Ledger -> Workflow/Reconciler -> OpenTofu/Operators/Argo",
+    "principle": "OpenTofu and Argo are BACKEND mechanisms, not the public API. The public surface is the API Gateway + Resource Registry; reconciliation is declarative (desired state in the registry, reconcilers drive actual state).",
+    "stages": [
+      {
+        "stage": "api-gateway",
+        "role": "authenticated/authorized (Cedar, ADR-0243) public CRUD + query surface; emits typed requests; rate/quota enforced"
+      },
+      {
+        "stage": "resource-registry",
+        "role": "system-of-record for desired resource state per the resource model; ORN-keyed; tenant/region/cell-scoped"
+      },
+      {
+        "stage": "operation-ledger",
+        "role": "durable long-running-operation state for every create/update/delete; idempotent; resumable; audit-linked"
+      },
+      {
+        "stage": "workflow-reconciler",
+        "role": "drives actual state toward desired (Workflow/Ontology adapter layer); retry/backoff; brown-out aware"
+      },
+      {
+        "stage": "backend-actuation",
+        "role": "OpenTofu modules / Kubernetes operators / Cluster API / ArgoCD perform the provider-side actuation; cosign-verified images (ADR-0181)"
+      }
+    ]
+  },
+  "long_running_operations": {
+    "requirement": "Every create/update/delete is a durable long-running operation with explicit state (pending/running/succeeded/failed/rolled-back), an operation id, idempotency key, and audit-chain linkage.",
+    "guarantees": [
+      "idempotent retries",
+      "resumable after controller restart",
+      "rollback path per operation",
+      "no partial-apply without a recorded compensating action"
+    ]
+  },
+  "per_resource_type_contract": {
+    "requirement": "Every resource type declares all of:",
+    "fields": [
+      "quota_cost",
+      "billing_meters",
+      "audit_events",
+      "lifecycle_state",
+      "owner",
+      "tenant_account_project",
+      "region_cell",
+      "slo_tier",
+      "deletion_retention_policy"
+    ],
+    "rationale": "mandatory quota/metering/billing/audit contract so the substrate is governable + billable + auditable per resource (ADR-0344 FinOps; ADR-0263 audit)."
+  },
+  "control_plane_facets": [
+    {
+      "facet": "lifecycle",
+      "target": "declarative create/update/delete via registry + reconciler; long-running-operation state"
+    },
+    {
+      "facet": "identity",
+      "target": "Cloud IAM principals + workload identity; tenant/account/project scoping (ADR-0244)"
+    },
+    {
+      "facet": "policy",
+      "target": "Cedar universal gate at the API Gateway + per-resource policy (ADR-0243); default-deny"
+    },
+    {
+      "facet": "quota",
+      "target": "per-tenant/per-resource-type quotas enforced at the gateway; brown-out degradation signal"
+    },
+    {
+      "facet": "billing",
+      "target": "billing_meters per resource -> metering -> invoice (Cloud Billing); FinOps export (ADR-0344)"
+    },
+    {
+      "facet": "audit",
+      "target": "audit_events per resource -> audit-chain emission (ADR-0263)"
+    },
+    {
+      "facet": "observability",
+      "target": "per-resource SLO/metrics/traces (OpenTelemetry); SLO tier per resource (ADR-0340)"
+    },
+    {
+      "facet": "rollback",
+      "target": "per-operation rollback + ArgoCD progressive-delivery auto-rollback on metric breach (ADR-0349)"
+    },
+    {
+      "facet": "reconciliation",
+      "target": "continuous desired-vs-actual reconciliation; drift detection + correction"
+    }
+  ],
+  "deployment_models_target": {
+    "shared_cloud": "logical isolation: cell + Cedar + per-tenant encryption; multi-tenant cells",
+    "dedicated_cloud": "physical isolation: dedicated cell pinning per tenant; shuffle-shard pinning",
+    "post_100": [
+      "hybrid-byo-cloud",
+      "on-prem-connected",
+      "on-prem-air-gapped"
+    ]
+  },
+  "compliance_overlays_target": "KR + JP + US + EU pack overlays applied per tenant jurisdiction (P-DEFINE compliance gate); per-pack data-residency + cross-border-transfer constraints enforced at the control plane.",
+  "non_claims": [
+    "Target-architecture spec only. No control-plane API, Resource Registry, Operation Ledger persistence, reconciler runtime, OpenTofu plan/apply, operator/Cluster-API/ArgoCD runtime, or provider provisioning is implemented or claimed.",
+    "No measured SLO/DR/scale/cost evidence; no production or hyperscaler-maturity claim. All such claims stay blocked_until_required_evidence_is_green per hyperscaler-gates.json.",
+    "cloud-* services remain metadata-only foundations until P-STRANGLE migrates each to this target behind contracts."
+  ]
+}

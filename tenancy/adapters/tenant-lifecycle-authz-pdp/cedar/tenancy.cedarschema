@@ -1,0 +1,59 @@
+// AUTH-005 / ADR-0564 D7 — tenancy tenant-lifecycle authorization schema.
+//
+// Binding ADRs: ADR-0536 D-2 (embedded Cedar PDP), ADR-0243 (Cedar universal
+// gate), ADR-0559 (cloud-iam is the IdP/PDP). This bundle DOGFOODS the shared
+// embedded Cedar engine (iam/adapters/pdp-cedar) — the tenancy
+// service is a PEP over the same PDP that cloud-iam ships.
+//
+// Two axes, structurally separated:
+//   - PER-TENANT ops (read/provision/suspend/resume/retire) act on a Tenant
+//     and are granted to a tenant operator whose proven tenant scope EQUALS
+//     the target tenant. The structural forbid backs this unconditionally.
+//   - PLATFORM ops (register/list) act on the singleton TenancyControlPlane
+//     and require the platform-admin attribute. A tenant operator can never
+//     reach them; the platform admin is not pinned to any tenant.
+
+namespace OyaTenancy {
+
+  entity Tenant = {
+    "tenant_id": String,
+  };
+
+  // A caller principal. `tenant_id` is the proven tenant scope (set ONLY for a
+  // tenant-scoped operator); `platform_admin` is the cross-tenant control-plane
+  // axis. The PEP materializes these attributes from the VERIFIED credential,
+  // never from an unverified URL segment.
+  entity Principal = {
+    "tenant_id"?: String,
+    "platform_admin": Bool,
+  };
+
+  // The singleton control-plane resource that register/list act on. Its
+  // presence keeps the platform axis a distinct resource type from Tenant, so
+  // no tenant-scoped permit can ever reach a platform op.
+  entity TenancyControlPlane = {
+    "control_plane": String,
+  };
+
+  // Per-tenant lifecycle action (read/provision/suspend/resume/retire all map
+  // to this single tenant-administration action; the FSM enforces transition
+  // legality, the PDP enforces who may drive it).
+  action AdministerTenant appliesTo {
+    principal: [Principal],
+    resource: [Tenant],
+    context: {},
+  };
+
+  // Platform control-plane actions (register a tenant; enumerate all tenants).
+  action RegisterTenant appliesTo {
+    principal: [Principal],
+    resource: [TenancyControlPlane],
+    context: {},
+  };
+
+  action ListTenants appliesTo {
+    principal: [Principal],
+    resource: [TenancyControlPlane],
+    context: {},
+  };
+}

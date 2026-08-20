@@ -1,0 +1,53 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: feature-flags-killswitch-fire-latency
+  labels:
+    microservice: feature-flags
+    bc: killswitch
+    binding-adr: ADR-0159
+    priority: P0
+spec:
+  description: |
+    Kill-switch engagement propagates to ALL cells within 1 second p99.
+    This is a LIFE-SAFETY SLO: kill-switches may control emergency-adjacent
+    features. Breach is SEV-1.
+    Capacity math: Kafka broadcast to 50 cells × 20ms RTT = 1s worst-case.
+    Separate from flag-state-propagation SLO (which covers Patroni WAL path).
+    Kill-switch uses dedicated Kafka broadcast topic; not subject to WAL lag.
+    Hyperscaler precedent: Cloudflare Workers KV propagation <1s globally.
+  service: feature-flags
+  sloOwner: axis-governance
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: kill-switch to all cells ≤1s
+      op: lte
+      value: 1.0
+      target: 0.999
+  indicator:
+    metadata:
+      name: killswitch-propagation-latency
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: |
+                sum(rate(oya_feature_flag_killswitch_propagation_duration_seconds_bucket{le="1.0"}[5m]))
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: |
+                sum(rate(oya_feature_flag_killswitch_propagation_duration_seconds_count[5m]))
+  alerting:
+    burnRateAlerts:
+      - shortWindow: 1m
+        longWindow: 5m
+        burnRateThreshold: 100
+        severity: critical
+        description: "CRITICAL: kill-switch propagation SLO breach — SEV-1 — page immediately"

@@ -1,0 +1,13 @@
+[package]
+name = "oya-governance-adr-shape-app"
+version = "0.1.0"
+edition = "2024"
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-governance-adr-shape-kernel = { path = "../../libs/oya-governance-adr-shape-kernel" }
+
+[lints]
+workspace = true

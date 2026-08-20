@@ -1,0 +1,4 @@
+ech:
+  enabled: true
+  rotation_days: 90
+  adr: ADR-0253

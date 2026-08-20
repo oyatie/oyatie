@@ -1,0 +1,14 @@
+{
+  "fixture_id": "TC-OWN-BAD-comment-only",
+  "description": "ADR-0555 hardening (FRIC-1781400000): an OWNERS file carrying only comments and blank lines parses to zero owner principals and is NOT ownership — covered paths stay unowned (fail-closed).",
+  "owners_files": {
+    "tree/OWNERS": "# the platform team owns this tree\n\n# (a principal was never added)\n"
+  },
+  "tracked_paths": ["tree/OWNERS", "tree/code.rs"],
+  "expected_owned": {},
+  "expected_invalid": {
+    "tree/OWNERS": "zero owner principals"
+  },
+  "expected_over_broad": {},
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs::owners_schema_fixtures_execute_red_green_cases"
+}

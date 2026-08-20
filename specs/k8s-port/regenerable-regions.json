@@ -1,0 +1,418 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "schema_version": "1.0.0",
+  "artifact": "kubernetes-port-regenerable-regions",
+  "_comment": "Registered regenerable regions for the Kubernetes Go-to-Rust port, plus the origin classification of every first-party crate leaf in the two capabilities the port seam runs between. ADR-637 D2, live via ADR-0704: output in a registered regenerable region is emitted by the registered producer and is NEVER hand-edited; a red result is an engine, rule or policy defect, never repaired by editing emitted Rust. `regions` is EMPTY and stays empty until a PRODUCER exists, which is not the same claim as the engine path being absent: build/port-engine/core/port-engine-kernel IS on the tree (7 tracked files, 924 lines) and registers no producer -- it is a W0 skeleton with no front end, no rule data and no renderer -- while specs/port-rules is genuinely absent and specs/k8s-port/scope.json reports no package enumeration has run. A consumer must be able to tell 'engine present, not yet a producer' from 'engine absent'. The value of this file today is the DENOMINATOR, not the numerator. A boundary partition that classifies leaf by leaf reports the same clean result over an empty region set whether the corpus is genuinely clean or the walk collapsed and saw nothing; enumerating every existing leaf as first-party is what makes that zero honest instead of vacuous. Contract: docs/programs/k8s-port/seam/os-k8s-seam-mapping.md, sections 3.1, 5 and 6.",
+  "authority": {
+    "apex": "ADR-0704",
+    "clauses": [
+      "ADR-637 D2 — output in a registered regenerable region is generated: emitted by the registered producer, never hand-edited.",
+      "ADR-638 D1 — generated Kubernetes Rust output SHALL live under k8s/; os/, cloud/cloud-k8s and the managed-Kubernetes facades consume it only through approved k8s/ports/** seams and MUST NOT become alternate homes for generated upstream code.",
+      "ADR-638 D6 — the os/ shared-types direction is deferred to W0-G. This file classifies and predicts placement; it authorizes NO runtime edge and creates no crate."
+    ],
+    "citation_convention": "ADR ids are written as bare text on purpose. docs/decisions/ holds only the live apexes, so any other id written as a path under that directory is a broken link scored against an equality-pinned census; a bare id in a value costs nothing on either census."
+  },
+  "regions": [],
+  "regions_state": {
+    "state": "empty_no_producer",
+    "statement": "No regenerable region is registered. Nothing in the repository emits Kubernetes Rust output, so no path is under producer ownership and every byte under k8s/ and os/ is legitimately hand-edited today.",
+    "evidence": [
+      "build/port-engine/core/port-engine-kernel present (7 tracked files) but registers no producer: an ADR-0637 D4 W0 seam skeleton with no source-language front end, no rule data and no renderer, so it emits no output and owns no path.",
+      "specs/port-rules/** absent from the tree.",
+      "specs/k8s-port/scope.json enumeration_state.state = pending_source_model_manifest."
+    ],
+    "required_fields_when_nonempty": [
+      "region_id",
+      "path_prefix",
+      "producer",
+      "receipt",
+      "origin"
+    ],
+    "admission_rule": "A region may be registered only in the same change as the producer that emits it and the six-axis receipt binding pin, snapshot_digest, engine_digest, rulepack_digest, toolchain_digest and formatter_digest. Registering a path prefix without a producer would forbid hand edits to bytes that nothing can regenerate, which converts a live surface into an unmaintainable one.",
+    "overlap_rule": "Region path prefixes are disjoint. Two regions claiming the same path make the no-hand-edit owner ambiguous, and an ambiguous owner is an unenforced one."
+  },
+  "emit_predicate": {
+    "_comment": "Section 3.1 of the seam mapping, encoded as data. The upstream package path decides the emit face mechanically; there is no per-package human judgement and therefore nothing for a lane to negotiate. Resolution matches the contract already landed in specs/k8s-port/scope.json: all selectors within a rule match conjunctively, a subject resolves to the matching rule with the highest specificity_rank, and equal highest ranks are an error rather than a tie-break.",
+    "subject": "SourceModel package path at the upstream pin recorded in specs/k8s-port/upstream-pin.json",
+    "state": "not_in_force",
+    "state_note": "Encoded now so parallel units converge on one answer. Nothing evaluates this predicate today; the first evaluator is the producer, which does not exist.",
+    "rules": [
+      {
+        "id": "EMIT-EXCLUDED",
+        "specificity_rank": 30,
+        "match": {
+          "path_prefixes": [
+            "vendor/"
+          ]
+        },
+        "face": null,
+        "disposition": "EXCLUDE",
+        "rationale": "Vendored and generated upstream inputs are already ruled EXCLUDE by the landed W0-A scope rules. This file does not restate those rules and must not contradict them; the row exists so that resolution is total rather than falling through to the default face.",
+        "authority": "specs/k8s-port/scope.json"
+      },
+      {
+        "id": "EMIT-STAGING-TO-PORTS",
+        "specificity_rank": 20,
+        "match": {
+          "path_prefixes": [
+            "staging/src/k8s.io/"
+          ]
+        },
+        "face": "k8s/ports",
+        "crate_dir_template": "k8s/ports/upstream-<dashed>",
+        "package_name_template": "k8s-upstream-<dashed>",
+        "rationale": "Upstream itself declares staging/src/k8s.io/* the externally consumable set, published read-only with pull requests to the published repositories refused — the same no-hand-edit contract ADR-637 D2 asserts. Externally consumable upstream becomes the seam face."
+      },
+      {
+        "id": "EMIT-FIRST-PARTY-TO-CORE",
+        "specificity_rank": 10,
+        "match": {
+          "path_prefixes": [
+            ""
+          ]
+        },
+        "face": "k8s/core",
+        "crate_dir_template": "k8s/core/upstream-<dashed>",
+        "package_name_template": "k8s-upstream-<dashed>",
+        "rationale": "Any other first-party upstream path — pkg/**, cmd/**, plugin/** — is not externally consumable upstream, so it becomes the engine face and carries no external dependents. The k8s charter reserves core/ for the engine we RUN."
+      }
+    ],
+    "name_function": {
+      "_comment": "Total and order-significant. Generated names are never typed by hand, so name length does not matter and a special case would only add a way to be wrong.",
+      "steps": [
+        "strip the leading staging/src/k8s.io/ for a staging path; strip nothing otherwise",
+        "drop any pkg/apis/, pkg/ or tools/ segment — Go layout artifacts, not identity",
+        "replace every remaining / with -",
+        "lowercase; no other transformation"
+      ],
+      "examples": [
+        {
+          "upstream_path": "staging/src/k8s.io/api/core/v1",
+          "dashed": "api-core-v1",
+          "crate_dir": "k8s/ports/upstream-api-core-v1",
+          "package_name": "k8s-upstream-api-core-v1"
+        },
+        {
+          "upstream_path": "staging/src/k8s.io/apiserver/pkg/apis/audit/v1",
+          "dashed": "apiserver-audit-v1",
+          "crate_dir": "k8s/ports/upstream-apiserver-audit-v1",
+          "package_name": "k8s-upstream-apiserver-audit-v1"
+        },
+        {
+          "upstream_path": "pkg/kubelet/config",
+          "dashed": "kubelet-config",
+          "crate_dir": "k8s/core/upstream-kubelet-config",
+          "package_name": "k8s-upstream-kubelet-config"
+        }
+      ],
+      "examples_note": "The second example is the one that matters: it exercises the pkg/apis/ drop, which is the only step that can silently change identity. The upstream module paths are a reading of upstream layout and are NOT confirmed against the pinned SourceModel — no package enumeration has run. They are here to pin the FUNCTION, which is exact, not to assert these modules exist at the pin."
+    },
+    "face_constraint": {
+      "_comment": "Why upstream- inside the existing faces, and not a new root directory.",
+      "root_member_globs": [
+        "*/core/*",
+        "*/ports/*",
+        "*/adapters/*",
+        "*/facade/*"
+      ],
+      "rule": "Both emit faces are depth-3 leaves that already match a root workspace member glob, so emitting costs ZERO root Cargo.toml edit and cannot serialize this lane against every other lane on that shared array. A novel root such as build/… or k8s/generated/… matches no glob, reds the workspace-glob-coverage gate with crate_dir_not_covered, and would need an ADR-authorized members exception this lane has no authority to write.",
+      "separation": "The upstream- prefix is what makes a generated leaf mechanically separable from a hand-authored product port inside the same glob. It is the whole reason the four incumbent k8s/ports/*-api product crates need a classification field rather than a new address."
+    }
+  },
+  "origin_classification": {
+    "_comment": "The one cheap thing the incumbents actually need. Every tracked crate leaf under k8s/ and os/ is classified here, so a scan that finds zero hand-edited generated files can be distinguished from a scan that found nothing at all. Adding a leaf to the tree without adding its row here is the fail-closed condition below — an unclassified leaf is exactly the hole that makes a partition vacuous.",
+    "vocabulary_closed": true,
+    "vocabulary": [
+      {
+        "origin": "first-party",
+        "meaning": "Hand-authored by this repository. Editing it is normal work. It is not emitted by any producer and MUST NOT fall inside a registered region."
+      },
+      {
+        "origin": "generated",
+        "meaning": "Emitted into a registered regenerable region by that region's producer. Hand-editing it is a defect repaired in the rules, never in the emitted Rust. Every generated leaf MUST resolve to exactly one registered region."
+      }
+    ],
+    "scope": "The two capabilities the port seam runs between: k8s/ (the destination ADR-638 D1 names) and os/ (the consumer). Other capabilities are out of scope for this file and are not silently claimed by it.",
+    "leaf_definition": "A directory holding a tracked Cargo.toml at <capability>/<face>/<crate>/Cargo.toml.",
+    "census": {
+      "measured_at": "2026-08-11",
+      "repository_baseline": {
+        "ref": "origin/dev",
+        "commit": "9755cf50e",
+        "rebase_revalidation": "Prior: restack onto origin/dev@9755cf50e after #1642 (18/42/60 + kernel-abi). 2026-08-11 re-measure on integ/os absorb tip vs merge-base 9a56538c74: +os/harness/attestation-relying-party +os/harness/oci-executor-oracle → k8s_leaves 18, os_leaves 44, total 62 (leaves[] already listed; census counts were stale at 43/61)."
+      },
+      "k8s_leaves": 18,
+      "os_leaves": 44,
+      "total_leaves": 62,
+      "generated_leaves": 0,
+      "reproducer": "git ls-files 'k8s/*/*/Cargo.toml' 'os/*/*/Cargo.toml'",
+      "note": "os/ is 40 crates under os/core/, 3 under os/harness/ (difftest-app + attestation-relying-party + oci-executor-oracle), 1 under os/ports/. Talos hand-port under os/core+harness remains first-party by ADR-638 D5 charter. os/ports/kernel-abi is the owned kernel-ABI seam (first-party port face), not generated. Re-measured on integ/os tip after #1931/#1932 absorb: git ls-files k8s/*/*/Cargo.toml os/*/*/Cargo.toml → 18/44/62."
+    },
+    "leaves": [
+      {
+        "path": "k8s/adapters/cluster-lifecycle-adapter-cedar",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/adapters/control-plane-host-adapter-capi",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/adapters/control-plane-host-adapter-inmemory",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/adapters/sla-observability-adapter-inmemory",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/adapters/tenant-quota-adapter-cedar",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/adapters/tenant-quota-adapter-inmemory",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/core/cluster-lifecycle-kernel",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/core/control-plane-host-kernel",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/core/sla-observability-kernel",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/core/tenant-quota-kernel",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/facade/cluster-lifecycle-app",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/facade/control-plane-host-app",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/facade/sla-observability-app",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/facade/tenant-quota-app",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/ports/cluster-lifecycle-api",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/ports/control-plane-host-api",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/ports/sla-observability-api",
+        "origin": "first-party"
+      },
+      {
+        "path": "k8s/ports/tenant-quota-api",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/apid-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/archiver-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/block-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/board-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/cluster-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/cluster-mgmt-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/conditions-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/config-docs-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/config-v1alpha1-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/controllers-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/cosi-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/etcd-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/events-logging-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/extensions-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/hardware-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/imager-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/init-app",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/install-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/k8s-control-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/kernel",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/kubelet-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/kubernetes-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/kubespan-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/machine-config-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/machined-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/maintenance-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/meta-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/network-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/perf-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/platform-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/proto-api",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/resources-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/runtime-cri-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/secrets-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/security-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/siderolink-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/syslogd-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/time-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/trustd-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/core/upgrade-domain",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/harness/attestation-relying-party",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/harness/difftest-app",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/harness/oci-executor-oracle",
+        "origin": "first-party"
+      },
+      {
+        "path": "os/ports/kernel-abi",
+        "origin": "first-party"
+      }
+    ]
+  },
+  "fail_closed_conditions": [
+    "Reject a tracked crate leaf under k8s/ or os/ that carries no row in origin_classification.leaves — an unclassified leaf is exactly the hole that makes a leaf-by-leaf boundary partition report a clean result over an unseen corpus.",
+    "Reject a row whose origin is outside the closed vocabulary.",
+    "Reject a duplicate leaf path.",
+    "Reject a leaf classified generated that resolves to no registered region, and reject a leaf classified first-party that falls inside a registered region path_prefix.",
+    "Reject a region registered without a producer or without all six receipt axes.",
+    "Reject two registered regions whose path prefixes overlap.",
+    "Reject an emit resolution where no rule matches, or where more than one matching rule holds the highest specificity_rank.",
+    "Reject an origin_classification.census total that disagrees with the census reproducer evaluated at HEAD — a stale census silently converts every count above into a claim about a tree that no longer exists."
+  ],
+  "not_claimed": [
+    "That any producer, engine, rule pack or seam crate exists.",
+    "That any os/ to k8s/ dependency edge is authorized; ADR-638 D6 defers that to W0-G and this file does not pre-empt it.",
+    "That the candidate upstream module paths in emit_predicate.name_function.examples were confirmed against the pinned SourceModel.",
+    "That emit_predicate resolution (no-match / equal-highest-rank) is enforced by a reader today — that fail_closed condition remains specification until the producer evaluates it. Origin classification, region producer/receipt/overlap, and first-party-vs-generated coverage ARE enforced by ci-k8s-program-docs when this file is loaded."
+  ]
+}

@@ -1,0 +1,7 @@
+rust_library(
+    name = "tenancy-per-tenant-quota",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "tenancy_per_tenant_quota",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)

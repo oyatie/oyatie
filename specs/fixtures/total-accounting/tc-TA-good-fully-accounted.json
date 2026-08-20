@@ -1,0 +1,18 @@
+{
+  "fixture_id": "TC-TA-GOOD-fully-accounted",
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "description": "A path with owner + resolving justification + non-empty reachability + ttl_class passes with zero violations.",
+  "rows": [
+    {
+      "path": "specs/masterplan.json",
+      "unit_class": "spec",
+      "owner": "council-architecture",
+      "justification_ref": "ADR-0364",
+      "justification_resolves": true,
+      "reachable_from": ["root-hub", "masterplan"],
+      "ttl": {"ttl_class": "spec", "budget_days": null, "action": "report", "protected": true}
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-total-accounting-app/tests/total_accounting.rs"
+}

@@ -1,0 +1,134 @@
+{
+  "title": "Feature Flags — Flag State Overview",
+  "uid": "feature-flags-flag-state",
+  "binding_adr": "ADR-0159",
+  "microservice": "feature-flags",
+  "description": "Live flag inventory per tenant with lifecycle state, kill-switch status, and pack override coverage.",
+  "panels": [
+    {
+      "title": "Active Flags by Tenant",
+      "type": "stat",
+      "targets": [
+        {
+          "expr": "count by (tenant_id) (oya_feature_flag_active{lifecycle_state=\"active\"})",
+          "legendFormat": "{{tenant_id}}"
+        }
+      ]
+    },
+    {
+      "title": "Kill-Switches Active",
+      "type": "stat",
+      "alert": "page if > 0 unexpected",
+      "targets": [
+        {
+          "expr": "sum(oya_feature_flag_killswitch_active)",
+          "legendFormat": "Active kill-switches"
+        }
+      ]
+    },
+    {
+      "title": "Flag Evaluation Rate (rps)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_feature_flag_eval_total[5m])) by (tenant_id)",
+          "legendFormat": "{{tenant_id}}"
+        }
+      ]
+    },
+    {
+      "title": "Flag Evaluation Latency p99",
+      "type": "timeseries",
+      "slo_ref": "slos/flag-eval-latency.openslo.yaml",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_feature_flag_eval_duration_seconds_bucket[5m])) by (le))",
+          "legendFormat": "p99 latency"
+        }
+      ],
+      "thresholds": [
+        {"value": 0.001, "color": "green"},
+        {"value": 0.002, "color": "yellow"},
+        {"value": 0.005, "color": "red"}
+      ]
+    },
+    {
+      "title": "Evaluation Reason Distribution",
+      "type": "piechart",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_feature_flag_eval_total[5m])) by (reason)",
+          "legendFormat": "{{reason}}"
+        }
+      ]
+    },
+    {
+      "title": "Pack Overrides Active",
+      "type": "table",
+      "targets": [
+        {
+          "expr": "oya_feature_flag_pack_override_total",
+          "legendFormat": "{{pack_id}} / {{flag_key}}"
+        }
+      ]
+    },
+    {
+      "title": "Flag Mutations (last 24h)",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_feature_flag_mutation_total[5m])) by (action)",
+          "legendFormat": "{{action}}"
+        }
+      ]
+    },
+    {
+      "title": "SDK Cache Miss Rate",
+      "type": "gauge",
+      "targets": [
+        {
+          "expr": "1 - (sum(rate(oya_feature_flag_sdk_cache_hit_total[5m])) / sum(rate(oya_feature_flag_eval_total[5m])))",
+          "legendFormat": "Cache miss rate"
+        }
+      ],
+      "thresholds": [
+        {"value": 0.01, "color": "green"},
+        {"value": 0.05, "color": "yellow"},
+        {"value": 0.10, "color": "red"}
+      ]
+    },
+    {
+      "title": "Replication Lag (cross-region)",
+      "type": "timeseries",
+      "slo_ref": "slos/flag-state-propagation.openslo.yaml",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_feature_flag_replication_lag_seconds_bucket[5m])) by (le, cell_id))",
+          "legendFormat": "{{cell_id}} p99"
+        }
+      ],
+      "thresholds": [
+        {"value": 5.0, "color": "red"}
+      ]
+    },
+    {
+      "title": "Abuse Defence Events",
+      "type": "timeseries",
+      "targets": [
+        {
+          "expr": "sum(rate(oya_feature_flag_abuse_detection_total[5m])) by (signal_type)",
+          "legendFormat": "{{signal_type}}"
+        }
+      ]
+    }
+  ],
+  "variables": [
+    {"name": "tenant_id", "type": "query", "query": "label_values(oya_feature_flag_eval_total, tenant_id)"},
+    {"name": "cell_id", "type": "query", "query": "label_values(oya_feature_flag_replication_lag_seconds_bucket, cell_id)"}
+  ],
+  "links": [
+    {"title": "Experiment Results", "url": "/d/feature-flags-experiments"},
+    {"title": "Kill-Switch History", "url": "/d/feature-flags-killswitch"},
+    {"title": "Runbooks", "url": "microservices/feature-flags/runbooks/"}
+  ]
+}

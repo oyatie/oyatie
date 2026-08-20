@@ -1,0 +1,32 @@
+[package]
+name = "fixup-ledger-merge-driver-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Structural git merge driver for registry/fixuptasks.jsonl (GH #1412). Two lanes that each file
+# a task row touch adjacent bytes at the end of an append-mostly JSONL file, so git's text merge
+# conflicts on essentially every pair of concurrent PRs even though the change is disjoint.
+#
+# The lib is a pure three-way merge over the parsed rows (zero I/O, fixture-drivable); the binary
+# is the thin `%O %A %B` git contract. Same split as the Cargo.lock and friction-ledger drivers.
+
+[lib]
+name = "fixup_ledger_merge_driver_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "fixup-ledger-merge-driver"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

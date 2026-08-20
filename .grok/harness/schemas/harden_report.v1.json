@@ -1,0 +1,39 @@
+{
+  "$id": "harden_report.v1",
+  "type": "object",
+  "required": ["schema", "edges", "green_and_integration_rerun"],
+  "properties": {
+    "schema": { "const": "harden_report.v1" },
+    "edges": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["kind", "summary"],
+        "properties": {
+          "kind": {
+            "type": "string",
+            "enum": [
+              "fail_closed",
+              "error_path",
+              "telemetry",
+              "authz",
+              "constant_work",
+              "input_validation",
+              "other"
+            ]
+          },
+          "summary": { "type": "string" }
+        }
+      }
+    },
+    "green_and_integration_rerun": {
+      "type": "object",
+      "required": ["passed", "commands"],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "commands": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "no_feature_creep": { "type": "boolean" }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "../bin/mm-drive stop-hook",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,45 @@
+# tenancy µservice — Edge WAF per ADR-0297 + §3.2.3
+apiVersion: oyatie.io/network/v1
+kind: EdgeWAF
+metadata:
+  name: tenancy-edge-waf
+  microservice: tenancy
+spec:
+  bot_management:
+    provider: in-house-equivalent
+    ja4_enabled: true
+    ja4plus_enabled: true
+    score_header: "X-Oya-Bot-Score"
+  rate_limits:
+    per_ip:
+      signup_routes: { rpm: 5, burst: 2 }
+      signin_routes: { rpm: 30, burst: 10 }
+      resolve_routes: { rpm: 60, burst: 30 }
+      admin_routes: { rpm: 60, burst: 20 }
+    per_fingerprint:
+      enabled: true
+      window_seconds: 60
+    per_tenant:
+      enabled: true
+  challenges:
+    captcha:
+      providers: [hcaptcha, turnstile, cloudflare-challenge]
+      trigger_bot_score: 60
+      ux_floor:
+        a11y_audio_alternative: true
+        a11y_keyboard_navigable: true
+        a11y_time_pressured: false
+        cognitive_load_seconds_max: 10
+        session_continuity_preserved: true
+  device_attestation:
+    web: webauthn-origin-binding
+    ios: app-attest
+    android: play-integrity
+  honeypots:
+    routes:
+      - /v1/legacy-tenant-list
+      - /v1/internal-tenant-debug
+  friendly_crawler_partners_allowlist:
+    - googlebot
+    - bingbot
+  default_path_latency_budget_ms: 2

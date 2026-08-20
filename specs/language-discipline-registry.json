@@ -1,0 +1,187 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/language-discipline-registry.json",
+  "title": "LanguageDisciplineRegistry",
+  "description": "Local/static AC-0.4 registry for the Phase-0 language-discipline allowlist. It validates GOOD/BAD changed-file fixtures and preserves the T0.4 cloud-check backlog inventory without claiming live cloud-ci authority.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-LANGUAGE-DISCIPLINE-REGISTRY",
+    "version": "0.1.0",
+    "status": "local_static_language_discipline_seed_not_live_context",
+    "owner_team": "platform-toolchain + platform-governance",
+    "created_at": "2026-06-03T00:00:00Z",
+    "updated_at": "2026-06-04T15:21:37Z",
+    "related_acceptance_criteria": [
+      "AC-0.4"
+    ],
+    "source_request": "Founder directive 2026-06-03: maintain modern Rust standards; use Buck2-native LLVM source-based coverage instead of Tarpaulin; preserve dual Cargo.toml + Buck2/Reindeer setup for local Cargo mutation testing; keep the language-discipline gate hyperscaler-oriented and suitable.",
+    "official_references": [
+      {
+        "name": "Rustc Book — Instrumentation-based Code Coverage",
+        "url": "https://doc.rust-lang.org/rustc/instrument-coverage.html",
+        "used_for": "Records the Rust coverage standard as rustc/LLVM source-based coverage with rustc -C instrument-coverage."
+      },
+      {
+        "name": "LLVM — Source-based Code Coverage",
+        "url": "https://clang.llvm.org/docs/SourceBasedCodeCoverage.html",
+        "used_for": "Records llvm-profdata/llvm-cov as the source-based coverage reporting path."
+      },
+      {
+        "name": "Buck2 — Commands",
+        "url": "https://buck2.build/docs/users/commands/",
+        "used_for": "Records Buck2 target execution as local/static evidence and Build ID source."
+      },
+      {
+        "name": "Buck2 — Bootstrapping",
+        "url": "https://buck2.build/docs/about/bootstrapping/",
+        "used_for": "Records dual Cargo+Buck2 ergonomics and reindeer-generated BUCK graph context."
+      },
+      {
+        "name": "Reindeer",
+        "url": "https://github.com/facebookincubator/reindeer",
+        "used_for": "Records crate vendoring and BUCK generation from Cargo workspaces for monorepo Rust graphs."
+      }
+    ]
+  },
+  "claim_boundary": {
+    "note": "Fixture-backed local/static seed evidence only. This gate does not scan or mutate a live PR, post statuses, mutate branch protection, prove P0.0 green, prove Phase-0 completion, prove production readiness, or prove hyperscaler-grade readiness.",
+    "language_discipline_allowlist_measured": true,
+    "new_python_outside_allowlist_blocked": true,
+    "new_shell_outside_allowlist_blocked": true,
+    "offender_inventory_recorded": true,
+    "legacy_active_command_surface_backlog_recorded": true,
+    "status_mutation_performed": false,
+    "protected_branch_authority_proven": false,
+    "live_required_context_execution_proven": false,
+    "p0_0_green": false,
+    "phase0_complete": false,
+    "production_ready": false,
+    "hyperscaler_grade": false
+  },
+  "language_discipline_policy": {
+    "buck2_target": "//:language-discipline-check",
+    "checker": "scripts/ci/assert-language-discipline.rs",
+    "test_harness": "scripts/tests/language_discipline_check.rs",
+    "new_gate_language": "Rust",
+    "new_python_or_shell_gate_surface_added": false,
+    "candidate_statuses_treated_as_new": [
+      "A",
+      "AM",
+      "??"
+    ],
+    "forbidden_new_checked_in_suffixes": [
+      ".py",
+      ".sh"
+    ],
+    "allowlist": {
+      "new_shell_prefixes": [],
+      "new_python_prefixes": [],
+      "buck2_vendored_host_prelude_python_note": "Buck2 vendored host-prelude Python is toolchain substrate and not candidate-authored checked-in test sprawl. Candidate-authored checked-in Python remains blocked outside the empty allowlist."
+    },
+    "rust_standards_record": {
+      "coverage_surface": "Buck2-native LLVM source-based coverage",
+      "coverage_noncanonical_surface": "Tarpaulin is not the canonical coverage surface",
+      "coverage_instrumentation": "rustc -C instrument-coverage with LLVM_PROFILE_FILE, llvm-profdata merge, and llvm-cov report/export under Buck2 target evidence",
+      "mutation_local_ergonomics": "Dual Cargo.toml + Buck2/Reindeer setup keeps local Cargo mutation testing advisory for developer feedback while Buck2/cloud-ci captured evidence remains merge authority.",
+      "hyperscaler_orientation": "Language gates are deterministic, target-addressable, allowlist-driven, non-claiming, and suitable for trusted cloud-ci/oya-ci promotion."
+    }
+  },
+  "offender_inventory": {
+    "inventory_scope": "T0.4 cloud_*_check.py backlog plus current-head presence flags; current AC-0.4 branch does not add these Python files.",
+    "t0_4_cloud_check_backlog_count": 7,
+    "entries": [
+      {
+        "path": "scripts/tests/cloud_control_plane_operation_contract_check.py",
+        "kind": "python_test_sprawl_backlog",
+        "present_in_current_head": false,
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
+      },
+      {
+        "path": "scripts/tests/cloud_dogfood_ci_toolchain_lane_reconciliation_check.py",
+        "kind": "python_test_sprawl_backlog",
+        "present_in_current_head": false,
+        "retirement_action": "Port to Rust Buck2 gate before live language-discipline authority."
+      },
+      {
+        "path": "scripts/tests/cloud_enforceability_facets_check.py",
+        "kind": "python_test_sprawl_backlog",
+        "present_in_current_head": false,
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
+      },
+      {
+        "path": "scripts/tests/cloud_hyperscaler_parity_taxonomy_check.py",
+        "kind": "python_test_sprawl_backlog",
+        "present_in_current_head": false,
+        "retirement_action": "Ported to //cloud/cloud-ci/gates/oya-cloud-ci-hyperscaler-parity-taxonomy-app:oya-cloud-ci-hyperscaler-parity-taxonomy-app-gate and retired from scripts/tests."
+      },
+      {
+        "path": "scripts/tests/cloud_observability_slo_evidence_check.py",
+        "kind": "python_test_sprawl_backlog",
+        "present_in_current_head": true,
+        "retirement_action": "Live G006 sibling legacy bridge: fenced as temporary local-only Python validator debt until ported to a Rust/Buck2 cloud-ci gate before any merge-authority or runtime-maturity claim.",
+        "authority_fence": "local_legacy_bridge_not_merge_authority",
+        "replacement_target": "Rust/Buck2 cloud-ci gate for observability SLO evidence validation"
+      },
+      {
+        "path": "scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+        "kind": "python_test_sprawl_backlog",
+        "present_in_current_head": true,
+        "retirement_action": "Live G006 legacy bridge: fenced as temporary local-only Python validator debt until ported to a Rust/Buck2 cloud-ci gate before any merge-authority or runtime-maturity claim.",
+        "authority_fence": "local_legacy_bridge_not_merge_authority",
+        "replacement_target": "Rust/Buck2 cloud-ci gate for cloud-production-quality-kit-evidence-backlog validation"
+      },
+      {
+        "path": "scripts/tests/cloud_resource_contract_parity_catalog_check.py",
+        "kind": "python_test_sprawl_backlog",
+        "present_in_current_head": false,
+        "retirement_action": "Ported to //ci/facade/resource-contract-conformance:oya-cloud-ci-cloud-resource-contracts-app-gate and retired from scripts/tests."
+      }
+    ]
+  },
+  "legacy_active_command_surface_backlog": {
+    "captured_at": "2026-06-04T15:21:37Z",
+    "source": "registry/quality/lanes.yaml active check_command inventory after PR-497 moved the documentation/catalog/API-semver subset to Buck2 targets, the foundation tranche moved 17 governance rows to existing Buck2 targets, the target-backed tranche moved 29 additional rows, and this simple-authority tranche moved 4 more rows with local Buck2 rmeta evidence",
+    "valid": true,
+    "claim_boundary": "backlog_only_no_live_mutation",
+    "inventory_counts": {
+      "registry_quality_check_command_rows": 91,
+      "buck2_build_rows": 56,
+      "legacy_cargo_or_cargo_run_rows": 31,
+      "legacy_shell_rows": 4
+    },
+    "backlog_actions": [
+      {
+        "id": "registry-quality-buck2-target-port",
+        "phase": "P-TOOLCHAIN.2",
+        "priority": "P00",
+        "action": "Port the remaining registry/quality lane check_command rows from direct Cargo-style execution strings to concrete Buck2 targets or explicitly tracked-deferred rows with blocked rationales.",
+        "validity": "Valid because registry/quality is a high-conflict shared surface and currently advertises non-Buck2 command authority for most rows."
+      },
+      {
+        "id": "governance-shell-gate-port",
+        "phase": "P-TOOLCHAIN.2",
+        "priority": "P00",
+        "action": "Replace the four active shell-backed governance check rows with Rust/Buck2 gate targets or retire them behind provenance-only allowlists.",
+        "validity": "Valid because new coordination/gate work is Rust/Buck2-first and shell should not remain active merge authority for parallel fanout."
+      },
+      {
+        "id": "canonical-command-projection-generator",
+        "phase": "P-TOOLCHAIN.2",
+        "priority": "P01",
+        "action": "Generate shared registry command projections from per-lane Buck2-owned metadata so high-concurrency lanes do not repeatedly edit registry/quality/lanes.yaml.",
+        "validity": "Valid because generated or pointer-thin shared surfaces reduce merge conflict probability while preserving one canonical projection."
+      }
+    ]
+  },
+  "fixture_paths": [
+    "specs/fixtures/phase0-language-discipline/tc-0.4-good-allowlisted-bootstrap-shell-edit.json",
+    "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-python-under-scripts.json",
+    "specs/fixtures/phase0-language-discipline/tc-0.4-bad-new-shell-test-sprawl.json",
+    "specs/fixtures/phase0-language-discipline/tc-0.4-good-non-script-change.json"
+  ],
+  "automated_chain": [
+    "rustc --edition=2021 -D warnings scripts/tests/language_discipline_check.rs --test",
+    "rustc --edition=2021 -D warnings scripts/ci/assert-language-discipline.rs",
+    "buck2 build //:language-discipline-check"
+  ]
+}

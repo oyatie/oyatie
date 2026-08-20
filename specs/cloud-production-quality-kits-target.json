@@ -1,0 +1,160 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_id": "EXE-CLOUD-PRODUCTION-QUALITY-KITS-TARGET",
+  "spec_kind": "target-architecture-canonical",
+  "authoring_adr": "ADR-0358",
+  "roadmap_phase": "P-PROD (masterplan.ideal_production_roadmap)",
+  "related_adrs": [
+    "ADR-0130 (SLO-gated promotion)",
+    "ADR-0248 (cellular)",
+    "ADR-0297 (abuse defence)",
+    "ADR-0343 (DR)",
+    "ADR-0344 (FinOps)",
+    "ADR-0358 (ideal roadmap)"
+  ],
+  "incorporated_from": [
+    "plan/hyperscaler-grade-cloud-platform-quality-review.md (QR-001..QR-007)",
+    "specs/masterplan.json (CS slice content absorbed into ideal_production_roadmap; former plan/* changeset-slices disposed 2026-08-07)"
+  ],
+  "status": "Proposed-target",
+  "date": "2026-05-25",
+  "title": "Cloud production quality evidence kits — the seven harness-backed gates for production-100",
+  "purpose": "Elaborates the seven quality-evidence kits referenced in masterplan production_100_bar.quality_evidence_kits into actionable target definitions: per kit a harness, scenarios/drills, evidence format, and the production-100 gate it feeds. Each kit produces MEASURED evidence (not a document) before any maturity claim. Honest non-claim: target spec; the harnesses, drills, and evidence pipelines are not implemented here.",
+  "maturity_ladder_binding": "Each kit's evidence is preserved per the L0->L7 ladder; a level cannot be claimed without its kits green; no marketing claim before evidence.",
+  "kits": [
+    {
+      "id": "QK-01-overload-fairness",
+      "source": "AWS Builders' Library (load shedding, fairness)",
+      "harness": "synthetic overload generator + per-tenant request-cost classifier",
+      "scenarios": [
+        "sustained > capacity",
+        "burst spikes",
+        "expensive-request floods",
+        "retry storms"
+      ],
+      "controls": [
+        "request-cost classes",
+        "per-tenant retry budgets",
+        "queue depth limits",
+        "load-shedding (shed cheap-to-reject first; protect in-flight)"
+      ],
+      "evidence": "shed-rate vs offered-load curve; fairness index across tenants under overload; no cascading failure",
+      "gate": "production_100_bar.slo_exit"
+    },
+    {
+      "id": "QK-02-shuffle-shard-isolation",
+      "source": "AWS Builders' Library (shuffle sharding)",
+      "harness": "shuffle-shard assignment simulator + correlated-blast-radius analyzer",
+      "scenarios": [
+        "single-tenant fault",
+        "noisy-neighbor resource hog",
+        "poison-pill request"
+      ],
+      "controls": [
+        "shuffle-shard assignment policy per resource",
+        "blast-radius bound per shard set",
+        "noisy-neighbor throttling"
+      ],
+      "evidence": "correlated-impact probability matrix; measured blast-radius containment; noisy-neighbor isolation drill",
+      "gate": "production_100_bar.security_exit (tenant isolation, shared+dedicated)"
+    },
+    {
+      "id": "QK-03-privacy-data-governance",
+      "source": "NIST Privacy Framework + KR/JP/US/EU packs",
+      "harness": "data-flow inventory + DSR (subject-rights) test set",
+      "scenarios": [
+        "personal-data inventory",
+        "residency enforcement",
+        "retention expiry",
+        "deletion/erasure",
+        "export/portability",
+        "redaction in logs/telemetry"
+      ],
+      "controls": [
+        "per-pack residency + cross-border-transfer constraints (Cedar fragments)",
+        "retention/deletion policy per resource",
+        "no PII in logs"
+      ],
+      "evidence": "data-flow map; DSR round-trip proofs (delete/export within SLA); residency enforcement test",
+      "gate": "production_100_bar.compliance_gate"
+    },
+    {
+      "id": "QK-04-canary-prr",
+      "source": "Google SRE (canary, production-readiness review)",
+      "harness": "one-cell canary orchestrator + automated metric evaluator + PRR template",
+      "scenarios": [
+        "canary to 1 cell",
+        "bake-time SLO observation",
+        "regression detection",
+        "auto-rollback on breach"
+      ],
+      "controls": [
+        "design-time PRR checklist",
+        "automated canary eval against SLO",
+        "rollback triggers (ArgoCD, ADR-0349)"
+      ],
+      "evidence": "canary eval reports; PRR sign-offs; rollback drill evidence",
+      "gate": "production_100_bar.ci_cd_exit"
+    },
+    {
+      "id": "QK-05-focus-cost-export",
+      "source": "FOCUS Specification 1.3+",
+      "harness": "FOCUS-schema cost/usage exporter + invoice reconciliation",
+      "scenarios": [
+        "per-tenant cost attribution",
+        "allocation by tag/dimension",
+        "invoice reconciliation"
+      ],
+      "controls": [
+        "FOCUS-compatible export schema",
+        "billing_meters per resource (resource-catalog)",
+        "tag normalization"
+      ],
+      "evidence": "FOCUS export validated against schema; cost attribution reconciles to invoices",
+      "gate": "production_100_bar.cost_exit"
+    },
+    {
+      "id": "QK-06-k8s-pod-security",
+      "source": "Kubernetes Pod Security Standards",
+      "harness": "admission policy test set (Kubewarden, default; Kyverno adapter)",
+      "scenarios": [
+        "restricted enforced",
+        "baseline fallback",
+        "privileged exception path"
+      ],
+      "controls": [
+        "PSS restricted by default",
+        "privileged workloads require owner + expiry + mitigation",
+        "Kata runtime for tenant-untrusted (ADR-0338)"
+      ],
+      "evidence": "admission-policy test results; privileged-exception register with expiries",
+      "gate": "production_100_bar.security_exit"
+    },
+    {
+      "id": "QK-07-abuse-fraud-ddos",
+      "source": "ADR-0297 abuse defence + ingress protection",
+      "harness": "abuse/fraud/DDoS scenario drills + ingress protection test",
+      "scenarios": [
+        "signup abuse",
+        "payment fraud",
+        "L3/4 + L7 DDoS",
+        "resource-exhaustion abuse"
+      ],
+      "controls": [
+        "signup/payment risk hooks",
+        "suspension + appeals workflow",
+        "ingress rate/protection (anycast + edge)",
+        "customer-safe comms templates"
+      ],
+      "evidence": "drill results; ingress protection thresholds; suspension/appeals round-trip",
+      "gate": "production_100_bar.security_exit"
+    }
+  ],
+  "non_claims": [
+    "Target spec only — defines the kits; does NOT implement harnesses, drills, evidence pipelines, or produce any measured evidence.",
+    "No production/security/cost/SLO maturity claim; every kit's green status stays blocked_until_required_evidence_is_green."
+  ],
+  "_disposed_plan_docs_20260807": [
+    "plan/hyperscaler-grade-cloud-platform-changeset-slices.md"
+  ]
+}

@@ -1,0 +1,77 @@
+syntax = "proto3";
+
+package oya.mail.v1;
+
+service Mail {
+  rpc SendMessage (SendMessageRequest) returns (SendMessageResponse);
+}
+
+enum MailContextKind {
+  MAIL_CONTEXT_KIND_UNSPECIFIED = 0;
+  MAIL_CONTEXT_KIND_PERSONAL = 1;
+  MAIL_CONTEXT_KIND_WORK = 2;
+}
+
+enum DmarcPolicy {
+  DMARC_POLICY_UNSPECIFIED = 0;
+  DMARC_POLICY_NONE = 1;
+  DMARC_POLICY_QUARANTINE = 2;
+  DMARC_POLICY_REJECT = 3;
+}
+
+enum DmarcAction {
+  DMARC_ACTION_UNSPECIFIED = 0;
+  DMARC_ACTION_ACCEPT = 1;
+  DMARC_ACTION_QUARANTINE = 2;
+  DMARC_ACTION_REJECT = 3;
+}
+
+message MailTenantDekEnvelope {
+  string dek_ref = 1;
+}
+
+message ImportedEnvelope {
+  string source_hash = 1;
+  string evidence_ref = 2;
+}
+
+message MailEnvelope {
+  oneof envelope {
+    string personal_client_only_envelope_ref = 1;
+    MailTenantDekEnvelope tenant_dek = 2;
+    ImportedEnvelope imported = 3;
+  }
+}
+
+message DmarcCheck {
+  string domain_ref = 1;
+  bool spf_aligned = 2;
+  bool dkim_aligned = 3;
+  DmarcPolicy policy = 4;
+  string evidence_ref = 5;
+}
+
+message SendMessageRequest {
+  MailContextKind context = 1;
+  string scope_ref = 2;
+  string tenant_scope_ref = 3;
+  string principal_ref = 4;
+  string idempotency_key = 5;
+  string policy_decision_ref = 6;
+  string audit_correlation_id = 7;
+  string message_id = 8;
+  string mailbox_id = 9;
+  string subject_ref = 10;
+  MailEnvelope envelope = 11;
+  string retention_policy_id = 12;
+  DmarcCheck dmarc_check = 13;
+}
+
+message SendMessageResponse {
+  string message_id = 1;
+  string event_type = 2;
+  string audit_correlation_id = 3;
+  string idempotency_key = 4;
+  string policy_decision_ref = 5;
+  DmarcAction dmarc_action = 6;
+}

@@ -1,0 +1,17 @@
+{
+  "fixture_id": "TC-SR-BAD-stale-unreachable-doc",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "stale_over_budget_unreachable"
+  ],
+  "description": "An over-budget AND unreachable scratch ai-slop doc: a husk-class artifact aged 120 days against a 14-day budget, reachable_from empty. BOTH conditions hold so it is an ARCHIVE candidate (REPORTED, never reaped in-gate).",
+  "rows": [
+    {
+      "path": "docs/scratch/_partial-synthesis-2026-01.md",
+      "age_days": 120,
+      "reachable_from": [],
+      "ttl": {"ttl_class": "husk", "budget_days": 14, "protected": false, "action": "archive"}
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs"
+}

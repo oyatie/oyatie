@@ -1,0 +1,46 @@
+{
+  "$schema": "https://oyatie.com/schemas/microservice-scorecard-overrides.json",
+  "microservice": "detection",
+  "summary": "ADR-0307 detection substrate scaffold with model lifecycle, fairness, investigation, and ADR-0263 audit events.",
+  "canonical_base_path": "specs/microservices/scorecards/canonical/",
+  "aws_well_architected": {
+    "overall_status": "yellow",
+    "deltas": [
+      {
+        "control": "OPS-05",
+        "field": "evidence_suffix",
+        "value": "8 runbooks, 8 SLOs, 8 dashboards"
+      }
+    ]
+  },
+  "google_sre_prr": {
+    "overall_status": "yellow",
+    "deltas": [
+      {
+        "control": "runbooks_complete",
+        "field": "runbook_count",
+        "value": 8
+      }
+    ]
+  },
+  "cis_k8s_benchmark": {
+    "overall_status": "yellow",
+    "deltas": [
+      {
+        "control": "network_policy",
+        "field": "state",
+        "value": "scaffolded"
+      }
+    ]
+  },
+  "slsa_l3": {
+    "overall_status": "yellow",
+    "deltas": [
+      {
+        "control": "provenance",
+        "field": "state",
+        "value": "implementation plans pending"
+      }
+    ]
+  }
+}

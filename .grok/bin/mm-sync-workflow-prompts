@@ -1,0 +1,139 @@
+#!/usr/bin/env python3
+"""Sync lens pack text in Rhai workflows from harness JSON via mm-prompt.
+
+Reduces F-PROMPT-DRIFT: edit stage-lens-packs.v1.json then run this script.
+
+Markers in workflows (inclusive block replaced):
+  // MM-LENS-BEGIN:<stage>:<perspective_or_pack>
+  ...
+  // MM-LENS-END:<stage>:<perspective_or_pack>
+
+Usage:
+  mm-sync-workflow-prompts --cwd .
+  mm-sync-workflow-prompts --cwd . --check   # exit 1 if drift
+"""
+
+from __future__ import annotations
+
+import argparse
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+
+BEGIN_RE = re.compile(
+    r"^(\s*)// MM-LENS-BEGIN:([A-Za-z0-9_]+):([A-Za-z0-9_]+)\s*$",
+    re.M,
+)
+END_TMPL = "// MM-LENS-END:{stage}:{key}"
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/harness/stage-lens-packs.v1.json").is_file():
+            return p
+    return cur
+
+
+def compile_lens(repo: Path, stage: str, perspective: str) -> str:
+    cmd = [
+        str(repo / ".grok/bin/mm-prompt"),
+        "--cwd",
+        str(repo),
+        "--stage",
+        stage,
+    ]
+    if perspective and perspective != "pack":
+        cmd.extend(["--perspective", perspective])
+    p = subprocess.run(cmd, text=True, capture_output=True, check=False)
+    if p.returncode != 0:
+        raise SystemExit(f"mm-prompt failed for {stage}/{perspective}: {p.stderr}")
+    # Convert to Rhai string fragments: each line as comment inside the block
+    # We inject as multi-line content the agent prompt will still read as text
+    # when concatenated in the surrounding Rhai string.
+    lines = p.stdout.rstrip("\n").splitlines()
+    # Escape for embedding in Rhai double-quoted strings is the caller's job;
+    # we only replace the marker region with raw lines prefixed for readability.
+    out = []
+    for ln in lines:
+        # Use Rhai-safe: no unescaped " in critical way — replace " with '
+        safe = ln.replace("\\", "\\\\").replace('"', "'")
+        out.append(safe)
+    return "\n".join(out)
+
+
+def process_file(repo: Path, path: Path, check: bool) -> bool:
+    """Return True if file is clean (no drift)."""
+    text = path.read_text()
+    matches = list(BEGIN_RE.finditer(text))
+    if not matches:
+        return True
+
+    new_parts = []
+    pos = 0
+    dirty = False
+    for m in matches:
+        indent, stage, key = m.group(1), m.group(2), m.group(3)
+        end_mark = f"{indent}// MM-LENS-END:{stage}:{key}"
+        end_idx = text.find(end_mark, m.end())
+        if end_idx < 0:
+            raise SystemExit(f"{path}: missing end marker for {stage}:{key}")
+        compiled = compile_lens(repo, stage, key)
+        # Build replacement block: markers + one Rhai string continuation per line
+        # Convention: block sits inside a string built with += of lines like:
+        #   cprompt += "line\n";
+        # For simplicity we store the pack as a sequence of += lines the author wraps.
+        # Alternative: single block comment used as documentation only.
+        # We use documentation form that workflows must include via generated snippet:
+        body_lines = []
+        for ln in compiled.splitlines():
+            body_lines.append(f'{indent}// | {ln}')
+        block = (
+            f"{m.group(0)}\n"
+            + "\n".join(body_lines)
+            + f"\n{end_mark}"
+        )
+        old_block = text[m.start() : end_idx + len(end_mark)]
+        if old_block != block:
+            dirty = True
+        new_parts.append(text[pos : m.start()])
+        new_parts.append(block)
+        pos = end_idx + len(end_mark)
+    new_parts.append(text[pos:])
+    new_text = "".join(new_parts)
+    if dirty and check:
+        print(f"DRIFT: {path}", file=sys.stderr)
+        return False
+    if dirty and not check:
+        path.write_text(new_text)
+        print(f"updated: {path}")
+    else:
+        print(f"ok: {path}")
+    return not dirty
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--cwd", default=".")
+    ap.add_argument("--check", action="store_true")
+    ap.add_argument("--workflow", default="", help="single workflow path relative to .grok/workflows")
+    args = ap.parse_args()
+    repo = find_repo(Path(args.cwd))
+    wf_dir = repo / ".grok" / "workflows"
+    if args.workflow:
+        files = [wf_dir / args.workflow]
+    else:
+        files = sorted(wf_dir.glob("*.rhai"))
+    all_ok = True
+    for f in files:
+        if not f.is_file():
+            continue
+        if not process_file(repo, f, args.check):
+            all_ok = False
+    return 0 if all_ok else 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -1,0 +1,26 @@
+[package]
+name = "ci-inventory-registry-drift"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# :registry-drift (PHASE-0-FIREWALL-PLAN §5.3): re-runs the accounting-registry-producer
+# in a sandbox and byte-diffs the result against the committed
+# accounting-registry.generated.json. A hand-edit to any generated face FAILS this test,
+# which makes drift structurally impossible (committed == regenerated). No lib; the
+# contract lives entirely in the integration test.
+
+[lib]
+name = "ci_inventory_registry_drift"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+
+[dev-dependencies]
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
+
+[lints]
+workspace = true

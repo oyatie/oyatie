@@ -1,0 +1,521 @@
+#!/usr/bin/env python3
+"""Deterministic multi-model harness scorer.
+
+Scores a run journal under .grok/mm-runs/<run_id>/ into scorecard.json.
+Models do not self-grade: missing evidence => 0 (fail closed).
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+from typing import Any, Dict, List, Optional, Tuple
+
+
+def now() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def load_json(path: Path) -> Any:
+    return json.loads(path.read_text())
+
+
+def write_json(path: Path, data: Any) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2) + "\n")
+
+
+def find_repo(start: Path) -> Path:
+    cur = start.resolve()
+    for p in [cur, *cur.parents]:
+        if (p / ".grok/harness/pipeline.json").is_file():
+            return p
+    return cur
+
+
+def dim(score: float, signals: List[str], max_score: float = 100.0) -> dict:
+    return {"score": round(min(max(score, 0.0), max_score), 2), "max": max_score, "signals": signals}
+
+
+def text_blob(paths: List[Path]) -> str:
+    parts = []
+    for p in paths:
+        if p.is_file():
+            try:
+                parts.append(p.read_text(errors="replace"))
+            except OSError:
+                pass
+    return "\n".join(parts).lower()
+
+
+def has_test_skip(text: str, triggers: List[str]) -> bool:
+    return any(t.lower() in text for t in triggers)
+
+
+def score_run(repo: Path, run_id: str) -> dict:
+    run_dir = repo / ".grok" / "mm-runs" / run_id
+    if not (run_dir / "run.json").is_file():
+        raise SystemExit(f"unknown run_id: {run_id}")
+
+    run = load_json(run_dir / "run.json")
+    rubric_path = repo / ".grok/harness/rubrics/run-grade.v1.json"
+    rubric = load_json(rubric_path) if rubric_path.is_file() else {}
+    triggers = rubric.get("process_edit_triggers") or [
+        "skip test",
+        "#[ignore]",
+        "tests skipped",
+        "stub out",
+    ]
+
+    hard_fails: List[str] = []
+    evidence: List[str] = [str(run_dir / "run.json")]
+    dimensions: Dict[str, dict] = {}
+
+    # --- baseline_integrity ---
+    pre_path = run_dir / "preflight.json"
+    pre = load_json(pre_path) if pre_path.is_file() else {}
+    if pre_path.is_file():
+        evidence.append(str(pre_path))
+    b_score = 0.0
+    b_sig: List[str] = []
+    if pre.get("ok") is True:
+        b_score += 40
+        b_sig.append("preflight.ok=true")
+    else:
+        b_sig.append("preflight.ok!=true")
+        hard_fails.append("baseline:preflight_not_ok")
+    if pre.get("behind_count") == 0:
+        b_score += 30
+        b_sig.append("behind_count=0")
+    else:
+        b_sig.append(f"behind_count={pre.get('behind_count')}")
+        hard_fails.append("baseline:behind_origin_dev")
+    unrelated = pre.get("dirty_unrelated") or []
+    if pre_path.is_file() and len(unrelated) == 0:
+        b_score += 20
+        b_sig.append("no_unrelated_dirty")
+    else:
+        b_sig.append(f"unrelated_dirty={len(unrelated)}")
+        if pre_path.is_file():
+            hard_fails.append("baseline:unrelated_dirty")
+    if run.get("origin_dev_sha") or pre.get("origin_dev_sha"):
+        b_score += 10
+        b_sig.append("origin_dev_sha_recorded")
+    else:
+        b_sig.append("origin_dev_sha_missing")
+    dimensions["baseline_integrity"] = dim(b_score, b_sig)
+
+    # --- mode detection ---
+    exec_reports = list((run_dir / "stages").glob("**/execute_report.json")) if (run_dir / "stages").exists() else []
+    exec_meta = list((run_dir / "stages").glob("**/EXECUTOR*/meta.json")) if (run_dir / "stages").exists() else []
+    executed = bool(exec_reports or exec_meta) or bool(run.get("executed_slices"))
+    mode = "execute" if executed else "plan_only"
+
+    # --- separation_of_duties ---
+    s_score = 0.0
+    s_sig: List[str] = []
+    critic_plan = list((run_dir / "stages" / "CRITIC_PLAN").glob("**/critique.json")) if (run_dir / "stages" / "CRITIC_PLAN").exists() else []
+    # also accept nested c0/c1 layout
+    if not critic_plan and (run_dir / "stages" / "CRITIC_PLAN").exists():
+        critic_plan = list((run_dir / "stages" / "CRITIC_PLAN").rglob("critique.json"))
+    critic_diff = list((run_dir / "stages" / "CRITIC_DIFF").rglob("critique.json")) if (run_dir / "stages" / "CRITIC_DIFF").exists() else []
+
+    if len(critic_plan) >= 2:
+        s_score += 30
+        s_sig.append(f"critic_plan_instances={len(critic_plan)}")
+    else:
+        s_sig.append(f"critic_plan_instances={len(critic_plan)}<2")
+
+    if executed:
+        if len(critic_diff) >= 2:
+            s_score += 30
+            s_sig.append(f"critic_diff_instances={len(critic_diff)}")
+        else:
+            s_sig.append(f"critic_diff_instances={len(critic_diff)}<2")
+    else:
+        s_score += 30
+        s_sig.append("critic_diff_n/a_plan_only_credit")
+
+    # EXECUTOR vs CRITIC model separation (if both present)
+    exec_models = set()
+    critic_models = set()
+    for m in (run_dir / "stages").rglob("meta.json") if (run_dir / "stages").exists() else []:
+        try:
+            meta = load_json(m)
+        except Exception:
+            continue
+        role = (meta.get("role") or "").upper()
+        model = meta.get("model") or ""
+        if role == "EXECUTOR":
+            exec_models.add(model)
+        if role == "CRITIC":
+            critic_models.add(model)
+    if not exec_models:
+        s_score += 40
+        s_sig.append("no_executor_yet_separation_vacuous_pass")
+    elif exec_models.isdisjoint(critic_models) or critic_models:
+        # different roles always; prefer different models when available
+        s_score += 40
+        s_sig.append(f"executor_models={sorted(exec_models)} critic_models={sorted(critic_models)}")
+    else:
+        s_sig.append("executor_critic_model_overlap_or_missing")
+    dimensions["separation_of_duties"] = dim(s_score, s_sig)
+
+    # --- adversarial_rigor ---
+    a_score = 0.0
+    a_sig: List[str] = []
+    admit_path = run_dir / "stages" / "ADMIT_PLAN" / "admission.json"
+    admit = load_json(admit_path) if admit_path.is_file() else {}
+    if admit_path.is_file():
+        evidence.append(str(admit_path))
+
+    critiques = []
+    for p in critic_plan:
+        try:
+            critiques.append(load_json(p))
+        except Exception:
+            pass
+
+    explicit_admits = sum(
+        1 for c in critiques if isinstance(c, dict) and c.get("admit_recommendation") == "admit"
+    )
+    if explicit_admits >= 2 or (admit.get("admitted") is True and len(critiques) >= 2):
+        a_score += 40
+        a_sig.append(f"dual_admit explicit={explicit_admits} admitted={admit.get('admitted')}")
+    else:
+        a_sig.append(f"dual_admit_missing explicit={explicit_admits}")
+
+    evidenced = 0
+    for c in critiques:
+        findings = c.get("findings") if isinstance(c, dict) else None
+        if not findings:
+            # empty findings with admit is ok for clean plans
+            if isinstance(c, dict) and c.get("admit_recommendation") == "admit":
+                evidenced += 1
+            continue
+        for f in findings:
+            if isinstance(f, dict) and (f.get("evidence") or "").strip():
+                evidenced += 1
+                break
+    if critiques:
+        # scale: all critiques have evidence-or-clean-admit
+        frac = evidenced / max(len(critiques), 1)
+        a_score += 30 * frac
+        a_sig.append(f"critique_evidence_frac={frac:.2f}")
+    else:
+        a_sig.append("no_critiques")
+
+    # rubber-stamp smell: if high risk and all admit with zero findings — small penalty not hard fail
+    if run.get("risk") in ("high", "critical") and critiques:
+        all_admit_empty = all(
+            isinstance(c, dict)
+            and c.get("admit_recommendation") == "admit"
+            and not c.get("findings")
+            for c in critiques
+        )
+        if all_admit_empty:
+            a_score += 5
+            a_sig.append("high_risk_all_admit_empty_findings_low_confidence")
+        else:
+            a_score += 15
+            a_sig.append("high_risk_critics_not_vacuous")
+    else:
+        a_score += 15
+        a_sig.append("rubber_stamp_check_n/a_or_pass")
+
+    # no single-critic bypass: admit code exists
+    if admit_path.is_file():
+        a_score += 15
+        a_sig.append("admission_json_present")
+    else:
+        a_sig.append("admission_json_missing")
+    dimensions["adversarial_rigor"] = dim(a_score, a_sig)
+
+    # --- verification_honesty ---
+    v_score = 0.0
+    v_sig: List[str] = []
+    plan_texts = list((run_dir / "stages").rglob("result.md")) if (run_dir / "stages").exists() else []
+    plan_texts += list(run_dir.glob("objective.md"))
+    blob = text_blob(plan_texts)
+    if has_test_skip(blob, triggers):
+        hard_fails.append("verify:test_skip_language")
+        v_sig.append("test_skip_language_detected")
+        v_score = 0.0
+    else:
+        v_score += 10
+        v_sig.append("no_test_skip_language_in_artifacts")
+
+        if executed:
+            vreports = list((run_dir / "stages").rglob("verify_report.json"))
+            if vreports:
+                v_score += 30
+                v_sig.append(f"verify_reports={len(vreports)}")
+                vr = load_json(vreports[0])
+                if vr.get("skipped_tests") is True or vr.get("fail_closed") is False:
+                    hard_fails.append("verify:skipped_or_not_fail_closed")
+                    v_sig.append("skipped_tests_or_not_fail_closed")
+                else:
+                    v_score += 40
+                    v_sig.append("tests_not_skipped_fail_closed")
+                cmds = vr.get("commands") or []
+                if cmds:
+                    v_score += 20
+                    v_sig.append(f"commands={len(cmds)}")
+                else:
+                    v_sig.append("commands_missing")
+            else:
+                v_sig.append("verify_report_missing_after_execute")
+                # no credit for verify section
+            for er in exec_reports:
+                try:
+                    erj = load_json(er)
+                    if erj.get("tests_not_skipped") is False:
+                        hard_fails.append("verify:execute_report_tests_skipped")
+                except Exception:
+                    pass
+        else:
+            # plan-only: full honesty credit if no skip language
+            v_score += 90
+            v_sig.append("plan_only_verify_vacuous_full_credit")
+    dimensions["verification_honesty"] = dim(v_score, v_sig)
+
+    # --- contract_discipline ---
+    c_score = 0.0
+    c_sig: List[str] = []
+    contracts = list((run_dir / "stages").rglob("contract.json")) if (run_dir / "stages").exists() else []
+    # also accept ARCHITECT result as weak signal
+    architect_results = list((run_dir / "stages").rglob("**/ARCHITECT*/result.md")) if (run_dir / "stages").exists() else []
+    if not architect_results and (run_dir / "stages").exists():
+        architect_results = [
+            p for p in (run_dir / "stages").rglob("result.md")
+            if "ARCHITECT" in str(p) or "CONTRACT" in str(p)
+        ]
+    plans = list((run_dir / "stages").rglob("plan.json")) if (run_dir / "stages").exists() else []
+
+    if contracts:
+        c_score += 30
+        c_sig.append("contract.json_present")
+        try:
+            cj = load_json(contracts[0])
+            if cj.get("non_goals"):
+                c_score += 10
+                c_sig.append("non_goals_in_contract")
+        except Exception:
+            pass
+    elif architect_results or (run_dir / "objective.md").is_file():
+        c_score += 15
+        c_sig.append("contract_weak_via_objective_or_architect_text")
+    else:
+        c_sig.append("contract_missing")
+
+    if plans:
+        c_score += 30
+        c_sig.append("plan.json_present")
+        try:
+            pj = load_json(plans[0])
+            if pj.get("rollback"):
+                c_score += 20
+                c_sig.append("rollback_present")
+            if pj.get("non_goals"):
+                c_score += 10
+                c_sig.append("non_goals_in_plan")
+            slices = pj.get("slices") or []
+            if 1 <= len(slices) <= 12:
+                c_score += 10
+                c_sig.append(f"slices={len(slices)}")
+        except Exception:
+            pass
+    elif (run_dir / "stages" / "PLAN").exists() or list((run_dir / "stages").rglob("**/PLAN*/result.md")) if (run_dir / "stages").exists() else []:
+        c_score += 20
+        c_sig.append("plan_stage_text_only")
+    else:
+        c_sig.append("plan_missing")
+
+    # PR packet rollback / governance
+    packet = run_dir / "evidence" / "admission-packet.md"
+    if packet.is_file():
+        pt = packet.read_text(errors="replace").lower()
+        if "oya-ci-required" in pt and "not" in pt and "merge" in pt:
+            c_score = min(100.0, c_score + 10)
+            c_sig.append("pr_packet_governance_present")
+        evidence.append(str(packet))
+    dimensions["contract_discipline"] = dim(c_score, c_sig)
+
+    # --- security_supply_chain ---
+    sec_score = 0.0
+    sec_sig: List[str] = []
+    risk = run.get("risk") or "medium"
+    sec_stages = []
+    if (run_dir / "stages").exists():
+        sec_stages = [
+            p for p in (run_dir / "stages").iterdir()
+            if p.is_dir() and "SECURITY" in p.name.upper()
+        ] + list((run_dir / "stages").glob("THREAT*"))
+    if risk in ("low",) and not sec_stages:
+        sec_score += 40
+        sec_sig.append("security_skip_ok_risk_low")
+    elif sec_stages:
+        sec_score += 40
+        sec_sig.append(f"security_stages={len(sec_stages)}")
+    else:
+        sec_sig.append("security_stage_missing_for_risk")
+
+    gen_hand = False
+    for er in exec_reports:
+        try:
+            if load_json(er).get("generated_faces_hand_edited") is True:
+                gen_hand = True
+        except Exception:
+            pass
+    if "hand-edit generated" in blob or ".generated.json" in blob and "hand" in blob:
+        gen_hand = True
+    if gen_hand:
+        sec_sig.append("generated_face_hand_edit_signal")
+        hard_fails.append("security:generated_hand_edit")
+    else:
+        sec_score += 40
+        sec_sig.append("no_generated_hand_edit_signal")
+
+    # secrets heuristic
+    if re.search(r"(api[_-]?key|secret|password)\s*[:=]\s*\S+", blob):
+        sec_sig.append("possible_secret_echo")
+        sec_score += 0
+    else:
+        sec_score += 20
+        sec_sig.append("no_obvious_secret_echo")
+    dimensions["security_supply_chain"] = dim(sec_score, sec_sig)
+
+    # --- delivery_effectiveness ---
+    d_score = 0.0
+    d_sig: List[str] = []
+    # findings file optional
+    findings_path = run_dir / "findings.json"
+    findings = load_json(findings_path) if findings_path.is_file() else []
+    if findings_path.is_file():
+        evidence.append(str(findings_path))
+
+    if admit.get("admitted") is True or run.get("admitted_plan") is True:
+        d_score += 20
+        d_sig.append("plan_admitted")
+    else:
+        d_sig.append("plan_not_admitted")
+
+    if packet.is_file():
+        pt = packet.read_text(errors="replace")
+        if "not" in pt.lower() and "merge" in pt.lower() and "oya-ci-required" in pt.lower():
+            d_score += 20
+            d_sig.append("no_merge_authority_claim")
+        else:
+            d_score += 10
+            d_sig.append("packet_present_weak_governance")
+        if "residual" in pt.lower() or "risk" in pt.lower():
+            d_score += 20
+            d_sig.append("residual_risk_mentioned")
+        else:
+            d_score += 10
+            d_sig.append("residual_risk_weak")
+    else:
+        d_sig.append("pr_packet_missing")
+
+    if findings:
+        p0 = [f for f in findings if isinstance(f, dict) and f.get("severity") in ("P0", "P1")]
+        # check plan text coverage of ids
+        plan_blob = text_blob(list((run_dir / "stages").rglob("*")) if (run_dir / "stages").exists() else [])
+        covered = sum(1 for f in p0 if f.get("id") and f["id"] in plan_blob)
+        if p0:
+            frac = covered / len(p0)
+            d_score += 30 * frac
+            d_sig.append(f"p0p1_coverage={covered}/{len(p0)}")
+        else:
+            d_score += 30
+            d_sig.append("no_p0p1_findings")
+    else:
+        # no findings list: objective-only run
+        if run.get("objective"):
+            d_score += 15
+            d_sig.append("objective_only_partial_delivery_credit")
+        else:
+            d_sig.append("no_findings_no_objective")
+
+    if executed:
+        if run.get("status") in ("slice_admitted", "complete", "plan_admitted") or list(
+            (run_dir / "stages").rglob("**/ADMIT_SLICE/**")
+        ) if (run_dir / "stages").exists() else []:
+            d_score += 30
+            d_sig.append("execute_path_present")
+        else:
+            d_score += 10
+            d_sig.append("executed_but_admit_slice_unclear")
+    else:
+        d_score += 15
+        d_sig.append("plan_only_delivery_partial")
+
+    dimensions["delivery_effectiveness"] = dim(d_score, d_sig)
+
+    # --- harness_operability ---
+    o_score = 0.0
+    o_sig: List[str] = []
+    envelopes = list((run_dir / "stages").rglob("envelope.json")) if (run_dir / "stages").exists() else []
+    if envelopes:
+        ok_e = 0
+        for e in envelopes:
+            try:
+                if load_json(e).get("success") is True:
+                    ok_e += 1
+            except Exception:
+                pass
+        frac = ok_e / max(len(envelopes), 1)
+        o_score += 30 * frac
+        o_sig.append(f"envelope_success_frac={frac:.2f}")
+    else:
+        # journal-only harness stages still ok
+        o_score += 20
+        o_sig.append("no_role_envelopes_harness_only")
+
+    if (run_dir / "run.json").is_file() and (run_dir / "preflight.json").is_file():
+        o_score += 40
+        o_sig.append("core_journals_present")
+    else:
+        o_sig.append("core_journals_incomplete")
+
+    # latency: unknown without times — neutral credit
+    o_score += 30
+    o_sig.append("latency_not_measured_neutral")
+    dimensions["harness_operability"] = dim(o_score, o_sig)
+
+    # If baseline hard-failed, keep dimension scores but grade layer will F
+    scorecard = {
+        "run_id": run_id,
+        "scored_at": now(),
+        "mode": mode,
+        "dimensions": dimensions,
+        "hard_fails": sorted(set(hard_fails)),
+        "evidence_refs": evidence,
+        "run_status": run.get("status"),
+        "risk": run.get("risk"),
+        "admitted_plan": bool(run.get("admitted_plan") or admit.get("admitted")),
+    }
+    out = run_dir / "scorecard.json"
+    write_json(out, scorecard)
+    return scorecard
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Score multi-model harness run")
+    ap.add_argument("--cwd", default=".")
+    ap.add_argument("--run-id", required=True)
+    ap.add_argument("--out", default="", help="optional override path")
+    args = ap.parse_args()
+    repo = find_repo(Path(args.cwd))
+    sc = score_run(repo, args.run_id)
+    if args.out:
+        write_json(Path(args.out), sc)
+    print(json.dumps(sc, indent=2))
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

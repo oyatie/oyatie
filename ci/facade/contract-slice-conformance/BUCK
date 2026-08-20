@@ -1,0 +1,60 @@
+rust_library(
+    name = "ci-contract-slice-conformance",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_contract_slice_conformance",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:regex",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-materialize-contract-slice-policy-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-materialize-contract-slice-policy.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-contract-slice-conformance",
+    ],
+)
+
+rust_test(
+    name = "ci-contract-slice-conformance-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_contract_slice_conformance",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:regex",
+        "third-party//:serde_json",
+    ],
+)
+
+# Live-corpus gate for the contract-slice conformance slice.
+rust_test(
+    name = "ci-contract-slice-conformance-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_contract_slice_conformance_gate",
+    crate_root = "tests/contract_slice_conformance.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-contract-slice-conformance",
+        "third-party//:serde_json",
+    ],
+)
+
+# Sharded-policy fragment migration proof: byte-parity between slices/*.json and
+# the committed generated aggregate, plus fail-closed fragment-loader findings.
+rust_test(
+    name = "ci-contract-slice-conformance-fragments-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_contract_slice_conformance_fragments_gate",
+    crate_root = "tests/policy_fragment_migration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-contract-slice-conformance",
+        "third-party//:serde_json",
+    ],
+)

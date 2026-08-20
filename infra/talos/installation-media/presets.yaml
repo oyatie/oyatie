@@ -1,0 +1,40 @@
+# Installation-media auto-install preset catalog — bare-metal Talos, zero-touch.
+#
+# Doctrine: substrate (on-prem vs colo) does NOT split the media — bare metal is bare metal,
+# one `metal` image. Cloud (OCI/AWS) uses NO usb — CAPI provisions it with platform images +
+# user-data. So there are exactly TWO presets, split by ROLE, not substrate:
+#
+#   control-plane — the CAPI management cluster control plane. Config BAKED into the ISO (offline,
+#           no config server needed — solves the bootstrap chicken-egg). Build once, dd to
+#           the control plane machine(s). On boot: auto-install to disk -> form the management cluster.
+#
+#   node  — every bare-metal spoke node (any region/colo). GENERIC image, NO secrets baked;
+#           boots with `talos.config=<control-plane-config-endpoint>` and FETCHES its role/cluster config
+#           (assigned by MAC/UUID, matchbox-style) from the control plane. One image for all bare-metal nodes.
+#
+# Cloud spokes (OCI/AWS): provisioned by CAPI (CAPOCI/CAPA) — not built here.
+#
+# Build:  CONTROLPLANE_ENDPOINT=https://<control-plane-ip-or-vip>:6443 ./gen-media.sh control-plane
+#         CONFIG_URL=https://join.oyatie.dev/config        ./gen-media.sh node
+# Then:   sudo dd if=_out/<preset>-metal-amd64.iso of=/dev/sdX bs=4M oflag=sync status=progress
+
+defaults:
+  talos_version: v1.13.3
+  kubernetes_version: "1.36.1"
+  install_disk: /dev/sda
+  arch: amd64
+  # Image Factory schematic IDs (also baked locally via the imager --system-extension-image).
+  vanilla_schematic: "376567988ad370138ad8b2698212367b8edcb69b5fd68c80be1f2ec7d603b4ba"
+  kata_schematic: "3da7f440f279f4814fa73bdf83c84710a8e93c40a4a3cbba4d969f14afb96298"
+
+presets:
+  control-plane:
+    role: controlplane
+    config: baked                 # offline; --embedded-config-path
+    extensions: []                # vanilla — the management cluster runs no Kata workloads
+    patch: patches/control-plane.yaml    # cni:none, proxy.disabled, schedulable CPs, certSANs
+  node:
+    role: worker                  # CP-vs-worker decided by the fetched config, not the image
+    config: fetched               # talos.config=$CONFIG_URL kernel arg
+    extensions: [kata-containers] # Kata baked so any node CAN run sandboxed workloads
+    patch: null                   # patches live in the served config, not the image

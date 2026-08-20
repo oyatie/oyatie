@@ -1,0 +1,32 @@
+[package]
+name = "ci-core-dependency-isolation"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate ensuring *-kernel/*-core crates (and their workspace-internal closure) carry zero ADR-0510 transient-tech dependencies."
+
+# cloud-ci-kernel-purity (ADR-0547): self-contained, policy-driven meta-gate. A pure
+# collect_kernel_deps(root, policy) reads each kernel/core crate's Cargo.toml + BUCK deps and walks
+# its workspace-internal path-dep closure; evaluate_keyed applies the transient denylist. R0
+# pack-shaped: all repo-specifics live in kernel-purity-policy.json.
+
+[lib]
+name = "ci_core_dependency_isolation"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+toml = { workspace = true }
+oya-buck-syntax-kernel = { path = "../../../libs/oya-buck-syntax-kernel" }
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+
+[lints]
+workspace = true

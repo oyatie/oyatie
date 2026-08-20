@@ -1,0 +1,16 @@
+[
+  {
+    "number": 100,
+    "head_ref_name": "integ/a",
+    "files": [
+      "fixture/hub-a"
+    ]
+  },
+  {
+    "number": 200,
+    "head_ref_name": "integ/b",
+    "files": [
+      "other/file.rs"
+    ]
+  }
+]

@@ -1,0 +1,96 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:tenancy:tenant-resolve:v1
+name: tenant-resolve
+namespace: tenancy
+display_name: Resolve Tenant Identity from JWT
+description: |
+  The load-bearing tenant-identity capability. Verifies an OIDC-issued JWT bearer token,
+  extracts the tenant_id claim, validates against advertised public-key fingerprint,
+  and returns a TenantContext object that all downstream µservices consume to gate
+  RLS + Cedar enforcement.
+
+  Hot-path capability: called on every µservice request; sub-5ms p99 target.
+
+owner_team: axis-tenancy
+maturity: stable
+created_at: 2026-05-17
+related_adrs: [ADR-0018, ADR-0028, ADR-0105, ADR-0117, ADR-0139, ADR-0131, ADR-0140 (retired per ADR-0145)]
+related_specs: [/specs/per-microservice-flat-layout.json]
+related_artifacts:
+  - microservices/tenancy/PRD.md (FR-01)
+  - microservices/tenancy/contracts/openapi/tenancy.yaml
+  - microservices/tenancy/policy/rls-isolation.md (JWT Invariants)
+  - microservices/tenancy/policy/tenant-scope.cedar
+
+autonomy_tier: T1
+# T1 = pure read; cryptographic validation only; no state mutation.
+
+inputs:
+  - name: jwt
+    type: string
+    encoding: utf-8
+    required: true
+    description: OIDC-format JWT bearer token
+  - name: expected_pack
+    type: enum
+    values: [kr, eu, us, us-hc, jp, sg, au, in, br, ae, ksa]
+    required: false
+    description: Pack expected by the consumer (mismatch returns invalid)
+
+outputs:
+  - name: valid
+    type: boolean
+  - name: tenant_id
+    type: string
+    pattern: '^tenant:[a-f0-9]{16}$'
+  - name: pack
+    type: string
+  - name: jurisdiction_code
+    type: string
+  - name: expires_at
+    type: timestamp
+  - name: verifier_fingerprint
+    type: string
+    description: fingerprint of the public key used for verification
+
+data_classes_touched:
+  - SENSITIVE_PIPA_ART23
+  # The hashed tenant_id is sensitive under KR PIPA Art. 23 when combined with auxiliary data.
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+evidence_topic: oya.tenancy.tenant.resolve
+
+cost_profile:
+  type: per-call
+  estimated_cost_usd_per_call: 0.000001
+  cost_drivers:
+    - Ed25519 signature verification (sub-millisecond)
+    - Local pubkey cache lookup (constant-time)
+
+cedar_policy_fragments:
+  - microservices/tenancy/policy/tenant-scope.cedar
+  - microservices/tenancy/policy/ci-scope.cedar
+  - microservices/tenancy/policy/auditor-scope.cedar
+
+eval_set:
+  golden_inputs_path: microservices/tenancy/capabilities/eval/tenant-resolve-golden.jsonl
+  pass_threshold: 1.0
+  eval_metric: jwt-verification-correctness-against-rfc7515-reference + alg-confusion-attack-rejection
+  cadence: per-release
+  reference: RFC 7515 (JOSE) + RFC 8032 (Ed25519)
+
+sunset:
+  status: none
+  notes: ""

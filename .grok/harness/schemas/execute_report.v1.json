@@ -1,0 +1,14 @@
+{
+  "$id": "execute_report.v1",
+  "type": "object",
+  "required": ["slice_id", "files_touched", "commands_run", "tests_not_skipped", "summary"],
+  "properties": {
+    "slice_id": { "type": "string" },
+    "summary": { "type": "string" },
+    "files_touched": { "type": "array", "items": { "type": "string" } },
+    "commands_run": { "type": "array", "items": { "type": "string" } },
+    "tests_not_skipped": { "type": "boolean" },
+    "generated_faces_hand_edited": { "type": "boolean" },
+    "notes": { "type": "string" }
+  }
+}

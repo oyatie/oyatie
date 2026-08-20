@@ -1,0 +1,10 @@
+{
+  "schema": "oya-advisory-mirror/v1",
+  "source": {
+    "repo": "https://github.com/rustsec/advisory-db",
+    "commit": "e69927bf37afb7707575bc95aff6a9ef3f2534fb",
+    "last_sync": "2026-06-26T11:58:24+02:00"
+  },
+  "content_hash": "9ff9aa26044e27745807197bbb7e3ae5c0ff0c4c4e8229752a9afefa74b3ee5f",
+  "advisory_count": 1106
+}

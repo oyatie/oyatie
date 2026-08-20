@@ -1,0 +1,37 @@
+rust_library(
+    name = "tenancy-tenant-lifecycle-authz-pdp",
+    srcs = glob(["src/**/*.rs", "cedar/**", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "tenancy_tenant_lifecycle_authz_pdp",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//tenancy/ports/tenant-lifecycle-authz:tenancy-tenant-lifecycle-authz-port",
+        "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
+        "//iam/adapters/pdp-cedar:iam-pdp-cedar",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",
+        "third-party//:aws-lc-rs",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "tenancy-tenant-lifecycle-authz-pdp-unittest",
+    srcs = glob(["src/**/*.rs", "cedar/**", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "tenancy_tenant_lifecycle_authz_pdp",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//tenancy/ports/tenant-lifecycle-authz:tenancy-tenant-lifecycle-authz-port",
+        "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
+        "//iam/adapters/pdp-cedar:iam-pdp-cedar",
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",
+        "third-party//:aws-lc-rs",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

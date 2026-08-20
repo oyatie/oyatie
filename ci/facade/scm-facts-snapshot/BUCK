@@ -1,0 +1,184 @@
+# The SINGLE out-of-graph git boundary (OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5, Option C).
+# buck2 BUILDS this rust_binary (so it is itself a hermetic, cacheable artifact), but it is
+# RUN by the CI scm-facts-regen pre-step + the local regen hook — NEVER inside a cacheable
+# buck2 action. It shells git ONCE at the build-graph edge and writes the
+# registry-drift-protected scm-facts.generated.json face. ADR-0604 de-commit class: the face is
+# NOT tracked in git and NOT a buck source member; the producer + every gate rust_test consume
+# the materialized on-disk face from the repo root, so no buck2 action ever calls git.
+#
+# The exact historical P2 parent receipt obeys the SAME split. Producing it checks out a git
+# worktree at the pinned historical commit, runs `rustup toolchain install`, and nests a
+# `buck2 run` — so ONLY this binary does that, and only when run out of graph. It leaves the
+# bytes at ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json, beside this
+# crate's other emitter-produced faces and deliberately NOT in the freshness gate's own face
+# roster directory ci/facade/artifact-inventory-registry/, which that gate globs wholesale as
+# faces IT must have regenerated
+# (de-commit class, carried between jobs by the producer-regen `generated-faces` artifact), and
+# :ci-scm-facts-snapshot-integration CONSUMES that face. A Buck2 test action's environment is
+# sanitized to BUCK2_DAEMON_UUID, BUCK_BUILD_ID, HOME, LOGNAME, PATH, PWD, TMPDIR, USER — no
+# RUSTUP_HOME, no CARGO_HOME — so an in-action rebuild is red by construction, and an absent
+# face is a hard failure here rather than a skipped test.
+rust_library(
+    name = "ci-scm-facts-snapshot-lib",
+    srcs = [
+        "src/lib.rs",
+        "src/retirement.rs",
+        "src/retirement_emit.rs",
+        "src/retirement_facts.rs",
+        "src/retirement_facts_more.rs",
+        "src/retirement_git.rs",
+        "src/retirement_materialize.rs",
+        "src/retirement_materialize_receipts.rs",
+        "src/retirement_materialize_resolve.rs",
+        "src/retirement_parse.rs",
+        "src/retirement_path.rs",
+        "src/retirement_stub.rs",
+        "src/retirement_test_fixtures.rs",
+        "src/retirement_test_receipts.rs",
+        "src/retirement_tests_bootstrap.rs",
+        "src/retirement_tests_closure.rs",
+        "src/retirement_tests_event.rs",
+        "src/retirement_tests_misc.rs",
+        "src/retirement_tests_parser.rs",
+        "src/retirement_tests_prepared.rs",
+        "src/retirement_tests_public.rs",
+        "src/retirement_types.rs",
+        "src/retirement_unix.rs",
+        "src/retirement_unix_fs.rs",
+        "src/retirement_unix_tests.rs",
+        "src/retirement_validate.rs",
+        "src/retirement_validate_control.rs",
+        "src/retirement_validate_event.rs",
+        "src/retirement_windows.rs",
+        "src/retirement_windows_tests.rs",
+    ],
+    crate = "ci_scm_facts_snapshot",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        # Move-aware path resolution (keystone unblock): the candidate/current seed + the
+        # manifest+history-driven merge-base name for the frozen ratchet reference.
+        "//ci/ports/path-resolver:ci-path-resolver-ports",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
+        # Reuse the producer's exact canonicalizer so the scm-facts face is byte-formatted
+        # identically to the other five faces.
+        "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        # The firewall's baseline PARSER (ADR-0616 PR-1): the frozen-baseline regen cross-check
+        # projects the committed reference AND the merge-base-source regeneration through the
+        # firewall's own Baseline::from_value and compares {keys, mode, frozen_empty} per (gate,
+        # code). Acyclic: the ratchet lib depends only on serde_json.
+        "//ci/facade/baseline-ratchet:ci-baseline-ratchet",
+        # Rename-aware path-keyed baseline relabel (task #64): the P4 content-subset guard reuses
+        # the brand-residue census SSOT under the LIVE VocabPolicy from oya-ci.toml (config kernel),
+        # so carve-outs + case-folding are byte-identical to the producer's collect_brand_residue.
+        "//libs/oya-check-brand-residue:oya-check-brand-residue",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//governance/corpus/doc-parser:corpus-doc-parser",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:rustix",
+    ],
+)
+
+rust_binary(
+    name = "ci-scm-facts-snapshot",
+    srcs = ["src/main.rs"],
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [":ci-scm-facts-snapshot-lib"],
+)
+
+rust_test(
+    name = "ci-scm-facts-snapshot-gate",
+    srcs = ["src/bin/adr-census-epoch-receipt-gate.rs"],
+    crate_root = "src/bin/adr-census-epoch-receipt-gate.rs",
+    visibility = ["PUBLIC"],
+    deps = [":ci-scm-facts-snapshot-lib"],
+)
+
+rust_binary(
+    name = "adr-census-epoch-receipt-gate-bin",
+    srcs = ["src/bin/adr-census-epoch-receipt-gate.rs"],
+    crate_root = "src/bin/adr-census-epoch-receipt-gate.rs",
+    visibility = ["PUBLIC"],
+    deps = [":ci-scm-facts-snapshot-lib"],
+)
+
+rust_test(
+    name = "ci-scm-facts-snapshot-unittest",
+    # Keep this small suite constrained to the library sources. The binary entrypoint and
+    # fixed-receipt gate are separately compiled targets, while real Git/filesystem boundary
+    # coverage lives only in :ci-scm-facts-snapshot-integration.
+    srcs = [
+        "src/lib.rs",
+        "src/retirement.rs",
+        "src/retirement_emit.rs",
+        "src/retirement_facts.rs",
+        "src/retirement_facts_more.rs",
+        "src/retirement_git.rs",
+        "src/retirement_materialize.rs",
+        "src/retirement_materialize_receipts.rs",
+        "src/retirement_materialize_resolve.rs",
+        "src/retirement_parse.rs",
+        "src/retirement_path.rs",
+        "src/retirement_stub.rs",
+        "src/retirement_test_fixtures.rs",
+        "src/retirement_test_receipts.rs",
+        "src/retirement_tests_bootstrap.rs",
+        "src/retirement_tests_closure.rs",
+        "src/retirement_tests_event.rs",
+        "src/retirement_tests_misc.rs",
+        "src/retirement_tests_parser.rs",
+        "src/retirement_tests_prepared.rs",
+        "src/retirement_tests_public.rs",
+        "src/retirement_types.rs",
+        "src/retirement_unix.rs",
+        "src/retirement_unix_fs.rs",
+        "src/retirement_unix_tests.rs",
+        "src/retirement_validate.rs",
+        "src/retirement_validate_control.rs",
+        "src/retirement_validate_event.rs",
+        "src/retirement_windows.rs",
+        "src/retirement_windows_tests.rs",
+    ],
+    crate = "ci_scm_facts_snapshot",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//ci/ports/path-resolver:ci-path-resolver-ports",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
+        "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        # dev-only: the frozen-policy-wins RED pin (FRIC-1781280000) runs the firewall
+        # predicates end-to-end over the resolved snapshot (#698 repoint attack goes RED).
+        "//ci/facade/baseline-ratchet:ci-baseline-ratchet",
+        # Rename-aware path-keyed baseline relabel (task #64) — census SSOT + VocabPolicy.
+        "//libs/oya-check-brand-residue:oya-check-brand-residue",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//governance/corpus/doc-parser:corpus-doc-parser",
+        # dev-only EFFICACY pin (task #64 BLOCKER A): the chained test derives the move-manifest
+        # from a MovePlan over a candidate POST-move tree via the codemod's own
+        # file_level_manifest + crate_dir_pairs + move_manifest_value, then drives the relabel —
+        # proving it FIRES for a real move (and FAILS if file_level_manifest enumerates-old).
+        "//tools/oya-reorg-codemod-app:oya-reorg-codemod-app",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+        "third-party//:rustix",
+    ],
+)
+
+rust_test(
+    name = "ci-scm-facts-snapshot-integration",
+    srcs = ["tests/snapshot_integration.rs"],
+    crate = "ci_scm_facts_snapshot_integration",
+    crate_root = "tests/snapshot_integration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-scm-facts-snapshot-lib",
+        "//ci/ports/path-resolver:ci-path-resolver-ports",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)

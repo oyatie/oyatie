@@ -1,0 +1,7 @@
+# Buck build files are not Kubernetes manifests. Helm renders EVERYTHING under templates/, so
+# templates/BUCK was being parsed as a manifest and the chart could not render at all:
+#   YAML parse error on cloud-intelligence/templates/BUCK: cannot unmarshal string into util.SimpleHead
+# The BUCK file is deliberate — it export_file()s deployment.yaml/externalsecret.yaml as declared
+# resources so the Buck action and the ADR-0716 Cargo merge path bind the same bytes, and it carries
+# the ADR-0541 corpus-yaml-facts target. It stays; Helm simply must not read it.
+BUCK

@@ -1,0 +1,252 @@
+{
+  "program_id": "hyperscaler-delivery-lanes",
+  "title": "Separated lifecycle / CI / CAS / agent lanes",
+  "ultragoal_status": "active_not_a_single_goal",
+  "authority": "lane_board_not_merge_authority",
+  "forbidden_clis": [
+    "gjc",
+    "omc",
+    "omx",
+    "hermes"
+  ],
+  "ssot": "programs/hyperscaler-delivery-lanes/LANES.md",
+  "lanes": [
+    {
+      "id": "R1-runner-capacity",
+      "layer": "L2-ops",
+      "agent_drive": false,
+      "status": "ready_human_ops",
+      "objective": "Reduce CI queue_wait by scaling ARC/self-hosted pool and aligning OYA_CI_MAX_PARALLEL to capacity",
+      "surfaces": [
+        "GitHub Actions runner groups / ARC scale-set",
+        "repo vars OYA_CI_RUNNER_LABELS",
+        "repo vars OYA_CI_MAX_PARALLEL"
+      ],
+      "acceptance": [
+        "During multi-PR load, idle runners > 0 while jobs pending is rare",
+        "P50 queue_wait for oya-ci-required jobs drops materially"
+      ],
+      "expected_effort": "hours ops",
+      "hard_stops": [
+        "no_delete_gates",
+        "no_cas_warm_identity",
+        "no_raise_max_parallel_above_real_capacity"
+      ],
+      "does_not_block": [
+        "R7 review",
+        "R8 kit"
+      ],
+      "unblocks": [
+        "R5 CI wall-clock",
+        "R2 measurement validity"
+      ],
+      "ultragoal_refs": [
+        "G028-measure-arc-churn-and-resolve-protec"
+      ],
+      "authority_note": "Ops capacity; ADR-0630 Proposed interim ARC substrate \u2014 scale runners without treating 0630 as Accepted law"
+    },
+    {
+      "id": "R2-premerge-shape",
+      "layer": "L2-workflow",
+      "agent_drive": true,
+      "status": "in_progress_wave1",
+      "objective": "Path-filter live-postgres; single materialize producer\u2192consumers; keep CONE default",
+      "worktree_policy": "new isolated worktree from origin/dev; not cas or k8s branches",
+      "surfaces": [
+        ".github/workflows/oya-ci-required.yml"
+      ],
+      "acceptance": [
+        "Unrelated PRs skip live-postgres",
+        "Materialize runs once per workflow attempt where safe",
+        "oya-ci-required remains sole protected context"
+      ],
+      "expected_effort": "1-2 PRs",
+      "hard_stops": [
+        "no_weaken_face_policy",
+        "no_drop_firewall",
+        "no_couple_to_1558_or_1561_diff"
+      ],
+      "depends_on": []
+    },
+    {
+      "id": "R3-postmerge-trunk",
+      "layer": "L4",
+      "agent_drive": true,
+      "status": "template_landed_automation_open",
+      "objective": "Trusted push path: trunk re-verify, cache-writer, completion packet automation",
+      "surfaces": [
+        "programs/hyperscaler-delivery-lanes/R3-postmerge-packet-template.md",
+        "programs/cas-fabric/evidence/1559-post-merge-completion-packet.json",
+        ".github/workflows/*",
+        "programs/*/evidence"
+      ],
+      "acceptance": [
+        "Packet can be filled from promoted SHA + run URL",
+        "PR-head green is not enough; fill only after squash to origin/dev + post-merge oya-ci-required",
+        "cache-writer only on trusted dev push"
+      ],
+      "example_filled_packet": "programs/cas-fabric/evidence/1559-post-merge-completion-packet.json",
+      "packet_template": "programs/hyperscaler-delivery-lanes/R3-postmerge-packet-template.md",
+      "hard_stops": [
+        "no_baseline_write_from_pr_head",
+        "no_false_ultragoal_complete",
+        "no_packet_from_pr_head_ci_alone"
+      ]
+    },
+    {
+      "id": "R4-local-assist",
+      "layer": "L0-L1",
+      "agent_drive": true,
+      "status": "ready_kit",
+      "objective": "Pre-push/local recipe for new YAML: OWNERS + reachability + buck package + focused tests",
+      "worktree": "/Users/jasonlee/Developer/oyatie-mm-harness-20260805",
+      "surfaces": [
+        ".grok/memory/tips/",
+        ".grok/harness/DRIVE.md",
+        "mm-drive briefs"
+      ],
+      "acceptance": [
+        "Tip exists and is linked from DRIVE.md",
+        "mm-drive brief mentions recipe for infra YAML"
+      ],
+      "hard_stops": [
+        "non_admission",
+        "no_broad_cargo_fmt"
+      ]
+    },
+    {
+      "id": "R5-cas-g039-1558",
+      "layer": "L0+L2+L5-prep",
+      "agent_drive": true,
+      "status": "in_progress",
+      "pr": 1558,
+      "worktree": "/Users/jasonlee/Developer/oyatie-lanes-20260805/cas-proof-bootstrap",
+      "head": "86edf0773224a57d68ccbcf4c0f9c2b1eab81fe1",
+      "program": "programs/cas-fabric/PROGRAM.json",
+      "objective": "G003 green oya-ci-required on draft; later G039 promoted proof on origin/dev",
+      "hard_stops": [
+        "keep_draft_until_policy",
+        "no_merge_without_review",
+        "no_re",
+        "no_warm_cas_without_1541"
+      ],
+      "blocks_warm_cas": true,
+      "ultragoal_refs": [
+        "G039-run-the-representative-1558-storage",
+        "G040",
+        "G041"
+      ],
+      "authority_note": "Pilot under plan 8833df33; warm CAS blocked on #1541; 0560/0612 Proposed"
+    },
+    {
+      "id": "R6-re-sandbox",
+      "layer": "L6",
+      "agent_drive": false,
+      "status": "sequenced_blocked",
+      "objective": "RE sandbox only after cache-only CAS/AC proof",
+      "depends_on": [
+        "R5-cas-g039-1558 terminal",
+        "issue-1549"
+      ],
+      "hard_stops": [
+        "no_re_before_cas"
+      ],
+      "ultragoal_refs": [
+        "G043-make-the-evidence-gated-re-decision"
+      ],
+      "authority_note": "ADR-0612 Proposed only; CAS-before-RE plan SHA 8833df33"
+    },
+    {
+      "id": "R7-k8s-w0a-1561",
+      "layer": "L2+L3",
+      "agent_drive": false,
+      "status": "human_blocked_review",
+      "pr": 1561,
+      "head": "1e33500d6584e164df59cd9f1f58234bbf945504",
+      "worktree": "/Users/jasonlee/Developer/oyatie/.worktrees/k8s-port-w0a",
+      "program": "programs/k8s-port/PROGRAM.json",
+      "objective": "Independent APPROVE \u2192 squash \u2192 packet \u2192 G001 checkpoint",
+      "ci": "oya-ci-required SUCCESS",
+      "hard_stops": [
+        "no_self_approve",
+        "no_w0b_until_g001"
+      ]
+    },
+    {
+      "id": "R8-mm-drive-kit",
+      "layer": "L7",
+      "agent_drive": true,
+      "status": "mvp_landed",
+      "worktree": "/Users/jasonlee/Developer/oyatie-mm-harness-20260805",
+      "objective": "mm-drive + Stop hook + quant; continue D3\u2013D4 if needed",
+      "hard_stops": [
+        "not_merge_authority",
+        "no_forbidden_clis"
+      ]
+    },
+    {
+      "id": "R9-talos-1541",
+      "layer": "security",
+      "agent_drive": false,
+      "status": "open_human",
+      "issue": 1541,
+      "objective": "Credential rotation / rebuild tracking",
+      "hard_stops": [
+        "no_secrets_in_git",
+        "no_agent_auto_rotation"
+      ],
+      "blocks": [
+        "warm_cas",
+        "proof_cell_live",
+        "new_credential_issuance"
+      ]
+    }
+  ],
+  "parallelism_policy": {
+    "may_run_concurrently": [
+      [
+        "R1-runner-capacity",
+        "R5-cas-g039-1558",
+        "R7-k8s-w0a-1561",
+        "R4-local-assist",
+        "R8-mm-drive-kit"
+      ],
+      [
+        "R2-premerge-shape",
+        "R3-postmerge-trunk"
+      ]
+    ],
+    "must_not_couple_in_one_pr": [
+      [
+        "R1-runner-capacity",
+        "R2-premerge-shape"
+      ],
+      [
+        "R2-premerge-shape",
+        "R5-cas-g039-1558"
+      ],
+      [
+        "R5-cas-g039-1558",
+        "R6-re-sandbox"
+      ],
+      [
+        "R7-k8s-w0a-1561",
+        "R5-cas-g039-1558"
+      ]
+    ]
+  },
+  "session_backlog": "programs/SESSION-BACKLOG.md",
+  "lane_board": "programs/hyperscaler-delivery-lanes/LANES.md",
+  "authority_mined_backlog": "programs/AUTHORITY-AND-MINED-BACKLOG.md",
+  "authority_policy": {
+    "adr_lt_600": "still_valid_until_contradicted",
+    "adr_lt_600_requires": "contradiction_check_against_newer_adrs",
+    "on_contradiction": "amend_or_supersede_stale_adr_do_not_silently_ignore",
+    "prefer_requery_status_on_origin_dev": true,
+    "proposed_adr_gates_may_be_live_in_ci": true,
+    "proposed_is_not_irrelevant": true,
+    "re_query_origin_dev_before_mutation": true,
+    "bun_waves": "programs/AUTHORITY-AND-MINED-BACKLOG.md#6-bun-style-implementation-waves",
+    "authority_doc": "programs/AUTHORITY-AND-MINED-BACKLOG.md"
+  }
+}

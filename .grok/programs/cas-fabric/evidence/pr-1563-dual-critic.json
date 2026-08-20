@@ -1,0 +1,38 @@
+{
+  "pr": 1563,
+  "head": "e8495b28fdfdbaf96a1b9d53909f68d985a60005",
+  "title": "reorg(storage): rehome NativeLink CAS provider to storage/adapters (Lane 3A)",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "red_team"
+      ],
+      "path": ".grok/programs/cas-fabric/evidence/pr-1563-critic-a.json"
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "lenses": [
+        "contrarian",
+        "systems_thinking"
+      ],
+      "path": ".grok/programs/cas-fabric/evidence/pr-1563-critic-b.json"
+    }
+  ],
+  "summary": "Dual-critic APPROVE: storage rehome only; no warm CAS; merge when oya-ci-required green.",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "not_claiming": [
+    "warm_CAS",
+    "RE",
+    "Lane_3B",
+    "G041"
+  ],
+  "reviewed_at": "2026-08-05T11:31Z",
+  "reviewer": "orchestrator-dual-critic"
+}

@@ -1,0 +1,33 @@
+[package]
+name = "ci-lifecycle-status"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI lifecycle-status gate: ONE parameterized required lane over every ADR-0109 lifecycle config in specs/lifecycle-configs/, replacing the nine per-lifecycle dev-CLI wrapper crates that were never wired into required CI."
+
+# ADR-0109 amendment surface. ADR-0109 §1 declares ONE generic kernel with each lifecycle as DATA
+# (a JSON config); §2 then shipped a thin per-lifecycle dev-CLI crate under tools/. All nine were
+# CLI-shaped, none was ever referenced by .github/workflows/**, and the gate_registration meta-test
+# could not see them because its universe is hardcoded to ci/facade/. This crate is the §1-faithful
+# realization: adding a lifecycle is a CONFIG file, not a crate. The completeness dimension makes a
+# config that no lane evaluates fail closed, so a new config cannot be born dark the way the nine
+# dev-CLIs were.
+
+[lib]
+name = "ci_lifecycle_status"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-governance-lifecycle-kernel = { path = "../../../libs/oya-governance-lifecycle-kernel" }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

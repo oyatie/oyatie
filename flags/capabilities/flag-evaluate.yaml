@@ -1,0 +1,28 @@
+apiVersion: oyatie.io/v2
+kind: Capability
+metadata:
+  name: flag-evaluate
+  microservice: feature-flags
+  binding-adr: ADR-0159
+spec:
+  displayName: Flag Evaluate
+  description: |
+    Evaluate a feature flag for a given tenant, principal, and evaluation context.
+    Returns the resolved variant with reason. OpenFeature-compatible.
+    Cell-local evaluation; p99 ≤1ms with warm SDK cache.
+  tier: T0
+  risk_class: minimal
+  audience_types:
+    - B2C
+    - B2B
+    - INTERNAL_AGENT
+    - EMERGENCY_SERVICES
+  transport:
+    grpc: oyatie.feature_flags.v1.FlagEvaluationService/EvaluateBoolean
+    rest: POST /api/v1/flags/{flag_key}/evaluate
+    sdk: oya-feature-flags-sdk::FlagClient::bool_value
+  slo_ref: slos/flag-eval-latency.openslo.yaml
+  cedar_permit: policy/flag-mutation-authorization.cedar
+  emergency_bypass: true
+  audit_emitted: false
+  audit_emitted_when_audit_required: true

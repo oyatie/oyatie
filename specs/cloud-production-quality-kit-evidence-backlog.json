@@ -1,0 +1,1800 @@
+{
+  "spec_id": "EXE-CLOUD-PRODUCTION-QUALITY-KIT-EVIDENCE-BACKLOG",
+  "title": "Oyatie Cloud production-quality kit machine-checkable backlog and evidence gate records",
+  "status": "Proposed-target",
+  "source_quality_kits_target": "specs/cloud-production-quality-kits-target.json",
+  "source_observability_slo_evidence": "specs/cloud-observability-slo-evidence-contract.json",
+  "source_hyperscaler_gates": "specs/hyperscaler-gates.json",
+  "purpose": "Converts the seven cloud production-quality target kits into machine-checkable backlog rows and evidence-record schemas while preserving strict nonclaim boundaries: it asserts only backlog/schema structure, not dogfood execution or maturity proof.",
+  "claim_controls": {
+    "machine_checkable_backlog_only": true,
+    "evidence_required": true,
+    "strict_separation": true,
+    "pure_dogfood": true,
+    "no_green_runtime_evidence": true,
+    "no_production_readiness_claim": true,
+    "no_public_sla_slo_claim": true,
+    "no_tenant_workload_readiness": true,
+    "no_hyperscaler_maturity_claim": true,
+    "no_external_saas_or_public_cloud_fallback": true,
+    "can_claim_now": [
+      "production-quality kit backlog rows and evidence schemas are machine-checkable",
+      "unsupported maturity and readiness claims are statically blocked"
+    ],
+    "cannot_claim_yet": [
+      "implemented harnesses",
+      "dogfood run receipts",
+      "green kit status",
+      "production readiness",
+      "tenant workload readiness",
+      "public SLA/SLO",
+      "hyperscaler maturity"
+    ],
+    "blocked_claim_families": [
+      "no_green_runtime_evidence",
+      "no_production_readiness_claim",
+      "no_public_sla_slo_claim",
+      "no_tenant_workload_claim",
+      "no_hyperscaler_maturity_claim",
+      "no_external_saas_or_public_cloud_fallback"
+    ]
+  },
+  "official_source_evidence": [
+    {
+      "domain": "overload_fairness",
+      "url": "https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/",
+      "title": "AWS Builders Library — Using load shedding to avoid overload",
+      "source_status": "official"
+    },
+    {
+      "domain": "shuffle_sharding_cell_isolation",
+      "url": "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+      "title": "AWS Builders Library — Workload isolation using shuffle-sharding",
+      "source_status": "official"
+    },
+    {
+      "domain": "failover_dr",
+      "url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/rel_planning_for_recovery_disaster_recovery.html",
+      "title": "AWS Well-Architected Framework REL13-BP02 — Use defined recovery strategies to meet recovery objectives",
+      "source_status": "official"
+    },
+    {
+      "domain": "progressive_delivery",
+      "url": "https://sre.google/workbook/canarying-releases/",
+      "title": "Google SRE Workbook — Canarying Releases",
+      "source_status": "official"
+    },
+    {
+      "domain": "privacy_residency",
+      "url": "https://www.nist.gov/privacy-framework/privacy-framework",
+      "title": "NIST Privacy Framework Version 1.0",
+      "source_status": "official"
+    },
+    {
+      "domain": "cost_finops",
+      "url": "https://focus.finops.org/focus-specification/v1-3/",
+      "title": "FOCUS Specification v1.3",
+      "source_status": "official"
+    },
+    {
+      "domain": "k8s_pod_security",
+      "url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "title": "Kubernetes Pod Security Standards",
+      "source_status": "upstream"
+    },
+    {
+      "domain": "abuse_threat_scenarios",
+      "url": "https://cheatsheetseries.owasp.org/cheatsheets/Bot_Management_and_Anti-Automation_Cheat_Sheet.html",
+      "title": "OWASP Bot Management and Anti-Automation Cheat Sheet",
+      "source_status": "upstream"
+    }
+  ],
+  "kit_backlog": [
+    {
+      "kit_id": "QK-01-overload-fairness",
+      "source_target_kit_id": "QK-01-overload-fairness",
+      "source_gate": "production_100_bar.slo_exit",
+      "objective_domains": [
+        "overload_fairness"
+      ],
+      "source_harness": "synthetic overload generator + per-tenant request-cost classifier",
+      "source_scenarios": [
+        "sustained > capacity",
+        "burst spikes",
+        "expensive-request floods",
+        "retry storms"
+      ],
+      "source_controls": [
+        "request-cost classes",
+        "per-tenant retry budgets",
+        "queue depth limits",
+        "load-shedding (shed cheap-to-reject first; protect in-flight)"
+      ],
+      "harness_backlog": {
+        "backlog_id": "QK-01-overload-fairness-HARNESS-BACKLOG",
+        "status": "pending_implementation",
+        "runtime_status": "not_implemented",
+        "evidence_status": "evidence_required",
+        "dogfood_only": true,
+        "machine_check_type": "synthetic_load_simulator_backlog",
+        "future_entrypoint_pattern": "scripts/tests/qk_01_overload_fairness_future_harness_check.py",
+        "forbidden_fallbacks": [
+          "external_saas_runner",
+          "github_actions_runner",
+          "public_cloud_provider_runtime"
+        ]
+      },
+      "evidence_record_schema": {
+        "record_status": "schema_only",
+        "required_fields": [
+          "kit_id",
+          "scenario_id",
+          "run_id",
+          "dogfood_environment",
+          "command",
+          "status",
+          "artifact_digest",
+          "reviewer",
+          "created_at",
+          "source_commit",
+          "evidence_window",
+          "result_summary"
+        ],
+        "allowed_statuses": [
+          "pending",
+          "failed",
+          "blocked",
+          "passed_after_future_runtime_evidence"
+        ],
+        "digest_fields": [
+          "source_commit",
+          "command",
+          "dogfood_environment",
+          "artifact_digest"
+        ],
+        "storage_boundary": "future evidence records must be committed under evidence/ or registry/ with dogfood run receipts; this artifact only defines the schema",
+        "kit_specific_required_outputs": [
+          "shed_rate_curve",
+          "fairness_index",
+          "cascading_failure_check"
+        ],
+        "result_summary_required_keys": [
+          "output_key",
+          "expected_value_or_threshold",
+          "observed_value",
+          "artifact_ref",
+          "evaluation_status"
+        ]
+      },
+      "scenario_backlog": [
+        {
+          "scenario_id": "QK-01-overload-fairness-S01",
+          "source_scenario": "sustained > capacity",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "shed_rate_curve",
+            "fairness_index",
+            "cascading_failure_check"
+          ]
+        },
+        {
+          "scenario_id": "QK-01-overload-fairness-S02",
+          "source_scenario": "burst spikes",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "shed_rate_curve",
+            "fairness_index",
+            "cascading_failure_check"
+          ]
+        },
+        {
+          "scenario_id": "QK-01-overload-fairness-S03",
+          "source_scenario": "expensive-request floods",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "shed_rate_curve",
+            "fairness_index",
+            "cascading_failure_check"
+          ]
+        },
+        {
+          "scenario_id": "QK-01-overload-fairness-S04",
+          "source_scenario": "retry storms",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "shed_rate_curve",
+            "fairness_index",
+            "cascading_failure_check"
+          ]
+        }
+      ],
+      "evidence_gate": {
+        "claim_status": "blocked_until_required_evidence_is_green",
+        "green_status": "not_claimed",
+        "required_before_green": [
+          "implemented_harness",
+          "dogfood_run_receipt",
+          "evidence_record",
+          "reviewer_approval",
+          "validator_pass"
+        ],
+        "feeds_production_100_gate": "production_100_bar.slo_exit",
+        "not_green_reason": "No dogfood harness execution or measured evidence receipt exists in this artifact."
+      },
+      "blocked_claim_families": [
+        "no_green_runtime_evidence",
+        "no_production_readiness_claim",
+        "no_public_sla_slo_claim",
+        "no_tenant_workload_claim",
+        "no_hyperscaler_maturity_claim",
+        "no_external_saas_or_public_cloud_fallback"
+      ],
+      "honest_claim": "This kit has a machine-checkable backlog and evidence-record schema; dogfood harness implementation and measured run receipts remain future work.",
+      "source_evidence": "shed-rate vs offered-load curve; fairness index across tenants under overload; no cascading failure",
+      "machine_check_outputs": [
+        "shed_rate_curve",
+        "fairness_index",
+        "cascading_failure_check"
+      ]
+    },
+    {
+      "kit_id": "QK-02-shuffle-shard-isolation",
+      "source_target_kit_id": "QK-02-shuffle-shard-isolation",
+      "source_gate": "production_100_bar.security_exit (tenant isolation, shared+dedicated)",
+      "objective_domains": [
+        "shuffle_sharding_cell_isolation"
+      ],
+      "source_harness": "shuffle-shard assignment simulator + correlated-blast-radius analyzer",
+      "source_scenarios": [
+        "single-tenant fault",
+        "noisy-neighbor resource hog",
+        "poison-pill request"
+      ],
+      "source_controls": [
+        "shuffle-shard assignment policy per resource",
+        "blast-radius bound per shard set",
+        "noisy-neighbor throttling"
+      ],
+      "harness_backlog": {
+        "backlog_id": "QK-02-shuffle-shard-isolation-HARNESS-BACKLOG",
+        "status": "pending_implementation",
+        "runtime_status": "not_implemented",
+        "evidence_status": "evidence_required",
+        "dogfood_only": true,
+        "machine_check_type": "assignment_simulator_backlog",
+        "future_entrypoint_pattern": "scripts/tests/qk_02_shuffle_shard_isolation_future_harness_check.py",
+        "forbidden_fallbacks": [
+          "external_saas_runner",
+          "github_actions_runner",
+          "public_cloud_provider_runtime"
+        ]
+      },
+      "evidence_record_schema": {
+        "record_status": "schema_only",
+        "required_fields": [
+          "kit_id",
+          "scenario_id",
+          "run_id",
+          "dogfood_environment",
+          "command",
+          "status",
+          "artifact_digest",
+          "reviewer",
+          "created_at",
+          "source_commit",
+          "evidence_window",
+          "result_summary"
+        ],
+        "allowed_statuses": [
+          "pending",
+          "failed",
+          "blocked",
+          "passed_after_future_runtime_evidence"
+        ],
+        "digest_fields": [
+          "source_commit",
+          "command",
+          "dogfood_environment",
+          "artifact_digest"
+        ],
+        "storage_boundary": "future evidence records must be committed under evidence/ or registry/ with dogfood run receipts; this artifact only defines the schema",
+        "kit_specific_required_outputs": [
+          "correlated_impact_probability_matrix",
+          "blast_radius_bound",
+          "noisy_neighbor_isolation_drill"
+        ],
+        "result_summary_required_keys": [
+          "output_key",
+          "expected_value_or_threshold",
+          "observed_value",
+          "artifact_ref",
+          "evaluation_status"
+        ]
+      },
+      "scenario_backlog": [
+        {
+          "scenario_id": "QK-02-shuffle-shard-isolation-S01",
+          "source_scenario": "single-tenant fault",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "correlated_impact_probability_matrix",
+            "blast_radius_bound",
+            "noisy_neighbor_isolation_drill"
+          ]
+        },
+        {
+          "scenario_id": "QK-02-shuffle-shard-isolation-S02",
+          "source_scenario": "noisy-neighbor resource hog",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "correlated_impact_probability_matrix",
+            "blast_radius_bound",
+            "noisy_neighbor_isolation_drill"
+          ]
+        },
+        {
+          "scenario_id": "QK-02-shuffle-shard-isolation-S03",
+          "source_scenario": "poison-pill request",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "correlated_impact_probability_matrix",
+            "blast_radius_bound",
+            "noisy_neighbor_isolation_drill"
+          ]
+        }
+      ],
+      "evidence_gate": {
+        "claim_status": "blocked_until_required_evidence_is_green",
+        "green_status": "not_claimed",
+        "required_before_green": [
+          "implemented_harness",
+          "dogfood_run_receipt",
+          "evidence_record",
+          "reviewer_approval",
+          "validator_pass"
+        ],
+        "feeds_production_100_gate": "production_100_bar.security_exit (tenant isolation, shared+dedicated)",
+        "not_green_reason": "No dogfood harness execution or measured evidence receipt exists in this artifact."
+      },
+      "blocked_claim_families": [
+        "no_green_runtime_evidence",
+        "no_production_readiness_claim",
+        "no_public_sla_slo_claim",
+        "no_tenant_workload_claim",
+        "no_hyperscaler_maturity_claim",
+        "no_external_saas_or_public_cloud_fallback"
+      ],
+      "honest_claim": "This kit has a machine-checkable backlog and evidence-record schema; dogfood harness implementation and measured run receipts remain future work.",
+      "source_evidence": "correlated-impact probability matrix; measured blast-radius containment; noisy-neighbor isolation drill",
+      "machine_check_outputs": [
+        "correlated_impact_probability_matrix",
+        "blast_radius_bound",
+        "noisy_neighbor_isolation_drill"
+      ]
+    },
+    {
+      "kit_id": "QK-03-privacy-data-governance",
+      "source_target_kit_id": "QK-03-privacy-data-governance",
+      "source_gate": "production_100_bar.compliance_gate",
+      "objective_domains": [
+        "privacy_residency"
+      ],
+      "source_harness": "data-flow inventory + DSR (subject-rights) test set",
+      "source_scenarios": [
+        "personal-data inventory",
+        "residency enforcement",
+        "retention expiry",
+        "deletion/erasure",
+        "export/portability",
+        "redaction in logs/telemetry"
+      ],
+      "source_controls": [
+        "per-pack residency + cross-border-transfer constraints (Cedar fragments)",
+        "retention/deletion policy per resource",
+        "no PII in logs"
+      ],
+      "harness_backlog": {
+        "backlog_id": "QK-03-privacy-data-governance-HARNESS-BACKLOG",
+        "status": "pending_implementation",
+        "runtime_status": "not_implemented",
+        "evidence_status": "evidence_required",
+        "dogfood_only": true,
+        "machine_check_type": "privacy_residency_schema_and_dsr_test_backlog",
+        "future_entrypoint_pattern": "scripts/tests/qk_03_privacy_data_governance_future_harness_check.py",
+        "forbidden_fallbacks": [
+          "external_saas_runner",
+          "github_actions_runner",
+          "public_cloud_provider_runtime"
+        ]
+      },
+      "evidence_record_schema": {
+        "record_status": "schema_only",
+        "required_fields": [
+          "kit_id",
+          "scenario_id",
+          "run_id",
+          "dogfood_environment",
+          "command",
+          "status",
+          "artifact_digest",
+          "reviewer",
+          "created_at",
+          "source_commit",
+          "evidence_window",
+          "result_summary"
+        ],
+        "allowed_statuses": [
+          "pending",
+          "failed",
+          "blocked",
+          "passed_after_future_runtime_evidence"
+        ],
+        "digest_fields": [
+          "source_commit",
+          "command",
+          "dogfood_environment",
+          "artifact_digest"
+        ],
+        "storage_boundary": "future evidence records must be committed under evidence/ or registry/ with dogfood run receipts; this artifact only defines the schema",
+        "kit_specific_required_outputs": [
+          "data_flow_map",
+          "dsr_delete_export_proof",
+          "residency_enforcement_test",
+          "telemetry_redaction_check"
+        ],
+        "result_summary_required_keys": [
+          "output_key",
+          "expected_value_or_threshold",
+          "observed_value",
+          "artifact_ref",
+          "evaluation_status"
+        ]
+      },
+      "scenario_backlog": [
+        {
+          "scenario_id": "QK-03-privacy-data-governance-S01",
+          "source_scenario": "personal-data inventory",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "data_flow_map",
+            "dsr_delete_export_proof",
+            "residency_enforcement_test",
+            "telemetry_redaction_check"
+          ]
+        },
+        {
+          "scenario_id": "QK-03-privacy-data-governance-S02",
+          "source_scenario": "residency enforcement",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "data_flow_map",
+            "dsr_delete_export_proof",
+            "residency_enforcement_test",
+            "telemetry_redaction_check"
+          ]
+        },
+        {
+          "scenario_id": "QK-03-privacy-data-governance-S03",
+          "source_scenario": "retention expiry",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "data_flow_map",
+            "dsr_delete_export_proof",
+            "residency_enforcement_test",
+            "telemetry_redaction_check"
+          ]
+        },
+        {
+          "scenario_id": "QK-03-privacy-data-governance-S04",
+          "source_scenario": "deletion/erasure",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "data_flow_map",
+            "dsr_delete_export_proof",
+            "residency_enforcement_test",
+            "telemetry_redaction_check"
+          ]
+        },
+        {
+          "scenario_id": "QK-03-privacy-data-governance-S05",
+          "source_scenario": "export/portability",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "data_flow_map",
+            "dsr_delete_export_proof",
+            "residency_enforcement_test",
+            "telemetry_redaction_check"
+          ]
+        },
+        {
+          "scenario_id": "QK-03-privacy-data-governance-S06",
+          "source_scenario": "redaction in logs/telemetry",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "data_flow_map",
+            "dsr_delete_export_proof",
+            "residency_enforcement_test",
+            "telemetry_redaction_check"
+          ]
+        }
+      ],
+      "evidence_gate": {
+        "claim_status": "blocked_until_required_evidence_is_green",
+        "green_status": "not_claimed",
+        "required_before_green": [
+          "implemented_harness",
+          "dogfood_run_receipt",
+          "evidence_record",
+          "reviewer_approval",
+          "validator_pass"
+        ],
+        "feeds_production_100_gate": "production_100_bar.compliance_gate",
+        "not_green_reason": "No dogfood harness execution or measured evidence receipt exists in this artifact."
+      },
+      "blocked_claim_families": [
+        "no_green_runtime_evidence",
+        "no_production_readiness_claim",
+        "no_public_sla_slo_claim",
+        "no_tenant_workload_claim",
+        "no_hyperscaler_maturity_claim",
+        "no_external_saas_or_public_cloud_fallback"
+      ],
+      "honest_claim": "This kit has a machine-checkable backlog and evidence-record schema; dogfood harness implementation and measured run receipts remain future work.",
+      "source_evidence": "data-flow map; DSR round-trip proofs (delete/export within SLA); residency enforcement test",
+      "machine_check_outputs": [
+        "data_flow_map",
+        "dsr_delete_export_proof",
+        "residency_enforcement_test",
+        "telemetry_redaction_check"
+      ]
+    },
+    {
+      "kit_id": "QK-04-canary-prr",
+      "source_target_kit_id": "QK-04-canary-prr",
+      "source_gate": "production_100_bar.ci_cd_exit",
+      "objective_domains": [
+        "progressive_delivery",
+        "failover_dr"
+      ],
+      "source_harness": "one-cell canary orchestrator + automated metric evaluator + PRR template",
+      "source_scenarios": [
+        "canary to 1 cell",
+        "bake-time SLO observation",
+        "regression detection",
+        "auto-rollback on breach"
+      ],
+      "source_controls": [
+        "design-time PRR checklist",
+        "automated canary eval against SLO",
+        "rollback triggers (ArgoCD, ADR-0349)"
+      ],
+      "harness_backlog": {
+        "backlog_id": "QK-04-canary-prr-HARNESS-BACKLOG",
+        "status": "pending_implementation",
+        "runtime_status": "not_implemented",
+        "evidence_status": "evidence_required",
+        "dogfood_only": true,
+        "machine_check_type": "canary_prr_and_dr_drill_backlog",
+        "future_entrypoint_pattern": "scripts/tests/qk_04_canary_prr_future_harness_check.py",
+        "forbidden_fallbacks": [
+          "external_saas_runner",
+          "github_actions_runner",
+          "public_cloud_provider_runtime"
+        ]
+      },
+      "evidence_record_schema": {
+        "record_status": "schema_only",
+        "required_fields": [
+          "kit_id",
+          "scenario_id",
+          "run_id",
+          "dogfood_environment",
+          "command",
+          "status",
+          "artifact_digest",
+          "reviewer",
+          "created_at",
+          "source_commit",
+          "evidence_window",
+          "result_summary"
+        ],
+        "allowed_statuses": [
+          "pending",
+          "failed",
+          "blocked",
+          "passed_after_future_runtime_evidence"
+        ],
+        "digest_fields": [
+          "source_commit",
+          "command",
+          "dogfood_environment",
+          "artifact_digest"
+        ],
+        "storage_boundary": "future evidence records must be committed under evidence/ or registry/ with dogfood run receipts; this artifact only defines the schema",
+        "kit_specific_required_outputs": [
+          "canary_eval_report",
+          "prr_signoff",
+          "rollback_drill_receipt",
+          "rto_rpo_restore_drill_receipt",
+          "cell_failover_drill_receipt",
+          "backup_restore_drill_receipt",
+          "dependency_failure_recovery_receipt"
+        ],
+        "result_summary_required_keys": [
+          "output_key",
+          "expected_value_or_threshold",
+          "observed_value",
+          "artifact_ref",
+          "evaluation_status"
+        ]
+      },
+      "scenario_backlog": [
+        {
+          "scenario_id": "QK-04-canary-prr-S01",
+          "source_scenario": "canary to 1 cell",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "canary_eval_report",
+            "prr_signoff",
+            "rollback_drill_receipt"
+          ]
+        },
+        {
+          "scenario_id": "QK-04-canary-prr-S02",
+          "source_scenario": "bake-time SLO observation",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "canary_eval_report",
+            "prr_signoff",
+            "rollback_drill_receipt"
+          ]
+        },
+        {
+          "scenario_id": "QK-04-canary-prr-S03",
+          "source_scenario": "regression detection",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "canary_eval_report",
+            "prr_signoff",
+            "rollback_drill_receipt"
+          ]
+        },
+        {
+          "scenario_id": "QK-04-canary-prr-S04",
+          "source_scenario": "auto-rollback on breach",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "canary_eval_report",
+            "prr_signoff",
+            "rollback_drill_receipt"
+          ]
+        },
+        {
+          "scenario_id": "QK-04-canary-prr-DR01",
+          "source_scenario": "backup and restore recovery rehearsal",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "machine_check_outputs": [
+            "backup_restore_drill_receipt",
+            "rto_rpo_restore_drill_receipt",
+            "rollback_drill_receipt"
+          ],
+          "acceptance_probe": "future DR rehearsal must emit RTO/RPO and failover/restore receipts; this backlog row is not a passing run receipt"
+        },
+        {
+          "scenario_id": "QK-04-canary-prr-DR02",
+          "source_scenario": "cell or region failover recovery rehearsal",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "machine_check_outputs": [
+            "cell_failover_drill_receipt",
+            "rollback_drill_receipt"
+          ],
+          "acceptance_probe": "future DR rehearsal must emit RTO/RPO and failover/restore receipts; this backlog row is not a passing run receipt"
+        },
+        {
+          "scenario_id": "QK-04-canary-prr-DR03",
+          "source_scenario": "RTO/RPO recovery objective validation",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "machine_check_outputs": [
+            "rto_rpo_restore_drill_receipt",
+            "backup_restore_drill_receipt"
+          ],
+          "acceptance_probe": "future DR rehearsal must emit RTO/RPO and failover/restore receipts; this backlog row is not a passing run receipt"
+        },
+        {
+          "scenario_id": "QK-04-canary-prr-DR04",
+          "source_scenario": "dependency failure recovery rehearsal",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "machine_check_outputs": [
+            "dependency_failure_recovery_receipt",
+            "rollback_drill_receipt"
+          ],
+          "acceptance_probe": "future DR rehearsal must emit RTO/RPO and failover/restore receipts; this backlog row is not a passing run receipt"
+        }
+      ],
+      "evidence_gate": {
+        "claim_status": "blocked_until_required_evidence_is_green",
+        "green_status": "not_claimed",
+        "required_before_green": [
+          "implemented_harness",
+          "dogfood_run_receipt",
+          "evidence_record",
+          "reviewer_approval",
+          "validator_pass",
+          "backup_restore_drill_receipt",
+          "rto_rpo_restore_drill_receipt",
+          "cell_failover_drill_receipt",
+          "dependency_failure_recovery_receipt",
+          "QK-04-canary-prr-DR01",
+          "QK-04-canary-prr-DR02",
+          "QK-04-canary-prr-DR03",
+          "QK-04-canary-prr-DR04"
+        ],
+        "feeds_production_100_gate": "production_100_bar.ci_cd_exit",
+        "not_green_reason": "No dogfood harness execution or measured evidence receipt exists in this artifact."
+      },
+      "blocked_claim_families": [
+        "no_green_runtime_evidence",
+        "no_production_readiness_claim",
+        "no_public_sla_slo_claim",
+        "no_tenant_workload_claim",
+        "no_hyperscaler_maturity_claim",
+        "no_external_saas_or_public_cloud_fallback"
+      ],
+      "honest_claim": "This kit has a machine-checkable backlog and evidence-record schema; dogfood harness implementation and measured run receipts remain future work.",
+      "source_evidence": "canary eval reports; PRR sign-offs; rollback drill evidence",
+      "machine_check_outputs": [
+        "canary_eval_report",
+        "prr_signoff",
+        "rollback_drill_receipt",
+        "rto_rpo_restore_drill_receipt",
+        "cell_failover_drill_receipt",
+        "backup_restore_drill_receipt",
+        "dependency_failure_recovery_receipt"
+      ],
+      "dr_backlog_extension": {
+        "source_domain": "failover_dr",
+        "official_source_url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/rel_planning_for_recovery_disaster_recovery.html",
+        "required_dr_receipts": [
+          "backup_restore_drill_receipt",
+          "rto_rpo_restore_drill_receipt",
+          "cell_failover_drill_receipt",
+          "dependency_failure_recovery_receipt"
+        ],
+        "status": "backlog_pending",
+        "claim_status": "evidence_required_not_green",
+        "required_dr_scenarios": [
+          "QK-04-canary-prr-DR01",
+          "QK-04-canary-prr-DR02",
+          "QK-04-canary-prr-DR03",
+          "QK-04-canary-prr-DR04"
+        ],
+        "scenario_requirements": {
+          "QK-04-canary-prr-DR01": "backup/restore recovery rehearsal receipt with artifact digest and restore objective evidence",
+          "QK-04-canary-prr-DR02": "cell or region failover recovery receipt with affected-cell and fallback-cell evidence",
+          "QK-04-canary-prr-DR03": "RTO/RPO recovery objective validation receipt with measured objective fields",
+          "QK-04-canary-prr-DR04": "dependency-failure recovery receipt with degraded-mode and restoration evidence"
+        }
+      }
+    },
+    {
+      "kit_id": "QK-05-focus-cost-export",
+      "source_target_kit_id": "QK-05-focus-cost-export",
+      "source_gate": "production_100_bar.cost_exit",
+      "objective_domains": [
+        "cost_finops"
+      ],
+      "source_harness": "FOCUS-schema cost/usage exporter + invoice reconciliation",
+      "source_scenarios": [
+        "per-tenant cost attribution",
+        "allocation by tag/dimension",
+        "invoice reconciliation"
+      ],
+      "source_controls": [
+        "FOCUS-compatible export schema",
+        "billing_meters per resource (resource-catalog)",
+        "tag normalization"
+      ],
+      "harness_backlog": {
+        "backlog_id": "QK-05-focus-cost-export-HARNESS-BACKLOG",
+        "status": "pending_implementation",
+        "runtime_status": "not_implemented",
+        "evidence_status": "evidence_required",
+        "dogfood_only": true,
+        "machine_check_type": "focus_schema_reconciliation_backlog",
+        "future_entrypoint_pattern": "scripts/tests/qk_05_focus_cost_export_future_harness_check.py",
+        "forbidden_fallbacks": [
+          "external_saas_runner",
+          "github_actions_runner",
+          "public_cloud_provider_runtime"
+        ]
+      },
+      "evidence_record_schema": {
+        "record_status": "schema_only",
+        "required_fields": [
+          "kit_id",
+          "scenario_id",
+          "run_id",
+          "dogfood_environment",
+          "command",
+          "status",
+          "artifact_digest",
+          "reviewer",
+          "created_at",
+          "source_commit",
+          "evidence_window",
+          "result_summary"
+        ],
+        "allowed_statuses": [
+          "pending",
+          "failed",
+          "blocked",
+          "passed_after_future_runtime_evidence"
+        ],
+        "digest_fields": [
+          "source_commit",
+          "command",
+          "dogfood_environment",
+          "artifact_digest"
+        ],
+        "storage_boundary": "future evidence records must be committed under evidence/ or registry/ with dogfood run receipts; this artifact only defines the schema",
+        "kit_specific_required_outputs": [
+          "focus_schema_validation",
+          "cost_attribution_reconciliation",
+          "invoice_reconciliation"
+        ],
+        "result_summary_required_keys": [
+          "output_key",
+          "expected_value_or_threshold",
+          "observed_value",
+          "artifact_ref",
+          "evaluation_status"
+        ]
+      },
+      "scenario_backlog": [
+        {
+          "scenario_id": "QK-05-focus-cost-export-S01",
+          "source_scenario": "per-tenant cost attribution",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "focus_schema_validation",
+            "cost_attribution_reconciliation",
+            "invoice_reconciliation"
+          ]
+        },
+        {
+          "scenario_id": "QK-05-focus-cost-export-S02",
+          "source_scenario": "allocation by tag/dimension",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "focus_schema_validation",
+            "cost_attribution_reconciliation",
+            "invoice_reconciliation"
+          ]
+        },
+        {
+          "scenario_id": "QK-05-focus-cost-export-S03",
+          "source_scenario": "invoice reconciliation",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "focus_schema_validation",
+            "cost_attribution_reconciliation",
+            "invoice_reconciliation"
+          ]
+        }
+      ],
+      "evidence_gate": {
+        "claim_status": "blocked_until_required_evidence_is_green",
+        "green_status": "not_claimed",
+        "required_before_green": [
+          "implemented_harness",
+          "dogfood_run_receipt",
+          "evidence_record",
+          "reviewer_approval",
+          "validator_pass"
+        ],
+        "feeds_production_100_gate": "production_100_bar.cost_exit",
+        "not_green_reason": "No dogfood harness execution or measured evidence receipt exists in this artifact."
+      },
+      "blocked_claim_families": [
+        "no_green_runtime_evidence",
+        "no_production_readiness_claim",
+        "no_public_sla_slo_claim",
+        "no_tenant_workload_claim",
+        "no_hyperscaler_maturity_claim",
+        "no_external_saas_or_public_cloud_fallback"
+      ],
+      "honest_claim": "This kit has a machine-checkable backlog and evidence-record schema; dogfood harness implementation and measured run receipts remain future work.",
+      "source_evidence": "FOCUS export validated against schema; cost attribution reconciles to invoices",
+      "machine_check_outputs": [
+        "focus_schema_validation",
+        "cost_attribution_reconciliation",
+        "invoice_reconciliation"
+      ]
+    },
+    {
+      "kit_id": "QK-06-k8s-pod-security",
+      "source_target_kit_id": "QK-06-k8s-pod-security",
+      "source_gate": "production_100_bar.security_exit",
+      "objective_domains": [
+        "k8s_pod_security"
+      ],
+      "source_harness": "admission policy test set (Kubewarden, default; Kyverno adapter)",
+      "source_scenarios": [
+        "restricted enforced",
+        "baseline fallback",
+        "privileged exception path"
+      ],
+      "source_controls": [
+        "PSS restricted by default",
+        "privileged workloads require owner + expiry + mitigation",
+        "Kata runtime for tenant-untrusted (ADR-0338)"
+      ],
+      "harness_backlog": {
+        "backlog_id": "QK-06-k8s-pod-security-HARNESS-BACKLOG",
+        "status": "pending_implementation",
+        "runtime_status": "not_implemented",
+        "evidence_status": "evidence_required",
+        "dogfood_only": true,
+        "machine_check_type": "admission_policy_test_backlog",
+        "future_entrypoint_pattern": "scripts/tests/qk_06_k8s_pod_security_future_harness_check.py",
+        "forbidden_fallbacks": [
+          "external_saas_runner",
+          "github_actions_runner",
+          "public_cloud_provider_runtime"
+        ]
+      },
+      "evidence_record_schema": {
+        "record_status": "schema_only",
+        "required_fields": [
+          "kit_id",
+          "scenario_id",
+          "run_id",
+          "dogfood_environment",
+          "command",
+          "status",
+          "artifact_digest",
+          "reviewer",
+          "created_at",
+          "source_commit",
+          "evidence_window",
+          "result_summary"
+        ],
+        "allowed_statuses": [
+          "pending",
+          "failed",
+          "blocked",
+          "passed_after_future_runtime_evidence"
+        ],
+        "digest_fields": [
+          "source_commit",
+          "command",
+          "dogfood_environment",
+          "artifact_digest"
+        ],
+        "storage_boundary": "future evidence records must be committed under evidence/ or registry/ with dogfood run receipts; this artifact only defines the schema",
+        "kit_specific_required_outputs": [
+          "admission_policy_test_results",
+          "restricted_profile_receipt",
+          "privileged_exception_register"
+        ],
+        "result_summary_required_keys": [
+          "output_key",
+          "expected_value_or_threshold",
+          "observed_value",
+          "artifact_ref",
+          "evaluation_status"
+        ]
+      },
+      "scenario_backlog": [
+        {
+          "scenario_id": "QK-06-k8s-pod-security-S01",
+          "source_scenario": "restricted enforced",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "admission_policy_test_results",
+            "restricted_profile_receipt",
+            "privileged_exception_register"
+          ]
+        },
+        {
+          "scenario_id": "QK-06-k8s-pod-security-S02",
+          "source_scenario": "baseline fallback",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "admission_policy_test_results",
+            "restricted_profile_receipt",
+            "privileged_exception_register"
+          ]
+        },
+        {
+          "scenario_id": "QK-06-k8s-pod-security-S03",
+          "source_scenario": "privileged exception path",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "admission_policy_test_results",
+            "restricted_profile_receipt",
+            "privileged_exception_register"
+          ]
+        }
+      ],
+      "evidence_gate": {
+        "claim_status": "blocked_until_required_evidence_is_green",
+        "green_status": "not_claimed",
+        "required_before_green": [
+          "implemented_harness",
+          "dogfood_run_receipt",
+          "evidence_record",
+          "reviewer_approval",
+          "validator_pass"
+        ],
+        "feeds_production_100_gate": "production_100_bar.security_exit",
+        "not_green_reason": "No dogfood harness execution or measured evidence receipt exists in this artifact."
+      },
+      "blocked_claim_families": [
+        "no_green_runtime_evidence",
+        "no_production_readiness_claim",
+        "no_public_sla_slo_claim",
+        "no_tenant_workload_claim",
+        "no_hyperscaler_maturity_claim",
+        "no_external_saas_or_public_cloud_fallback"
+      ],
+      "honest_claim": "This kit has a machine-checkable backlog and evidence-record schema; dogfood harness implementation and measured run receipts remain future work.",
+      "source_evidence": "admission-policy test results; privileged-exception register with expiries",
+      "machine_check_outputs": [
+        "admission_policy_test_results",
+        "restricted_profile_receipt",
+        "privileged_exception_register"
+      ]
+    },
+    {
+      "kit_id": "QK-07-abuse-fraud-ddos",
+      "source_target_kit_id": "QK-07-abuse-fraud-ddos",
+      "source_gate": "production_100_bar.security_exit",
+      "objective_domains": [
+        "abuse_threat_scenarios"
+      ],
+      "source_harness": "abuse/fraud/DDoS scenario drills + ingress protection test",
+      "source_scenarios": [
+        "signup abuse",
+        "payment fraud",
+        "L3/4 + L7 DDoS",
+        "resource-exhaustion abuse"
+      ],
+      "source_controls": [
+        "signup/payment risk hooks",
+        "suspension + appeals workflow",
+        "ingress rate/protection (anycast + edge)",
+        "customer-safe comms templates"
+      ],
+      "harness_backlog": {
+        "backlog_id": "QK-07-abuse-fraud-ddos-HARNESS-BACKLOG",
+        "status": "pending_implementation",
+        "runtime_status": "not_implemented",
+        "evidence_status": "evidence_required",
+        "dogfood_only": true,
+        "machine_check_type": "abuse_threat_drill_backlog",
+        "future_entrypoint_pattern": "scripts/tests/qk_07_abuse_fraud_ddos_future_harness_check.py",
+        "forbidden_fallbacks": [
+          "external_saas_runner",
+          "github_actions_runner",
+          "public_cloud_provider_runtime"
+        ]
+      },
+      "evidence_record_schema": {
+        "record_status": "schema_only",
+        "required_fields": [
+          "kit_id",
+          "scenario_id",
+          "run_id",
+          "dogfood_environment",
+          "command",
+          "status",
+          "artifact_digest",
+          "reviewer",
+          "created_at",
+          "source_commit",
+          "evidence_window",
+          "result_summary"
+        ],
+        "allowed_statuses": [
+          "pending",
+          "failed",
+          "blocked",
+          "passed_after_future_runtime_evidence"
+        ],
+        "digest_fields": [
+          "source_commit",
+          "command",
+          "dogfood_environment",
+          "artifact_digest"
+        ],
+        "storage_boundary": "future evidence records must be committed under evidence/ or registry/ with dogfood run receipts; this artifact only defines the schema",
+        "kit_specific_required_outputs": [
+          "abuse_drill_results",
+          "ingress_threshold_report",
+          "suspension_appeals_round_trip"
+        ],
+        "result_summary_required_keys": [
+          "output_key",
+          "expected_value_or_threshold",
+          "observed_value",
+          "artifact_ref",
+          "evaluation_status"
+        ]
+      },
+      "scenario_backlog": [
+        {
+          "scenario_id": "QK-07-abuse-fraud-ddos-S01",
+          "source_scenario": "signup abuse",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "abuse_drill_results",
+            "ingress_threshold_report",
+            "suspension_appeals_round_trip"
+          ]
+        },
+        {
+          "scenario_id": "QK-07-abuse-fraud-ddos-S02",
+          "source_scenario": "payment fraud",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "abuse_drill_results",
+            "ingress_threshold_report",
+            "suspension_appeals_round_trip"
+          ]
+        },
+        {
+          "scenario_id": "QK-07-abuse-fraud-ddos-S03",
+          "source_scenario": "L3/4 + L7 DDoS",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "abuse_drill_results",
+            "ingress_threshold_report",
+            "suspension_appeals_round_trip"
+          ]
+        },
+        {
+          "scenario_id": "QK-07-abuse-fraud-ddos-S04",
+          "source_scenario": "resource-exhaustion abuse",
+          "status": "backlog_pending",
+          "requires_dogfood_environment": true,
+          "evidence_fields": [
+            "kit_id",
+            "scenario_id",
+            "run_id",
+            "dogfood_environment",
+            "command",
+            "status",
+            "artifact_digest",
+            "reviewer",
+            "created_at",
+            "source_commit",
+            "evidence_window",
+            "result_summary"
+          ],
+          "acceptance_probe": "future harness must emit a signed evidence record with required fields; this backlog row is not a passing run receipt",
+          "machine_check_outputs": [
+            "abuse_drill_results",
+            "ingress_threshold_report",
+            "suspension_appeals_round_trip"
+          ]
+        }
+      ],
+      "evidence_gate": {
+        "claim_status": "blocked_until_required_evidence_is_green",
+        "green_status": "not_claimed",
+        "required_before_green": [
+          "implemented_harness",
+          "dogfood_run_receipt",
+          "evidence_record",
+          "reviewer_approval",
+          "validator_pass"
+        ],
+        "feeds_production_100_gate": "production_100_bar.security_exit",
+        "not_green_reason": "No dogfood harness execution or measured evidence receipt exists in this artifact."
+      },
+      "blocked_claim_families": [
+        "no_green_runtime_evidence",
+        "no_production_readiness_claim",
+        "no_public_sla_slo_claim",
+        "no_tenant_workload_claim",
+        "no_hyperscaler_maturity_claim",
+        "no_external_saas_or_public_cloud_fallback"
+      ],
+      "honest_claim": "This kit has a machine-checkable backlog and evidence-record schema; dogfood harness implementation and measured run receipts remain future work.",
+      "source_evidence": "drill results; ingress protection thresholds; suspension/appeals round-trip",
+      "machine_check_outputs": [
+        "abuse_drill_results",
+        "ingress_threshold_report",
+        "suspension_appeals_round_trip"
+      ]
+    }
+  ],
+  "objective_domain_coverage": {
+    "overload_fairness": {
+      "kit_ids": [
+        "QK-01-overload-fairness"
+      ],
+      "source_url": "https://aws.amazon.com/builders-library/using-load-shedding-to-avoid-overload/",
+      "claim_status": "backlog_only_evidence_required"
+    },
+    "shuffle_sharding_cell_isolation": {
+      "kit_ids": [
+        "QK-02-shuffle-shard-isolation"
+      ],
+      "source_url": "https://aws.amazon.com/builders-library/workload-isolation-using-shuffle-sharding/",
+      "claim_status": "backlog_only_evidence_required"
+    },
+    "failover_dr": {
+      "kit_ids": [
+        "QK-04-canary-prr"
+      ],
+      "source_url": "https://docs.aws.amazon.com/wellarchitected/latest/framework/rel_planning_for_recovery_disaster_recovery.html",
+      "claim_status": "backlog_only_evidence_required"
+    },
+    "progressive_delivery": {
+      "kit_ids": [
+        "QK-04-canary-prr"
+      ],
+      "source_url": "https://sre.google/workbook/canarying-releases/",
+      "claim_status": "backlog_only_evidence_required"
+    },
+    "privacy_residency": {
+      "kit_ids": [
+        "QK-03-privacy-data-governance"
+      ],
+      "source_url": "https://www.nist.gov/privacy-framework/privacy-framework",
+      "claim_status": "backlog_only_evidence_required"
+    },
+    "cost_finops": {
+      "kit_ids": [
+        "QK-05-focus-cost-export"
+      ],
+      "source_url": "https://focus.finops.org/focus-specification/v1-3/",
+      "claim_status": "backlog_only_evidence_required"
+    },
+    "k8s_pod_security": {
+      "kit_ids": [
+        "QK-06-k8s-pod-security"
+      ],
+      "source_url": "https://kubernetes.io/docs/concepts/security/pod-security-standards/",
+      "claim_status": "backlog_only_evidence_required"
+    },
+    "abuse_threat_scenarios": {
+      "kit_ids": [
+        "QK-07-abuse-fraud-ddos"
+      ],
+      "source_url": "https://cheatsheetseries.owasp.org/cheatsheets/Bot_Management_and_Anti-Automation_Cheat_Sheet.html",
+      "claim_status": "backlog_only_evidence_required"
+    }
+  },
+  "machine_check_surfaces": [
+    {
+      "id": "g006-validator",
+      "command": "python3 scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
+      "status": "implemented_legacy_bridge_local_only",
+      "checks": [
+        "target-kit coverage",
+        "objective-domain coverage",
+        "official-source allowlist",
+        "nonclaim controls",
+        "evidence schema completeness",
+        "backlog-only status semantics"
+      ],
+      "authority_fence": "temporary_python_validator_local_only_not_merge_authority",
+      "replacement_target": "Buck2-native Rust cloud-ci validator before authority promotion",
+      "retirement_action": "Port this validator to Rust/Buck2, then delete scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py and remove its rust-first automation exception."
+    }
+  ],
+  "nonclaims": [
+    {
+      "id": "no_green_runtime_evidence",
+      "statement": "No kit has current dogfood run evidence, measured results, or green status in this artifact."
+    },
+    {
+      "id": "no_production_readiness_claim",
+      "statement": "No production readiness claim is authorized by these backlog records."
+    },
+    {
+      "id": "no_public_sla_slo_claim",
+      "statement": "No public SLA or public SLO claim is authorized by these backlog records."
+    },
+    {
+      "id": "no_tenant_workload_claim",
+      "statement": "No tenant workload readiness or tenant workload safety claim is authorized."
+    },
+    {
+      "id": "no_hyperscaler_maturity_claim",
+      "statement": "No hyperscaler maturity claim is authorized; these records are prerequisites only."
+    },
+    {
+      "id": "no_external_saas_or_public_cloud_fallback",
+      "statement": "Future kit execution must use dogfood-controlled environments; external SaaS or public-cloud fallback does not satisfy the evidence gate."
+    }
+  ],
+  "next_goal_links": {
+    "dogfood_ci_toolchain": "G007",
+    "final_quality_gate": "G008"
+  },
+  "doubt_driven_review": {
+    "risk": "Backlog rows could be mistaken for passing production-quality evidence because they enumerate concrete scenarios and gates.",
+    "resolution": "Every kit row is pending_implementation/not_implemented/evidence_required, green status is not_claimed, required future receipts are explicit, official sources are allowlisted, and the validator rejects maturity/readiness overclaims.",
+    "remaining_gap": "Actual harness code, dogfood cluster/vfkit execution, evidence records, and production-100 green decisions remain future stories."
+  }
+}

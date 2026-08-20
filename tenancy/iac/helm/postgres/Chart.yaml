@@ -1,0 +1,14 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: v2
+name: oya-tenancy-postgres
+description: Postgres 16 primary + sync replicas with FORCE ROW LEVEL SECURITY enforcement per policy/rls-isolation.md
+type: application
+version: 0.1.0
+appVersion: "16.3"  # Postgres LTS line per docs/standards/observability-slo.md
+maintainers:
+  - name: axis-tenancy
+    email: axis-tenancy@oyatie.com
+dependencies:
+  - name: postgresql
+    version: "^15.5.0"
+    repository: https://charts.bitnami.com/bitnami

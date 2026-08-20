@@ -1,0 +1,44 @@
+# ADR-0381 D3 — registry cell ingress boundary.
+#
+# Restricts ingress to pods in oya-registry (in-cluster registry:2 — receives
+# BuildKit-pushed images + serves image pulls):
+#   - same-namespace pod-to-pod.
+#   - oya-ci (BuildKit pushes images here).
+#   - oya-ci-jenkins (Jenkins agents pull images — incl. rust-ci:dev).
+#   - oya-forge (post-build promotion paths — GitHub deploy hooks).
+#   - argocd (sync + image pulls of ArgoCD-managed apps).
+#   - kube-system (kubelet image pulls; node-side).
+#
+# Egress unconstrained.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oya-registry-ingress
+  namespace: oya-registry
+  labels:
+    oya.adr/decided-by: ADR-0381-D3
+    oya.cell-boundary/scope: "ingress-only"
+    oya.cell-boundary/target-cell: "foundation"
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-ci
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-ci-jenkins
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-forge
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system

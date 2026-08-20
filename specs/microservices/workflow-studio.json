@@ -1,0 +1,1221 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/products/workflow-studio.schema.json",
+  "title": "ProductPrd:WorkflowStudio",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-WORKFLOW-STUDIO",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-design-system + workflow-team",
+    "created_at": "2026-05-16T13:05:00Z",
+    "purpose": "Workflow Studio (visual editor + DSL backbone) PRD — machine-optimized. Pair with $ref:specs/microservices/workflow.json (engine half)."
+  },
+  "identity": {
+    "product_id": "workflow-studio",
+    "owning_axis": "ecosystem-infrastructure-backbone",
+    "paired_with": "$ref:specs/microservices/workflow.json (engine half — together they form n8n-class first hero product)",
+    "crate_refs_planned": [
+      "oya-saas-workflow-studio-kernel",
+      "oya-saas-workflow-studio-domain",
+      "oya-saas-workflow-studio-app",
+      "oya-saas-workflow-studio-api"
+    ],
+    "scaffolding_status": "PLANNED — crates to be authored in downstream IP",
+    "user_facing_surface": true
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0164"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md (Leptos for browser UI)"
+    ],
+    "memory_pointers": [
+      "feedback_workflow_studio_scope"
+    ]
+  },
+  "north_star_ref": "$ref:memory/feedback_workflow_studio_scope (n8n-class first hero; multi-domain visual editor + DSL backbone; both shared engine substrate AND end-user editor)",
+  "user_pick_2026_05_16": "Multi-domain visual editor + DSL backbone — both shared engine AND end-user editor in one product",
+  "target_users": [
+    {
+      "persona": "business_power_user",
+      "interface": "drag-drop canvas + preview + replay + jurisdiction overlay UI",
+      "billing": "per-seat enterprise"
+    },
+    {
+      "persona": "developer",
+      "interface": "DSL view (canonical JSON) + diff/PR review + git-backed",
+      "billing": "per-seat developer (cheaper)"
+    },
+    {
+      "persona": "vertical_specialist",
+      "interface": "per-pack node library + visual jurisdiction diff",
+      "billing": "vertical-pack subscription"
+    },
+    {
+      "persona": "agentic_developer_role",
+      "interface": "programmatic spec emission + LLM-friendly node descriptors + engine round-trip",
+      "billing": "internal Foundry"
+    },
+    {
+      "persona": "external_customer",
+      "interface": "self-serve authoring",
+      "billing": "per-active-definition (post-GA)"
+    },
+    {
+      "persona": "external_customer",
+      "interface": "self-serve authoring",
+      "billing": "per-active-definition (price publishable once external_customer surface reaches GA tier per ADR-0086 SaaS pricing-publication policy)"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "visually-built workflow",
+      "when": "save action",
+      "then": "editor emits canonical $ref:contracts/workflow_spec.v1.json",
+      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/spec_emit.rs::test_visual_round_trip"
+    },
+    {
+      "id": "AC-02",
+      "given": "workflow_spec.v1.json document",
+      "when": "loaded into editor",
+      "then": "renders semantically identical visual; round-trip emit byte-equal to input",
+      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/spec_load.rs::test_load_emit_byte_equal"
+    },
+    {
+      "id": "AC-03",
+      "given": "editor open with pending changes",
+      "when": "network disconnect",
+      "then": "local edit buffer persists; resume without loss on reconnect",
+      "test_ref": "crates/oya-saas-workflow-studio-app/tests/durability.rs::test_offline_buffer"
+    },
+    {
+      "id": "AC-04",
+      "given": "workflow with jurisdiction overlays",
+      "when": "switch jurisdiction in editor",
+      "then": "overlay-resolved view renders; base view also reachable",
+      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/overlay.rs::test_jurisdiction_view_switch"
+    },
+    {
+      "id": "AC-05",
+      "given": "LLM-authored spec via API",
+      "when": "validated against schema",
+      "then": "valid: opens in editor; invalid: precise per-line error",
+      "test_ref": "crates/oya-saas-workflow-studio-api/tests/llm_submission.rs::test_validation_error_precision",
+      "doctrine_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract"
+    },
+    {
+      "id": "AC-06",
+      "given": "two users editing same definition",
+      "when": "concurrent saves",
+      "then": "CRDT-merge OR explicit conflict UI; never silent loss",
+      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/collab.rs::test_no_silent_overwrite"
+    },
+    {
+      "id": "AC-07",
+      "given": "editor in kr jurisdiction",
+      "when": "author touches PII field",
+      "then": "visual data_class marker + Cedar policy preview before save",
+      "test_ref": "crates/oya-saas-workflow-studio-domain/tests/data_class.rs::test_pii_marker_visible"
+    },
+    {
+      "id": "AC-08",
+      "given": "per-seat license check",
+      "when": "editor opens",
+      "then": "Cedar policy gate enforces seat; audit row emitted",
+      "test_ref": "crates/oya-saas-workflow-studio-app/tests/licensing.rs::test_per_seat_cedar"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "visual canvas (nodes + edges)",
+        "load/save canonical spec",
+        "basic node library (HTTP, transform, branch, join, capability-call)",
+        "jurisdiction-overlay view-switch"
+      ],
+      "stable": [
+        "live debugger (step + state inspect)",
+        "per-seat licensing",
+        "collaborative edit (CRDT)",
+        "diff/PR UI for git-backed definitions"
+      ],
+      "GA": [
+        "multi-domain node libraries (6 domains)",
+        "LLM-assist authoring (draft from prose)",
+        "definition marketplace",
+        "visual-diff over jurisdiction overlays"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "engine execution in editor",
+        "why": "editor sends to engine; preserves audit-chain integrity"
+      },
+      {
+        "item": "BPMN paradigm",
+        "why": "$ref:specs/products/workflow.json anti-patterns"
+      },
+      {
+        "item": "embedded editor in tenant iframe",
+        "why": "security boundary; editor at canonical URL only"
+      },
+      {
+        "item": "per-tenant branding pre-GA",
+        "why": "post-GA marketplace concern"
+      },
+      {
+        "item": "BPMN paradigm",
+        "why": "$ref:specs/microservices/workflow.json anti-patterns"
+      },
+      {
+        "item": "per-tenant branding before GA tier",
+        "why": "branding lives in the marketplace surface which only opens at GA tier per ADR-0086 SaaS surface-availability tiering; opening it earlier would require freezing the editor chrome contract before the editor is feature-complete"
+      }
+    ]
+  },
+  "contracts": {
+    "produces": [
+      {
+        "name": "workflow_spec.v1.json",
+        "ref": "$ref:contracts/workflow_spec.v1.json",
+        "bidirectional_with": "$ref:specs/products/workflow.json"
+      },
+      {
+        "name": "editor_event.v1.json",
+        "ref": "$ref:contracts/editor_event.v1.json (live debug stream)",
+        "consumers": [
+          "workflow engine"
+        ]
+      },
+      {
+        "name": "workflow_spec.v1.json",
+        "ref": "$ref:contracts/workflow_spec.v1.json",
+        "bidirectional_with": "$ref:specs/microservices/workflow.json"
+      }
+    ],
+    "consumes": [
+      {
+        "name": "ontology_type_descriptor.v1.json",
+        "ref": "$ref:contracts/ontology_type_descriptor.v1.json",
+        "producer": "$ref:specs/products/ontology.json"
+      },
+      {
+        "name": "capability_descriptor.v1.json",
+        "ref": "$ref:contracts/capability_descriptor.v1.json",
+        "producer": "Foundry capability registry"
+      },
+      {
+        "name": "ontology_type_descriptor.v1.json",
+        "ref": "$ref:contracts/ontology_type_descriptor.v1.json",
+        "producer": "$ref:specs/microservices/ontology.json"
+      }
+    ]
+  },
+  "data_model": {
+    "entities_ref": "$ref:crates/oya-saas-workflow-studio-kernel (planned: EditorSession with local_buffer_blake3 + crdt_state; NodeLibrary keyed by closed-enum DomainTag {Agentic,Dev,Business,Healthcare,SupplyChain,Delivery})",
+    "persistence": {
+      "editor_session": "per-tenant cell + Redis ephemeral",
+      "definitions": "git-backed via $ref:specs/microservices/workflow.json store"
+    },
+    "events_emitted": [
+      "editor_session_opened",
+      "definition_saved",
+      "spec_round_trip_validated",
+      "collab_merge_applied",
+      "collab_conflict_surfaced",
+      "license_gate_emitted"
+    ]
+  },
+  "optimization_practices": [
+    {
+      "practice": "CDN edge cache for spec schema + node library",
+      "rationale": "TTI < 2s GA"
+    },
+    {
+      "practice": "per-tenant cell pinning for editor sessions"
+    },
+    {
+      "practice": "cursor pagination over definition list"
+    },
+    {
+      "practice": "CRDT auto-merge for concurrent edits",
+      "rationale": "never silent loss"
+    }
+  ],
+  "regional_packs": [
+    {
+      "seam": "NodeLibraryByDomain",
+      "per_pack_impl": true,
+      "tested_packs": [
+        "Agentic",
+        "Dev",
+        "Business",
+        "Healthcare",
+        "SupplyChain",
+        "Delivery"
+      ]
+    },
+    {
+      "seam": "JurisdictionViewResolver",
+      "per_pack_impl": true,
+      "tested_packs": [
+        "kr@preview",
+        "us@stable",
+        "eu@GA"
+      ]
+    }
+  ],
+  "deps": {
+    "external_adopted": [
+      {
+        "crate": "leptos",
+        "tier": "mature",
+        "license": "MIT",
+        "rationale": "$ref:docs/adr-archive/ADR-0065-docs-as-leptos-webapp-with-machine-readable-coemit.md Rust-WASM SSR"
+      },
+      {
+        "crate": "yrs (yjs port) OR loro",
+        "tier": "mature",
+        "license": "Apache-2/MIT",
+        "rationale": "CRDT for collab"
+      }
+    ],
+    "decision_pending": [
+      {
+        "crate": "reactflow/xyflow (JS canvas) vs leptos-native Rust-WASM canvas",
+        "status": "evaluate; JS for preview, Rust-WASM for stable+"
+      }
+    ],
+    "external_rejected": [
+      {
+        "crate": "retool/appsmith",
+        "why": "low-code framework deps; we build atop Leptos primitives"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "editor_tti_cold_p99_seconds",
+      "targets": {
+        "preview": 5,
+        "stable": 3,
+        "GA": 2
+      },
+      "verification_ref": "synthetic Lighthouse-style budget via cargo nextest",
+      "lane_ref": "oya-governance-perf-budget"
+    },
+    {
+      "name": "save_round_trip_p99_ms",
+      "targets": {
+        "preview": 500,
+        "stable": 200,
+        "GA": 100
+      },
+      "verification_ref": "cargo nextest -p oya-saas-workflow-studio-domain -- test_save_p99",
+      "lane_ref": "oya-governance-perf-budget"
+    },
+    {
+      "name": "round_trip_byte_equality_rate_pct",
+      "targets": {
+        "preview": 99,
+        "stable": 99.9,
+        "GA": 100
+      },
+      "verification_ref": "cargo nextest -- test_load_emit_byte_equal over corpus 100 specs",
+      "lane_ref": "oya-governance-workflow-spec-roundtrip"
+    },
+    {
+      "name": "editor_availability_slo_pct",
+      "targets": {
+        "preview": 99.5,
+        "stable": 99.9,
+        "GA": 99.95
+      },
+      "verification_ref": "oya gate validate workflow-studio-availability --window 30d",
+      "lane_ref": "oya-governance-canary-observability"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-01",
+      "severity": "high",
+      "risk": "spec drift between editor and engine",
+      "mitigation": "round-trip contract test on every PR via oya-governance-workflow-spec-roundtrip lane (AC-02)"
+    },
+    {
+      "id": "R-02",
+      "severity": "critical",
+      "risk": "CRDT bugs cause silent edit loss",
+      "mitigation": "AC-06 explicit conflict UI when CRDT cannot auto-merge"
+    },
+    {
+      "id": "R-03",
+      "severity": "high",
+      "risk": "LLM-authored spec injection at AC-05",
+      "mitigation_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract + strict schema validation BEFORE editor render"
+    },
+    {
+      "id": "R-04",
+      "severity": "medium",
+      "risk": "browser perf ≠ server bench",
+      "mitigation": "AC-01/AC-02/AC-03/AC-06 exercised with synthetic browser harness"
+    }
+  ],
+  "competitive": [
+    {
+      "competitor": "n8n",
+      "source_evidence_refs": [
+        "evidence/autoresearch/workflow-competitive-map.json#n8n_docs_overview_1453_1489",
+        "evidence/autoresearch/workflow-competitive-map.json#n8n_queue_mode_1488_1607",
+        "evidence/autoresearch/workflow-competitive-map.json#n8n_hitl_1462_1510",
+        "https://docs.n8n.io/integrations/",
+        "https://docs.n8n.io/advanced-ai/human-in-the-loop-tools/"
+      ],
+      "observed_strengths": [
+        "large node/integration mental model",
+        "queue-mode and worker split for production execution",
+        "human-in-the-loop approval pattern for high-risk AI tool calls",
+        "templates, executions, debug executions, credential sharing, and source-control surfaces"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "official docs do not establish Oyatie-grade per-tenant audit, jurisdiction overlay, or Cedar-style policy preview",
+        "external benchmark superiority cannot be claimed from this evidence"
+      ],
+      "adopt_from_them": [
+        "node-library discoverability",
+        "human approval before high-risk AI tools execute",
+        "execution history and debug-first authoring loops",
+        "queue/worker split as a product-visible reliability concept"
+      ],
+      "improve_beyond_them": [
+        "make every sensitive node show data-class and policy impact before save",
+        "round-trip every visual edit through workflow_spec.v1.json",
+        "tie editor save, execution, audit, and Oya VCS promotion into one evidence chain"
+      ],
+      "claim_boundary": "No availability, latency, connector breadth, or superiority claim until measured by Oyatie gates and backed by source evidence."
+    },
+    {
+      "competitor": "Temporal",
+      "source_evidence_refs": [
+        "evidence/autoresearch/workflow-competitive-map.json#temporal_overview_1450_1459",
+        "evidence/autoresearch/workflow-competitive-map.json#temporal_workflows_1456_1576",
+        "https://docs.temporal.io/"
+      ],
+      "observed_strengths": [
+        "durable execution and replay-centered reliability model",
+        "long-running workflows resume after infrastructure failure",
+        "clear activity, worker, and task-queue separation"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "developer platform strength does not by itself solve end-user visual authoring",
+        "business-persona UX, connector marketplace, and jurisdiction preview remain Oyatie differentiation targets"
+      ],
+      "adopt_from_them": [
+        "durable execution vocabulary",
+        "idempotent activities",
+        "explicit task-queue and worker ownership",
+        "replay-safe workflow constraints"
+      ],
+      "improve_beyond_them": [
+        "make durable execution understandable in Workflow Studio through replay timeline and failure-state UX",
+        "connect DSL diff, visual canvas, audit trail, and production replay in one surface"
+      ],
+      "claim_boundary": "May compare architectural patterns, not runtime reliability outcomes, until Oyatie has operational evidence."
+    },
+    {
+      "competitor": "Camunda Web Modeler",
+      "source_evidence_refs": [
+        "evidence/autoresearch/workflow-competitive-map.json#camunda_bpmn_modeler_1460_1529",
+        "evidence/autoresearch/workflow-competitive-map.json#camunda_operate_1458_1509",
+        "https://docs.camunda.io/docs/components/modeler/web-modeler/"
+      ],
+      "observed_strengths": [
+        "browser-based BPMN, DMN, Forms, and template modeling",
+        "collaboration, play mode, marketplace, process applications, Git synchronization, and process landscape visualization",
+        "Operate and incident-oriented operational model"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "BPMN-centered model is not the Oyatie canonical-spec-first model",
+        "official docs do not prove Oyatie-style Cedar policy preview or jurisdiction overlay"
+      ],
+      "adopt_from_them": [
+        "collaborative modeling expectations",
+        "play/test mode before publish",
+        "element templates and process application bundles",
+        "Git synchronization and incident operations as first-class UX"
+      ],
+      "improve_beyond_them": [
+        "keep canonical workflow_spec.v1.json as source of truth instead of BPMN-first modeling",
+        "show policy, jurisdiction, and audit consequences in the authoring surface before activation"
+      ],
+      "claim_boundary": "No '10x faster' or save-latency claims without measured Workflow Studio evidence."
+    },
+    {
+      "competitor": "Argo Workflows",
+      "source_evidence_refs": [
+        "evidence/autoresearch/workflow-competitive-map.json#argo_templates_1463_1503",
+        "evidence/autoresearch/workflow-competitive-map.json#argo_retries_1453_1519",
+        "https://argo-workflows.readthedocs.io/en/latest/retries/",
+        "https://argo-workflows.readthedocs.io/en/latest/workflow-templates/"
+      ],
+      "observed_strengths": [
+        "workflow templates and reusable execution definitions",
+        "retryStrategy, retryPolicy, conditional retries, and backoff",
+        "Kubernetes-native DAG/steps operations"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "operator/developer workflow strength does not equal business-user visual authoring",
+        "cluster-native model is not a full end-user integration studio"
+      ],
+      "adopt_from_them": [
+        "template library discipline",
+        "explicit retry and backoff controls",
+        "artifact/retry/synchronization concepts for pipeline authors"
+      ],
+      "improve_beyond_them": [
+        "make retry, backoff, artifact, and synchronization choices visible and safe for non-Kubernetes users",
+        "connect reusable templates to product-domain node packs and policy guardrails"
+      ],
+      "claim_boundary": "Use as pipeline and retry-design reference, not as a UX superiority claim."
+    },
+    {
+      "competitor": "GitHub Actions",
+      "source_evidence_refs": [
+        "https://docs.github.com/en/actions/reference/workflows-and-actions/reusing-workflow-configurations",
+        "https://docs.github.com/en/actions/how-tos/reuse-automations/reuse-workflows"
+      ],
+      "observed_strengths": [
+        "reusable workflows, workflow templates, YAML anchors, and central reuse",
+        "explicit permission constraints and nested workflow limits",
+        "marketplace actions and reusable building blocks"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "CI/CD reuse does not solve business-user workflow authoring by itself",
+        "YAML authoring is not sufficient for Workflow Studio's target business personas"
+      ],
+      "adopt_from_them": [
+        "centrally maintained reusable workflow library",
+        "permission downgrade discipline for nested reuse",
+        "marketplace-like reusable node/action catalog"
+      ],
+      "improve_beyond_them": [
+        "provide visual authoring, spec diff, guardrails, and policy preview over reusable pipeline blocks",
+        "make Oya VCS promotion and evidence collection visible in Workflow Studio"
+      ],
+      "claim_boundary": "May adopt reusable-workflow discipline; must not imply GitHub Actions parity until CI/CD gates prove it."
+    },
+    {
+      "competitor": "Workato",
+      "source_evidence_refs": [
+        "https://docs.workato.com/connectors",
+        "https://docs.workato.com/connectors/recipe-functions.html",
+        "https://docs.workato.com/en/recipes"
+      ],
+      "observed_strengths": [
+        "large connector catalog with pre-built, universal, and community connector categories",
+        "recipe functions for reusable recipe components",
+        "recipe editor, recipe copilot, and multiple recipe types"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "connector breadth is a high bar Oyatie cannot claim until its connector catalog is implemented and counted",
+        "enterprise integration strengths must be answered with domain-specific packs, not generic low-code framing"
+      ],
+      "adopt_from_them": [
+        "connector setup guides with auth, trigger, action, and troubleshooting metadata",
+        "reusable recipe/function abstraction",
+        "project/folder organization for integration assets"
+      ],
+      "improve_beyond_them": [
+        "make connector auth scopes, data classes, and policy consequences inspectable before execution",
+        "tie reusable recipes to canonical specs, Oya VCS review, and audit evidence"
+      ],
+      "claim_boundary": "No connector-count or enterprise parity claim until the Oyatie connector registry is implemented and verified."
+    },
+    {
+      "competitor": "Make",
+      "source_evidence_refs": [
+        "https://help.make.com/scenario-settings",
+        "https://help.make.com/introduction-to-errors-and-warnings",
+        "https://help.make.com/quick-error-handling-reference",
+        "https://help.make.com/introducing-scenario-recovery"
+      ],
+      "observed_strengths": [
+        "scenario settings expose sequential processing, incomplete executions, rollback, auto-commit, and data-loss tradeoffs",
+        "error handlers and warning/error state vocabulary are visible to builders",
+        "scenario recovery protects authoring work after interruptions"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "settings complexity can hide safety choices from less technical users",
+        "Oyatie must prove simpler guardrail UX rather than merely expose more switches"
+      ],
+      "adopt_from_them": [
+        "incomplete execution recovery",
+        "rollback/error-handler mental model",
+        "scenario recovery for unsaved authoring work"
+      ],
+      "improve_beyond_them": [
+        "present safety choices as clear policy-backed defaults with explicit blast-radius previews",
+        "test offline buffer, conflict UI, and recovery UX as release gates"
+      ],
+      "claim_boundary": "No TTI, save latency, or UX speed comparison until measured in a browser harness."
+    },
+    {
+      "competitor": "Zapier",
+      "source_evidence_refs": [
+        "https://help.zapier.com/hc/en-us/sections/14037543459341-Zap-editor"
+      ],
+      "observed_strengths": [
+        "simple trigger/action editor model",
+        "step testing, field mapping, data transfer, copy/paste, reorder/duplicate, and AI generation entry points",
+        "large user-facing learning and support surface"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "simplicity creates a high ease-of-use bar for Workflow Studio",
+        "official source does not establish Oyatie-style durable execution, audit-chain, or tenant policy semantics"
+      ],
+      "adopt_from_them": [
+        "first-workflow onboarding clarity",
+        "trigger/action vocabulary for business users",
+        "inline step testing and field mapping affordances"
+      ],
+      "improve_beyond_them": [
+        "pair simple authoring with durable execution, typed DSL diff, and policy/audit guardrails",
+        "make developer and business-user views round-trip without changing the source of truth"
+      ],
+      "claim_boundary": "No ease-of-use superiority claim until first-success journey tests prove it against Oyatie targets."
+    },
+    {
+      "competitor": "Microsoft Power Automate",
+      "source_evidence_refs": [
+        "https://learn.microsoft.com/en-us/power-automate/",
+        "https://learn.microsoft.com/en-us/power-automate/guidance/coding-guidelines/error-handling",
+        "https://learn.microsoft.com/en-us/power-automate/error-reference"
+      ],
+      "observed_strengths": [
+        "broad Microsoft ecosystem integration",
+        "approvals, Dataverse, ALM/solutions, admin governance, DLP, custom connectors, and process mining surfaces",
+        "documented error handling and run-history troubleshooting guidance"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "Microsoft ecosystem depth sets an enterprise-governance bar Oyatie must meet vertical by vertical",
+        "broad platform scope cannot be matched by claims before product slices ship"
+      ],
+      "adopt_from_them": [
+        "approvals and governance as first-class surfaces",
+        "solution-aware lifecycle management",
+        "run history and actionable error remediation"
+      ],
+      "improve_beyond_them": [
+        "reduce environment and connector ambiguity through canonical spec, Oya VCS review, and policy previews",
+        "make jurisdiction overlays and evidence export native to vertical packs"
+      ],
+      "claim_boundary": "No ecosystem parity claim until vertical packs and governance surfaces have implementation and operational evidence."
+    },
+    {
+      "competitor": "Linear",
+      "source_evidence_refs": [
+        "https://linear.app/docs/configuring-workflows"
+      ],
+      "observed_strengths": [
+        "opinionated workflow status categories",
+        "default status, duplicate status, triage, auto-close, and auto-archive flows",
+        "low-friction UX around team-specific workflows"
+      ],
+      "observed_weaknesses_or_gaps": [
+        "not a workflow automation engine, but it sets a high bar for ease, speed, and terminology quality",
+        "Workflow Studio must avoid enterprise-tool friction for daily authoring"
+      ],
+      "adopt_from_them": [
+        "opinionated default states",
+        "triage/inbox affordance for workflow drafts and failures",
+        "fast keyboard-friendly status changes"
+      ],
+      "improve_beyond_them": [
+        "combine Linear-style ease with full workflow execution, audit, policy, and integration depth",
+        "make workflow lifecycle states consistent across editor, review, promotion, and runtime"
+      ],
+      "claim_boundary": "Use as UX benchmark, not product-class parity claim."
+    }
+  ],
+  "industry_patterns_adopted": [
+    {
+      "pattern": "sticky_note_canvas_annotations",
+      "citation": "n8n sticky notes (docs.n8n.io/workflows)",
+      "description": "Freeform annotation nodes pinned to canvas regions for team documentation and review comments",
+      "adoption_status": "preview",
+      "impl_ref": "WorkflowCanvas variant: authoring — add AnnotationNode component to design-system"
+    },
+    {
+      "pattern": "manual_partial_production_execution_modes",
+      "citation": "n8n execution modes (docs.n8n.io/workflows/executions)",
+      "description": "Distinct execution modes: manual (editor-triggered, full trace visible), partial (re-run from dirty node), production (async, data-redacted per policy)",
+      "adoption_status": "stable",
+      "impl_ref": "WorkflowReplayTimeline + editor_event.v1.json execution_mode field"
+    },
+    {
+      "pattern": "dirty_node_re_execution_indicator",
+      "citation": "n8n dirty nodes (docs.n8n.io/workflows/executions)",
+      "description": "Visual badge on nodes whose upstream inputs changed since last execution, enabling targeted partial re-run",
+      "adoption_status": "stable",
+      "impl_ref": "WorkflowCanvas node state: add dirty_since_last_run boolean to node render"
+    },
+    {
+      "pattern": "environment_promotion_push_pull_ui",
+      "citation": "n8n source control environments (docs.n8n.io/source-control-environments)",
+      "description": "Push/pull UI for promoting definitions across dev→staging→prod environments with change-comparison diff before promotion",
+      "adoption_status": "stable",
+      "impl_ref": "SpecDiffViewer variant: workflow-round-trip; git-backed definitions store"
+    },
+    {
+      "pattern": "execution_data_redaction_flag",
+      "citation": "n8n data redaction (docs.n8n.io/workflows/executions)",
+      "description": "Per-execution record flag to redact sensitive field values from execution history while preserving metadata and step graph",
+      "adoption_status": "stable",
+      "impl_ref": "editor_event.v1.json: add redact_execution_data boolean; Cedar policy controls who can view unredacted"
+    },
+    {
+      "pattern": "block_level_granular_debug_logs",
+      "citation": "Retool Workflows block-level debugging (retool.com/products/workflows)",
+      "description": "Per-node log panel in editor debug mode showing input/output, error class, and retry state for each node independently",
+      "adoption_status": "stable",
+      "impl_ref": "WorkflowReplayTimeline variant: failure-debug; live debugger (stable wave)"
+    },
+    {
+      "pattern": "contingency_path_per_node_retry_policy",
+      "citation": "Retool Workflows contingency paths (retool.com/products/workflows)",
+      "description": "Each node declares an error-path edge (fallback subgraph) and retry_policy in the spec; editor surfaces this as a distinct error-edge color",
+      "adoption_status": "stable",
+      "impl_ref": "workflow_spec.v1.json: node.on_error = {path_ref, retry_policy}; WorkflowNodeConfigPanel variant: http-step adds retry section"
+    },
+    {
+      "pattern": "incomplete_execution_resume",
+      "citation": "Make.com incomplete executions (help.make.com/scenarios)",
+      "description": "When a workflow errors mid-run, the execution is marked incomplete and can be resumed from the last successfully completed node after the error is fixed",
+      "adoption_status": "stable",
+      "impl_ref": "AC-03 offline buffer + workflow engine resume-after-restart (workflow.json AC-05); editor surfaces resume-eligible executions"
+    },
+    {
+      "pattern": "subscenario_sub_workflow_composition",
+      "citation": "Make.com subscenarios (help.make.com/scenarios)",
+      "description": "Workflows can embed sub-workflow references as nodes; sub-workflow executes in same audit chain with scoped context",
+      "adoption_status": "GA",
+      "impl_ref": "workflow_spec.v1.json: node type capability-call already supports sub-workflow_ref; editor adds sub-workflow node variant in stable node library"
+    },
+    {
+      "pattern": "intent_driven_generative_actions",
+      "citation": "Microsoft Power Automate generative actions (learn.microsoft.com/en-us/power-automate/flow-types)",
+      "description": "Author specifies intent in natural language; AI selects and sequences actions; human reviews before save — distinct from prompt-to-draft (which generates a full spec to edit)",
+      "adoption_status": "GA",
+      "impl_ref": "AC-05 LLM-assist authoring; editor intent-input panel → AI emits candidate spec → human review before canonical save"
+    },
+    {
+      "pattern": "environment_switcher_with_role_filter",
+      "citation": "Microsoft Power Automate environment switcher (learn.microsoft.com/en-us/power-automate/getting-started)",
+      "description": "Header environment picker filters available environments by user role (admin, maker, run-only); prevents accidental production edits",
+      "adoption_status": "stable",
+      "impl_ref": "editor session: env_context field with role-filtered list from Cedar; UI header env-picker component"
+    },
+    {
+      "pattern": "approval_step_as_first_class_node",
+      "citation": "Microsoft Power Automate approvals built-in (learn.microsoft.com/en-us/power-automate/getting-started)",
+      "description": "Approval step is a named node type in the node library, not just a capability-call; surfaces approver identity, timeout, and escalation in config panel",
+      "adoption_status": "stable",
+      "impl_ref": "NodeLibraryByDomain: add ApprovalNode to Business domain; WorkflowNodeConfigPanel variant: approval-step"
+    },
+    {
+      "pattern": "grid_view_execution_history_matrix",
+      "citation": "Apache Airflow grid view (airflow.apache.org/docs/stable/ui.html)",
+      "description": "Execution history displayed as runs-as-columns × nodes-as-rows matrix; cell color = per-node status per run; click cell = node log for that run",
+      "adoption_status": "GA",
+      "impl_ref": "WorkflowReplayTimeline: add grid_matrix variant alongside live-run and historical-replay"
+    },
+    {
+      "pattern": "asset_lineage_producer_consumer_graph",
+      "citation": "Apache Airflow asset views (airflow.apache.org/docs/stable/ui.html)",
+      "description": "Overlay showing which ontology entities a workflow produces or consumes, with edges to other workflows that consume those entities",
+      "adoption_status": "GA",
+      "impl_ref": "WorkflowCanvas variant: jurisdiction-overlay extended to include ontology-lineage overlay mode"
+    },
+    {
+      "pattern": "backfill_replay_historical_date_range",
+      "citation": "Apache Airflow backfill (airflow.apache.org/docs/stable/ui.html)",
+      "description": "Trigger re-execution of a workflow over a historical time range with concurrency policy; useful for data reprocessing after bug fix",
+      "adoption_status": "GA",
+      "impl_ref": "workflow engine: schedule/backfill step type (from workflow.json Argo pattern); editor exposes backfill trigger in replay timeline"
+    },
+    {
+      "pattern": "dark_light_theme_editor",
+      "citation": "Apache Airflow dark/light theme (airflow.apache.org/docs/stable/ui.html)",
+      "description": "Editor-level dark/light theme toggle persisted per user preference; accessibility requirement (WCAG contrast compliance in both modes)",
+      "adoption_status": "preview",
+      "impl_ref": "WorkflowCanvas + all design-system primitives: CSS custom-property theme tokens; Leptos signal-based theme provider"
+    },
+    {
+      "pattern": "template_library_with_function_categorization",
+      "citation": "Zapier template library (zapier.com/features)",
+      "description": "Curated workflow template gallery organized by business function (customer support, sales, operations, agentic); enables time-to-first-workflow < 5 minutes",
+      "adoption_status": "stable",
+      "impl_ref": "definition marketplace (GA wave scope); preview: ship 20+ templates across 6 domain categories at launch"
+    }
+  ],
+  "anti_patterns_avoided": [
+    {
+      "name": "shared_instance_multi_tenant_canvas",
+      "observed_in": "n8n (default self-host shared instance)",
+      "citation": "docs.n8n.io/workflows — RBAC via projects but no cell-level tenancy",
+      "risk": "cross-tenant data exposure via shared execution context or credential bleed",
+      "avoidance_mechanism": "per-tenant cell pinning enforced at session open; Cedar policy gate on every save; test_no_cross_tenant_leak CI lane"
+    },
+    {
+      "name": "last_writer_wins_concurrent_edit",
+      "observed_in": "Zapier, Make.com, Power Automate",
+      "citation": "None of these products expose a CRDT or OT model; concurrent save = silent overwrite",
+      "risk": "silent edit loss in collaborative teams",
+      "avoidance_mechanism": "CRDT (yrs/loro) with explicit conflict UI when auto-merge fails (AC-06); test_no_silent_overwrite CI lane"
+    },
+    {
+      "name": "python_code_as_workflow_canonical_authority",
+      "observed_in": "Apache Airflow (DAGs are Python files)",
+      "citation": "airflow.apache.org/docs/stable/ui.html — Code Tab shows Python DAG definition",
+      "risk": "workflow logic cannot be authored visually, LLM-generated, or schema-validated; editor is monitoring-only",
+      "avoidance_mechanism": "canonical JSON spec (workflow_spec.v1.json) is source of truth; visual and Python are projections only; round-trip CI lane enforces"
+    },
+    {
+      "name": "ecosystem_lock_in_as_workflow_substrate",
+      "observed_in": "Microsoft Power Automate (Microsoft-ecosystem-only connectors and Dataverse)",
+      "citation": "learn.microsoft.com/en-us/power-automate/flow-types — Power Platform integration is the connector surface",
+      "risk": "customers cannot migrate or run workflows on non-Microsoft infrastructure; vendor lock-in",
+      "avoidance_mechanism": "open workflow_spec.v1.json format; capability registry is open (any Foundry capability); no proprietary runtime SDK required by workflow definition"
+    },
+    {
+      "name": "monitoring_only_ui_no_authoring_canvas",
+      "observed_in": "Apache Airflow UI",
+      "citation": "airflow.apache.org/docs/stable/ui.html — UI is grid/graph view for monitoring; DAGs authored externally in Python",
+      "risk": "business users and non-engineers cannot create or modify workflows; forces engineering dependency",
+      "avoidance_mechanism": "WorkflowCanvas authoring variant is the primary surface; visual → spec round-trip guaranteed; no code required for basic workflows (AC-01)"
+    },
+    {
+      "name": "app_builder_primary_workflow_secondary",
+      "observed_in": "Retool Workflows",
+      "citation": "retool.com/products/workflows — Workflows is one feature within Retool app-builder platform",
+      "risk": "workflow features are deprioritized; no standalone deployment; tied to app-builder licensing model",
+      "avoidance_mechanism": "Workflow Studio is a first-class standalone product with its own crate family, API surface, and licensing (per-seat + per-active-definition)"
+    },
+    {
+      "name": "connector_breadth_without_data_class_metadata",
+      "observed_in": "Zapier (8000+ connectors), n8n (200+ connectors)",
+      "citation": "zapier.com/features; docs.n8n.io/workflows — connectors lack data_class / PII annotations",
+      "risk": "workflows silently move PII or regulated data through connectors without author awareness; compliance breach",
+      "avoidance_mechanism": "every connector/capability-call node exposes data_class field; Cedar policy preview fires when data_class = PII or REGULATED (AC-07); oya-governance-cedar-preview-required lane"
+    },
+    {
+      "name": "no_machine_readable_workflow_spec",
+      "observed_in": "Zapier, Power Automate, Retool",
+      "citation": "None expose a schema-validated open workflow format; definitions are stored in proprietary internal representations",
+      "risk": "LLM authoring impossible; git-based review impossible; editor cannot guarantee round-trip fidelity",
+      "avoidance_mechanism": "workflow_spec.v1.json with JSON Schema 2020-12; byte-equal round-trip CI lane (AC-02); LLM submission validated before editor render (AC-05)"
+    },
+    {
+      "name": "spinner_only_loading_on_critical_path",
+      "observed_in": "Make.com (TTI ~3.5s with blank canvas until fully loaded)",
+      "citation": "help.make.com/scenarios — scenario builder loads modules sequentially",
+      "risk": "perceived performance degradation; user abandonment on large definitions",
+      "avoidance_mechanism": "canvas/layout skeletons + descriptor progressive loading; spinner-only loading forbidden on critical path (user_experience.loading_state_coverage)"
+    },
+    {
+      "name": "unredacted_sensitive_data_in_execution_history",
+      "observed_in": "n8n (execution data visible to all users with workflow access by default)",
+      "citation": "docs.n8n.io/workflows/executions — data redaction is opt-in, not default",
+      "risk": "secrets or PII exposed in execution logs to unauthorized viewers",
+      "avoidance_mechanism": "execution_data_redaction_flag per execution record; Cedar policy controls who can view unredacted history; redaction is on-by-default for data_class = PII or SECRET"
+    }
+  ],
+  "hyperscaler_bar": [
+    {
+      "requirement": "10k_node_canvas_render_under_100ms",
+      "rationale": "Production enterprise workflows (supply-chain, healthcare orchestration) regularly exceed 1000 nodes; Palantir Foundry pipelines routinely hit 10k+ steps",
+      "target": "canvas render of 10,000-node workflow completes in <100ms p99 (60fps interaction); virtualized node rendering mandatory",
+      "verification": "synthetic canvas bench: generate 10k-node spec, measure first-render and pan/zoom p99 in headless browser harness",
+      "lane_ref": "oya-governance-perf-budget (canvas-scale variant)"
+    },
+    {
+      "requirement": "canvas_interaction_p99_under_50ms",
+      "rationale": "Linear-grade responsiveness: every user interaction (node select, drag, edge draw) must feel instant; Figma achieves <16ms at 60fps; we target <50ms p99",
+      "target": "<50ms p99 for all canvas interaction ops: node drag, edge connect, config panel open, zoom",
+      "verification": "cargo bench canvas-interaction-p99 via headless Leptos WASM harness",
+      "lane_ref": "oya-governance-perf-budget"
+    },
+    {
+      "requirement": "10k_concurrent_editor_sessions_per_region",
+      "rationale": "Stripe-grade multi-tenant: 10k simultaneous editors sharing per-tenant cell infrastructure without noisy-neighbor degradation",
+      "target": "10,000 concurrent editor sessions per region; p99 save latency stays <100ms under full load",
+      "verification": "canary load-test: 10k concurrent WebSocket editor sessions; measure save p99 and CRDT merge latency",
+      "lane_ref": "oya-governance-canary-observability"
+    },
+    {
+      "requirement": "crdt_merge_under_10ms_p99",
+      "rationale": "Collaborative editing (Google Docs-grade): CRDT merge must be imperceptible to users; yrs/loro can achieve <5ms for typical document sizes",
+      "target": "<10ms p99 CRDT merge for concurrent edits on 1000-node workflow spec",
+      "verification": "cargo bench crdt-merge-p99 -p oya-saas-workflow-studio-domain",
+      "lane_ref": "oya-governance-perf-budget"
+    },
+    {
+      "requirement": "tti_cold_under_2s_p99_global",
+      "rationale": "Google-grade TTI: users in any region (including KR) must reach interactive canvas in <2s cold; CDN edge cache + WASM streaming required",
+      "target": "TTI <2s p99 cold start globally (GA); <3s preview; node library progressive loading within 500ms of canvas interactive",
+      "verification": "synthetic Lighthouse budget via cargo nextest; CDN-hit verification per region",
+      "lane_ref": "oya-governance-perf-budget (editor_tti_cold_p99_seconds metric)"
+    },
+    {
+      "requirement": "zero_cross_tenant_canvas_state_leak",
+      "rationale": "AWS-grade tenancy isolation: no editor session may observe another tenant's node data, execution history, or ontology descriptors at any layer (render, CRDT state, WebSocket, CDN cache key)",
+      "target": "cross_tenant_leak_count = 0 at all waves; per-tenant CDN cache key; WebSocket session scoped to tenant cell",
+      "verification": "cargo nextest test_no_cross_tenant_leak; CDN cache-key audit; WebSocket session isolation test",
+      "lane_ref": "oya-governance-tenancy-isolation"
+    },
+    {
+      "requirement": "secrets_zero_plaintext_in_editor_state",
+      "rationale": "Stripe-grade secrets: credential values (API keys, tokens) must never appear in editor CRDT state, execution history, or browser memory as plaintext",
+      "target": "all credential fields in node config panels use SecretRef type; plaintext value never round-trips through editor; secrets resolved at engine execution time only",
+      "verification": "oya-governance-cedar-preview-required: grep CRDT state and editor_event.v1.json for raw secret patterns; static analysis lane",
+      "lane_ref": "oya-governance-security-headers + secrets-zero-plaintext lane"
+    },
+    {
+      "requirement": "wcag_22_aa_100pct_keyboard_navigation",
+      "rationale": "Linear-grade accessibility: every canvas operation, node config, diff view, replay, and policy preview must be keyboard-operable; screen-reader compatible node graph (aria-label on every edge and node)",
+      "target": "100% keyboard navigation coverage; WCAG 2.2 AA in both dark and light themes; axe-core CI scan zero violations",
+      "verification": "axe-core automated scan in CI; manual keyboard navigation audit per component at each wave",
+      "lane_ref": "oya-governance-a11y (planned)"
+    },
+    {
+      "requirement": "definition_load_under_200ms_for_1000_node_spec",
+      "rationale": "Palantir-grade large-graph UX: loading a 1000-node pipeline definition into the editor must complete in <200ms; requires streaming parse + virtual canvas",
+      "target": "<200ms spec parse + initial render for 1000-node workflow_spec.v1.json; streaming JSON parse mandatory above 500 nodes",
+      "verification": "cargo bench definition-load-p99 with generated 1000-node corpus",
+      "lane_ref": "oya-governance-perf-budget"
+    },
+    {
+      "requirement": "availability_99_95_pct_with_mttr_60s",
+      "rationale": "Stripe-grade SLA: editor availability 99.95% equates to <26 minutes downtime/month; auto-rollback canary must trigger within 60s of regression detection",
+      "target": "editor_availability_slo_pct = 99.95% at GA; MTTR <60s via auto-rollback canary (ADR-0114)",
+      "verification": "oya gate validate workflow-studio-availability --window 30d; canary-observability-rollback lane",
+      "lane_ref": "oya-governance-canary-observability"
+    }
+  ],
+  "best_practices": [
+    {
+      "id": "BP-01",
+      "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec",
+      "planned_enforcement_ref": "oya-governance-workflow-spec-roundtrip"
+    },
+    {
+      "id": "BP-02",
+      "rule": "canonical spec is source of truth; visual derives from spec",
+      "ref": "$ref:bominal/decisions/ADR-0164"
+    },
+    {
+      "id": "BP-03",
+      "rule": "local buffer with BLAKE3 hash; tamper-evident",
+      "ref": "AC-03"
+    },
+    {
+      "id": "BP-04",
+      "rule": "Cedar policy preview before save",
+      "ref": "AC-07"
+    },
+    {
+      "id": "BP-05",
+      "rule": "per-seat licensing via Cedar at edit time",
+      "ref": "AC-08"
+    },
+    {
+      "id": "BP-06",
+      "rule": "CRDT for collab; never last-writer-wins",
+      "ref": "AC-06"
+    },
+    {
+      "id": "BP-01",
+      "rule": "round-trip byte-equality (AC-02) — editor emits semantically identical spec",
+      "enforced_by_lane_ref": "oya-governance-workflow-spec-roundtrip"
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "spec_first_authoring",
+      "default": true,
+      "ref": "$ref:bominal/decisions/ADR-0164"
+    },
+    {
+      "pattern": "llm_draft_human_review",
+      "when": "LLM emits candidate → editor opens for review → human approves",
+      "ref": "AC-05"
+    },
+    {
+      "pattern": "jurisdiction_view_switch",
+      "ref": "AC-04"
+    },
+    {
+      "pattern": "visual_diff_over_jurisdictions",
+      "wave_available": "GA"
+    }
+  ],
+  "anti_patterns": [
+    {
+      "name": "visual_model_above_spec_model",
+      "why_forbidden": "reverses source-of-truth",
+      "detection_lane": "oya-governance-workflow-spec-roundtrip"
+    },
+    {
+      "name": "silent_merge_on_concurrent_edit",
+      "why_forbidden": "data loss",
+      "detection_lane": "test_no_silent_overwrite (AC-06)"
+    },
+    {
+      "name": "bypass_cedar_policy_preview",
+      "why_forbidden": "author surprised by policy impact post-deploy",
+      "detection_lane": "oya-governance-cedar-preview-required"
+    },
+    {
+      "name": "embedded_execution_in_editor",
+      "why_forbidden": "breaks audit-chain integrity",
+      "detection_lane": "oya-governance-editor-execution-forbidden"
+    },
+    {
+      "name": "per_tenant_branding_mid_render",
+      "why_forbidden": "XSS surface + breaks CDN cache",
+      "detection_lane": "code review"
+    },
+    {
+      "name": "non_deterministic_node_library_load",
+      "why_forbidden": "confuses LLM authoring",
+      "detection_lane": "oya-governance-node-library-determinism (3x re-load assertion)"
+    }
+  ],
+  "goals": {
+    "scalability": {
+      "target": "100K active editor sessions per region + 10M definitions per cluster",
+      "verification_ref": "bench + canary load-test"
+    },
+    "security": {
+      "target": "XSS-free + strict CSP + per-tenant CDN cache key + Cedar at every save + no LLM-content trust",
+      "verification_lane_ref": "OWASP audit + oya-governance-security-headers"
+    },
+    "performance": {
+      "target": "TTI <2s p99 cold + save <100ms p99 + round-trip 100% byte-equality",
+      "verification_lane_ref": "oya-governance-perf-budget + cargo-nextest"
+    },
+    "efficiency": {
+      "target": "<$5 per-seat per-month at GA; CDN-cached static assets",
+      "verification_ref": "$ref:crates/oya-cloud-finops-kernel"
+    },
+    "reliability": {
+      "target": "99.95% availability + MTTR <60s (auto-rollback canary)",
+      "verification_lane_ref": "canary-observability-rollback"
+    }
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/microservices/workflow-studio.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum; full canvas, node library, config panel, diff, replay, and save/conflict flows keyboard-operable",
+    "responsive_breakpoints": [
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic; ko-KR and en-US are launch gates for authoring, validation, and policy copy",
+    "design_system_components_used": "$ref:specs/microservices/workflow-studio.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "business_power_user",
+        "journeys": [
+          "draft workflow visually",
+          "fix validation errors",
+          "save canonical spec"
+        ],
+        "time_to_success_target": "< 15 minutes for first valid workflow"
+      },
+      {
+        "persona": "developer",
+        "journeys": [
+          "open DSL diff",
+          "round-trip visual to JSON",
+          "submit git-backed review"
+        ],
+        "time_to_success_target": "< 5 minutes from diff open to review-ready patch"
+      },
+      {
+        "persona": "vertical_specialist",
+        "journeys": [
+          "switch jurisdiction overlay",
+          "inspect changed nodes",
+          "export evidence"
+        ],
+        "time_to_success_target": "< 10 minutes per overlay review"
+      }
+    ],
+    "error_state_coverage": {
+      "invalid_spec": "node and diff hunk errors with stable code, pointer, and remediation",
+      "collaboration_conflict": "explicit conflict UI; never silent overwrite",
+      "network_partition": "offline buffer status with reconnect and unsynced-change count",
+      "policy_denied": "policy preview and blocking banner before save"
+    },
+    "offline_behavior": "local edit buffer persists pending changes; read-only descriptors may cache; saves require reconnect and policy re-evaluation",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "canvas/layout skeletons, descriptor progressive loading, determinate save/validation progress; no spinner-only critical path"
+  },
+  "frontend_components": [
+    {
+      "component": "WorkflowCanvas",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-canvas.json",
+      "variants": [
+        "authoring",
+        "read-only-review",
+        "debug-overlay",
+        "jurisdiction-overlay"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "WorkflowNodeConfigPanel",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-node-config-panel.json",
+      "variants": [
+        "http-step",
+        "transform-step",
+        "branch-step",
+        "join-step",
+        "capability-call",
+        "ontology-action"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "SpecDiffViewer",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/spec-diff-viewer.json",
+      "variants": [
+        "json-patch",
+        "workflow-round-trip",
+        "jurisdiction-overlay"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "WorkflowReplayTimeline",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-replay-timeline.json",
+      "variants": [
+        "live-run",
+        "historical-replay",
+        "failure-debug"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "EntityActionPolicyPreview",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/entity-action-policy-preview.json",
+      "variants": [
+        "allow",
+        "deny",
+        "requires-approval",
+        "autonomy-tier-ceiling"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "consent-required",
+        "audit-access",
+        "requires-second-approver"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    }
+  ],
+  "decision_log": [
+    {
+      "date": "2026-05-16",
+      "decision": "adopt Bominal-ADR-0164 canonical spec format verbatim"
+    },
+    {
+      "date": "2026-05-16",
+      "decision": "scaffold atop Leptos per ADR-0065"
+    },
+    {
+      "date": "2026-05-16",
+      "decision": "Workflow Studio is SEPARATE PRD from workflow but binds to same spec"
+    }
+  ],
+  "sources_scanned": [
+    "$ref:bominal/decisions/ADR-0164-workflow-canonical-spec-format.md",
+    "$ref:docs/decisions/ADR-0709-general-live-apex.md",
+    "$ref:specs/products/workflow.json",
+    "$ref:memory/feedback_workflow_studio_scope",
+    "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
+    "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
+    "$ref:specs/design-system/catalog.json",
+    "official:n8n-docs-workflows (docs.n8n.io/workflows 2026-05-17)",
+    "official:n8n-docs-executions (docs.n8n.io/workflows/executions 2026-05-17)",
+    "official:n8n-docs-source-control (docs.n8n.io/source-control-environments 2026-05-17)",
+    "official:zapier-features (zapier.com/features 2026-05-17)",
+    "official:make-help-scenarios (help.make.com/scenarios 2026-05-17)",
+    "official:retool-workflows (retool.com/products/workflows 2026-05-17)",
+    "official:power-automate-flow-types (learn.microsoft.com/en-us/power-automate/flow-types 2026-05-17)",
+    "official:power-automate-getting-started (learn.microsoft.com/en-us/power-automate/getting-started 2026-05-17)",
+    "official:airflow-ui (airflow.apache.org/docs/apache-airflow/stable/ui.html 2026-05-17)",
+    "$ref:specs/microservices/workflow.json"
+  ],
+  "competitive_research_refs": [
+    "$ref:evidence/autoresearch/workflow-competitive-map.json",
+    "$ref:docs/prds/workflow.md#competitive-benchmark",
+    "$ref:specs/hyperscaler-gates.json#HG-COMPETITIVE"
+  ],
+  "competitive_claim_policy": {
+    "status": "binding",
+    "rule": "Workflow Studio may record competitor strengths, weaknesses, adopt/adapt decisions, and improvement targets, but must not publish external benchmark deltas or 'beats X' claims without official-source evidence plus Oyatie benchmark evidence.",
+    "forbidden_without_benchmark_evidence": [
+      "numeric latency comparisons",
+      "availability superiority claims",
+      "connector-count superiority claims",
+      "10x faster claims",
+      "better than <competitor> claims"
+    ],
+    "required_per_competitor_row": [
+      "source_evidence_refs",
+      "observed_strengths",
+      "observed_weaknesses_or_gaps",
+      "adopt_from_them",
+      "improve_beyond_them",
+      "claim_boundary"
+    ]
+  }
+}

@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package oya.social.v1;
+
+service PostComposition {
+  rpc PublishPost (PublishPostRequest) returns (PublishPostResponse);
+}
+
+enum SocialContextKind {
+  SOCIAL_CONTEXT_KIND_UNSPECIFIED = 0;
+  SOCIAL_CONTEXT_KIND_PERSONAL = 1;
+  SOCIAL_CONTEXT_KIND_WORK = 2;
+}
+
+enum SocialArtifactKind {
+  SOCIAL_ARTIFACT_KIND_UNSPECIFIED = 0;
+  SOCIAL_ARTIFACT_KIND_FEED_POST = 1;
+  SOCIAL_ARTIFACT_KIND_STORY = 2;
+  SOCIAL_ARTIFACT_KIND_COLLABORATIVE_POST = 3;
+}
+
+message PublishPostRequest {
+  SocialContextKind context = 1;
+  string scope_ref = 2;
+  string tenant_scope_ref = 3;
+  string principal_ref = 4;
+  string idempotency_key = 5;
+  string policy_decision_ref = 6;
+  string audit_correlation_id = 7;
+  string post_id = 8;
+  string creator_ref = 9;
+  SocialArtifactKind kind = 10;
+  repeated string media_refs = 11;
+  uint64 story_expires_at = 12;
+  repeated string collab_owner_refs = 13;
+  repeated string collab_consent_refs = 14;
+  string workflow_consent_ref = 15;
+  bool ar_biometric_persisted = 16;
+  uint64 story_purge_now = 17;
+}
+
+message PublishPostResponse {
+  string post_id = 1;
+  string event_type = 2;
+  string audit_correlation_id = 3;
+  string idempotency_key = 4;
+  string policy_decision_ref = 5;
+  repeated string story_purge_targets = 6;
+}

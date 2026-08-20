@@ -1,0 +1,26 @@
+{
+  "pr": 1564,
+  "head": "2593cb4e48bf50e34a85eee2fcb9d4e88541f91e",
+  "critic": "B",
+  "lenses": ["contrarian", "systems_thinking", "operability", "finops"],
+  "verdict": "APPROVE",
+  "findings": [
+    {
+      "severity": "note",
+      "title": "CPU is the live bottleneck, not only maxRunners",
+      "detail": "Worker-2 was at ~95% CPU requests with 5 vCPU; 2 general@2CPU + live-postgres does not fit. Raising maxRunners without 8 vCPU workers improves queue depth but not job wall-clock under load. Profile prioritizes CPU/RAM correctly."
+    },
+    {
+      "severity": "note",
+      "title": "20 vCPU mild overcommit on 18 host cores is acceptable",
+      "detail": "4+8+8=20 vs 18 physical is intentional mild HVF overcommit; dial-to-7 documented. RAM 108/128 leaves ~20Gi for macOS."
+    },
+    {
+      "severity": "note",
+      "title": "Topology spread preferred over hard anti-affinity",
+      "detail": "Required anti-affinity would cap at 1/node (max=2 total). Soft anti-affinity + hard topology spread enables 2/node after 120Gi grow without silent 4-on-1 packing."
+    }
+  ],
+  "blockers": [],
+  "reviewed_at": "2026-08-05T12:50Z"
+}

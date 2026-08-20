@@ -1,0 +1,84 @@
+{
+  "_schema": {
+    "version": "1.0.0",
+    "description": "Stop conditions for the autonomous master-plan loop. Complements docs/AGENTS.md Done-Definition and long-running-loop rule.",
+    "owner_team": "council-architecture + axis-foundry",
+    "validation_check": "json-valid + all-stop-conditions-evidenced"
+  },
+  "_metadata": {
+    "sidecar_id": "EXE-STOP-CONDITIONS",
+    "status": "draft-sidecar",
+    "canonical_sources": [
+      "docs/AGENTS.md",
+      "/templates/checklists/done-definition-checklist.md",
+      "/templates/checklists/agent-completion-checklist.md",
+      "docs/checklists/wave-gate.md",
+      "templates/checklists/release-readiness-checklist.md",
+      "templates/checklists/per-phase-completion-checklist.md",
+      "templates/checklists/agent-completion-checklist.md"
+    ],
+    "deduplicates_existing": [
+      "docs/checklists/wave-gate.md",
+      "templates/checklists/release-readiness-checklist.md",
+      "templates/checklists/per-phase-completion-checklist.md",
+      "templates/checklists/agent-completion-checklist.md"
+    ]
+  },
+  "may_stop_only_when": [
+    {
+      "id": "SC-01",
+      "condition": "completion ledger has no pending or blocked master-plan items",
+      "evidence_class": "verification"
+    },
+    {
+      "id": "SC-02",
+      "condition": "every complete item has implementation, verification, documentation, critic, and closeout evidence",
+      "evidence_class": "verification"
+    },
+    {
+      "id": "SC-03",
+      "condition": "conditional operational/security/supply-chain evidence exists for relevant surfaces",
+      "evidence_class": "verification"
+    },
+    {
+      "id": "SC-04",
+      "condition": "all credible Linus/principal-engineer critique findings fixed or explicitly rejected with rationale",
+      "evidence_class": "critic"
+    },
+    {
+      "id": "SC-05",
+      "condition": "documentation surfaces (catalog, contracts, ADRs, runbooks) match implementation and no stale forward claims remain",
+      "evidence_class": "documentation"
+    },
+    {
+      "id": "SC-06",
+      "condition": "grit status or scaffold-lock ledger shows no unresolved claims owned by this run",
+      "evidence_class": "closeout"
+    },
+    {
+      "id": "SC-07",
+      "condition": "ICM completion summary stored and id captured",
+      "evidence_class": "closeout"
+    },
+    {
+      "id": "SC-08",
+      "condition": "final report includes claims we can make and claims we cannot make yet",
+      "evidence_class": "documentation"
+    },
+    {
+      "id": "SC-09",
+      "condition": "no known errors remain; any unverifiable check is listed as a gap, not as pass",
+      "evidence_class": "verification"
+    }
+  ],
+  "must_continue_when": [
+    "pending_master_plan_item",
+    "missing_required_evidence",
+    "stale_evidence_used_for_completion",
+    "unresolved_critic_finding",
+    "unresolved_grit_or_scaffold_claim",
+    "final_claim_stronger_than_evidence"
+  ],
+  "allowed_blocked_exit": "Only when no meaningful recovery path remains; final report must use blocked status, not completion status.",
+  "purpose": "Stop conditions for the autonomous master-plan loop. Complements docs/AGENTS.md Done-Definition and long-running-loop rule."
+}

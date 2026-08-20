@@ -1,0 +1,133 @@
+{
+  "program_id": "cas-fabric-1560",
+  "title": "Owned ephemeral CI + CAS-first build fabric",
+  "issue": "https://github.com/jason931225/oyatie/issues/1560",
+  "handoff_comment": "https://github.com/jason931225/oyatie/issues/1560#issuecomment-5189694302",
+  "recovery_commit": "fd2c9a5262b8b6f1266eef582e3eb78bf4885ea4",
+  "recovery_ref": "refs/remotes/origin/archive/prewipe-20260805/fresh-agent-handoff",
+  "approved_plan": "evidence/approved-plan-cas-re-20260805.md",
+  "approved_plan_sha256": "8833df33de2600f0bd960518f2402dce20b27ef828cb3cbf27878b4caeaebae5",
+  "plan_sha256_verified": true,
+  "ultragoal_status": "active_checkpointing_not_completed",
+  "active_story": "G039-run-the-representative-1558-storage",
+  "parallel_lanes": {
+    "A_harness_kit": {
+      "path": ".grok/",
+      "worktree": "/Users/jasonlee/Developer/oyatie-mm-harness-20260805",
+      "status": "active"
+    },
+    "B_g039_pr1558": {
+      "pr": 1558,
+      "url": "https://github.com/jason931225/oyatie/pull/1558",
+      "head": "86edf0773224a57d68ccbcf4c0f9c2b1eab81fe1",
+      "status": "draft_ci_green",
+      "hard_stop": "do_not_merge_until_green_and_review",
+      "ci_run": "https://github.com/jason931225/oyatie/actions/runs/30997099920",
+      "ci_conclusion": "success",
+      "is_draft": true,
+      "merge_base_origin_dev": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+      "independent_review_still_required": true,
+      "g039_ultragoal_not_claimed": true
+    },
+    "C_talos_1541": {
+      "issue": 1541,
+      "url": "https://github.com/jason931225/oyatie/issues/1541",
+      "status": "open_prevention_promoted_rotation_purge_outstanding"
+    },
+    "D_k8s_1561": {
+      "pr": 1561,
+      "url": "https://github.com/jason931225/oyatie/pull/1561",
+      "head": "1e33500d6584e164df59cd9f1f58234bbf945504",
+      "status": "draft_oya_ci_required_GREEN",
+      "program": "k8s-port-w0a-1561",
+      "worktree": "/Users/jasonlee/Developer/oyatie/.worktrees/k8s-port-w0a",
+      "hard_stop": "keep_draft_until_formal_review_then_merge",
+      "ci_run": "https://github.com/jason931225/oyatie/actions/runs/30993375926"
+    }
+  },
+  "trunk": {
+    "origin_dev_at_inherit": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+    "origin_dev_requery": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+    "pr_1559_merged": true,
+    "post_merge_ci_run": "https://github.com/jason931225/oyatie/actions/runs/30990439972",
+    "post_merge_ci_status_at_inherit": "queued",
+    "post_merge_ci_status_requery": "success",
+    "completion_packet_closed": true,
+    "requery_at": "2026-08-05T09:34:38Z",
+    "completion_packet": "evidence/1559-post-merge-completion-packet.json"
+  },
+  "preservation": {
+    "primary_checkout_not_implement_base": true,
+    "branch": "agent/cas-live-proof-20260804",
+    "head_at_requery": "06b5018067a317d1b0f1b45d0c780fa9807da69d",
+    "paths_preserved": "1739/1780",
+    "deliberate_exclusions": 41,
+    "note": "do_not_reset_clean_rebase_or_repurpose"
+  },
+  "inherited_at": "2026-08-05T09:00:00Z",
+  "inherited_requery_at": "2026-08-05Tpost-compaction",
+  "handoff_facts_verified": {
+    "handoff_comment": true,
+    "recovery_commit": "fd2c9a5262b8b6f1266eef582e3eb78bf4885ea4",
+    "plan_sha256": "8833df33de2600f0bd960518f2402dce20b27ef828cb3cbf27878b4caeaebae5",
+    "pr_1558_draft_red": false,
+    "pr_1558_draft_ci_green": true,
+    "pr_1559_merged_ci_outstanding": true,
+    "pr_1561_draft_out_of_scope": true,
+    "issue_1541_open": true,
+    "ultragoal_not_completed": true
+  },
+  "orchestration": {
+    "allowed": [
+      "mm-goals",
+      "mm-pipeline",
+      "mm-role",
+      "mm-score",
+      "mm-grade",
+      "mm-evaluate",
+      "mm-learn",
+      "git",
+      "gh"
+    ],
+    "forbidden": [
+      "gjc",
+      "omc",
+      "omx",
+      "hermes"
+    ]
+  },
+  "mm_goals_run_id": "20260805T090132Z-2725e960",
+  "g002_diagnosis": {
+    "status": "complete",
+    "report": "evidence/G039-DIAGNOSIS-1558.md",
+    "worktree": "/Users/jasonlee/Developer/oyatie-g039-1558-diag",
+    "base": "a4a5ace5fcba343ee979f7f1d4fa885ca41b9ff0",
+    "pr_head": "54b22d0c6470d8008012542eb37d0ff32b72e1b5",
+    "root_causes": [
+      "ADR0555_unowned_unreachable_unjustified_two_yaml",
+      "corpus_unpackaged_448_to_450"
+    ],
+    "hard_stop": "do_not_merge"
+  },
+  "g003": {
+    "status": "draft_ci_green",
+    "head": "86edf0773224a57d68ccbcf4c0f9c2b1eab81fe1",
+    "local_gates": "claimed_green_by_lane_agent",
+    "ci_run": "https://github.com/jason931225/oyatie/actions/runs/30997099920",
+    "ci_conclusion": "success",
+    "is_draft": true,
+    "independent_review_still_required": true
+  },
+  "process_notes_from_parallel_run": [
+    "OWNERS must be git-added before total-accounting",
+    "re-bind PR heads after pushes before monitor claims",
+    "do not claim G039 from local green alone",
+    "retired: per-lane workflow files; keep single pipeline.json"
+  ],
+  "session_backlog": "programs/SESSION-BACKLOG.md",
+  "lane_board": "programs/hyperscaler-delivery-lanes/LANES.md",
+  "g039_note": "draft 1558 head 86edf077 oya-ci-required SUCCESS; review+merge+promoted proof still open; ultragoal not complete",
+  "g039_ci": "SUCCESS",
+  "g039_head": "86edf0773224a57d68ccbcf4c0f9c2b1eab81fe1",
+  "authority_mined_backlog": "programs/AUTHORITY-AND-MINED-BACKLOG.md"
+}

@@ -1,0 +1,56 @@
+{
+  "pr": "pending-open-after-wave1-trial",
+  "bead": "oyatie-oso.6",
+  "head": "273190e37d92f85e79d2f3dade700c922f49ebb3",
+  "title": "reorg(ci): move Buck2 cache platform toolchains/cache \u2192 build/buck2/cache (CAS 3B)",
+  "verdict": "APPROVE_PREP",
+  "reviewed_at": "2026-08-05T20:31:54.295254+00:00",
+  "reviewer": "orchestrator-dual-critic-prep",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "essentialism",
+        "yagni",
+        "chesterton_fence"
+      ],
+      "notes": "Mechanical path move + label rewrite only. Local buck2 build-cache-policy tests green (19+8). ADR-0560 remains Proposed \u2014 PR must not claim warm CAS. Overlays stay infra/ci (no infra debt dest)."
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "lenses": [
+        "systems_thinking",
+        "blast_radius",
+        "operability",
+        "zero_trust"
+      ],
+      "notes": "Consumer rewrites bounded: reachability, warm-cache overlays execution_platforms, cache_conformance assert, ADR path citations. Cell strategy root//build/buck2/cache:cache-platform. Hold open until #1569/#1570 trial green (Bun trial-before-fan-out)."
+    }
+  ],
+  "summary": "Prep APPROVE for CAS 3B path rehome. Open PR only after Wave1 ADR/cancel trial lands or explicit independent-lane waiver.",
+  "blockers": [
+    "wave1-trial-open-prs-1569-1570"
+  ],
+  "not_claiming": [
+    "warm_CAS",
+    "RE",
+    "ultragoal",
+    "merge_authority"
+  ],
+  "local_verify": "buck2 test //ci/facade/build-cache-policy: Pass 3. Fail 0",
+  "files": [
+    "build/buck2/cache/BUCK",
+    "build/buck2/cache/OWNERS",
+    "build/buck2/cache/defs.bzl",
+    "ci/facade/build-cache-policy/tests/cache_conformance.rs",
+    "docs/decisions/ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md",
+    "docs/decisions/ADR-0612-buck2-remote-execution-phase-nativelink-scheduler-worker.md",
+    "infra/ci/buckconfig/warm-cache-ro.buckconfig",
+    "infra/ci/buckconfig/warm-cache-rw.buckconfig",
+    "specs/reachability-registry.json"
+  ],
+  "diff_stat": "facade/build-cache-policy/tests/cache_conformance.rs           | 2 +-\n ...ADR-0560-nativelink-cas-slice1-deployable-cache-cold-canary.md | 8 ++++----\n ...12-buck2-remote-execution-phase-nativelink-scheduler-worker.md | 2 +-\n infra/ci/buckconfig/warm-cache-ro.buckconfig                      | 2 +-\n infra/ci/buckconfig/warm-cache-rw.buckconfig                      | 2 +-\n specs/reachability-registry.json                                  | 4 ++--\n 9 files changed, 11 insertions(+), 11 deletions(-)\n"
+}

@@ -1,0 +1,89 @@
+export_file(
+    name = "product-protocol-policy.json",
+    visibility = ["PUBLIC"],
+)
+
+export_file(
+    name = "negative-cases.json",
+    src = "fixtures/negative-cases.json",
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "ci-product-protocol-policy",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_product_protocol_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-product-protocol-policy-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_product_protocol_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-product-protocol-policy-gate",
+    crate = "ci_product_protocol_policy_gate",
+    crate_root = "ci/facade/product-protocol-policy/tests/product_protocol_policy.rs",
+    # ADR-0545: see the cross-artifact-agreement gate — the sibling cargo_resource_contract test
+    # asserts the include_str! bijection, so every source here keeps its repo-relative depth.
+    mapped_srcs = {
+        "BUCK": "ci/facade/product-protocol-policy/BUCK",
+        "//.cargo:config.toml": ".cargo/config.toml",
+        "tests/product_protocol_policy.rs": "ci/facade/product-protocol-policy/tests/product_protocol_policy.rs",
+        "tests/cargo_resource_contract.rs": "ci/facade/product-protocol-policy/tests/cargo_resource_contract.rs",
+    },
+    env = {
+        "OYA_API_CONTRACT_SSOT": "$(location //specs:api-contract-ssot-canonical.json)",
+        "OYA_ENDPOINT_TRANSPORT_PROFILE": "$(location //network/ports/transport-profile:endpoint-transport-profile.contract.json)",
+        "OYA_MASTER_PLAN_SEQUENCING": "$(location //specs:master-plan-sequencing.json)",
+        "OYA_MICROSERVICE_MANIFEST_SCHEMA": "$(location //specs/microservices:manifest-schema.json)",
+        "OYA_PRODUCT_PROTOCOL_CONTRACT": "$(location //specs:product-protocol-contract.json)",
+        "OYA_PRODUCT_PROTOCOL_NEGATIVE_CASES": "$(location :negative-cases.json)",
+        "OYA_PRODUCT_PROTOCOL_POLICY": "$(location :product-protocol-policy.json)",
+        "OYA_ROOT_HUB_POINTERS": "$(location //specs:root-hub-pointers.json)",
+        "OYA_ADR_0632": "$(location //docs/adr-archive:ADR-0632-product-protocol-and-owned-fabric-posture.md)",
+        "OYA_ADR_0157": "$(location //docs/adr-archive:ADR-0157-api-gateway-tier.md)",
+        "OYA_ADR_0167": "$(location //docs/adr-archive:ADR-0167-tenant-cli.md)",
+        "OYA_ADR_0176": "$(location //docs/adr-archive:ADR-0176-brownout-degradation-signal-api.md)",
+        "OYA_ADR_0182": "$(location //docs/adr-archive:ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md)",
+        "OYA_ADR_0246": "$(location //docs/adr-archive:ADR-0246-policy-engine-substrate-promotion.md)",
+        "OYA_ADR_0258": "$(location //docs/adr-archive:ADR-0258-api-versioning-model.md)",
+    },
+    resources = [
+        "//contracts:proto-contract-corpus",
+        "//docs/decisions:adr-corpus",
+        "//oya:live-service-manifest-corpus",
+        "//oya:proto-contract-corpus",
+    ],
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-product-protocol-policy",
+        ":negative-cases.json",
+        ":product-protocol-policy.json",
+        "//network/ports/transport-profile:endpoint-transport-profile.contract.json",
+        "//specs:master-plan-sequencing.json",
+        "//specs/microservices:manifest-schema.json",
+        "//specs:api-contract-ssot-canonical.json",
+        "//specs:product-protocol-contract.json",
+        "//specs:root-hub-pointers.json",
+        "//docs/adr-archive:ADR-0632-product-protocol-and-owned-fabric-posture.md",
+        "//docs/adr-archive:ADR-0157-api-gateway-tier.md",
+        "//docs/adr-archive:ADR-0167-tenant-cli.md",
+        "//docs/adr-archive:ADR-0176-brownout-degradation-signal-api.md",
+        "//docs/adr-archive:ADR-0182-api-gateway-north-south-vs-service-mesh-east-west-separation.md",
+        "//docs/adr-archive:ADR-0246-policy-engine-substrate-promotion.md",
+        "//docs/adr-archive:ADR-0258-api-versioning-model.md",
+        "third-party//:serde_json",
+    ],
+)

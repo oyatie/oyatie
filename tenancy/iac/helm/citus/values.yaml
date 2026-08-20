@@ -1,0 +1,32 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+citus:
+  image:
+    tag: "12.1.0"
+  coordinator:
+    replicaCount: 1  # HA via Patroni (separate chart)
+    resources:
+      requests: {cpu: 4, memory: 32Gi}
+      limits:   {cpu: 8, memory: 64Gi}
+    persistence:
+      enabled: true
+      size: 50Gi
+    extendedConfiguration: |
+      shared_preload_libraries = 'citus,pg_stat_statements'
+      row_security = on
+      force_row_level_security = on
+      citus.shard_count = 32                # per capacity-model.md XS tier (scales up with N_tenants)
+      citus.shard_replication_factor = 2    # workers replicate within-pack
+      citus.multi_shard_modify_mode = 'sequential'
+  worker:
+    replicaCount: 4  # XS tier per capacity-model.md
+    resources:
+      requests: {cpu: 2, memory: 16Gi}
+      limits:   {cpu: 4, memory: 32Gi}
+    persistence:
+      enabled: true
+      size: 50Gi
+    extendedConfiguration: |
+      row_security = on
+      force_row_level_security = on
+  auth:
+    existingSecret: tenancy-citus-credentials  # OpenBao-managed

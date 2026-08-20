@@ -1,0 +1,1701 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/compliance-pack-schema.schema.json",
+  "title": "Compliance Pack Bundle Schema",
+  "version": "1.1.0",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-COMPLIANCE-PACK-SCHEMA",
+    "status": "Proposed",
+    "enforcement_status": "advisory-until-pack-registry-substrate-lands",
+    "owner_team": "ops-compliance",
+    "created_at": "2026-05-20T00:00:00Z",
+    "binding_adr": "ADR-0251",
+    "keystone_bundle": "2026-05-20-foundational-doctrine",
+    "keystone_position": "10-of-14",
+    "related_adrs": [
+      "ADR-0028",
+      "ADR-0049",
+      "ADR-0099",
+      "ADR-0128",
+      "ADR-0144",
+      "ADR-0150",
+      "ADR-0174",
+      "ADR-0183",
+      "ADR-0209",
+      "ADR-0240",
+      "ADR-0241",
+      "ADR-0242",
+      "ADR-0243",
+      "ADR-0246",
+      "ADR-0250",
+      "ADR-0251",
+      "ADR-0272",
+      "ADR-0276"
+    ],
+    "purpose": "Canonical machine-readable schema for Compliance Pack bundles. Each pack ships a versioned, signed bundle of Cedar fragments + audit-chain requirements + data-class extensions + cell-eligibility constraints + retention rules + consent requirements + cross-tenant rules + jurisdiction overlays + DPIA template references + breach-notification workflow references + explicit regulator citations. The v1.1.0 contract slice also specifies optional signature-contract metadata, cell certification state, SOC2-style evidence collectors, five-purpose CMP consent, and portability-export fixture references without claiming runtime implementation, certification, tenant activation, or production readiness. Consumed by the policy-engine pack loader, the tenancy substrate's pack-activation gate, and the oya-check-compliance-pack-coverage CI lane.",
+    "claim_boundary": "Schema/fixture contract only. ADR-0250, ADR-0251, ADR-0272, and ADR-0276 remain proposed planning inputs unless separately elevated; this file alone does not implement a pack registry, runtime collector, CMP, portability service, certification, tenant activation, auditor acceptance, or production readiness.",
+    "industry_citations": [
+      {
+        "vendor": "AWS",
+        "source": "AWS Audit Manager + AWS Config conformance packs",
+        "convention": "regulator-mapped control bundles signed by AWS"
+      },
+      {
+        "vendor": "Microsoft",
+        "source": "Microsoft Purview Compliance Manager + assessment templates",
+        "convention": "named compliance frameworks with control mapping"
+      },
+      {
+        "vendor": "Google",
+        "source": "Google Cloud Assured Workloads + control packages",
+        "convention": "regulator-named pack with attestation"
+      },
+      {
+        "vendor": "HashiCorp",
+        "source": "HashiCorp Sentinel + policy frameworks",
+        "convention": "versioned policy bundles with explicit framework reference"
+      }
+    ]
+  },
+  "type": "object",
+  "required": [
+    "pack_id",
+    "version",
+    "signed_by",
+    "signature",
+    "cedar_fragments",
+    "audit_chain_requirements",
+    "data_class_extensions",
+    "cell_eligibility",
+    "retention_rules",
+    "consent_requirements",
+    "cross_tenant_rules",
+    "jurisdiction_overlay",
+    "dpia_template_id",
+    "breach_notification_workflow_id",
+    "regulator_references",
+    "effective_at",
+    "created_by",
+    "created_at"
+  ],
+  "properties": {
+    "pack_id": {
+      "type": "string",
+      "description": "Canonical pack identifier following `<FRAMEWORK>-<YEAR-OR-VERSION>[-<JURISDICTION-OR-VARIANT>]` convention. Letters + numerals + hyphens + dots. Each pack_id is unique across the platform.",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9.]+)*$",
+      "examples": [
+        "HIPAA-2024",
+        "PCI-DSS-L1-v4",
+        "FedRAMP-Moderate-v5",
+        "FedRAMP-High-v5",
+        "EU-GDPR-2018-baseline",
+        "EU-AI-ACT-2024-HIGH-RISK",
+        "KR-PIPA-2023-amendment",
+        "KR-CSAP-v3.1",
+        "JP-APPI-2022-amendment",
+        "SG-MTCS-L3",
+        "AU-IRAP-PROTECTED",
+        "SOC2-T2",
+        "ISO27001-2022",
+        "ISO22301-2019",
+        "NIST-CSF-2.0",
+        "CCPA-CPRA-2023",
+        "SOX-404",
+        "DORA-2024"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version per semver 2.0. Major bumps when control surface changes; minor when overlays extend; patch for editorial-only updates.",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
+      "examples": [
+        "1.0.0",
+        "2.1.3",
+        "5.0.0-rc.1"
+      ]
+    },
+    "standard_version": {
+      "type": "string",
+      "description": "Precise external framework/standard revision when the stable pack_id intentionally omits patch-level source revisions. For PCI, pack_id can remain PCI-DSS-L1-v4 while standard_version records 4.0.1.",
+      "examples": [
+        "4.0.1",
+        "2022",
+        "Rev5"
+      ]
+    },
+    "source_revision": {
+      "type": "object",
+      "description": "Source acquisition and reconciliation metadata for the external standard or template rows backing this pack. This is citation/version evidence only, not certification/readiness evidence.",
+      "properties": {
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Source ids in the regulatory/source-of-truth registry or equivalent evidence index."
+        },
+        "retrieval_status": {
+          "type": "string",
+          "description": "Current acquisition state, for example fetched-ok, blocked-http-403, manual-acquisition-required, or pending-template-row."
+        },
+        "sha256": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Hash of acquired source content when available; null when the source row is blocked or manual acquisition is pending."
+        },
+        "claim_ceiling": {
+          "type": "string",
+          "description": "Explicit boundary preventing source-version metadata from being treated as readiness, certification, assessor, scan, or tenant-activation evidence."
+        }
+      }
+    },
+    "signed_by": {
+      "type": "string",
+      "description": "Compliance-office signing key identifier. Format: `compliance-office:<pack-id>:<key-version>` for first-party packs; `external-attestor:<name>:<key-version>` for third-party-attested packs (e.g., big-4 audit firm signing a SOC 2 pack mapping).",
+      "pattern": "^(compliance-office|external-attestor):[a-z0-9][a-z0-9.-]*:v[0-9]+$",
+      "examples": [
+        "compliance-office:hipaa-2024:v1",
+        "compliance-office:pci-dss-l1-v4:v2",
+        "external-attestor:deloitte-soc2:v3"
+      ]
+    },
+    "signature": {
+      "type": "string",
+      "description": "Ed25519 signature over the canonical CBOR-encoded pack bundle (excluding the `signature` field itself). Lowercase hex; 128 chars = 64 bytes.",
+      "pattern": "^[0-9a-f]{128}$"
+    },
+    "signature_contract": {
+      "type": "object",
+      "description": "Optional v1.1.0 signature verification contract. This records how a pack signature is computed and verified without claiming that any concrete pack is certified or auditor-accepted.",
+      "required": [
+        "canonicalization",
+        "signature_algorithm",
+        "signature_scope",
+        "verification_inputs",
+        "claim_boundary"
+      ],
+      "properties": {
+        "canonicalization": {
+          "type": "string",
+          "enum": [
+            "canonical-cbor-excluding-signature"
+          ]
+        },
+        "signature_algorithm": {
+          "type": "string",
+          "enum": [
+            "Ed25519"
+          ]
+        },
+        "signature_scope": {
+          "type": "string",
+          "enum": [
+            "bundle-without-signature-field"
+          ]
+        },
+        "verification_inputs": {
+          "type": "object",
+          "required": [
+            "public_key_ref",
+            "canonical_bundle_digest_sha256",
+            "signing_principal",
+            "signed_at"
+          ],
+          "properties": {
+            "public_key_ref": {
+              "type": "string",
+              "description": "Key registry or transparency-log reference for the signing public key."
+            },
+            "canonical_bundle_digest_sha256": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{64}$"
+            },
+            "signing_principal": {
+              "type": "string"
+            },
+            "signed_at": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        },
+        "claim_boundary": {
+          "type": "string",
+          "description": "Explicit non-claim boundary for signature metadata."
+        }
+      }
+    },
+    "cedar_fragments": {
+      "type": "array",
+      "description": "References to Cedar fragments shipped by this pack. Each fragment is identified by its fragment_id + version + cosign_attestation_ref. The policy-engine loads these fragments under scope `pack/<pack-id>` when a tenant activates the pack.",
+      "items": {
+        "type": "object",
+        "required": [
+          "fragment_id",
+          "version",
+          "cosign_attestation_ref"
+        ],
+        "properties": {
+          "fragment_id": {
+            "type": "string",
+            "pattern": "^pack-[a-z0-9-]+-[a-z0-9-]+(-[a-z0-9-]+)*$",
+            "description": "Cedar fragment_id per /specs/cedar-fragment-schema.json. Must start with `pack-` and match this pack's id stem."
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
+          "cosign_attestation_ref": {
+            "type": "string",
+            "pattern": "^(rekor|seaweed)://[A-Za-z0-9._/-]+@[0-9a-f]{64}$"
+          },
+          "applies_to_microservices": {
+            "type": "array",
+            "description": "Microservices governed by this fragment.",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "minItems": 1
+    },
+    "audit_chain_requirements": {
+      "type": "object",
+      "description": "Audit-chain requirements imposed by this pack. Tenants activating this pack inherit these as minimums (more-restrictive baseline takes precedence; pack-imposed requirements cannot be relaxed by tenant overrides).",
+      "required": [
+        "retention_min",
+        "breach_notification_workflow_id",
+        "tamper_detection_frequency",
+        "encryption_required"
+      ],
+      "properties": {
+        "retention_min": {
+          "type": "string",
+          "description": "Minimum audit-log retention duration in ISO 8601 duration format. Pack may not relax below regulator minimum.",
+          "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+          "examples": [
+            "P6Y",
+            "P7Y",
+            "P3Y",
+            "P10Y",
+            "P1Y"
+          ]
+        },
+        "breach_notification_workflow_id": {
+          "type": "string",
+          "description": "Workflow Engine workflow ID that orchestrates breach notification per regulator timing requirements (e.g., GDPR 72-hour).",
+          "pattern": "^wf-[a-z0-9][a-z0-9-]*$",
+          "examples": [
+            "wf-breach-notification-gdpr-72h",
+            "wf-breach-notification-hipaa-60d",
+            "wf-breach-notification-kr-pipa-72h"
+          ]
+        },
+        "tamper_detection_frequency": {
+          "type": "string",
+          "description": "ISO 8601 duration between Merkle-seal verification cycles. Pack-specified minimum.",
+          "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+          "examples": [
+            "PT1H",
+            "PT15M",
+            "PT5M",
+            "P1D"
+          ]
+        },
+        "encryption_required": {
+          "type": "object",
+          "description": "Per-channel encryption requirements.",
+          "required": [
+            "at_rest",
+            "in_transit",
+            "in_use"
+          ],
+          "properties": {
+            "at_rest": {
+              "type": "boolean",
+              "description": "Data at rest must be encrypted (AES-256 or stronger)."
+            },
+            "in_transit": {
+              "type": "boolean",
+              "description": "Data in transit must be encrypted (TLS 1.3 or stronger)."
+            },
+            "in_use": {
+              "type": "boolean",
+              "description": "Data in use must be encrypted (confidential computing / TEE)."
+            }
+          }
+        }
+      }
+    },
+    "evidence_collectors": {
+      "type": "array",
+      "description": "Optional v1.1.0 continuous-evidence collector declarations. SOC2-style collectors mirror ADR-0209's CI hash, deploy receipt, access review, backup drill, vulnerability scan, and pen-test evidence rows while remaining contract-only until the collector runtime exists.",
+      "items": {
+        "type": "object",
+        "required": [
+          "collector_id",
+          "framework",
+          "source_system",
+          "cadence",
+          "artifact_kind",
+          "seal_required",
+          "auditor_publishability",
+          "claim_boundary"
+        ],
+        "properties": {
+          "collector_id": {
+            "type": "string",
+            "pattern": "^[a-z0-9][a-z0-9-]*$"
+          },
+          "framework": {
+            "type": "string",
+            "examples": [
+              "SOC2-T2",
+              "ISO27001-2022",
+              "EU-GDPR-2018-baseline"
+            ]
+          },
+          "source_system": {
+            "type": "string",
+            "description": "Source of evidence, for example cloud-ci, deploy-ledger, Cedar/Zitadel access review, DR drill runner, vulnerability scanner, or external assessor upload."
+          },
+          "cadence": {
+            "type": "string",
+            "description": "Collection cadence: per-build, per-deploy, weekly, quarterly, per-image, annual, or an ISO 8601 duration."
+          },
+          "artifact_kind": {
+            "type": "string",
+            "description": "Canonical evidence artifact kind produced by the collector."
+          },
+          "seal_required": {
+            "type": "boolean",
+            "description": "Whether an audit-chain seal or equivalent tamper-evidence reference is mandatory before the artifact is publishable."
+          },
+          "auditor_publishability": {
+            "type": "string",
+            "enum": [
+              "internal-only",
+              "tenant-admin-visible",
+              "external-auditor-room"
+            ]
+          },
+          "claim_boundary": {
+            "type": "string",
+            "description": "Explicit non-claim boundary for this collector declaration."
+          }
+        }
+      }
+    },
+    "data_class_extensions": {
+      "type": "array",
+      "description": "New data class identifiers introduced or refined by this pack per ADR-0099 data-class registry. Pack-defined classes are namespaced by pack_id to avoid collisions.",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Z0-9_]*$"
+      },
+      "uniqueItems": true,
+      "examples": [
+        [],
+        [
+          "PHI",
+          "PHI_BIOMETRIC",
+          "PHI_GENOMIC"
+        ],
+        [
+          "PAYMENT_PAN",
+          "PAYMENT_TRACK_DATA",
+          "PAYMENT_CVV"
+        ],
+        [
+          "PII_EU_GDPR",
+          "PII_EU_SPECIAL_CATEGORY"
+        ],
+        [
+          "PI_KR_PIPA",
+          "PI_KR_RESIDENT_REGISTRATION_NUMBER"
+        ]
+      ]
+    },
+    "provider_byok_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Per ADR-0255 §D-4. LLM/provider BYOK requirement. When true, every tenant activating this pack is forced to `provider_credential_mode = byok_required_by_pack`; `platform_default` provider credentials are refused at admission. Typical of HIPAA (BAA-only providers required), PCI DSS, FedRAMP, IL5/6, KR-FSS, and EU AI Act high-risk packs. Disjoint from `encryption_byok_required` below, which is at-rest KMS / HSM root scope."
+    },
+    "encryption_byok_required": {
+      "type": "boolean",
+      "default": false,
+      "description": "Per ADR-0251 §D-10. Encryption-key BYOK requirement. When true, every tenant activating this pack must supply its own KMS root key or HSM partition for at-rest data encryption; the tenant row's `byok_enabled` flag is forced to TRUE at admission. Typical of HIPAA, PCI DSS Level 1, FedRAMP High, IL5/6, KR-FSS, KR-CSAP. Disjoint from `provider_byok_required` above, which is LLM/provider API credential scope."
+    },
+    "cell_eligibility": {
+      "type": "object",
+      "description": "Cell-level constraints per ADR-0251 + ADR-0248. Tenants activating this pack may only operate in cells meeting these requirements.",
+      "required": [
+        "requires_certification",
+        "forbidden_cells"
+      ],
+      "properties": {
+        "requires_certification": {
+          "type": "array",
+          "description": "List of certification levels a cell must hold to host pack-activated tenants. References Compliance Pack & Cell Certification Levels per ADR-0251.",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            [
+              "HIPAA-eligible"
+            ],
+            [
+              "PCI-DSS-L1-attested"
+            ],
+            [
+              "FedRAMP-Moderate-authorized"
+            ],
+            [
+              "KR-CSAP-v3.1-certified"
+            ]
+          ]
+        },
+        "forbidden_cells": {
+          "type": "array",
+          "description": "Explicit cell IDs or patterns where pack-activated tenants cannot be placed. Supports glob patterns like `data-plane-cn-*` to exclude entire regions.",
+          "items": {
+            "type": "string"
+          },
+          "examples": [
+            [],
+            [
+              "data-plane-cn-*"
+            ],
+            [
+              "data-plane-ru-*",
+              "data-plane-ir-*"
+            ]
+          ]
+        }
+      }
+    },
+    "cell_certification_state": {
+      "type": "object",
+      "description": "Optional v1.1.0 state contract for the cell certification lifecycle consumed by pack placement gates. This is a state/evidence descriptor only and does not assert that any live cell is certified.",
+      "required": [
+        "state",
+        "certification_level_ref",
+        "evidence_required",
+        "launch_gate_policy",
+        "claim_boundary"
+      ],
+      "properties": {
+        "state": {
+          "type": "string",
+          "enum": [
+            "uncertified",
+            "evidence_collecting",
+            "assessor_review",
+            "certified",
+            "expired",
+            "suspended"
+          ],
+          "description": "Current declarative state for a cell/pack tuple. Only `certified` can satisfy launch gates, and only with external evidence references supplied by the placement substrate."
+        },
+        "certification_level_ref": {
+          "type": "string",
+          "description": "Reference to the cell certification level required by this pack, for example SOC2-T2-evidence-collecting or EU-GDPR-eligible."
+        },
+        "evidence_required": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "evidence_kind",
+              "required_before_state",
+              "freshness"
+            ],
+            "properties": {
+              "evidence_kind": {
+                "type": "string"
+              },
+              "required_before_state": {
+                "type": "string",
+                "enum": [
+                  "evidence_collecting",
+                  "assessor_review",
+                  "certified"
+                ]
+              },
+              "freshness": {
+                "type": "string",
+                "description": "ISO 8601 duration or `external-assessor-window`."
+              }
+            }
+          },
+          "minItems": 1
+        },
+        "launch_gate_policy": {
+          "type": "string",
+          "enum": [
+            "deny-unless-certified-and-pack-installed",
+            "deny-unless-evidence-collecting-sandbox-only"
+          ]
+        },
+        "claim_boundary": {
+          "type": "string",
+          "description": "Explicit non-claim boundary for certification state metadata."
+        }
+      }
+    },
+    "retention_rules": {
+      "type": "array",
+      "description": "Per-data-class retention overrides imposed by this pack. Pack rules supersede baseline; pack rules cannot relax below regulator minimum.",
+      "items": {
+        "type": "object",
+        "required": [
+          "data_class",
+          "min_duration_iso8601",
+          "regulator_filing_required"
+        ],
+        "properties": {
+          "data_class": {
+            "type": "string",
+            "description": "Data class identifier (per data-class registry) this rule applies to.",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "min_duration_iso8601": {
+            "type": "string",
+            "description": "Minimum retention duration per ISO 8601 duration.",
+            "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+          },
+          "max_duration_iso8601": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Maximum retention duration (data must be erased after this). NULL means no maximum.",
+            "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+          },
+          "regulator_filing_required": {
+            "type": "boolean",
+            "description": "Whether retained data must be filed/disclosed to the regulator on request."
+          },
+          "rationale": {
+            "type": "string",
+            "description": "Regulator citation or rationale for the rule."
+          }
+        }
+      }
+    },
+    "consent_requirements": {
+      "type": "object",
+      "description": "Consent requirements imposed by this pack. Drives consent collection UX, consent storage, and Cedar context attributes during evaluation.",
+      "required": [
+        "explicit",
+        "granular",
+        "revocable",
+        "purpose_consent_types"
+      ],
+      "properties": {
+        "explicit": {
+          "type": "boolean",
+          "description": "Whether opt-in must be explicit (vs implied/opt-out). True for GDPR; required for HIPAA authorizations; required for KR-PIPA."
+        },
+        "granular": {
+          "type": "boolean",
+          "description": "Whether consent must be per-purpose granular (vs blanket). True for GDPR + KR-PIPA."
+        },
+        "revocable": {
+          "type": "boolean",
+          "description": "Whether consent must be revocable at any time without penalty. True for GDPR + KR-PIPA."
+        },
+        "purpose_consent_types": {
+          "type": "array",
+          "description": "Enumerated per-purpose consent types this pack requires the platform to support.",
+          "items": {
+            "type": "string",
+            "enum": [
+              "service-provision",
+              "marketing",
+              "analytics",
+              "third-party-sharing",
+              "ml-training",
+              "research",
+              "profiling",
+              "automated-decision-making",
+              "international-transfer",
+              "biometric-processing",
+              "health-data-processing",
+              "financial-data-processing",
+              "minor-data-processing"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "minimum_age_years": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "description": "Minimum age for valid consent without parental authorization. NULL means not applicable. GDPR Article 8: 13-16; KR PIPA: 14; COPPA: 13.",
+          "minimum": 0,
+          "maximum": 21
+        }
+      }
+    },
+    "cmp_consent": {
+      "type": "object",
+      "description": "Optional v1.1.0 CMP contract overlay from ADR-0272. It pins the five canonical purposes and the evidence required for consent records without implementing a CMP runtime.",
+      "required": [
+        "canonical_purposes",
+        "strictly_necessary_purpose",
+        "non_necessary_default",
+        "no_accept_all_default",
+        "audit_event_class",
+        "storage_contract",
+        "claim_boundary"
+      ],
+      "properties": {
+        "canonical_purposes": {
+          "type": "array",
+          "prefixItems": [
+            {
+              "const": "necessary"
+            },
+            {
+              "const": "preference"
+            },
+            {
+              "const": "statistics"
+            },
+            {
+              "const": "marketing"
+            },
+            {
+              "const": "personalization"
+            }
+          ],
+          "minItems": 5,
+          "maxItems": 5,
+          "description": "ADR-0272 five-purpose order. `necessary` is informational/always-on; every other purpose defaults off."
+        },
+        "strictly_necessary_purpose": {
+          "type": "string",
+          "const": "necessary"
+        },
+        "non_necessary_default": {
+          "type": "boolean",
+          "const": false
+        },
+        "no_accept_all_default": {
+          "type": "boolean",
+          "const": true
+        },
+        "audit_event_class": {
+          "type": "string",
+          "description": "Audit event class emitted for consent grant/revoke/update records."
+        },
+        "storage_contract": {
+          "type": "object",
+          "required": [
+            "record_schema",
+            "signature_required",
+            "prior_record_ref_required",
+            "revocation_one_click"
+          ],
+          "properties": {
+            "record_schema": {
+              "type": "string"
+            },
+            "signature_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "prior_record_ref_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "revocation_one_click": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        "claim_boundary": {
+          "type": "string",
+          "description": "Explicit non-claim boundary for CMP metadata."
+        }
+      }
+    },
+    "cross_tenant_rules": {
+      "type": "object",
+      "description": "Cross-tenant collaboration constraints imposed by this pack. Drives Cedar gating of cross-tenant actions (share workflow, partner-tenant assume-role, sub-merchant facilitation).",
+      "required": [
+        "requires_BAA",
+        "requires_DPA",
+        "requires_NDA"
+      ],
+      "properties": {
+        "requires_BAA": {
+          "type": "boolean",
+          "description": "Cross-tenant data sharing requires a Business Associate Agreement (HIPAA)."
+        },
+        "requires_DPA": {
+          "type": "boolean",
+          "description": "Cross-tenant data sharing requires a Data Processing Agreement (GDPR Article 28)."
+        },
+        "requires_NDA": {
+          "type": "boolean",
+          "description": "Cross-tenant data sharing requires a Non-Disclosure Agreement (commercial confidentiality)."
+        },
+        "per_action_class_restrictions": {
+          "type": "object",
+          "description": "Per-action-class refinements (e.g., even with a DPA, certain action classes remain prohibited).",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "permitted": {
+                "type": "boolean"
+              },
+              "requires_additional_attestation": {
+                "type": "boolean"
+              },
+              "rationale": {
+                "type": "string"
+              }
+            }
+          },
+          "examples": [
+            {},
+            {
+              "ml-training-cross-tenant": {
+                "permitted": false,
+                "rationale": "GDPR Article 22 + Article 28: no model training on shared PII without explicit DPIA"
+              },
+              "analytics-aggregated": {
+                "permitted": true,
+                "requires_additional_attestation": false
+              }
+            }
+          ]
+        }
+      }
+    },
+    "jurisdiction_overlay": {
+      "type": "array",
+      "description": "ISO 3166-1 alpha-2 (or ISO 3166-2 for sub-national) codes this pack applies to, plus accepted bloc shorthands (EU, EEA). Pack is active for tenants whose `jurisdiction.primary` falls within this list (plus the wildcard `*` for global packs).",
+      "items": {
+        "type": "string",
+        "pattern": "^(\\*|[A-Z]{2,3}(-[A-Z0-9]{1,3})?)$"
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "examples": [
+        [
+          "US"
+        ],
+        [
+          "EU"
+        ],
+        [
+          "KR"
+        ],
+        [
+          "JP"
+        ],
+        [
+          "AU"
+        ],
+        [
+          "SG"
+        ],
+        [
+          "*"
+        ],
+        [
+          "US-CA"
+        ],
+        [
+          "US",
+          "PR",
+          "GU",
+          "VI"
+        ]
+      ]
+    },
+    "dpia_template_id": {
+      "type": "string",
+      "description": "Identifier of the Data Protection Impact Assessment template required for tenants adopting this pack. References `docs/templates/dpia-template.md` plus the per-pack variant.",
+      "pattern": "^dpia-[a-z0-9][a-z0-9-]*$",
+      "examples": [
+        "dpia-hipaa-2024",
+        "dpia-gdpr-baseline",
+        "dpia-eu-ai-act-high-risk",
+        "dpia-kr-pipa-2023",
+        "dpia-pci-dss-l1-v4"
+      ]
+    },
+    "breach_notification_workflow_id": {
+      "type": "string",
+      "description": "Workflow Engine workflow that the breach saga invokes for this pack. Encodes per-regulator timing (e.g., GDPR Article 33: 72 hours), per-regulator format, per-regulator authority email.",
+      "pattern": "^wf-[a-z0-9][a-z0-9-]*$",
+      "examples": [
+        "wf-breach-notification-hipaa-60d",
+        "wf-breach-notification-gdpr-72h",
+        "wf-breach-notification-kr-pipa-72h",
+        "wf-breach-notification-pci-dss"
+      ]
+    },
+    "portability_export": {
+      "type": "object",
+      "description": "Optional v1.1.0 portability-export fixture contract from ADR-0276 and GDPR Article 20. This records export format/evidence expectations only; it does not implement export/import services or assert data-subject request readiness.",
+      "required": [
+        "format",
+        "bundle_media_type",
+        "manifest_schema_ref",
+        "supported_modes",
+        "signature_contract",
+        "fixture_ref",
+        "claim_boundary"
+      ],
+      "properties": {
+        "format": {
+          "type": "string",
+          "enum": [
+            "JSON-LD-1.1-tar-gzip"
+          ]
+        },
+        "bundle_media_type": {
+          "type": "string",
+          "enum": [
+            "application/gzip+tar"
+          ]
+        },
+        "manifest_schema_ref": {
+          "type": "string",
+          "description": "Schema URI or repository path for the portability export manifest."
+        },
+        "supported_modes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "full",
+              "incremental"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "signature_contract": {
+          "type": "object",
+          "required": [
+            "tenant_signature_required",
+            "oyatie_signature_required",
+            "transparency_log_ref_required"
+          ],
+          "properties": {
+            "tenant_signature_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "oyatie_signature_required": {
+              "type": "boolean",
+              "const": true
+            },
+            "transparency_log_ref_required": {
+              "type": "boolean",
+              "const": true
+            }
+          }
+        },
+        "fixture_ref": {
+          "type": "string",
+          "description": "Repository path to a non-production fixture proving the portability shape."
+        },
+        "claim_boundary": {
+          "type": "string",
+          "description": "Explicit non-claim boundary for portability-export metadata."
+        }
+      }
+    },
+    "regulator_references": {
+      "type": "array",
+      "description": "Explicit citations to laws, regulations, frameworks, and standards this pack maps. Each citation is a free-form human-readable string referencing the regulatory source.",
+      "items": {
+        "type": "string",
+        "minLength": 5,
+        "maxLength": 512
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "effective_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Pack effective timestamp."
+    },
+    "sunset_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Optional pack sunset timestamp. Used when a pack is superseded by a newer version (e.g., HIPAA-2024 superseded by HIPAA-2026 once the latter is published)."
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Principal that authored this pack version (typically a compliance team principal).",
+      "examples": [
+        "oyatie.security.compliance-author#user-1",
+        "ops-compliance.pack-author",
+        "external-attestor:deloitte-soc2#engagement-001"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "supersedes": {
+      "type": "array",
+      "description": "Previous pack versions this version supersedes. Tenants on superseded packs receive migration notification per ADR-0251.",
+      "items": {
+        "type": "object",
+        "required": [
+          "pack_id",
+          "version"
+        ],
+        "properties": {
+          "pack_id": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "default": []
+    }
+  },
+  "examples": [
+    {
+      "pack_id": "HIPAA-2024",
+      "version": "1.0.0",
+      "signed_by": "compliance-office:hipaa-2024:v1",
+      "signature": "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90",
+      "cedar_fragments": [
+        {
+          "fragment_id": "pack-hipaa-2024-intelligence-llm-chat",
+          "version": "2.1.0",
+          "cosign_attestation_ref": "rekor://hipaa-pack-v2@2222222222222222222222222222222222222222222222222222222222222222",
+          "applies_to_microservices": [
+            "intelligence"
+          ]
+        },
+        {
+          "fragment_id": "pack-hipaa-2024-messenger-phi-write",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://hipaa-msg-v1@2222222222222222222222222222222222222222222222222222222222222223",
+          "applies_to_microservices": [
+            "messenger"
+          ]
+        },
+        {
+          "fragment_id": "pack-hipaa-2024-audit-chain-emission",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://hipaa-audit-v1@2222222222222222222222222222222222222222222222222222222222222224",
+          "applies_to_microservices": [
+            "audit-chain"
+          ]
+        }
+      ],
+      "audit_chain_requirements": {
+        "retention_min": "P6Y",
+        "breach_notification_workflow_id": "wf-breach-notification-hipaa-60d",
+        "tamper_detection_frequency": "PT15M",
+        "encryption_required": {
+          "at_rest": true,
+          "in_transit": true,
+          "in_use": false
+        }
+      },
+      "data_class_extensions": [
+        "PHI",
+        "PHI_BIOMETRIC",
+        "PHI_GENOMIC"
+      ],
+      "cell_eligibility": {
+        "requires_certification": [
+          "HIPAA-eligible"
+        ],
+        "forbidden_cells": [
+          "data-plane-cn-*",
+          "data-plane-ru-*"
+        ]
+      },
+      "retention_rules": [
+        {
+          "data_class": "PHI",
+          "min_duration_iso8601": "P6Y",
+          "max_duration_iso8601": null,
+          "regulator_filing_required": true,
+          "rationale": "HIPAA 45 CFR §164.530(j) — six year minimum retention for HIPAA-related documentation"
+        },
+        {
+          "data_class": "PHI_BIOMETRIC",
+          "min_duration_iso8601": "P6Y",
+          "max_duration_iso8601": null,
+          "regulator_filing_required": true,
+          "rationale": "Same minimum; biometric subject to state-level Biometric Information Privacy Acts (e.g., IL-BIPA)"
+        }
+      ],
+      "consent_requirements": {
+        "explicit": true,
+        "granular": true,
+        "revocable": true,
+        "purpose_consent_types": [
+          "health-data-processing",
+          "third-party-sharing",
+          "ml-training",
+          "research"
+        ],
+        "minimum_age_years": null
+      },
+      "cross_tenant_rules": {
+        "requires_BAA": true,
+        "requires_DPA": false,
+        "requires_NDA": true,
+        "per_action_class_restrictions": {
+          "ml-training-cross-tenant": {
+            "permitted": false,
+            "rationale": "HIPAA-covered PHI cannot be shared for cross-tenant ML training without specific authorization and BAA addendum."
+          }
+        }
+      },
+      "jurisdiction_overlay": [
+        "US",
+        "PR",
+        "GU",
+        "VI",
+        "AS",
+        "MP"
+      ],
+      "dpia_template_id": "dpia-hipaa-2024",
+      "breach_notification_workflow_id": "wf-breach-notification-hipaa-60d",
+      "regulator_references": [
+        "HIPAA 45 CFR §164.500–164.534 (Privacy Rule)",
+        "HIPAA 45 CFR §164.302–164.318 (Security Rule)",
+        "HIPAA 45 CFR §164.400–164.414 (Breach Notification Rule)",
+        "HITECH Act of 2009",
+        "21st Century Cures Act §4003 (information blocking)"
+      ],
+      "effective_at": "2026-01-01T00:00:00Z",
+      "sunset_at": null,
+      "created_by": "oyatie.security.compliance-author#user-1",
+      "created_at": "2025-11-15T00:00:00Z",
+      "supersedes": []
+    },
+    {
+      "pack_id": "PCI-DSS-L1-v4",
+      "version": "1.0.0",
+      "standard_version": "4.0.1",
+      "source_revision": {
+        "source_refs": [
+          "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS",
+          "PCI-DSS-V4-0-1-PDF-BLOCKED"
+        ],
+        "retrieval_status": "blocked-http-403",
+        "sha256": null,
+        "claim_ceiling": "Stable pack metadata only; no PCI DSS Level 1 readiness, v4.0.1 control completeness, ROC/AOC/QSA readiness, ASV scan readiness, or tenant CDE activation claim."
+      },
+      "signed_by": "compliance-office:pci-dss-l1-v4:v2",
+      "signature": "b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1",
+      "cedar_fragments": [
+        {
+          "fragment_id": "pack-pci-dss-l1-v4-payments-pan-touch",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://pci-pan-v1@3333333333333333333333333333333333333333333333333333333333333333",
+          "applies_to_microservices": [
+            "payments"
+          ]
+        },
+        {
+          "fragment_id": "pack-pci-dss-l1-v4-payments-vault-egress",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://pci-vault-v1@3333333333333333333333333333333333333333333333333333333333333334",
+          "applies_to_microservices": [
+            "payments",
+            "cloud-secrets"
+          ]
+        }
+      ],
+      "audit_chain_requirements": {
+        "retention_min": "P1Y",
+        "breach_notification_workflow_id": "wf-breach-notification-pci-dss",
+        "tamper_detection_frequency": "PT5M",
+        "encryption_required": {
+          "at_rest": true,
+          "in_transit": true,
+          "in_use": true
+        }
+      },
+      "data_class_extensions": [
+        "PAYMENT_PAN",
+        "PAYMENT_TRACK_DATA",
+        "PAYMENT_CVV",
+        "PAYMENT_PIN"
+      ],
+      "cell_eligibility": {
+        "requires_certification": [
+          "PCI-DSS-L1-attested"
+        ],
+        "forbidden_cells": []
+      },
+      "retention_rules": [
+        {
+          "data_class": "PAYMENT_PAN",
+          "min_duration_iso8601": "P1Y",
+          "max_duration_iso8601": "P7Y",
+          "regulator_filing_required": false,
+          "rationale": "PCI DSS v4.0.1 §10.5 — retain audit logs at least one year; PAN itself encrypted/tokenized per §3.4; exact text reconciliation waits on permitted official PDF acquisition"
+        },
+        {
+          "data_class": "PAYMENT_CVV",
+          "min_duration_iso8601": "PT0S",
+          "max_duration_iso8601": "PT0S",
+          "regulator_filing_required": false,
+          "rationale": "PCI DSS v4.0.1 §3.2.2 — sensitive authentication data including CVV cannot be stored post-authorization; exact text reconciliation waits on permitted official PDF acquisition"
+        },
+        {
+          "data_class": "PAYMENT_PIN",
+          "min_duration_iso8601": "PT0S",
+          "max_duration_iso8601": "PT0S",
+          "regulator_filing_required": false,
+          "rationale": "PCI DSS v4.0.1 §3.2.2 — PIN cannot be stored; exact text reconciliation waits on permitted official PDF acquisition"
+        }
+      ],
+      "consent_requirements": {
+        "explicit": true,
+        "granular": false,
+        "revocable": false,
+        "purpose_consent_types": [
+          "financial-data-processing"
+        ],
+        "minimum_age_years": 18
+      },
+      "cross_tenant_rules": {
+        "requires_BAA": false,
+        "requires_DPA": true,
+        "requires_NDA": true,
+        "per_action_class_restrictions": {
+          "pan-share-cross-tenant": {
+            "permitted": false,
+            "rationale": "PCI DSS v4.0.1 §3.4 — PAN must remain in CDE; cross-tenant sharing only via tokenized substitute; exact text reconciliation waits on permitted official PDF acquisition"
+          }
+        }
+      },
+      "jurisdiction_overlay": [
+        "*"
+      ],
+      "dpia_template_id": "dpia-pci-dss-l1-v4",
+      "breach_notification_workflow_id": "wf-breach-notification-pci-dss",
+      "regulator_references": [
+        "PCI DSS v4.0.1 (Payment Card Industry Data Security Standard; official document-library row indexed, direct PDF acquisition blocked in this environment)",
+        "PCI DSS v4.0.1 §3 (Protect stored account data — exact row text pending permitted PDF acquisition)",
+        "PCI DSS v4.0.1 §4 (Protect cardholder data with strong cryptography during transmission — exact row text pending permitted PDF acquisition)",
+        "PCI DSS v4.0.1 §10 (Log and monitor all access to system components and cardholder data — exact row text pending permitted PDF acquisition)",
+        "PCI DSS v4.0.1 §11.3 (Network-layer segmentation — exact row text pending permitted PDF acquisition)",
+        "PCI Forensic Investigator (PFI) program requirements"
+      ],
+      "effective_at": "2026-01-01T00:00:00Z",
+      "sunset_at": null,
+      "created_by": "oyatie.security.compliance-author#user-2",
+      "created_at": "2025-10-01T00:00:00Z",
+      "supersedes": [
+        {
+          "pack_id": "PCI-DSS-L1-v3",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "pack_id": "EU-GDPR-2018-baseline",
+      "version": "1.4.0",
+      "signed_by": "compliance-office:eu-gdpr-2018-baseline:v1",
+      "signature": "c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2",
+      "cedar_fragments": [
+        {
+          "fragment_id": "pack-eu-gdpr-2018-baseline-dsar-cascade",
+          "version": "1.4.0",
+          "cosign_attestation_ref": "rekor://gdpr-dsar-v14@4444444444444444444444444444444444444444444444444444444444444444",
+          "applies_to_microservices": [
+            "governance",
+            "audit-chain",
+            "tenancy"
+          ]
+        },
+        {
+          "fragment_id": "pack-eu-gdpr-2018-baseline-consent-purpose",
+          "version": "1.2.0",
+          "cosign_attestation_ref": "rekor://gdpr-consent-v12@4444444444444444444444444444444444444444444444444444444444444445",
+          "applies_to_microservices": [
+            "consent",
+            "identity"
+          ]
+        },
+        {
+          "fragment_id": "pack-eu-gdpr-2018-baseline-international-transfer",
+          "version": "1.1.0",
+          "cosign_attestation_ref": "rekor://gdpr-xfer-v11@4444444444444444444444444444444444444444444444444444444444444446",
+          "applies_to_microservices": [
+            "cell"
+          ]
+        }
+      ],
+      "audit_chain_requirements": {
+        "retention_min": "P3Y",
+        "breach_notification_workflow_id": "wf-breach-notification-gdpr-72h",
+        "tamper_detection_frequency": "PT15M",
+        "encryption_required": {
+          "at_rest": true,
+          "in_transit": true,
+          "in_use": false
+        }
+      },
+      "data_class_extensions": [
+        "PII_EU_GDPR",
+        "PII_EU_SPECIAL_CATEGORY",
+        "PII_EU_CHILD_DATA"
+      ],
+      "cell_eligibility": {
+        "requires_certification": [
+          "EU-GDPR-eligible"
+        ],
+        "forbidden_cells": [
+          "data-plane-cn-*",
+          "data-plane-ru-*"
+        ]
+      },
+      "retention_rules": [
+        {
+          "data_class": "PII_EU_GDPR",
+          "min_duration_iso8601": "PT0S",
+          "max_duration_iso8601": "P3Y",
+          "regulator_filing_required": false,
+          "rationale": "GDPR Article 5(1)(e) — storage limitation; retention only as long as necessary for the purpose"
+        },
+        {
+          "data_class": "PII_EU_SPECIAL_CATEGORY",
+          "min_duration_iso8601": "PT0S",
+          "max_duration_iso8601": "P3Y",
+          "regulator_filing_required": false,
+          "rationale": "GDPR Article 9 — special-category data including health, biometric, genetic; minimal retention with enhanced protection"
+        }
+      ],
+      "consent_requirements": {
+        "explicit": true,
+        "granular": true,
+        "revocable": true,
+        "purpose_consent_types": [
+          "service-provision",
+          "marketing",
+          "analytics",
+          "third-party-sharing",
+          "ml-training",
+          "profiling",
+          "automated-decision-making",
+          "international-transfer"
+        ],
+        "minimum_age_years": 16
+      },
+      "cross_tenant_rules": {
+        "requires_BAA": false,
+        "requires_DPA": true,
+        "requires_NDA": false,
+        "per_action_class_restrictions": {
+          "international-transfer-non-adequate-jurisdiction": {
+            "permitted": false,
+            "requires_additional_attestation": true,
+            "rationale": "GDPR Articles 44–49 — international transfers require SCCs, BCRs, adequacy decision, or explicit consent"
+          },
+          "automated-decision-making-affecting-individual": {
+            "permitted": true,
+            "requires_additional_attestation": true,
+            "rationale": "GDPR Article 22 — automated decision-making with legal or similarly significant effects requires meaningful human review"
+          }
+        }
+      },
+      "jurisdiction_overlay": [
+        "EU",
+        "EEA",
+        "IS",
+        "LI",
+        "NO",
+        "CH"
+      ],
+      "dpia_template_id": "dpia-gdpr-baseline",
+      "breach_notification_workflow_id": "wf-breach-notification-gdpr-72h",
+      "regulator_references": [
+        "GDPR EU 2016/679 (Regulation 2016/679 of the European Parliament and of the Council of 27 April 2016)",
+        "GDPR Article 5 (Principles relating to processing of personal data)",
+        "GDPR Article 6 (Lawfulness of processing)",
+        "GDPR Article 7 (Conditions for consent)",
+        "GDPR Article 9 (Processing of special categories of personal data)",
+        "GDPR Article 17 (Right to erasure / `right to be forgotten`)",
+        "GDPR Article 22 (Automated individual decision-making, including profiling)",
+        "GDPR Article 28 (Processor / DPA requirements)",
+        "GDPR Article 33 (Notification of a personal data breach to the supervisory authority — 72 hours)",
+        "GDPR Article 35 (Data protection impact assessment)",
+        "GDPR Articles 44–49 (Transfers of personal data to third countries or international organisations)",
+        "EDPB Guidelines 07/2020 on consent",
+        "EDPB Recommendations 01/2020 on supplementary transfer measures (Schrems II)"
+      ],
+      "effective_at": "2018-05-25T00:00:00Z",
+      "sunset_at": null,
+      "created_by": "ops-compliance.pack-author",
+      "created_at": "2018-05-01T00:00:00Z",
+      "supersedes": [
+        {
+          "pack_id": "EU-GDPR-2018-baseline",
+          "version": "1.3.0"
+        }
+      ]
+    },
+    {
+      "pack_id": "KR-PIPA-2023-amendment",
+      "version": "1.0.0",
+      "signed_by": "compliance-office:kr-pipa-2023-amendment:v1",
+      "signature": "d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3",
+      "cedar_fragments": [
+        {
+          "fragment_id": "pack-kr-pipa-2023-amendment-dsar-cascade",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://kr-pipa-dsar-v1@5555555555555555555555555555555555555555555555555555555555555555",
+          "applies_to_microservices": [
+            "governance",
+            "audit-chain"
+          ]
+        },
+        {
+          "fragment_id": "pack-kr-pipa-2023-amendment-data-residency",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://kr-pipa-res-v1@5555555555555555555555555555555555555555555555555555555555555556",
+          "applies_to_microservices": [
+            "cell"
+          ]
+        },
+        {
+          "fragment_id": "pack-kr-pipa-2023-amendment-rrn-handling",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://kr-pipa-rrn-v1@5555555555555555555555555555555555555555555555555555555555555557",
+          "applies_to_microservices": [
+            "identity",
+            "audit-chain"
+          ]
+        }
+      ],
+      "audit_chain_requirements": {
+        "retention_min": "P3Y",
+        "breach_notification_workflow_id": "wf-breach-notification-kr-pipa-72h",
+        "tamper_detection_frequency": "PT15M",
+        "encryption_required": {
+          "at_rest": true,
+          "in_transit": true,
+          "in_use": false
+        }
+      },
+      "data_class_extensions": [
+        "PI_KR_PIPA",
+        "PI_KR_RESIDENT_REGISTRATION_NUMBER",
+        "PI_KR_SENSITIVE"
+      ],
+      "cell_eligibility": {
+        "requires_certification": [
+          "KR-CSAP-v3.1-certified"
+        ],
+        "forbidden_cells": [
+          "data-plane-us-*",
+          "data-plane-eu-*",
+          "data-plane-cn-*",
+          "data-plane-jp-*"
+        ]
+      },
+      "retention_rules": [
+        {
+          "data_class": "PI_KR_PIPA",
+          "min_duration_iso8601": "PT0S",
+          "max_duration_iso8601": "P3Y",
+          "regulator_filing_required": false,
+          "rationale": "KR PIPA Article 21 — destroy personal information without delay when purpose achieved; max retention via specific legal authority"
+        },
+        {
+          "data_class": "PI_KR_RESIDENT_REGISTRATION_NUMBER",
+          "min_duration_iso8601": "PT0S",
+          "max_duration_iso8601": "PT0S",
+          "regulator_filing_required": false,
+          "rationale": "KR PIPA Article 24-2 — RRN (주민등록번호) processing prohibited absent specific statutory authority; never stored if avoidable"
+        }
+      ],
+      "consent_requirements": {
+        "explicit": true,
+        "granular": true,
+        "revocable": true,
+        "purpose_consent_types": [
+          "service-provision",
+          "marketing",
+          "third-party-sharing",
+          "international-transfer",
+          "minor-data-processing"
+        ],
+        "minimum_age_years": 14
+      },
+      "cross_tenant_rules": {
+        "requires_BAA": false,
+        "requires_DPA": true,
+        "requires_NDA": false,
+        "per_action_class_restrictions": {
+          "international-transfer": {
+            "permitted": true,
+            "requires_additional_attestation": true,
+            "rationale": "KR PIPA Article 28 — overseas transfer requires explicit informed consent OR adequate-protection determination"
+          },
+          "rrn-storage": {
+            "permitted": false,
+            "rationale": "KR PIPA Article 24-2 — RRN cannot be stored absent specific statutory authority"
+          }
+        }
+      },
+      "jurisdiction_overlay": [
+        "KR"
+      ],
+      "dpia_template_id": "dpia-kr-pipa-2023",
+      "breach_notification_workflow_id": "wf-breach-notification-kr-pipa-72h",
+      "regulator_references": [
+        "개인정보보호법 (Personal Information Protection Act, PIPA) — 2023 amendment",
+        "PIPA Article 17 (Provision of personal information to third parties)",
+        "PIPA Article 21 (Destruction of personal information)",
+        "PIPA Article 22 (Means of obtaining consent)",
+        "PIPA Article 24-2 (Restrictions on processing of resident registration numbers)",
+        "PIPA Article 28 (Restrictions on international transfer of personal information)",
+        "PIPA Article 34 (Notification and reporting in case of leakage of personal information — 72 hours)",
+        "PIPA Article 36 (Right to deletion / correction)",
+        "PIPC (Personal Information Protection Commission) — guidance notices 2023-2024",
+        "K-ISMS-P certification framework (cross-reference)"
+      ],
+      "effective_at": "2023-09-15T00:00:00Z",
+      "sunset_at": null,
+      "created_by": "oyatie.security.compliance-author#user-3-kr",
+      "created_at": "2023-08-01T00:00:00Z",
+      "supersedes": [
+        {
+          "pack_id": "KR-PIPA-2020-baseline",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "pack_id": "FedRAMP-Moderate-v5",
+      "version": "1.0.0",
+      "signed_by": "compliance-office:fedramp-moderate-v5:v1",
+      "signature": "e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4",
+      "cedar_fragments": [
+        {
+          "fragment_id": "pack-fedramp-moderate-v5-citizen-ops-only",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://fedramp-citops-v1@6666666666666666666666666666666666666666666666666666666666666666",
+          "applies_to_microservices": [
+            "identity",
+            "cell"
+          ]
+        },
+        {
+          "fragment_id": "pack-fedramp-moderate-v5-fips-140-3-cryptography",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://fedramp-fips-v1@6666666666666666666666666666666666666666666666666666666666666667",
+          "applies_to_microservices": [
+            "cloud-secrets",
+            "audit-chain"
+          ]
+        }
+      ],
+      "audit_chain_requirements": {
+        "retention_min": "P3Y",
+        "breach_notification_workflow_id": "wf-breach-notification-fedramp",
+        "tamper_detection_frequency": "PT15M",
+        "encryption_required": {
+          "at_rest": true,
+          "in_transit": true,
+          "in_use": false
+        }
+      },
+      "data_class_extensions": [
+        "CUI",
+        "CUI_BASIC",
+        "CUI_SPECIFIED"
+      ],
+      "cell_eligibility": {
+        "requires_certification": [
+          "FedRAMP-Moderate-authorized"
+        ],
+        "forbidden_cells": [
+          "data-plane-non-us-*"
+        ]
+      },
+      "retention_rules": [
+        {
+          "data_class": "CUI",
+          "min_duration_iso8601": "P3Y",
+          "max_duration_iso8601": null,
+          "regulator_filing_required": true,
+          "rationale": "NIST SP 800-53 Rev 5 AU-11 — audit record retention; FedRAMP Moderate baseline three years"
+        }
+      ],
+      "consent_requirements": {
+        "explicit": true,
+        "granular": false,
+        "revocable": false,
+        "purpose_consent_types": [
+          "service-provision"
+        ],
+        "minimum_age_years": 18
+      },
+      "cross_tenant_rules": {
+        "requires_BAA": false,
+        "requires_DPA": true,
+        "requires_NDA": true,
+        "per_action_class_restrictions": {
+          "cui-share-cross-tenant": {
+            "permitted": false,
+            "rationale": "CUI sharing across tenant boundaries requires explicit sponsor approval per NIST SP 800-171"
+          }
+        }
+      },
+      "jurisdiction_overlay": [
+        "US"
+      ],
+      "dpia_template_id": "dpia-fedramp-moderate-v5",
+      "breach_notification_workflow_id": "wf-breach-notification-fedramp",
+      "regulator_references": [
+        "FedRAMP Moderate Baseline (Rev 5) — based on NIST SP 800-53 Rev 5",
+        "NIST SP 800-53 Rev 5 (Security and Privacy Controls for Information Systems and Organizations)",
+        "NIST SP 800-171 (Protecting Controlled Unclassified Information in Nonfederal Systems)",
+        "NIST SP 800-53A Rev 5 (Assessment Procedures)",
+        "FIPS 140-3 (Security Requirements for Cryptographic Modules)",
+        "OMB Circular A-130",
+        "FedRAMP Program Management Office Policy (PMO) 2024 update"
+      ],
+      "effective_at": "2024-05-01T00:00:00Z",
+      "sunset_at": null,
+      "created_by": "oyatie.security.compliance-author#user-4-fed",
+      "created_at": "2024-03-15T00:00:00Z",
+      "supersedes": [
+        {
+          "pack_id": "FedRAMP-Moderate-v4",
+          "version": "1.0.0"
+        }
+      ]
+    },
+    {
+      "pack_id": "EU-AI-ACT-2024-HIGH-RISK",
+      "version": "1.0.0",
+      "signed_by": "compliance-office:eu-ai-act-2024-high-risk:v1",
+      "signature": "f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5",
+      "cedar_fragments": [
+        {
+          "fragment_id": "pack-eu-ai-act-2024-high-risk-tier-evaluation",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://eu-ai-tier-v1@7777777777777777777777777777777777777777777777777777777777777777",
+          "applies_to_microservices": [
+            "intelligence",
+            "policy-engine"
+          ]
+        },
+        {
+          "fragment_id": "pack-eu-ai-act-2024-high-risk-human-oversight",
+          "version": "1.0.0",
+          "cosign_attestation_ref": "rekor://eu-ai-oversight-v1@7777777777777777777777777777777777777777777777777777777777777778",
+          "applies_to_microservices": [
+            "workflow-engine",
+            "intelligence"
+          ]
+        }
+      ],
+      "audit_chain_requirements": {
+        "retention_min": "P10Y",
+        "breach_notification_workflow_id": "wf-breach-notification-eu-ai-act",
+        "tamper_detection_frequency": "PT15M",
+        "encryption_required": {
+          "at_rest": true,
+          "in_transit": true,
+          "in_use": false
+        }
+      },
+      "data_class_extensions": [
+        "AI_HIGH_RISK_DECISION_LOG",
+        "AI_TRAINING_DATA_PROVENANCE"
+      ],
+      "cell_eligibility": {
+        "requires_certification": [
+          "EU-GDPR-eligible"
+        ],
+        "forbidden_cells": [
+          "data-plane-cn-*",
+          "data-plane-ru-*"
+        ]
+      },
+      "retention_rules": [
+        {
+          "data_class": "AI_HIGH_RISK_DECISION_LOG",
+          "min_duration_iso8601": "P10Y",
+          "max_duration_iso8601": null,
+          "regulator_filing_required": true,
+          "rationale": "EU AI Act 2024/1689 Article 19 — automatic generation of logs for high-risk AI systems; retain throughout system lifecycle"
+        }
+      ],
+      "consent_requirements": {
+        "explicit": true,
+        "granular": true,
+        "revocable": true,
+        "purpose_consent_types": [
+          "automated-decision-making",
+          "profiling",
+          "ml-training"
+        ],
+        "minimum_age_years": 16
+      },
+      "cross_tenant_rules": {
+        "requires_BAA": false,
+        "requires_DPA": true,
+        "requires_NDA": false,
+        "per_action_class_restrictions": {
+          "high-risk-deployment-without-fundamental-rights-impact-assessment": {
+            "permitted": false,
+            "rationale": "EU AI Act Article 27 — deployers must perform fundamental rights impact assessment before deploying high-risk AI in public services"
+          }
+        }
+      },
+      "jurisdiction_overlay": [
+        "EU",
+        "EEA"
+      ],
+      "dpia_template_id": "dpia-eu-ai-act-high-risk",
+      "breach_notification_workflow_id": "wf-breach-notification-eu-ai-act",
+      "regulator_references": [
+        "Regulation (EU) 2024/1689 of the European Parliament and of the Council of 13 June 2024 (EU AI Act)",
+        "EU AI Act Annex III (High-risk AI systems list)",
+        "EU AI Act Article 9 (Risk management system)",
+        "EU AI Act Article 14 (Human oversight)",
+        "EU AI Act Article 17 (Quality management system)",
+        "EU AI Act Article 19 (Automatically generated logs)",
+        "EU AI Act Article 26 (Obligations of deployers of high-risk AI systems)",
+        "EU AI Act Article 27 (Fundamental rights impact assessment)"
+      ],
+      "effective_at": "2026-08-02T00:00:00Z",
+      "sunset_at": null,
+      "created_by": "oyatie.security.compliance-author#user-5-eu-ai",
+      "created_at": "2026-02-01T00:00:00Z",
+      "supersedes": []
+    }
+  ]
+}

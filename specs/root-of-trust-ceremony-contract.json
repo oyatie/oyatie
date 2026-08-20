@@ -1,0 +1,657 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/root-of-trust-ceremony-contract.json",
+  "title": "RootOfTrustCeremonyContract",
+  "description": "Machine-readable data contract for ADR-0537 step-0 offline root-of-trust ceremonies. It specifies redacted evidence-packet shape, custody posture claim ceilings, Shamir/HSM ceremony outputs, and audit artifacts without storing or exposing root secrets.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-ROOT-OF-TRUST-CEREMONY-CONTRACT",
+    "version": "0.1.0",
+    "status": "Proposed-target",
+    "owner_team": "council-security + axis-cloud + ops-compliance",
+    "created_at": "2026-06-30T00:00:00Z",
+    "source_task": "DOGFOOD-004",
+    "source_adrs": [
+      "ADR-0537",
+      "ADR-0536",
+      "ADR-0510",
+      "ADR-0515"
+    ],
+    "source_decision_packet": "OQ-005 HSM custody parent handoff: Hybrid/HSM-backed destination custody with bounded Shamir/software/OpenBao-adjacent bootstrap only for Tier 1/internal dogfood or break-glass pending HSM evidence.",
+    "purpose": "Define what a root-of-trust ceremony evidence packet must prove, and what it must never contain."
+  },
+  "claim_controls": {
+    "metadata_only": true,
+    "no_secret_material_in_repo": true,
+    "no_runtime_implementation_claim": true,
+    "no_founder_ratification_claim": true,
+    "can_claim_now": [
+      "Oyatie has a proposed redacted data contract for ADR-0537 step-0 root ceremonies.",
+      "The contract distinguishes HSM-backed destination custody from bounded software/quorum bootstrap custody."
+    ],
+    "cannot_claim_yet": [
+      "HSM procurement complete",
+      "production HSM-backed custody evidence exists",
+      "FIPS or regulated production custody is available",
+      "ceremony tooling is implemented",
+      "founder has ratified OQ-005"
+    ],
+    "forbidden_claims": [
+      "bounded software quorum custody is HSM-backed",
+      "OpenBao transitional custody is production regulated custody",
+      "single-custodian provenance is acceptable for production roots",
+      "this contract alone authorizes Tier 3 regulated production"
+    ]
+  },
+  "ceremony_scope": {
+    "included_outputs": [
+      "root_ca_public_certificate_or_digest",
+      "kms_domain_root_public_reference",
+      "sealed_fido2_break_glass_inventory",
+      "dns_seed_snapshot_digest_and_signature",
+      "shamir_holder_receipts_without_share_values",
+      "witness_attestations",
+      "secret_scan_summary",
+      "audit_chain_event_ids"
+    ],
+    "excluded_outputs": [
+      "private_keys",
+      "root_key_bytes",
+      "kms_kek_or_dek_material",
+      "shamir_share_values",
+      "openbao_unseal_keys",
+      "openbao_transit_export_payloads",
+      "fido2_private_attestation_material",
+      "passwords",
+      "pins",
+      "tokens",
+      "seed_phrases"
+    ],
+    "authorized_environments": [
+      "local_dev",
+      "tier1_internal_dogfood",
+      "break_glass_transition",
+      "production_after_hsm_evidence_and_founder_ratification"
+    ]
+  },
+  "custody_postures": [
+    {
+      "id": "hsm_backed_destination",
+      "meaning": "Root material is generated or held inside an HSM-backed domain and private material is non-exportable.",
+      "allowed_use": [
+        "production_after_hsm_evidence_and_founder_ratification",
+        "regulated_after_pack_specific_evidence"
+      ],
+      "required_evidence": [
+        "hsm_attestation_digest",
+        "firmware_digest",
+        "serial_hash",
+        "non_exportable_flag",
+        "partition_or_domain_id",
+        "chain_of_custody_ref",
+        "witness_attestations"
+      ],
+      "forbidden_evidence": [
+        "wrapped_private_key_blob",
+        "admin_pin",
+        "operator_password",
+        "raw_root_material"
+      ]
+    },
+    {
+      "id": "hybrid_hsm_shamir_break_glass",
+      "meaning": "HSM-backed root is primary; Shamir shares exist only for documented break-glass/DR recovery.",
+      "allowed_use": [
+        "production_after_hsm_evidence_and_founder_ratification",
+        "break_glass_transition"
+      ],
+      "threshold_rules": [
+        "threshold >= 2",
+        "share_count >= threshold",
+        "no single custodian can reconstruct alone",
+        "jurisdiction distribution recorded as non-secret metadata"
+      ],
+      "required_evidence": [
+        "all_hsm_backed_destination_evidence",
+        "share_count",
+        "threshold",
+        "holder_receipt_hashes",
+        "jurisdiction_distribution",
+        "sealed_media_inventory"
+      ],
+      "forbidden_evidence": [
+        "share_values",
+        "photos_of_shares",
+        "mnemonic_recovery_text"
+      ]
+    },
+    {
+      "id": "bounded_software_quorum_bootstrap",
+      "meaning": "Software/Shamir/OpenBao-adjacent custody is a bounded bridge for internal dogfood or break-glass transition while HSM evidence is pending.",
+      "allowed_use": [
+        "local_dev",
+        "tier1_internal_dogfood",
+        "break_glass_transition"
+      ],
+      "forbidden_use": [
+        "tier3_regulated_production",
+        "fips_target_custody",
+        "hsm_backed_claim",
+        "single_custodian_production"
+      ],
+      "required_evidence": [
+        "expiry_or_revisit_date",
+        "founder_exception_or_decision_ref_if_beyond_local_dev",
+        "threshold",
+        "share_count",
+        "holder_receipt_hashes",
+        "claim_ceiling_acknowledgement",
+        "migration_path_to_hsm"
+      ],
+      "forbidden_evidence": [
+        "openbao_unseal_key",
+        "transit_export_payload",
+        "single_operator_root_export",
+        "root_material_bytes"
+      ]
+    }
+  ],
+  "roles": [
+    {
+      "id": "ceremony_lead",
+      "required": true,
+      "may_hold_share": false,
+      "responsibilities": [
+        "stop_go_decision",
+        "authorization_scope_check",
+        "incident_switch_if_secret_exposed"
+      ]
+    },
+    {
+      "id": "hsm_custodian",
+      "required": true,
+      "may_hold_share": true,
+      "responsibilities": [
+        "operate_hsm_or_approved_fallback",
+        "record_attestation_refs_without_admin_secrets"
+      ]
+    },
+    {
+      "id": "share_custodian",
+      "required": true,
+      "may_hold_share": true,
+      "responsibilities": [
+        "receive_share_medium",
+        "sign_redacted_receipt",
+        "protect_share_outside_repo_and_chat"
+      ]
+    },
+    {
+      "id": "witness",
+      "required": true,
+      "may_hold_share": false,
+      "minimum_count": 2,
+      "responsibilities": [
+        "verify_identity_and_room_integrity",
+        "sign_manifest_digest",
+        "confirm_no_secret_material_recorded"
+      ]
+    },
+    {
+      "id": "recorder",
+      "required": true,
+      "may_hold_share": false,
+      "responsibilities": [
+        "produce_redacted_manifest",
+        "collect_artifact_digests",
+        "run_secret_scan_summary"
+      ]
+    }
+  ],
+  "state_machine": {
+    "states": [
+      "requested",
+      "authorized",
+      "opened",
+      "material_generated",
+      "shares_issued",
+      "seed_signed",
+      "sealed",
+      "published_refs",
+      "aborted",
+      "superseded"
+    ],
+    "terminal_states": [
+      "published_refs",
+      "aborted",
+      "superseded"
+    ],
+    "allowed_transitions": [
+      [
+        "requested",
+        "authorized"
+      ],
+      [
+        "authorized",
+        "opened"
+      ],
+      [
+        "opened",
+        "material_generated"
+      ],
+      [
+        "material_generated",
+        "shares_issued"
+      ],
+      [
+        "shares_issued",
+        "seed_signed"
+      ],
+      [
+        "seed_signed",
+        "sealed"
+      ],
+      [
+        "sealed",
+        "published_refs"
+      ],
+      [
+        "requested",
+        "aborted"
+      ],
+      [
+        "authorized",
+        "aborted"
+      ],
+      [
+        "opened",
+        "aborted"
+      ],
+      [
+        "material_generated",
+        "aborted"
+      ],
+      [
+        "shares_issued",
+        "aborted"
+      ],
+      [
+        "seed_signed",
+        "aborted"
+      ],
+      [
+        "published_refs",
+        "superseded"
+      ]
+    ],
+    "transition_rules": [
+      "Every transition appends an audit event id to audit_chain_event_ids.",
+      "No transition may include secret-bearing payload fields.",
+      "aborted requires abort_reason and witness_attestation_refs.",
+      "published_refs requires sealed manifest digest and two witness signatures."
+    ]
+  },
+  "ceremony_steps": [
+    {
+      "id": "open_evidence_packet",
+      "sequence": 1,
+      "required_outputs": [
+        "manifest_path",
+        "ceremony_id",
+        "purpose",
+        "target_environment",
+        "custody_posture",
+        "participant_role_ids"
+      ]
+    },
+    {
+      "id": "establish_root_ca",
+      "sequence": 2,
+      "required_outputs": [
+        "root_ca_public_certificate_ref",
+        "root_ca_fingerprint",
+        "witness_attestation_refs"
+      ]
+    },
+    {
+      "id": "establish_kms_domain_root",
+      "sequence": 3,
+      "required_outputs": [
+        "kms_domain_id",
+        "kms_root_id",
+        "custody_posture",
+        "public_wrapping_key_fingerprint",
+        "hsm_attestation_ref_or_bootstrap_exception_ref"
+      ]
+    },
+    {
+      "id": "issue_shamir_receipts",
+      "sequence": 4,
+      "required_outputs": [
+        "threshold",
+        "share_count",
+        "holder_receipt_refs",
+        "jurisdiction_distribution",
+        "sealed_media_inventory_refs"
+      ]
+    },
+    {
+      "id": "seal_fido2_break_glass",
+      "sequence": 5,
+      "required_outputs": [
+        "credential_set_id",
+        "relying_party_id",
+        "public_credential_hashes",
+        "sealed_envelope_refs",
+        "quorum_policy_ref"
+      ]
+    },
+    {
+      "id": "sign_dns_seed_snapshot",
+      "sequence": 6,
+      "required_outputs": [
+        "dns_seed_snapshot_digest",
+        "dns_seed_signature_digest",
+        "zone_ids",
+        "validity_window",
+        "rollback_seed_digest"
+      ]
+    },
+    {
+      "id": "seal_packet",
+      "sequence": 7,
+      "required_outputs": [
+        "manifest_digest",
+        "secret_scan_summary_ref",
+        "witness_signature_refs",
+        "chain_of_custody_refs"
+      ]
+    },
+    {
+      "id": "publish_non_secret_refs",
+      "sequence": 8,
+      "required_outputs": [
+        "bootstrap_reference_packet_ref",
+        "audit_chain_event_ids"
+      ]
+    }
+  ],
+  "manifest_schema": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": [
+      "ceremony_id",
+      "schema_version",
+      "state",
+      "purpose",
+      "target_environment",
+      "custody_posture",
+      "oq005_status",
+      "participants",
+      "artifact_refs",
+      "audit_chain_event_ids",
+      "secret_redaction_attestation"
+    ],
+    "properties": {
+      "ceremony_id": {
+        "type": "string",
+        "pattern": "^rotc-[0-9]{8}-[a-z0-9-]+-[0-9]{2}$"
+      },
+      "schema_version": {
+        "const": "0.1.0"
+      },
+      "state": {
+        "enum": [
+          "requested",
+          "authorized",
+          "opened",
+          "material_generated",
+          "shares_issued",
+          "seed_signed",
+          "sealed",
+          "published_refs",
+          "aborted",
+          "superseded"
+        ]
+      },
+      "purpose": {
+        "enum": [
+          "first_dogfood_bootstrap",
+          "hsm_destination_provisioning",
+          "shamir_break_glass_refresh",
+          "share_holder_replacement",
+          "dns_seed_resign",
+          "fido2_break_glass_refresh",
+          "incident_recovery"
+        ]
+      },
+      "target_environment": {
+        "enum": [
+          "local_dev",
+          "tier1_internal_dogfood",
+          "break_glass_transition",
+          "production_after_hsm_evidence_and_founder_ratification"
+        ]
+      },
+      "custody_posture": {
+        "enum": [
+          "hsm_backed_destination",
+          "hybrid_hsm_shamir_break_glass",
+          "bounded_software_quorum_bootstrap"
+        ]
+      },
+      "oq005_status": {
+        "enum": [
+          "not_ratified",
+          "founder_ratified_hybrid",
+          "founder_ratified_hsm_only",
+          "founder_ratified_defer_hsm"
+        ]
+      },
+      "participants": {
+        "type": "array",
+        "minItems": 4,
+        "items": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "participant_id",
+            "roles"
+          ],
+          "properties": {
+            "participant_id": {
+              "type": "string"
+            },
+            "roles": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "jurisdiction": {
+              "type": "string"
+            },
+            "witness_signature_ref": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "artifact_refs": {
+        "type": "object",
+        "additionalProperties": false,
+        "properties": {
+          "root_ca_public_certificate_ref": {
+            "type": "string"
+          },
+          "root_ca_fingerprint": {
+            "type": "string"
+          },
+          "kms_domain_id": {
+            "type": "string"
+          },
+          "kms_root_id": {
+            "type": "string"
+          },
+          "public_wrapping_key_fingerprint": {
+            "type": "string"
+          },
+          "hsm_attestation_ref": {
+            "type": "string"
+          },
+          "bootstrap_exception_ref": {
+            "type": "string"
+          },
+          "threshold": {
+            "type": "integer",
+            "minimum": 2
+          },
+          "share_count": {
+            "type": "integer",
+            "minimum": 2
+          },
+          "holder_receipt_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "jurisdiction_distribution": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "minimum": 0
+            }
+          },
+          "sealed_media_inventory_refs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "credential_set_id": {
+            "type": "string"
+          },
+          "public_credential_hashes": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "dns_seed_snapshot_digest": {
+            "type": "string"
+          },
+          "dns_seed_signature_digest": {
+            "type": "string"
+          },
+          "manifest_digest": {
+            "type": "string"
+          },
+          "secret_scan_summary_ref": {
+            "type": "string"
+          }
+        }
+      },
+      "audit_chain_event_ids": {
+        "type": "array",
+        "items": {
+          "type": "string"
+        }
+      },
+      "secret_redaction_attestation": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "contains_secret_material",
+          "reviewer_ids",
+          "scanner_summary_ref"
+        ],
+        "properties": {
+          "contains_secret_material": {
+            "const": false
+          },
+          "reviewer_ids": {
+            "type": "array",
+            "minItems": 2,
+            "items": {
+              "type": "string"
+            }
+          },
+          "scanner_summary_ref": {
+            "type": "string"
+          }
+        }
+      }
+    }
+  },
+  "redaction_rules": {
+    "forbidden_field_name_fragments": [
+      "private_key",
+      "secret_key",
+      "share_value",
+      "root_bytes",
+      "unseal_key",
+      "recovery_key",
+      "seed_phrase",
+      "password",
+      "token",
+      "pin",
+      "dek",
+      "kek",
+      "transit_export"
+    ],
+    "allowed_secret_references": [
+      "opaque evidence-store URI",
+      "hash digest",
+      "public key fingerprint",
+      "sealed-envelope id",
+      "tamper-evident bag id",
+      "witness signature id"
+    ],
+    "packet_rule": "Evidence packets store references and public proofs only; any raw secret discovery aborts the ceremony and opens Sev-1 if material left the offline room."
+  },
+  "audit_events": [
+    "RootOfTrustCeremonyRequested",
+    "RootOfTrustCeremonyAuthorized",
+    "RootOfTrustCeremonyOpened",
+    "RootOfTrustRootCaEstablished",
+    "RootOfTrustKmsDomainEstablished",
+    "RootOfTrustShamirSharesIssued",
+    "RootOfTrustFido2BreakGlassSealed",
+    "RootOfTrustDnsSeedSigned",
+    "RootOfTrustCeremonySealed",
+    "RootOfTrustBootstrapRefsPublished",
+    "RootOfTrustCeremonyAborted",
+    "RootOfTrustCeremonySuperseded"
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "ROTC-AC-001",
+      "rule": "Runbook and contract cite ADR-0537 step 0 and preserve OQ-005 Hybrid/HSM destination plus bounded bootstrap framing."
+    },
+    {
+      "id": "ROTC-AC-002",
+      "rule": "Every required ceremony output is represented as a public proof, digest, redacted reference, or witness attestation; no raw secret field is required or allowed."
+    },
+    {
+      "id": "ROTC-AC-003",
+      "rule": "Software/quorum/OpenBao-adjacent custody has an explicit Tier 1/internal dogfood or break-glass ceiling and cannot satisfy regulated/HSM-backed claims."
+    },
+    {
+      "id": "ROTC-AC-004",
+      "rule": "Shamir metadata requires threshold >= 2, share_count >= threshold, holder receipts, and jurisdiction distribution without share values."
+    },
+    {
+      "id": "ROTC-AC-005",
+      "rule": "HSM destination posture requires attestation, firmware digest, serial hash, non-exportable flag, and chain-of-custody reference."
+    },
+    {
+      "id": "ROTC-AC-006",
+      "rule": "Manifest state transitions append audit event ids and cannot carry secret-bearing payloads."
+    }
+  ],
+  "verification_commands": [
+    "python3 -m json.tool specs/root-of-trust-ceremony-contract.json >/dev/null",
+    "python3 - <<'PY'\nimport json\nfrom pathlib import Path\ndata=json.loads(Path('specs/root-of-trust-ceremony-contract.json').read_text())\nassert data['_meta']['spec_id']=='EXE-ROOT-OF-TRUST-CEREMONY-CONTRACT'\nassert any(p['id']=='bounded_software_quorum_bootstrap' for p in data['custody_postures'])\nassert 'shamir_share_values' in data['ceremony_scope']['excluded_outputs']\nassert data['manifest_schema']['properties']['secret_redaction_attestation']['properties']['contains_secret_material']['const'] is False\nprint('root-of-trust ceremony contract smoke check passed')\nPY"
+  ]
+}

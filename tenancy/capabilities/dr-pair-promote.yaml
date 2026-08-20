@@ -1,0 +1,17 @@
+apiVersion: oyatie.io/capabilities/v2
+kind: Capability
+metadata:
+  name: dr-pair-promote
+  microservice: tenancy
+spec:
+  tier: T3
+  risk_class: high
+  actions: [promote_dr_pair]
+  binding_adr: ADR-0248
+  audit_event_classes:
+    - oya.tenancy.dr-pairing-promoted
+  multi_party_authorization: true
+  authorized_principals:
+    - oyatie::Tenancy::Principal::lifecycle-controller
+    - oyatie::Council::ArchitectureRole::on-call
+  ux_floor: see policy/abuse-defence.cedar

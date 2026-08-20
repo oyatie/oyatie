@@ -1,0 +1,591 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/active-machine-readable-artifact-contract.schema.json",
+  "title": "ActiveMachineReadableArtifactContract",
+  "description": "Registry-row schema for the central artifact capabilities control-plane. Format-agnostic: applies to JSON, TOML, YAML, Cedar, SQL migrations, Cargo.toml, OpenAPI, GitHub-Actions YAML, and any other serialized canonical artifact in this repo. Per ADR-0015 registry pattern, capability state lives in `/registry/artifact-capabilities-registry.json`, NOT embedded in each artifact. One Rust crate validates the entire data plane.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Schema",
+    "schema_id": "EXE-ACTIVE-ARTIFACT-CONTRACT",
+    "version": "3.0.0",
+    "status": "draft-sidecar",
+    "owner_team": "council-architecture + axis-foundry",
+    "supersedes_internal_history": [
+      "v1.0.0: type=object root rejected — couldn't overlay artifacts with non-object root shapes",
+      "v2.0.0: 600-line per-artifact embedded metadata rejected — non-scalable; capability_status object-wrapper bug; cedar/sql format mismatch"
+    ],
+    "user_directives_2026_05_13": [
+      "Anything that can be automated should be automated",
+      "Make our json and our machine readable documentation have purpose and features: Enforcement, Verification, Validation, Auto-generations, Self-healing, Self-updating, Self-maintaining",
+      "json, toml, yaml, or whatever files that we have. what can be automated must be automated",
+      "verify and check if those meta-schemas are appropriate",
+      "fine tune and polish our idea into something that is hyperscaler grade in infrastructure and polish when planning, and critic/verify/review it with torvald lens. Highly scalable, maintainable, solution should be our goal.",
+      "Use whatever that is most appropriate for the task. Always choose the right tool for the right task."
+    ],
+    "design_rationale": "Hyperscaler precedent: AWS Config (resource compliance registry), GCP Asset Inventory (per-resource policy state), Kubernetes CRDs + admission controllers. Data plane = artifacts. Control plane = registry. Validator = Rust crate. Per decision-principles.json DP-03 (mechanical prevention over process) + ADR-0015 registry pattern.",
+    "related": [
+      "/registry/artifact-capabilities-registry.json",
+      "/specs/artifact-format-bindings.json",
+      "/specs/artifact-telemetry-semantic-conventions.json",
+      "/registry/artifact-contract-migration-policy.json",
+      "/specs/master-plan-sequencing.json",
+      "/specs/hyperscaler-gates.json",
+      "/specs/evidence-taxonomy.json",
+      "docs/standards/prevention-doctrine.md",
+      "docs/decisions/ADR-0709-general-live-apex.md"
+    ],
+    "enforcing_fitness_lane": "lean-a-active-artifact-contract",
+    "validator_crate": "governance/check/active-artifact-contract (planned)",
+    "purpose": "Registry-row schema for the central artifact capabilities control-plane."
+  },
+  "type": "object",
+  "required": [
+    "artifact_id",
+    "artifact_path",
+    "artifact_format",
+    "contract_version",
+    "capabilities"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "artifact_id": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "Stable kebab-case identifier for the artifact. Referenced from artifact via optional top-level _artifact_id field. Examples: 'ops-portal-ledger', 'evidence-bundle-template', 'hyperscaler-gates-spec'."
+    },
+    "artifact_path": {
+      "type": "string",
+      "description": "Repo-relative path to the artifact. CI validates path exists."
+    },
+    "artifact_format": {
+      "$ref": "#/$defs/artifact_format"
+    },
+    "contract_version": {
+      "type": "string",
+      "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$",
+      "description": "Version of this contract that the artifact conforms to. Default: latest. Bumping the contract triggers a migration policy check."
+    },
+    "owner_team": {
+      "type": "string",
+      "description": "Team accountable for this artifact's lifecycle."
+    },
+    "purpose_short": {
+      "type": "string",
+      "maxLength": 200,
+      "description": "One-line purpose statement. Generated docs surface this."
+    },
+    "capabilities": {
+      "type": "object",
+      "required": [
+        "enforcement",
+        "verification",
+        "validation",
+        "autogen",
+        "selfheal",
+        "selfupdate",
+        "selfmaintain",
+        "telemetry",
+        "provenance"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "enforcement": {
+          "$ref": "#/$defs/cap_enforcement"
+        },
+        "verification": {
+          "$ref": "#/$defs/cap_verification"
+        },
+        "validation": {
+          "$ref": "#/$defs/cap_validation"
+        },
+        "autogen": {
+          "$ref": "#/$defs/cap_autogen"
+        },
+        "selfheal": {
+          "$ref": "#/$defs/cap_selfheal"
+        },
+        "selfupdate": {
+          "$ref": "#/$defs/cap_selfupdate"
+        },
+        "selfmaintain": {
+          "$ref": "#/$defs/cap_selfmaintain"
+        },
+        "telemetry": {
+          "$ref": "#/$defs/cap_telemetry"
+        },
+        "provenance": {
+          "$ref": "#/$defs/cap_provenance"
+        }
+      }
+    },
+    "cross_artifact_invariants": {
+      "type": "array",
+      "description": "Cross-field/cross-artifact invariants the Rust validator enforces (JSON Schema 2020-12 cannot express these alone).",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "rule"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "rule": {
+            "type": "string"
+          },
+          "severity": {
+            "enum": [
+              "error",
+              "warn",
+              "info"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "$defs": {
+    "capability_status": {
+      "enum": [
+        "operational",
+        "planned",
+        "blocked-by-foundation",
+        "not-applicable"
+      ],
+      "description": "operational = wired today (crate in HEAD + lane status=active + green CI run URL recorded); planned = named anchor + prerequisite_for_operational populated; blocked-by-foundation = foundation work in parallel session blocks; not-applicable = capability does not apply (rationale required)."
+    },
+    "artifact_format": {
+      "enum": [
+        "json",
+        "toml",
+        "yaml",
+        "ini",
+        "cedar",
+        "sql-atlas",
+        "openapi-yaml",
+        "openapi-json",
+        "github-actions-yaml",
+        "cargo-toml",
+        "rust-source",
+        "ratel-conf",
+        "plain-text-manifest"
+      ],
+      "description": "Drives format-specific validator selection per /specs/artifact-format-bindings.json."
+    },
+    "enforcement_timing": {
+      "enum": [
+        "pre_merge",
+        "pr_time",
+        "post_merge",
+        "nightly",
+        "weekly",
+        "deploy_time",
+        "canary_time",
+        "release_only",
+        "post_release",
+        "on_demand"
+      ]
+    },
+    "enforcement_action": {
+      "enum": [
+        "block",
+        "warn",
+        "report"
+      ]
+    },
+    "cap_enforcement": {
+      "type": "object",
+      "required": [
+        "status",
+        "lane_id",
+        "timing",
+        "action"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "lane_id": {
+          "type": "string",
+          "description": "lane id in registry/quality/lanes.yaml"
+        },
+        "timing": {
+          "$ref": "#/$defs/enforcement_timing"
+        },
+        "action": {
+          "$ref": "#/$defs/enforcement_action"
+        },
+        "blocks_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prerequisite_for_operational": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cap_verification": {
+      "type": "object",
+      "required": [
+        "status",
+        "checker_crate",
+        "command"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "checker_crate": {
+          "type": "string"
+        },
+        "command": {
+          "type": "string"
+        },
+        "verifies": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "prerequisite_for_operational": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cap_validation": {
+      "type": "object",
+      "required": [
+        "status",
+        "trigger",
+        "validator"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "trigger": {
+          "enum": [
+            "pre-commit-hook",
+            "pre-push-hook",
+            "pre-grit-claim-hook",
+            "editor-LSP",
+            "write-side-API-guard",
+            "manual"
+          ]
+        },
+        "validator": {
+          "type": "string"
+        },
+        "validates": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "cap_autogen": {
+      "type": "object",
+      "required": [
+        "status",
+        "generator",
+        "inputs",
+        "idempotency_class"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "generator": {
+          "type": "string"
+        },
+        "inputs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "idempotency_class": {
+          "enum": [
+            "deterministic",
+            "content-addressed-sha256",
+            "content-addressed-blake3",
+            "stochastic-with-seed",
+            "non-deterministic"
+          ]
+        },
+        "regeneration_frequency": {
+          "enum": [
+            "on-input-change",
+            "nightly",
+            "on-demand",
+            "pre-commit",
+            "post-grit-done"
+          ]
+        }
+      }
+    },
+    "cap_selfheal": {
+      "type": "object",
+      "required": [
+        "status",
+        "healer",
+        "heals_what"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "healer": {
+          "type": "string"
+        },
+        "heals_what": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "safe_unattended": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "requires_human_approval_for": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "recovery_path_for_destructive_heals": {
+          "type": "string"
+        }
+      }
+    },
+    "cap_selfupdate": {
+      "type": "object",
+      "required": [
+        "status",
+        "triggers",
+        "update_mechanism"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "triggers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "update_mechanism": {
+          "enum": [
+            "post-commit-hook",
+            "post-grit-done-hook",
+            "ci-lane-on-trigger",
+            "scheduled-job",
+            "manual-with-suggestion"
+          ]
+        },
+        "incremental_vs_full": {
+          "enum": [
+            "incremental-diff",
+            "full-regeneration",
+            "hybrid"
+          ]
+        }
+      }
+    },
+    "cap_selfmaintain": {
+      "type": "object",
+      "required": [
+        "status",
+        "policies"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "policies": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "name",
+              "action"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "action": {
+                "enum": [
+                  "archive",
+                  "delete-with-audit",
+                  "reconcile",
+                  "alert",
+                  "regenerate"
+                ]
+              },
+              "trigger": {
+                "type": "string"
+              },
+              "destination": {
+                "type": "string"
+              },
+              "audit_emission_required": {
+                "type": "boolean"
+              },
+              "recovery_path": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    },
+    "cap_telemetry": {
+      "type": "object",
+      "required": [
+        "status",
+        "observability_standard",
+        "metrics"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "observability_standard": {
+          "enum": [
+            "opentelemetry",
+            "prometheus",
+            "both",
+            "none"
+          ]
+        },
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "id",
+              "kind",
+              "unit"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^oya_[a-z][a-z0-9_]*$"
+              },
+              "kind": {
+                "enum": [
+                  "counter",
+                  "gauge",
+                  "histogram",
+                  "updown_counter"
+                ]
+              },
+              "unit": {
+                "type": "string",
+                "description": "OTel-aligned unit (e.g., '1', 'ms', 'By')"
+              },
+              "labels": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "cardinality_budget": {
+                "type": "integer",
+                "minimum": 1
+              }
+            }
+          }
+        },
+        "exporter": {
+          "type": "string"
+        },
+        "dashboard": {
+          "type": "string"
+        }
+      }
+    },
+    "cap_provenance": {
+      "type": "object",
+      "required": [
+        "status",
+        "fields_required",
+        "last_modified_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "status": {
+          "$ref": "#/$defs/capability_status"
+        },
+        "fields_required": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "current_author": {
+          "type": "string"
+        },
+        "current_reviewed_by": {
+          "type": "string"
+        },
+        "autogenerated_by": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "last_modified_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "supersedes_history": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "slsa_level_target": {
+          "enum": [
+            "L1",
+            "L2",
+            "L3",
+            "L4"
+          ],
+          "description": "Target SLSA level for build provenance. Foundation prerequisite for cosign/rekor binding."
+        },
+        "grit_done_seal_event_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Provenance: which Oya VCS ChangeBundle/Promotion sealed this artifact's last write. Legacy grit done ids are compatibility-only historical inputs."
+        }
+      }
+    }
+  }
+}

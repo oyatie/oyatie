@@ -1,0 +1,131 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "spec_id": "chaos-engineering-substrate-canonical",
+  "spec_kind": "canonical-decision",
+  "authoring_adr": "ADR-0165",
+  "related_adrs": [
+    "ADR-0114",
+    "ADR-0121",
+    "ADR-0128",
+    "ADR-0139",
+    "ADR-0145",
+    "ADR-0148",
+    "ADR-0157",
+    "ADR-0158",
+    "ADR-0160"
+  ],
+  "status": "Accepted",
+  "date": "2026-05-18",
+  "title": "Chaos Engineering Substrate Canonical Spec",
+  "purpose": "Operationalizes ADR-0165. Declares Chaos Mesh 2.x adoption, per-µservice catalog requirements, nightly drill cadence, SLO-gate semantics, and release-blocker rules.",
+  "controller": {
+    "tool": "Chaos Mesh 2.x (CNCF incubating)",
+    "deployment": "per cell, cluster-scoped operator in cloud-k8s pack"
+  },
+  "per_microservice_catalog": {
+    "path": "microservices/<ms>/chaos/scenarios/*.yaml",
+    "minimum_required_scenarios": [
+      {
+        "name": "pod-kill",
+        "kind": "PodChaos",
+        "purpose": "test INV-AT-LEAST-3-REPLICAS"
+      },
+      {
+        "name": "network-delay-100ms",
+        "kind": "NetworkChaos",
+        "purpose": "test latency tolerance + retry"
+      },
+      {
+        "name": "dependency-failure-<dep>",
+        "kind": "HTTPChaos",
+        "purpose": "test circuit-breaker per declared downstream dependency"
+      },
+      {
+        "name": "disk-slow-1000ms",
+        "kind": "IOChaos",
+        "purpose": "test IO failure tolerance"
+      },
+      {
+        "name": "time-skew-30s",
+        "kind": "TimeChaos",
+        "purpose": "test clock tolerance (required if chaos_time_sensitive: true)"
+      }
+    ]
+  },
+  "drill_cadence": {
+    "nightly_workflow": ".github/workflows/chaos-nightly.yml",
+    "default_time": "02:00 cell-local time",
+    "per_microservice_override": "microservices/<ms>/manifest.json#chaos_schedule"
+  },
+  "slo_gate_evaluation_window": {
+    "request_success_rate_during_drill": ">= 95% (relaxed from 99.5% canary baseline)",
+    "request_duration_p99_during_drill": "<= 2x normal budget",
+    "audit_chain_emission_success_rate_during_drill": ">= 99.9% (not relaxable)",
+    "per_microservice_custom_queries": "slos/chaos-gates.openslo.yaml"
+  },
+  "failure_mode_primitives": {
+    "PodChaos": [
+      "pod-kill",
+      "pod-failure",
+      "container-kill"
+    ],
+    "NetworkChaos": [
+      "delay",
+      "loss",
+      "duplicate",
+      "corrupt",
+      "partition"
+    ],
+    "IOChaos": [
+      "latency",
+      "fault",
+      "attrOverride",
+      "mistake"
+    ],
+    "TimeChaos": [
+      "clock-skew"
+    ],
+    "StressChaos": [
+      "cpu",
+      "memory"
+    ],
+    "DNSChaos": [
+      "resolution-failure"
+    ],
+    "HTTPChaos": [
+      "5xx-injection"
+    ]
+  },
+  "cross_microservice_scenarios": {
+    "location": "microservices/cloud-k8s/chaos/scenarios/",
+    "examples": [
+      "cross-cell-partition.yaml",
+      "full-cell-loss.yaml"
+    ]
+  },
+  "gameday_quarterly": {
+    "owner": "SRE team",
+    "pattern": "Google DiRT",
+    "deliverable": "microservices/cloud-k8s/runbooks/gameday-{quarter}.md"
+  },
+  "production_chaos_optin": {
+    "default": false,
+    "field": "microservices/<ms>/manifest.json#chaos_production_optin",
+    "applies_to_candidates": [
+      "audit-chain",
+      "foundry"
+    ],
+    "requires_severe_slo_gates": true,
+    "requires_per_tenant_whitelist": true
+  },
+  "release_blocker_semantics": {
+    "scenario_slo_breach_against_staging": "blocks promotion of in-flight ChangeSet for the µservice",
+    "remediation": [
+      "fix the µservice (SLO recovers)",
+      "amend the scenario with explicit ADR justification (cannot delete)"
+    ],
+    "audit_chain_seal": "ChaosScenarioFailed",
+    "on_call_paged": true
+  },
+  "ci_lane": "chaos-engineering-catalog (oya gate validate chaos-engineering-catalog)"
+}

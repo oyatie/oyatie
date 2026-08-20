@@ -1,0 +1,20 @@
+# Residual product/docs surface for intelligence capability (dual-home burn-down).
+# Live crates live under intelligence/{core,adapters,facade,testing} with their
+# own package BUCKs, and intelligence/{contracts,policy} already package their
+# own YAML. This package owns the residual service docs, manifests, contracts,
+# and OpenSLO YAML rehomed from cloud/cloud-intelligence and oya/detection
+# (wave 26) so they remain in the Buck2 corpus graph (ADR-0541).
+
+load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
+
+# Hermetic input set for gates that must validate intelligence residual manifests.
+filegroup(
+    name = "live-service-manifest-corpus",
+    srcs = glob(["**/manifest.json"]),
+    visibility = ["PUBLIC"],
+)
+
+corpus_yaml_facts_shards(
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    shard_size = 256,
+)

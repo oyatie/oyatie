@@ -1,0 +1,26 @@
+// oyatie.contract.exposure: internal-only
+// oyatie.contract.transport: grpc-http2
+// oyatie.contract.identity: spiffe-mtls-tls13
+
+syntax = "proto3";
+
+package oyatie.feature_flags.v1;
+
+service FeatureFlagEvaluation {
+  rpc EvaluateFlag(FlagEvaluationRequest) returns (FlagEvaluationResponse);
+}
+
+message FlagEvaluationRequest {
+  string tenant_id = 1;
+  string principal_id = 2;
+  string persona_tier = 3;
+  string flag_key = 4;
+  repeated string cohort_ids = 5;
+}
+
+message FlagEvaluationResponse {
+  string flag_key = 1;
+  string variant = 2;
+  string reason = 3;
+  string audit_event = 4;
+}

@@ -4980,3 +4980,40 @@ into the interface at all — its target form is opaque and already known to car
 message methods stopped being counted as declarations of their own because they are now the body of
 an impl. The golden gained one line, `#[derive(Debug)]` on the hermetic corpus's `Report`, which
 holds a boxed failure and had been denied a derive it earns.
+
+## R2t — repairing a mass deletion this lane committed by accident
+
+Preparing to open a pull request surfaced it: the 30 commits of this session showed **669,689
+deletions across 2450 files**. That is not what this lane did.
+
+`git show --shortstat` per commit found the whole of it in one place. R2m — the stored-failure
+nullability change, six real files — carried a deletion of **655,263 lines**: `ci/`, `intelligence/`,
+`specs/`, `tenancy/`, `.grok/`, `tools/`, `infra/`, `flags/`, and the root `Cargo.toml`. R2o added
+13,901 more of the same.
+
+**The cause.** Something outside this session deletes the worktree directory
+`.claude/worktrees/wise-floating-journal` while work is in progress; it happened three times, and the
+first coincided exactly with R2m's `git add -A && git commit`. The deletion was underway DURING the
+commit, so `add -A` faithfully staged 2354 files as removed and the commit recorded it. Every gate
+after that ran on the surviving tree and passed, because the engine's own crates were never touched.
+
+**The repair.** Restored every deleted path from `0903e9c4f`, the last commit before the damage, plus
+`Cargo.lock`. Verified rather than assumed: outside `build/port-engine` the tree is now byte-identical
+to that commit except this file's own additions, and inside it the session's work is untouched — one
+file added, fifty-one modified, **zero deleted**. The engine builds against the restored workspace.
+
+**Three things worth keeping.**
+
+The root `Cargo.toml` was among the casualties, and its absence is what sent me down a wrong path
+earlier: I concluded the branch had no workspace manifest and generated a minimal local one to build
+against. The manifest was never absent — it had been destroyed by this commit. A missing file is
+evidence of something, and "this branch never had it" was the wrong inference.
+
+`git add -A` is the mechanism that turned an external accident into a committed one. It stages what
+it finds, and what it found was a directory being emptied. A lane that stages by explicit path could
+not have recorded this.
+
+And nothing in the gate suite could see it. Tests, clippy, the delta, the golden and the compile proof
+all pass on a tree with `ci/` and `specs/` deleted, because none of them reads those trees. The check
+that caught it was preparing a PR and looking at the diffstat — which is to say, a human-shaped
+question about the whole change rather than a machine-shaped question about the part under work.

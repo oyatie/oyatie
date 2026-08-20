@@ -1,0 +1,46 @@
+[package]
+name = "ci-scm-facts-snapshot"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# The SINGLE out-of-graph git boundary (OYA-CI-HERMETIC-EXECUTION-DESIGN §1.5, Option C).
+# This rust_binary is the only thing allowed to shell out to git: it snapshots the four
+# ambient git outputs the accounting producer used to derive itself and writes the committed,
+# registry-drift-protected scm-facts.generated.json face. Run by the CI scm-facts-regen
+# pre-step + the local regen hook — NEVER inside a cacheable buck2 action. The producer + all
+# gates then consume the committed face as a declared input, so no action ever calls git.
+
+[[bin]]
+name = "oya-cloud-ci-scm-facts-emitter-app"
+path = "src/main.rs"
+
+[[bin]]
+name = "oya-cloud-ci-adr-census-epoch-receipt-gate"
+path = "src/bin/adr-census-epoch-receipt-gate.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+ci-path-resolver-ports = { path = "../../ports/path-resolver" }
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
+ci-artifact-inventory-registry = { path = "../artifact-inventory-registry" }
+# The firewall's baseline PARSER (ADR-0616 PR-1): the frozen-baseline regen cross-check projects
+# BOTH the committed `git show` reference and the merge-base-source regeneration through the
+# firewall's OWN `Baseline::from_value` (reads only `gates`, so `_provenance` byte-noise is
+# tolerated) and compares {keys, mode, frozen_empty} per (gate, code). Acyclic: the ratchet lib
+# depends only on serde_json.
+ci-baseline-ratchet = { path = "../baseline-ratchet" }
+oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
+oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
+corpus-doc-parser = { path = "../../../governance/corpus/doc-parser" }
+sha2 = { workspace = true }
+rustix = { workspace = true }
+
+[dev-dependencies]
+oya-reorg-codemod-app = { path = "../../../tools/oya-reorg-codemod-app" }
+
+[lints]
+workspace = true

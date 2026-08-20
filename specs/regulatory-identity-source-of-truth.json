@@ -1,0 +1,1480 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/regulatory-identity-source-of-truth.json",
+  "_artifact_id": "regulatory-identity-source-of-truth",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-REGULATORY-IDENTITY-SOURCE-OF-TRUTH",
+    "version": "0.1.1",
+    "status": "planning-source-of-truth",
+    "created_at": "2026-07-01T00:05:43Z",
+    "owner_team": "ops-compliance + axis-identity + council-security + council-privacy + legal-review",
+    "lane": "regulatory-identity/source-of-truth",
+    "kanban_task": "t_eebd8980",
+    "purpose": "Exact source-index and machine-readable control backlog for Korean/global identity, KYC, passkey, compliance and PQC floors. This artifact is planning/spec inventory only; it does not mutate product code, create CLI surface, or introduce oya/cloud reorg debt.",
+    "claim_ceiling_status": "planning_inventory_only_no_certification_or_readiness_claim",
+    "last_claim_ceiling_review_at_utc": "2026-07-01T00:31:35Z",
+    "northstar": "Passkey-first hyperscaler identity/KYC with statutory identity-proofing and compliance evidence modeled as API/queryable evidence artifacts, not Korean legacy UX.",
+    "non_goals": [
+      "No product-code mutation in this lane",
+      "No CLI surface",
+      "No hand-editing generated artifacts",
+      "No manual transcription of PDF tables when machine/OCR extraction is required",
+      "No claim that passkeys alone satisfy statutory KYC or Korean 본인확인기관 requirements"
+    ],
+    "source_fetch_summary": {
+      "fetched_at_utc": "2026-07-01T00:04:50Z",
+      "tooling": "curl -L --compressed with SHA-256 over fetched bytes; local repo files hashed with Python hashlib",
+      "fetched_ok_count": 29,
+      "blocked_or_unresolved_count": 3
+    }
+  },
+  "contract": {
+    "source_index_required_fields": [
+      "source_id",
+      "title",
+      "publisher",
+      "jurisdiction",
+      "source_type",
+      "canonical_url",
+      "retrieval_status",
+      "freshness_cadence",
+      "owner",
+      "evidence_artifact_type",
+      "unknowns"
+    ],
+    "control_backlog_required_fields": [
+      "backlog_id",
+      "title",
+      "jurisdiction",
+      "regulatory_floor",
+      "control_family",
+      "source_refs",
+      "owner",
+      "freshness_cadence",
+      "evidence_artifact_type",
+      "implementation_anchor",
+      "northstar_guardrail",
+      "status",
+      "unknowns"
+    ],
+    "unknown_policy": "unknowns must be an explicit array on every source and backlog row; empty array means no unknowns found in this planning extraction, not legal approval",
+    "freshness_policy": "each source and backlog row carries a cadence; blocked/unresolved sources refresh monthly until resolved; official fetched sources refresh at least quarterly or on regulator update",
+    "owner_policy": "owners are accountable teams/roles, not individual people, because this artifact is durable planning source-of-truth",
+    "source_blocker_required_fields": [
+      "blocker_id",
+      "state",
+      "summary",
+      "source_refs",
+      "owner",
+      "freshness_cadence",
+      "expires_at_utc",
+      "claim_ceiling",
+      "resolution_path"
+    ],
+    "state_policy": "state=blocker means row-level policy, certification/readiness, launch, or evidence-acceptance claims fail closed until the row is resolved; state=allowed_unknown permits bounded planning/crosswalk inventory only and still forbids readiness or certification claims.",
+    "claim_ceiling_policy": "This artifact may claim source-index/planning coverage only. It cannot claim KISA/KMCC designation, ISMS-P certification, CSAP certification, PCI DSS Level 1 readiness, US/EU obliged-entity launch readiness, PQC deployment readiness, WebAuthn PQC readiness, production readiness, or regulatory certification."
+  },
+  "claim_ceiling": {
+    "claim_status": "planning_inventory_only_no_certification_or_readiness_claim",
+    "owner": "ops-compliance + axis-identity + council-security + council-privacy + legal-review",
+    "freshness_cadence": "review on every source-index update and at least monthly while source_blocker_register has open rows",
+    "expires_at_utc": "2026-08-01T00:00:00Z",
+    "allowed_claims": [
+      "This artifact indexes source candidates, fetched source hashes, control-backlog planning rows, and explicit unresolved source blockers.",
+      "Downstream work may use open allowed_unknown rows for bounded planning and section/article crosswalk preparation only."
+    ],
+    "forbidden_claims": [
+      "KISA/KMCC/KCC identity-verification designation readiness or certification",
+      "ISMS-P certification readiness or checklist completeness",
+      "CSAP certification readiness, cloud-service certification, or public-sector tenant activation readiness",
+      "PCI DSS Level 1 readiness, ROC/AOC/QSA readiness, or v4.0.1 control completeness",
+      "US or EU obliged-entity launch readiness, market readiness, or complete entity-class coverage",
+      "PQC implementation readiness or WebAuthn/browser/authenticator PQC support readiness",
+      "production readiness, runtime enforcement, tenant activation, or regulator/auditor acceptance"
+    ],
+    "go_no_go_rule": "Any policy/API/runtime/spec row that attempts one of the forbidden_claims while a referenced source_blocker_register row is open must be treated as no-go unless it is explicitly scoped to planning inventory and carries the same blocker id.",
+    "certification_statement": "No source row, backlog row, or unknown row in this artifact is evidence of certification, readiness, runtime enforcement, or regulator acceptance."
+  },
+  "source_blocker_register": [
+    {
+      "blocker_id": "REGGOV-SB-001",
+      "state": "blocker",
+      "summary": "KISA/KMCC/KCC 87-item evaluation PDF is fetched and hashed, but exact table rows remain machine/OCR pending.",
+      "source_refs": [
+        "KR-IDV-2024-EVALUATION-CRITERIA-PDF",
+        "KR-IDV-GUIDE-PAGE-2024-02",
+        "KR-IDV-EDU-TRANSCRIPT-87-ITEMS"
+      ],
+      "owner": "ops-compliance + axis-identity-kr",
+      "freshness_cadence": "monthly until OCR/table extraction is committed; then quarterly and on KISA guide/PDF update",
+      "expires_at_utc": "2026-08-01T00:00:00Z",
+      "resolution_path": "Run machine/OCR table extraction against sha256:b7136fdb863712b77d9fcc3b523ccd5ebf4484a23cf0d5d019097cd62a8965bf and commit row ids, Korean text, table/page coordinates, scoring flags and source hash before row-level KR identity policies.",
+      "allowed_while_open": [
+        "source hash inventory",
+        "OCR extraction planning",
+        "non-row-level passkey-vs-proofing architecture notes"
+      ],
+      "blocked_while_open": [
+        "KISA/KMCC designation-readiness claims",
+        "87-row control completeness claims",
+        "row-level Cedar or accreditation packet policy authoring"
+      ],
+      "claim_ceiling": "No KISA/KMCC designation, certification, readiness, scoring, or row-level compliance claim is allowed until this blocker is resolved."
+    },
+    {
+      "blocker_id": "REGGOV-SB-002",
+      "state": "blocker",
+      "summary": "ISMS-P intro/checklist source DNS failed; law.go.kr and process-page snapshots are indexed but not enough for blocker-grade checklist rows.",
+      "source_refs": [
+        "KR-ISMSP-ADMIN-RULE-2100000244750",
+        "KR-ISMSP-CERT-PROCESS-PAGE",
+        "KR-ISMSP-INTRO-UNRESOLVED-DNS"
+      ],
+      "owner": "ops-compliance + council-privacy + council-security",
+      "freshness_cadence": "monthly retry while DNS is unresolved; mandatory refresh before any application/surveillance/renewal packet work",
+      "expires_at_utc": "2026-08-01T00:00:00Z",
+      "resolution_path": "Retry the official ISMS-P/KISA source or capture an alternate official guide/checklist PDF with URL, version/date, byte hash and extracted row ids before checklist-level policy or evidence rows.",
+      "allowed_while_open": [
+        "management-system evidence planning from existing official rule/process snapshots",
+        "source-refresh automation design"
+      ],
+      "blocked_while_open": [
+        "ISMS-P certification-readiness claims",
+        "complete checklist/control-count claims",
+        "blocker-grade ISMS-P pack rows or row-level evidence acceptance"
+      ],
+      "claim_ceiling": "No ISMS-P certification, readiness, checklist completeness, or row-level implementation claim is allowed until the official checklist/source row is reachable and normalized."
+    },
+    {
+      "blocker_id": "REGGOV-SB-003",
+      "state": "blocker",
+      "summary": "KISA CSAP portal DNS failed; law.go.kr rule is indexed but CSAP service-type/control-count/checklist sources are unresolved.",
+      "source_refs": [
+        "KR-CSAP-ADMIN-RULE-2100000218804",
+        "KR-CSAP-INTRO-UNRESOLVED-DNS",
+        "OYATIE-COMPLIANCE-PACK-FLOORS-2026-05-21"
+      ],
+      "owner": "ops-compliance + cloud-control-plane-governance + council-security",
+      "freshness_cadence": "monthly retry while DNS is unresolved; mandatory refresh before KR public-sector tenant or certified-cell claims",
+      "expires_at_utc": "2026-08-01T00:00:00Z",
+      "resolution_path": "Retry the official CSAP portal/material sources and normalize current service types, checklist/control counts, validity, annual post-management and renewal/remediation rows before CSAP pack or cell-certification evidence authoring.",
+      "allowed_while_open": [
+        "cloud-control-plane evidence planning from indexed law.go.kr rule",
+        "certified-cell evidence object shape planning"
+      ],
+      "blocked_while_open": [
+        "CSAP certification-readiness claims",
+        "KR public-sector tenant activation readiness",
+        "blocker-grade CSAP certified-cell policy rows"
+      ],
+      "claim_ceiling": "No CSAP certification, certified-cell readiness, public-sector activation, or complete checklist claim is allowed until the official portal/source rows are reachable and normalized."
+    },
+    {
+      "blocker_id": "REGGOV-SB-004",
+      "state": "blocker",
+      "summary": "PCI DSS v4.0.1 direct PDF access returned 403 HTML; the document-library page is indexed but exact standard text is not acquired.",
+      "source_refs": [
+        "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS",
+        "PCI-DSS-V4-0-1-PDF-BLOCKED"
+      ],
+      "owner": "payments-security + ops-compliance + council-security",
+      "freshness_cadence": "monthly retry while access is blocked; quarterly and on PCI SSC update after PDF acquisition; annual ROC/AOC cadence remains downstream evidence only",
+      "expires_at_utc": "2026-08-01T00:00:00Z",
+      "standard_version": "4.0.1",
+      "pack_id_policy": "Existing pack id PCI-DSS-L1-v4 is a stable shorthand only; it is not proof that v4.0.1 row text has been extracted or reconciled.",
+      "resolution_path": "Acquire the PCI DSS v4.0.1 PDF under permitted PCI SSC access terms, record PDF hash/version/date, and reconcile current PCI-DSS-L1-v4 planning rows to v4.0.1 wording before detailed control extraction or evidence acceptance.",
+      "allowed_while_open": [
+        "CDE scope and tokenization planning as non-claim target criteria",
+        "PCI source-access remediation planning"
+      ],
+      "blocked_while_open": [
+        "PCI DSS Level 1 readiness claims",
+        "ROC/AOC/QSA/ASV readiness claims",
+        "v4.0.1 control completeness or v4.0.1-derived Cedar/evidence acceptance rows"
+      ],
+      "claim_ceiling": "No PCI DSS Level 1 readiness, v4.0.1 control completeness, QSA/ROC/AOC readiness, or tenant CDE activation claim is allowed until the official v4.0.1 text is acquired and normalized."
+    },
+    {
+      "blocker_id": "REGGOV-SB-005",
+      "state": "allowed_unknown",
+      "summary": "US CIP/CDD source rows cover bank/customer baseline sections, but non-bank obliged-entity and market/entity overlays are not selected.",
+      "source_refs": [
+        "US-CIP-ECFR-31-CFR-1020-220",
+        "US-CDD-ECFR-31-CFR-1010-230"
+      ],
+      "owner": "legal-us + ops-compliance + axis-identity",
+      "freshness_cadence": "quarterly and on eCFR amendment; review before any US regulated financial-service or entity-class commitment",
+      "expires_at_utc": "2026-10-01T00:00:00Z",
+      "resolution_path": "Select target US entity class/market, add entity-specific FFIEC/eCFR/manual sources, and legal-review applicability before market launch or blocker-grade policy commitments.",
+      "allowed_while_open": [
+        "baseline US CIP/CDD planning inventory",
+        "generic identity/KYC evidence object design"
+      ],
+      "blocked_while_open": [
+        "US regulated financial-service launch readiness",
+        "entity-specific obliged-entity coverage claims",
+        "complete US CIP/CDD policy row set claims"
+      ],
+      "claim_ceiling": "US CIP/CDD rows are planning inputs only; no US market/entity readiness or complete obliged-entity coverage claim is allowed while this allowed_unknown is open."
+    },
+    {
+      "blocker_id": "REGGOV-SB-006",
+      "state": "allowed_unknown",
+      "summary": "EU AMLR/eIDAS/GDPR sources are indexed, but member-state, supervisory, implementing-act and entity-scope overlays are not enumerated.",
+      "source_refs": [
+        "EU-AMLR-2024-1624",
+        "EU-EIDAS-2014-910",
+        "EU-EIDAS-AMENDMENT-2024-1183",
+        "EU-GDPR-2016-679"
+      ],
+      "owner": "legal-eu + ops-compliance + axis-identity + council-privacy",
+      "freshness_cadence": "quarterly and on EUR-Lex/update or implementing-act publication; review before target EU member-state launch",
+      "expires_at_utc": "2026-10-01T00:00:00Z",
+      "resolution_path": "Select launch member states/entity scopes, add local DPA/supervisory/eIDAS implementing-act sources, and legal-review applicability before EU launch or blocker-grade policy commitments.",
+      "allowed_while_open": [
+        "EU source inventory and generic crosswalk planning",
+        "privacy/KYC evidence object design with explicit local-overlay gap"
+      ],
+      "blocked_while_open": [
+        "EU launch-market readiness",
+        "member-state or obliged-entity completeness claims",
+        "EUDI wallet/relying-party production readiness claims"
+      ],
+      "claim_ceiling": "EU rows are planning inputs only; no EU member-state, supervisory, obliged-entity, EUDI wallet, or market-readiness claim is allowed while this allowed_unknown is open."
+    },
+    {
+      "blocker_id": "REGGOV-SB-007",
+      "state": "allowed_unknown",
+      "summary": "Base PQC FIPS standards are indexed, but federal transition deadlines, WebAuthn/browser/authenticator support and vendor timelines are not normalized.",
+      "source_refs": [
+        "NIST-FIPS-203-ML-KEM-PDF",
+        "NIST-FIPS-204-ML-DSA-PDF",
+        "NIST-FIPS-205-SLH-DSA-PDF",
+        "ADR-0188"
+      ],
+      "owner": "council-security + crypto-platform + axis-identity",
+      "freshness_cadence": "quarterly for standards and vendor/browser support; immediate review on NIST/OMB/CISA transition update or WebAuthn/FIDO support milestone",
+      "expires_at_utc": "2026-10-01T00:00:00Z",
+      "resolution_path": "Add federal transition memoranda, browser/WebAuthn/FIDO authenticator support matrices, vendor library roadmaps and migration exception policy before implementation or readiness claims beyond cryptographic inventory planning.",
+      "allowed_while_open": [
+        "PQC cryptographic inventory planning",
+        "long-lived evidence-signing migration design as target-state inventory"
+      ],
+      "blocked_while_open": [
+        "PQC deployment readiness",
+        "WebAuthn/browser/authenticator PQC support readiness",
+        "production migration or tenant credential-posture claims"
+      ],
+      "claim_ceiling": "PQC/WebAuthn rows are planning inputs only; no PQC implementation, migration, browser/WebAuthn support, or production-readiness claim is allowed while this allowed_unknown is open."
+    }
+  ],
+  "source_index": [
+    {
+      "source_id": "USER-DIRECTIVE-2026-06-30-REGID-001",
+      "title": "REGID-001 kanban directive: unified identity compliance source extraction",
+      "publisher": "Oyatie founder/user directive",
+      "jurisdiction": "global",
+      "baseline_scope": "task acceptance criteria and northstar guardrails",
+      "source_type": "internal-kanban-directive",
+      "canonical_url": "kanban:t_eebd8980",
+      "effective_or_version": "2026-06-30 task body",
+      "retrieved_at_utc": "2026-07-01T00:05:43Z",
+      "retrieval_status": "internal-reference",
+      "http_status": null,
+      "content_type": "kanban-task-body",
+      "size_bytes": null,
+      "sha256": null,
+      "freshness_cadence": "per task/update; superseded only by explicit user directive",
+      "owner": "founder + ops-compliance + axis-identity",
+      "evidence_artifact_type": "kanban_task_context",
+      "extraction_state": "complete-for-this-planning-lane",
+      "unknowns": []
+    },
+    {
+      "source_id": "GJC-KR-COMPLIANCE-RESEARCH-2026-06-30",
+      "title": "Korea compliance baseline research plan — passkey-first identity/KYC/cloud platform",
+      "publisher": "GJC planner 125-KoreaComplianceResearch",
+      "jurisdiction": "KR + global planning context",
+      "baseline_scope": "read-only research matrix for KISA/KMCC identity, ISMS-P, CSAP, IoT security and Oyatie implementation implications",
+      "source_type": "internal-planning-evidence",
+      "canonical_url": ".gjc/_session-019f1aef-0840-7000-aa2e-35836dfa25f8/plans/ralplan/019f1aef-0840-7000-aa2e-35836dfa25f8/stage-01-planner.md",
+      "effective_or_version": "session 019f1aef-0840-7000-aa2e-35836dfa25f8",
+      "retrieved_at_utc": "2026-07-01T00:05:43Z",
+      "retrieval_status": "local-file-read",
+      "http_status": null,
+      "content_type": "text/markdown",
+      "size_bytes": 17987,
+      "sha256": "de2d51de4a0099d622df76383eaa1f506af1912ff436d6b07b09b74ad63814d7",
+      "freshness_cadence": "use as planning evidence only; refresh from official sources before implementation",
+      "owner": "ops-compliance + axis-identity",
+      "evidence_artifact_type": "planning_research_matrix",
+      "extraction_state": "complete-as-secondary-evidence",
+      "unknowns": [
+        "Secondary evidence only; official sources below govern conflicts."
+      ]
+    },
+    {
+      "source_id": "KR-IDV-GUIDE-PAGE-2024-02",
+      "title": "본인확인기관 지정정기심사 평가기준 해설서(2024.2) guide page",
+      "publisher": "KISA 본인확인 지원포털",
+      "jurisdiction": "KR",
+      "baseline_scope": "KISA/KMCC/KCC 본인확인기관 designation and regular-review evaluation criteria landing page",
+      "source_type": "official-web-page",
+      "canonical_url": "https://identity.kisa.or.kr/web/main/bbs/guide/38?baCommSelec=false&baNotice=false&baOpenDay=false&baUse=true&bcId=guide&cp=1&sortDirection=DESC&sortOrder=BA_REGDATE&sv=2024",
+      "effective_or_version": "2024.2 page title",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "size_bytes": 29739,
+      "sha256": "9f5ec8886e493536b6d71d8a73e9bb47cd546bec767c37611320a852019355f3",
+      "freshness_cadence": "quarterly plus on KISA guide-page update",
+      "owner": "ops-compliance + axis-identity-kr",
+      "evidence_artifact_type": "official_source_snapshot",
+      "extraction_state": "page indexed; PDF attachment separately indexed",
+      "unknowns": []
+    },
+    {
+      "source_id": "KR-IDV-2024-EVALUATION-CRITERIA-PDF",
+      "title": "(2024년) 본인확인기관 지정정기심사 평가기준 해설서 최종.pdf",
+      "publisher": "KISA 본인확인 지원포털",
+      "jurisdiction": "KR",
+      "baseline_scope": "Official 2024 evaluation-criteria guide containing the 87 본인확인기관 designation/regular-review items to machine-extract",
+      "source_type": "official-pdf-download",
+      "canonical_url": "https://identity.kisa.or.kr/web/main/file/download/uu/c3ec68479e38470abd2d9c20bcf41e02",
+      "effective_or_version": "2024.2 attachment; filename from Content-Disposition",
+      "retrieved_at_utc": "2026-07-01T00:04:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/octet-stream;charset=UTF-8",
+      "size_bytes": 6233484,
+      "sha256": "b7136fdb863712b77d9fcc3b523ccd5ebf4484a23cf0d5d019097cd62a8965bf",
+      "freshness_cadence": "quarterly plus on new guide/PDF publication",
+      "owner": "ops-compliance + axis-identity-kr",
+      "evidence_artifact_type": "official_pdf_hash + ocr_table_extract_required",
+      "extraction_state": "source captured; exact 87-row table extraction is the next machine/OCR task",
+      "unknowns": [
+        "Exact row ids, Korean row text, scoring flags, and table boundaries are intentionally not hand-transcribed; require machine extraction/OCR from this hashed PDF."
+      ]
+    },
+    {
+      "source_id": "KR-IDV-DESIGNATION-CRITERIA-PAGE",
+      "title": "본인확인기관 지정기준 page",
+      "publisher": "KISA 본인확인 지원포털",
+      "jurisdiction": "KR",
+      "baseline_scope": "Designation process, 800/1000 threshold and important/quantitative item pass/fail guidance",
+      "source_type": "official-web-page",
+      "canonical_url": "https://identity.kisa.or.kr/web/main/contents/M050-03",
+      "effective_or_version": "current page at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "size_bytes": 35908,
+      "sha256": "b8bce2506c08be373562f6e6328bb08f7c78b3bbab0ae341623b39ad437993f5",
+      "freshness_cadence": "quarterly plus on KISA criteria-page update",
+      "owner": "ops-compliance + axis-identity-kr",
+      "evidence_artifact_type": "official_source_snapshot",
+      "extraction_state": "indexed for thresholds and designation flow",
+      "unknowns": []
+    },
+    {
+      "source_id": "KR-IDV-EDU-TRANSCRIPT-87-ITEMS",
+      "title": "본인확인기관 지정 적합성 심사기준 education transcript",
+      "publisher": "KISA 본인확인 지원포털",
+      "jurisdiction": "KR",
+      "baseline_scope": "Education transcript confirming 87 adequacy-review items: 71 safety controls, technical capability, financial capability, and 14 facility-scale items",
+      "source_type": "official-web-page",
+      "canonical_url": "https://identity.kisa.or.kr/web/main/bbs/edu_identification/55",
+      "effective_or_version": "current page at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "size_bytes": 36000,
+      "sha256": "306dc0ea09e08d70a9a613d77d911970093fddf09c611d42eef1e6a9910c97c9",
+      "freshness_cadence": "semi-annual plus on education-material update",
+      "owner": "ops-compliance + axis-identity-kr",
+      "evidence_artifact_type": "official_source_snapshot",
+      "extraction_state": "indexed for 87-item family confirmation",
+      "unknowns": []
+    },
+    {
+      "source_id": "KR-IDV-EDU-ATTACHMENT-PDF",
+      "title": "본인확인기관 지정 및 정기심사 해설영상 PDF attachment",
+      "publisher": "KISA 본인확인 지원포털",
+      "jurisdiction": "KR",
+      "baseline_scope": "Education-attachment PDF for designation and regular-review explanation",
+      "source_type": "official-pdf-download",
+      "canonical_url": "https://identity.kisa.or.kr/web/main/file/download/uu/fceeff35e39e465b849f3299bd28a2b9",
+      "effective_or_version": "current attachment at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:04:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/octet-stream;charset=UTF-8",
+      "size_bytes": 260468,
+      "sha256": "0e6ca46a1051ee713106d6eb4f38c9876a90324f0cd8262b4eb57864b18f065e",
+      "freshness_cadence": "semi-annual plus on education-material update",
+      "owner": "ops-compliance + axis-identity-kr",
+      "evidence_artifact_type": "official_pdf_hash",
+      "extraction_state": "indexed as supporting evidence",
+      "unknowns": []
+    },
+    {
+      "source_id": "KR-ISMSP-ADMIN-RULE-2100000244750",
+      "title": "ISMS-P / ISMS administrative rule",
+      "publisher": "Korea law.go.kr",
+      "jurisdiction": "KR",
+      "baseline_scope": "Official administrative rule for information security and personal-information protection management-system certification",
+      "source_type": "official-law-page",
+      "canonical_url": "https://law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000244750",
+      "effective_or_version": "admRulSeq=2100000244750",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "size_bytes": 78529,
+      "sha256": "876183d8ba38f447ad1113e72602f01e93001be058f4c7f063b5dbb7513fff58",
+      "freshness_cadence": "quarterly plus on law.go.kr amendment/effective-date update",
+      "owner": "ops-compliance + council-privacy + council-security",
+      "evidence_artifact_type": "official_law_snapshot",
+      "extraction_state": "indexed for certification scope, prerequisites, surveillance, renewal and remediation windows",
+      "unknowns": [
+        "Latest checklist row count should be confirmed against official guide/checklist PDFs before row-level implementation."
+      ]
+    },
+    {
+      "source_id": "KR-ISMSP-CERT-PROCESS-PAGE",
+      "title": "ISMS-P certification process page",
+      "publisher": "ISMS-P official portal",
+      "jurisdiction": "KR",
+      "baseline_scope": "Application process, required documents, certification review and renewal workflow",
+      "source_type": "official-web-page",
+      "canonical_url": "https://www.isms-p.or.kr/cert/aply/selectCertPrcdDetail.do",
+      "effective_or_version": "current page at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "size_bytes": 243764,
+      "sha256": "334194e7d18ee0cf3101edcef58affaab1881386cb3ff3d4e8882dcb60547192",
+      "freshness_cadence": "quarterly plus on portal process-page update",
+      "owner": "ops-compliance + council-privacy + council-security",
+      "evidence_artifact_type": "official_source_snapshot",
+      "extraction_state": "indexed for evidence pack requirements",
+      "unknowns": []
+    },
+    {
+      "source_id": "KR-ISMSP-INTRO-UNRESOLVED-DNS",
+      "title": "ISMS-P KISA intro page referenced by planning evidence",
+      "publisher": "KISA / ISMS-P portal",
+      "jurisdiction": "KR",
+      "baseline_scope": "Public intro/checklist count source",
+      "source_type": "official-web-page-candidate",
+      "canonical_url": "https://isms-p.kisa.or.kr/main/ispims/intro/",
+      "effective_or_version": "unresolved at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "unresolved-dns",
+      "http_status": 0,
+      "content_type": null,
+      "size_bytes": 0,
+      "sha256": null,
+      "freshness_cadence": "retry during source-refresh; do not rely on this until reachable",
+      "owner": "ops-compliance + council-privacy + council-security",
+      "evidence_artifact_type": "unresolved_source_pointer",
+      "extraction_state": "blocked; use law.go.kr and process page until portal source is reachable",
+      "unknowns": [
+        "DNS failed from task environment; current official intro URL/checklist count needs retry or browser/manual verification."
+      ]
+    },
+    {
+      "source_id": "KR-CSAP-ADMIN-RULE-2100000218804",
+      "title": "CSAP administrative rule",
+      "publisher": "Korea law.go.kr",
+      "jurisdiction": "KR",
+      "baseline_scope": "Cloud Security Assurance Program certification law/rule, assessment, post-management, renewal and remediation windows",
+      "source_type": "official-law-page",
+      "canonical_url": "https://www.law.go.kr/admRulInfoP.do?admRulSeq=2100000218804",
+      "effective_or_version": "admRulSeq=2100000218804",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "size_bytes": 78348,
+      "sha256": "385f187d0cbdb3af70b36e1f4dc4cd295a6e4682f78e6839f3ec30bd5f9ff176",
+      "freshness_cadence": "quarterly plus on law.go.kr amendment/effective-date update",
+      "owner": "ops-compliance + cloud-control-plane-governance",
+      "evidence_artifact_type": "official_law_snapshot",
+      "extraction_state": "indexed for CSAP floor backlog",
+      "unknowns": [
+        "KISA public CSAP portal was not reachable from this run; type/control-count reconciliation remains explicit backlog."
+      ]
+    },
+    {
+      "source_id": "KR-CSAP-INTRO-UNRESOLVED-DNS",
+      "title": "KISA CSAP intro/materials page referenced by planning evidence",
+      "publisher": "KISA ISMS/CSAP portal",
+      "jurisdiction": "KR",
+      "baseline_scope": "CSAP public summary, service types and checklist counts",
+      "source_type": "official-web-page-candidate",
+      "canonical_url": "https://isms.kisa.or.kr/main/csap/intro/index.jsp",
+      "effective_or_version": "unresolved at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "unresolved-dns",
+      "http_status": 0,
+      "content_type": null,
+      "size_bytes": 0,
+      "sha256": null,
+      "freshness_cadence": "retry during source-refresh; do not rely on this until reachable",
+      "owner": "ops-compliance + cloud-control-plane-governance",
+      "evidence_artifact_type": "unresolved_source_pointer",
+      "extraction_state": "blocked; use law.go.kr rule until portal source is reachable",
+      "unknowns": [
+        "DNS failed from task environment; current KISA CSAP type/count summary must be retried or manually verified."
+      ]
+    },
+    {
+      "source_id": "KR-IOT-CERT-INTRO-PAGE",
+      "title": "IoT security certification intro page",
+      "publisher": "Ksecurity / KISA",
+      "jurisdiction": "KR",
+      "baseline_scope": "IoT security certification scope, domains, grades, fees and inquiry surface",
+      "source_type": "official-web-page",
+      "canonical_url": "https://www.ksecurity.or.kr/kisis/subIndex/160.do",
+      "effective_or_version": "current page at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=utf-8",
+      "size_bytes": 247512,
+      "sha256": "4f141dcc02b65c8e8474224940e7bd91b9ecc8409ed4b28944061c230c35703d",
+      "freshness_cadence": "semi-annual plus on Ksecurity page update",
+      "owner": "ops-compliance + device-security",
+      "evidence_artifact_type": "official_source_snapshot",
+      "extraction_state": "indexed for IoT/device floor backlog",
+      "unknowns": []
+    },
+    {
+      "source_id": "KR-IOT-CERT-APPLICATION-PAGE",
+      "title": "IoT security certification application page",
+      "publisher": "Ksecurity / KISA",
+      "jurisdiction": "KR",
+      "baseline_scope": "IoT security certification application flow and deliverables",
+      "source_type": "official-web-page",
+      "canonical_url": "https://www.ksecurity.or.kr/kisis/subIndex/248.do",
+      "effective_or_version": "current page at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=utf-8",
+      "size_bytes": 225767,
+      "sha256": "5f954d8d1db72de331784cf5c56ac6fde6b5b45a2c0b49fe1c3eb3d808bc4385",
+      "freshness_cadence": "semi-annual plus on Ksecurity page update",
+      "owner": "ops-compliance + device-security",
+      "evidence_artifact_type": "official_source_snapshot",
+      "extraction_state": "indexed for application evidence",
+      "unknowns": []
+    },
+    {
+      "source_id": "KR-IOT-CERT-ADMIN-RULE-2100000204704",
+      "title": "Information-security certification for network-connected devices administrative rule",
+      "publisher": "Korea law.go.kr",
+      "jurisdiction": "KR",
+      "baseline_scope": "IoT/network-connected device security certification legal basis",
+      "source_type": "official-law-page",
+      "canonical_url": "https://www.law.go.kr/LSW/admRulLsInfoP.do?admRulSeq=2100000204704",
+      "effective_or_version": "admRulSeq=2100000204704",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "size_bytes": 78376,
+      "sha256": "1b5be7240bb6302464a52f201ee41a98899f652bce10e0deb310a113326be913",
+      "freshness_cadence": "quarterly plus on law.go.kr amendment/effective-date update",
+      "owner": "ops-compliance + device-security",
+      "evidence_artifact_type": "official_law_snapshot",
+      "extraction_state": "indexed for certification validity/remediation backlog",
+      "unknowns": []
+    },
+    {
+      "source_id": "KR-IOT-PUBLIC-DATA-GUIDE-20230927",
+      "title": "한국인터넷진흥원_정보통신망연결기기등 정보보호인증기준 해설서_20230927",
+      "publisher": "data.go.kr / KISA",
+      "jurisdiction": "KR",
+      "baseline_scope": "Public-data listing for IoT security certification criteria guide",
+      "source_type": "official-public-data-page",
+      "canonical_url": "https://www.data.go.kr/data/15139153/fileData.do",
+      "effective_or_version": "dateModified=2025-07-16 observed on page; data title 20230927",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html;charset=UTF-8",
+      "size_bytes": 154155,
+      "sha256": "5c09a695099d81f22fe1f5f868f00568fe5c6b11541348cc08665d835b1e1900",
+      "freshness_cadence": "semi-annual plus on data.go.kr modified date update",
+      "owner": "ops-compliance + device-security",
+      "evidence_artifact_type": "official_public_data_snapshot",
+      "extraction_state": "indexed; linked Ksecurity guide page separately indexed",
+      "unknowns": [
+        "Actual downloadable file endpoint was not persisted in this artifact; retrieve from data.go.kr/Ksecurity before row-level IoT control extraction."
+      ]
+    },
+    {
+      "source_id": "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS",
+      "title": "PCI SSC document library — PCI DSS category",
+      "publisher": "PCI Security Standards Council",
+      "jurisdiction": "global/payment-card",
+      "baseline_scope": "PCI DSS v4.0.1 official document discovery and Level 1 evidence source entry",
+      "source_type": "official-document-library-page",
+      "canonical_url": "https://www.pcisecuritystandards.org/document_library/?category=pcidss&document=pci_dss",
+      "effective_or_version": "document library at retrieval; direct v4.0.1 PDF link discovered in page HTML",
+      "retrieved_at_utc": "2026-07-01T00:04:12Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "size_bytes": 677491,
+      "sha256": "226912e46f424530d0c1a43416b4a3c55d0c232fef2b7958a1e57d93396bf129",
+      "freshness_cadence": "quarterly plus on PCI SSC document-library update or v4.0.1 successor publication",
+      "owner": "ops-compliance + payments-security",
+      "evidence_artifact_type": "official_document_library_snapshot",
+      "extraction_state": "library indexed; direct PDF fetch blocked with 403 in this environment and must be reacquired before row extraction",
+      "unknowns": [
+        "Direct PCI DSS v4.0.1 PDF URL returned 403 HTML from task environment; source-index treats the library page as official discovery and marks PDF text extraction as blocked."
+      ]
+    },
+    {
+      "source_id": "PCI-DSS-V4-0-1-PDF-BLOCKED",
+      "title": "PCI DSS v4.0.1 PDF direct link discovered in PCI SSC document library",
+      "publisher": "PCI Security Standards Council",
+      "jurisdiction": "global/payment-card",
+      "baseline_scope": "PCI DSS v4.0.1 requirements; Level 1 ROC/attestation backlog source",
+      "source_type": "official-pdf-candidate",
+      "canonical_url": "https://docs-prv.pcisecuritystandards.org/PCI%20DSS/Standard/PCI-DSS-v4_0_1.pdf",
+      "effective_or_version": "v4.0.1 direct link candidate",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "blocked-http-403",
+      "http_status": 403,
+      "content_type": "text/html",
+      "size_bytes": 78161,
+      "sha256": "aca9897463cb028556ee7aa5c9cd050e0a2ebba345da8ef3a76e3588bfe3d8ae",
+      "freshness_cadence": "retry during source-refresh; do not use 403 body as standard text",
+      "owner": "ops-compliance + payments-security",
+      "evidence_artifact_type": "blocked_source_pointer",
+      "extraction_state": "blocked; manual or browser acquisition required for exact control-row extraction",
+      "unknowns": [
+        "Hash is the 403 HTML body, not the PCI DSS PDF; exact requirement text must be acquired from PCI SSC under permitted access terms."
+      ]
+    },
+    {
+      "source_id": "NIST-SP-800-63-4-PDF",
+      "title": "NIST SP 800-63-4 Digital Identity Guidelines",
+      "publisher": "NIST",
+      "jurisdiction": "US/federal + global identity baseline",
+      "baseline_scope": "Digital identity guidelines, assurance levels and federation baseline for passkey-first identity architecture",
+      "source_type": "official-pdf-download",
+      "canonical_url": "https://doi.org/10.6028/NIST.SP.800-63-4",
+      "effective_or_version": "SP 800-63-4 DOI; resolved to nvlpubs PDF",
+      "retrieved_at_utc": "2026-07-01T00:04:12Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "size_bytes": 858054,
+      "sha256": "2f5b107de218a0fc3fe7f7e91b2ece5babb001eda5745b7c568a3cc876002f2d",
+      "freshness_cadence": "quarterly plus on NIST DOI/PDF revision",
+      "owner": "axis-identity + council-security",
+      "evidence_artifact_type": "official_pdf_hash",
+      "extraction_state": "indexed for NIST assurance-level backlog",
+      "unknowns": []
+    },
+    {
+      "source_id": "NIST-SP-800-63A-4-PDF",
+      "title": "NIST SP 800-63A-4 Identity Proofing and Enrollment",
+      "publisher": "NIST",
+      "jurisdiction": "US/federal + global identity-proofing baseline",
+      "baseline_scope": "Identity proofing, enrollment, evidence validation and IAL-specific controls",
+      "source_type": "official-pdf-download",
+      "canonical_url": "https://doi.org/10.6028/NIST.SP.800-63A-4",
+      "effective_or_version": "SP 800-63A-4 DOI; resolved to nvlpubs PDF",
+      "retrieved_at_utc": "2026-07-01T00:04:12Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "size_bytes": 1071442,
+      "sha256": "f83654182f0b012f17f6901e6d03e12ef2ba422b341aee875e837094f23e9ad3",
+      "freshness_cadence": "quarterly plus on NIST DOI/PDF revision",
+      "owner": "axis-identity + council-security + ops-compliance",
+      "evidence_artifact_type": "official_pdf_hash",
+      "extraction_state": "indexed for identity-proofing evidence backlog",
+      "unknowns": []
+    },
+    {
+      "source_id": "EU-AMLR-2024-1624",
+      "title": "Regulation (EU) 2024/1624 AMLR",
+      "publisher": "EUR-Lex",
+      "jurisdiction": "EU",
+      "baseline_scope": "AML/KYC/customer due-diligence floor for obliged entities and identity/KYC evidence",
+      "source_type": "official-law-page",
+      "canonical_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1624",
+      "effective_or_version": "CELEX:32024R1624",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "size_bytes": 1430324,
+      "sha256": "d1ef703f3990cddf41f33f3dc31825fde4049599bbb86aef4fc1c5496d20c5c5",
+      "freshness_cadence": "quarterly plus on EUR-Lex consolidated-text update",
+      "owner": "ops-compliance + legal-eu + axis-identity",
+      "evidence_artifact_type": "official_law_snapshot",
+      "extraction_state": "indexed for EU KYC/CDD backlog",
+      "unknowns": [
+        "Member-state supervisory expectations and sector-specific delegated acts need legal review before product commitments."
+      ]
+    },
+    {
+      "source_id": "EU-EIDAS-2014-910",
+      "title": "Regulation (EU) No 910/2014 eIDAS",
+      "publisher": "EUR-Lex",
+      "jurisdiction": "EU",
+      "baseline_scope": "Electronic identification and trust-services assurance source",
+      "source_type": "official-law-page",
+      "canonical_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32014R0910",
+      "effective_or_version": "CELEX:32014R0910",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "size_bytes": 613897,
+      "sha256": "81b5100f2287cd3da7a6bfb22695ed8a90ed2ab3f62cc7c18f98b2e868c76698",
+      "freshness_cadence": "quarterly plus on EUR-Lex consolidated-text update",
+      "owner": "ops-compliance + legal-eu + axis-identity",
+      "evidence_artifact_type": "official_law_snapshot",
+      "extraction_state": "indexed for electronic identification/trust-service backlog",
+      "unknowns": []
+    },
+    {
+      "source_id": "EU-EIDAS-AMENDMENT-2024-1183",
+      "title": "Regulation (EU) 2024/1183 European Digital Identity Framework amendment",
+      "publisher": "EUR-Lex",
+      "jurisdiction": "EU",
+      "baseline_scope": "eIDAS amendment/EUDI wallet trust and identity evidence source",
+      "source_type": "official-law-page",
+      "canonical_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1183",
+      "effective_or_version": "CELEX:32024R1183",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "size_bytes": 835958,
+      "sha256": "7bcfd9532d48bb7dabc3b7af8c49135ed2421a8cf6a67e966e8044196f5961a2",
+      "freshness_cadence": "quarterly plus on EUR-Lex consolidated-text/update",
+      "owner": "ops-compliance + legal-eu + axis-identity",
+      "evidence_artifact_type": "official_law_snapshot",
+      "extraction_state": "indexed for EUDI/eIDAS2 backlog",
+      "unknowns": [
+        "Implementing acts and national wallet rollout requirements must be added as child sources when selected."
+      ]
+    },
+    {
+      "source_id": "EU-GDPR-2016-679",
+      "title": "Regulation (EU) 2016/679 GDPR",
+      "publisher": "EUR-Lex",
+      "jurisdiction": "EU",
+      "baseline_scope": "Personal-data lawful basis, minimization, DSR, DPIA, breach and automated-decision floors for identity/KYC",
+      "source_type": "official-law-page",
+      "canonical_url": "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32016R0679",
+      "effective_or_version": "CELEX:32016R0679",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html; charset=UTF-8",
+      "size_bytes": 1069267,
+      "sha256": "e43569ea032144cd054e88d3af79f2dc08f262f8c8cc89a55e4ccaef76928d36",
+      "freshness_cadence": "quarterly plus on EUR-Lex consolidated-text/update",
+      "owner": "ops-compliance + council-privacy + legal-eu",
+      "evidence_artifact_type": "official_law_snapshot",
+      "extraction_state": "indexed for EU privacy floor backlog",
+      "unknowns": [
+        "Local DPA guidance and member-state identity-proofing overlays remain child-source work."
+      ]
+    },
+    {
+      "source_id": "US-CIP-ECFR-31-CFR-1020-220",
+      "title": "31 CFR 1020.220 Customer Identification Program requirements for banks",
+      "publisher": "eCFR",
+      "jurisdiction": "US",
+      "baseline_scope": "CIP identity/KYC collection, verification, recordkeeping and comparison requirements",
+      "source_type": "official-regulation-page",
+      "canonical_url": "https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1020/subpart-B/section-1020.220",
+      "effective_or_version": "current eCFR section at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "size_bytes": 90276,
+      "sha256": "95d90c22ad7ac622900d8574f6f0f1cc98f16a2c22b442901ac97b8f36c47fdc",
+      "freshness_cadence": "quarterly plus on eCFR amendment/effective-date update",
+      "owner": "ops-compliance + legal-us + axis-identity",
+      "evidence_artifact_type": "official_regulation_snapshot",
+      "extraction_state": "indexed for US CIP backlog",
+      "unknowns": [
+        "Entity-type-specific CIP rules outside banks must be added if Oyatie targets non-bank obliged entities."
+      ]
+    },
+    {
+      "source_id": "US-CDD-ECFR-31-CFR-1010-230",
+      "title": "31 CFR 1010.230 Beneficial ownership / CDD rule",
+      "publisher": "eCFR",
+      "jurisdiction": "US",
+      "baseline_scope": "Beneficial-owner identification and verification/CDD source",
+      "source_type": "official-regulation-page",
+      "canonical_url": "https://www.ecfr.gov/current/title-31/subtitle-B/chapter-X/part-1010/subpart-B/section-1010.230",
+      "effective_or_version": "current eCFR section at retrieval",
+      "retrieved_at_utc": "2026-07-01T00:03:50Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "size_bytes": 92734,
+      "sha256": "a1ab77cb3904933370b3c16ae97c405f3750968ec2a4d36cfa7b685ec694c2d2",
+      "freshness_cadence": "quarterly plus on eCFR amendment/effective-date update",
+      "owner": "ops-compliance + legal-us + axis-identity",
+      "evidence_artifact_type": "official_regulation_snapshot",
+      "extraction_state": "indexed for US CDD backlog",
+      "unknowns": [
+        "Corporate Transparency Act/BOI access rules are separate child sources if product scope includes BOI reporting or retrieval."
+      ]
+    },
+    {
+      "source_id": "NIST-FIPS-203-ML-KEM-PDF",
+      "title": "FIPS 203 Module-Lattice-Based Key-Encapsulation Mechanism Standard",
+      "publisher": "NIST",
+      "jurisdiction": "US/federal + global cryptographic baseline",
+      "baseline_scope": "PQC key-establishment standard for identity, KYC evidence channels and long-lived secrets",
+      "source_type": "official-pdf-download",
+      "canonical_url": "https://doi.org/10.6028/NIST.FIPS.203",
+      "effective_or_version": "FIPS 203 DOI; resolved to nvlpubs PDF",
+      "retrieved_at_utc": "2026-07-01T00:04:12Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "size_bytes": 1252341,
+      "sha256": "fe1f12f32a7e44ec9fdebbf400cda843a40b506dee676725234dc6f7923b6cac",
+      "freshness_cadence": "semi-annual plus on NIST FIPS errata/revision",
+      "owner": "council-security + crypto-platform",
+      "evidence_artifact_type": "official_pdf_hash",
+      "extraction_state": "indexed for PQC migration backlog",
+      "unknowns": []
+    },
+    {
+      "source_id": "NIST-FIPS-204-ML-DSA-PDF",
+      "title": "FIPS 204 Module-Lattice-Based Digital Signature Standard",
+      "publisher": "NIST",
+      "jurisdiction": "US/federal + global cryptographic baseline",
+      "baseline_scope": "PQC digital-signature standard for credentials, attestations and evidence signing",
+      "source_type": "official-pdf-download",
+      "canonical_url": "https://doi.org/10.6028/NIST.FIPS.204",
+      "effective_or_version": "FIPS 204 DOI; resolved to nvlpubs PDF",
+      "retrieved_at_utc": "2026-07-01T00:04:12Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "size_bytes": 3291746,
+      "sha256": "57239b9f84c03227eda3ca0991204dc7764c79af9ce2e6824eda774918d46b6b",
+      "freshness_cadence": "semi-annual plus on NIST FIPS errata/revision",
+      "owner": "council-security + crypto-platform",
+      "evidence_artifact_type": "official_pdf_hash",
+      "extraction_state": "indexed for PQC migration backlog",
+      "unknowns": []
+    },
+    {
+      "source_id": "NIST-FIPS-205-SLH-DSA-PDF",
+      "title": "FIPS 205 Stateless Hash-Based Digital Signature Standard",
+      "publisher": "NIST",
+      "jurisdiction": "US/federal + global cryptographic baseline",
+      "baseline_scope": "PQC stateless hash-based signatures for long-lived roots and evidence artifacts",
+      "source_type": "official-pdf-download",
+      "canonical_url": "https://doi.org/10.6028/NIST.FIPS.205",
+      "effective_or_version": "FIPS 205 DOI; resolved to nvlpubs PDF",
+      "retrieved_at_utc": "2026-07-01T00:04:12Z",
+      "retrieval_status": "fetched-ok",
+      "http_status": 200,
+      "content_type": "application/pdf",
+      "size_bytes": 1055752,
+      "sha256": "8ef34228276f3386d23cb0da8c14592b8cfb0db3358016bba64df7a004f8d13d",
+      "freshness_cadence": "semi-annual plus on NIST FIPS errata/revision",
+      "owner": "council-security + crypto-platform",
+      "evidence_artifact_type": "official_pdf_hash",
+      "extraction_state": "indexed for PQC migration backlog",
+      "unknowns": []
+    },
+    {
+      "source_id": "ADR-0188",
+      "title": "ADR-0188 Passkey WebAuthn Substrate",
+      "publisher": "Oyatie repository",
+      "jurisdiction": "global/internal",
+      "baseline_scope": "Current Oyatie passkey/WebAuthn substrate posture and caveats used as secondary planning evidence for PQC/WebAuthn transition blockers",
+      "source_type": "internal-architecture-decision-record",
+      "canonical_url": "/docs/decisions/ADR-0701-monorepo-capability-live-apex.md",
+      "effective_or_version": "ADR accepted state as of local snapshot",
+      "retrieved_at_utc": "2026-07-01T00:42:00Z",
+      "retrieval_status": "local-file-read",
+      "http_status": null,
+      "content_type": "text/markdown",
+      "size_bytes": 10101,
+      "sha256": "3f849294bf79946662ca01c0b36059cd507da8189cd1245c8d48911ff33185a3",
+      "freshness_cadence": "per ADR update and before WebAuthn/PQC policy implementation",
+      "owner": "axis-identity + council-security",
+      "evidence_artifact_type": "internal_adr_snapshot",
+      "extraction_state": "indexed as secondary planning evidence; official WebAuthn/FIDO/browser/vendor sources still required before PQC/WebAuthn readiness claims",
+      "unknowns": [
+        "ADR status is repo-local planning evidence and cannot replace official WebAuthn, FIDO, browser, authenticator, or NIST transition source rows."
+      ]
+    },
+    {
+      "source_id": "OYATIE-COMPLIANCE-PACK-FLOORS-2026-05-21",
+      "title": "Oyatie compliance pack DR floor table",
+      "publisher": "Oyatie repository",
+      "jurisdiction": "global/internal",
+      "baseline_scope": "Existing compliance-pack floor authority to crosswalk identity/KYC floors to pack evidence",
+      "source_type": "internal-machine-readable-spec",
+      "canonical_url": "/specs/compliance-pack-floors.json",
+      "effective_or_version": "version 1.0.0",
+      "retrieved_at_utc": "2026-07-01T00:05:43Z",
+      "retrieval_status": "local-file-read",
+      "http_status": null,
+      "content_type": "application/json",
+      "size_bytes": 27223,
+      "sha256": "39d5a2508f853c1f02e13ef8b4ea52ab6abb7da2ca19c42933af157e586373b6",
+      "freshness_cadence": "per repo spec update",
+      "owner": "ops-compliance + council-architecture",
+      "evidence_artifact_type": "internal_spec_snapshot",
+      "extraction_state": "indexed as crosswalk anchor",
+      "unknowns": []
+    },
+    {
+      "source_id": "OYATIE-KR-REGULATORY-COVERAGE-2026-05-20",
+      "title": "Korea Localization Pack Regulatory Coverage",
+      "publisher": "Oyatie repository",
+      "jurisdiction": "KR/internal",
+      "baseline_scope": "Existing KR regulatory coverage matrix and pack consequence vocabulary",
+      "source_type": "internal-localization-pack-doc",
+      "canonical_url": "/packs/kr/localization/regulatory-coverage.md",
+      "effective_or_version": "version 1.0.0 canonical-draft",
+      "retrieved_at_utc": "2026-07-01T00:05:43Z",
+      "retrieval_status": "local-file-read",
+      "http_status": null,
+      "content_type": "text/markdown",
+      "size_bytes": 49351,
+      "sha256": "348b9b12f5100be4dbdc4b642c87595058c04b876aa6fe8f0d157aeb87ce944f",
+      "freshness_cadence": "per KR pack source-snapshot update",
+      "owner": "axis-regional-packs + ops-compliance",
+      "evidence_artifact_type": "internal_pack_snapshot",
+      "extraction_state": "indexed as crosswalk anchor",
+      "unknowns": []
+    }
+  ],
+  "evidence_artifact_type_catalog": [
+    {
+      "type_id": "official_source_snapshot",
+      "description": "HTTP-fetched official HTML page with URL, retrieval time, content type, byte length and SHA-256.",
+      "durability": "re-fetchable; snapshot hash captured in source_index"
+    },
+    {
+      "type_id": "official_pdf_hash",
+      "description": "Official PDF download with URL, retrieval time, byte length, content-disposition filename when available and SHA-256.",
+      "durability": "re-fetchable; exact text extraction is separate"
+    },
+    {
+      "type_id": "ocr_table_extract_required",
+      "description": "Machine/OCR extraction from a hashed official PDF, retaining source page number/table coordinates, original Korean text and normalized row id.",
+      "durability": "must be committed as a later machine-readable evidence artifact before row-level implementation"
+    },
+    {
+      "type_id": "control_crosswalk",
+      "description": "Machine-readable mapping from source row/article/control to Oyatie pack/API/audit/evidence owner.",
+      "durability": "planned child artifact"
+    },
+    {
+      "type_id": "audit_chain_extract",
+      "description": "Replayable per-tenant audit-chain evidence query/export for certification or regulator review.",
+      "durability": "runtime evidence once implementation exists"
+    },
+    {
+      "type_id": "provider_process_attestation",
+      "description": "Process, personnel, facility, financial, data-center, lab or external-provider evidence not enforceable solely by product code.",
+      "durability": "GRC evidence object with owner and refresh due date"
+    },
+    {
+      "type_id": "unresolved_source_pointer",
+      "description": "Official source candidate that could not be fetched in this run; keep URL and explicit blocker until retried.",
+      "durability": "must not be treated as authoritative row text"
+    },
+    {
+      "type_id": "blocked_source_pointer",
+      "description": "Official source candidate whose direct content was blocked (e.g. 403); keep pointer and manual acquisition requirement.",
+      "durability": "must not be treated as extracted standard text"
+    }
+  ],
+  "control_backlog": [
+    {
+      "backlog_id": "REGID-CB-001",
+      "title": "Machine-extract KISA/KMCC 본인확인기관 87 review items from the 2024 official PDF",
+      "jurisdiction": "KR",
+      "regulatory_floor": "KISA/KMCC/KCC identity-confirmation agency designation and regular review",
+      "control_family": "source-extraction",
+      "source_refs": [
+        "KR-IDV-2024-EVALUATION-CRITERIA-PDF",
+        "KR-IDV-GUIDE-PAGE-2024-02",
+        "KR-IDV-EDU-TRANSCRIPT-87-ITEMS"
+      ],
+      "owner": "ops-compliance + axis-identity-kr",
+      "freshness_cadence": "quarterly and on KISA guide/PDF update",
+      "evidence_artifact_type": "ocr_table_extract_required",
+      "evidence_artifact_owner": "ops-compliance evidence librarian",
+      "implementation_anchor": "planning/spec inventory only; later control_crosswalk feeds KR regional-pack evidence APIs, not a CLI",
+      "northstar_guardrail": "Passkeys remain the account-authentication default; statutory identity proofing evidence is modeled separately from credential UX.",
+      "status": "blocked-on-machine-ocr",
+      "unknowns": [
+        "Exact 87 row ids/text/scoring flags must come from OCR/table extraction of sha256:b7136fdb863712b77d9fcc3b523ccd5ebf4484a23cf0d5d019097cd62a8965bf, not manual transcription."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-002",
+      "title": "Model 본인확인기관 designation threshold and failure gates",
+      "jurisdiction": "KR",
+      "regulatory_floor": "KISA/KMCC/KCC identity-confirmation agency designation",
+      "control_family": "designation-thresholds",
+      "source_refs": [
+        "KR-IDV-DESIGNATION-CRITERIA-PAGE",
+        "KR-IDV-EDU-TRANSCRIPT-87-ITEMS",
+        "KR-IDV-2024-EVALUATION-CRITERIA-PDF"
+      ],
+      "owner": "ops-compliance + axis-identity-kr + legal-kr",
+      "freshness_cadence": "quarterly and before any KR identity-agency application packet",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "identity compliance product owner",
+      "implementation_anchor": "application-pack evidence ledger: score, important-item pass/fail, quantitative-item pass/fail, remediation status",
+      "northstar_guardrail": "Expose API/query evidence for regulator packets; do not create a Korean-legacy UX or CLI workflow.",
+      "status": "ready-after-REGID-CB-001",
+      "unknowns": [
+        "Which 87 rows are marked important/quantitative remains pending PDF table extraction."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-003",
+      "title": "Separate Korean statutory identity proofing from passkey/WebAuthn account authentication",
+      "jurisdiction": "KR",
+      "regulatory_floor": "Information-network identity verification / 본인확인기관 lineage",
+      "control_family": "identity-proofing-vs-authentication",
+      "source_refs": [
+        "KR-IDV-DESIGNATION-CRITERIA-PAGE",
+        "KR-IDV-EDU-TRANSCRIPT-87-ITEMS",
+        "OYATIE-KR-REGULATORY-COVERAGE-2026-05-20"
+      ],
+      "owner": "axis-identity + ops-compliance + council-privacy",
+      "freshness_cadence": "semi-annual and on KR identity-law update",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "axis-identity architecture owner",
+      "implementation_anchor": "identity proofing evidence objects; passkey credential binding; CI/DI/RRN avoidance policy rows",
+      "northstar_guardrail": "Passkeys are phishing-resistant credentials; they do not satisfy statutory identity-proofing evidence by themselves.",
+      "status": "ready-for-crosswalk",
+      "unknowns": [
+        "Final CI/DI provider interfaces and evidence schemas require legal/vendor review."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-004",
+      "title": "ISMS-P operated-management-system evidence floor",
+      "jurisdiction": "KR",
+      "regulatory_floor": "ISMS-P / ISMS certification",
+      "control_family": "management-system-operation",
+      "source_refs": [
+        "KR-ISMSP-ADMIN-RULE-2100000244750",
+        "KR-ISMSP-CERT-PROCESS-PAGE",
+        "KR-ISMSP-INTRO-UNRESOLVED-DNS"
+      ],
+      "owner": "ops-compliance + council-security + council-privacy",
+      "freshness_cadence": "quarterly; mandatory refresh before application, annual surveillance and renewal packet",
+      "evidence_artifact_type": "provider_process_attestation",
+      "evidence_artifact_owner": "security compliance manager",
+      "implementation_anchor": "evidence ledger for scope, 2+ months operation record, policies, risk assessment, asset inventory, training, internal audit, corrective actions",
+      "northstar_guardrail": "Use productized evidence ingestion/query APIs and audit-chain exports; no ad-hoc CLI evidence workflow.",
+      "status": "ready-for-row-level-guide-fetch",
+      "unknowns": [
+        "Current official checklist/control count and latest guide PDF URL need retry/source capture because KISA intro DNS failed in this run."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-005",
+      "title": "CSAP cloud-service certification and annual post-management floor",
+      "jurisdiction": "KR",
+      "regulatory_floor": "Cloud Security Assurance Program (CSAP)",
+      "control_family": "cloud-cell-certification",
+      "source_refs": [
+        "KR-CSAP-ADMIN-RULE-2100000218804",
+        "KR-CSAP-INTRO-UNRESOLVED-DNS",
+        "OYATIE-COMPLIANCE-PACK-FLOORS-2026-05-21"
+      ],
+      "owner": "ops-compliance + cloud-control-plane-governance + council-security",
+      "freshness_cadence": "quarterly; before public-sector KR tenant activation; annual post-management; renewal window tracking",
+      "evidence_artifact_type": "provider_process_attestation",
+      "evidence_artifact_owner": "cloud compliance owner",
+      "implementation_anchor": "certified-cell evidence object: scope, service type, certificate status, expiry, annual check, remediation due dates, provider/shared-responsibility attestations",
+      "northstar_guardrail": "Treat CSAP as a cloud/control-plane evidence constraint over API surfaces, not a product reorg into cloud-specific debt.",
+      "status": "ready-with-source-unknowns",
+      "unknowns": [
+        "KISA CSAP portal DNS failed; current type/count taxonomy and latest checklist PDFs need retry before row-level implementation."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-006",
+      "title": "Korean IoT security certification floor for identity/KYC devices or authenticators",
+      "jurisdiction": "KR",
+      "regulatory_floor": "Information-security certification for network-connected devices / IoT security certification",
+      "control_family": "device-security-certification",
+      "source_refs": [
+        "KR-IOT-CERT-INTRO-PAGE",
+        "KR-IOT-CERT-APPLICATION-PAGE",
+        "KR-IOT-CERT-ADMIN-RULE-2100000204704",
+        "KR-IOT-PUBLIC-DATA-GUIDE-20230927"
+      ],
+      "owner": "device-security + ops-compliance + council-security",
+      "freshness_cadence": "semi-annual and before shipping KR-bound identity/KYC hardware, edge authenticators or linked mobile app certification claims",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "device security owner",
+      "implementation_anchor": "device/app evidence pack for 7 domains, grade (Lite/Basic/Standard), test agency, lab report, firmware/SBOM, update/recovery and vulnerability remediation records",
+      "northstar_guardrail": "Only applies if Oyatie ships devices/apps needing certification; do not force Korean hardware UX into cloud/passkey flows.",
+      "status": "ready-for-guide-file-extraction",
+      "unknowns": [
+        "Actual guide-file download endpoint from data.go.kr/Ksecurity must be persisted before detailed row extraction."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-007",
+      "title": "PCI DSS Level 1 identity/payment evidence floor",
+      "jurisdiction": "global/payment-card",
+      "regulatory_floor": "PCI DSS v4.0.1 Level 1 merchant/service-provider evidence",
+      "control_family": "payment-identity-security",
+      "source_refs": [
+        "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS",
+        "PCI-DSS-V4-0-1-PDF-BLOCKED"
+      ],
+      "owner": "payments-security + ops-compliance + council-security",
+      "freshness_cadence": "quarterly and on PCI SSC v4.0.1 successor/update; annual ROC/AOC cadence for Level 1",
+      "evidence_artifact_type": "blocked_source_pointer",
+      "evidence_artifact_owner": "payments compliance owner",
+      "implementation_anchor": "cardholder-data environment scope evidence, access controls, logging, vulnerability management, segmentation and annual assessor artifacts",
+      "northstar_guardrail": "Keep PCI payment identity evidence separate from passkey account authentication and general KYC identity proofing.",
+      "status": "blocked-on-permitted-pdf-acquisition",
+      "unknowns": [
+        "Direct PDF fetch returned 403; exact requirement text must be acquired from PCI SSC before detailed control rows are created."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-008",
+      "title": "NIST SP 800-63-4 digital identity assurance floor",
+      "jurisdiction": "US/federal + global baseline",
+      "regulatory_floor": "NIST Digital Identity Guidelines",
+      "control_family": "identity-assurance-architecture",
+      "source_refs": [
+        "NIST-SP-800-63-4-PDF",
+        "NIST-SP-800-63A-4-PDF"
+      ],
+      "owner": "axis-identity + council-security + ops-compliance",
+      "freshness_cadence": "quarterly and on NIST DOI/PDF revision",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "identity architecture owner",
+      "implementation_anchor": "IAL/AAL/FAL policy matrix, authenticator binding, phishing-resistant passkey controls, enrollment and proofing evidence lifecycle",
+      "northstar_guardrail": "Use NIST to reinforce passkey-first phishing-resistant auth while keeping identity-proofing evidence explicit.",
+      "status": "ready-for-section-crosswalk",
+      "unknowns": [
+        "Section-level clause mapping to Oyatie pack/API controls is not yet extracted."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-009",
+      "title": "NIST SP 800-63A-4 identity proofing and enrollment evidence floor",
+      "jurisdiction": "US/federal + global baseline",
+      "regulatory_floor": "NIST identity proofing and enrollment",
+      "control_family": "identity-proofing-evidence",
+      "source_refs": [
+        "NIST-SP-800-63A-4-PDF",
+        "NIST-SP-800-63-4-PDF"
+      ],
+      "owner": "axis-identity + ops-compliance + council-privacy",
+      "freshness_cadence": "quarterly and on NIST DOI/PDF revision",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "identity proofing product owner",
+      "implementation_anchor": "evidence validation/verification, applicant binding, fraud signals, retention/minimization and replayable proofing audit rows",
+      "northstar_guardrail": "Identity proofing may be high assurance without replacing passkeys as the recurring credential.",
+      "status": "ready-for-section-crosswalk",
+      "unknowns": [
+        "Detailed IAL row mapping and evidence strength taxonomy remains a child extraction task."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-010",
+      "title": "EU AMLR customer due diligence and beneficial-owner KYC floor",
+      "jurisdiction": "EU",
+      "regulatory_floor": "Regulation (EU) 2024/1624 AMLR",
+      "control_family": "aml-kyc-cdd",
+      "source_refs": [
+        "EU-AMLR-2024-1624"
+      ],
+      "owner": "ops-compliance + legal-eu + axis-identity",
+      "freshness_cadence": "quarterly and on EUR-Lex consolidated text/update; before EU fintech/KYC launch",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "EU compliance product owner",
+      "implementation_anchor": "KYC/CDD/ongoing-monitoring evidence object with customer, beneficial owner, risk classification, sanctions/PEP screening and refresh due dates",
+      "northstar_guardrail": "Do not make EU AMLR a region-specific UX fork; expose composable KYC evidence APIs and policy overlays.",
+      "status": "ready-for-article-crosswalk",
+      "unknowns": [
+        "Sector scope, obliged-entity status and member-state supervisory guidance require legal review."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-011",
+      "title": "EU eIDAS/eIDAS2 electronic identification and wallet trust floor",
+      "jurisdiction": "EU",
+      "regulatory_floor": "eIDAS Regulation 910/2014 plus Regulation 2024/1183 amendment",
+      "control_family": "electronic-identification-trust-services",
+      "source_refs": [
+        "EU-EIDAS-2014-910",
+        "EU-EIDAS-AMENDMENT-2024-1183"
+      ],
+      "owner": "axis-identity + legal-eu + ops-compliance",
+      "freshness_cadence": "quarterly and on EUR-Lex/update or EUDI implementing-act publication",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "EU identity integrations owner",
+      "implementation_anchor": "eID assurance-level mapping, wallet credential acceptance, qualified trust service evidence and relying-party audit records",
+      "northstar_guardrail": "eIDAS wallet support complements passkeys and KYC evidence; it must not demote passkey-first account authentication.",
+      "status": "ready-with-child-source-dependencies",
+      "unknowns": [
+        "EUDI wallet implementing acts, national notification schemes and relying-party registration details must be added as child sources."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-012",
+      "title": "EU GDPR identity/KYC privacy floor",
+      "jurisdiction": "EU",
+      "regulatory_floor": "GDPR Regulation 2016/679",
+      "control_family": "privacy-data-protection",
+      "source_refs": [
+        "EU-GDPR-2016-679"
+      ],
+      "owner": "council-privacy + ops-compliance + legal-eu",
+      "freshness_cadence": "quarterly plus on EUR-Lex/consolidated text update; annual DPIA refresh for high-risk identity/KYC processing",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "privacy program owner",
+      "implementation_anchor": "lawful basis, transparency, minimization, retention, DSAR, breach notification, DPIA and automated-decision evidence records",
+      "northstar_guardrail": "KYC evidence must be minimized and purpose-bound; passkey credential data is not a substitute for lawful-basis evidence.",
+      "status": "ready-for-article-crosswalk",
+      "unknowns": [
+        "Local DPA guidance and member-state identity/KYC overlays remain child-source work."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-013",
+      "title": "US CIP identity-verification floor",
+      "jurisdiction": "US",
+      "regulatory_floor": "31 CFR 1020.220 Customer Identification Program",
+      "control_family": "customer-identification-program",
+      "source_refs": [
+        "US-CIP-ECFR-31-CFR-1020-220"
+      ],
+      "owner": "ops-compliance + legal-us + axis-identity",
+      "freshness_cadence": "quarterly and on eCFR amendment/effective-date update; before US regulated financial-service launch",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "US compliance product owner",
+      "implementation_anchor": "customer identifying-information collection, documentary/non-documentary verification, record retention and government-list comparison evidence",
+      "northstar_guardrail": "CIP verification evidence is separate from recurring passkey authentication; APIs should expose verification status without leaking raw identifiers.",
+      "status": "ready-for-section-crosswalk",
+      "unknowns": [
+        "Non-bank entity-type CIP rules and FFIEC manual pages were not fully accessible and must be added if in scope."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-014",
+      "title": "US CDD beneficial ownership floor",
+      "jurisdiction": "US",
+      "regulatory_floor": "31 CFR 1010.230 Beneficial ownership / CDD",
+      "control_family": "beneficial-ownership-cdd",
+      "source_refs": [
+        "US-CDD-ECFR-31-CFR-1010-230"
+      ],
+      "owner": "ops-compliance + legal-us + axis-identity",
+      "freshness_cadence": "quarterly and on eCFR amendment/effective-date update; annual program review or risk-triggered refresh",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "US compliance product owner",
+      "implementation_anchor": "legal-entity customer/beneficial-owner evidence object, risk profile, refresh cadence, documentary evidence and exception handling",
+      "northstar_guardrail": "Beneficial-owner/KYC evidence stays in the compliance evidence plane; passkeys only bind authenticated users to accounts and actions.",
+      "status": "ready-for-section-crosswalk",
+      "unknowns": [
+        "BOI/CTA access and reporting sources are separate and should be added only if product scope needs them."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-015",
+      "title": "PQC standards floor for identity/KYC cryptographic evidence",
+      "jurisdiction": "US/federal + global cryptographic baseline",
+      "regulatory_floor": "NIST FIPS 203/204/205 PQC standards",
+      "control_family": "post-quantum-cryptography-readiness",
+      "source_refs": [
+        "NIST-FIPS-203-ML-KEM-PDF",
+        "NIST-FIPS-204-ML-DSA-PDF",
+        "NIST-FIPS-205-SLH-DSA-PDF"
+      ],
+      "owner": "council-security + crypto-platform + axis-identity",
+      "freshness_cadence": "semi-annual and on NIST FIPS errata/revision; annual crypto-inventory review",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "crypto platform owner",
+      "implementation_anchor": "cryptographic inventory, long-lived identity/KYC evidence signing, key-agreement migration plan, hybrid/PQC readiness attestations and exception register",
+      "northstar_guardrail": "PQC migration protects identity/KYC evidence durability without changing passkey-first user authentication semantics prematurely.",
+      "status": "ready-for-crypto-inventory-crosswalk",
+      "unknowns": [
+        "Federal transition memoranda, browser/WebAuthn PQC timelines and vendor support matrices are child sources outside these base FIPS standards."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-016",
+      "title": "Unified evidence artifact taxonomy for identity/KYC compliance floors",
+      "jurisdiction": "global",
+      "regulatory_floor": "cross-framework identity/KYC evidence",
+      "control_family": "evidence-taxonomy",
+      "source_refs": [
+        "USER-DIRECTIVE-2026-06-30-REGID-001",
+        "OYATIE-COMPLIANCE-PACK-FLOORS-2026-05-21",
+        "OYATIE-KR-REGULATORY-COVERAGE-2026-05-20"
+      ],
+      "owner": "ops-compliance + axis-identity + council-architecture",
+      "freshness_cadence": "on every new source family; quarterly sanity review",
+      "evidence_artifact_type": "control_crosswalk",
+      "evidence_artifact_owner": "compliance evidence librarian",
+      "implementation_anchor": "shared source_index/control_backlog schema fields: owner, cadence, evidence_artifact_type, unknowns, source_refs, passkey guardrail",
+      "northstar_guardrail": "One machine-readable source-of-truth prevents regional legacy UX and ad-hoc CLI sprawl.",
+      "status": "scaffolded-in-this-artifact",
+      "unknowns": [
+        "Downstream validator/schema has not been created; this artifact is JSON-valid planning inventory, not an enforced gate."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-017",
+      "title": "Official-source freshness and unknowns cadence",
+      "jurisdiction": "global",
+      "regulatory_floor": "source governance",
+      "control_family": "source-refresh",
+      "source_refs": [
+        "USER-DIRECTIVE-2026-06-30-REGID-001"
+      ],
+      "owner": "ops-compliance evidence librarian",
+      "freshness_cadence": "monthly for unresolved/blocked sources; quarterly for fetched official sources; immediate refresh on regulator update notice",
+      "evidence_artifact_type": "official_source_snapshot",
+      "evidence_artifact_owner": "ops-compliance evidence librarian",
+      "implementation_anchor": "source-refresh job should update retrieval status/hash and mark unknowns resolved only when official source is fetched/extracted",
+      "northstar_guardrail": "Freshness machinery must be product/API evidence-plane work, not a new developer CLI surface.",
+      "status": "ready-for-automation-design",
+      "unknowns": [
+        "No scheduled source-refresh job exists in this planning lane."
+      ]
+    },
+    {
+      "backlog_id": "REGID-CB-018",
+      "title": "Architect/legal review gate for row-level identity compliance implementation",
+      "jurisdiction": "global",
+      "regulatory_floor": "governance and legal review",
+      "control_family": "review-gate",
+      "source_refs": [
+        "GJC-KR-COMPLIANCE-RESEARCH-2026-06-30",
+        "USER-DIRECTIVE-2026-06-30-REGID-001"
+      ],
+      "owner": "council-architecture + ops-compliance + legal-review",
+      "freshness_cadence": "before converting any backlog row into product/API/schema implementation",
+      "evidence_artifact_type": "provider_process_attestation",
+      "evidence_artifact_owner": "legal/compliance reviewer",
+      "implementation_anchor": "review packet with official source hashes, extracted rows, unresolved unknowns, implementation surface and no-CLI/no-reorg-debt confirmation",
+      "northstar_guardrail": "Confirms passkey-first hyperscaler identity/KYC, API evidence plane and no Korean legacy UX before code work begins.",
+      "status": "required-before-implementation",
+      "unknowns": [
+        "Named reviewer/persona assignment is outside this task."
+      ]
+    }
+  ],
+  "unknowns_register": [
+    {
+      "unknown_id": "REGID-UNK-001",
+      "summary": "Exact KISA/KMCC 87 review-row table is not extracted yet.",
+      "source_refs": [
+        "KR-IDV-2024-EVALUATION-CRITERIA-PDF"
+      ],
+      "resolution_path": "Run machine/OCR table extraction against the hashed official PDF; retain Korean text, row coordinates and sha256.",
+      "owner": "ops-compliance + axis-identity-kr"
+    },
+    {
+      "unknown_id": "REGID-UNK-002",
+      "summary": "ISMS-P intro/checklist source URL failed DNS in this environment.",
+      "source_refs": [
+        "KR-ISMSP-INTRO-UNRESOLVED-DNS"
+      ],
+      "resolution_path": "Retry from browser/network or use alternate official KISA/ISMS-P guide/checklist download; update source_index before row-level implementation.",
+      "owner": "ops-compliance"
+    },
+    {
+      "unknown_id": "REGID-UNK-003",
+      "summary": "KISA CSAP portal source URL failed DNS in this environment.",
+      "source_refs": [
+        "KR-CSAP-INTRO-UNRESOLVED-DNS"
+      ],
+      "resolution_path": "Retry official CSAP portal and extract current service types/control counts/checklists.",
+      "owner": "ops-compliance + cloud-control-plane-governance"
+    },
+    {
+      "unknown_id": "REGID-UNK-004",
+      "summary": "PCI DSS v4.0.1 direct PDF returned 403 HTML, not the standard PDF.",
+      "source_refs": [
+        "PCI-DSS-V4-0-1-PDF-BLOCKED"
+      ],
+      "resolution_path": "Acquire the PCI SSC document under permitted access terms; replace blocked pointer with PDF hash before detailed control extraction.",
+      "owner": "payments-security + ops-compliance"
+    },
+    {
+      "unknown_id": "REGID-UNK-005",
+      "summary": "EU AMLR/eIDAS/GDPR member-state and implementing-act overlays are not enumerated.",
+      "source_refs": [
+        "EU-AMLR-2024-1624",
+        "EU-EIDAS-AMENDMENT-2024-1183",
+        "EU-GDPR-2016-679"
+      ],
+      "resolution_path": "Add child sources per launch market/member state and legal review before product commitments.",
+      "owner": "legal-eu + ops-compliance"
+    },
+    {
+      "unknown_id": "REGID-UNK-006",
+      "summary": "US CIP/CDD scope beyond bank/customer sections may require entity-specific rules.",
+      "source_refs": [
+        "US-CIP-ECFR-31-CFR-1020-220",
+        "US-CDD-ECFR-31-CFR-1010-230"
+      ],
+      "resolution_path": "Add FFIEC/manual or entity-specific eCFR sources when target regulated entity class is selected.",
+      "owner": "legal-us + ops-compliance"
+    },
+    {
+      "unknown_id": "REGID-UNK-007",
+      "summary": "PQC transition timelines and WebAuthn/browser support are outside base FIPS 203/204/205.",
+      "source_refs": [
+        "NIST-FIPS-203-ML-KEM-PDF",
+        "NIST-FIPS-204-ML-DSA-PDF",
+        "NIST-FIPS-205-SLH-DSA-PDF"
+      ],
+      "resolution_path": "Add federal transition memos and vendor/browser authenticator support sources during crypto migration design.",
+      "owner": "council-security + crypto-platform"
+    }
+  ],
+  "verification_notes": [
+    "JSON syntax validated with python json.load after writing.",
+    "Official source URLs were fetched or explicitly marked blocked/unresolved with retrieval metadata.",
+    "The KISA 2024 87-item PDF is hashed and marked for machine/OCR extraction rather than hand transcription.",
+    "All control_backlog rows carry owner, freshness_cadence, evidence_artifact_type and unknowns.",
+    "source_blocker_register carries seven explicit open states for KISA/KMCC OCR, ISMS-P DNS, CSAP DNS, PCI v4.0.1 PDF access, US entity/market overlays, EU member-state/entity overlays, and PQC/WebAuthn timeline unknowns; every row has owner, freshness_cadence, expires_at_utc, resolution_path and claim_ceiling.",
+    "claim_ceiling forbids certification, readiness, launch, runtime enforcement, tenant activation, regulator/auditor acceptance and production claims from this planning artifact."
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/design-system/network-feed.schema.json",
+  "title": "DesignSystem:Network Feed",
+  "doc_class": "Machine-Readable-Spec",
+  "component_id": "network-feed",
+  "owner_team": "axis-community",
+  "product_ref": "$ref:microservices/community/PRD.md",
+  "component_name": "NetworkFeed",
+  "status": "retired-by-wave-15k",
+  "variants": [
+    "connections",
+    "company",
+    "industry",
+    "following"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": true,
+    "screen_reader": true,
+    "reduced_motion": true
+  },
+  "responsive_breakpoints": [
+    "mobile-portrait",
+    "tablet",
+    "desktop",
+    "wide-desktop"
+  ],
+  "contract": {
+    "purpose": "NetworkFeed is retired as a LinkedIn-style engagement-feed primitive. Successor community surfaces use threaded posts, votes, moderation, professional profile widgets, and jobs/recruiter views without engagement-optimized status broadcasting.",
+    "state_model_ref": "$ref:microservices/community/PRD.md#17-out-of-scope"
+  }
+}

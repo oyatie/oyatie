@@ -1,0 +1,17 @@
+{
+  "fixture_id": "TC-SR-BAD-untyped-resource",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "untyped_staleness"
+  ],
+  "description": "A resource that carries no TTL type (ttl.ttl_class empty): its staleness is undecidable, which is itself a defect — every resource must be typed so it CAN be aged. Age + reachability are present but irrelevant once the row is untyped.",
+  "rows": [
+    {
+      "path": "tmp/unclassified-blob.bin",
+      "age_days": 200,
+      "reachable_from": [],
+      "ttl": {"ttl_class": "", "budget_days": null, "protected": false, "action": "report"}
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs"
+}

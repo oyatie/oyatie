@@ -1,0 +1,314 @@
+{
+  "version": "1.0.0",
+  "description": "Continuous evaluation of the multi-agent delivery workflow itself — not only product code. Fine-tune weights, SLOs, and gap closeouts here.",
+  "forbidden_clis": ["gjc", "omc", "omx", "hermes"],
+  "cadence": {
+    "per_run": ["throughput", "outcome_quality", "prompt_health", "lifecycle_fit"],
+    "weekly": ["pipeline_fit", "hyperscaler_design", "portability_smoke"],
+    "on_failure_class_repeat_2": ["full_panel"]
+  },
+  "dimensions": {
+    "concurrent_throughput": {
+      "weight": 0.15,
+      "slo": {
+        "max_wall_s_plan_only": 1800,
+        "max_wall_s_with_execute": 7200,
+        "min_parallel_efficiency": 0.4,
+        "max_executor_path_overlap": 0,
+        "target_concurrent_critics": 2,
+        "target_max_executor_shards": 4
+      },
+      "metrics": [
+        "wall_clock_s",
+        "agent_count",
+        "parallel_panels",
+        "avg_agent_duration_ms",
+        "serial_fraction",
+        "path_overlap_violations"
+      ],
+      "fail_closed_if": ["path_overlap_violations > 0 on execute"]
+    },
+    "outcome_quality": {
+      "weight": 0.25,
+      "slo": {
+        "min_letter": "B",
+        "min_dual_admit_rate": 0.5,
+        "max_hard_fail_rate": 0.1,
+        "require_evidence_paths": true,
+        "require_cross_model_when_dual_admit": true,
+        "forbid_same_family_launder_as_cross_model": true
+      },
+      "metrics": [
+        "grade_letter",
+        "grade_score",
+        "dual_admit",
+        "dual_critic_independence",
+        "dual_critic_distinct_providers",
+        "hard_fails",
+        "ship_ready_draft",
+        "verify_honesty"
+      ],
+      "fail_closed_if": [
+        "dual_admit with independence!=cross_model when require_cross_model_when_dual_admit",
+        "critics missing provider fields when claiming multi-model"
+      ]
+    },
+    "delivery_pipeline_fit": {
+      "weight": 0.15,
+      "slo": {
+        "preflight_origin_dev": true,
+        "single_required_context": "oya-ci-required",
+        "no_cli_merge_authority": true,
+        "pr_target": "dev",
+        "kit_present_on_base_or_worktree": true,
+        "max_ci_cancelling_pushes_per_wave": 2
+      },
+      "metrics": [
+        "preflight_ok",
+        "behind_count",
+        "mentions_oya_ci_required",
+        "claims_merge_authority",
+        "generated_face_hand_edit",
+        "kit_on_origin_dev",
+        "kit_bins_present",
+        "ci_push_thrash_count",
+        "mm_drive_used"
+      ],
+      "fail_closed_if": ["behind_count > 0 before execute", "claims_merge_authority"]
+    },
+    "prompt_engineering": {
+      "weight": 0.15,
+      "slo": {
+        "lens_pack_present": true,
+        "tool_use_commanded": true,
+        "orthogonal_critics": true,
+        "max_prompt_chars": 24000
+      },
+      "metrics": [
+        "has_lens_pack",
+        "has_evidence_instruction",
+        "critic_prompts_differ",
+        "forbidden_cli_mentioned_as_dependency"
+      ]
+    },
+    "hyperscaler_enterprise_design": {
+      "weight": 0.15,
+      "slo": {
+        "blast_radius_named": true,
+        "fail_closed": true,
+        "telemetry_or_verify_named": true,
+        "cell_or_boundary_language": true
+      },
+      "checklist": [
+        "blast_radius_cell",
+        "zero_trust",
+        "constant_work",
+        "shared_nothing_or_stale_state",
+        "finops_or_budget",
+        "telemetry_first",
+        "operability_day2"
+      ]
+    },
+    "portability": {
+      "weight": 0.1,
+      "slo": {
+        "no_hardcoded_repo_paths_in_configs": true,
+        "relative_harness_paths": true,
+        "bootstrap_script_exists": true
+      },
+      "target_projects": [
+        "~/Developer/console",
+        "~/Developer/oyatie"
+      ]
+    },
+    "lifecycle_fidelity": {
+      "weight": 0.05,
+      "phases_mapped": [
+        "intake_clarify",
+        "design_contract",
+        "plan",
+        "review",
+        "implement",
+        "verify",
+        "pr_admit",
+        "post_merge",
+        "operate_learn"
+      ]
+    }
+  },
+  "lifecycle_map": {
+    "description": "Real developer lifecycle → harness stage",
+    "rows": [
+      {
+        "real_life": "Ticket / bug / idea intake",
+        "harness": "mm-goals create + objective args",
+        "gap": "No automatic link to GitHub/Linear issues unless human pastes IDs"
+      },
+      {
+        "real_life": "Clarify requirements / spike",
+        "harness": "CONTRACT stage + Socratic/contrarian perspectives",
+        "gap": "No live stakeholder ping; orchestrator pauses are manual"
+      },
+      {
+        "real_life": "Design / ADR / tech design",
+        "harness": "ARCHITECT + lens packs + blast radius",
+        "gap": "Does not auto-open ADRs; human promotes decisions"
+      },
+      {
+        "real_life": "Implementation plan + estimates",
+        "harness": "PLAN + dual orthogonal CRITIC",
+        "gap": "No calendar/capacity model; opportunity_cost is qualitative"
+      },
+      {
+        "real_life": "Code in branch / worktree",
+        "harness": "EXECUTOR + origin/dev preflight + isolation policy",
+        "gap": "Multi-shard parallel execute not fully automated"
+      },
+      {
+        "real_life": "Local test / review",
+        "harness": "VERIFY + CRITIC_DIFF + mm-score/grade",
+        "gap": "Does not replace human PR review or oya-ci-required"
+      },
+      {
+        "real_life": "PR + CI + merge queue",
+        "harness": "PR packet + governance disclaimers",
+        "gap": "No live GH status polling in harness v1"
+      },
+      {
+        "real_life": "On-call / post-merge / incident",
+        "harness": "POST_MERGE_HINT + LEARN + POSTMORTEM",
+        "gap": "No pager integration; memory is local files only"
+      },
+      {
+        "real_life": "Retrospective / process improvement",
+        "harness": "mm-learn tips/skills + process_edits",
+        "gap": "Skill promotion to default packs is human-gated"
+      }
+    ]
+  },
+  "known_failures": [
+    {
+      "id": "F-KIT-NOT-ON-DEV",
+      "area": "delivery_pipeline_fit",
+      "symptom": ".grok kit is local or side-branch only; origin/dev has zero tracked kit files",
+      "impact": "Agents cannot share multi-model process; worktrees and CI agents have no mm-role/mm-drive",
+      "close_gap": "Land kit PR to dev excluding mm-runs/memory; optional preflight require_kit_on_base",
+      "case_study": "programs/PROCESS-ASSESSMENT-20260806.md"
+    },
+    {
+      "id": "F-SAME-FAMILY-CRITIC-LAUNDER",
+      "area": "outcome_quality",
+      "symptom": "Dual-critic APPROVE packets from same-provider session subagents presented as multi-model",
+      "impact": "False independence; merge-check could clear on non-adversarial reviews",
+      "close_gap": "Packet independence+provider fields; drive merge_policy admit only cross_model; default critics via mm-role",
+      "case_study": "programs/PROCESS-ASSESSMENT-20260806.md"
+    },
+    {
+      "id": "F-WORKTREE-MISSING-KIT",
+      "area": "delivery_pipeline_fit",
+      "symptom": "Isolated worktree has no .grok/ so mm-* cannot run",
+      "impact": "Forces Grok-only bypass of multi-model kit",
+      "close_gap": "mm-bootstrap into worktree at lane start; fail multi-model claims without kit bins"
+    },
+    {
+      "id": "F-CI-PUSH-THRASH",
+      "area": "concurrent_throughput",
+      "symptom": "Repeated tip pushes cancel in-flight oya-ci-required",
+      "impact": "Wasted runner time; delayed signal; agent thrash",
+      "close_gap": "drive.v1 push_budget; hold doc-only while CI in_progress; armed re-poll"
+    },
+    {
+      "id": "F-BABYSIT-WITHOUT-MM-DRIVE",
+      "area": "lifecycle_fidelity",
+      "symptom": "PR babysit via ad-hoc subagents without mm-drive ledger/tick",
+      "impact": "No process journal; stop-hook and class machine unused",
+      "close_gap": "Outer loop is mm-drive status|tick|merge-check; journal mm-runs/_ledger"
+    },
+    {
+      "id": "F-STATIC-EVAL-FALSE-GREEN",
+      "area": "outcome_quality",
+      "symptom": "mm-evaluate static scores A while runtime process fails kit use",
+      "impact": "Teams trust structure score as delivery health",
+      "close_gap": "mm-evaluate run requires drive ledger + dual-critic independence; never claim process-healthy from static alone"
+    },
+    {
+      "id": "F-IMPLEMENT-WITHOUT-RED",
+      "area": "outcome_quality",
+      "symptom": "Product code lands without red_test_report proof or tests are added after implementation only",
+      "impact": "Spec-by-implementation; regressions uncaught; false confidence",
+      "close_gap": "pipeline implement_loop + admit_rules require_red_test_proof_before_implement; EXECUTOR requires_red_test_proof"
+    },
+    {
+      "id": "F-TEST-SKIP-FALSE-GREEN",
+      "area": "outcome_quality",
+      "symptom": "Suite greened by skip/ignore/delete/weaken of failing tests",
+      "impact": "CI green without behavior; merge of broken product",
+      "close_gap": "FALSE_GREEN_SCAN harness stage + fail_closed checks in false_green_scan.v1"
+    },
+    {
+      "id": "F-SKIP-SIMPLIFY-OR-HARDEN",
+      "area": "outcome_quality",
+      "symptom": "Ship after first green without simplify/harden or review",
+      "impact": "Complexity and fail-open edges accumulate",
+      "close_gap": "SIMPLIFY and HARDEN stages mandatory with green re-run; admit_rules require them or explicit waiver"
+    },
+    {
+      "id": "F-THROUGHPUT-SERIAL",
+      "area": "concurrent_throughput",
+      "symptom": "Most multi-model stages run serial; only dual critics parallel in Rhai",
+      "impact": "Wall clock grows linearly with slices",
+      "close_gap": "Path-disjoint executor shards + parallel critic spawn in mm-pipeline; measure parallel_efficiency"
+    },
+    {
+      "id": "F-GROK-ONLY-WORKFLOW",
+      "area": "outcome_quality",
+      "symptom": "Rhai agents inherit session model; multi-model needs mm-role",
+      "impact": "Lens independence without provider diversity",
+      "close_gap": "Optional mm-pipeline role bridge from workflow handoff artifacts; default dual CRITIC via mm-role"
+    },
+    {
+      "id": "F-DIRTY-BASE",
+      "area": "delivery_pipeline_fit",
+      "symptom": "Session project may be diverged from origin/dev",
+      "impact": "False findings and unsafe execute",
+      "close_gap": "PREFLIGHT fail closed; document worktree-as-source-of-truth"
+    },
+    {
+      "id": "F-PROMPT-DRIFT",
+      "area": "prompt_engineering",
+      "symptom": "Rhai embeds lens text; packs JSON can drift from script",
+      "impact": "Fine-tune packs without updating workflow → critics wrong",
+      "close_gap": "Generate critic prefix via mm-lens-prompt in docs; later inject from host"
+    },
+    {
+      "id": "F-PORTABILITY",
+      "area": "portability",
+      "symptom": "Oyatie-specific path examples in prompts",
+      "impact": "Console/other repos need project profile",
+      "close_gap": "project-profile.v1.json + bootstrap-to-repo.sh"
+    },
+    {
+      "id": "F-NO-LIVE-CI-POLL",
+      "area": "lifecycle_fidelity",
+      "symptom": "Does not watch oya-ci-required on PR",
+      "impact": "Cannot auto-close post-merge product gate",
+      "close_gap": "Optional gh status check stage; never replace required context"
+    },
+    {
+      "id": "F-LEARN-NOT-AUTO-PROMOTED",
+      "area": "outcome_quality",
+      "symptom": "Tips/skills written but packs not auto-updated",
+      "impact": "Same failure class repeats",
+      "close_gap": "After 2 KPI repeats, human PR to stage-lens-packs or role system prompts"
+    }
+  ],
+  "close_gap_priority": [
+    "F-DIRTY-BASE",
+    "F-PROMPT-DRIFT",
+    "F-THROUGHPUT-SERIAL",
+    "F-PORTABILITY",
+    "F-GROK-ONLY-WORKFLOW",
+    "F-LEARN-NOT-AUTO-PROMOTED",
+    "F-NO-LIVE-CI-POLL"
+  ]
+}

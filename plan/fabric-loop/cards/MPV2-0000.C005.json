@@ -1,0 +1,8 @@
+{
+  "card_id": "MPV2-0000.C005",
+  "title": "Harvested (C003 round-1 review minor): list_json_ids silently skips filenames failing validate_id (unicode digits, spaces, non-UTF-8); strict fail-closed ledger listing should surface them as Corrupt plus regression test",
+  "program_id": "P-FABRIC",
+  "depends_on": [],
+  "status": "defined",
+  "evidence_refs": []
+}

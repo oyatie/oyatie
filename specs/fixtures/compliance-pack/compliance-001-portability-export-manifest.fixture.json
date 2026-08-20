@@ -1,0 +1,67 @@
+{
+  "$schema": "https://contracts.oyatie.dev/portability/v1/manifest.schema.json",
+  "_meta": {
+    "doc_class": "Machine-Readable-Fixture",
+    "fixture_id": "COMPLIANCE-001-PORTABILITY-EXPORT-MANIFEST",
+    "status": "contract-fixture-only",
+    "kanban_task": "t_b70d22bd",
+    "source_adr": "ADR-0276",
+    "claim_boundary": "Synthetic manifest shape only. Contains no personal data and does not assert export service readiness, import roundtrip fidelity, data-subject SLA compliance, tenant activation, or production portability support."
+  },
+  "schema": "portability-export-manifest/v1",
+  "export_id": "pex-fixture-compliance-001-soc2-0001",
+  "tenant_ref": "tenant:fixture-soc2-contract-only",
+  "subject_scope": {
+    "scope_kind": "tenant-admin-contract-fixture",
+    "subject_ref": "subject:pseudonymous-fixture-user"
+  },
+  "export_mode": "full",
+  "generated_at": "2026-07-09T00:00:00Z",
+  "format": {
+    "container": "tar.gz",
+    "document_format": "JSON-LD-1.1",
+    "manifest_schema_ref": "https://contracts.oyatie.dev/portability/v1/manifest.schema.json",
+    "bundle_media_type": "application/gzip+tar"
+  },
+  "entries": [
+    {
+      "path": "ontology/tenant-profile.fixture.jsonld",
+      "media_type": "application/ld+json",
+      "context": "https://contracts.oyatie.dev/portability/v1/ontology/tenant-profile.jsonld",
+      "schema_ref": "https://contracts.oyatie.dev/portability/v1/ontology/tenant-profile.schema.json",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "data_classes": [
+        "CONTROL_EVIDENCE"
+      ],
+      "claim_boundary": "Synthetic JSON-LD entry reference only; no real tenant data included."
+    },
+    {
+      "path": "audit-chain/consent-records.fixture.jsonld",
+      "media_type": "application/ld+json",
+      "context": "https://contracts.oyatie.dev/portability/v1/audit-chain/consent-record.jsonld",
+      "schema_ref": "https://contracts.oyatie.dev/portability/v1/audit-chain/consent-record.schema.json",
+      "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "data_classes": [
+        "ACCESS_REVIEW_EVIDENCE"
+      ],
+      "claim_boundary": "Synthetic consent evidence entry reference only; no real consent ledger export included."
+    }
+  ],
+  "signatures": {
+    "tenant_ed25519": {
+      "key_ref": "tenant-key://fixture-soc2-contract-only/v1",
+      "signature_hex": "22222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222"
+    },
+    "oyatie_cosign": {
+      "identity_ref": "cosign://oyatie-compliance-fixture@3333333333333333333333333333333333333333333333333333333333333333",
+      "rekor_log_ref": "rekor://portability-fixture@4444444444444444444444444444444444444444444444444444444444444444",
+      "signature_hex": "55555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555555"
+    }
+  },
+  "audit_chain_proof": {
+    "proof_kind": "merkle-inclusion-fixture",
+    "root_hash_sha256": "6666666666666666666666666666666666666666666666666666666666666666",
+    "audit_chain_ref": "audit-chain://fixture/compliance-001/portability-export"
+  },
+  "claim_boundary": "This manifest fixture demonstrates ADR-0276 bundle fields only; it is not an export generated from tenant state and cannot be used as auditor or regulator evidence."
+}

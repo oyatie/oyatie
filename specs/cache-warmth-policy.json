@@ -1,0 +1,101 @@
+{
+  "_comment": "Build cache-warmth classification (DATA, not code) — ADR-0556, founder directive 2026-06-12: 'some things should be cold. some things can be warm. make that distinction well.' Every build class maps to {warmth, cache_read, cache_write, reason}. Consumers (interim CI quick-wins, the W3 NativeLink CAS vertical, the future cache-policy-conformance gate) read this policy rather than re-deciding warmth per change. R0 pack-shape: ALL repo-specifics live here; an adopting repo edits the classes, never an engine. Surface model (ADR-0556 D4): this file is declarative policy consumed by services/controllers — never a CLI an operator runs; cache-write authorization is enforced at the CAS service boundary (keyed authn), never by client discipline.",
+  "policy_id": "cache-warmth-policy",
+  "schema_version": "1.0.0",
+  "adr": "ADR-0556",
+  "schema": {
+    "build_class": {
+      "warmth": "cold | warm",
+      "cache_read": "bool — may this class read the shared cache",
+      "cache_write": "bool — may this class write to the shared cache",
+      "reason": "string — WHY, citing the governing invariant"
+    }
+  },
+  "trust_invariant": {
+    "statement": "A build class MAY run warm IFF (a) it is warm-eligible in this policy AND (b) the most recent scheduled cold integrity-canary run is GREEN (cold output digests byte-identical to the warm CAS digests for the same action keys). Warm-by-default is sound ONLY BECAUSE the cold canary continuously proves warm == cold; the canary is the trust anchor that licenses warmth.",
+    "canary_build_class": "integrity-canary",
+    "canary_red_response": [
+      "per the IFF: a RED canary SUSPENDS ALL WARM READS FLEET-WIDE pending the next GREEN run — the items below are the durable remediation, never a license to keep serving warm on non-divergent keys while RED stands",
+      "RED is a blocking hermeticity/non-determinism defect (ADR-0525 D4 violation), never tolerable noise; the warm cache is structurally suspect from that moment",
+      "divergent action keys are evicted/quarantined from the CAS immediately (reconciler/API action by the canary controller, not a hand operation)",
+      "a friction-ledger row opens mechanically (ADR-0544 closed loop); if root cause is not established within one canary period, the warm-eligible classes covering the divergent cone degrade to cold via this DATA (shrink-of-warmth needs no door)",
+      "NOT permitted: serving ANY warm hit while RED stands (the IFF is unsatisfied), resuming on divergent keys after GREEN returns without the eviction above, or widening the comparison tolerance — cold == warm is byte-equality, the registry-drift bar"
+    ],
+    "deployment_precondition": "the CAS vertical MUST ship the integrity-canary in the same change that enables fleet-wide warm reads — no canary, no warm"
+  },
+  "trust_boundary": {
+    "trusted_author": "a same-repo branch pushed by an authorized writer and admitted into the governance pipeline (required_workflow lanes); holds the CAS write key",
+    "untrusted_author": "fork PRs and any context without the CAS write key (GitHub fork PRs receive read-only tokens and no secrets — a natural seam, but the binding enforcement is the CAS service boundary authn/authz, never runner configuration)"
+  },
+  "default_for_unlisted_classes": {
+    "warmth": "cold",
+    "cache_read": false,
+    "cache_write": false,
+    "reason": "fail-closed default the trust invariant already implies, made mechanical for the conformance gate: a build class not listed in build_classes has no warm license — warmth is granted by reviewed classification, never by omission"
+  },
+  "build_classes": {
+    "release-production-image": {
+      "warmth": "cold",
+      "cache_read": false,
+      "cache_write": false,
+      "reason": "reproducibility + SBOM/provenance integrity (ADR-0039, ADR-0181): the shipped artifact must derive from exactly its sources via a from-source build; a cache hit substitutes bytes whose derivation was attested elsewhere or nowhere. No write-back: release builds run with the most-privileged signing identity — writing from that context maximizes blast radius. The rust-purity sole cargo exception (cargo --release + lto fat + locked) lives on this path, outside the buck2 graph."
+    },
+    "integrity-canary": {
+      "warmth": "cold",
+      "cache_read": false,
+      "cache_write": false,
+      "reason": "the trust anchor that licenses warm-by-default (ADR-0556 D2): a scheduled from-empty build of the pinned graph whose output digests are byte-compared against the warm CAS digests for the same action keys; any cache participation makes the proof circular. cold != warm = hermeticity/non-determinism bug, fail-closed."
+    },
+    "untrusted-author-presubmit": {
+      "warmth": "cold",
+      "cache_read": false,
+      "cache_write": false,
+      "reason": "anti-poisoning (Bazel/Google RBE security model): an untrusted PR controls action inputs; with write access it seeds poisoned outputs under action keys trusted builds will later hit. Write prohibition is one-way; default is full isolation (defense in depth, no cache-probing side channel). A read-only relaxation (cache_read true) is a reviewed two-way policy edit — reads cannot inject. Enforced at the CAS service boundary: untrusted contexts hold no key."
+    },
+    "provenance-attestation": {
+      "warmth": "cold",
+      "cache_read": false,
+      "cache_write": false,
+      "reason": "SLSA: provenance must describe the build that actually happened; serving cached outputs while attesting build steps fabricates provenance, and reproducible-build verification requires re-derivation."
+    },
+    "presubmit-trusted-dep-closure": {
+      "warmth": "warm",
+      "cache_read": true,
+      "cache_write": true,
+      "reason": "the third-party crate closure (reindeer-vendored, lockfile-pinned) is identical across every PR sharing a lockfile; rebuilding it per leg and per run is pure waste. Content-addressed: a hit is bit-identical to cold (licensed by the trust invariant)."
+    },
+    "presubmit-trusted-affected-cone": {
+      "warmth": "warm",
+      "cache_read": true,
+      "cache_write": true,
+      "reason": "the affected-target cone (ADR-0525 D3 uquery owner->rdeps, binding via the ADR-0554 affected-set lane): only genuinely changed actions miss; the unchanged cone is a hit — ADR-0515 D4 (wall-clock tracks the change, not the repo) made real."
+    },
+    "dev-agentic-iteration": {
+      "warmth": "warm",
+      "cache_read": true,
+      "cache_write": true,
+      "reason": "agent-lane and dev-loop builds in throwaway worktrees see 0% hits today (FRIC-1781070457-buck2-no-shared-cache); a warm shared cache makes the agent fleet's wall-clock track the size of each change."
+    },
+    "gate-fleet-shared-graph": {
+      "warmth": "warm",
+      "cache_read": true,
+      "cache_write": true,
+      "reason": "the gate fleet's shared dependency hub — the accounting-registry producer and the common workspace graph rebuilt ~13x per oya-ci-required run across legs (faces re-materialized in every matrix leg). One build, many consumers. Same-run artifact reuse (QW-1) is this class without a CAS; deliberate exception: registry-drift keeps its own in-job rematerialization — detectors never consume the thing they attest."
+    },
+    "postmerge-dev-trunk": {
+      "warmth": "warm",
+      "cache_read": true,
+      "cache_write": true,
+      "reason": "the canonical trusted populator (Bazel/Google pattern: post-merge CI fills the cache, presubmits hit it); trunk content passed oya-ci-required and is by definition admitted content."
+    }
+  },
+  "consumers": [
+    "interim CI quick-wins (ADR-0556 D5: QW-1 artifact reuse, QW-2 cargo-matrix collapse, QW-4 toolchain caching; QW-3 stable-key buck-out restore retired by ADR-0554 D10) — warm-safe list only; no cache step may be added to a cold-required path and runner-local buck-out must never be archived",
+    "NativeLink CAS W3 vertical (ADR-0556 D3: buck2_re_client cache-only; allow_cache_uploads per-class from this policy; MUST ship the integrity-canary in the same change)",
+    "future cache-policy-conformance gate (the enforcement successor, ADR-0555 D4 gate-test-plus-policy-DATA: asserts the live CI cache configuration matches this policy)"
+  ],
+  "product_contract": {
+    "born_pack_shaped": "ADR-0548 paved-road rule: the classes, the trust boundary, and the invariant prose are DATA here; consumers hardcode no class list. An adopting repo edits build_classes for its own pipeline shapes.",
+    "door_asymmetry": "the cold-required floor is one-way (moving a cold-required class to warm requires superseding ADR-0556); warm-eligible membership is two-way DATA (degrading warm to cold is always allowed; growing warmth is a reviewed change)."
+  }
+}

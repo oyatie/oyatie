@@ -1,0 +1,40 @@
+{
+  "packet_type": "post_merge_product_completion",
+  "pr": 1558,
+  "title": "infra: add isolated CAS proof-cell prerequisites",
+  "promoted_commit": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+  "branch": "dev",
+  "oya_ci_required": {
+    "status": "success",
+    "run_url": "https://github.com/jason931225/oyatie/actions/runs/30999838837",
+    "head_sha": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+    "completed_at": "2026-08-05T11:50:47Z"
+  },
+  "rollout_verification": "infrastructure: verified promoted squash commit on trunk; post-merge oya-ci-required success on exact promoted SHA.",
+  "rollback_note": "Revert promoted SHA a1bd1f14a on dev restores the pre-CAS-proof bootstrap state; no warm CAS or RE activation is in the change surface (ADR-0560 warm_reads_licensed stays false).",
+  "observability_check": "N/A infrastructure bootstrap; oya-ci-required green on promoted SHA a1bd1f14a (2026-08-05T11:50:47Z).",
+  "browser_user_story_evidence": "N/A no user-facing surface.",
+  "release_governance_release_note_impact": "None; internal proof-cell bootstrap. Release Please not applicable.",
+  "agent_observation_harvest": {
+    "cards_created_or_linked": "none",
+    "rationale": "No new defect cards; G039 diagnosis record already exists in the same evidence dir."
+  },
+  "completion_packet_closed": true,
+  "recorded_at": "2026-08-14T04:33:30Z",
+  "template_ref": "programs/hyperscaler-delivery-lanes/R3-postmerge-packet-template.md",
+  "authority": "Not merge authority; post-merge product gate evidence only. Does not claim ultragoal complete. Filled only after squash to origin/dev + post-merge oya-ci-required green on promoted SHA (PR-head green is not enough).",
+  "ultragoal_complete": false,
+  "merge_method": "squash",
+  "pr_state": "MERGED",
+  "promoted_at": "2026-08-05T11:02:25Z",
+  "automation": {
+    "tool": "mm-packet",
+    "generated_at": "2026-08-14T04:33:30Z",
+    "not_merge_authority": true,
+    "does_not_claim_ultragoal_complete": true,
+    "origin_dev_tip": "4a4f71a14f7f865ecb186fa1be3ccc821bd1094c",
+    "origin_dev_tip_equals_promoted": false,
+    "origin_dev_tip_note": null,
+    "pr_url": "https://github.com/jason931225/oyatie/pull/1558"
+  }
+}

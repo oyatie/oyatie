@@ -1,0 +1,36 @@
+{
+  "pr": 1569,
+  "head": "3090e6a2ea375f4019d2af7aa5d3b2b98f4f5fe4",
+  "title": "docs(adr): ADR-0639 path/event-optional oya-ci-required legs",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "chesterton"
+      ],
+      "path": ".grok/programs/hyperscaler-delivery-lanes/evidence/pr-1569-dual-critic.json"
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "lenses": [
+        "systems_thinking",
+        "operability"
+      ],
+      "path": ".grok/programs/hyperscaler-delivery-lanes/evidence/pr-1569-dual-critic.json"
+    }
+  ],
+  "summary": "Rebased onto origin/dev resolving ADR-INDEX/decisions/masterplan conflicts by retaining ADR-0630/0637/0638/0639. No product runtime change.",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "not_claiming": [
+    "ultragoal_complete",
+    "path_filter_behavior_change_without_code"
+  ],
+  "reviewed_at": "2026-08-05T16:10Z",
+  "reviewer": "orchestrator-dual-critic"
+}

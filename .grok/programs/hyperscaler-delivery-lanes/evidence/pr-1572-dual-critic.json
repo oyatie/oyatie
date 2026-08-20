@@ -1,0 +1,39 @@
+{
+  "pr": 1572,
+  "head": "073997fb03cc06f51f55cfa00a83a761bc6544f4",
+  "title": "feat(ci): GH-standard runner units + maxRunners=6 (not just 4)",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "finops",
+        "constant_work"
+      ],
+      "notes": "Packing math: 3\u00d744+4=136 \u2264 140Gi volume on 150Gi disk is sound. GH-standard 2vCPU/8Gi is the right unit. Live 5vCPU workers will CPU-starve at 3\u00d72CPU \u2014 documented, not silent."
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "lenses": [
+        "systems_thinking",
+        "operability",
+        "blast_radius"
+      ],
+      "notes": "Topology maxSkew=1 prevents 6-on-1. Stretch 8\u201312 needs disk grow. Does not claim CAS hits. Capacity contract tests green."
+    }
+  ],
+  "summary": "Dual-critic APPROVE: maxRunners=6 with GH Linux-sized units is host-aware and exceeds the false ceiling of 4.",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "not_claiming": [
+    "live_volumes_already_140Gi",
+    "live_workers_10vcpu",
+    "CAS_warm"
+  ],
+  "reviewed_at": "2026-08-05T16:10Z",
+  "reviewer": "orchestrator-dual-critic"
+}

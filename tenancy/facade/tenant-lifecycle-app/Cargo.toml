@@ -1,0 +1,44 @@
+[package]
+name = "tenancy-tenant-lifecycle-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Composition root: tenant registration/lifecycle REST API (POST /v1/tenants register, GET read state, :provision/:suspend/:resume lifecycle ops, DELETE retire, list) wiring the tenancy lifecycle usecase over the in-memory store. AUTH-005 / G006."
+
+[dependencies]
+tenancy-tenant-lifecycle-usecase = { path = "../../core/tenant-lifecycle-usecase" }
+tenancy-tenant-lifecycle-kernel = { path = "../../core/tenant-lifecycle-kernel" }
+tenancy-tenant-lifecycle-store-inmemory = { path = "../../adapters/tenant-lifecycle-store-inmemory" }
+tenancy-tenant-lifecycle-store-postgres = { path = "../../adapters/tenant-lifecycle-store-postgres" }
+tenancy-tenant-lifecycle-authz-port = { path = "../../ports/tenant-lifecycle-authz" }
+tenancy-tenant-lifecycle-authz-pdp = { path = "../../adapters/tenant-lifecycle-authz-pdp" }
+oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
+oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+# "sync" adds tokio::sync::Mutex (the async composition-root lock held across
+# the now-async provider `.await`s); the workspace default already brings
+# rt-multi-thread/net/macros.
+tokio = { workspace = true, features = ["sync"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true }
+axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
+http-body-util = { workspace = true }
+
+[dev-dependencies]
+tower = { version = "0.4", default-features = false, features = ["util"] }
+http-body-util = { workspace = true }
+
+[[bin]]
+name = "tenancy-tenant-lifecycle"
+path = "src/main.rs"
+
+[lib]
+name = "tenancy_tenant_lifecycle_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

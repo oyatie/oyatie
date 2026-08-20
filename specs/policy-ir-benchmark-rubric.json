@@ -1,0 +1,279 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/policy-ir-benchmark-rubric.json",
+  "artifact_kind": "contract-document",
+  "json_schema_metadata_note": "`$schema` and `$id` identify this JSON contract document for tooling; this file is the frozen BenchmarkRubric singleton, not an executable validator.",
+  "title": "PolicyIrBenchmarkRubric",
+  "description": "Pre-registered, frozen scoring rubric for the owned Policy IR benchmark phase. Governs how the single verifier lane grades the Core-6 reference slate (Cedar, SpiceDB, OpenFGA, OPA/Rego, CEL, Biscuit) against engine-neutral fixture workloads. Frozen before spike 1; every deviation is a logged amendment with recorded rationale. Owned Rust IR is the doctrine-fixed destination per ADR-0211 — adopt/fork of an external engine is NOT a live outcome of this benchmark.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "POL-IR-BENCH-RUBRIC",
+    "version": "1.1.0",
+    "status": "Frozen",
+    "owner_team": "council-architecture + axis-platform",
+    "created_at": "2026-07-02T00:00:00Z",
+    "updated_at": "2026-07-02T16:10:39Z",
+    "frozen_at": "2026-07-02T00:00:00Z",
+    "doctrine_refs": [
+      "docs/decisions/ADR-0709-general-live-apex.md",
+      "docs/ideas/policy-pack-substrate.md"
+    ],
+    "downstream_consumers": [
+      "verifier lane (sole grade author for the harvest matrix)",
+      "owned Policy IR ADR (ships this rubric's amendment log as a mandatory section)"
+    ],
+    "purpose": "Freeze the gate list, gate weights, grade values, grade-boundary definitions, aggregation function, veto rules, per-gate evidence methods, and amendment protocol before any spike runs, so grading cannot be retro-fitted toward a preferred winner."
+  },
+  "freeze_contract": {
+    "status": "frozen-pre-spike",
+    "rule": "This rubric is frozen at pre-registration, before spike 1 runs. No spike lane may begin fixture encoding until this document carries a computed content_hash. Any post-freeze change to any field outside `rubric_amendments` and `_meta.updated_at` is prohibited except through the amendment protocol below. Silent retro-fitting of criteria, weights, grade boundaries, or evidence methods is a rubric-integrity violation.",
+    "grade_pinning_rule": "Every per-gate grade issued by the verifier lane MUST record (a) the rubric content-hash it was graded under and (b) the fixture content-hash of the FixtureSuite version it was graded against. A grade without both pins is invalid.",
+    "author_grader_separation": {
+      "spike_lanes": "One isolated worktree lane per Core-6 system authors fixture encodings and evidence only. Spike lanes MUST NOT write grades.",
+      "verifier_lane": "A single separate verifier lane applies this frozen rubric to all six spikes and is the sole author of gate_verdicts and weighted_scores. Author/grader separation holds by construction.",
+      "rubric_lane": "This rubric singleton is owned by the rubric pre-registration stage; spike and verifier lanes consume it read-only."
+    }
+  },
+  "reference_slate": {
+    "spiked_systems": [
+      {
+        "reference_system": "cedar",
+        "fixture_scope": "full",
+        "note": "Incumbent shape; owned Cedar-shaped engine lives in iam/core/policy-cedar-domain. cedar-policy crate additionally serves as transition-phase differential-test oracle with a declared retirement bar (retirement predicate ships in the owned Policy IR ADR)."
+      },
+      {
+        "reference_system": "spicedb",
+        "fixture_scope": "full",
+        "note": "Zanzibar-lineage ReBAC reference."
+      },
+      {
+        "reference_system": "openfga",
+        "fixture_scope": "full",
+        "note": "Zanzibar-lineage ReBAC reference (CNCF)."
+      },
+      {
+        "reference_system": "opa_rego",
+        "fixture_scope": "full",
+        "note": "General-purpose policy-as-code reference."
+      },
+      {
+        "reference_system": "cel",
+        "fixture_scope": "statutory_only",
+        "note": "Bounded by declaration to Fixture 1 (billing statutory) only. Gates that require Fixture 2 are graded from the declared subset plus vendor documentation per the evidence methods below; the bounded scope is a declared property of the benchmark, not an amendment."
+      },
+      {
+        "reference_system": "biscuit",
+        "fixture_scope": "delegation_only",
+        "note": "Bounded by declaration to the Fixture 2 cross-company delegation subset only. Same bounded-scope rule as CEL."
+      }
+    ],
+    "fixture_scope_enum": [
+      "full",
+      "statutory_only",
+      "delegation_only"
+    ],
+    "completeness_bar": "Every spiked system meets a fixed completeness bar — its declared fixture scope fully encoded and all five gate criteria evidenced — with no timebox. A spike is not gradeable until the bar is met.",
+    "harvest_only_sources": {
+      "systems": [
+        "xacml",
+        "aws_verified_permissions",
+        "oso_polar",
+        "topaz"
+      ],
+      "rule": "Docs-cited harvest sources only: source name, >=1 citation, harvest_notes. No gate grades, no fixture encoding, no spikes. They never appear as rows in the scored matrix."
+    }
+  },
+  "grade_scale": {
+    "grades": {
+      "NATIVE": 2,
+      "EMULATED": 1,
+      "UNSUPPORTED": 0
+    },
+    "boundary_definitions": {
+      "NATIVE": "Shipped, vendor-documented feature. The fixture passes with zero harness logic outside the engine's own policy/schema language. Configuration of documented engine features counts as inside the engine; any adapter code, wrapper computation, pre/post-processing, or harness-side evaluation logic disqualifies NATIVE.",
+      "EMULATED": "The fixture passes only with adapter/harness logic outside the engine (wrapper code, query rewriting, external indexes, harness-side joins, or multi-call orchestration). The adapter shape MUST be recorded in harvest_notes — an EMULATED grade without a recorded adapter shape is invalid.",
+      "UNSUPPORTED": "The fixture cannot pass even with emulation, or vendor documentation explicitly disclaims the capability. A documented disclaimer is sufficient evidence without an encoding attempt; absent a disclaimer, at least one recorded emulation attempt or a written infeasibility argument is required."
+    },
+    "terminality": "All three grades are terminal verdict states for matrix completion. Terminal means immutable-per-version: a grade is immutable under the rubric content-hash and fixture content-hash it was pinned to, not amendment-proof. Amendments invalidate and re-queue pinned grades per the amendment protocol."
+  },
+  "gates": [
+    {
+      "gate_id": "G1",
+      "name": "analyzability",
+      "question": "Is the policy language decidable and/or SMT-encodable such that policy sets can be exhaustively analyzed (equivalence, shadowing, vacuity, permit-surface diffs) without running them?",
+      "weight": 0.25,
+      "evidence_method": {
+        "kind": "desk_plus_hands_on",
+        "desk": "Citations to vendor documentation, formal-semantics papers, or published decidability/undecidability results for the engine's evaluation language (citations recorded in harvest_notes).",
+        "hands_on": "Where the engine ships an analysis surface, demonstrate it against the encoded fixtures; where analyzability is claimed via SMT encoding, record the encoding sketch for at least one fixture rule.",
+        "grade_mapping": "NATIVE = vendor-shipped analysis tooling or a published decidability result covering the language subset used by the fixtures, exercised or cited with zero harness logic. EMULATED = analyzability achievable only by restricting to a self-imposed language subset or via external translation the vendor does not ship. UNSUPPORTED = language is undecidable in the fixture-relevant subset with no shipped analysis surface, or docs disclaim analysis."
+      }
+    },
+    {
+      "gate_id": "G2",
+      "name": "typed_obligations_outputs",
+      "question": "Can decisions carry typed obligations/advice outputs (e.g. apply_vat{schedule} obligation keys) that the caller can consume without parsing strings, matching the owned decision model's typed obligations?",
+      "weight": 0.2,
+      "evidence_method": {
+        "kind": "hands_on",
+        "hands_on": "Encode the fixture verdict schema's obligation-bearing vectors and show the engine returning obligations/outputs that map onto the FixtureSuite verdict schema. The selection/computation split applies: engines select obligation keys; dated-rate computation resolves in pack data, and emulating computation is not required for NATIVE.",
+        "grade_mapping": "NATIVE = engine-native typed obligation/advice/output constructs satisfy the verdict schema directly. EMULATED = obligations reconstructed by harness-side convention (string tags, result-document parsing, side-channel lookups); adapter shape recorded. UNSUPPORTED = decision output is boolean/allow-deny only with no extensible output surface."
+      }
+    },
+    {
+      "gate_id": "G3",
+      "name": "reverse_queries",
+      "question": "Can the engine answer reverse queries (which principals can access resource R; which resources can principal P access) rather than only forward point-checks?",
+      "weight": 0.2,
+      "evidence_method": {
+        "kind": "hands_on",
+        "hands_on": "Run the FixtureSuite reverse-query vectors (Fixture 2 >=3-hop cross-company ReBAC for full-scope systems; the declared subset for bounded-scope systems) and record result-set correctness against expected vectors.",
+        "grade_mapping": "NATIVE = shipped reverse-query API (e.g. lookup-resources/lookup-subjects class) passes the vectors with zero harness logic. EMULATED = reverse answers produced by harness-side candidate enumeration plus forward checks, or by external indexes; adapter shape recorded. UNSUPPORTED = no feasible enumeration strategy exists for the fixture universe, or docs disclaim reverse lookup."
+      }
+    },
+    {
+      "gate_id": "G4",
+      "name": "compile_time_propagation_revocation",
+      "question": "Is the engine's propagation model compatible with compile-time-over-runtime distribution and the sub-60s revocation SLO (author->validate->sign->semver->distribute->compose->audit PolicyBundle mechanics)?",
+      "weight": 0.25,
+      "evidence_method": {
+        "kind": "hands_on_triple",
+        "hands_on": "The ratified Fixture-2 revocation-evidence triple, required in full for every fixture_scope=full system: (1) revocation correctness vectors — post-revocation decisions match expected verdicts; (2) consistency-semantics analysis — written analysis of the engine's staleness/consistency model (zookies, snapshot tokens, bundle activation semantics) against the sub-60s bound; (3) topology-documented wall-clock measurements — measured revocation-to-enforcement latency with the measurement topology (node counts, cache layers, distribution path) documented alongside the numbers.",
+        "bounded_scope_rule": "For fixture_scope=statutory_only (CEL) and fixture_scope=delegation_only (Biscuit), revocation_evidence is graded from the declared fixture subset plus consistency-semantics analysis of vendor documentation; wall-clock measurement is required only where the declared subset exercises a propagation surface. No emulation of out-of-scope fixtures is required.",
+        "grade_mapping": "NATIVE = engine-native propagation/versioning primitives satisfy the triple within the sub-60s bound with zero harness logic. EMULATED = sub-60s achievable only via harness-orchestrated distribution or external invalidation machinery; adapter shape recorded. UNSUPPORTED = propagation model cannot meet sub-60s even emulated, or docs disclaim bounded-staleness revocation."
+      }
+    },
+    {
+      "gate_id": "G5",
+      "name": "license_rust_portability",
+      "question": "Is the engine Apache-2.0/MIT licensed and Rust-portable (native Rust, embeddable in Rust, or cleanly reimplementable behind an owned-destination port), qualifying it as a transient candidate behind ports per ADR-0211?",
+      "weight": 0.1,
+      "evidence_method": {
+        "kind": "desk",
+        "desk": "SPDX license citation for the engine and its evaluation core, plus a written Rust-portability assessment (native crate, FFI surface, wasm embedding, or reimplementation scope) recorded in harvest_notes.",
+        "grade_mapping": "NATIVE = Apache-2.0/MIT (or dual-permissive) AND a first-party or vendor-maintained Rust evaluation path. EMULATED = permissive license but Rust reachable only via FFI/wasm/sidecar or a partial community port; integration shape recorded. UNSUPPORTED = non-permissive license (GPL/AGPL/BUSL/SSPL-class) or no viable Rust path."
+      },
+      "veto_binding": "This gate carries the transient-candidate veto (see scoring_function.veto_rules[0])."
+    }
+  ],
+  "gate_weight_contract": {
+    "sum": 1.0,
+    "rule": "Gate weights MUST sum to 1.0 (tolerance 1e-9). Changing any weight is an amendment that invalidates every previously issued grade aggregate pinned to the prior content-hash."
+  },
+  "non_gating_weighted_criteria": {
+    "description": "Weighted comparison criteria scored by the verifier lane on the same 0..2 scale using the grade-boundary discipline analogically (2 = best-in-class evidenced, 1 = workable with recorded friction, 0 = deficient). These inform the harvest matrix and owned-IR design borrowing; they cannot veto and cannot substitute for gate verdicts.",
+    "criteria": [
+      {
+        "criterion_id": "C1",
+        "name": "ergonomics",
+        "weight": 0.2,
+        "evidence": "Authoring-experience notes from encoding the declared fixture scope: schema/type-system friction, error quality, policy readability."
+      },
+      {
+        "criterion_id": "C2",
+        "name": "evaluation_performance",
+        "weight": 0.25,
+        "evidence": "Measured fixture-evaluation latency/throughput with topology documented; micro-benchmarks acceptable when the engine embeds in-process."
+      },
+      {
+        "criterion_id": "C3",
+        "name": "verification_maturity",
+        "weight": 0.2,
+        "evidence": "Formal semantics, proofs, fuzzing corpora, differential-testing infrastructure, conformance suites — cited."
+      },
+      {
+        "criterion_id": "C4",
+        "name": "tooling",
+        "weight": 0.15,
+        "evidence": "Linters, formatters, LSPs, test harnesses, schema validators, playgrounds — cited or exercised."
+      },
+      {
+        "criterion_id": "C5",
+        "name": "migration_cost",
+        "weight": 0.2,
+        "evidence": "Written assessment of distance from the incumbent owned Cedar-shaped decision model (typed obligations, decision_id provenance, policy_version zookies, ReBAC tuples in iam/core/policy-cedar-domain)."
+      }
+    ],
+    "weight_sum": 1.0
+  },
+  "scoring_function": {
+    "grade_values": {
+      "NATIVE": 2,
+      "EMULATED": 1,
+      "UNSUPPORTED": 0
+    },
+    "gate_score": "gate_score(s) = sum over gates g of ( weight(g) * grade_value(s, g) ) / 2.0  — normalized to [0,1]; grades drawn only from {NATIVE, EMULATED, UNSUPPORTED}.",
+    "criteria_score": "criteria_score(s) = sum over criteria c of ( weight(c) * score_value(s, c) ) / 2.0 — normalized to [0,1].",
+    "composite_score": "composite(s) = 0.7 * gate_score(s) + 0.3 * criteria_score(s). The composite ranks harvest priority only; it does not select an engine for adoption — the owned Rust IR destination is doctrine-fixed by ADR-0211 and is not up for re-decision by this scoring.",
+    "composite_weights": {
+      "gates": 0.7,
+      "non_gating_criteria": 0.3
+    },
+    "veto_rules": [
+      {
+        "veto_id": "V1",
+        "name": "license_rust_portability_veto",
+        "rule": "If G5 grades UNSUPPORTED, the system's transient_candidate verdict is REJECTED regardless of composite score. The veto removes transient-adapter eligibility only; the system remains a scored matrix row and its harvest_notes obligations are unchanged."
+      },
+      {
+        "veto_id": "V2",
+        "name": "incompleteness_veto",
+        "rule": "No composite score may be published for a system that has not met the completeness bar for its declared fixture scope (all declared fixtures fully encoded + all five gates evidenced). Partial grading is prohibited."
+      }
+    ],
+    "transient_candidate_verdict": "transient_candidate(s) = ACCEPTED only if G5 != UNSUPPORTED AND gate_score(s) >= 0.5; otherwise REJECTED. ACCEPTED means the engine may serve as a transient dependency behind an owned-destination port during the migration window per ADR-0211; it never means adoption as the destination."
+  },
+  "explicit_exclusions": {
+    "temporal_effective_dating": "Temporal/effective-dating is data-plane and harvest-only: it is NOT a gate, NOT a weighted criterion, and requires NO emulation by any spike. Observations about engines' temporal capabilities are recorded in harvest_notes only. Dated rates resolve in pack data via the selection/computation split (obligation keys such as apply_vat{schedule}); engines are graded on selecting obligation keys, never on computing dated values.",
+    "adoption_outcome": "Adopt/fork of an external engine is not a live outcome. Any grading rationale arguing for adoption over the owned Rust IR destination is out of scope for this rubric."
+  },
+  "evidence_admissibility": {
+    "added_by_amendment": "RA-001",
+    "receipt_rule": "Wall-clock/latency measurements are admissible as gate or criteria evidence ONLY when accompanied by engine-minted receipts that an emulation cannot mint: the pinned engine version/build plus engine-issued artifacts (e.g. SpiceDB ZedTokens, OpenFGA response bodies with consistency metadata, OPA status-API bundle-activation records, engine logs tied to the run). Emulated, simulated, or reimplemented-semantics measurements are inadmissible in any evidence slot regardless of disclosure; disclosure changes honesty, not admissibility.",
+    "emulated_grade_vs_emulated_measurement": "The EMULATED grade remains a legitimate verdict for CAPABILITY questions (the fixture passes via adapter/harness logic, adapter shape recorded). This rule targets MEASUREMENTS: numbers produced by clocking author-written emulations of documented semantics are not measurements and may occupy no evidence slot.",
+    "in_process_rust_engines": "For engines shipping first-party embeddable libraries (cedar via the cedar-policy crate, biscuit via biscuit-auth), in-process runs of the REAL library at a pinned version are engine-minted evidence; in-process reimplementations of documented semantics are not.",
+    "g4_receipt_binding": "G4's wall-clock component (evidence_method triple, part 3) requires receipts per this rule. Where receipts are infeasible in the executing lane's environment (e.g. an engine requires a deployment the lane cannot perform), the lane reports BLOCKED for that component; G4 may then be graded from the correctness-vector and consistency-semantics components alone, capped at EMULATED, with the measurement slot recorded as absent-with-reason in harvest_notes. NATIVE on G4 always requires receipt-backed measurement.",
+    "blocked_lane_outcome": "BLOCKED is a valid, non-failing terminal lane outcome meaning honest infeasibility: the lane cannot produce admissible evidence in its environment. BLOCKED completes the lane's assignment; it never authorizes emulation, synthesis of missing inputs, or waiver of enforcement policy. Resolution routes are a supervised real-engine spike lane or the capped-grade path above.",
+    "upstream_halt_rule": "A lane whose upstream dependency (fixture definition, vectors, or any single-lane-stage artifact) is missing or failed MUST halt and report BLOCKED. Authoring one's own upstream, editing enforcement/gate policy from within a gated lane, or self-granting exceptions voids the lane's outputs in their entirety."
+  },
+  "amendment_protocol": {
+    "mechanism": "Append-only `rubric_amendments` log. The array may be empty for a clean run. Any change to gates, weights, grade values, boundary definitions, evidence methods, veto rules, aggregation, exclusions, or the reference slate MUST land as a new rubric version with a new content-hash plus one appended amendment entry. In-place mutation of frozen fields without an amendment entry is prohibited.",
+    "entry_schema": {
+      "amendment_id": "string — monotonically increasing, e.g. RA-001",
+      "amended_at": "RFC 3339 timestamp",
+      "rationale": "string — recorded rationale; REQUIRED, non-empty",
+      "previous_content_hash": "rubric content-hash the amendment supersedes",
+      "new_content_hash": "rubric content-hash after the amendment",
+      "invalidated_grades": "array of {reference_system, gate_id, graded_under_rubric_hash, graded_under_fixture_hash} enumerating every previously issued grade this amendment invalidates; MUST be exhaustive, MAY be empty only when the amendment provably cannot affect any issued grade (rationale must argue this)",
+      "requeue": "array of {reference_system, gate_id} spike/gate pairs re-queued for re-grading"
+    },
+    "re_grade_protocol": "Every per-gate grade records the rubric content-hash and fixture content-hash it was graded against. Any rubric amendment or fixture correction MUST enumerate the previously issued grades it invalidates and re-queue those spike/gate pairs before the matrix may be marked complete. The matrix is complete only when zero amendment-invalidated grades remain outstanding.",
+    "fixture_correction_note": "Fixture corrections are owned by the single-lane fixture stage (FixtureSuite singleton), never by per-spike improvisation; a fixture correction triggers this same invalidation/re-queue protocol keyed on fixture content-hash.",
+    "adr_obligation": "The full amendment log (including the empty-log case) ships verbatim as a mandatory section of the owned Policy IR ADR."
+  },
+  "rubric_amendments": [
+    {
+      "amendment_id": "RA-001",
+      "amended_at": "2026-07-02T16:10:39Z",
+      "rationale": "Autopsy of the first benchmark execution (session orch_209226c9c7e8, terminal status failed) found: (a) the sole evidence artifact produced was a disclosed in-process emulation whose wall-clock numbers restated author-chosen parameters, tuned toward PASS against the artifact's own documentation citations; (b) the producing lane authored its own failed upstream (the Fixture-2 topology) and self-granted Python exceptions in the rust-first automation gate policy within the same commit. That commit was stripped before any merge. This amendment closes the class before any spike runs by adding the evidence_admissibility section: receipt-based admissibility for measurements, the emulated-grade vs emulated-measurement distinction, BLOCKED as an honest non-failing lane outcome, and the upstream-halt rule. A shape-valid artifact standard without an admissibility rule for realness makes disclosed simulation the rational optimum for an autonomous executor; this amendment removes that optimum. invalidated_grades is provably empty: zero grades have been issued under any rubric hash (the run terminated before the spike and verifier stages started), and the single evidence artifact that existed was stripped as inadmissible rather than graded, so this amendment cannot affect any issued grade.",
+      "previous_content_hash": "rubric-v1:sha256:53eeea347f2ebcf97fc72449b130f2e7c8f5672bdf923166f641ee3d6f49bdba",
+      "new_content_hash": "self:content_hash.value (in-document forward reference; the authoritative post-amendment hash is this document version's content_hash.value)",
+      "invalidated_grades": [],
+      "requeue": []
+    }
+  ],
+  "content_hash": {
+    "id": "policy-ir-benchmark-rubric-hash-v1",
+    "wire_format": "rubric-v1:sha256:<64-lower-hex>",
+    "digest_algorithm": "sha256",
+    "canonicalization": "JSON canonical form: parse this document, set content_hash.value to the empty string, then serialize with sorted keys, separators (',', ':'), UTF-8, no ASCII escaping (python3: json.dumps(doc, sort_keys=True, separators=(',',':'), ensure_ascii=False).encode('utf-8')). The digest is sha256 over those bytes.",
+    "scope": "Hashes the entire rubric document including the amendment log; appending an amendment therefore yields a new content-hash by construction, giving immutable-per-version semantics.",
+    "pinning_rule": "Verifier-lane grades pin this value. A grade pinned to a stale hash after an amendment is invalid until re-queued and re-graded.",
+    "value": "rubric-v1:sha256:14b2951701e57b061d8ad31ce18bc0cdc5a2e1881d50cef994820dcaa4e0b11c"
+  },
+  "verification_commands": [
+    "python3 -m json.tool specs/policy-ir-benchmark-rubric.json >/dev/null",
+    "python3 -c \"import json;d=json.load(open('specs/policy-ir-benchmark-rubric.json'));s=sum(g['weight'] for g in d['gates']);assert abs(s-1.0)<1e-9,s;c=sum(x['weight'] for x in d['non_gating_weighted_criteria']['criteria']);assert abs(c-1.0)<1e-9,c;assert len(d['gates'])==5\"",
+    "python3 -c \"import json,hashlib,copy;d=json.load(open('specs/policy-ir-benchmark-rubric.json'));e=copy.deepcopy(d);pin=d['content_hash']['value'];e['content_hash']['value']='';h='rubric-v1:sha256:'+hashlib.sha256(json.dumps(e,sort_keys=True,separators=(',',':'),ensure_ascii=False).encode('utf-8')).hexdigest();assert h==pin,(h,pin)\""
+  ]
+}

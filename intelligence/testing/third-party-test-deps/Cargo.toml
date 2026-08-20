@@ -1,0 +1,34 @@
+[package]
+name = "intelligence-third-party-test-deps"
+version = "0.1.0"
+edition = "2021"
+license = "Apache-2.0"
+publish = false
+
+# Reindeer dev-dep forcing crate (ADR-0554 affected-set / move-22a).
+#
+# Reindeer (git 681727c) does NOT vendor dev-only dependencies of workspace
+# members: `FeatureResolver::enable_crate_for_platform` recurses to enable
+# dependent crates only for `DepKind::Normal | DepKind::Build`, with
+# `DepKind::Dev => false` (reindeer src/index.rs:393-397). So crates declared
+# solely under `[dev-dependencies]` (httpmock, proptest) never enter the
+# platform-enablement walk and are never emitted to third-party/BUCK — even
+# though they are first-order `public_targets` (index.rs:144-167). The virtual
+# workspace manifest also forbids `include_top_level = true` (index.rs:102-106).
+#
+# This crate's SOLE purpose is to promote those test-only crates to NORMAL
+# dependencies in ONE first-party crate, so reindeer's Normal-kind walk vendors
+# them (and their transitive closure) into third-party/BUCK. It is never linked
+# into any shipped binary; it exists only to make the vendored targets exist for
+# the intelligence test suite (rest/codex-adapter/openbao-adapter httpmock tests,
+# core/kernel proptest invariants) to depend on under buck2.
+# httpmock: default-features disabled to drop the optional `cookies` feature,
+# which pulls `basic-cookies` -> a lalrpop-codegen build dependency that has no
+# working buck2 reindeer fixup (and was the prior third-party-graph breakage
+# point). None of the intelligence httpmock tests use httpmock's cookie matcher
+# (they match Cookie via the generic `.header(...)` API), so `cookies` is unused.
+# The test crates' dev-dependency declarations are likewise default-features=false
+# so reindeer's whole-graph feature unification does not re-enable `cookies`.
+[dependencies]
+httpmock = { version = "0.7", default-features = false }
+proptest = "1.5"

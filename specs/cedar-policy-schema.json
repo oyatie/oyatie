@@ -1,0 +1,1367 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/cedar-policy-schema.schema.json",
+  "title": "Oyatie Cedar Policy Schema Canonicalization",
+  "description": "Canonical machine-readable contract for Cedar policy schema manifests in Oyatie. This spec is the schema-level companion to specs/cedar-fragment-schema.json and is cited by ADR-0243 Cedar as Universal Gate, ADR-0294 Cedar Fragment Soak + Anomaly-Rollback, and docs/standards/cedar-policy-authoring.md. It defines how entity types, action types, bounded context, private implementation attributes, permit sets, fragments, fixtures, soak controls, fallback semantics, and audit mappings are declared before a policy schema can govern application authorization.",
+  "version": "1.0.0",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_id",
+    "namespace",
+    "schema_version",
+    "status",
+    "adr_refs",
+    "owner_microservice",
+    "policy_store_ref",
+    "entity_types",
+    "action_types",
+    "context_attributes",
+    "reserved_private_attributes",
+    "permit_sets",
+    "fragment_bindings",
+    "fixtures",
+    "validation",
+    "soak_policy",
+    "fallback_policy",
+    "audit_mapping",
+    "promotion_gates"
+  ],
+  "properties": {
+    "schema_id": {
+      "$ref": "#/definitions/schemaId",
+      "description": "Stable identifier for this Cedar schema manifest. ADR-0243 requires every application authorization surface to resolve to a named Cedar gate before enforcement."
+    },
+    "namespace": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]*(::[A-Z][A-Za-z0-9]*)*$",
+      "minLength": 3,
+      "maxLength": 120,
+      "description": "Cedar namespace used by entity and action declarations. Namespaces are versioned through schema_version rather than by embedding dates in the namespace."
+    },
+    "schema_version": {
+      "$ref": "#/definitions/semver",
+      "description": "Semantic version of the Cedar schema. docs/standards/cedar-policy-authoring.md requires version increments when entity shape changes."
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "review",
+        "soaking",
+        "active",
+        "deprecated",
+        "retired"
+      ],
+      "description": "Lifecycle status for the schema manifest. ADR-0294 adds soak-phase validation before active enforcement for policy changes."
+    },
+    "adr_refs": {
+      "type": "array",
+      "minItems": 2,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/adrRef"
+      },
+      "description": "ADRs that authorize this schema. Expected references include ADR-0243 and ADR-0294 for universal-gate and soak semantics."
+    },
+    "owner_microservice": {
+      "$ref": "#/definitions/microserviceName",
+      "description": "Microservice accountable for schema evolution and fixtures. Cedar schemas do not transfer domain ownership away from service owners."
+    },
+    "policy_store_ref": {
+      "$ref": "#/definitions/policyStoreRef",
+      "description": "Logical policy-store reference that evaluators, registries, and hot-reload subscribers use to resolve this schema."
+    },
+    "entity_types": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/entityType"
+      },
+      "description": "Complete entity type declarations. P-032 in the Cedar authoring standard requires every policy schema to include entity types."
+    },
+    "action_types": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/actionType"
+      },
+      "description": "Complete Cedar action declarations. P-033 requires action types, and ADR-0243 requires all service authorization to pass through explicit Cedar actions."
+    },
+    "context_attributes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/contextAttribute"
+      },
+      "description": "Bounded evaluation context attributes. P-034 and P-035 require explicit context fields and forbid unbounded Any-style context."
+    },
+    "reserved_private_attributes": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/privateAttribute"
+      },
+      "description": "Implementation-private attributes reserved from tenant-authored policy input. P-036 requires private attributes to be reserved at schema level."
+    },
+    "permit_sets": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/permitSet"
+      },
+      "description": "Named bundles of Cedar actions and fragment refs used by capability tiers. ADR-0316 requires capability tiers to bind through Cedar permit sets rather than product-specific forks."
+    },
+    "fragment_bindings": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/fragmentBinding"
+      },
+      "description": "Cedar fragment manifests that implement or constrain this schema. Fragment manifests remain governed by specs/cedar-fragment-schema.json."
+    },
+    "fixtures": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/definitions/fixture"
+      },
+      "description": "Positive and negative fixture corpus. The Cedar authoring standard requires fixtures that prove permits, forbids, and deny-by-default behavior."
+    },
+    "validation": {
+      "$ref": "#/definitions/validationPlan",
+      "description": "Static and dynamic validation plan required before promotion."
+    },
+    "soak_policy": {
+      "$ref": "#/definitions/soakPolicy",
+      "description": "Soak-phase rules required by ADR-0294 before new fragments or schema-affecting changes become active enforcement inputs."
+    },
+    "fallback_policy": {
+      "$ref": "#/definitions/fallbackPolicy",
+      "description": "Explicit evaluator fallback semantics. ADR-0243 and ADR-0294 distinguish last-known-good, fail-closed, and emergency forbid behavior."
+    },
+    "audit_mapping": {
+      "$ref": "#/definitions/auditMapping",
+      "description": "Fields emitted with policy evaluation events and audit-chain records. Aligns with specs/audit-event-class-registry.json and ADR-0263."
+    },
+    "promotion_gates": {
+      "type": "array",
+      "minItems": 4,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/definitions/promotionGate"
+      },
+      "description": "Required gates before activation. Gates must include schema parsing, Cedar formatting, coverage, fixtures, and soak checks."
+    },
+    "deprecation": {
+      "$ref": "#/definitions/deprecationPlan",
+      "description": "Optional deprecation plan for replacing a schema without breaking active fragments or capability tiers."
+    }
+  },
+  "definitions": {
+    "schemaId": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{2,80}-cedar-schema$",
+      "minLength": 16,
+      "maxLength": 96,
+      "examples": [
+        "tenancy-cedar-schema",
+        "sales-capability-cedar-schema"
+      ]
+    },
+    "semver": {
+      "type": "string",
+      "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
+      "examples": [
+        "1.0.0",
+        "1.2.0"
+      ]
+    },
+    "adrRef": {
+      "type": "string",
+      "pattern": "^ADR-[0-9]{4}:[A-Za-z0-9 ._/-]+$",
+      "minLength": 14,
+      "maxLength": 160
+    },
+    "microserviceName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,63}$",
+      "minLength": 2,
+      "maxLength": 64
+    },
+    "policyStoreRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "store_id",
+        "cell_scope",
+        "replication_mode",
+        "freshness_slo_ms"
+      ],
+      "properties": {
+        "store_id": {
+          "type": "string",
+          "pattern": "^cedar-store:[a-z0-9][a-z0-9-]{2,80}$"
+        },
+        "cell_scope": {
+          "type": "string",
+          "pattern": "^(global|cell:[a-z0-9-]{2,64}|tenant:[a-z0-9-]{2,64})$"
+        },
+        "replication_mode": {
+          "type": "string",
+          "enum": [
+            "single-cell",
+            "multi-cell-read-replica",
+            "sovereign-isolated"
+          ]
+        },
+        "freshness_slo_ms": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 5000
+        }
+      }
+    },
+    "entityType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "kind",
+        "attributes",
+        "parents",
+        "source_ontology_type"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]{1,64}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "principal",
+            "resource",
+            "context-carrier"
+          ]
+        },
+        "attributes": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/definitions/entityAttribute"
+          }
+        },
+        "parents": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z0-9]{1,64}$"
+          }
+        },
+        "source_ontology_type": {
+          "type": "string",
+          "pattern": "^ontology://[a-z0-9./_-]+#[A-Za-z][A-Za-z0-9_]*$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 600
+        }
+      }
+    },
+    "entityAttribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "cedar_type",
+        "required",
+        "source"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,64}$"
+        },
+        "cedar_type": {
+          "$ref": "#/definitions/cedarType"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "source": {
+          "type": "string",
+          "enum": [
+            "ontology",
+            "identity",
+            "tenant-model",
+            "capability-tier",
+            "policy-engine"
+          ]
+        },
+        "private": {
+          "type": "boolean",
+          "default": false
+        },
+        "allowed_values": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "string",
+            "minLength": 1
+          }
+        }
+      }
+    },
+    "cedarType": {
+      "type": "string",
+      "enum": [
+        "String",
+        "Long",
+        "Boolean",
+        "Set<String>",
+        "Set<Entity>",
+        "Record",
+        "Entity"
+      ]
+    },
+    "actionType": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "action",
+        "applies_to_principal_types",
+        "applies_to_resource_types",
+        "authorization_class"
+      ],
+      "properties": {
+        "action": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]*::Action::\\\"[A-Z][A-Za-z0-9]+\\\"$"
+        },
+        "applies_to_principal_types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z0-9]{1,64}$"
+          }
+        },
+        "applies_to_resource_types": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Za-z0-9]{1,64}$"
+          }
+        },
+        "authorization_class": {
+          "type": "string",
+          "enum": [
+            "read",
+            "write",
+            "admin",
+            "export",
+            "break-glass"
+          ]
+        },
+        "default_decision": {
+          "type": "string",
+          "enum": [
+            "deny",
+            "forbid"
+          ],
+          "default": "deny"
+        }
+      }
+    },
+    "contextAttribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "cedar_type",
+        "required",
+        "description"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9_]{1,64}$"
+        },
+        "cedar_type": {
+          "$ref": "#/definitions/cedarType"
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 500
+        },
+        "privacy_class": {
+          "type": "string",
+          "enum": [
+            "non-sensitive",
+            "tenant-confidential",
+            "regulated",
+            "security-private"
+          ]
+        }
+      }
+    },
+    "privateAttribute": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "owner",
+        "reason"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "pattern": "^_[a-z][a-z0-9_]{1,64}$"
+        },
+        "owner": {
+          "$ref": "#/definitions/microserviceName"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 20,
+          "maxLength": 400
+        }
+      }
+    },
+    "permitSet": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "permit_set_id",
+        "actions",
+        "required_fragments",
+        "negative_fragments"
+      ],
+      "properties": {
+        "permit_set_id": {
+          "type": "string",
+          "pattern": "^permit-set:[a-z0-9][a-z0-9-]{2,80}:v[0-9]+$"
+        },
+        "actions": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string"
+          }
+        },
+        "required_fragments": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^fragment:[a-z0-9][a-z0-9-]{2,96}:v[0-9]+$"
+          }
+        },
+        "negative_fragments": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^fragment:[a-z0-9][a-z0-9-]{2,96}:v[0-9]+$"
+          }
+        }
+      }
+    },
+    "fragmentBinding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fragment_id",
+        "fragment_manifest",
+        "coverage_role",
+        "soak_required"
+      ],
+      "properties": {
+        "fragment_id": {
+          "type": "string",
+          "pattern": "^fragment:[a-z0-9][a-z0-9-]{2,96}:v[0-9]+$"
+        },
+        "fragment_manifest": {
+          "type": "string",
+          "pattern": "^specs/cedar-fragments/[a-z0-9./_-]+\\.json$"
+        },
+        "coverage_role": {
+          "type": "string",
+          "enum": [
+            "permit",
+            "forbid",
+            "default-deny",
+            "overlay",
+            "emergency-forbid"
+          ]
+        },
+        "soak_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "fixture": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "fixture_id",
+        "kind",
+        "principal",
+        "action",
+        "resource",
+        "context",
+        "expected_decision"
+      ],
+      "properties": {
+        "fixture_id": {
+          "type": "string",
+          "pattern": "^fixture:[a-z0-9][a-z0-9-]{2,96}$"
+        },
+        "kind": {
+          "type": "string",
+          "enum": [
+            "positive",
+            "negative",
+            "regression",
+            "soak-shadow"
+          ]
+        },
+        "principal": {
+          "type": "string",
+          "minLength": 3
+        },
+        "action": {
+          "type": "string",
+          "minLength": 3
+        },
+        "resource": {
+          "type": "string",
+          "minLength": 3
+        },
+        "context": {
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": true
+        },
+        "expected_decision": {
+          "type": "string",
+          "enum": [
+            "ALLOW",
+            "DENY",
+            "FORBID"
+          ]
+        }
+      }
+    },
+    "validationPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "parser",
+        "formatter",
+        "coverage_checker",
+        "fixture_runner",
+        "forbidden_pattern_checks"
+      ],
+      "properties": {
+        "parser": {
+          "$ref": "#/definitions/gateCommand"
+        },
+        "formatter": {
+          "$ref": "#/definitions/gateCommand"
+        },
+        "coverage_checker": {
+          "$ref": "#/definitions/gateCommand"
+        },
+        "fixture_runner": {
+          "$ref": "#/definitions/gateCommand"
+        },
+        "forbidden_pattern_checks": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "type": "string",
+            "enum": [
+              "no_workflow_state_machine",
+              "no_pricing_rules",
+              "no_ui_navigation",
+              "no_secrets",
+              "no_unreviewed_tenant_input",
+              "no_unbounded_context"
+            ]
+          }
+        }
+      }
+    },
+    "gateCommand": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "command",
+        "required"
+      ],
+      "properties": {
+        "command": {
+          "type": "string",
+          "minLength": 6,
+          "maxLength": 240
+        },
+        "required": {
+          "type": "boolean",
+          "const": true
+        }
+      }
+    },
+    "soakPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "enabled",
+        "minimum_window_seconds",
+        "shadow_decision_required",
+        "anomaly_threshold_sigma",
+        "auto_rollback"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean"
+        },
+        "minimum_window_seconds": {
+          "type": "integer",
+          "minimum": 60,
+          "maximum": 604800
+        },
+        "shadow_decision_required": {
+          "type": "boolean",
+          "const": true
+        },
+        "anomaly_threshold_sigma": {
+          "type": "number",
+          "minimum": 1,
+          "maximum": 6
+        },
+        "auto_rollback": {
+          "type": "boolean"
+        }
+      }
+    },
+    "fallbackPolicy": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "mode",
+        "max_last_known_good_age_seconds",
+        "fail_closed_actions"
+      ],
+      "properties": {
+        "mode": {
+          "type": "string",
+          "enum": [
+            "last-known-good",
+            "fail-closed",
+            "emergency-forbid"
+          ]
+        },
+        "max_last_known_good_age_seconds": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 86400
+        },
+        "fail_closed_actions": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "minLength": 3
+          }
+        }
+      }
+    },
+    "auditMapping": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_class_prefix",
+        "required_fields",
+        "decision_field",
+        "schema_version_field"
+      ],
+      "properties": {
+        "event_class_prefix": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Za-z0-9]{2,80}$"
+        },
+        "required_fields": {
+          "type": "array",
+          "minItems": 6,
+          "uniqueItems": true,
+          "items": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]{1,64}$"
+          }
+        },
+        "decision_field": {
+          "type": "string",
+          "const": "decision"
+        },
+        "schema_version_field": {
+          "type": "string",
+          "const": "cedar_policy_version"
+        }
+      }
+    },
+    "promotionGate": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "gate_id",
+        "owner",
+        "evidence_ref"
+      ],
+      "properties": {
+        "gate_id": {
+          "type": "string",
+          "pattern": "^cedar-policy-[a-z0-9-]{3,80}$"
+        },
+        "owner": {
+          "$ref": "#/definitions/microserviceName"
+        },
+        "evidence_ref": {
+          "type": "string",
+          "pattern": "^evidence://[a-z0-9./_-]+$"
+        }
+      }
+    },
+    "deprecationPlan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "successor_schema_id",
+        "sunset_at",
+        "migration_gate"
+      ],
+      "properties": {
+        "successor_schema_id": {
+          "$ref": "#/definitions/schemaId"
+        },
+        "sunset_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "migration_gate": {
+          "type": "string",
+          "pattern": "^oya-governance-[a-z0-9-]{3,80}$"
+        }
+      }
+    }
+  },
+  "examples": {
+    "tenancy_baseline_gate": {
+      "schema_id": "tenancy-cedar-schema",
+      "namespace": "Tenancy",
+      "schema_version": "1.0.0",
+      "status": "active",
+      "adr_refs": [
+        "ADR-0243:Cedar as Universal Gate",
+        "ADR-0294:Cedar Fragment Soak + Anomaly-Rollback"
+      ],
+      "owner_microservice": "tenancy",
+      "policy_store_ref": {
+        "store_id": "cedar-store:tenancy-baseline",
+        "cell_scope": "global",
+        "replication_mode": "multi-cell-read-replica",
+        "freshness_slo_ms": 1000
+      },
+      "entity_types": [
+        {
+          "name": "TenantAdmin",
+          "kind": "principal",
+          "attributes": [
+            {
+              "name": "tenant_id",
+              "cedar_type": "String",
+              "required": true,
+              "source": "tenant-model",
+              "private": false
+            }
+          ],
+          "parents": [],
+          "source_ontology_type": "ontology://tenant/core#TenantAdmin",
+          "description": "Principal type for administrative tenant lifecycle actions."
+        },
+        {
+          "name": "Tenant",
+          "kind": "resource",
+          "attributes": [
+            {
+              "name": "jurisdiction_code",
+              "cedar_type": "String",
+              "required": true,
+              "source": "tenant-model",
+              "private": false
+            }
+          ],
+          "parents": [],
+          "source_ontology_type": "ontology://tenant/core#Tenant",
+          "description": "Tenant resource guarded by lifecycle and jurisdiction policies."
+        }
+      ],
+      "action_types": [
+        {
+          "action": "Tenancy::Action::\"RegisterTenant\"",
+          "applies_to_principal_types": [
+            "TenantAdmin"
+          ],
+          "applies_to_resource_types": [
+            "Tenant"
+          ],
+          "authorization_class": "admin",
+          "default_decision": "deny"
+        }
+      ],
+      "context_attributes": [
+        {
+          "name": "cell_id",
+          "cedar_type": "String",
+          "required": true,
+          "description": "Cell-local execution boundary for tenant registration evaluation.",
+          "privacy_class": "tenant-confidential"
+        }
+      ],
+      "reserved_private_attributes": [
+        {
+          "name": "_bootstrap_root",
+          "owner": "tenancy",
+          "reason": "Reserved to prevent tenant policy authors from spoofing bootstrap genesis authority."
+        }
+      ],
+      "permit_sets": [
+        {
+          "permit_set_id": "permit-set:tenant-registration:v1",
+          "actions": [
+            "Tenancy::Action::\"RegisterTenant\""
+          ],
+          "required_fragments": [
+            "fragment:baseline-tenancy-register-tenant:v1"
+          ],
+          "negative_fragments": [
+            "fragment:reserved-tenancy-reserved-namespace:v1"
+          ]
+        }
+      ],
+      "fragment_bindings": [
+        {
+          "fragment_id": "fragment:baseline-tenancy-register-tenant:v1",
+          "fragment_manifest": "specs/cedar-fragments/baseline-tenancy-register-tenant.json",
+          "coverage_role": "permit",
+          "soak_required": true
+        }
+      ],
+      "fixtures": [
+        {
+          "fixture_id": "fixture:tenant-register-admin-allows",
+          "kind": "positive",
+          "principal": "TenantAdmin::\"admin-1\"",
+          "action": "Tenancy::Action::\"RegisterTenant\"",
+          "resource": "Tenant::\"tenant-acme\"",
+          "context": {
+            "cell_id": "cell-us-east-1a"
+          },
+          "expected_decision": "ALLOW"
+        },
+        {
+          "fixture_id": "fixture:tenant-register-non-admin-denies",
+          "kind": "negative",
+          "principal": "User::\"user-1\"",
+          "action": "Tenancy::Action::\"RegisterTenant\"",
+          "resource": "Tenant::\"tenant-acme\"",
+          "context": {
+            "cell_id": "cell-us-east-1a"
+          },
+          "expected_decision": "DENY"
+        }
+      ],
+      "validation": {
+        "parser": {
+          "command": "oya gate validate cedar-schema-parse",
+          "required": true
+        },
+        "formatter": {
+          "command": "oya gate validate cedar-format",
+          "required": true
+        },
+        "coverage_checker": {
+          "command": "oya gate validate cedar-coverage",
+          "required": true
+        },
+        "fixture_runner": {
+          "command": "oya gate validate cedar-fixtures",
+          "required": true
+        },
+        "forbidden_pattern_checks": [
+          "no_workflow_state_machine",
+          "no_pricing_rules",
+          "no_ui_navigation"
+        ]
+      },
+      "soak_policy": {
+        "enabled": true,
+        "minimum_window_seconds": 300,
+        "shadow_decision_required": true,
+        "anomaly_threshold_sigma": 3,
+        "auto_rollback": true
+      },
+      "fallback_policy": {
+        "mode": "last-known-good",
+        "max_last_known_good_age_seconds": 300,
+        "fail_closed_actions": [
+          "Tenancy::Action::\"RegisterTenant\""
+        ]
+      },
+      "audit_mapping": {
+        "event_class_prefix": "CedarPolicy",
+        "required_fields": [
+          "tenant_id",
+          "event_id",
+          "trace_id",
+          "schema_version",
+          "cedar_policy_version",
+          "decision"
+        ],
+        "decision_field": "decision",
+        "schema_version_field": "cedar_policy_version"
+      },
+      "promotion_gates": [
+        {
+          "gate_id": "cedar-policy-schema-parse",
+          "owner": "policy-engine",
+          "evidence_ref": "evidence://cedar/tenancy/schema-parse"
+        },
+        {
+          "gate_id": "cedar-policy-fixtures-pass",
+          "owner": "policy-engine",
+          "evidence_ref": "evidence://cedar/tenancy/fixtures"
+        },
+        {
+          "gate_id": "cedar-policy-soak-clean",
+          "owner": "observability",
+          "evidence_ref": "evidence://cedar/tenancy/soak"
+        },
+        {
+          "gate_id": "cedar-policy-audit-mapping",
+          "owner": "audit-chain",
+          "evidence_ref": "evidence://cedar/tenancy/audit"
+        }
+      ]
+    },
+    "sales_capability_tier_gate": {
+      "schema_id": "sales-capability-cedar-schema",
+      "namespace": "Sales",
+      "schema_version": "1.1.0",
+      "status": "review",
+      "adr_refs": [
+        "ADR-0243:Cedar as Universal Gate",
+        "ADR-0316:Capability Tier Over Product Fragmentation"
+      ],
+      "owner_microservice": "crm",
+      "policy_store_ref": {
+        "store_id": "cedar-store:sales-capability",
+        "cell_scope": "cell:cell-us-east-1a",
+        "replication_mode": "single-cell",
+        "freshness_slo_ms": 750
+      },
+      "entity_types": [
+        {
+          "name": "SalesUser",
+          "kind": "principal",
+          "attributes": [
+            {
+              "name": "capability_tier_id",
+              "cedar_type": "String",
+              "required": true,
+              "source": "capability-tier"
+            }
+          ],
+          "parents": [],
+          "source_ontology_type": "ontology://crm/sales#SalesUser",
+          "description": "Principal projected through a capability tier for CRM sales work."
+        },
+        {
+          "name": "Opportunity",
+          "kind": "resource",
+          "attributes": [
+            {
+              "name": "pack_overlays",
+              "cedar_type": "Set<String>",
+              "required": true,
+              "source": "ontology"
+            }
+          ],
+          "parents": [],
+          "source_ontology_type": "ontology://crm/sales#Opportunity",
+          "description": "Opportunity resource exposed by the sales ontology projection."
+        }
+      ],
+      "action_types": [
+        {
+          "action": "Sales::Action::\"ReadOpportunity\"",
+          "applies_to_principal_types": [
+            "SalesUser"
+          ],
+          "applies_to_resource_types": [
+            "Opportunity"
+          ],
+          "authorization_class": "read",
+          "default_decision": "deny"
+        }
+      ],
+      "context_attributes": [
+        {
+          "name": "pack_overlay",
+          "cedar_type": "String",
+          "required": true,
+          "description": "Compliance pack overlay selected by capability tier and tenant jurisdiction.",
+          "privacy_class": "regulated"
+        }
+      ],
+      "reserved_private_attributes": [
+        {
+          "name": "_grant_digest",
+          "owner": "policy-engine",
+          "reason": "Derived digest prevents tenant-supplied grants from bypassing registry integrity checks."
+        }
+      ],
+      "permit_sets": [
+        {
+          "permit_set_id": "permit-set:sales-opportunity-read:v1",
+          "actions": [
+            "Sales::Action::\"ReadOpportunity\""
+          ],
+          "required_fragments": [
+            "fragment:baseline-sales-read-opportunity:v1"
+          ],
+          "negative_fragments": []
+        }
+      ],
+      "fragment_bindings": [
+        {
+          "fragment_id": "fragment:baseline-sales-read-opportunity:v1",
+          "fragment_manifest": "specs/cedar-fragments/baseline-sales-read-opportunity.json",
+          "coverage_role": "permit",
+          "soak_required": true
+        }
+      ],
+      "fixtures": [
+        {
+          "fixture_id": "fixture:sales-read-opportunity-allowed",
+          "kind": "positive",
+          "principal": "SalesUser::\"seller-1\"",
+          "action": "Sales::Action::\"ReadOpportunity\"",
+          "resource": "Opportunity::\"opp-1\"",
+          "context": {
+            "pack_overlay": "overlay:gdpr-sales-core:v1"
+          },
+          "expected_decision": "ALLOW"
+        },
+        {
+          "fixture_id": "fixture:sales-read-opportunity-pack-denied",
+          "kind": "negative",
+          "principal": "SalesUser::\"seller-2\"",
+          "action": "Sales::Action::\"ReadOpportunity\"",
+          "resource": "Opportunity::\"opp-2\"",
+          "context": {
+            "pack_overlay": "overlay:missing:v1"
+          },
+          "expected_decision": "DENY"
+        }
+      ],
+      "validation": {
+        "parser": {
+          "command": "oya gate validate cedar-schema-parse",
+          "required": true
+        },
+        "formatter": {
+          "command": "oya gate validate cedar-format",
+          "required": true
+        },
+        "coverage_checker": {
+          "command": "oya gate validate capability-tier-cedar-coverage",
+          "required": true
+        },
+        "fixture_runner": {
+          "command": "oya gate validate cedar-fixtures",
+          "required": true
+        },
+        "forbidden_pattern_checks": [
+          "no_workflow_state_machine",
+          "no_pricing_rules",
+          "no_unbounded_context"
+        ]
+      },
+      "soak_policy": {
+        "enabled": true,
+        "minimum_window_seconds": 600,
+        "shadow_decision_required": true,
+        "anomaly_threshold_sigma": 3,
+        "auto_rollback": true
+      },
+      "fallback_policy": {
+        "mode": "fail-closed",
+        "max_last_known_good_age_seconds": 120,
+        "fail_closed_actions": [
+          "Sales::Action::\"ReadOpportunity\""
+        ]
+      },
+      "audit_mapping": {
+        "event_class_prefix": "CedarPolicy",
+        "required_fields": [
+          "tenant_id",
+          "event_id",
+          "trace_id",
+          "capability_tier_id",
+          "cedar_policy_version",
+          "decision"
+        ],
+        "decision_field": "decision",
+        "schema_version_field": "cedar_policy_version"
+      },
+      "promotion_gates": [
+        {
+          "gate_id": "cedar-policy-schema-parse",
+          "owner": "policy-engine",
+          "evidence_ref": "evidence://cedar/sales/schema"
+        },
+        {
+          "gate_id": "cedar-policy-capability-coverage",
+          "owner": "governance",
+          "evidence_ref": "evidence://cedar/sales/capability"
+        },
+        {
+          "gate_id": "cedar-policy-soak-clean",
+          "owner": "observability",
+          "evidence_ref": "evidence://cedar/sales/soak"
+        },
+        {
+          "gate_id": "cedar-policy-fixtures-pass",
+          "owner": "policy-engine",
+          "evidence_ref": "evidence://cedar/sales/fixtures"
+        }
+      ]
+    },
+    "health_pack_overlay_gate": {
+      "schema_id": "health-pack-cedar-schema",
+      "namespace": "Health",
+      "schema_version": "1.0.0",
+      "status": "soaking",
+      "adr_refs": [
+        "ADR-0243:Cedar as Universal Gate",
+        "ADR-0251:Compliance Pack Overlays",
+        "ADR-0294:Cedar Fragment Soak + Anomaly-Rollback"
+      ],
+      "owner_microservice": "compliance",
+      "policy_store_ref": {
+        "store_id": "cedar-store:health-pack",
+        "cell_scope": "tenant:tenant-clinic-a",
+        "replication_mode": "sovereign-isolated",
+        "freshness_slo_ms": 500
+      },
+      "entity_types": [
+        {
+          "name": "CareTeamMember",
+          "kind": "principal",
+          "attributes": [
+            {
+              "name": "jurisdiction_code",
+              "cedar_type": "String",
+              "required": true,
+              "source": "identity"
+            }
+          ],
+          "parents": [],
+          "source_ontology_type": "ontology://health/core#CareTeamMember",
+          "description": "Regulated healthcare principal evaluated through pack overlays."
+        },
+        {
+          "name": "PatientRecord",
+          "kind": "resource",
+          "attributes": [
+            {
+              "name": "data_classes",
+              "cedar_type": "Set<String>",
+              "required": true,
+              "source": "ontology"
+            }
+          ],
+          "parents": [],
+          "source_ontology_type": "ontology://health/core#PatientRecord",
+          "description": "Patient resource with PHI fields constrained by overlay and audit rules."
+        }
+      ],
+      "action_types": [
+        {
+          "action": "Health::Action::\"ReadPatientRecord\"",
+          "applies_to_principal_types": [
+            "CareTeamMember"
+          ],
+          "applies_to_resource_types": [
+            "PatientRecord"
+          ],
+          "authorization_class": "read",
+          "default_decision": "forbid"
+        }
+      ],
+      "context_attributes": [
+        {
+          "name": "minimum_necessary_reason",
+          "cedar_type": "String",
+          "required": true,
+          "description": "Reason code proving minimum necessary access for regulated health data.",
+          "privacy_class": "regulated"
+        }
+      ],
+      "reserved_private_attributes": [
+        {
+          "name": "_phi_break_glass_token",
+          "owner": "compliance",
+          "reason": "Break-glass evidence token is system generated and cannot be supplied by tenant-authored policy input."
+        }
+      ],
+      "permit_sets": [
+        {
+          "permit_set_id": "permit-set:health-patient-read:v1",
+          "actions": [
+            "Health::Action::\"ReadPatientRecord\""
+          ],
+          "required_fragments": [
+            "fragment:pack-hipaa-read-patient-record:v1"
+          ],
+          "negative_fragments": [
+            "fragment:overlay-health-minimum-necessary:v1"
+          ]
+        }
+      ],
+      "fragment_bindings": [
+        {
+          "fragment_id": "fragment:pack-hipaa-read-patient-record:v1",
+          "fragment_manifest": "specs/cedar-fragments/pack-hipaa-read-patient-record.json",
+          "coverage_role": "overlay",
+          "soak_required": true
+        }
+      ],
+      "fixtures": [
+        {
+          "fixture_id": "fixture:health-care-team-minimum-necessary-allows",
+          "kind": "positive",
+          "principal": "CareTeamMember::\"nurse-1\"",
+          "action": "Health::Action::\"ReadPatientRecord\"",
+          "resource": "PatientRecord::\"patient-1\"",
+          "context": {
+            "minimum_necessary_reason": "active-treatment"
+          },
+          "expected_decision": "ALLOW"
+        },
+        {
+          "fixture_id": "fixture:health-care-team-missing-reason-forbids",
+          "kind": "negative",
+          "principal": "CareTeamMember::\"nurse-2\"",
+          "action": "Health::Action::\"ReadPatientRecord\"",
+          "resource": "PatientRecord::\"patient-2\"",
+          "context": {
+            "minimum_necessary_reason": ""
+          },
+          "expected_decision": "FORBID"
+        }
+      ],
+      "validation": {
+        "parser": {
+          "command": "oya gate validate cedar-schema-parse",
+          "required": true
+        },
+        "formatter": {
+          "command": "oya gate validate cedar-format",
+          "required": true
+        },
+        "coverage_checker": {
+          "command": "oya gate validate compliance-pack-cedar-coverage",
+          "required": true
+        },
+        "fixture_runner": {
+          "command": "oya gate validate cedar-fixtures",
+          "required": true
+        },
+        "forbidden_pattern_checks": [
+          "no_secrets",
+          "no_unreviewed_tenant_input",
+          "no_unbounded_context"
+        ]
+      },
+      "soak_policy": {
+        "enabled": true,
+        "minimum_window_seconds": 900,
+        "shadow_decision_required": true,
+        "anomaly_threshold_sigma": 2.5,
+        "auto_rollback": true
+      },
+      "fallback_policy": {
+        "mode": "emergency-forbid",
+        "max_last_known_good_age_seconds": 60,
+        "fail_closed_actions": [
+          "Health::Action::\"ReadPatientRecord\""
+        ]
+      },
+      "audit_mapping": {
+        "event_class_prefix": "CedarPolicy",
+        "required_fields": [
+          "tenant_id",
+          "event_id",
+          "trace_id",
+          "jurisdiction_code",
+          "cedar_policy_version",
+          "decision"
+        ],
+        "decision_field": "decision",
+        "schema_version_field": "cedar_policy_version"
+      },
+      "promotion_gates": [
+        {
+          "gate_id": "cedar-policy-schema-parse",
+          "owner": "policy-engine",
+          "evidence_ref": "evidence://cedar/health/schema"
+        },
+        {
+          "gate_id": "cedar-policy-compliance-overlay",
+          "owner": "compliance",
+          "evidence_ref": "evidence://cedar/health/overlay"
+        },
+        {
+          "gate_id": "cedar-policy-soak-clean",
+          "owner": "observability",
+          "evidence_ref": "evidence://cedar/health/soak"
+        },
+        {
+          "gate_id": "cedar-policy-audit-mapping",
+          "owner": "audit-chain",
+          "evidence_ref": "evidence://cedar/health/audit"
+        }
+      ]
+    }
+  }
+}

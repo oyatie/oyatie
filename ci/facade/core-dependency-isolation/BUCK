@@ -1,0 +1,60 @@
+rust_library(
+    name = "ci-core-dependency-isolation",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_core_dependency_isolation",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-kernel-purity-app-bin",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-core-dependency-isolation",
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "ci-core-dependency-isolation-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_core_dependency_isolation",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+# ADR-0547 cloud-ci-kernel-purity: live-corpus self-test over the real *-kernel/*-core crates plus
+# RED/GREEN fixtures. It collects each kernel's workspace-internal dep closure and asserts the live
+# corpus is born-blocking green (every kernel pure today) while every violation class fails closed
+# without a filesystem.
+rust_test(
+    name = "ci-core-dependency-isolation-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_core_dependency_isolation_gate",
+    crate_root = "tests/kernel_purity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-core-dependency-isolation",
+        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)

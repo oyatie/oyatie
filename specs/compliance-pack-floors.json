@@ -1,0 +1,619 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/compliance-pack-floors.schema.json",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-COMPLIANCE-PACK-DR-FLOORS",
+    "version": "1.0.0",
+    "status": "Proposed",
+    "enforcement_status": "advisory-until-pack-floor-cedar-fragments-land",
+    "owner_team": "council-architecture + council-security + council-legal + ops-sre-reliability + ops-compliance + axis-observability",
+    "created_at": "2026-05-21T00:00:00Z",
+    "binding_adr": "ADR-0343",
+    "related_adrs": [
+      "ADR-0028",
+      "ADR-0099",
+      "ADR-0108",
+      "ADR-0128",
+      "ADR-0150",
+      "ADR-0158",
+      "ADR-0181",
+      "ADR-0212",
+      "ADR-0240",
+      "ADR-0241",
+      "ADR-0244",
+      "ADR-0245",
+      "ADR-0250",
+      "ADR-0251",
+      "ADR-0263",
+      "ADR-0322",
+      "ADR-0328",
+      "ADR-0336",
+      "ADR-0337",
+      "ADR-0339",
+      "ADR-0343"
+    ],
+    "purpose": "Canonical machine-readable per-compliance-pack DR floor table. Consumed by the pack-activation gate Cedar fragments and the auditor dashboard auto-generation tooling. Effective tenant RTO/RPO per (tenant, microservice) pair = MIN over microservice-declared and all-applicable-pack floors (stringency partial order; smaller seconds = stricter). Multi-region requirement = OR over microservice-declared and all-applicable-pack mr_required flags. Drill cadence = SHORTEST cadence across microservice tier-default and all-applicable-pack drill_cadence_required. Per ADR-0343 §D-4 algorithm.",
+    "industry_citations": [
+      {
+        "vendor": "AWS",
+        "source": "AWS Audit Manager + Resilience Hub",
+        "convention": "per-pack control evidence + per-application DR posture"
+      },
+      {
+        "vendor": "Google Cloud",
+        "source": "Compliance Reports Manager + Assured Workloads",
+        "convention": "per-product DR posture + perimeter enforcement"
+      },
+      {
+        "vendor": "Microsoft",
+        "source": "Purview Compliance Manager + Site Recovery",
+        "convention": "per-control assessment + per-VM DR contract"
+      },
+      {
+        "vendor": "HashiCorp",
+        "source": "Sentinel policy bundles",
+        "convention": "versioned framework-mapped policies"
+      }
+    ],
+    "backup_substrate_allowlist": [
+      "valkey",
+      "valkey_cluster",
+      "postgres_wal_g",
+      "iceberg_snapshot",
+      "object_storage_versioned",
+      "seaweedfs_replicated",
+      "milvus_snapshot",
+      "clickhouse_iceberg_layered",
+      "openbao_seal_unseal",
+      "audit_chain_merkle_seal"
+    ],
+    "drill_cadence_enum": [
+      "quarterly-plus-ad-hoc",
+      "quarterly",
+      "semi-annual",
+      "annual",
+      "annual-tabletop"
+    ],
+    "stringency_algorithm": "effective.rto_p99_seconds = MIN(M.rto, MIN over applicable P_i.rto). effective.rpo_p99_seconds = MIN(M.rpo, MIN over applicable P_i.rpo). effective.multi_region_active_active = M.mr OR (OR over applicable P_i.mr_required). effective.drill_cadence = SHORTEST cadence across M.cadence_default and all P_i.drill_cadence_required."
+  },
+  "title": "Compliance Pack DR Floor Table",
+  "type": "object",
+  "required": [
+    "version",
+    "signed_by",
+    "signature",
+    "effective_at",
+    "packs"
+  ],
+  "properties": {
+    "version": {
+      "type": "string",
+      "description": "Semantic version per semver 2.0. Major bump on floor stringency increase; minor on additive refinement (process_floors, data_class_floors); patch on editorial only.",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "signed_by": {
+      "type": "string",
+      "description": "Compliance-office signing key identifier. Format: `compliance-office:dr-pack-floors:v<N>`.",
+      "pattern": "^compliance-office:dr-pack-floors:v[0-9]+$"
+    },
+    "signature": {
+      "type": "string",
+      "description": "Ed25519 signature over the canonical CBOR-encoded table body (excluding the signature field). Lowercase hex; 128 chars = 64 bytes.",
+      "pattern": "^[0-9a-f]{128}$"
+    },
+    "effective_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "sunset_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time"
+    },
+    "supersedes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "version"
+        ],
+        "properties": {
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          }
+        }
+      },
+      "default": []
+    },
+    "packs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "pack_id",
+          "version",
+          "dr_floor",
+          "_meta"
+        ],
+        "properties": {
+          "pack_id": {
+            "type": "string",
+            "description": "Matches /specs/compliance-pack-schema.json#pack_id.",
+            "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9.]+)*$"
+          },
+          "version": {
+            "type": "string",
+            "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$"
+          },
+          "standard_version": {
+            "type": "string",
+            "description": "Precise external standard revision backing this pack floor when pack_id remains a stable major-version shorthand. For PCI-DSS-L1-v4 this records 4.0.1."
+          },
+          "source_revision": {
+            "type": "object",
+            "description": "Source/version acquisition metadata for the floor's external standard citation; this is not readiness, certification, or evidence-acceptance proof.",
+            "properties": {
+              "source_refs": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "retrieval_status": {
+                "type": "string"
+              },
+              "claim_ceiling": {
+                "type": "string"
+              }
+            }
+          },
+          "dr_floor": {
+            "type": "object",
+            "required": [
+              "rto_p99_seconds",
+              "rpo_p99_seconds",
+              "multi_region_required",
+              "drill_cadence_required"
+            ],
+            "properties": {
+              "rto_p99_seconds": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Upper bound on p99 recovery-time-objective in whole seconds."
+              },
+              "rpo_p99_seconds": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Upper bound on p99 recovery-point-objective in whole seconds. 0 = no data loss tolerated (active-active or synchronous replication)."
+              },
+              "multi_region_required": {
+                "type": "boolean",
+                "description": "Pack-mandated multi-region active-active or active-passive cross-region topology."
+              },
+              "drill_cadence_required": {
+                "type": "string",
+                "enum": [
+                  "quarterly-plus-ad-hoc",
+                  "quarterly",
+                  "semi-annual",
+                  "annual",
+                  "annual-tabletop"
+                ]
+              },
+              "process_floors": {
+                "type": "object",
+                "description": "SOX-404 per-process refinement. Keyed by canonical SOX in-scope process name. Each value is a dr_floor sub-block.",
+                "additionalProperties": {
+                  "type": "object",
+                  "required": [
+                    "rto_p99_seconds",
+                    "rpo_p99_seconds",
+                    "multi_region_required",
+                    "drill_cadence_required"
+                  ],
+                  "properties": {
+                    "rto_p99_seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "rpo_p99_seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "multi_region_required": {
+                      "type": "boolean"
+                    },
+                    "drill_cadence_required": {
+                      "type": "string",
+                      "enum": [
+                        "quarterly-plus-ad-hoc",
+                        "quarterly",
+                        "semi-annual",
+                        "annual",
+                        "annual-tabletop"
+                      ]
+                    },
+                    "retention_min_iso8601": {
+                      "type": "string",
+                      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$"
+                    },
+                    "rationale": {
+                      "type": "string"
+                    }
+                  }
+                }
+              },
+              "data_class_floors": {
+                "type": "object",
+                "description": "KR-PIPA per-data-class refinement. Keyed by data-class identifier from ADR-0099 registry. Each value is a dr_floor sub-block.",
+                "additionalProperties": {
+                  "type": "object",
+                  "required": [
+                    "rto_p99_seconds",
+                    "rpo_p99_seconds",
+                    "multi_region_required",
+                    "drill_cadence_required"
+                  ],
+                  "properties": {
+                    "rto_p99_seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "rpo_p99_seconds": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "multi_region_required": {
+                      "type": "boolean"
+                    },
+                    "drill_cadence_required": {
+                      "type": "string",
+                      "enum": [
+                        "quarterly-plus-ad-hoc",
+                        "quarterly",
+                        "semi-annual",
+                        "annual",
+                        "annual-tabletop"
+                      ]
+                    },
+                    "rationale": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "_meta": {
+            "type": "object",
+            "required": [
+              "regulator_citations",
+              "rationale",
+              "effective_at"
+            ],
+            "properties": {
+              "regulator_citations": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "minLength": 5
+                },
+                "minItems": 1
+              },
+              "rationale": {
+                "type": "string"
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sunset_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              },
+              "cedar_fragment_id": {
+                "type": "string",
+                "pattern": "^pack-[a-z0-9-]+-dr-floor-satisfaction$"
+              },
+              "cedar_fragment_attestation": {
+                "type": "string",
+                "pattern": "^(rekor|seaweed)://[A-Za-z0-9._/-]+@[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "version": "1.0.0",
+  "signed_by": "compliance-office:dr-pack-floors:v1",
+  "signature": "0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000",
+  "effective_at": "2026-05-21T00:00:00Z",
+  "sunset_at": null,
+  "supersedes": [],
+  "packs": [
+    {
+      "pack_id": "HIPAA-2024",
+      "version": "1.0.0",
+      "dr_floor": {
+        "rto_p99_seconds": 3600,
+        "rpo_p99_seconds": 300,
+        "multi_region_required": true,
+        "drill_cadence_required": "quarterly"
+      },
+      "_meta": {
+        "regulator_citations": [
+          "HIPAA 45 CFR §164.308(a)(7) (Contingency Plan Standard)",
+          "HIPAA 45 CFR §164.308(a)(7)(ii)(A) (Data Backup Plan)",
+          "HIPAA 45 CFR §164.308(a)(7)(ii)(B) (Disaster Recovery Plan)",
+          "HIPAA 45 CFR §164.308(a)(7)(ii)(C) (Emergency Mode Operation Plan)",
+          "HIPAA 45 CFR §164.308(a)(7)(ii)(D) (Testing and Revision Procedures)",
+          "HIPAA 45 CFR §164.310(a)(2)(i) (Contingency Operations — physical facility access during emergency)",
+          "HIPAA 45 CFR §164.312(a)(2)(ii) (Emergency Access Procedure)",
+          "HITECH Act §13402 (Breach notification + safeguards)",
+          "AWS HIPAA-Eligible Services baseline (≤ 1h RTO + multi-region customary)",
+          "Microsoft Azure HIPAA / HITRUST baseline (≤ 1h RTO + multi-region customary)",
+          "Google Cloud HIPAA covered services baseline (≤ 1h RTO + multi-region customary)"
+        ],
+        "rationale": "HIPAA Contingency Plan §164.308(a)(7) requires emergency-mode operation for PHI-handling systems. Customary BAA-eligible provider interpretation is ≤ 1h RTO with multi-region active-active or active-passive topology to preserve patient care continuity during major-region failure. 5-minute RPO reflects the regulator's expectation that PHI loss is minimized; continuous replication is standard. Quarterly testing is the customary baseline matching §164.308(a)(7)(ii)(D) testing-and-revision-procedures.",
+        "effective_at": "2026-05-21T00:00:00Z",
+        "sunset_at": null,
+        "cedar_fragment_id": "pack-hipaa-2024-dr-floor-satisfaction",
+        "cedar_fragment_attestation": "rekor://placeholder-hipaa-dr-v1@0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "pack_id": "PCI-DSS-L1-v4",
+      "version": "1.0.0",
+      "standard_version": "4.0.1",
+      "source_revision": {
+        "source_refs": [
+          "PCI-DSS-DOCUMENT-LIBRARY-PCIDSS",
+          "PCI-DSS-V4-0-1-PDF-BLOCKED"
+        ],
+        "retrieval_status": "blocked-http-403",
+        "claim_ceiling": "DR floor source-version metadata only; no PCI DSS Level 1 readiness, v4.0.1 control completeness, ROC/AOC/QSA/ASV readiness, or tenant CDE activation claim."
+      },
+      "dr_floor": {
+        "rto_p99_seconds": 86400,
+        "rpo_p99_seconds": 3600,
+        "multi_region_required": false,
+        "drill_cadence_required": "annual"
+      },
+      "_meta": {
+        "regulator_citations": [
+          "PCI DSS v4.0.1 §12.10 (Incident Response Plan — exact row text pending permitted official PDF acquisition)",
+          "PCI DSS v4.0.1 §12.10.1 (Documented business continuity / disaster recovery — exact row text pending permitted official PDF acquisition)",
+          "PCI DSS v4.0.1 §12.10.2 (Annual testing of incident response and DR procedures — exact row text pending permitted official PDF acquisition)",
+          "PCI DSS v4.0.1 §10 (Log and monitor all access to system components — exact row text pending permitted official PDF acquisition)",
+          "PCI DSS v4.0.1 §11.3 (Network-layer segmentation — cardholder data environment; exact row text pending permitted official PDF acquisition)",
+          "PCI SSC Information Supplement: Best Practices for Maintaining PCI DSS Compliance (DR section)"
+        ],
+        "rationale": "PCI DSS v4.0.1 source-version reconciliation keeps the stable PCI-DSS-L1-v4 floor id while requiring exact source-row acquisition before evidence acceptance. 24h RTO + 1h RPO remains a planning DR floor for backup-restore within a documented business-continuity policy. Per-region active-active topology is NOT mandated by this planning floor itself; tenants requiring tighter availability compose PCI with SOC2 or ISO 27001 floors. Annual testing remains the planned cadence, but exact §12.10.2 text must be reconciled after permitted official PDF acquisition.",
+        "effective_at": "2026-05-21T00:00:00Z",
+        "sunset_at": null,
+        "cedar_fragment_id": "pack-pci-dss-l1-v4-dr-floor-satisfaction",
+        "cedar_fragment_attestation": "rekor://placeholder-pci-dr-v1@0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "pack_id": "SOC2-T2",
+      "version": "1.0.0",
+      "dr_floor": {
+        "rto_p99_seconds": 14400,
+        "rpo_p99_seconds": 900,
+        "multi_region_required": false,
+        "drill_cadence_required": "annual"
+      },
+      "_meta": {
+        "regulator_citations": [
+          "AICPA SOC 2 Trust Services Criteria — Availability category",
+          "SOC 2 Common Criteria CC7.5 (System recovery)",
+          "SOC 2 Common Criteria CC9.2 (Vendor and business partner risk management — DR provisions)",
+          "AICPA SOC 2 Type II Audit Guide — system recovery objectives + annual testing",
+          "AICPA TSP Section 100 (2017 + 2022 updates)"
+        ],
+        "rationale": "SOC 2 Type II demands tested system recovery without prescribing a specific RTO/RPO. 4h / 15min floor reflects the customary baseline for SaaS providers seeking SOC 2 Type II audit reports across the SaaS industry (Stripe, Linear, Notion, Vercel-class baselines). Multi-region NOT required by SOC 2 itself; many SOC 2-attested SaaS providers operate single-region active-passive with documented runbooks and annual DR drills.",
+        "effective_at": "2026-05-21T00:00:00Z",
+        "sunset_at": null,
+        "cedar_fragment_id": "pack-soc2-t2-dr-floor-satisfaction",
+        "cedar_fragment_attestation": "rekor://placeholder-soc2-dr-v1@0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "pack_id": "EU-AI-ACT-2024-HIGH-RISK",
+      "version": "1.0.0",
+      "dr_floor": {
+        "rto_p99_seconds": 1800,
+        "rpo_p99_seconds": 300,
+        "multi_region_required": true,
+        "drill_cadence_required": "quarterly"
+      },
+      "_meta": {
+        "regulator_citations": [
+          "Regulation (EU) 2024/1689 (EU AI Act)",
+          "EU AI Act Annex III (High-risk AI systems list)",
+          "EU AI Act Article 9 (Risk management system)",
+          "EU AI Act Article 14 (Human oversight)",
+          "EU AI Act Article 17 (Quality management system — continuity obligations)",
+          "EU AI Act Article 19 (Automatically generated logs — retention through system lifecycle)",
+          "EU AI Act Article 26 (Obligations of deployers of high-risk AI systems — sustained availability)",
+          "EU AI Act Article 27 (Fundamental rights impact assessment — operational continuity)"
+        ],
+        "rationale": "High-risk AI systems under EU AI Act Annex III (biometric identification, critical infrastructure, education, employment, essential services, law enforcement, migration, justice + democratic process) face fundamental-rights impact assessment. Unavailability creates a fundamental-rights gap. 30-minute RTO + 5-minute RPO + multi-region floor reflects the regulator's expectation of continuous operation for high-risk systems. Quarterly drill cadence matches the Article 17 quality management system continuity testing pattern.",
+        "effective_at": "2026-08-02T00:00:00Z",
+        "sunset_at": null,
+        "cedar_fragment_id": "pack-eu-ai-act-2024-high-risk-dr-floor-satisfaction",
+        "cedar_fragment_attestation": "rekor://placeholder-eu-ai-dr-v1@0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "pack_id": "KR-CSAP-v3.1",
+      "version": "1.0.0",
+      "dr_floor": {
+        "rto_p99_seconds": 3600,
+        "rpo_p99_seconds": 900,
+        "multi_region_required": true,
+        "drill_cadence_required": "semi-annual"
+      },
+      "_meta": {
+        "regulator_citations": [
+          "Korea CSAP (Cloud Security Assurance Program) v3.1 §3.5.1 (BCP/DR control objective)",
+          "Korea CSAP v3.1 §3.5.2 (Continuity testing — semi-annual minimum for certified cloud services)",
+          "Korea CSAP v3.1 §3.5.3 (Cross-region replication within KR sovereign perimeter)",
+          "KISA notice 2024-1 (CSAP v3.1 update)",
+          "K-ISMS-P certification framework (cross-reference)"
+        ],
+        "rationale": "CSAP-Korea is the canonical Korean public-sector cloud security certification. 1h RTO + 15min RPO + multi-region within KR sovereign region reflects KISA's expectation. Multi-region must remain within the KR sovereign perimeter per ADR-0240 sovereign-cloud constraints. Semi-annual drill cadence is the customary CSAP-certified cloud service baseline.",
+        "effective_at": "2026-05-21T00:00:00Z",
+        "sunset_at": null,
+        "cedar_fragment_id": "pack-kr-csap-v3-1-dr-floor-satisfaction",
+        "cedar_fragment_attestation": "rekor://placeholder-csap-dr-v1@0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "pack_id": "ISO27001-2022",
+      "version": "1.0.0",
+      "dr_floor": {
+        "rto_p99_seconds": 14400,
+        "rpo_p99_seconds": 3600,
+        "multi_region_required": false,
+        "drill_cadence_required": "annual"
+      },
+      "_meta": {
+        "regulator_citations": [
+          "ISO/IEC 27001:2022 Annex A.5.30 (ICT readiness for business continuity)",
+          "ISO/IEC 27002:2022 §5.30 (ICT readiness for business continuity — implementation guidance)",
+          "ISO/IEC 22301:2019 (Business continuity management systems — referenced normatively)",
+          "ISO/IEC 22313:2020 (Guidance on the use of ISO 22301)",
+          "ISO 27001:2022 transition timeline (mandatory October 2025)"
+        ],
+        "rationale": "ISO 27001:2022 Annex A.5.30 introduced explicit ICT-readiness-for-business-continuity control. ISO 22301 provides the BCM framework. 4h / 1h floor reflects the customary baseline for ISO 27001-certified information security management systems. Multi-region NOT required by ISO 27001 itself; certified ISMSs may operate single-region with documented BCM and tested annually.",
+        "effective_at": "2026-05-21T00:00:00Z",
+        "sunset_at": null,
+        "cedar_fragment_id": "pack-iso27001-2022-dr-floor-satisfaction",
+        "cedar_fragment_attestation": "rekor://placeholder-iso27001-dr-v1@0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "pack_id": "SOX-404",
+      "version": "1.0.0",
+      "dr_floor": {
+        "rto_p99_seconds": 14400,
+        "rpo_p99_seconds": 3600,
+        "multi_region_required": false,
+        "drill_cadence_required": "annual",
+        "process_floors": {
+          "general_ledger_journal_entry": {
+            "rto_p99_seconds": 14400,
+            "rpo_p99_seconds": 60,
+            "multi_region_required": false,
+            "drill_cadence_required": "annual",
+            "retention_min_iso8601": "P7Y",
+            "rationale": "General ledger journal entries are SOX-404 sharpest financial-process objective. 1-minute RPO preserves close-cycle continuity; 7-year retention matches IRS + SEC retention norms."
+          },
+          "revenue_recognition": {
+            "rto_p99_seconds": 28800,
+            "rpo_p99_seconds": 900,
+            "multi_region_required": false,
+            "drill_cadence_required": "annual",
+            "retention_min_iso8601": "P7Y",
+            "rationale": "Revenue recognition under ASC 606 / IFRS 15 requires consistent and durable record of revenue events. 15-minute RPO preserves period-end accuracy."
+          },
+          "vendor_master_data": {
+            "rto_p99_seconds": 86400,
+            "rpo_p99_seconds": 3600,
+            "multi_region_required": false,
+            "drill_cadence_required": "annual",
+            "retention_min_iso8601": "P7Y",
+            "rationale": "Vendor master data changes infrequently; 24h RTO + 1h RPO is sufficient."
+          },
+          "quarterly_close_working_papers": {
+            "rto_p99_seconds": 86400,
+            "rpo_p99_seconds": 3600,
+            "multi_region_required": false,
+            "drill_cadence_required": "annual",
+            "retention_min_iso8601": "P7Y",
+            "rationale": "Quarterly close working papers must survive audit cycle; 7-year retention covers SEC retention requirements."
+          }
+        }
+      },
+      "_meta": {
+        "regulator_citations": [
+          "Sarbanes-Oxley Act §404 (Management Assessment of Internal Controls)",
+          "Sarbanes-Oxley Act §302 (Corporate Responsibility for Financial Reports)",
+          "Sarbanes-Oxley Act §906 (Corporate Responsibility for Financial Reports — certification)",
+          "PCAOB AS 2201 (An Audit of Internal Control Over Financial Reporting That Is Integrated with An Audit of Financial Statements)",
+          "PCAOB AS 1105 (Audit Evidence)",
+          "COSO Internal Control — Integrated Framework (2013)",
+          "SEC Rule 17a-4(f) (Records preservation — broker-dealer reference for retention norms)",
+          "IRS Publication 583 (Recordkeeping for Business)"
+        ],
+        "rationale": "SOX-404 is process-oriented; financial-process availability is the audit objective. Per-process refinement allows microservices to satisfy each in-scope process's specific floor without over-paying. The in-scope process list is owned by the auditor sponsoring SOX scope and may evolve quarterly. Default fallback floor applies when no process-specific floor is declared.",
+        "effective_at": "2026-05-21T00:00:00Z",
+        "sunset_at": null,
+        "cedar_fragment_id": "pack-sox-404-dr-floor-satisfaction",
+        "cedar_fragment_attestation": "rekor://placeholder-sox-dr-v1@0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    },
+    {
+      "pack_id": "KR-PIPA-2023-amendment",
+      "version": "1.0.0",
+      "dr_floor": {
+        "rto_p99_seconds": 14400,
+        "rpo_p99_seconds": 900,
+        "multi_region_required": false,
+        "drill_cadence_required": "semi-annual",
+        "data_class_floors": {
+          "PI_KR_RESIDENT_REGISTRATION_NUMBER": {
+            "rto_p99_seconds": 3600,
+            "rpo_p99_seconds": 300,
+            "multi_region_required": true,
+            "drill_cadence_required": "quarterly",
+            "rationale": "RRN (주민등록번호) compromise carries criminal-class regulator response under PIPA §59. Multi-region required within KR sovereign region. 1-hour RTO + 5-minute RPO matches the strictest PIPA enforcement posture."
+          },
+          "PI_KR_SENSITIVE": {
+            "rto_p99_seconds": 7200,
+            "rpo_p99_seconds": 600,
+            "multi_region_required": false,
+            "drill_cadence_required": "semi-annual",
+            "rationale": "PIPA sensitive personal information (§23: ideology, beliefs, union membership, political opinions, health, sex life, criminal history, biometric, genetic data) requires enhanced safeguards but not multi-region per pack alone."
+          },
+          "PI_KR_PIPA": {
+            "rto_p99_seconds": 14400,
+            "rpo_p99_seconds": 900,
+            "multi_region_required": false,
+            "drill_cadence_required": "semi-annual",
+            "rationale": "General personal information under PIPA receives the default pack floor."
+          }
+        }
+      },
+      "_meta": {
+        "regulator_citations": [
+          "개인정보보호법 (Personal Information Protection Act) — 2023 amendment",
+          "PIPA Article 17 (Provision of personal information to third parties)",
+          "PIPA Article 21 (Destruction of personal information)",
+          "PIPA Article 23 (Restriction on processing sensitive information)",
+          "PIPA Article 24-2 (Restrictions on processing of resident registration numbers)",
+          "PIPA Article 29 (Safeguards for personal information)",
+          "PIPA Article 34 (Notification in case of leakage — 72 hours)",
+          "PIPA Article 59 (Criminal penalties for serious leakage)",
+          "PIPC notice 2023-05 (Technical and managerial safeguards)"
+        ],
+        "rationale": "PIPA §29 imposes safeguards per personal-information data class. RRN compromise carries criminal-class regulator response under §59; floor for RRN-touching microservices is tighter than general PI. Per-data-class refinement allows microservices touching only general PI to declare a more lenient contract.",
+        "effective_at": "2026-05-21T00:00:00Z",
+        "sunset_at": null,
+        "cedar_fragment_id": "pack-kr-pipa-2023-amendment-dr-floor-satisfaction",
+        "cedar_fragment_attestation": "rekor://placeholder-kr-pipa-dr-v1@0000000000000000000000000000000000000000000000000000000000000000"
+      }
+    }
+  ]
+}

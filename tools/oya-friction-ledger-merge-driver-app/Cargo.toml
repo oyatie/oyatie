@@ -1,0 +1,32 @@
+[package]
+name = "oya-friction-ledger-merge-driver-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Structural 3-way Git merge driver for .omc/ultragoal/friction-ledger.jsonl
+# (FRIC-1781370000): id-aware union with second-author primary->update conversion,
+# parsed-JSON logical dedup, and canonical serialization owned by the ADR-0546
+# canonical-json kernel. Fail-closed on unmodeled input; ADR-0548 D7 self-validation
+# before any byte is written.
+
+[lib]
+name = "oya_friction_ledger_merge_driver_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-friction-ledger-merge-driver"
+path = "src/main.rs"
+
+[dependencies]
+ci-canonical-json = { path = "../../ci/facade/canonical-json" }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+ci-action-item-accounting = { path = "../../ci/facade/action-item-accounting" }
+
+[lints]
+workspace = true

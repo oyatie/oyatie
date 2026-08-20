@@ -1,0 +1,39 @@
+[package]
+name = "ci-operator-secret-rbac"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate ENFORCING least-privilege secret RBAC, declarative join-token bootstrap, static/values-backed ExternalSecret OpenBao role + key-prefix scoping, and plaintext OpenBao NetworkPolicy isolation (GH #980 + GH #988; ADR-0606). Per the policy DATA, each governed operator's Helm Role must scope get/update/patch/delete on secrets by resourceNames to exactly its produced Secret; bootstrap Secrets must be provisioned or fail-closed; ExternalSecret consumers must match role/namespace/prefix tuples; plaintext OpenBao listeners must be fenced by NetworkPolicy."
+
+# cloud-ci-operator-secret-bootstrap (GH #980 + GH #988): a pure, policy-driven gate. The collector
+# is the only I/O — a hermetic, read-only fs scan of governed Helm charts, static ExternalSecret
+# manifests, values-backed ExternalSecret projections, and the OpenBao manifest. The pure
+# evaluate_keyed(policy, observed) asserts (a) no secrets Role rule grants a scoped verb
+# (get/update/patch/delete) without resourceNames bound to the produced Secret, (b) the join-token
+# Secret has a declarative provisioning path or a fail-closed preflight, (c) ExternalSecret
+# remoteRef.key use matches store/role/namespace/prefix policy, and (d) plaintext OpenBao is
+# NetworkPolicy-isolated. Pack-shaped: governed operators + paths live in policy JSON; Rust has no
+# repo-specific hardcoded paths.
+
+[lib]
+name = "ci_operator_secret_rbac"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+[lints]
+workspace = true

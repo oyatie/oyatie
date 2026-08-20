@@ -1,0 +1,20 @@
+# ARC controller (gha-runner-scale-set-controller) — ADR-0630.
+#
+# Chart version is PINNED. The controller reconciles AutoscalingRunnerSet CRs into
+# ephemeral runner pods; it holds no GitHub credential itself (each scale set
+# references its own githubConfigSecret), so its blast radius is the CRD surface.
+#
+# Deployed to namespace arc-systems, which also hosts the per-scale-set listener
+# pods the controller creates.
+---
+# Expose controller and scale-set listener metrics for the #1504 capacity
+# guardrails. These annotations are a scrape contract; the current local cell
+# has no admitted Prometheus Operator/observability substrate yet.
+podAnnotations:
+  prometheus.io/scrape: "true"
+  prometheus.io/port: "8080"
+  prometheus.io/path: /metrics
+metrics:
+  controllerManagerAddr: ":8080"
+  listenerAddr: ":8080"
+  listenerEndpoint: /metrics

@@ -1,0 +1,24 @@
+rust_library(
+    name = "intelligence-tool-compat-kernel",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_tool_compat_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "intelligence-tool-compat-kernel-tests",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_tool_compat_kernel_tests",
+    crate_root = "tests/xproxy_tool_compat.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-tool-compat-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

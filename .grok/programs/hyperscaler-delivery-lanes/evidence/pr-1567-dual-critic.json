@@ -1,0 +1,35 @@
+{
+  "pr": 1567,
+  "head": "6525ad4f7f898125bc4a5caf8426b146eeb49ac0",
+  "title": "chore(reorg): move-plan hygiene",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "essentialism"
+      ],
+      "path": ".grok/programs/hyperscaler-delivery-lanes/evidence/pr-1567-dual-critic.json"
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "lenses": [
+        "chesterton",
+        "systems_thinking"
+      ],
+      "path": ".grok/programs/hyperscaler-delivery-lanes/evidence/pr-1567-dual-critic.json"
+    }
+  ],
+  "summary": "Rebased onto origin/dev dropping empty kick tip that broke scm-facts PR parent contract. Move-plan hygiene only.",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "not_claiming": [
+    "ultragoal_complete"
+  ],
+  "reviewed_at": "2026-08-05T16:10Z",
+  "reviewer": "orchestrator-dual-critic"
+}

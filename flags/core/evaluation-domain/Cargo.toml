@@ -1,0 +1,21 @@
+[package]
+name = "flags-evaluation-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Pure, cloud-agnostic flag-evaluation domain. ZERO cloud/persistence/identity/runtime deps
+# (no tokio): the deterministic engine is a pure function over (Flag, EvaluationContext). Ports
+# are DEFINED here (clean-arch ports-in-core, ADR-0570); storage/cloud adapters are DEFERRED and
+# will depend on this crate and implement its `FlagSource` port.
+[dependencies]
+
+[lib]
+name = "flags_evaluation_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

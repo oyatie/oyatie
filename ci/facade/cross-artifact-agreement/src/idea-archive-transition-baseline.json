@@ -1,0 +1,31 @@
+{
+  "schema_version": 1,
+  "baseline_id": "IDEA-ARCHIVE-TRANSITION-2026-07-22-V1",
+  "captured_from": {
+    "commit_oid": "1fa09da22be819b062881eb59252f4dd4c6b550a",
+    "tree_oid": "d7b15539396db21b219d68779362850cce9afa8f",
+    "object_format": "sha1"
+  },
+  "scope_root": "docs/ideas/archive",
+  "manifest_sha256": "df46f4ae9eea0c6a59831eb5a47126b6f24475ad499e48a993bda53561ff3d4c",
+  "entries": [
+    {
+      "path": "cloud-intelligence-bedrock-on-talos-2026-05-28.md",
+      "blob_oid": "ffc3aafd802f57d7d6f69a248d90360deecbf9cd",
+      "sha256": "2fad4ac166f3a410a0c7aeaef8632c0fe580f034da48f6be4e2bca642e304eca",
+      "byte_length": 7180
+    },
+    {
+      "path": "cloud-intelligence-v1-pipeline-2026-05-28.md",
+      "blob_oid": "4d05288a0b3c8585a478f843b824288ff35faf02",
+      "sha256": "740ae04afc93c41240128c22e3bbf2e1ea84dc63f168ebd974a4f0972a72b2a8",
+      "byte_length": 16014
+    },
+    {
+      "path": "n-lane-parallel-safety-and-unified-devops-console-2026-05-28.md",
+      "blob_oid": "820fb46ef556bedaaef22f10e5669791b3143b0d",
+      "sha256": "0a1d134ceb7267e1f8e3e7cc6d16a273da5f36266b53febbc4935b937719589f",
+      "byte_length": 8553
+    }
+  ]
+}

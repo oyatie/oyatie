@@ -1,0 +1,40 @@
+{
+  "packet_type": "post_merge_product_completion",
+  "pr": 1561,
+  "title": "feat(k8s): admit deterministic Go-to-Rust port W0-A",
+  "promoted_commit": "e409b104ef510bb4ccaee1c60c44a7475a988c0d",
+  "branch": "dev",
+  "oya_ci_required": {
+    "status": "success",
+    "run_url": "https://github.com/jason931225/oyatie/actions/runs/31018722164",
+    "head_sha": "e409b104ef510bb4ccaee1c60c44a7475a988c0d",
+    "completed_at": "2026-08-05T15:31:06Z"
+  },
+  "rollout_verification": "origin/dev tip equals promoted squash e409b104ef510bb4ccaee1c60c44a7475a988c0d; ADR-0637/0638 and specs/k8s-port/* present on tip; R-DOC gate selectable via //ci/facade/k8s-program-docs:ci-k8s-program-docs-gate",
+  "rollback_note": "revert promoted squash commit e409b104ef510bb4ccaee1c60c44a7475a988c0d on dev if W0-A admission must be withdrawn; no infra/data migration; no runtime service rollout; blast radius ADR/specs/program-docs/R-DOC CI gate only until W0-B",
+  "observability_check": "N/A for W0-A governance admission; no new SLOs/metrics until runtime port surfaces (W0-H threat model / later waves)",
+  "browser_user_story_evidence": "N/A; no user-facing UI change in W0-A",
+  "release_governance_release_note_impact": "no product Release Please release expected; documentation/ADR/program admission only",
+  "agent_observation_harvest": {
+    "cards_created_or_linked": "oyatie-7xf closed after packet; oyatie-oso.3 merge babysit closed; dual-critic evidence .grok/programs/k8s-port/evidence/pr-1561-dual-critic.json",
+    "rationale": "G001 W0-A admission complete after squash merge + trunk green; no new blocker cards; W0-B/G002 remains sequenced_blocked until ready-gate and explicit start (Bun: no expand while trial incomplete)"
+  },
+  "completion_packet_closed": true,
+  "recorded_at": "2026-08-05T15:31:26Z",
+  "template_ref": "programs/hyperscaler-delivery-lanes/R3-postmerge-packet-template.md",
+  "authority": "Not merge authority; post-merge product gate evidence only. Does not claim ultragoal complete. Filled only after squash to origin/dev + post-merge oya-ci-required green on promoted SHA (PR-head green is not enough).",
+  "ultragoal_complete": false,
+  "merge_method": "squash",
+  "pr_state": "MERGED",
+  "promoted_at": "2026-08-05T15:07:52Z",
+  "automation": {
+    "tool": "mm-packet",
+    "generated_at": "2026-08-05T15:31:26Z",
+    "not_merge_authority": true,
+    "does_not_claim_ultragoal_complete": true,
+    "origin_dev_tip": "e409b104ef510bb4ccaee1c60c44a7475a988c0d",
+    "origin_dev_tip_equals_promoted": true,
+    "origin_dev_tip_note": null,
+    "pr_url": "https://github.com/jason931225/oyatie/pull/1561"
+  }
+}

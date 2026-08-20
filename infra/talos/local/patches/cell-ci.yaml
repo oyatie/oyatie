@@ -1,0 +1,27 @@
+# ADR-0381 D2 — CI specialty cell patch.
+#
+# Applied to the 1 CI specialty worker (ci-0) hosting:
+#   - buildkitd Deployment (oya-ci; ADR-0381 D1).
+#   - ci-webhook-gateway (oya-ci; ADR-0374) — small enough to co-locate.
+#
+# The node carries:
+#   - `oya.cell/ci=true` label (scheduling selector for ADR-0083 Tier-3 batch).
+#   - `dedicated=ci:NoSchedule` taint — only pods with the matching toleration
+#     land here. The taint protects this node from being commandeered by tenant
+#     workloads (which would starve cargo builds of CPU + memory).
+#
+# Apply with:
+#   talosctl apply-config --insecure --nodes $IP \
+#     --file $WORKDIR/worker.yaml \
+#     --config-patch @infra/talos/local/patches/cell-ci.yaml
+#
+# Pod templates that need to land here must declare:
+#   nodeSelector: { oya.cell/ci: "true" }
+#   tolerations: [{ key: dedicated, operator: Equal, value: ci, effect: NoSchedule }]
+machine:
+  kubelet:
+    nodeLabels:
+      oya.cell/ci: "true"
+      oya.cell/role: "ci-specialty"
+    extraArgs:
+      register-with-taints: "dedicated=ci:NoSchedule"

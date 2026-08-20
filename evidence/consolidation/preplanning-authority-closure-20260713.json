@@ -1,0 +1,374 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "record_class": "preplanning-authority-closure-snapshot",
+  "record_id": "preplanning-authority-closure-20260713",
+  "recorded_at": "2026-07-13T00:00:00Z",
+  "purpose": "Past/Present/Future evidence snapshot for the authority-consolidation walkthrough that must close before a binding planning session or any masterplan execution-wave dispatch.",
+  "authority_order": [
+    "/specs/root-hub-pointers.json",
+    "docs/AGENTS.md",
+    "/specs/masterplan.json#masterplan_v2",
+    "Accepted and Amended ADRs after higher-number contradiction review",
+    "live git/GitHub protected-PR and oya-ci-required evidence"
+  ],
+  "past": {
+    "authority_consolidation": [
+      "Masterplan v2 absorbed former sequencing, planning-closure, roadmap, and agent-harness planning surfaces; those sources remain provenance or evidence inputs, not parallel live plan authorities.",
+      "ADR-0363 retired the bespoke Oya VCS claim/verify/done/promote ratchet in favor of isolated git worktrees and protected GitHub pull requests.",
+      "ADR-0515 retired the pre-cutover CI backbone and made the single protected oya-ci-required context the admission target.",
+      "The zero-based masterplan v2 sequencing was founder-ratified on 2026-07-02 before any execution-wave dispatch."
+    ],
+    "sequencing_ratification": {
+      "decision_ref": "evidence/goals/masterplan-v2-sequencing-founder-ratification-20260702.json",
+      "ratified_sequencing_digest": "sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c",
+      "work_item_count": 45,
+      "dependency_edge_count": 36,
+      "execution_wave_count": 5,
+      "dispatched_wave_count": 0,
+      "scope_limit": "The ratification binds dependency-edge from/to endpoint pairs, sequencing.work_item_order, and execution_waves work_item_ids. Relationship labels and other edge metadata are outside the digest. It does not ratify later authority choices, admit the current candidate, or authorize dispatch while the pre-planning contract is open."
+    }
+  },
+  "present": {
+    "repository_baseline": {
+      "head_at_snapshot": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
+      "origin_dev_at_snapshot": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
+      "branch": "chore/preplanning-authority-closure-20260713T142158Z",
+      "baseline_relation": "PR #1340 was based on the snapshotted origin/dev commit, advanced to immutable head 1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857, and was squash-merged as 73fea9ffc3d48f331f7cb6f086657a9d7b4a096b. The squash merge is an ancestor of origin/dev at the 2026-07-21 reconciliation query.",
+      "candidate_state": "merged-to-dev-protected-context-green-github-review-decision-approved-bot-only-no-qualified-human-proof-authority-holds-open",
+      "protected_pr_against_dev": true,
+      "candidate_oya_ci_required_green": true,
+      "merged_to_dev": true,
+      "claim_ceiling": "PR #1340 is merged to dev, its immutable final head and squash-merge commits each have a completed successful oya-ci-required check, and GitHub reports APPROVED. These repository-admission facts do not close or imply any founder-choice, qualified-human, Phase-0, binding-planning, execution-dispatch, rollout, or product-completion gate.",
+      "candidate_first_content_commit": "e4527935562b669c221cc548536886e4ba37cd4c",
+      "protected_pr_number": 1340,
+      "protected_pr_url": "https://github.com/jason931225/oyatie/pull/1340",
+      "pr_opened_on_head": "e4527935562b669c221cc548536886e4ba37cd4c",
+      "pr_final_head": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
+      "pr_base": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
+      "merge_commit": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
+      "merged_at": "2026-07-13T18:12:26Z"
+    },
+    "adr_lifecycle_inventory": {
+      "source": "docs/machine-readable/decisions.json",
+      "source_state": "candidate-worktree projection regenerated from docs/decisions",
+      "total": 428,
+      "raw_status_counts": {
+        "Accepted": 174,
+        "Accepted (amendment)": 2,
+        "Amended": 1,
+        "Proposed": 147,
+        "Proposed (conditional: Accepted only after ADR-0377-D2 and ADR-0377-D3 code/tests pass)": 1,
+        "Proposed (target: Accepted upon PR #143 merge to dev)": 1,
+        "Superseded": 35,
+        "accepted": 34,
+        "deprecated": 1,
+        "proposed": 31,
+        "superseded": 1
+      },
+      "normalized_status_counts": {
+        "accepted_or_amended": 211,
+        "proposed_or_conditional": 180,
+        "superseded_or_deprecated": 37
+      },
+      "guardrails": [
+        "Accepted and Amended ADRs bind planning; Proposed and conditional ADRs do not.",
+        "A higher ADR number is only more recent, not automatically more authoritative. A later contradiction displaces an earlier Accepted decision only when the later ADR is itself Accepted and explicitly amends or supersedes the earlier decision with reciprocal lifecycle propagation.",
+        "When a Proposed ADR conflicts with an Accepted ADR, the Accepted ADR remains binding and the conflict becomes a founder choice.",
+        "Implementation already present in the tree, autonomous-delegation prose, or a body statement that a choice was made does not silently promote frontmatter lifecycle status.",
+        "Any still-present superseded or deprecated ADR is nonbinding historical data only; its continued presence is implementation drift against ADR-0515's current hard-delete rule and cannot be mistaken for live authority or an amendment."
+      ]
+    },
+    "phase0_ci_enforcement": {
+      "source_ref": "specs/phase0-ci-enforcement-baseline.json",
+      "phase0_complete": false,
+      "p0_0_green": false,
+      "closed_with_evidence": {
+        "required_context": "oya-ci-required",
+        "live_on_dev_branch_protection": true,
+        "green_post_merge_run_id": "29166693819",
+        "green_post_merge_commit": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
+        "observed_on": "2026-07-13",
+        "legacy_backbone_workflow": "retired"
+      },
+      "remaining_gaps": [
+        {
+          "gap": "trusted_producer_isolation",
+          "required_evidence": "The live oya-ci-required producer and gate catalog execute from trusted trunk/controller state rather than candidate bytes."
+        },
+        {
+          "gap": "candidate_pr_isolation",
+          "required_evidence": "Candidate code is data under test and cannot modify or delete its own required producer, gate catalog, branch-protection mapping, or runner isolation."
+        },
+        {
+          "gap": "no_oya_cli_merge_authority",
+          "required_evidence": "All remaining oya CLI references are retired or demonstrably local/advisory only; no CLI result becomes protected merge or Phase-0 exit authority."
+        },
+        {
+          "gap": "protected_branch_review_and_identity_hardening",
+          "required_evidence": "Required pull-request reviews, admin enforcement, and required signatures are live or an explicit Accepted replacement contract is proven."
+        },
+        {
+          "gap": "override_kill_switch",
+          "required_evidence": "A controller-enforced override packet requires TTL, reviewer acknowledgment, audit event, owner, blast radius, and revert/fix follow-up."
+        },
+        {
+          "gap": "structured_result_output",
+          "required_evidence": "Every candidate receives a result bundle conforming to specs/phase0-ci-enforcement-result-schema.json and the protected context is posted from trusted state."
+        },
+        {
+          "gap": "tenant_pipeline_isolation",
+          "required_evidence": "Tenant A/B negative fixtures pass through the live required context across identity, secrets, runners, workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, and audit events."
+        }
+      ],
+      "forbidden_claims_until_closed": [
+        "Phase 0 complete",
+        "P0.0 green",
+        "mechanically enforced",
+        "production-ready",
+        "tenant-facing live service",
+        "secure live isolation"
+      ]
+    },
+    "planning_state": {
+      "contract_ref": "/specs/masterplan.json#masterplan_v2.planning_entry_contract",
+      "state": "open",
+      "nonbinding_planning_discussion_allowed": true,
+      "binding_plan_approval_allowed": false,
+      "execution_wave_dispatch_allowed": false,
+      "execution_wave_dispatch_state": "blocked",
+      "execution_wave_dispatch_blocked_reason": "preplanning_authority_closure"
+    },
+    "candidate_verification": {
+      "audit_event_id": "EVT-PREPLANNING-AUTHORITY-CLOSURE-20260713-E45279355",
+      "independent_reviewer": "preplanning_candidate_review",
+      "reviewer_verdict": "APPROVE for protected-PR submission; not merge-authorized before protected cloud and server-side review evidence.",
+      "targeted_buck2_targets_passed": 10,
+      "live_gates": {
+        "cross_artifact_agreement": "24/24 passed",
+        "automation_coverage": "3/3 passed",
+        "canonical_json": "4/4 passed",
+        "repo_root_hygiene": "7/7 passed",
+        "parity_claim_evidence": "3/3 passed",
+        "baseline_ratchet_registration": "6/6 passed",
+        "generated_artifact_freshness": "passed"
+      },
+      "generated_faces": "Official materializer used locally; no tracked generated JSON is part of the candidate diff.",
+      "authority_limit": "Local results are shift-left evidence only. The protected oya-ci-required context and server-side review remain admission authority."
+    },
+    "factual_reconciliation": {
+      "queried_at": "2026-07-21T01:25:13Z",
+      "receipt_class": "git-github-factual-state-only-non-authoritative-non-closure",
+      "source_commands": [
+        "git fetch origin dev",
+        "gh api repos/jason931225/oyatie/pulls/1340",
+        "gh pr view 1340 --repo jason931225/oyatie --json number,url,state,isDraft,baseRefName,baseRefOid,headRefName,headRefOid,mergeCommit,mergedAt,mergedBy,reviewDecision,statusCheckRollup,commits,createdAt,updatedAt",
+        "gh api repos/jason931225/oyatie/commits/1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857/check-runs",
+        "gh api repos/jason931225/oyatie/commits/73fea9ffc3d48f331f7cb6f086657a9d7b4a096b/check-runs",
+        "gh api repos/jason931225/oyatie/pulls/1340/reviews",
+        "git rev-parse origin/dev",
+        "git merge-base --is-ancestor 73fea9ffc3d48f331f7cb6f086657a9d7b4a096b origin/dev"
+      ],
+      "source_urls": [
+        "https://github.com/jason931225/oyatie/pull/1340",
+        "https://api.github.com/repos/jason931225/oyatie/pulls/1340",
+        "https://api.github.com/repos/jason931225/oyatie/commits/1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857/check-runs",
+        "https://api.github.com/repos/jason931225/oyatie/commits/73fea9ffc3d48f331f7cb6f086657a9d7b4a096b/check-runs",
+        "https://api.github.com/repos/jason931225/oyatie/pulls/1340/reviews",
+        "https://github.com/jason931225/oyatie/actions/runs/29267509341/job/86896581531",
+        "https://github.com/jason931225/oyatie/actions/runs/29273533688/job/86908619277",
+        "https://github.com/jason931225/oyatie/commit/73fea9ffc3d48f331f7cb6f086657a9d7b4a096b"
+      ],
+      "immutable_pull_request_facts": {
+        "number": 1340,
+        "url": "https://github.com/jason931225/oyatie/pull/1340",
+        "base_ref": "dev",
+        "base_sha": "1d21a7fd5fbc29d6853b3863a6d2680e6ac44224",
+        "head_ref": "chore/preplanning-authority-closure-20260713T142158Z",
+        "first_content_commit_sha": "e4527935562b669c221cc548536886e4ba37cd4c",
+        "candidate_state": "merged-to-dev-protected-context-green-github-review-decision-approved-bot-only-no-qualified-human-proof-authority-holds-open",
+        "head_sha": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
+        "merge_commit_sha": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
+        "state": "MERGED",
+        "draft": false,
+        "merged_at": "2026-07-13T18:12:26Z",
+        "github_review_decision": "APPROVED",
+        "origin_dev_at_query": "c89fbadba8ebe81b3825ad1e6eb3ffe310991885",
+        "merge_commit_is_ancestor_of_origin_dev_at_query": true
+      },
+      "protected_context_receipts": [
+        {
+          "commit_sha": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
+          "context": "oya-ci-required",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-07-13T18:11:17Z",
+          "completed_at": "2026-07-13T18:11:20Z",
+          "details_url": "https://github.com/jason931225/oyatie/actions/runs/29267509341/job/86896581531"
+        },
+        {
+          "commit_sha": "73fea9ffc3d48f331f7cb6f086657a9d7b4a096b",
+          "context": "oya-ci-required",
+          "status": "completed",
+          "conclusion": "success",
+          "started_at": "2026-07-13T19:04:38Z",
+          "completed_at": "2026-07-13T19:04:40Z",
+          "details_url": "https://github.com/jason931225/oyatie/actions/runs/29273533688/job/86908619277"
+        }
+      ],
+      "github_approved_review_receipt": {
+        "review_id": 4686860411,
+        "state": "APPROVED",
+        "reviewer": "coderabbitai[bot]",
+        "commit_sha": "1f0bd754813faeb15d55bbaefb5e6bfa0bf5a857",
+        "submitted_at": "2026-07-13T16:48:58Z",
+        "url": "https://github.com/jason931225/oyatie/pull/1340#pullrequestreview-4686860411"
+      },
+      "review_receipt_limit": "GitHub reports APPROVED, but the approving review was submitted by coderabbitai[bot]. That server-side state proves PR review metadata only; it is not evidence of a qualified-human approval and does not ratify any founder choice.",
+      "authority_gate_nonclosure": {
+        "founder_gates_closed_by_this_receipt": [],
+        "qualified_human_gates_closed_by_this_receipt": [],
+        "founder_choices_still_blocking_binding_plan": [
+          "ADR-0515-SUPERSEDED-HISTORY-DISPOSITION",
+          "ADR-0170-VS-ADR-0394-IDP-SUBSTRATE",
+          "ADR-0565-ZERO-GRAPHQL",
+          "ADR-0614-MOVE-MANIFEST-DECOMMIT",
+          "ADR-0616-FROZEN-BASELINE-DECOMMIT"
+        ],
+        "planning_entry_contract_state": "open",
+        "binding_plan_approval_allowed": false,
+        "execution_wave_dispatch_allowed": false,
+        "phase0_complete": false,
+        "stage1_pass_attested": false
+      },
+      "claim_ceiling": "This receipt corrects only stale Git/GitHub facts for PR #1340. It records no authority choice, no qualified-human acceptance, no planning-entry closure, no Phase-0 completion, no Stage-1 PASS, no dispatch authorization, and no product-completion claim."
+    },
+    "external_claim_import_retirement": {
+      "status": "retired-and-deleted",
+      "closure_receipt": "/evidence/goals/masterplan-v2-external-board-import-retirement-closure-20260720.json",
+      "imported_claim_count": 934,
+      "evidence_attached_count": 34,
+      "unverified_count": 934,
+      "verified_count": 0,
+      "claim_rule": "No imported claim was promoted. Any future external completion claim requires provider-neutral schema and recorded completion evidence."
+    }
+  },
+  "founder_choice_matrix": [
+    {
+      "choice_id": "ADR-0515-SUPERSEDED-HISTORY-DISPOSITION",
+      "decision_needed": "Choose whether to amend or enforce ADR-0515's binding hard-delete rule; preserved superseded files are currently implementation drift, not an amendment.",
+      "options": [
+        "Accept a higher amendment that preserves superseded ADRs as explicit nonbinding history.",
+        "Enforce the hard-delete rule and remove superseded ADR records consistently."
+      ],
+      "recommended_direction": "Preserve nonbinding history through a higher Accepted amendment so audit provenance survives without reviving old authority.",
+      "default_until_decided": "Do not perform destructive deletion during the walkthrough. Treat preserved files as nonbinding data and do not call their preservation a policy amendment or resolution.",
+      "blocks_binding_plan": true
+    },
+    {
+      "choice_id": "ADR-0170-VS-ADR-0394-IDP-SUBSTRATE",
+      "decision_needed": "Choose whether Accepted ADR-0170 Backstage or Proposed ADR-0394 bespoke Rust is the IDP substrate.",
+      "options": [
+        "Retain ADR-0170 as binding.",
+        "Accept a reconciled ADR-0394 and explicitly retarget every load-bearing dependent."
+      ],
+      "recommended_direction": "Keep ADR-0170 binding for this planning cycle unless the founder deliberately chooses the substrate reversal.",
+      "default_until_decided": "ADR-0170 binds; ADR-0394 is nonbinding.",
+      "blocks_binding_plan": true
+    },
+    {
+      "choice_id": "ADR-0565-ZERO-GRAPHQL",
+      "decision_needed": "Reconcile the Proposed one-way zero-GraphQL decision with repository text and implementation assumptions that already reflect it.",
+      "options": [
+        "Accept ADR-0565 and propagate the removal across affected Accepted decisions and interfaces.",
+        "Defer or reject ADR-0565 and roll back conflicting assumptions."
+      ],
+      "recommended_direction": "Make the API doctrine choice explicitly before any API-shape planning; do not normalize the current split state.",
+      "default_until_decided": "Earlier Accepted API decisions remain binding.",
+      "blocks_binding_plan": true
+    },
+    {
+      "choice_id": "ADR-0614-MOVE-MANIFEST-DECOMMIT",
+      "decision_needed": "Reconcile landed move-manifest de-commit behavior with ADR-0614's Proposed lifecycle state.",
+      "options": [
+        "Accept ADR-0614 narrowly for the landed behavior after evidence verification.",
+        "Roll back the behavior to the prior Accepted contract."
+      ],
+      "recommended_direction": "Accept only the narrow landed contract if its deterministic/materialize-first evidence is green; otherwise roll back.",
+      "default_until_decided": "Observed implementation is not binding authority.",
+      "blocks_binding_plan": true
+    },
+    {
+      "choice_id": "ADR-0616-FROZEN-BASELINE-DECOMMIT",
+      "decision_needed": "Ratify or reject the explicit structural-to-review-visibility trust delta in ADR-0616 that conflicts with ADR-0613's Accepted reaffirmation of the committed frozen-reference rule originally described by ADR-0596.",
+      "options": [
+        "Accept ADR-0616 with the documented trust delta and compensating controls.",
+        "Restore ADR-0613's Accepted committed frozen-baseline contract."
+      ],
+      "recommended_direction": "Require explicit founder acknowledgment of the trust delta; implementation presence is not enough.",
+      "default_until_decided": "Do not claim Proposed ADR-0616 displaces Accepted ADR-0613.",
+      "blocks_binding_plan": true
+    },
+    {
+      "choice_id": "ADR-0609-MASTERPLAN-FABRIC-SCOPE",
+      "decision_needed": "Scope or defer Proposed ADR-0609.",
+      "options": [
+        "Accept only single-masterplan authority plus digest enforcement, which have current evidence.",
+        "Keep ADR-0609 Proposed."
+      ],
+      "recommended_direction": "If needed, ratify the narrow evidenced scope only; do not ratify a broader drive-loop claim.",
+      "default_until_decided": "masterplan_v2 is the canonical plan authority under current repo contracts; broader ADR-0609 claims are nonbinding.",
+      "blocks_binding_plan": false
+    },
+    {
+      "choice_id": "ADR-0610-ADR-0611-SHIPPED-ARTIFACT-SCOPE",
+      "decision_needed": "Decide whether the bounded artifacts associated with Proposed ADRs 0610 and 0611 need lifecycle ratification for the next plan.",
+      "options": [
+        "Ratify only the shipped artifact scope.",
+        "Keep the ADRs Proposed and treat the artifacts as evidence/prototypes."
+      ],
+      "recommended_direction": "Keep them nonbinding unless the next plan depends on them; never infer a benchmark-engine or product pivot.",
+      "default_until_decided": "Artifacts do not establish broader authority.",
+      "blocks_binding_plan": false
+    },
+    {
+      "choice_id": "ADR-0617-LIVING-MONOREPO-GRAPH",
+      "decision_needed": "Decide whether the next plan depends on the Proposed one-way governance graph.",
+      "options": [
+        "Defer ADR-0617.",
+        "Accept it with scoped implementation and evidence obligations before using it as a plan prerequisite."
+      ],
+      "recommended_direction": "Defer unless the planning session proves a direct dependency on the graph substrate.",
+      "default_until_decided": "ADR-0617 is nonbinding and not a plan prerequisite.",
+      "blocks_binding_plan": false
+    }
+  ],
+  "future": {
+    "walkthrough_order": [
+      "Confirm the authority order and the historical systems that are now provenance only.",
+      "Review the present evidence ceilings: baseline, ADR lifecycle counts, retired external-claim import receipt, and Phase-0 gaps.",
+      "Resolve every founder choice marked blocks_binding_plan, and explicitly scope or defer any other Proposed ADR the plan would use.",
+      "Record that the consolidation was admitted through PR #1340 with green oya-ci-required and GitHub APPROVED metadata, without treating that repository admission as founder-choice or qualified-human authority closure.",
+      "Close planning_entry_contract with evidence; only then begin binding plan approval and later execution-wave dispatch."
+    ],
+    "planning_entry_conditions": [
+      "Supported ADR lifecycle metadata reflects every founder choice and reciprocal amendment/supersession links.",
+      "No Proposed ADR is used as binding authority.",
+      "The consolidation PR is merged to dev with oya-ci-required green and review complete.",
+      "Phase-0 open gaps remain explicit and no readiness claim exceeds live evidence.",
+      "The masterplan sequencing digest remains the ratified value or carries a fresh founder ratification.",
+      "No execution wave dispatched while the pre-planning contract was open."
+    ],
+    "closure_transition_requirement": "A later protected change must add the closed-state proof contract to the cross-artifact evaluator before setting planning_entry_contract.state=closed or enabling binding-plan approval/dispatch; the current evaluator intentionally recognizes only the open fail-closed hold.",
+    "exact_no_dispatch_stop_conditions": [
+      "masterplan_v2.planning_entry_contract.state is not closed",
+      "masterplan_v2.planning_entry_contract.dispatch_allowed is not true",
+      "any founder_choice_matrix row with blocks_binding_plan=true is unresolved",
+      "the consolidation change is not merged to dev through a protected PR with oya-ci-required green and independent review complete",
+      "the canonical sequencing digest differs from sha256:a6ddc2a8f372c71aa31f9a7e84087d8d2de84c283baee0c8746e054d58564c3c without a fresh founder ratification record",
+      "masterplan_v2.sequencing.execution_wave_dispatch.dispatched_waves is non-empty before all prior conditions close"
+    ],
+    "stop_state": "blocked-preplanning-authority-closure"
+  },
+  "claim_ceiling": "This dated consolidation snapshot, reconciled against live Git/GitHub on 2026-07-21, attests that PR #1340 merged to dev with successful oya-ci-required checks on its immutable final head and squash-merge commits and with GitHub APPROVED metadata. It does not attest a qualified-human approval, an Accepted founder choice, Phase-0 completion, Stage-1 PASS, binding plan approval, execution-wave dispatch, rollout, or product completion.",
+  "updated_at": "2026-07-21T01:25:13Z"
+}

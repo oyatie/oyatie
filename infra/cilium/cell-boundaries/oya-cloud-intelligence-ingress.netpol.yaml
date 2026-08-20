@@ -1,0 +1,37 @@
+# ADR-0381 D3 — cloud-intelligence cell ingress boundary.
+#
+# Restricts ingress to pods in oya-cloud-intelligence (the cloud intelligence reverse proxy):
+#   - same-namespace pod-to-pod.
+#   - argocd (sync + drift detection on the Deployment).
+#   - any namespace that labels itself oya.gateway-client=true (agent-tenant
+#     namespaces, opted-in by the operator at namespace create time).
+#
+# Anything else (including unlabelled namespaces) is denied. Egress is intentionally
+# unconstrained — the gateway must reach api.openai.com, api.anthropic.com,
+# generativelanguage.googleapis.com.
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: oya-cloud-intelligence-ingress
+  namespace: oya-cloud-intelligence
+  labels:
+    oya.adr/decided-by: ADR-0381-D3
+    oya.cell-boundary/scope: "ingress-only"
+    oya.cell-boundary/target-cell: "tenant"
+spec:
+  podSelector:
+    matchLabels:
+      app: cloud-intelligence
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {}
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: argocd
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              oya.gateway-client: "true"

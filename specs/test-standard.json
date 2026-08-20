@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/test-standard.json",
+  "title": "OyatieTestStandard",
+  "description": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-TEST-STANDARD",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "axis-foundry + ops-quality",
+    "created_at": "2026-05-14T07:22:20Z",
+    "updated_at": "2026-05-14T07:22:20Z",
+    "markdown_authority": "docs/standards/testing.md",
+    "evidence_sources": [
+      "M01-P07 GitOps VCS admission",
+      "merge-queue CI/CD gates"
+    ],
+    "planned_enforcement_refs": [
+      "oya-governance-test-evidence",
+      "merge-queue CI/CD gates"
+    ],
+    "purpose": "Machine-readable unit/integration/e2e test standard enforced by M01-P07 GitOps VCS admission and CI/CD promotion."
+  },
+  "tiers": [
+    {
+      "id": "unit",
+      "purpose": "Fast proof for pure logic and component behavior.",
+      "must_run_when": [
+        "changed executable semantic symbol",
+        "changed parser/serializer/state transition",
+        "changed policy evaluator"
+      ],
+      "evidence_required": [
+        "command",
+        "runner",
+        "changed symbols",
+        "result",
+        "freshness"
+      ],
+      "promotion_blocking": true
+    },
+    {
+      "id": "integration",
+      "purpose": "Boundary proof across ports/adapters/storage/contracts with deterministic local dependencies.",
+      "must_run_when": [
+        "adapter or infrastructure changed",
+        "contract/schema changed",
+        "persistence/migration changed",
+        "cross-language generated client changed"
+      ],
+      "evidence_required": [
+        "command",
+        "runner",
+        "fixtures/dependencies",
+        "artifact",
+        "result",
+        "freshness"
+      ],
+      "promotion_blocking": true
+    },
+    {
+      "id": "contract",
+      "purpose": "Provider/consumer schema parity for OpenAPI/AsyncAPI/Proto/Cedar/SQL contracts.",
+      "must_run_when": [
+        "public API or event contract changed",
+        "consumer generated client changed",
+        "policy contract changed"
+      ],
+      "evidence_required": [
+        "contract id",
+        "provider",
+        "consumer",
+        "schema digest",
+        "result"
+      ],
+      "promotion_blocking": true
+    },
+    {
+      "id": "e2e",
+      "purpose": "User/workflow-level proof across preview/deployed composition, including web/mobile/desktop flows.",
+      "must_run_when": [
+        "tenant-visible behavior changed",
+        "route/UI/workflow changed",
+        "release candidate",
+        "GitOps environment promotion"
+      ],
+      "evidence_required": [
+        "scenario",
+        "environment",
+        "platform",
+        "artifact/ref",
+        "result",
+        "freshness"
+      ],
+      "promotion_blocking": "production-if-user-facing"
+    },
+    {
+      "id": "property",
+      "purpose": "Invariant proof for parsers, serializers, codecs, state machines, and cross-pillar invariants.",
+      "must_run_when": [
+        "kernel/domain invariant changed",
+        "parser/serializer changed",
+        "state machine changed"
+      ],
+      "evidence_required": [
+        "case budget",
+        "counterexample handling",
+        "result"
+      ],
+      "promotion_blocking": true
+    },
+    {
+      "id": "fuzz",
+      "purpose": "Boundary probing for unsafe, FFI, public parsers/deserializers, and audit-chain parsers.",
+      "must_run_when": [
+        "unsafe changed",
+        "FFI changed",
+        "untrusted parser changed"
+      ],
+      "evidence_required": [
+        "target",
+        "duration/cases",
+        "crash artifacts",
+        "result"
+      ],
+      "promotion_blocking": true
+    }
+  ],
+  "polyglot_command_registry_ref": "/registry/test-set-registry.json",
+  "admission_algorithm": [
+    "Compute semantic diff from AST/artifact index.",
+    "Map changed symbols to surfaces, languages, contracts, and generated clients.",
+    "Resolve required test tiers from tiers[].must_run_when and test-set-registry rows.",
+    "Reject ChangeBundle if required evidence is missing or stale after controller-owned rebase.",
+    "Convert CI/review failures to typed FixupTasks with affected symbol/test refs.",
+    "Block merge queue promotion until required tiers are pass or recorded as production-blocking gap when permitted."
+  ],
+  "flaky_policy": {
+    "quarantine_requires_owner_and_sla": true,
+    "sla_days": 14,
+    "rerun_limit_pr_time": 1,
+    "persistent_failure_policy": "cannot convert to pass; create FixupTask or reject promotion"
+  },
+  "ast_requirement": {
+    "required": true,
+    "minimum": "AST or parser-backed semantic symbol ranges for supported source languages; JSON/YAML/TOML/OpenAPI/Cedar/SQL/CI use structural pointer symbols.",
+    "uses": [
+      "claim coverage",
+      "affected-test selection",
+      "review/fix mapping",
+      "semantic conflict detection",
+      "merge queue rebase validation"
+    ]
+  }
+}

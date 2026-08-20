@@ -1,0 +1,26 @@
+{
+  "$id": "simplify_report.v1",
+  "type": "object",
+  "required": ["schema", "changes", "behavior_unchanged", "green_rerun"],
+  "properties": {
+    "schema": { "const": "simplify_report.v1" },
+    "changes": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "What was deleted/simplified"
+    },
+    "behavior_unchanged": { "type": "boolean" },
+    "green_rerun": {
+      "type": "object",
+      "required": ["passed", "commands"],
+      "properties": {
+        "passed": { "type": "boolean" },
+        "commands": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "noop": {
+      "type": "boolean",
+      "description": "True if already minimal; still must re-run green"
+    }
+  }
+}

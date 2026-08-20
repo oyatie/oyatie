@@ -1,0 +1,15 @@
+{
+  "pr": 1569,
+  "head": "8a74b64d7f03cb6c0b5e6ff4475e5370b6e5e6af",
+  "critic_id": "B",
+  "verdict": "APPROVE",
+  "lenses": [
+    "contrarian",
+    "systems_thinking",
+    "bun_trial_before_fanout"
+  ],
+  "summary": "Bun discipline: contract first (this PR) before path-filter/capacity apply fan-out. Gaps 0637-0638 reserved for k8s PR. Implement 1562/1564 only after this lands or in parallel without coupling. Promote is founder-accepted plan.",
+  "blockers": [],
+  "severity_max": "low",
+  "reviewed_at": "2026-08-05T12:24Z"
+}

@@ -1,0 +1,85 @@
+{
+  "pr": 1562,
+  "head": "adfad9eaaf0ddc6382b168909c0b7151e9650a9b",
+  "prior_pre_rebase_head": "c9b542bd9ce9af6d8a476ac87778248a63612ad2",
+  "base_tip": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+  "branch": "agent/r2-premerge-shape-20260805",
+  "worktree": "/Users/jasonlee/Developer/oyatie-r2-premerge-shape",
+  "critic_id": "B",
+  "verdict": "APPROVE",
+  "lenses": ["contrarian", "systems_thinking", "operability"],
+  "severity_max": "low",
+  "is_draft": true,
+  "files_changed": [".github/workflows/oya-ci-required.yml"],
+  "ci": {
+    "required_context": "oya-ci-required",
+    "head": "adfad9eaaf0ddc6382b168909c0b7151e9650a9b",
+    "conclusion": "not_observed_green_in_this_review",
+    "notes": "drive-tick merge_check through 11:16Z: BLOCKED / oya_ci_required:missing. Rebase onto #1558 tip a1bd1f14 already in worktree (adfad9ea). Confirm remote PR head + CI after push of rebase."
+  },
+  "findings": [
+    {
+      "id": "B-01-finops-rationale-sound",
+      "severity": "none",
+      "issue": "maxRunners=1 oya-live-postgres-arm64 cell serializes every PR behind durable proof even when cone is unrelated — path-optional PR legs are the correct FinOps lever (R2), distinct from R1 runner scale.",
+      "evidence": "infra/arc runner-scale-set-live-postgres maxRunners:1 (gate_registration live_postgres_arc_cell). Commit message + PROGRAM R2 acceptance: unrelated PRs skip live-postgres. Parallelism policy forbids coupling R1+R2 in one PR; this PR does not touch runner capacity vars."
+    },
+    {
+      "id": "B-02-contrarian-always-on-alternative",
+      "severity": "none",
+      "issue": "Contrarian alternative (keep always-on + scale cell) rejected correctly for this slice: always-on preserves safety but does not reduce queue pressure on the singleton cell under multi-PR load; scaling is R1/ops.",
+      "evidence": "LANES.md R1 vs R2 separation; hard_stops no_delete_gates / keep oya-ci-required singleton. Path filter + trunk always-on is the middle path: PR CONE skip, merge_group/push full proof."
+    },
+    {
+      "id": "B-03-systems-fan-in-coupling",
+      "severity": "none",
+      "issue": "Second-order fan-in coupling is intentional and narrow: skip is load-bearing only for live-postgres; other lanes unchanged.",
+      "evidence": "needs: list still joins both live-postgres jobs. if: always() fan-in still runs. Skipped result from path filter is green; failure still RED. Producer-regen outputs are the only new cross-job data plane — no CAS/artifact identity change."
+    },
+    {
+      "id": "B-04-path-list-vs-job-targets",
+      "severity": "low",
+      "issue": "Path list is hand-maintained mirror of job buck2 targets + shared deps. Drift if a new live target is added without updating both the job run list and the grep prefixes.",
+      "evidence": "Adapters job runs: oya-data-sql-adapter-sqlx, oya-data-outbox-adapter-postgres, tenant-lifecycle-store-postgres, identity-scim-store-postgres. Facades: identity-service, tenant-lifecycle-app. Prefixes cover those trees + kernels + ARC cell + workflow. Operability follow-up: when adding a live target, update path grep in the same PR (or productize later as Rust path-relevance — out of R2 wave1 scope)."
+    },
+    {
+      "id": "B-05-operability-one-liner-debt",
+      "severity": "low",
+      "issue": "Path filter packed into one baselined shell line is hard to read/debug at 3 a.m.; intentional to avoid automation-language-policy shell_lines growth / new key.",
+      "evidence": "Comment: 'Packed into an EXISTING baselined shell step so we do not birth a new workflow_inline_shell key against the merge-base ceiling.' Outputs live_postgres_adapters/facades visible in GITHUB_OUTPUT and fan-in echo diagnostics. Acceptable Day-2 debt for shrink-only policy."
+    },
+    {
+      "id": "B-06-self-test-on-this-pr",
+      "severity": "none",
+      "issue": "This PR touches oya-ci-required.yml → both path filters match → both live-postgres legs must run on this PR (self-test of skip=false path).",
+      "evidence": "Both adapter and facade greps include \\\\.github/workflows/oya-ci-required\\\\.yml. After merge, unrelated PRs exercise skip=true; trunk push exercises always-on."
+    },
+    {
+      "id": "B-07-rebase-state",
+      "severity": "none",
+      "issue": "Local branch already rebased onto origin/dev a1bd1f14 (#1558 tip); no further rebase required for review correctness if remote head is adfad9ea.",
+      "evidence": "worktree logs/HEAD: rebase pick → adfad9eaaf0ddc6382b168909c0b7151e9650a9b. refs/remotes/origin/dev = a1bd1f14. Pre-rebase c9b542bd was based on a4a5ace5. If remote PR still points at c9b542bd, push rebased head before merge (CI must green on the head that merges)."
+    },
+    {
+      "id": "B-08-draft-auto-undraft",
+      "severity": "none",
+      "issue": "Draft + dual-critic + oya-ci-required SUCCESS + merge-check is the autonomous path; human GH APPROVE not required per harness.",
+      "evidence": "User policy + harness drive.v1 / quantitative: agent dual-critic admit + required context SUCCESS clears merge. auto_undraft true. Do not merge from this critic."
+    },
+    {
+      "id": "B-09-no-cas-coupling",
+      "severity": "none",
+      "issue": "No CAS warm/network-proof/credential coupling; R2 isolation preserved.",
+      "evidence": "Single workflow file; PROGRAM parallel policy must_not_couple R2 with R5. No cas-network-proof or identity edits."
+    }
+  ],
+  "blockers": [],
+  "suggestions": [
+    "After land: measure live-postgres skip rate vs queue_wait on oya-live-postgres-arm64; expand prefixes if durability regressions appear",
+    "When adding a new live-postgres buck2 target, update path greps in the same PR",
+    "Confirm remote PR head is adfad9ea (rebased) and wait for oya-ci-required SUCCESS before squash"
+  ],
+  "summary": "Critic B (contrarian + systems_thinking + operability): APPROVE. Path-optional live-postgres is the right R2 FinOps lever for the maxRunners=1 cell without deleting gates or weakening face/firewall. Fan-in skip acceptance is narrowly scoped. Residual low risks: hand-maintained path/target drift and opaque one-liner shell — both acceptable for wave1. Rebase onto #1558 tip already local; merge only when exact remote head CI is green.",
+  "reviewed_at": "2026-08-05T11:25Z",
+  "reviewer": "dual-critic-B"
+}

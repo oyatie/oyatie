@@ -1,0 +1,312 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/bespoke-cloud-toolchain-services.json",
+  "title": "BespokeCloudToolchainServices",
+  "description": "Master-plan placement and requirements for Oyatie Cloud tenant-facing SCM, CI, and CD services. The control planes are bespoke Rust services; external OSS systems are bridge adapters or reference shapes, not permanent product substitutes.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-BESPOKE-CLOUD-TOOLCHAIN-SERVICES",
+    "version": "0.2.1",
+    "status": "proposed-for-masterplan-refinement",
+    "owner_team": "council-architecture + platform-toolchain",
+    "created_at": "2026-06-02T00:00:00Z",
+    "source_request": "Founder refinement: SCM, CI, and CD are cloud offerings to tenants; they must be bespoke Rust services that function well in Oyatie Cloud, while internal and tenant pipelines stay isolated, secure, and separate.",
+    "related_adrs": [
+      "ADR-0346",
+      "ADR-0363",
+      "ADR-0366",
+      "ADR-0367",
+      "ADR-0369",
+      "ADR-0387",
+      "ADR-0510",
+      "ADR-0511",
+      "ADR-0513",
+      "ADR-0514",
+      "ADR-0515",
+      "ADR-0517",
+      "ADR-0520"
+    ],
+    "primary_external_references": [
+      {
+        "name": "Google monorepo / Piper common source of truth",
+        "url": "https://research.google/pubs/why-google-stores-billions-of-lines-of-code-in-a-single-repository/",
+        "used_for": "Monorepo as common source of truth, custom source repository and supporting workflow/tooling at hyperscale."
+      },
+      {
+        "name": "Google SRE release engineering",
+        "url": "https://sre.google/sre-book/release-engineering/",
+        "used_for": "Self-service, automated, hermetic, policy-enforcing release tooling; release engineering starts early."
+      },
+      {
+        "name": "Google SRE canarying releases",
+        "url": "https://sre.google/workbook/canarying-releases/",
+        "used_for": "Canary requirements, SLI-based evaluation, automated rollback and progressive exposure."
+      },
+      {
+        "name": "Meta Sapling scalable source control",
+        "url": "https://engineering.fb.com/2022/11/15/open-source/sapling-source-control-scalable/",
+        "used_for": "Scale axes for source control, Git-compatible client bridge, Rust distributed source-control server precedent."
+      },
+      {
+        "name": "Meta Sapling directory branching",
+        "url": "https://engineering.fb.com/2025/10/16/developer-tools/branching-in-a-sapling-monorepo/",
+        "used_for": "Directory-branch metadata, monorepo-linear commits, CI visibility across branch variants."
+      },
+      {
+        "name": "Meta rapid release at massive scale",
+        "url": "https://engineering.fb.com/2017/08/31/web/rapid-release-at-massive-scale/",
+        "used_for": "Dogfood stage, small production percentage, 100% rollout, push-blocking alerts and emergency stop."
+      },
+      {
+        "name": "AWS CI/CD pipeline as release captain",
+        "url": "https://aws.amazon.com/builders-library/cicd-pipeline/",
+        "used_for": "Trunk-based delivery, approved merge starts pipeline, release branches avoided."
+      },
+      {
+        "name": "AWS safe hands-off deployments",
+        "url": "https://aws.amazon.com/builders-library/automating-safe-hands-off-deployments/",
+        "used_for": "Source/build/test/prod phases, multiple pipelines per service, automatic rollback, pipelines as code."
+      },
+      {
+        "name": "AWS SaaS tenant isolation strategies",
+        "url": "https://docs.aws.amazon.com/whitepapers/latest/saas-tenant-isolation-strategies/saas-tenant-isolation-strategies.html",
+        "used_for": "Silo/pool tenant isolation patterns and cross-layer tenant isolation discipline."
+      },
+      {
+        "name": "Argo CD overview",
+        "url": "https://argo-cd.readthedocs.io/en/stable/",
+        "used_for": "GitOps desired-state reconciliation, health, drift detection, rollback, audit trails as bridge semantics."
+      },
+      {
+        "name": "Argo Rollouts concepts",
+        "url": "https://argoproj.github.io/argo-rollouts/concepts/",
+        "used_for": "Progressive delivery, canary/blue-green, metric-driven promotion/rollback as bridge semantics."
+      },
+      {
+        "name": "Kubernetes Prow components",
+        "url": "https://docs.prow.k8s.io/docs/components/",
+        "used_for": "Reference decomposition for webhook intake, job lifecycle, status reporting, deck UI, plugins, and Tide merge automation."
+      },
+      {
+        "name": "Kubernetes Prow Tide",
+        "url": "https://docs.prow.k8s.io/docs/components/core/tide/",
+        "used_for": "Merge automation / merge queue ownership model for cloud-ci/oya-ci-tide."
+      },
+      {
+        "name": "Buck2 explicit build inputs",
+        "url": "https://buck2.build/docs/concepts/build_rule/",
+        "used_for": "Gate/build rules must declare inputs explicitly for deterministic reproducible outputs."
+      }
+    ],
+    "updated_at": "2026-07-01T08:30:17Z",
+    "latest_refinement": "ADR-0515 reconciliation applied: GitHub Actions plus branch protection are the live CI/CD authority and produce the single protected `oya-ci-required` context until explicit owned-runner cutover. Owned cloud-ci/oya-ci remains the destination runner/product surface for the same canonical pipeline; ADR-0513/Prow/Jenkins wording is retained only as provenance or reference shape, and `oya` CLI evidence is legacy local feedback only."
+  },
+  "masterplan_placement": {
+    "top_level_section": "/specs/masterplan.json#bespoke_cloud_toolchain_services",
+    "sequencing_sidecar_section": "/specs/master-plan-sequencing.json#early_prerequisites[M-TOOLCHAIN-bespoke-cloud-toolchain-services]",
+    "roadmap_phase": "ideal_production_roadmap.phases[P-TOOLCHAIN]",
+    "phase0_bridge": ".omx/plans/prd-platform-readiness.md#P0.0-bespoke-ci-enforcement-baseline",
+    "relationship_to_existing_gitops_vcs": "ADR-0363 remains binding for retiring the bespoke agentic-VCS CLI/wrapper and using plain git/GitHub as the coordination substrate. Current live CI/CD enforcement authority is ADR-0515: plain git plus a protected PR against dev, with GitHub Actions producing the single protected `oya-ci-required` context until explicit owned-runner cutover. Owned cloud-ci/oya-ci remains the destination runner/product surface for that same canonical pipeline; ADR-0513/Prow/Tide are provenance or reference shapes only, not parallel live authority. `oya` CLI entrypoints are retired local-feedback/migration inputs only, not branch-protection producers.",
+    "related_specs": [
+      "/specs/hyperscaler-production-readiness-claim-contract.json",
+      "/specs/phase0-automation-matrix.json",
+      "/specs/phase0-claim-evidence-map.json",
+      "/specs/work-area-content-hash-contract.json"
+    ]
+  },
+  "product_posture": {
+    "offering_type": "Oyatie Cloud developer-platform services offered to internal Oyatie teams and external tenants",
+    "not_internal_only": true,
+    "bespoke_definition": "The control plane, policy engine, admission engine, queue/reconciler state machine, tenant isolation model, APIs, billing/metering, audit chain, and user-visible UX are first-party Rust services. OSS tools may be used as bridge adapters, execution substrate, or reference shape, but cannot be the permanent product control plane.",
+    "language_requirement": "Rust for first-party control planes, gate crates, reconcilers, webhooks, policy evaluators, state machines, and adapters. Do not add new CLI, shell, or Python infrastructure automation; any already-selected bootstrap/host-prelude exception must be explicit, narrowly scoped, and carry deletion criteria.",
+    "cloud_fit": "Runs as Oyatie Cloud services on the Talos/Kubernetes substrate with OpenBao/OpenTelemetry/Cedar/audit-chain integration, tenant quotas, metering, SLOs, DR, and regional/compliance-pack controls."
+  },
+  "shared_work_area_hash_contract": {
+    "source_spec": "/specs/work-area-content-hash-contract.json",
+    "status": "w1-interface-lock",
+    "rule": "Cloud SCM, CI, and CD services must use one content-addressed work-area hash as the byte-identical SCM change id, buck2/RBE key, and CD artifact hash. Consumer-specific namespaces and secondary artifact/action digests may wrap or cite this hash, but must not replace it as the primary join key.",
+    "primary_outputs": [
+      "work_area_hash",
+      "scm_change_id",
+      "buck2_rbe_key",
+      "cd_artifact_hash"
+    ],
+    "claim_boundary": "Metadata-only contract reference; this spec still makes no bespoke SCM, RBE runtime, or CD runtime claim."
+  },
+  "services": [
+    {
+      "id": "cloud-scm",
+      "public_name": "Oyatie SCM",
+      "purpose": "Tenant-facing source control and change graph service for monorepo and multi-repo tenants.",
+      "rust_components": [
+        "oya-scm-api",
+        "oya-scm-kernel",
+        "oya-scm-change-graph",
+        "oya-scm-status-fanout",
+        "oya-scm-git-adapter",
+        "oya-scm-github-adapter",
+        "oya-scm-tenant-isolation-gate"
+      ],
+      "bridge_today": [
+        "plain git wire protocol",
+        "GitHub PRs, branch protection, commit statuses, webhooks",
+        "native git sparse-index and partial-clone"
+      ],
+      "destination_capabilities": [
+        "server-side change graph and stacked diffs",
+        "projected-state merge train with reverse-dependency indexing",
+        "horizontally scalable commit-status fan-out",
+        "tenant-scoped repository namespaces and policy-aware access graph",
+        "lazy materialization / virtual workspace only after measured scale trigger",
+        "directory-branch/subtree metadata support for branch-like flows without repo-wide merge graph explosion"
+      ],
+      "cutover_rule": "GitHub remains transitory until ADR-0510 numeric triggers or tenant-product demand justify the bespoke server. The Rust SCM API/admission/status layers are built now so the eventual storage/forge swap is an adapter cutover, not a contract rewrite."
+    },
+    {
+      "id": "cloud-ci",
+      "public_name": "Oyatie CI",
+      "purpose": "Tenant-facing continuous-integration service with hermetic builds, bespoke gates, merge queues, and evidence emission.",
+      "rust_components": [
+        "oya-ci-webhook-gateway",
+        "oya-ci-controller",
+        "oya-ci-plank",
+        "oya-ci-crier",
+        "oya-ci-tide",
+        "oya-ci-deck-api",
+        "oya-ci-gate-catalog",
+        "oya-ci-tenant-runner-scheduler"
+      ],
+      "bridge_today": [
+        "GitHub Actions plus branch protection produce the live `oya-ci-required` context per ADR-0515 until explicit owned oya-ci runner cutover",
+        "Rust cloud-ci gate binaries and the oya-ci aggregator are the canonical gate logic shared by the current GitHub Actions runner and the destination owned runner",
+        "Prow/Tide patterns remain reference shapes for webhook, job lifecycle, status fan-out, and merge-queue decomposition; Jenkins is superseded provenance only and must not remain a CI transport, status, or gate-authority bridge",
+        "Buck2 affected selection and cargo full mirror may provide execution substrates during migration, but branch-protection authority is the single `oya-ci-required` context"
+      ],
+      "destination_capabilities": [
+        "required full bespoke gate context for protected branches",
+        "affected fast feedback plus full mirror for merge authority",
+        "trunk-sourced gate definitions with PR code as untrusted data",
+        "hermetic toolchain, CAS/RBE, deterministic test selection, structured failure summaries",
+        "merge queue / tide / batch / speculative projected-state validation"
+      ],
+      "enforcement_rule": "Current live enforcement authority is ADR-0515: protected PRs against dev require the single GitHub-Actions-produced `oya-ci-required` context, backed by Rust cloud-ci gate packets run automatically from trusted trunk/controller-sourced definitions. Owned cloud-ci/oya-ci is the destination runner/product surface for the same canonical pipeline after explicit cutover; it is not a parallel authority before cutover. Candidate PR bytes are untrusted data. Buck2 and cargo are execution substrates during migration. Legacy `oya verify`, `oya gate`, CLI, shell, and Python infrastructure automation is retired local-feedback or transitional migration evidence only and cannot satisfy branch-protection merge or Phase-0 exit authority; any transitional adapter must have deletion criteria. Prow/Tide vocabulary describes reference product decomposition only unless a newer accepted authority reintroduces it. RED if a plan-required context is missing, is not `oya-ci-required`, is affected-only, is buck2-affected-only, is local-mirror-only, maps to any `oya` CLI invocation, depends on Jenkins/Prow/ADR-0513 as current authority, or can be weakened by candidate PR bytes. Merge-queue/Tide-like admission is a destination cloud-ci capability: Phase 0 proves the protected-context contract, and later phases scale projected-state, batching, auto-rebase, and auto-regeneration without reopening the one-canonical-CI decision."
+    },
+    {
+      "id": "cloud-cd",
+      "public_name": "Oyatie CD",
+      "purpose": "Tenant-facing continuous-delivery and progressive-deployment service for applications, configuration, infrastructure, and policy changes.",
+      "rust_components": [
+        "oya-cd-api",
+        "oya-cd-release-ledger",
+        "oya-cd-reconciler",
+        "oya-cd-progressive-rollout-controller",
+        "oya-cd-canary-evaluator",
+        "oya-cd-rollback-controller",
+        "oya-cd-argo-adapter",
+        "oya-cd-tenant-isolation-gate"
+      ],
+      "bridge_today": [
+        "Argo CD desired-state reconciliation",
+        "Argo Rollouts canary/blue-green and AnalysisTemplate semantics",
+        "Argo Events/Workflows where already selected for orchestration"
+      ],
+      "destination_capabilities": [
+        "release ledger with immutable source/build/test/prod transitions",
+        "SLO/error-budget-aware promotion and freeze decisions",
+        "canary, blue-green, ring/cell rollout, automatic rollback and breakglass audit",
+        "configuration and infrastructure deployment pipelines, not only app code",
+        "drift detection plus desired-state reconciliation across tenant cells",
+        "per-tenant deployment policy, quota, compliance pack, region and data-residency enforcement"
+      ],
+      "cutover_rule": "Argo remains the bridge/reference implementation until oya-cd parity proves desired/live reconciliation, health, rollback, audit, canary analysis and multi-cluster tenant isolation. The permanent user-facing product contract is oya-cd, not Argo."
+    }
+  ],
+  "tenant_isolation_contract": {
+    "rule": "Oyatie internal pipelines and every tenant pipeline are isolated, secure, and separate. Internal dogfood is tenant=oyatie-internal, not a privileged shared lane.",
+    "control_plane": "May be pooled only behind mandatory tenant-context authorization, per-tenant object ownership, and default-deny policy. Every API object carries tenant_id, region/cell, data_class, policy_domain, and audit_chain_ref.",
+    "execution_plane": "Default separate K8s namespace, service account, NetworkPolicy, runner pool quota, workspace volume, artifact namespace, log/evidence namespace, secret scope, and status callback identity per tenant. Regulated tiers may require dedicated cell/cluster/account equivalents.",
+    "data_plane": "Tenant repositories, object stores, CAS artifacts, SBOM/provenance, logs, traces, cache keys, deployment manifests, release ledgers, and audit events are partitioned by tenant. Cross-tenant cache reuse is denied by default except for explicitly public, content-addressed, policy-labeled artifacts with no tenant secrets or environment influence.",
+    "identity_and_secret_rules": [
+      "No shared long-lived tenant credentials.",
+      "Per-tenant OIDC/workload identity and OpenBao/KMS secret scopes.",
+      "Build jobs receive only scoped, time-bound credentials for their tenant and job.",
+      "Internal Oyatie jobs cannot assume tenant identities except through audited breakglass with TTL and reviewer approval."
+    ],
+    "network_rules": [
+      "No runner pod can reach another tenant's workspace, cache namespace, artifact namespace, or webhook callback endpoint.",
+      "Egress is deny-by-default with tenant policy allowlists.",
+      "Service mesh / network policy labels include tenant_id and pipeline_id and are verified by admission gates."
+    ],
+    "audit_rules": [
+      "Every SCM/CI/CD state transition emits audit-chain events with tenant_id, actor, workload identity, source revision, artifact digest, policy verdict, and rollback pointer.",
+      "Tenant administrators can view their own evidence and logs only; Oyatie operators see aggregate health unless breakglass is approved."
+    ],
+    "hard_separation_invariants": [
+      "Separate tenant_id on every SCM repository, ChangeSet, CI run, artifact, cache entry, evidence record, release object, deploy target, secret lease, and audit event.",
+      "Separate execution identity per tenant pipeline: namespace, service account, workload identity, network policy, runner pool quota, workspace volume, artifact/log/evidence namespace, and status callback identity.",
+      "Internal Oyatie jobs run under tenant_id=oyatie-internal and cannot share credentials, caches, workspaces, release ledgers, or bypass gates with customer tenants.",
+      "Cross-tenant reads/writes are default-deny and test-fixtured; exceptions require explicit public content-addressed artifact policy or TTL breakglass with reviewer approval and audit-chain evidence."
+    ]
+  },
+  "sequence": [
+    {
+      "id": "T0",
+      "name": "ADR-0515 oya-ci-required enforcement baseline before Phase-0 execution",
+      "depends_on": [],
+      "deliverable": "Branch protection and live producers prove the current required context is `oya-ci-required`, produced by GitHub Actions from Rust cloud-ci gate packets and trusted trunk/controller state per ADR-0515; no `oya` CLI, Jenkins/Prow/ADR-0513 bridge, affected-only mirror, or shell/Python automation is accepted as merge/exit authority, or Phase-0 execution remains blocked/honest-advisory only."
+    },
+    {
+      "id": "T1",
+      "name": "Bridge product contracts",
+      "depends_on": [
+        "T0"
+      ],
+      "deliverable": "Publish cloud-scm/cloud-ci/cloud-cd APIs, tenant isolation matrix, SLOs, quotas, audit schemas, and adapter boundaries while using GitHub Actions/branch protection and Argo bridge/reference adapters only where ADR-0515 and the CD cutover rules allow them. Jenkins is historical provenance only, not a retained bridge."
+    },
+    {
+      "id": "T2",
+      "name": "Rust control-plane MVPs",
+      "depends_on": [
+        "T1"
+      ],
+      "deliverable": "oya-scm admission/status façade, oya-ci controller/tide required contexts, and oya-cd release-ledger/reconciler façade run for tenant=oyatie-internal and at least one sandbox tenant with hard isolation tests."
+    },
+    {
+      "id": "T3",
+      "name": "Tenant offering private preview",
+      "depends_on": [
+        "T2"
+      ],
+      "deliverable": "External tenant sandbox can create repo/pipeline/release, run isolated CI, deploy to tenant cell via CD bridge, inspect evidence, and rollback without access to internal or other-tenant state."
+    },
+    {
+      "id": "T4",
+      "name": "Bridge-to-bespoke cutovers",
+      "depends_on": [
+        "T3"
+      ],
+      "deliverable": "Replace GitHub Actions/branch-protection and Argo bridge/reference surfaces only when parity, isolation, reliability, explicit cutover approval, and scale triggers are green; otherwise keep the ADR-0515 live runner/authority and continue building Rust service contracts. Jenkins remains retired provenance, not a bridge to replace."
+    }
+  ],
+  "acceptance_criteria": [
+    "Masterplan and sequencing sidecar reference this spec as the placement for SCM/CI/CD toolchain service work.",
+    "Branch-protection-context guard REDs when the single required `oya-ci-required` context is missing, renamed, affected-only, buck2-affected-only, local-mirror-only, produced by any `oya` CLI invocation, or framed as Jenkins/Prow/ADR-0513 current authority.",
+    "Tide/merge-queue placement is explicit as a destination cloud-ci (`oya-ci-tide`) capability: Phase 0 proves the ADR-0515 protected-context contract; Phase 1 scales projected-state batching/auto-rebase without reopening the one-canonical-CI decision.",
+    "Known-BAD fixture proves candidate PR code cannot weaken its own required status producer, gate definition, branch-protection mapping, or runner isolation; protected gate definitions are sourced from trusted trunk/controller state and treat PR bytes as untrusted data.",
+    "cloud-scm/cloud-ci/cloud-cd each have Rust control-plane package plans and bridge adapter boundaries.",
+    "Internal pipeline and each tenant pipeline have separate tenant_id, namespace, runner identity, secrets, artifact namespace, logs/evidence, release ledger, and audit-chain partition.",
+    "Known-BAD fixtures prove tenant A cannot read/use tenant B repositories, artifacts, caches, logs, secrets, statuses, deployment manifests, or rollback handles.",
+    "Known-BAD fixtures prove tenant code cannot weaken its own gate, alter runner isolation, or bypass CD promotion policy.",
+    "CD progressive delivery uses SLI/SLO canary evaluation, staged exposure, automatic rollback, and breakglass audit before any production claim.",
+    "OSS bridges have deletion or parity criteria and cannot be referenced as permanent product substitutes in customer-facing claims.",
+    "T-ISOLATION-0: A fixture proving tenant A cannot read, write, cache-hit, status-update, deploy, or fetch logs/evidence/secrets for tenant B, and that tenant=oyatie-internal has no implicit bypass, is blocking before SCM/CI/CD are exposed as cloud services.",
+    "Any mechanically-enforced, production-ready, tenant-facing, isolated, or hyperscaler-grade claim about cloud-scm/cloud-ci/cloud-cd must satisfy /specs/hyperscaler-production-readiness-claim-contract.json; otherwise the claim is labeled target/non-claim and blocked from authority surfaces by the claim-ceiling gate."
+  ],
+  "non_goals": [
+    "Do not build a Piper/Mononoke-class storage server before ADR-0510 scale or tenant-product triggers justify it.",
+    "Do not expose Jenkins, Argo, or GitHub as the permanent branded tenant product; expose Oyatie SCM/CI/CD APIs and UX.",
+    "Do not share execution workspaces, secrets, artifact namespaces, or mutable caches between tenants.",
+    "Do not weaken the current ADR-0515 GitHub Actions plus branch-protection enforcement while building the bespoke destination.",
+    "Do not use `oya verify` or `oya gate` as required branch-protection producers; port semantics into Rust cloud-ci gate crates/adapters."
+  ]
+}
