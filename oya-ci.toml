@@ -125,6 +125,16 @@ value = "specs/microservice-tier-classification.json"
 reason = "faithful projection of ALL manifest paths in the live tree, including oya/intelligence/_legacy-foundry/manifest.json whose directory is already carved out; the projection embeds the path as a JSON key, not brand residue — the underlying _legacy-foundry de-brand is a separate tracked concern (ADR-0562/Phase-0)"
 
 [[vocab.carve_outs]]
+kind = "path_exact"
+value = "governance/check/ontology-projection-coverage/ontology-projection-coverage-policy.json"
+reason = "the frozen owner-to-manifest binding ENUMERATES which tracked manifest declares each canonical-entity owner, and one of those owners IS a forbidden stem (`foundry`, declared by oya/intelligence/_legacy-foundry/manifest.json). Listing the debt is the census, not the debt — same carve class as specs/microservice-tier-classification.json above, which projects the identical path. The gate CANNOT be repaired by renaming the entry: the key must equal the owner name in CANONICAL_ENTITY_OWNERS and the path `git ls-files` observes, or the ratchet stops matching the corpus it governs. The underlying _legacy-foundry de-brand stays a separate tracked concern."
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "governance/check/active-artifact-contract/active-artifact-contract-policy.json"
+reason = "the frozen unknown-artifact-profile baseline ENUMERATES the registry rows naming a profile outside the kernel's closed enum, keyed by their own artifact_id; three of those ids carry a forbidden stem. Same rationale as the sibling entry above — the key must equal the artifact_id in registry/artifact-capabilities-registry.json or the ratchet stops matching the corpus it governs."
+
+[[vocab.carve_outs]]
 kind = "line_contains_ci"
 value = "palantir"
 exempt_stems = ["foundry"]
