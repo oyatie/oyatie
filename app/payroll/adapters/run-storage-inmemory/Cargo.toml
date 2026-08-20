@@ -1,0 +1,21 @@
+[package]
+name = "payroll-run-storage-inmemory"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+payroll-run-app = { path = "../../facade/run-app" }
+
+[dev-dependencies]
+payroll-run-domain = { path = "../../core/run-domain" }
+
+[lib]
+name = "payroll_run_storage_inmemory"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
