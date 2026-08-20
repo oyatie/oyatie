@@ -5,6 +5,7 @@ import (
 	"go/ast"
 	"go/token"
 	"go/types"
+	"sort"
 	"strconv"
 	"strings"
 )
@@ -211,6 +212,9 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 			},
 		}
 
+	case *ast.FuncLit:
+		return closureNode(typed, ctx)
+
 	case *ast.UnaryExpr:
 		operand := expressionNode(typed.X, ctx)
 		// A CONSTANT EXPRESSION resolves at its OUTERMOST node. go/types records the literal inside
@@ -354,4 +358,104 @@ func typeArgumentIndex(call *ast.CallExpr, ctx *extractCtx) int {
 // that spells it is guessing.
 func isUntyped(recorded *typeNode) bool {
 	return recorded != nil && strings.HasPrefix(recorded.Name, "untyped ")
+}
+
+// closureNode records a function literal, its signature, and WHAT IT CAPTURES.
+//
+// The captures are the whole reason this is a node and not a body with a signature glued on. Which
+// identifiers inside a literal are captures is a SCOPING question: a name resolving to a variable
+// declared outside the literal is one, the same spelling shadowed inside it is not, and the same
+// spelling bound at package scope is neither. Only `types.Info` carries the object identity that
+// separates those three, and the transform receives names rather than objects -- so it cannot
+// answer this without growing Go's scope rules, which is the one thing the front end exists to
+// keep out of it.
+//
+// Whether each capture is WRITTEN is recorded too, because it is what decides who owns it: a
+// capture the closure only reads can be borrowed, and one it writes cannot be shared without
+// synchronization the source never stated.
+func closureNode(lit *ast.FuncLit, ctx *extractCtx) node {
+	out := node{Kind: kindClosure, Type: typeTree(ctx.info.TypeOf(lit))}
+	if sig, ok := ctx.info.TypeOf(lit).(*types.Signature); ok {
+		out.Children = append(out.Children, signatureChildren(sig, ctx.qualify)...)
+	}
+	for _, captured := range capturedObjects(lit, ctx) {
+		capture := node{Kind: kindCapture, Name: captured.name, Type: typeTree(captured.obj.Type())}
+		if captured.written {
+			capture.Flags = append(capture.Flags, flagMutated)
+		}
+		out.Children = append(out.Children, capture)
+	}
+	out.Children = append(out.Children, node{
+		Kind:     kindBody,
+		Children: statementNodes(lit.Body.List, ctx),
+	})
+	return out
+}
+
+// capture is one variable a literal reaches out of its own scope to use.
+type capture struct {
+	name    string
+	obj     types.Object
+	written bool
+}
+
+// capturedObjects names the variables this literal uses from an enclosing FUNCTION scope.
+//
+// A variable is captured when the literal USES it and it was DECLARED outside the literal's source
+// range. Position is what separates the two, because a shadowing declaration inside the literal is
+// a different object at the same spelling and `Uses` reports the one that is in scope.
+//
+// PACKAGE-SCOPE names are not captures. Go closes over them the same way it closes over a local,
+// but the target reaches a package-scope name directly from anywhere -- there is nothing to carry
+// in -- so recording them would put the whole package in every closure's capture list.
+func capturedObjects(lit *ast.FuncLit, ctx *extractCtx) []capture {
+	seen := map[types.Object]int{}
+	out := []capture{}
+	mark := func(ident *ast.Ident, written bool) {
+		obj := ctx.info.Uses[ident]
+		if obj == nil {
+			return
+		}
+		variable, isVar := obj.(*types.Var)
+		if !isVar || variable.Parent() == nil || variable.Parent() == variable.Pkg().Scope() {
+			return
+		}
+		if obj.Pos() >= lit.Pos() && obj.Pos() <= lit.End() {
+			return
+		}
+		if index, ok := seen[obj]; ok {
+			out[index].written = out[index].written || written
+			return
+		}
+		seen[obj] = len(out)
+		out = append(out, capture{name: obj.Name(), obj: obj, written: written})
+	}
+	ast.Inspect(lit.Body, func(n ast.Node) bool {
+		switch typed := n.(type) {
+		case *ast.AssignStmt:
+			if typed.Tok != token.DEFINE {
+				for _, lhs := range typed.Lhs {
+					if ident, ok := baseIdent(lhs).(*ast.Ident); ok {
+						mark(ident, true)
+					}
+				}
+			}
+		case *ast.IncDecStmt:
+			if ident, ok := baseIdent(typed.X).(*ast.Ident); ok {
+				mark(ident, true)
+			}
+		case *ast.UnaryExpr:
+			// Taking the address hands out a licence to write through it.
+			if typed.Op == token.AND {
+				if ident, ok := baseIdent(typed.X).(*ast.Ident); ok {
+					mark(ident, true)
+				}
+			}
+		case *ast.Ident:
+			mark(typed, false)
+		}
+		return true
+	})
+	sort.Slice(out, func(i, j int) bool { return out[i].name < out[j].name })
+	return out
 }

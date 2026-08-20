@@ -141,13 +141,15 @@ const (
 
 	// Body vocabulary. A function body is a `body` node whose children are statements, and a
 	// statement's children are expressions — the same uniform node all the way down.
-	kindBody   = "body"
-	kindBlock  = "block"
-	kindReturn = "return"
-	kindIf     = "if"
-	kindThen   = "then"
-	kindElse   = "else"
-	kindLet    = "let"
+	kindBody    = "body"
+	kindClosure = "closure"
+	kindCapture = "capture"
+	kindBlock   = "block"
+	kindReturn  = "return"
+	kindIf      = "if"
+	kindThen    = "then"
+	kindElse    = "else"
+	kindLet     = "let"
 	// kindLetTuple is a destructuring bind — `v, err := f()`. Its children are the names it
 	// binds, in order, followed by the single expression they come from.
 	kindLetTuple = "let_tuple"

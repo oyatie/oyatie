@@ -124,6 +124,21 @@ pub enum RustExpr {
         /// The values the template consumes, in order.
         args: Vec<RustExpr>,
     },
+    /// `|a, b| { .. }` — a closure literal.
+    ///
+    /// The body is ALWAYS a block, never a bare expression. A Go function literal has a block body
+    /// and its statements may end in a `return`; rendering some of them braced and some not would
+    /// make the tail-position rule depend on how many statements the source happened to write.
+    Closure {
+        /// Whether the closure takes ownership of what it captures — the `move` keyword.
+        moves: bool,
+        /// The parameters, in order, each already cased for the target.
+        params: Vec<ClosureParam>,
+        /// The declared result type, when inference cannot reach it.
+        ret: Option<RustType>,
+        /// The body.
+        body: Vec<RustStmt>,
+    },
     /// `*<inner>` — a dereference.
     ///
     /// Not a [`RustExpr::Unary`]: those are arithmetic and logical operators on a VALUE, and this
@@ -230,6 +245,9 @@ impl RustExpr {
             // A reference binds like a prefix operator; a range binds looser than any of them.
             Self::Reference { .. } => UnaryOp::precedence(),
             Self::Range { .. } => Precedence::LOOSEST,
+            // A closure binds looser than every operator: its body swallows everything to its
+            // right, so an unbracketed one as an operand takes the rest of the expression with it.
+            Self::Closure { .. } => Precedence::LOOSEST,
             // Postfix forms bind tightest of all: `a.b`, `f(x)`, `v[i]` never need wrapping, and
             // their own base is bracketed by the lowering when it is not itself atomic.
             Self::Literal(_)
@@ -271,4 +289,16 @@ impl RustExpr {
         }
         false
     }
+}
+
+/// One parameter of a closure literal.
+///
+/// The type is OPTIONAL because a closure passed straight to a call infers it from the callee, and
+/// stating it there is noise a reviewer notices. It is stated where nothing else can supply it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct ClosureParam {
+    /// The bound name, already cased for the target.
+    pub name: String, // data_class: INTERNAL_ONLY
+    /// The declared type, when the position does not supply one.
+    pub ty: Option<RustType>,
 }

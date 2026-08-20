@@ -6020,3 +6020,52 @@ it, and when there is a bare `return` — which hands back every named result at
 needs all of them, whether or not any is named anywhere else.
 
 Zero remain across the corpus. `validstring` now reads as the function a person would write.
+
+## R3o — a closure is an ownership question wearing a syntax costume
+
+`FuncLit` was the loudest cause in the corpus for three phases — 41 sites, 4 packages — and its
+refusal said only "source construct `FuncLit` has no translation yet". It is gone. Every closure now
+either translates or refuses BY NAME with the decision that is missing.
+
+### What the front end had to answer
+
+Which identifiers inside a literal are CAPTURES is a scoping question. A name resolving to a variable
+declared outside the literal is one; the same spelling shadowed inside it is not; the same spelling
+bound at package scope is neither. Only `types.Info` separates those three, and the transform
+receives names rather than objects — so answering it there would mean growing Go's scope rules inside
+the component that exists to keep them out.
+
+So the front end emits a `closure` node with its signature, its body, and one `capture` member per
+variable it reaches out of its own scope for, each carrying whether the literal WRITES it. Package
+scope is excluded: Go closes over a package variable the same way it closes over a local, but the
+target reaches a package name directly from anywhere, so recording them would put the whole package
+in every capture list.
+
+Measured on chi: 67 literals — 5 capture nothing, 29 capture one, 26 capture two, 7 capture three.
+
+### What translates, and why the rest cannot yet
+
+A literal that captures NOTHING owns nothing, so it needs no ownership decision at all and becomes a
+plain closure with inferred parameter types.
+
+Everything else refuses. The reason is worth stating precisely, because it is not "closures are
+hard": the target INFERS borrow-versus-mutable-borrow for a closure that does not outlive its scope,
+so the non-escaping case needs no analysis either. What needs an answer is the ESCAPING case, and
+the proof it needs is whether the callee RETAINS the value it is given. For a callee outside the
+corpus that is unknowable, and guessing it produces either a borrow-checker error or — worse — a
+`move` that silently stops the sharing the source performs.
+
+The refusal says that, and deliberately does NOT name the captured variables. They are the site, and
+a cause that carries its site counts once per site — which is how one undecided form read as
+eighteen rows in R3j and hid the largest blocker in the corpus. Two rows per package now, split only
+on whether any capture is written, because that is a different missing decision.
+
+### The engine-identity gate earned its place
+
+`body_closure.rs` was a new file and the whole-engine digest test failed immediately:
+
+    an engine source exists that `engine_digest` does not hash — regenerate the crate manifests,
+    because a change to that file would alter output with no receipt axis to account for it
+
+That is the R3d class — an input that changes the output and moves no digest — caught by a gate
+rather than by a person, on the first run after the file appeared.
