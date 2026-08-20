@@ -35,6 +35,16 @@ pub(crate) fn index_operand(node: &Declaration, cx: &Body<'_>) -> Result<RustExp
     if node.kind == "ident" && cx.usize_counters.contains(&node.name) {
         return Ok(operand);
     }
+    // A proven LENGTH CONSTANT is already the index type for the same reason, and by the same proof
+    // the declaration read. Converting it here would cast a `usize` to a `usize` — which the target's
+    // own lint rejects, and which says something about the value that is not true. The two ends have
+    // to read one proof or they disagree, and this is the end that used to guess.
+    if node.kind == "ident"
+        && node.attr(crate::vocabulary::ATTR_REF) == Some(crate::vocabulary::REF_CONST)
+        && cx.resolver.scope.length_constants.contains(&node.name)
+    {
+        return Ok(operand);
+    }
     Ok(RustExpr::Cast {
         expr: Box::new(operand),
         ty: port_engine_rust_ir::RustType::path("usize"),
