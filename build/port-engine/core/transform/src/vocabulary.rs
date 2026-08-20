@@ -21,6 +21,12 @@ pub const FORM_WRITTEN_PACKAGE_VAR: &str = "written_package_var";
 /// computed once before anything runs. What it lacks is the initialising expression, which the
 /// front end cannot see.
 pub const FORM_INIT_WRITTEN_PACKAGE_VAR: &str = "init_written_package_var";
+/// A package variable NOTHING IN THIS PACKAGE WRITES, which is exported so anything importing it
+/// could. A separate form from the written one because the two are different missing decisions and
+/// naming both `written_package_var` told a reader that a variable nothing assigns to is assigned
+/// to — a refusal that misdescribes what is missing is worse than no refusal, because it is acted
+/// on. `google/uuid`'s `Nil` is declared with no initialiser and never written anywhere.
+pub const FORM_EXPORTED_PACKAGE_VAR: &str = "exported_package_var";
 /// The flag saying every write to a package variable is in the package initialiser.
 pub const FLAG_INIT_WRITTEN: &str = "init_written";
 /// Declaration-level construction: a transparent type alias.

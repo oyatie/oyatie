@@ -3,20 +3,20 @@
     "Neutral go->rust rule pack. Package-local mirror of the forever home",
     "specs/port-rules/lang/go-rust/**; the engine reads only what is here.",
     "",
-    "Rule order in `rules` IS the transform order, and `precedence` must agree with it \u2014 the",
+    "Rule order in `rules` IS the transform order, and `precedence` must agree with it — the",
     "loader refuses a pack where the two disagree rather than silently obeying one of them.",
     "",
     "type_map is keyed by TYPE IDENTITY, not by spelling: a primitive by its bare name, a named",
     "type by `package.Name`. The two cannot collide because a qualified key always carries a dot",
     "a bare name may not. A named type this map does not carry, from a unit the corpus also",
-    "translates, resolves through that unit's emitted module instead \u2014 which is the case a",
+    "translates, resolves through that unit's emitted module instead — which is the case a",
     "spelling table could not express at all.",
     "",
     "type_constructors answers for a COMPOSITE by its constructor rather than its shape. One",
     "`slice` entry answers every slice; a spelling table needed a row per element type.",
     "",
     "type_map_overrides: one source type does not always take one target type. `string` becomes",
-    "an owned String where a value is stored \u2014 a field, a parameter, a return \u2014 and CANNOT be one",
+    "an owned String where a value is stored — a field, a parameter, a return — and CANNOT be one",
     "in a constant, because a Rust const must be known at compile time and String is",
     "heap-allocated. Recording that here rather than branching on it keeps the decision reviewable.",
     "",
@@ -24,12 +24,12 @@
     "declared order with the first match winning. Go is garbage-collected, so a `*T` says nothing",
     "about ownership; the decision has to be made and it has to be recorded. Order matters: the",
     "two conservative rules come first, so an escaping or unanalysed pointer never reaches a",
-    "borrow rule. There is deliberately NO catch-all \u2014 facts nothing accepts refuse, because an",
+    "borrow rule. There is deliberately NO catch-all — facts nothing accepts refuse, because an",
     "invented default is a decision nobody wrote down.",
     "",
     "copy_types names the SOURCE types whose target counterpart copies, keyed by source identity",
     "the same way type_map is, so the two tables answer for the same thing. Reading anything else",
-    "by value MOVES in the target, which does not compile out of a borrow \u2014 so the read is cloned:",
+    "by value MOVES in the target, which does not compile out of a borrow — so the read is cloned:",
     "`return c.label` returns a copy in the source and the receiver survives, while the same text",
     "in Rust moves out of `&self`.",
     "",
@@ -40,7 +40,7 @@
     "its zero.",
     "",
     "trait_object_forms is how a TRAIT reaches a value position. The source holds an interface",
-    "value directly and the target cannot \u2014 a trait has no size \u2014 so it arrives as `&dyn T`,",
+    "value directly and the target cannot — a trait has no size — so it arrives as `&dyn T`,",
     "`Box<dyn T>`, `Rc<dyn T>` or a generic parameter, and those are different answers to who owns",
     "the value and how long it lives. Only `param` is declared: a borrow is unambiguously right",
     "there and the caller keeps the value. `result` is deliberately absent, so returning an",
@@ -52,8 +52,8 @@
     "",
     "failure_convention is what makes a function FALLIBLE. The source returns failure as a trailing",
     "result of a designated type, checked by convention rather than enforced; the target expresses",
-    "it as the whole return type. Only the SOURCE side is declared here \u2014 which type carries the",
-    "convention and how the absent value is spelled \u2014 because `Result`, `Ok` and `Err` are target",
+    "it as the whole return type. Only the SOURCE side is declared here — which type carries the",
+    "convention and how the absent value is spelled — because `Result`, `Ok` and `Err` are target",
     "spellings and the face that renders the target owns them.",
     "",
     "The target type is a boxed trait object rather than a `thiserror` enum because the emitted",
@@ -67,10 +67,10 @@
     "pack maps to `i64`, and the target's returns a `usize`.",
     "A template brackets ITSELF where it needs to. The engine substitutes text and does not know",
     "what the surrounding expression will be, so a template whose result binds looser than a caller",
-    "might is the template author's problem to parenthesise \u2014 the same contract type_constructors has.",
+    "might is the template author's problem to parenthesise — the same contract type_constructors has.",
     "",
     "The type map covers the source's WHOLE basic set, because a real package uses most of it in",
-    "its first file \u2014 a map sized to a fixture corpus is a map sized to what the engine already",
+    "its first file — a map sized to a fixture corpus is a map sized to what the engine already",
     "handled. `int` and `int64` both take `i64` because the source's `int` is 64-bit on every",
     "platform this programme targets; `rune` is a code point and takes `char`, not `i32`, because",
     "the target has a type for exactly that and using it keeps the meaning.",
@@ -86,15 +86,15 @@
     "",
     "`error` maps to the TRAIT, not to a boxed one. Where a trait may stand is a position question",
     "the trait_object_forms table answers, so a parameter becomes `&dyn std::error::Error` and a",
-    "result \u2014 which the target must own \u2014 refuses until the pack declares how it is owned.",
+    "result — which the target must own — refuses until the pack declares how it is owned.",
     "",
     "cast_types names the SOURCE types a conversion reaches by a plain cast. The source DEFINES numeric",
     "conversion to truncate and the target's cast does the same thing, so the two agree and the cast is",
-    "faithful. A conversion the pack does not list is one where they disagree \u2014 string to byte slice is",
-    "infallible and lossy in the source and fallible in the target \u2014 and those refuse, because what",
+    "faithful. A conversion the pack does not list is one where they disagree — string to byte slice is",
+    "infallible and lossy in the source and fallible in the target — and those refuse, because what",
     "happens to input the target rejects is a decision rather than a spelling.",
     "",
-    "The `array` template uses `{name}`, which is the type's own non-type datum \u2014 for an array that",
+    "The `array` template uses `{name}`, which is the type's own non-type datum — for an array that",
     "is its LENGTH. `[N]T` is a VALUE type that copies on assignment and carries its size in its",
     "type; rendering it as a growable heap type changed all three at once, and none of the three is",
     "visible in the emitted text.",
@@ -103,7 +103,7 @@
     "`len` casts to the source width, and the INDEX casts back. Both are needed and neither is",
     "redundant on its own: `return len(s)` wants the source's int, and `v[i]` wants the target's",
     "usize, and the same value reaches both. Where a counter makes the round trip the pair is visible",
-    "and removable \u2014 which is why a cast is an IR node rather than text, so the right-sizing analysis",
+    "and removable — which is why a cast is an IR node rather than text, so the right-sizing analysis",
     "can see it and delete it rather than parse it out of a string.",
     "copy_types names every source scalar whose target counterpart is Copy, so reading one is a read rather than a clone. It held only bool/int/float64, which is not a decision but an incomplete list: every other numeric width emitted a `.clone()` on a Copy value -- output that compiles and that no reviewer would accept. `string` is deliberately absent: it maps to an owned String, which is not Copy, so reading one really does clone.",
     "zero_values held four entries -- bool, int, float64, string -- so every other scalar had no zero at all and any construction needing one refused. Not a decision, an incomplete list, the same shape the copy_types gap had. The composite kinds are keyed by KIND rather than by name because an unnamed type has none; `array` carries a template because its zero needs the ELEMENT's zero and the length, neither of which is knowable without the type tree.",
@@ -171,12 +171,12 @@
   },
   "trait_receiver": {
     "mode": "exclusive",
-    "reason": "A Go interface says nothing about how an implementation binds its receiver, and the implementations are not all in view, so this cannot be recovered from the source \u2014 it can only be decided. EXCLUSIVE is the choice that does not silently forbid something: a shared receiver makes a mutating method like Named.Rename unimplementable, whereas an exclusive one only demands mutability from implementations that do not need it, which is a compile-time inconvenience rather than a lost capability. Revisit when the front end reports per-method mutation; see docs/programs/k8s-port/census/ownership-escape.md."
+    "reason": "A Go interface says nothing about how an implementation binds its receiver, and the implementations are not all in view, so this cannot be recovered from the source — it can only be decided. EXCLUSIVE is the choice that does not silently forbid something: a shared receiver makes a mutating method like Named.Rename unimplementable, whereas an exclusive one only demands mutability from implementations that do not need it, which is a compile-time inconvenience rather than a lost capability. Revisit when the front end reports per-method mutation; see docs/programs/k8s-port/census/ownership-escape.md."
   },
   "deferred_kinds": [
     {
       "kind": "foreign_satisfaction",
-      "reason": "An interface satisfaction whose concrete type this corpus does not declare \u2014 a standard-library value assigned where a standard-library interface is expected is the common case, and `var buf bytes.Buffer` passed as an `io.Writer` is the exact shape. There is nowhere to emit the impl: the type belongs to neither this corpus nor this crate, so the target's coherence rule forbids it outright. Recorded rather than dropped, because a satisfaction the engine cannot host must stay distinguishable from one that does not exist; deferred rather than refused, because refusing would reject every package that touches the standard library through an interface, which is most of them."
+      "reason": "An interface satisfaction whose concrete type this corpus does not declare — a standard-library value assigned where a standard-library interface is expected is the common case, and `var buf bytes.Buffer` passed as an `io.Writer` is the exact shape. There is nowhere to emit the impl: the type belongs to neither this corpus nor this crate, so the target's coherence rule forbids it outright. Recorded rather than dropped, because a satisfaction the engine cannot host must stay distinguishable from one that does not exist; deferred rather than refused, because refusing would reject every package that touches the standard library through an interface, which is most of them."
     },
     {
       "kind": "package_init",
@@ -187,6 +187,10 @@
     {
       "id": "written_package_var",
       "reason": "A package-level var something WRITES is a mutable global, and the target has no immediate counterpart: `static` is immutable, `static mut` is unsafe, and `Mutex` imposes blocking the source never had, `RwLock` a reader/writer split it never stated, and an atomic exists only for some types. Each is a decision about the ported program's CONCURRENCY rather than a spelling, so none of them is a default this engine may pick. SCOPE, now that it can be measured: across the surveyed corpora most package variables are never written anywhere in their own package, and for those the form IS decided -- a `static`, because the source variable has one storage location and one address for the life of the program, a `const` is materialised afresh at every use and has no stable address, and an immutable `static` has exactly that storage identity with nothing to synchronize. This reason applies only to what remains. See docs/programs/k8s-port/census/ownership-escape.md and concurrency.md."
+    },
+    {
+      "id": "exported_package_var",
+      "reason": "A package-level var this package never writes, but EXPORTS. The target has no counterpart for a global something outside the unit may assign to: `static` is immutable, `static mut` is unsafe, and `Mutex`, `RwLock` or an atomic each impose a synchronization discipline the source never stated. Which of them is right depends on what the importers do, and this engine can see none of them. Making it a constant is the tempting answer and it deletes a feature: a consumer writes `pkg.Setting = false` because the package's own documentation says to, and a reviewer reading a real ported package found exactly that -- syntax preserved, semantics dropped. So the rule asks whether anyone COULD write it, not whether this package does. When a port covers every importer, that question is answerable and this form is decidable; until then it is not."
     },
     {
       "id": "init_written_package_var",
@@ -505,7 +509,7 @@
       "id": "escaping_owned",
       "escapes": true,
       "target": "Option<Box<{0}>>",
-      "reason": "The pointer outlives the call \u2014 it is returned or captured \u2014 so no borrow can be handed out: a reference would need a lifetime the caller cannot supply. Owned is the form that is always available, and `Option` carries the nil the source could hold. NO RECEIVER FORM: a method whose receiver escapes cannot be a borrow of self, and refusing is better than picking a borrow that will not hold.",
+      "reason": "The pointer outlives the call — it is returned or captured — so no borrow can be handed out: a reference would need a lifetime the caller cannot supply. Owned is the form that is always available, and `Option` carries the nil the source could hold. NO RECEIVER FORM: a method whose receiver escapes cannot be a borrow of self, and refusing is better than picking a borrow that will not hold.",
       "construction": {
         "kind": "wrap",
         "paths": [
@@ -539,7 +543,7 @@
       "mutated": true,
       "target": "&mut {0}",
       "receiver": "&mut self",
-      "reason": "The body provably assigns through this pointer and nothing outlives the call, so an exclusive borrow is what the code does. This is a HYPOTHESIS about aliasing, not a proof: escape analysis shows lifetime compatibility and not the exclusivity a borrow needs, because a Go caller may pass one pointer as two arguments. What makes it safe to emit is that the target checks it \u2014 an unsatisfiable `&mut` is a borrow-check error the compile proof catches, which is a red build rather than silent corruption. See docs/programs/k8s-port/census/ownership-escape.md.",
+      "reason": "The body provably assigns through this pointer and nothing outlives the call, so an exclusive borrow is what the code does. This is a HYPOTHESIS about aliasing, not a proof: escape analysis shows lifetime compatibility and not the exclusivity a borrow needs, because a Go caller may pass one pointer as two arguments. What makes it safe to emit is that the target checks it — an unsatisfiable `&mut` is a borrow-check error the compile proof catches, which is a red build rather than silent corruption. See docs/programs/k8s-port/census/ownership-escape.md.",
       "construction": {
         "kind": "borrow",
         "mutable": true,
@@ -609,7 +613,7 @@
     "param": "&impl {0}",
     "trait": "{0}",
     "supertrait": "{0}",
-    "_reason": "A PARAMETER of interface type is generic, not dynamic. The source's interface parameter is a dynamic value because the source has no other kind; the target has both, and `&impl Trait` is what it writes for a parameter \u2014 it accepts every implementor exactly as the source's does, monomorphises rather than dispatching through a table, and needs no allocation. `&dyn Trait` buys heterogeneity a PARAMETER cannot use: one call passes one value, and a caller that needs a mixed collection builds one at its own boundary. Reviewers named `&dyn` at every interface boundary as a port artifact, and they were right: it is the shape you get by mapping the source's one kind of interface value onto the target's one that resembles it, rather than onto the one a parameter wants. A RESULT still has no declared form and still refuses. Returning an interface needs an owner, and `impl Trait` in return position names a single hidden type where the source's result may be a different one on every path -- which is a different program, not a different spelling."
+    "_reason": "A PARAMETER of interface type is generic, not dynamic. The source's interface parameter is a dynamic value because the source has no other kind; the target has both, and `&impl Trait` is what it writes for a parameter — it accepts every implementor exactly as the source's does, monomorphises rather than dispatching through a table, and needs no allocation. `&dyn Trait` buys heterogeneity a PARAMETER cannot use: one call passes one value, and a caller that needs a mixed collection builds one at its own boundary. Reviewers named `&dyn` at every interface boundary as a port artifact, and they were right: it is the shape you get by mapping the source's one kind of interface value onto the target's one that resembles it, rather than onto the one a parameter wants. A RESULT still has no declared form and still refuses. Returning an interface needs an owner, and `impl Trait` in return position names a single hidden type where the source's result may be a different one on every path -- which is a different program, not a different spelling."
   },
   "failure_convention": {
     "source_type": "error",
@@ -716,7 +720,7 @@
       "len",
       "cap"
     ],
-    "reason": "Callees whose value IS a length. The source types them as its own `int`, which the type map sends to `i64` \u2014 right for a value the source typed `int`, and wrong for a length, which the target types `usize`. Named here rather than recognised in code so a pack for another source language names its own and the engine names none. A function returning nothing but one of these returns a LENGTH, and the conversion the call's mapping adds exists only to make the value type as the source's `int`: where the value never is one, the conversion is what is wrong. Equivalent because a length is the same set of values in both \u2014 the source's cannot be negative and cannot exceed what the target's `usize` holds.",
+    "reason": "Callees whose value IS a length. The source types them as its own `int`, which the type map sends to `i64` — right for a value the source typed `int`, and wrong for a length, which the target types `usize`. Named here rather than recognised in code so a pack for another source language names its own and the engine names none. A function returning nothing but one of these returns a LENGTH, and the conversion the call's mapping adds exists only to make the value type as the source's `int`: where the value never is one, the conversion is what is wrong. Equivalent because a length is the same set of values in both — the source's cannot be negative and cannot exceed what the target's `usize` holds.",
     "argument_callees": [
       "make"
     ],
@@ -866,7 +870,7 @@
         "slice",
         "unsupported"
       ],
-      "reason": "The source's requirement for a MAP KEY is that the type be comparable, and the target spells that requirement `Eq + Hash`. A source type usable as a map key must port to one usable as a target map key, or a ported program that indexes by it has nowhere to go \u2014 and a reviewer reading the emitted crate said exactly that of a point type whose fields all support both. Blocked by the same set as `Eq`, because `Hash` without `Eq` violates a contract the target's own documentation states: equal values must hash equally, and a type with no equality cannot promise it."
+      "reason": "The source's requirement for a MAP KEY is that the type be comparable, and the target spells that requirement `Eq + Hash`. A source type usable as a map key must port to one usable as a target map key, or a ported program that indexes by it has nowhere to go — and a reviewer reading the emitted crate said exactly that of a point type whose fields all support both. Blocked by the same set as `Eq`, because `Hash` without `Eq` violates a contract the target's own documentation states: equal values must hash equally, and a type with no equality cannot promise it."
     }
   ],
   "idioms": [
