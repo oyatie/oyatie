@@ -15,7 +15,8 @@
     "_build_root_retired_2026_08_09": "The three `::build` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage) were RETIRED here because build/ landed its first crate \u2014 build/port-engine/core/port-engine-kernel, PR #1621 \u2014 which is verbatim the event their own reason strings named (`Created when build/ lands its first crate`). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `build` stays in all three policies' scan_roots arrays untouched, and now resolves, so it is a live audited root rather than an unaudited standing exemption. That is the whole point of forward_declarations being pinned by forward_declarations_are_all_still_absent: a declaration whose path arrives must stop being tolerated in the same change that makes it real. Sibling roots base/ and policy/ remain absent and remain declared; whoever lands their first crate owes the same one-line retirement. app/ was later retired in _app_root_retired_2026_08_11. NOT retired here: module-membership declared no `build` entry, so it had nothing to retire.",
     "_build_widening_measured_2026_08_09": "The widening is not free of consequence and was measured rather than assumed. embedded-asset-hermeticity now walks build/, and the new crate carries four include_str! sites (src/lib.rs:78 `lib.rs`, src/lib.rs:93 `../tests/seams.rs`, tests/neutrality.rs:42 `../src/lib.rs`, tests/neutrality.rs:48 `seams.rs`). All four resolve inside targets whose BUCK srcs already provide them \u2014 the library globs `src/**/*.rs` plus `tests/seams.rs`, and the neutrality test globs all three \u2014 so the gate stays green with no baseline movement. caller-supplied-authorization and endpoint-authorization-coverage now walk build/ too; the kernel exposes no DTO deserialization and no HTTP endpoint, so both are likewise zero-delta. Verified by running all three gates, not by reading the policies.",
     "_app_root_retired_2026_08_11": "The four `::app` forward declarations (dto-authz-trust, embedded-asset-hermeticity, authz-coverage, module-membership) were RETIRED here because app/ landed its first tracked path \u2014 app/README.md on integ/app (PR #1668, OVERRULE 3d glue-only). Retirement is a DELETION FROM THIS EXEMPTION MAP ONLY: `app` stays in each policy's scan_roots arrays untouched, and now resolves, so it is a live audited root. README-only (zero crates) keeps hermeticity/authz widening zero-delta. Sibling roots base/ and policy/ remain absent and remain declared.",
-    "_cloud_root_retired_2026_08_17": "The top-level cloud/ tree is intentionally retired, but its seven remaining coverage-bearing declarations stay in their owning policies so future reintroduction is scanned immediately and anti-narrowing cannot be bypassed as cleanup. Those exact fully qualified declarations move into the frozen shrink-only baseline; the live exact-set test binds the baseline to all and only currently dead non-forward roots."
+    "_cloud_root_retired_2026_08_17": "The top-level cloud/ tree is intentionally retired, but its seven remaining coverage-bearing declarations stay in their owning policies so future reintroduction is scanned immediately and anti-narrowing cannot be bypassed as cleanup. Those exact fully qualified declarations move into the frozen shrink-only baseline; the live exact-set test binds the baseline to all and only currently dead non-forward roots.",
+    "_dark_gate_burndown_2026_08_19": "Three governance/check crates left baselined_dark_gate_crates (100 -> 97) because each gained a live-corpus test that reads this tree and freezes its findings shrink-only and two-sided: authz-tier-discipline (tests/authz_tier_discipline_live.rs, 544 Cedar policies + 4 Envoy configs, 138 tier leaks over 60 (file, needle) keys, ADR-0191), event-schema-versioning (tests/event_schema_versioning.rs, 88 AsyncAPI documents, 73 unversioned, ADR-0154), idempotency-key-coverage (tests/idempotency_key_coverage.rs, 138 OpenAPI documents / 602 state-changing operations, 522 uncovered, ADR-0149). Censuses measured on dev @ 889027711, the commit that deleted 51 unreferenced product crates. Removal is required, not optional: CODE_STALE_DARK_GATE_BASELINE fires on a baselined crate that has since gained a live test, so the burn-down is recorded in the same change that earns it. None of the three is vacuous - every one names a non-empty subject and a non-zero finding set, and each carries a mutation test that injects the defect it exists to catch into REAL corpus text and asserts the kernel reddens."
   },
   "min_expected_roots": 150,
   "coverage_bearing_keys": [
@@ -88,7 +89,6 @@
     "adr-citation",
     "aspirational-enforcement",
     "audit-chain-seal-coverage",
-    "authz-tier-discipline",
     "benchmark",
     "cedar-fragment-coverage",
     "client-stack-discipline",
@@ -98,14 +98,12 @@
     "data-class",
     "doc-catalog",
     "documentation-system",
-    "event-schema-versioning",
     "glossary-coverage",
     "glossary-vocabulary",
     "high-risk-auto-decision-refusal",
     "honest-claims",
     "iac-tier-discipline",
     "id-discipline",
-    "idempotency-key-coverage",
     "image-signing-discipline",
     "layered-architecture-discipline",
     "metric-cardinality",
