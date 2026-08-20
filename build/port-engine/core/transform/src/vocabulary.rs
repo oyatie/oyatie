@@ -127,6 +127,10 @@ pub const KIND_VAR: &str = "var";
 pub const OPERATOR_ADDRESS_OF: &str = "&";
 /// Attribute key holding a literal's lexical class, as the source spells it.
 pub const ATTR_LIT_KIND: &str = "lit_kind";
+/// A struct field's raw source TAG, which names its identity in a serialized form.
+///
+/// A field carrying one has a wire name that the target's field name must not silently replace.
+pub const ATTR_STRUCT_TAG: &str = "struct_tag";
 /// The lexical class of a string literal.
 pub const LIT_KIND_STRING: &str = "STRING";
 /// The lexical class of an integer literal, whose type the source leaves UNTYPED until use.

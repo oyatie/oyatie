@@ -61,6 +61,7 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_SITE,
     ATTR_VALUE,
     ATTR_VIA,
+    "struct_tag",
 ];
 
 /// Attribute key holding the dotted FIELD PATH a promoted method is reached through.

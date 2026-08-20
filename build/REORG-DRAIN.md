@@ -6637,3 +6637,38 @@ The first attempt at it refused the whole declaration, because the attribute was
 `#[..]` wrapper and the renderer parses attributes rather than pasting them. That refusal was
 correct and immediate — the closed vocabulary catching a malformed construction before it reached a
 file.
+
+## R4c — a struct tag is a wire contract, and the engine could not see it
+
+The Go-aware gate's third lead finding, and the one the standing goal names outright — the engine
+"must specifically survive complex JSON/YAML tag reflection".
+
+    type ping struct {
+        SeqNo      uint32
+        SourceAddr []byte `codec:",omitempty"`
+    }
+
+`memberlist`'s ten message structs are encoded by go-codec as msgpack MAPS KEYED BY FIELD NAME. The
+port renamed every field to snake_case — `SeqNo` to `seq_no`, `SourceAddr` to `source_addr` — which
+changes every key on the wire. A gossip protocol that no longer speaks to its own other half, and it
+compiles.
+
+The tag was not recorded AT ALL. The front end read the field's name, type, flags and doc, and
+dropped the one attribute that says what the field is called when it leaves the process. Six tags
+across the corpus, invisible.
+
+Recorded rather than interpreted: WHICH library reads a given tag, and what the target's counterpart
+is, are decisions about the ported program. That the tag EXISTS is a fact, and the transform cannot
+refuse what it cannot see.
+
+And it refuses. The type's field NAME is half of the contract — a serialization library keys by it
+unless the tag overrides it — so the target's naming convention silently rewrites the format. The
+engine has no serialization decision to spend, so the struct refuses by name and says which field
+carries the contract it cannot keep.
+
+    field `SourceAddr` carries the source tag `codec:",omitempty"`, which names its identity in a
+    serialized form — and the target's field naming would change that identity while still
+    compiling. Preserving it is a decision about which serialization the ported program uses, and
+    the pack declares none
+
+memberlist: 78 → 76 translated. Two declarations, for a whole class of silent wire-format change.

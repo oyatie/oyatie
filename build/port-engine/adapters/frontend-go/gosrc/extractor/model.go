@@ -312,6 +312,9 @@ const (
 	// A Go interface says nothing about it, so this is the one answer the source cannot give
 	// directly and the corpus can.
 	attrReceiver = "receiver"
+	// attrStructTag is a struct field's raw Go tag. See decls.go: a tag names the field's wire
+	// identity, so a port that drops it and cases the name changes the format while compiling.
+	attrStructTag = "struct_tag"
 	// attrVia is the dotted FIELD PATH a promoted method is reached through. The target has no
 	// method promotion, so the forwarding method has to name the field it forwards to.
 	attrVia = "via"
