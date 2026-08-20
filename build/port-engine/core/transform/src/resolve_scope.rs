@@ -34,6 +34,19 @@ pub struct LocalScope {
     /// Held here because the declaration and every comparison need the same answer: the constant
     /// renders as the target's index type, and the length beside it drops the conversion the call's
     /// mapping adds. Deriving it twice would let a guard compare two different types.
+    /// The unit's named types that become a target NEWTYPE — a named type whose underlying is not
+    /// a struct or an interface.
+    ///
+    /// The source indexes such a type directly: `type ID [12]byte` admits `id[:]`, because the name
+    /// and the array are the same thing there. The target's newtype WRAPS the array, so the same
+    /// expression has to reach through the field, and emitting the source's spelling produces
+    /// `cannot index into a value of type &Id`. Five packages failed on exactly that.
+    ///
+    /// Held here rather than asked of the declaration at each use because the body sees only an
+    /// identifier: the front end records a type on an expression only where it is needed, and a
+    /// receiver carries none. What the body knows is which declaration it is inside, and this maps
+    /// that to whether its target shape wraps.
+    pub(crate) newtypes: BTreeSet<String>,
     pub(crate) length_constants: BTreeSet<String>,
     /// Member source name → the declaration that OWNS it.
     ///
@@ -106,6 +119,11 @@ impl LocalScope {
                 )
             })
             .collect();
+        let newtypes: BTreeSet<String> = declarations
+            .iter()
+            .filter(|declaration| declaration.kind == "named")
+            .map(|declaration| declaration.name.clone())
+            .collect();
         let mut types = BTreeMap::new();
         let mut renames: BTreeMap<String, Option<String>> = BTreeMap::new();
         let mut member_owners: BTreeMap<String, String> = BTreeMap::new();
@@ -139,6 +157,7 @@ impl LocalScope {
             }
         }
         Self {
+            newtypes,
             types,
             sentinels,
             sentinel_order,

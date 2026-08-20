@@ -64,8 +64,31 @@ pub(crate) fn slice(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Trans
         Ok(Some(Box::new(index_operand(operand, cx)?)))
     };
     Ok(RustExpr::Slice {
-        base: Box::new(expression(base, cx)?),
+        base: Box::new(unwrapped_base(base, cx)?),
         low: bound(low)?,
         high: bound(high)?,
+    })
+}
+
+/// The base of an index or slice, reaching through a NEWTYPE where the target wraps one.
+///
+/// The source's named array IS the array — `type ID [12]byte` admits `id[:]` because the name and
+/// the array are the same thing there. The target's newtype wraps it, so the same expression has to
+/// reach the field first, and emitting the source's spelling produces `cannot index into a value of
+/// type &Id`.
+///
+/// Only for the RECEIVER, because that is the case the body can answer. The front end records a type
+/// on an expression only where one is needed and a receiver carries none, so what the body knows is
+/// which declaration it is inside — and the scope maps that to whether the target shape wraps. An
+/// index through any other binding of a newtype is a shape the corpus does not have, and it arrives
+/// here unchanged rather than being guessed at.
+pub(crate) fn unwrapped_base(base: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
+    let translated = expression(base, cx)?;
+    if !crate::body_ops::is_receiver(base) || !cx.receiver_type.is_some_and(|owner| cx.resolver.scope.newtypes.contains(owner)) {
+        return Ok(translated);
+    }
+    Ok(RustExpr::Field {
+        base: Box::new(translated),
+        name: "0".to_owned(),
     })
 }
