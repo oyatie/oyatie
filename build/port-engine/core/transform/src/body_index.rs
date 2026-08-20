@@ -73,6 +73,28 @@ pub(crate) fn slice(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Trans
         }
         Ok(Some(Box::new(index_operand(operand, cx)?)))
     };
+    // SLICING A SOURCE STRING has no faithful target form, and the one that looks right is the
+    // dangerous one. The source's string is bytes and `s[a:b]` takes bytes; the target's is
+    // guaranteed UTF-8 and `&s[a..b]` PANICS when either bound falls inside a multi-byte character.
+    // The source cannot panic there at all. Emitting it anyway is a program that agrees with the
+    // source on every ASCII input and aborts on the first one that is not — which is exactly the
+    // defect that is invisible until it is in production.
+    //
+    // `&s.as_bytes()[a..b]` is faithful and is NOT substituted here, because it yields the target's
+    // byte slice where the source yielded a string: every destination that wanted a string would
+    // then be wrong, and that is a decision about the string type of the whole ported program
+    // rather than about this expression.
+    if is_source_string(base) {
+        return Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: "slicing the source's string has no faithful target form: the source slices \
+                     BYTES and cannot fail, and the target's string slice panics when a bound \
+                     falls inside a multi-byte character — which needs the ported program's \
+                     string type decided rather than this expression rewritten"
+                .to_owned(),
+        });
+    }
+
     Ok(RustExpr::Slice {
         base: Box::new(unwrapped_base(base, cx)?),
         low: bound(low)?,
@@ -113,5 +135,36 @@ pub(crate) fn unwraps_newtype(base: &Declaration, cx: &Body<'_>) -> bool {
         // A PARAMETER of newtype type, which the signature stated and the body was told.
         false => base.kind == crate::vocabulary::KIND_IDENT
             && cx.newtype_parameters.contains(&base.name),
+    }
+}
+
+/// Whether this operand's source type is the source's STRING.
+///
+/// Read from the type the front end recorded on the expression. A string it could not type is not
+/// treated as one: guessing here would put `.as_bytes()` on a sequence that already is one.
+pub(crate) fn is_source_string(operand: &Declaration) -> bool {
+    operand.type_ref.kind == "basic" && operand.type_ref.name == crate::vocabulary::SOURCE_STRING
+}
+
+/// The base of an index, reaching through the source's string to the BYTES it is.
+///
+/// A source string is a sequence of BYTES that may hold anything, and `s[i]` yields one of them.
+/// The target's string is guaranteed UTF-8 and is not indexable at all, so the index has to go
+/// through its bytes -- which is the same read of the same byte, and cannot fail where the source's
+/// could not.
+///
+/// Applied after the newtype reach-through, because a newtype OVER a string is still a string.
+pub(crate) fn byte_indexed_base(
+    base: &Declaration,
+    cx: &Body<'_>,
+) -> Result<RustExpr, TransformError> {
+    let translated = unwrapped_base(base, cx)?;
+    match is_source_string(base) {
+        false => Ok(translated),
+        true => Ok(RustExpr::MethodCall {
+            receiver: Box::new(translated),
+            method: "as_bytes".to_owned(),
+            args: Vec::new(),
+        }),
     }
 }

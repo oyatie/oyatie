@@ -5707,3 +5707,59 @@ they are covered by the preimage and therefore by `snapshot_digest`:
 The `goexperiment.*` tags are deliberately NOT reproduced. They are properties of the toolchain that
 compiled the extractor rather than of the configuration being described, and a source file selected
 because of how this binary was built is not a file the snapshot can account for.
+
+## R3i — the arm order the source permits and the target does not, in the case R3g missed
+
+Eleven subagents diagnosed the corpus and reviewed the output. Both reviewers — one blind, one told
+it was ported — returned DO_NOT_MERGE with twenty findings each, and converged independently on the
+same defects. The first one is the engine's whole law:
+
+    switch data[i] {
+    default:
+        return i, false
+    case '"', '\\', '/', 'b', 'f', 'n', 'r', 't':
+    case 'u':
+
+`gjson.validstring`, and the `default` is written FIRST. The source takes the first case that
+MATCHES and `default` is the fallback wherever it sits. The target takes the first arm in ORDER, so
+the emitted `match` put the wildcard in front and made every real arm dead — and the arms it
+shadowed were the ones that ACCEPT a valid escape. The emitted function rejected every string the
+source accepts, and it compiled while doing it.
+
+R3g fixed exactly this for the switch with NO tag and did not fix it for the tagged one. That is the
+failure mode already at the top of the standing goal's list: *both ends of one decision must read
+ONE answer*. Two files, one rule, and only one of them learned it. The wildcard is now lifted to
+last in both, which is safe precisely because it matches everything: no arm it passes over could
+have been reached through it, and every arm it passed over was unreachable while it sat in front.
+
+### A source string is BYTES, and the target's is not
+
+The largest remaining compile error in gjson, 13 sites: `the type str cannot be indexed by usize`.
+
+The source's string is a sequence of bytes that may hold anything, and `s[i]` yields one of them.
+The target's is guaranteed UTF-8 and is not indexable at all. `s[i]` now goes through `as_bytes()`,
+which is the same read of the same byte and cannot fail where the source's could not.
+
+SLICING a string now REFUSES, and this is the more important half. The engine was emitting
+`&s[a..b]`, which PANICS when either bound falls inside a multi-byte character — and the source
+cannot fail there at all. That is a program which agrees with the source on every ASCII input and
+aborts on the first one that is not: invisible until production, and precisely the defect this
+engine exists to prevent. `&s.as_bytes()[a..b]` is faithful and is deliberately NOT substituted,
+because it yields a byte slice where the source yielded a string, and every destination expecting a
+string would then be wrong. That is a decision about the ported program's STRING TYPE, not a
+rewrite of one expression, and it is named as such in the refusal.
+
+gjson: 20 compile errors → 6, and 20 translated declarations → 18. Coverage went DOWN and the rule
+is correct. Refusing is not losing.
+
+### Nine of chi's fourteen errors were the measuring instrument
+
+`port` emits one module per source package, with a `// <name>.rs` banner. `compile-corpus.sh`
+concatenated them into a single file, so `ContextKey` — which exists in both `chi` and
+`chi/middleware` — collided with itself, along with eight conflicting impls. Reading those as an
+engine defect was wrong; the engine had emitted them apart. The script now writes one file per
+module and a crate root that declares them, and chi drops to 5.
+
+Worth stating plainly because it happened twice in one day: a compile check is only evidence about
+the engine after it is evidence about itself. The first version of this script also reported six
+packages broken because `rustc -o /dev/null` cannot create its temporary directory.

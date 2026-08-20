@@ -117,7 +117,7 @@ pub(crate) fn in_position(
                 return Ok(RustExpr::Path(walked.element.clone()));
             }
             Ok(RustExpr::Index {
-                base: Box::new(crate::body_index::unwrapped_base(base, cx)?),
+                base: Box::new(crate::body_index::byte_indexed_base(base, cx)?),
                 index: Box::new(crate::body_index::index_operand(index, cx)?),
             })
         }
