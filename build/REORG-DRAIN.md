@@ -6561,3 +6561,33 @@ Built as a tree, the rule fires:
 
 The borrowing is done in the RENDERER rather than the transform, because it is a property of this
 destination: the same match returned from an ordinary method still owes its caller an owned string.
+
+## R4a — an empty error impl ASSERTS there is no cause
+
+The Go-aware gate classified this as a meaning change, and it is one:
+
+    impl StdError for Chain {}
+
+The target's error trait gives `source` a default that returns nothing, so an impl that says
+nothing about it asserts the failure has no cause. `hashicorp/go-multierror`'s `chain` exists for
+the opposite purpose — its own doc says it "implements the interfaces necessary for errors.Is/As/
+Unwrap to work in a deterministic way" — and it declares `Unwrap`.
+
+There is no general translation to reach for. `chain.Unwrap` returns `e[1:]`, a RE-SLICE OF THE
+RECEIVER, and the target's `source` returns a BORROW: there is no reference to a slice that does not
+exist yet. A cause held in a FIELD would translate; this one is not held anywhere.
+
+So the type keeps its `Display` and does not get the error trait, and the cause method is RECORDED
+as dropped so the survey says why.
+
+### Recorded, not raised — and the third time this file has had to learn it
+
+The first attempt returned `Err`. `message_impl` is called through `.transpose()` from the function
+that builds a type's impls, so the error refused the whole declaration and took `multierror`'s only
+translated type with it: 1 → 0.
+
+That is the type/method cascade R2h closed, R3t re-opened with a `?` in `display_impl`, and this
+re-opened again one function away. Three times, in three files, each time by reaching for `?` where
+the code wanted a decision. The pattern is specific enough to name: **inside the impl builders, a
+failure to translate one member is a fact about that member, and the only correct shapes are
+`Ok(None)` or a recorded drop.**

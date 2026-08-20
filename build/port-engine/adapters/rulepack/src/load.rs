@@ -273,6 +273,8 @@ impl LoadedRulePack {
                 nullable_borrowed_type_reason: failure.nullable_borrowed_type_reason,
                 satisfaction_reason: failure.satisfaction_reason,
                 message_method_source: failure.message_method_source,
+                cause_method_source: failure.cause_method_source,
+                cause_method_reason: failure.cause_method_reason,
                 message_method: failure.message_method,
                 message_method_reason: failure.message_method_reason,
                 field_derives: failure.field_derives,
