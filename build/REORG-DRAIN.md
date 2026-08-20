@@ -5064,3 +5064,40 @@ this session that two ends of one decision had to be made to consult one answer.
 disappears, and all seven packages still compile clean. What remains signed in `ksuid` are the wire
 tag bytes and the epoch — none of which is a length, and the reviewer's separate point that they want
 `u8` and a `repr` is a different rule about a different fact.
+
+## R2v — a Result with no failure case is not a faithful port
+
+The blind review flagged it as blocking and as evidence of translation, and the same shape appears in
+**every one of the seven corpus packages** — eighteen sites, the widest spread any single cause has
+had:
+
+```
+pub fn marshal_binary(&self) -> Result<Vec<u8>> { Ok(self.0[..].to_vec()) }
+```
+
+An infallible operation with a fallible signature and a boxed error. Every caller writes `?` or an
+unwrap on something that has no failure mode, and the crate's own error enum appears in a signature
+it can never be constructed for.
+
+**The source's reason for the shape does not survive the port.** `MarshalBinary() ([]byte, error)` has
+that signature because an interface requires it, not because the function can fail — and the target
+has no such interface to satisfy. Carrying it over is not faithfulness to "this cannot fail"; it is
+the source's interface obligation restated in a language that does not have the obligation.
+
+**The proof is the body's, and it is cheap.** A fallible signature whose every return gives the ABSENT
+value to the failure result cannot produce a failure. Requires a body and at least one return, for the
+same reason `never_absent_pointer` does: a signature-only declaration proves nothing, and a body that
+falls off the end says nothing about the results beside the failure.
+
+Bounded to signatures with TWO OR MORE results. A sole failure result is a different question, already
+answered by `sole_failure_role` in R2m — dropping it would leave the function returning nothing at all.
+
+**Both ends again.** The signature drops the result and the body drops the operand: each return still
+carries the source's trailing `nil`, and with the result gone that operand is a second value nobody
+declared. The source states "I did not fail" by returning the absent value; the target states it by
+the ABSENCE of a `Result`. Four times now a decision has had to be made to reach the signature and the
+body from one answer, and this is the cheapest kind of that bug to create — the two are computed in
+different files.
+
+`Result<` disappears entirely from four of the seven emitted packages, because the only ones they had
+were the impossible ones. All seven still compile clean.
