@@ -5999,3 +5999,24 @@ The compile gate is now met for every repository the goal names. The REVIEW gate
 reviewers returned DO_NOT_MERGE, and their structural findings — closures with no translation at
 all, `Uint128` reimplementing `u128`, `NullUuid` where `Option` belongs, Go's named results
 surviving as dead locals — are untouched. Compiling was the first of five conditions, not the last.
+
+## R3n — a named result the body never touches needs no binding
+
+Both reviewers found this independently, one of them without being told the code was generated:
+
+    fn validstring(data: &[u8], mut i: i64) -> (i64, bool) {
+        let outi: i64 = 0;
+        let ok: bool = false;
+        while i < data.len() as i64 {
+
+Six times in `gjson`, and every one dead. The source names its results to document the signature —
+`func validstring(data []byte, i int) (outi int, ok bool)` — and then every `return` in the body
+states its values explicitly.
+
+The binding exists for a real reason and the reason is conditional: a named result IS a variable in
+the source, zero-initialised at entry and assignable, and translating an assignment to one without
+binding it emits a body naming a variable that does not exist. So it is bound when the body mentions
+it, and when there is a bare `return` — which hands back every named result at once and therefore
+needs all of them, whether or not any is named anywhere else.
+
+Zero remain across the corpus. `validstring` now reads as the function a person would write.
