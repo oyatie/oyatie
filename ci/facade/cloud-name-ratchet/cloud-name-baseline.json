@@ -1,7 +1,7 @@
 {
   "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
-  "count": 1138,
+  "count": 1133,
   "cloud_prefixed_names": [
     "dir:.github/workflows/oya-ci-required.yml",
     "dir:billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md",
@@ -468,11 +468,6 @@
     "dir:registry/catalog/oya-governance-supply-chain-kernel.yaml",
     "dir:registry/catalog/oya-governance-tos-policy-kernel.yaml",
     "dir:registry/catalog/oya-governance-upstream-api-drift-kernel.yaml",
-    "dir:registry/catalog/oya-hr-employment-api.yaml",
-    "dir:registry/catalog/oya-hr-employment-app.yaml",
-    "dir:registry/catalog/oya-hr-employment-domain.yaml",
-    "dir:registry/catalog/oya-hr-employment-infrastructure.yaml",
-    "dir:registry/catalog/oya-hr-employment-storage-adapter-inmemory.yaml",
     "dir:registry/catalog/oya-http-latency-budget-middleware-infrastructure.yaml",
     "dir:registry/catalog/oya-http-middleware-kernel.yaml",
     "dir:registry/catalog/oya-http-router-kernel.yaml",
