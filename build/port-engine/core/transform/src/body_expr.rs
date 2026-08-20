@@ -54,19 +54,24 @@ pub(crate) fn in_position(
         // constant's declaration, since the same literal reaches the output both ways — a constant
         // whose value is an expression carries its numbers through this path and was left ungrouped
         // beside neighbours that were not.
-        "literal" => node
-            .attr(ATTR_VALUE)
-            .map(|value| {
-                RustExpr::Literal(
-                    crate::items_value::readable_literal(value, cx.resolver)
-                        .unwrap_or_else(|| value.to_owned()),
-                )
-            })
-            .ok_or_else(|| TransformError::MissingDatum {
-                construction: "literal".to_owned(),
-                name: cx.owner.to_owned(),
-                datum: ATTR_VALUE,
-            }),
+        "literal" => {
+            let Some(value) = node.attr(ATTR_VALUE) else {
+                return Err(TransformError::MissingDatum {
+                    construction: "literal".to_owned(),
+                    name: cx.owner.to_owned(),
+                    datum: ATTR_VALUE,
+                });
+            };
+            // A RUNE resolves to a TYPE before it resolves to a spelling, because the target spells
+            // a byte and a character differently and has no untyped constant to defer the choice to.
+            if let Some(spelled) = crate::body_literal::rune_literal(node, cx, value) {
+                return spelled;
+            }
+            Ok(RustExpr::Literal(
+                crate::items_value::readable_literal(value, cx.resolver)
+                    .unwrap_or_else(|| value.to_owned()),
+            ))
+        }
         "zero" => zero_value(node, cx),
         "ident" if is_receiver(node) => Ok(RustExpr::SelfValue),
         "ident" => {
@@ -164,7 +169,10 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
             crate::counters::unsigned_bound(lhs, cx)?,
             crate::counters::unsigned_bound(rhs, cx)?,
         ),
-        false => (expression(lhs, cx)?, expression(rhs, cx)?),
+        false => (
+            newtype_operand(lhs, spelling, cx)?,
+            newtype_operand(rhs, spelling, cx)?,
+        ),
     };
 
     if let Some(method) = cx.resolver.wrapping_method(node, spelling) {
@@ -189,6 +197,27 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         // be added here rather than recovered from the operand.
         rhs: Box::new(borrowed_concat_operand(node, right, spelling, cx)),
     })
+}
+
+/// An operand of an ARITHMETIC or ORDERING operator, reaching through a newtype wrapper.
+///
+/// The source's defined type and its underlying are one thing, so `v > 15` on a `type Version byte`
+/// is a comparison of bytes. The target's newtype is a struct and carries NONE of its underlying
+/// type's operators, so the same expression has to reach the field.
+///
+/// EQUALITY is excluded, and that is the whole reason this is keyed on the operator rather than
+/// applied to every operand. The target's newtype derives `PartialEq`, so `a == b` between two of
+/// them already means what the source meant; reaching through there would churn every existing
+/// comparison to say the same thing in more characters.
+fn newtype_operand(
+    operand: &Declaration,
+    spelling: &str,
+    cx: &Body<'_>,
+) -> Result<RustExpr, TransformError> {
+    match matches!(spelling, "==" | "!=") {
+        true => expression(operand, cx),
+        false => crate::body_index::unwrapped_base(operand, cx),
+    }
 }
 
 /// The right operand of a target CONCATENATION, borrowed.

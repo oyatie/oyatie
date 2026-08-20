@@ -2,7 +2,7 @@
   "schema_version": 2,
   "language": "go",
   "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:1de13205320134d7a9cfa44bf7ba5c020bf534e50a2db5a605d6950f8999a76d",
+  "snapshot_digest": "sha256:86bfd0a7dd532a4f3ae343e99b3d96e1c9a77f6ea5a32b1d96aadbe00ec6eb46",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -274,6 +274,10 @@
                 {
                   "kind": "literal",
                   "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int64"
+                  },
                   "attrs": {
                     "lit_kind": "INT",
                     "value": "1"
@@ -372,6 +376,10 @@
                     {
                       "kind": "literal",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int64"
+                      },
                       "attrs": {
                         "lit_kind": "INT",
                         "value": "2"
@@ -449,6 +457,10 @@
                     {
                       "kind": "literal",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int"
+                      },
                       "attrs": {
                         "lit_kind": "INT",
                         "value": "0"
@@ -479,6 +491,10 @@
                             {
                               "kind": "literal",
                               "name": "",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
                               "attrs": {
                                 "lit_kind": "INT",
                                 "value": "0"
@@ -804,6 +820,10 @@
                             {
                               "kind": "literal",
                               "name": "",
+                              "type": {
+                                "kind": "basic",
+                                "name": "string"
+                              },
                               "attrs": {
                                 "lit_kind": "STRING",
                                 "value": "\"\""
@@ -938,6 +958,10 @@
                             {
                               "kind": "literal",
                               "name": "",
+                              "type": {
+                                "kind": "basic",
+                                "name": "string"
+                              },
                               "attrs": {
                                 "lit_kind": "STRING",
                                 "value": "\"boom\""
@@ -1183,6 +1207,10 @@
                         {
                           "kind": "literal",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int64"
+                          },
                           "attrs": {
                             "lit_kind": "INT",
                             "value": "1"
@@ -1191,6 +1219,10 @@
                         {
                           "kind": "literal",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int64"
+                          },
                           "attrs": {
                             "lit_kind": "INT",
                             "value": "2"

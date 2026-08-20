@@ -299,12 +299,7 @@ pub(crate) fn switch(
 ) -> Result<RustExpr, TransformError> {
     let cases = node.children_of_kind("case");
     let Some(tag) = node.children_of_kind("tag").first().copied() else {
-        return Err(TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: "a switch with no tag is a condition chain rather than a match, and needs a \
-                     rule for how an empty case list becomes an `else`"
-                .to_owned(),
-        });
+        return condition_chain(&cases, cx, tail);
     };
 
     let mut arms = Vec::with_capacity(cases.len());
@@ -354,5 +349,81 @@ pub(crate) fn switch(
     Ok(RustExpr::Match {
         scrutinee: Box::new(tag_expr),
         arms,
+    })
+}
+
+/// A switch with NO TAG, which is a chain of conditions rather than a match.
+///
+/// The source compares each case expression against `true` and takes the FIRST that holds, which is
+/// exactly what a chain of `else if` does. It is not a `match`: there is no scrutinee, and the
+/// target's match arms are patterns rather than tests.
+///
+/// Order is the whole content of the construct, so it is preserved literally — with one exception
+/// the source permits and the target does not. The source allows `default` to be written ANYWHERE
+/// among the cases and still be the fallback; the target's `else` can only be last. So the default
+/// is lifted out and emitted last, and the remaining cases keep their relative order. Leaving it in
+/// place would make every case after it unreachable.
+fn condition_chain(
+    cases: &[&Declaration],
+    cx: &Body<'_>,
+    tail: TailPosition,
+) -> Result<RustExpr, TransformError> {
+    let mut tested = Vec::new();
+    let mut fallback = None;
+    for case in cases {
+        let patterns = named_child(case, "patterns", cx, "switch")?;
+        let body = branch(case, "then", cx)?;
+        // No patterns is the source's `default`. A switch may have only one, so a second is a shape
+        // the front end did not record the way this expects rather than a choice to make.
+        if patterns.children.is_empty() {
+            if fallback.is_some() {
+                return Err(TransformError::Unsupported {
+                    name: cx.owner.to_owned(),
+                    detail: "a switch with no tag has two `default` cases, and which one is the \
+                             fallback is not a question the target can be asked"
+                        .to_owned(),
+                });
+            }
+            fallback = Some(translate(&body.children, cx, tail)?);
+            continue;
+        }
+        // SEVERAL expressions in one case hold when ANY of them does — the source compares each
+        // against `true` in turn. Joined here rather than expanded into separate branches so the
+        // body is emitted once, which is what the source does.
+        let mut condition: Option<RustExpr> = None;
+        for pattern in &patterns.children {
+            let next = expression(pattern, cx)?;
+            condition = Some(match condition {
+                None => next,
+                Some(previous) => RustExpr::Binary {
+                    op: port_engine_rust_ir::BinaryOp::Or,
+                    lhs: Box::new(previous),
+                    rhs: Box::new(next),
+                },
+            });
+        }
+        let Some(condition) = condition else {
+            unreachable!("the pattern list was checked non-empty above");
+        };
+        tested.push((condition, translate(&body.children, cx, tail)?));
+    }
+
+    // Built from the BACK, because each `else` holds the chain that follows it.
+    let mut chain = fallback.map(RustExpr::Block);
+    for (condition, body) in tested.into_iter().rev() {
+        chain = Some(RustExpr::If {
+            cond: Box::new(condition),
+            then: body,
+            // The target's `else` takes a block or another `if`, never a bare expression, and both
+            // of those are exactly what this carries.
+            otherwise: chain.map(Box::new),
+        });
+    }
+
+    chain.ok_or_else(|| TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: "a switch with no tag has no cases at all, and the target has no form for a \
+                 conditional with nothing to test"
+            .to_owned(),
     })
 }

@@ -2,7 +2,7 @@
   "schema_version": 2,
   "language": "go",
   "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:af0362ad7ed1993b0f9c642d91b63981dc427a30162b6980d68c8dffcc20c1cf",
+  "snapshot_digest": "sha256:1254074cc38eed09e511c5701867ab21bd8e3fffabc7173b0612bf4178bbf016",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored",
@@ -117,6 +117,10 @@
                         {
                           "kind": "literal",
                           "name": "",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
                           "attrs": {
                             "lit_kind": "INT",
                             "value": "0"
@@ -219,6 +223,10 @@
                             {
                               "kind": "literal",
                               "name": "",
+                              "type": {
+                                "kind": "basic",
+                                "name": "string"
+                              },
                               "attrs": {
                                 "lit_kind": "STRING",
                                 "value": "\"attempt failed\""

@@ -95,8 +95,18 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
     // A FORMATTING call first: it also has a pack answer keyed by identity, but the answer needs
     // the source's own template read rather than substituted into, so it cannot go through the
     // table below.
-    if let Some(rendered) = crate::body_format::formatted_call(node, &args, cx)? {
-        return Ok(rendered);
+    // A FORMAT operand reaches through a newtype wrapper for the same reason a mapped callee's
+    // argument does: the target's formatter asks the value for a trait its underlying type
+    // implements and its wrapper does not. `%d` on a `type Version byte` prints the byte, and the
+    // wrapper has no `Display` at all — which reached `rustc` rather than being refused here.
+    if !args.is_empty() {
+        let mut operands = args.clone();
+        for (offset, operand) in operands.iter_mut().enumerate().skip(1) {
+            *operand = crate::body_index::unwrapped_base(&node.children[offset + 1], cx)?;
+        }
+        if let Some(rendered) = crate::body_format::formatted_call(node, &operands, cx)? {
+            return Ok(rendered);
+        }
     }
     if let Some(rendered) = mapped_call(node, &args, cx)? {
         return Ok(rendered);

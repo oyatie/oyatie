@@ -44,10 +44,19 @@ func expressionNodes(exprs []ast.Expr, ctx *extractCtx) []node {
 func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 	switch typed := expr.(type) {
 	case *ast.BasicLit:
-		return node{
+		// The RESOLVED type rides along. A rune literal is untyped in the source, and what it
+		// MEANS is decided by its context: `b >= '0'` where `b` is a byte makes it a byte, and the
+		// target spells a byte and a character differently. Without the type the translator has
+		// only the spelling, which is the same in both cases -- so it emitted a character where a
+		// byte was wanted, and that does not compile.
+		out := node{
 			Kind:  kindLiteral,
 			Attrs: map[string]string{attrValue: typed.Value, "lit_kind": typed.Kind.String()},
 		}
+		if tv, ok := ctx.info.Types[typed]; ok && tv.Type != nil {
+			out.Type = typeTree(tv.Type)
+		}
+		return out
 
 	case *ast.Ident:
 		// What the identifier REFERS to is recorded, because the target cases each kind

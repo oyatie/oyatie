@@ -2,7 +2,7 @@
   "schema_version": 2,
   "language": "go",
   "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:356e9f20674d5260e4fd007261b9081e3a4d14e1d94dbe531db18c0389f6565f",
+  "snapshot_digest": "sha256:720be145125e8768b34ec72e279626e6208afc552c56b3466088eaa4b78251fd",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-failure/corpus-failure/carried",
@@ -83,6 +83,10 @@
                             {
                               "kind": "literal",
                               "name": "",
+                              "type": {
+                                "kind": "basic",
+                                "name": "string"
+                              },
                               "attrs": {
                                 "lit_kind": "STRING",
                                 "value": "\"\""
@@ -186,6 +190,10 @@
                                 {
                                   "kind": "literal",
                                   "name": "",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
                                   "attrs": {
                                     "lit_kind": "STRING",
                                     "value": "\"empty\""

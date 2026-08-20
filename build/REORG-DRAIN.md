@@ -5593,3 +5593,83 @@ not move" is not evidence a rule was wrong, and neither is "coverage moved" evid
 The check that a rule did what it claimed is that its cause is GONE from the histogram — which is
 what was verified here, and what R2p failed to verify when a broken rule looked green because the
 declarations it damaged had stopped being emitted.
+
+## R3g — `translated` was never the same claim as `compiles`, and nothing was checking
+
+`survey` reports how many declarations translated. The engine's compile proof runs on the HERMETIC
+fixture corpus. Nothing had ever compiled the output for a real repository, so every coverage number
+in this file up to here was a claim about the engine's own confidence rather than about Rust.
+
+Compiled the emitted output for nine real packages. Six compile. Three do not: gjson (60 errors),
+chi (14), ksuid (15).
+
+`build/port-engine/compile-corpus.sh` makes it repeatable. A rule is not finished when its refusal
+leaves the histogram; it is finished when the output still compiles.
+
+(One false reading on the way: `rustc -o /dev/null` fails with "couldn't create a temp dir", because
+rustc writes its temporaries beside the output path. That looks exactly like a compile error and is
+not one — it made six packages appear broken. The script writes into a real directory and says so.)
+
+### A switch with no tag is a condition chain
+
+The refusal said it "needs a rule for how an empty case list becomes an `else`". The source compares
+each case expression against `true` and takes the FIRST that holds, which is what a chain of
+`else if` does. Empty case list is `default`.
+
+Order is the whole content of the construct, so it is preserved — with the one exception the source
+permits and the target does not. Go allows `default` to be written ANYWHERE among the cases and still
+be the fallback; the target's `else` can only be last. The default is lifted out and emitted last.
+Leaving it in place would make every case after it unreachable.
+
+Several expressions in one case hold when ANY does, so they join with `||` and the body is emitted
+once, which is what the source does.
+
++5 declarations; ksuid 24.1% → 27.6%. The emitted chains are the code a person would write:
+
+    fn base62_value(digit: u8) -> u8 {
+        if digit >= b'0' && digit <= b'9' {
+            digit.wrapping_sub(b'0')
+        } else if digit >= b'A' && digit <= b'Z' {
+            OFFSET_UPPERCASE.wrapping_add(digit.wrapping_sub(b'A'))
+        } else {
+            OFFSET_LOWERCASE.wrapping_add(digit.wrapping_sub(b'a'))
+        }
+    }
+
+### A rune literal resolves to a TYPE before it resolves to a spelling
+
+Those `b'0'`s are the second rule, and without it that function did not compile.
+
+The source's `'0'` is an untyped constant and its meaning comes from context: in `b >= '0'` where
+`b` is a byte it IS a byte, and in `r == '0'` where `r` is a rune it is a character. The target
+spells those `b'0'` and `'0'` and has no untyped constant to defer the choice to.
+
+The literal passed through as source text. The comment on that path claimed the divergent lexical
+forms — "a rune literal, an imaginary literal" — would fail the parse, "which is the correct
+outcome". For a rune it does not: `'0'` is well-formed Rust of the WRONG TYPE. It reached `rustc` as
+eleven type errors in one package, which is the outcome the pass-through was documented not to have.
+
+The front end now records the type the Go type-checker resolved the literal to, and the spelling is
+chosen from the type the PACK maps it to — `u8` gets a byte literal, `char` gets a character literal,
+anything else refuses by name. A rune outside ASCII, or one written with a `\u` escape, has no byte
+form and refuses rather than being truncated.
+
+### The target's newtype carries none of its underlying type's operators
+
+Caught by the new compile check, and it is the pattern worth naming: the tagless-switch rule made
+`Version::String` translate for the first time, and its output did not compile. Coverage went up and
+correctness went down in the same commit.
+
+    if self > 15 { return format!("BAD_VERSION_{}", self); }
+
+`Version` is `type Version byte`. In the source a defined type and its underlying are one thing, so
+`v > 15` compares bytes and `%d` prints one. In the target the newtype is a struct: it has no `>`
+and no `Display`.
+
+`unwrapped_base` already existed and already handled the receiver — it was simply never applied to
+an operator's operands or to a format call's arguments. Both now reach through. EQUALITY is excluded
+deliberately: the emitted newtype derives `PartialEq`, so `a == b` already means what the source
+meant, and reaching through there would churn every existing comparison to say the same thing in
+more characters.
+
+gjson 60 → 20 errors, ksuid 15 → 8, uuid back to compiling.

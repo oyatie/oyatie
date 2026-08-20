@@ -2,7 +2,7 @@
   "schema_version": 2,
   "language": "go",
   "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:2646b42fc6dcddd2af55d1949e72a3e35cc6b5e8e960937b17b0a2d7b732d0ce",
+  "snapshot_digest": "sha256:e3cedf0ebe6812a0e8d3bc948c554f405995dd40c8918283ca76c80fd6bfbf01",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign",
@@ -134,6 +134,10 @@
                                 {
                                   "kind": "literal",
                                   "name": "",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  },
                                   "attrs": {
                                     "lit_kind": "STRING",
                                     "value": "\"x\""
@@ -281,6 +285,10 @@
                                 {
                                   "kind": "literal",
                                   "name": "",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "int"
+                                  },
                                   "attrs": {
                                     "lit_kind": "INT",
                                     "value": "1"

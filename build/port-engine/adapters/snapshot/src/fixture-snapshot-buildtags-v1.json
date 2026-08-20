@@ -2,7 +2,7 @@
   "schema_version": 2,
   "language": "go",
   "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:3635cfd6799382accf02d741786f5fcd2755f2ce73123556ac8115116bcfab68",
+  "snapshot_digest": "sha256:434aa047fba1cf77c459f9f4678ebfad9d24d266142c61d702044e42e3b289bb",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-buildtags/corpus-buildtags/tagged",
@@ -37,6 +37,10 @@
                     {
                       "kind": "literal",
                       "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      },
                       "attrs": {
                         "lit_kind": "STRING",
                         "value": "\"linux\""

@@ -268,3 +268,64 @@ fn fully_contained_reads(entries: &[&Declaration]) -> BTreeMap<String, usize> {
     });
     here
 }
+
+/// A rune literal, spelled for the type the source RESOLVED it to.
+///
+/// The source's `'0'` is an untyped constant, and what it means is decided by its context: in
+/// `b >= '0'` where `b` is a byte it IS a byte, and in `r == '0'` where `r` is a rune it is a
+/// character. The target spells those two differently — `b'0'` and `'0'` — and it has no untyped
+/// constant to defer the choice to.
+///
+/// Passing the source spelling through emitted a character in both cases. That is not the harmless
+/// outcome the pass-through was documented to have: a character where a byte is wanted is not a
+/// parse failure, it is a well-formed expression of the wrong type, and it reached `rustc` as
+/// eleven type errors in one package.
+///
+/// The spelling is chosen from the type the PACK resolves the literal to, not from the source's
+/// name for it, so a pack that maps the source's byte somewhere else gets that answer here too.
+/// Anything the target cannot spell as a literal of the wanted type refuses BY NAME.
+pub(crate) fn rune_literal(
+    node: &Declaration,
+    cx: &Body<'_>,
+    value: &str,
+) -> Option<Result<RustExpr, TransformError>> {
+    if node.attr(crate::vocabulary::ATTR_LIT_KIND) != Some("CHAR") {
+        return None;
+    }
+    // An untyped literal the front end could not resolve keeps the old behaviour rather than
+    // refusing: the type is recorded where the type checker had one, and its absence means this is
+    // not a context that resolved it.
+    if node.type_ref.is_empty() {
+        return None;
+    }
+    let resolved = match cx.resolver.resolve(&node.type_ref, cx.owner) {
+        Ok(path) => path.spelling(),
+        Err(error) => return Some(Err(error)),
+    };
+    let refuse = |why: &str| {
+        Some(Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!(
+                "the source's rune literal `{value}` resolves to `{resolved}` in the target, and \
+                 {why}"
+            ),
+        }))
+    };
+    match resolved.as_str() {
+        // A CHARACTER, which is what the source spelled and what the target spells the same way.
+        "char" => Some(Ok(RustExpr::Literal(value.to_owned()))),
+        "u8" => {
+            // The target's byte literal admits the ASCII range and the escapes that stay inside it.
+            // `\u{..}` names a code point rather than a byte and has no byte form at all, and a
+            // literal character outside ASCII is not one byte in either language.
+            if !value.is_ascii() {
+                return refuse("a rune outside ASCII is not one byte");
+            }
+            if value.contains("\\u") || value.contains("\\U") {
+                return refuse("a `\\u` escape names a code point and the target has no byte form for one");
+            }
+            Some(Ok(RustExpr::Literal(format!("b{value}"))))
+        }
+        _ => refuse("the target has no literal of that type for a rune"),
+    }
+}
