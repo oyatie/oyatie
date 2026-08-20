@@ -44,9 +44,24 @@ pub(crate) fn named_result_bindings(
     for child in &declaration.children {
         collect_assigned(child, resolver, &mut written);
     }
+    // MENTIONED, and a bare `return` mentions all of them at once. A named result the body never
+    // touches needs no binding: the source names it to document the signature, and every `return`
+    // in such a body states its values explicitly. Binding it anyway put a dead variable at the top
+    // of every scanning function in `gjson` — `let outi: i64 = 0; let ok: bool = false;`, six times
+    // — which two independent reviewers named as a Go shape carried across, before either was told
+    // where the code came from.
+    let mut mentioned = BTreeSet::new();
+    let mut bare_return = false;
+    for child in &declaration.children {
+        collect_mentioned(child, &mut mentioned, &mut bare_return);
+    }
+
     let mut bindings = Vec::new();
     for result in declaration.children_of_kind(crate::vocabulary::CHILD_RESULT) {
         if result.name.is_empty() {
+            continue;
+        }
+        if !bare_return && !mentioned.contains(&result.name) {
             continue;
         }
         let Some(zero) = resolver.zero_value(&result.type_ref) else {
@@ -209,5 +224,22 @@ pub(crate) fn named_results(cx: &crate::body::Body<'_>) -> Option<port_engine_ru
         _ => Some(port_engine_rust_ir::RustExpr::Tuple(
             names.into_iter().map(port_engine_rust_ir::RustExpr::Path).collect(),
         )),
+    }
+}
+
+/// Names this subtree READS or WRITES, and whether it contains a bare `return`.
+///
+/// One walk for both, because a binding is needed when EITHER holds and asking twice would walk the
+/// same body twice to answer one question. A bare `return` hands back every named result at once, so
+/// it needs all of them bound whether or not any is named anywhere else.
+fn collect_mentioned(node: &Declaration, into: &mut BTreeSet<String>, bare_return: &mut bool) {
+    if node.kind == crate::vocabulary::KIND_IDENT {
+        into.insert(node.name.clone());
+    }
+    if node.kind == "return" && node.children.is_empty() {
+        *bare_return = true;
+    }
+    for child in &node.children {
+        collect_mentioned(child, into, bare_return);
     }
 }
