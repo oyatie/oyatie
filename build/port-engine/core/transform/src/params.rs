@@ -8,14 +8,14 @@
 use std::collections::BTreeSet;
 
 use port_engine_api::{Declaration, TypeRef};
-use port_engine_rust_ir::{RustParam, RustType};
+use port_engine_rust_ir::{RustStmt, Visibility, RustParam, RustType};
 
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::ownership::{binds_by_pointer, parameter_target, reference_target};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, IDIOM_BORROWED_SLICE, POSITION_PARAM, POSITION_RESULT, SOURCE_STRING, TARGET_STR,
+    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, IDIOM_BORROWED_SLICE, IDIOM_SINGLE_EXPRESSION_INLINE, POSITION_PARAM, POSITION_RESULT, SOURCE_STRING, TARGET_STR,
 };
 
 /// A variadic parameter is a SLICE, which is what it already is.
@@ -187,4 +187,34 @@ pub(crate) fn borrowed_parameters(
         })
         .map(|param| to_snake_case(&param.name))
         .collect()
+}
+
+/// The attributes a function carries, which today is at most the target's inline hint.
+///
+/// A private function whose body is ONE expression gets it, and that narrowness is the argument.
+/// This is the rare case where NOT emitting something changes the ported program relative to the
+/// source: the source's compiler inlines a small function by a cost heuristic with no annotation,
+/// and the target's does not across codegen units for a non-generic private one. So the source's
+/// helper is inlined and the port's is a call — a performance difference the translation introduced
+/// rather than one the author chose.
+///
+/// One expression is the shape the source's own heuristic would certainly have inlined, so the
+/// attribute RESTORES a decision the source already made rather than inventing one. A public
+/// function is left alone: whether to promise inlining across a crate boundary is a decision about
+/// the ported library's contract, and that belongs to whoever ports it.
+pub(crate) fn inline_attrs(
+    body: Option<&[RustStmt]>,
+    vis: Visibility,
+    resolver: &Resolver<'_>,
+) -> Vec<String> {
+    let Some(method) = resolver.idiom_method(IDIOM_SINGLE_EXPRESSION_INLINE) else {
+        return Vec::new();
+    };
+    if vis != Visibility::Inherited {
+        return Vec::new();
+    }
+    match body {
+        Some([RustStmt::Tail(_)]) => vec![method.to_owned()],
+        _ => Vec::new(),
+    }
 }

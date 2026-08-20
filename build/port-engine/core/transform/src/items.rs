@@ -181,6 +181,7 @@ fn build_fn(
         receiver: None,
         params: params(declaration, resolver, &declaration.name, &consumed)?,
         ret: results(declaration, resolver)?,
+        attrs: crate::params::inline_attrs(Some(&body), visibility(declaration), resolver),
         body: Some(body),
     };
 
@@ -258,6 +259,8 @@ pub(crate) fn build_unit_item(construction: &str, region: &str) -> Option<RustIt
         receiver: None,
         params: Vec::new(),
         ret: None,
+        // A canary carries none: it is the engine's own marker, not a ported declaration.
+        attrs: Vec::new(),
         body: Some(Vec::new()),
     }))
 }

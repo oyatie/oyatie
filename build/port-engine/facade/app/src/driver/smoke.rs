@@ -61,6 +61,7 @@ pub fn smoke_syn_quote_render() -> Result<(), port_engine_api::PortError> {
             receiver: None,
             params: Vec::new(),
             ret: None,
+            attrs: Vec::new(),
             body: Some(Vec::new()),
         })],
     )?;
