@@ -198,6 +198,8 @@ pub(crate) struct ResultFacts {
     pub(crate) bare_pointers: BTreeSet<usize>,
     /// Whether the single result BORROWS from the receiver, so a returned field read is a view.
     pub(crate) borrows_receiver: bool,
+    /// Whether the single result is a stored FAILURE the receiver lends rather than gives.
+    pub(crate) borrows_failure: bool,
     /// Whether the single result IS a length, so a returned length keeps its `usize`.
     pub(crate) is_a_length: bool,
     /// Whether the single result is an ORDERING, so a returned -1/0/1 becomes one.
@@ -215,6 +217,7 @@ impl ResultFacts {
         Self {
             bare_pointers: bare_pointer_results(declaration),
             borrows_receiver: own && borrows_from_receiver(declaration),
+            borrows_failure: own && borrows_failure_from_receiver(declaration, resolver),
             is_a_length: own && yields_a_length(declaration, resolver.length_functions),
             is_an_ordering: own && is_three_way_comparison(declaration, resolver),
         }
@@ -295,4 +298,102 @@ fn is_fresh_address(operand: &Declaration) -> bool {
             .children
             .first()
             .is_some_and(|inner| inner.kind == KIND_COMPOSITE)
+}
+
+/// What a SOLE result of the source's failure type actually IS.
+///
+/// The source spells two different things identically. `func Validate(s string) error` reports
+/// whether an operation succeeded and says so by returning the absent value; `func (w *withMessage)
+/// Cause() error` hands back an error it is holding, and there is no success to contrast with. Both
+/// have one result of the failure type, and reading the second as the first is what made
+/// `Cause` translate to `Result<(), E>` — where `Ok(())` would mean "there is no cause" and
+/// `Err(e)` would mean "the cause is e", the failure channel carrying data.
+///
+/// The discriminator is whether any return hands back the ABSENT value, which is exactly the
+/// success path of a channel and is what a getter never does. Measured across the corpus: of 45
+/// functions with a sole failure result, 32 return absent somewhere and 13 never do, and the split
+/// is every `Unmarshal*`, `Scan` and `validate*` on one side against every `Cause`, `Unwrap` and
+/// `StackTrace` on the other.
+///
+/// The same shape as [`never_absent_pointer`], and for the same reason: a source type that admits
+/// nothing needs the body consulted before the target can promise a value.
+#[derive(Clone, Copy, Eq, PartialEq)]
+pub(crate) enum SoleFailure {
+    /// The source's failure channel. Unchanged: this is what `Result` is for.
+    Channel,
+    /// A failure VALUE the body proves is always present.
+    Present,
+    /// A failure VALUE that may be absent, because the body hands back something it was given.
+    Optional,
+}
+
+/// Classify a declaration's sole failure result, or `None` when it does not have one.
+///
+/// A declaration with NO BODY is a `Channel`, which is the conservative answer and the one that
+/// preserves existing behaviour: there is nothing to prove, and a caller of a signature-only
+/// declaration cannot know what its returns look like. A body that falls off the end is a
+/// `Channel` too — reaching the end returns the zero value, and for the failure type that IS the
+/// absent one.
+pub(crate) fn sole_failure_role(
+    declaration: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+) -> Option<SoleFailure> {
+    let results = declaration.children_of_kind(crate::vocabulary::CHILD_RESULT);
+    let [result] = results.as_slice() else {
+        return None;
+    };
+    if !crate::failure::is_failure_type(&result.type_ref, resolver.failure) {
+        return None;
+    }
+    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
+        return Some(SoleFailure::Channel);
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    if returns.is_empty() {
+        return Some(SoleFailure::Channel);
+    }
+    let operands: Vec<&Declaration> = returns.iter().filter_map(|node| node.children.first()).collect();
+    if operands.len() != returns.len() {
+        return Some(SoleFailure::Channel);
+    }
+    if operands
+        .iter()
+        .any(|operand| crate::failure::is_absent(operand, resolver.failure))
+    {
+        return Some(SoleFailure::Channel);
+    }
+    match operands
+        .iter()
+        .all(|operand| crate::failure_proof::is_certainly_a_failure(operand, resolver))
+    {
+        true => Some(SoleFailure::Present),
+        false => Some(SoleFailure::Optional),
+    }
+}
+
+/// Whether this declaration is a GETTER handing back a failure the receiver STORES.
+///
+/// The same shape as [`borrows_from_receiver`] one type over: every return reads a field of the
+/// receiver, and the result is the source's failure type rather than its string. Both hand back a
+/// view of something the receiver owns, and neither copies it.
+///
+/// Only for the OPTIONAL role. A sole failure result the body proves is always present is a
+/// constructor handing out a value it just made, which the receiver does not own and cannot lend.
+pub(crate) fn borrows_failure_from_receiver(
+    declaration: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+) -> bool {
+    if sole_failure_role(declaration, resolver) != Some(SoleFailure::Optional) {
+        return false;
+    }
+    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
+        return false;
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    !returns.is_empty()
+        && returns
+            .iter()
+            .all(|node| matches!(node.children.as_slice(), [only] if is_receiver_field(only)))
 }

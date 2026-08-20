@@ -48,6 +48,25 @@ pub(crate) fn results_in(
     // and the target says it in the return type instead. Splitting it off here — rather than
     // resolving it as an ordinary result — is what turns a value the caller may drop into one the
     // caller must handle.
+    // A SOLE failure result may not be the failure channel at all. Where the body never returns
+    // the absent value it is handing back an error as a VALUE, and popping it into `Result` says
+    // the function reports success — which it has no way to do. See `returns::sole_failure_role`.
+    // ONE decision, not two. Deriving "this is a value" separately from "this is the form for it"
+    // let them disagree: where the pack declares no nullable form the role still said value, so
+    // nothing was popped and the loop below then refused the result for being a failure type in a
+    // position it does not allow. A pack that has not made this decision must land exactly on the
+    // previous behaviour, and it only does if the same answer drives both.
+    // A GETTER lends what it holds. Asked before the owned forms, because the owned nullable one
+    // would be a promise the receiver cannot keep: the target's boxed failure is not clonable, so
+    // handing one out from behind a shared receiver has no spelling at all. The engine's own
+    // compile proof caught exactly that.
+    if idioms
+        && crate::returns::borrows_failure_from_receiver(declaration, resolver)
+        && let Some(convention) = resolver.failure
+        && !convention.nullable_borrowed_type.is_empty()
+    {
+        return Ok(Some(RustType::path(convention.nullable_borrowed_type.clone())));
+    }
     let fallible = crate::failure::is_fallible(declaration, resolver.failure);
     if fallible {
         results.pop();
@@ -133,4 +152,21 @@ pub(crate) fn results_in(
         ok.spelling(),
         error
     ))))
+}
+
+
+/// Whether this declaration hands a failure back as a VALUE rather than through the channel.
+///
+/// The one place that question is answered, so the signature and the body cannot disagree about it.
+/// They are built by different code and were asked separately once; a signature that says `Option<E>`
+/// while the body still emits `Err(..)` is two spellings of one decision, which is how the `mut`
+/// on a folded parameter went wrong three times.
+pub(crate) fn returns_failure_as_value(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> bool {
+    crate::returns::borrows_failure_from_receiver(declaration, resolver)
+        && resolver
+            .failure
+            .is_some_and(|convention| !convention.nullable_borrowed_type.is_empty())
 }

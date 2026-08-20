@@ -157,7 +157,13 @@ pub(crate) fn statements(
     // and the target binds nothing from a signature — so they are bound here, ahead of everything
     // the body does, exactly as the source binds them at entry.
     let mut bound = crate::body_wider::named_result_bindings(declaration, resolver)?;
-    let fallible = crate::failure::is_fallible(declaration, resolver.failure);
+    // The SIGNATURE and the BODY have to agree about what a sole failure result means, and they
+    // are computed in two places — so the same question is asked here that `results_in` asks. A
+    // function handing an error back as a VALUE has no failing return: its `return w.cause` is an
+    // ordinary return of an ordinary value, and running it through the failure path demanded a
+    // proof that the value is non-absent, which is exactly what it is not.
+    let fallible = crate::failure::is_fallible(declaration, resolver.failure)
+        && !crate::results::returns_failure_as_value(declaration, resolver);
     let mut translated = translate(
         nodes,
         &Body::new(

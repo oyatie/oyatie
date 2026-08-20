@@ -211,6 +211,13 @@ impl Pack {
             constructors: BTreeSet::from(["errors.New".to_owned()]),
             param_type: String::new(),
             param_type_reason: String::new(),
+            // EMPTY, so a fixture's sole failure result stays the channel exactly as before.
+            // Which sole results are values is a judgement about real source, measured on the
+            // corpus, and a fixture that has not declared the form must land on the old behaviour.
+            nullable_type: String::new(),
+            nullable_type_reason: String::new(),
+            nullable_borrowed_type: String::new(),
+            nullable_borrowed_type_reason: String::new(),
             identity_test: String::new(),
             identity_test_reason: String::new(),
             inferred_construction: String::new(),
