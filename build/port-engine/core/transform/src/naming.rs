@@ -149,11 +149,18 @@ pub fn to_pascal_case(raw: &str) -> String {
         // This rule was already WRITTEN here, claiming `HTTPServer` became `HttpServer`. It did
         // not; it became `Httpserver`. A comment describing behaviour the code does not have is
         // worse than no comment, because it stops the next reader from checking.
+        // AT LEAST TWO LOWER-CASE LETTERS follow, or it is not a word — it is a suffix. `UUIDs` is
+        // the acronym and its plural, not `Uui` and `Ds`, and one letter is never a word. Requiring
+        // a single following lower-case letter got `UUIDFormat` right and `UUIDs` wrong, and a
+        // reviewer named `UuiDs` as a mangled public type name — which it is.
         let starts_next_word = previous_was_upper
             && ch.is_ascii_uppercase()
             && chars
                 .get(index + 1)
-                .is_some_and(|next| next.is_ascii_lowercase());
+                .is_some_and(|next| next.is_ascii_lowercase())
+            && chars
+                .get(index + 2)
+                .is_some_and(|after| after.is_ascii_lowercase());
         out.push(match previous_was_upper && !starts_next_word {
             true => ch.to_ascii_lowercase(),
             false => ch,

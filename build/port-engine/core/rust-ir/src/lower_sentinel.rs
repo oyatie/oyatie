@@ -84,6 +84,7 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
             docs,
             self_ty,
             body,
+            is_failure,
         } => {
             let docs = lower_docs(docs);
             let self_ty = crate::lower_parts::parse_type(self_ty)?;
@@ -130,6 +131,13 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                     });
                 }
             };
+            // THE ERROR TRAIT ONLY FOR A FAILURE. See `RustItem::MessageImpl::is_failure`: the
+            // display construction is shared between the source's error interface and its stringer,
+            // and only one of the two is an error.
+            let error_impl = match is_failure {
+                true => quote! { impl StdError for #self_ty {} },
+                false => quote! {},
+            };
             Ok(quote! {
                 #docs
                 impl fmt::Display for #self_ty {
@@ -139,7 +147,7 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                     }
                 }
 
-                impl StdError for #self_ty {}
+                #error_impl
             })
         }
 
