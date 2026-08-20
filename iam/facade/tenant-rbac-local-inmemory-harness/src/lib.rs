@@ -18,7 +18,7 @@ use billing_accounting_journal::{
 };
 use billing_accounting_storage_inmemory_adapter::InMemoryAccountingJournalStore;
 use hr_employment_app::HrLeavePayrollImpactEnvelope;
-use hr_employment_storage_adapter_inmemory::{
+use hr_employment_storage_inmemory::{
     HrEmploymentStoragePort, HrStorageError, HrStoredRecord, InMemoryHrEmploymentStore,
 };
 use iam_tenant_rbac_storage_inmemory::{
