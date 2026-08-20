@@ -1,3 +1,25 @@
+# ADR-0711 Phase B evaluator. The waivers/judgments below are its DATA; this is the
+# code that finally reads them.
+rust_library(
+    name = "check-integ-envelope",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "check_integ_envelope",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+# Pure-kernel unit tests: longest-match-wins prefers a more specific sibling glob, an
+# adjunct claim admits a leaf for its claiming branch ONLY, a hub path refuses an
+# adjunct claim and demands a waiver, an unregistered integ rail is refused, equal
+# specificity is reported as a defect rather than resolved arbitrarily, and a
+# non-integ head is out of scope until Phase C. All proven WITHOUT a filesystem.
+rust_test(
+    name = "check-integ-envelope-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "check_integ_envelope",
+    crate_root = "src/lib.rs",
+)
+
 # Package integ-envelope waivers/judgments into the Buck2 corpus graph (ADR-0541).
 # Without this package the waiver YAML sits unpackaged and trips the corpus-index
 # unpackaged ceiling when new waivers land on integ/specs.
