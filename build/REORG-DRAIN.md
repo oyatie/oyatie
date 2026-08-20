@@ -5376,3 +5376,43 @@ cannot exercise the destination, so meeting all four today would not mean the en
 The corpus has to become representative before the conditions mean what they say — and the front end
 has to be able to load a real repository before the corpus can become representative. That ordering
 is the plan: `go/packages` first, then the phased oracle repos, then the ownership solver.
+
+## R3c — the front end can load a real repository
+
+R3b found that the front end resolved imports with the standard-library importer plus an intra-corpus
+one, so a package type-checked only if every non-stdlib import lived inside the corpus. Every corpus
+package was dependency-free, which looked like a corpus choice and was actually a limit of the loader.
+
+**Fixed without adding a dependency.** The extractor's own module doc says it is deliberately
+dependency-free and names `golang.org/x/tools/go/packages` as the thing it never uses; licensing
+policy fail-closes on any new extractor dependency until provenance is recorded. So the Go tool is
+ASKED instead of reimplemented — `go list -deps -json ./...` reports every non-standard package's
+import path and source directory, and those are merged UNDER the corpus's own map. The tool already
+understands the module graph, vendoring, workspaces and replace directives, and reimplementing that is
+how a front end acquires a subtly different idea of what a package is than the compiler has.
+
+The walk also now skips what the Go tool itself skips — `vendor`, `testdata`, and any directory
+beginning with `_` or `.`. `chi` failed on an `_examples` program whose imports are not the library's.
+
+**Result.** `gjson` and `chi` extract for the first time; all seven existing corpus packages still do.
+First measurement against them:
+
+| package | phase | declarations | translated | coverage |
+|---|---|---|---|---|
+| `tidwall/gjson` | core language | 124 | 15 | 12.1% |
+| `go-chi/chi` | interfaces, closures | 189 | 33 | 17.5% |
+
+The top blocker across both is `FuncLit` — 30 sites. Go's closure has no translation at all, which is
+the honest reason a middleware library ports at 17%: chi IS closures. `TypeAssertExpr`, `IncDecStmt`
+and partial-clause `for` follow, none of which the old corpus contained.
+
+`memberlist` still does not load, and for a different reason worth keeping separate: it type-checks
+its way into `golang.org/x/sys/unix`, a transitive syscall dependency that is hard to type-check
+standalone at any release. That is a dependency-quality problem rather than a loader one.
+
+**On the corpus being universal rather than destination-shaped.** R3b framed the gap as the corpus
+being unrepresentative of k8s and Talos. That framing was wrong and is corrected here: aiming at those
+would make this a k8s porter rather than a Go porter. The criterion is coverage of the LANGUAGE
+surface — closures, interfaces, type assertions, channels, select, tags, reflection — ranked by how
+common each is across the ecosystem, with k8s and Talos as consumers of the result rather than its
+specification.
