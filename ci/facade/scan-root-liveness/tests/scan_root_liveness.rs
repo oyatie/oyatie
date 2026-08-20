@@ -8,6 +8,9 @@
 // 3. BASELINE FIDELITY: the baseline equals all and only live dead non-forward roots,
 //    and every forward declaration is STILL absent. Both burn down, neither drifts.
 // 4. FLOOR: the collector must see the real corpus.
+// 5. UNDECLARED LIVE ROOTS: the governed universe is derived from the ADR-0562 closed
+//    registry intersected with disk, plus explicitly carried legacy roots; every
+//    root-enumerating site is held to it, and the gap set is frozen TWO-SIDED.
 //
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
@@ -16,12 +19,13 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use ci_scan_root_liveness::{
-    CODE_DEAD_SCAN_ROOT, DeclaredRoot, ForwardDeclaration, GATE_ID, Observed, Policy, Verdict,
-    evaluate,
+    CODE_DEAD_SCAN_ROOT, CODE_UNDECLARED_LIVE_ROOT, DeclaredRoot, ForwardDeclaration, GATE_ID,
+    Observed, Policy, ROOT_ENUMERATION_MIN_HITS, Verdict, evaluate, root_reference,
 };
 use serde_json::Value;
 
 const POLICY_PATH: &str = "ci/facade/scan-root-liveness/scan-root-liveness-policy.json";
+const REGISTRY_PATH: &str = "governance/capability-registry.json";
 const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 
 fn repo_root() -> PathBuf {
@@ -66,6 +70,19 @@ fn load_policy(root: &Path) -> (Policy, Vec<String>) {
             exempt.insert(k.clone(), v.as_str().unwrap_or_default().to_owned());
         }
     }
+    let mut exclusions = BTreeMap::new();
+    for (k, v) in doc["universe_exclusions"]
+        .as_object()
+        .expect("universe_exclusions")
+    {
+        let reason = v["reason"].as_str().expect("exclusion reason");
+        assert!(
+            reason.len() >= 40,
+            "universe_exclusions[{k}] needs a real reason; an unexplained exclusion is \
+             indistinguishable from tuning the gate green"
+        );
+        exclusions.insert(k.clone(), reason.to_owned());
+    }
     let policy = Policy {
         registered_policy_files: doc["registered_policy_files"]
             .as_array()
@@ -82,8 +99,78 @@ fn load_policy(root: &Path) -> (Policy, Vec<String>) {
             .map(|v| v.as_str().expect("string").to_owned())
             .collect(),
         min_expected_roots: doc["min_expected_roots"].as_u64().expect("floor") as usize,
+        baselined_undeclared_live_roots: doc["baselined_undeclared_live_roots"]
+            .as_array()
+            .expect("baselined_undeclared_live_roots")
+            .iter()
+            .map(|v| v.as_str().expect("string").to_owned())
+            .collect(),
+        universe_exclusions: exclusions,
+        min_expected_live_roots: doc["min_expected_live_roots"]
+            .as_u64()
+            .expect("live-root floor") as usize,
     };
     (policy, coverage_keys)
+}
+
+/// The legacy roots this gate carries by hand, keyed by root, valued by the condition
+/// that retires the entry. They predate the ADR-0562 registry, so nothing derives
+/// them; carrying them explicitly with a written deletion condition is the same
+/// bargain the root `Cargo.toml` strikes for its own legacy globs.
+fn carried_legacy_roots(root: &Path) -> BTreeMap<String, String> {
+    let raw = std::fs::read_to_string(root.join(POLICY_PATH)).expect("read policy");
+    let doc: Value = serde_json::from_str(&raw).expect("policy parses");
+    let mut out = BTreeMap::new();
+    for (k, v) in doc["carried_legacy_roots"]
+        .as_object()
+        .expect("carried_legacy_roots")
+    {
+        let condition = v["deletion_condition"]
+            .as_str()
+            .expect("every carried legacy root states what retires it");
+        assert!(
+            condition.len() >= 40,
+            "carried_legacy_roots[{k}] needs a real deletion_condition; a legacy root with no \
+             stated end is a permanent one"
+        );
+        out.insert(k.clone(), condition.to_owned());
+    }
+    out
+}
+
+/// The governed root universe: the ADR-0562 CLOSED registry intersected with what is
+/// actually on disk, plus the carried legacy roots that exist.
+///
+/// Intersected with disk, not taken at face value: `policy` is a registered capability
+/// with no directory, and demanding every gate declare a root that does not exist is
+/// precisely the dead_scan_root defect issued as an order. Registry names supply the
+/// VOCABULARY; the filesystem supplies LIVENESS.
+fn live_roots(root: &Path) -> BTreeSet<String> {
+    let raw = std::fs::read_to_string(root.join(REGISTRY_PATH)).unwrap_or_else(|e| {
+        panic!(
+            "read {REGISTRY_PATH}: {e} — the governed universe is derived \
+             from it and MUST NOT silently default to empty"
+        )
+    });
+    let doc: Value = serde_json::from_str(&raw).expect("capability registry parses");
+
+    let mut names: Vec<String> = Vec::new();
+    for cap in doc["capabilities"].as_array().expect("capabilities") {
+        names.push(cap["name"].as_str().expect("capability name").to_owned());
+    }
+    for meta in doc["meta_directories"]
+        .as_array()
+        .expect("meta_directories")
+    {
+        let dir = meta["dir"].as_str().expect("meta dir");
+        names.push(dir.trim_end_matches('/').to_owned());
+    }
+    names.extend(carried_legacy_roots(root).into_keys());
+
+    names
+        .into_iter()
+        .filter(|name| root.join(name).is_dir())
+        .collect()
 }
 
 /// Resolve a declared root against the tree. Glob-aware: a pattern resolves iff it
@@ -164,6 +251,7 @@ fn collect_from(
     coverage_keys: &[String],
     root: &Path,
     out: &mut Vec<DeclaredRoot>,
+    sites: &mut BTreeMap<String, BTreeSet<String>>,
 ) {
     match value {
         Value::Object(map) => {
@@ -172,7 +260,14 @@ fn collect_from(
                 if coverage_keys.iter().any(|c| c == k)
                     && let Some(arr) = v.as_array()
                 {
+                    // One SITE per array. Recorded even when it references no roots
+                    // at all, so the site count is the real denominator rather than
+                    // only the sites that happened to qualify.
+                    let site = sites.entry(format!("{file}::{ptr}")).or_default();
                     for entry in arr.iter().filter_map(Value::as_str) {
+                        if let Some(reference) = root_reference(entry) {
+                            site.insert(reference.to_owned());
+                        }
                         out.push(DeclaredRoot {
                             policy_file: file.to_owned(),
                             key: ptr.clone(),
@@ -181,12 +276,12 @@ fn collect_from(
                         });
                     }
                 }
-                collect_from(v, &ptr, file, coverage_keys, root, out);
+                collect_from(v, &ptr, file, coverage_keys, root, out, sites);
             }
         }
         Value::Array(items) => {
             for v in items {
-                collect_from(v, pointer, file, coverage_keys, root, out);
+                collect_from(v, pointer, file, coverage_keys, root, out, sites);
             }
         }
         _ => {}
@@ -196,15 +291,34 @@ fn collect_from(
 fn collect(root: &Path, coverage_keys: &[String]) -> Observed {
     let mut roots: Vec<DeclaredRoot> = Vec::new();
     let mut files_with_roots: BTreeSet<String> = BTreeSet::new();
+    let mut sites: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
 
     let facade = root.join("ci/facade");
-    let Ok(gate_dirs) = std::fs::read_dir(&facade) else {
-        return Observed::default();
-    };
+    // NOT `else { return Observed::default() }`. That was this crate's own defect,
+    // in the crate that exists to detect it: an unreadable ci/facade produced an
+    // EMPTY corpus, every check then passed over nothing, and the only thing standing
+    // between that and a green gate was the min_expected_roots floor — a guard that
+    // happened to be there, not a guarantee. An unreadable scan root is a gate
+    // failure and must name the path.
+    let gate_dirs = std::fs::read_dir(&facade).unwrap_or_else(|e| {
+        panic!(
+            "cannot read the gate corpus root {}: {e} — this is a GATE FAILURE, not an empty \
+             corpus; a collector that cannot see its input must never report clean",
+            facade.display()
+        )
+    });
     for gate in gate_dirs.flatten() {
-        let Ok(entries) = std::fs::read_dir(gate.path()) else {
-            continue;
-        };
+        let gate_path = gate.path();
+        if !gate_path.is_dir() {
+            continue; // loose files directly under ci/facade are not gate directories
+        }
+        let entries = std::fs::read_dir(&gate_path).unwrap_or_else(|e| {
+            panic!(
+                "cannot read gate directory {}: {e} — skipping it would silently drop every \
+                 policy it declares",
+                gate_path.display()
+            )
+        });
         for entry in entries.flatten() {
             let path = entry.path();
             if path.extension().and_then(|e| e.to_str()) != Some("json") {
@@ -226,7 +340,7 @@ fn collect(root: &Path, coverage_keys: &[String]) -> Observed {
                 continue;
             };
             let before = roots.len();
-            collect_from(&doc, "", &rel, coverage_keys, root, &mut roots);
+            collect_from(&doc, "", &rel, coverage_keys, root, &mut roots, &mut sites);
             if roots.len() > before {
                 files_with_roots.insert(rel);
             }
@@ -235,6 +349,8 @@ fn collect(root: &Path, coverage_keys: &[String]) -> Observed {
     Observed {
         roots,
         policy_files_with_roots: files_with_roots,
+        declaration_sites: sites,
+        live_roots: live_roots(root),
     }
 }
 
@@ -257,11 +373,164 @@ fn live_corpus_is_green_against_the_frozen_policy() {
             .join("\n")
     );
     eprintln!(
-        "{GATE_ID}: GREEN — {} declared roots across {} policy files; {} dead tolerated, {} forward",
+        "{GATE_ID}: GREEN — {} declared roots across {} policy files and {} declaration sites; \
+         {} dead tolerated, {} forward; universe {} live roots, {} of {} sites root-enumerating, \
+         {} undeclared tolerated",
         report.roots_checked,
         observed.policy_files_with_roots.len(),
+        observed.declaration_sites.len(),
         report.dead_tolerated,
-        policy.forward_declarations.len()
+        policy.forward_declarations.len(),
+        observed.live_roots.len() - policy.universe_exclusions.len(),
+        report.enumerating_sites,
+        observed.declaration_sites.len(),
+        report.undeclared_tolerated,
+    );
+}
+
+/// RED FIXTURE for the mirror defect, in the shape the audit mutation-proved: a site
+/// that enumerates roots and never names `comms/`, which holds 24 crate directories.
+#[test]
+fn red_fixture_undeclared_live_root_fails_closed() {
+    let observed = Observed {
+        declaration_sites: [(
+            "p.json::/scan_roots".to_owned(),
+            ["iam".to_owned(), "storage".to_owned()]
+                .into_iter()
+                .collect(),
+        )]
+        .into_iter()
+        .collect(),
+        live_roots: ["comms", "iam", "storage"]
+            .into_iter()
+            .map(str::to_owned)
+            .collect(),
+        ..Observed::default()
+    };
+    let report = evaluate(&observed, &Policy::default());
+    assert_eq!(report.verdict, Verdict::Red);
+    assert_eq!(report.findings[0].code, CODE_UNDECLARED_LIVE_ROOT);
+    assert_eq!(report.findings[0].subject, "p.json::/scan_roots::comms");
+}
+
+#[test]
+fn frozen_undeclared_baseline_is_exactly_the_live_gap_set() {
+    // TWO-SIDED, for the same reason the dead-root baseline is: a one-sided ceiling
+    // cannot tell "embedded-asset-hermeticity finally declared comms/" from "the
+    // collector stopped seeing the site at all". A gap that closes must be un-frozen
+    // in the change that closes it, or the slack outlives the debt and the next
+    // regression lands inside the room the old entry still holds open.
+    let root = repo_root();
+    let (policy, keys) = load_policy(&root);
+    let observed = collect(&root, &keys);
+    let universe: BTreeSet<&str> = observed
+        .live_roots
+        .iter()
+        .map(String::as_str)
+        .filter(|r| !policy.universe_exclusions.contains_key(*r))
+        .collect();
+
+    let mut live_gaps: BTreeSet<String> = BTreeSet::new();
+    for (site, referenced) in &observed.declaration_sites {
+        let hits = referenced
+            .iter()
+            .filter(|v| universe.contains(v.as_str()))
+            .count();
+        if hits < ROOT_ENUMERATION_MIN_HITS {
+            continue;
+        }
+        for missing in universe.iter().filter(|r| !referenced.contains(**r)) {
+            live_gaps.insert(format!("{site}::{missing}"));
+        }
+    }
+
+    assert_eq!(
+        policy.baselined_undeclared_live_roots, live_gaps,
+        "the frozen baseline must equal all and only the live undeclared-root gaps. Entries only \
+         in the policy are gaps that CLOSED — delete them here, in the change that closed them. \
+         Entries only on the left are NEW blind spots."
+    );
+}
+
+#[test]
+fn carried_legacy_roots_are_all_still_live() {
+    // A legacy root that has finished draining must leave this list, not linger in
+    // it: an entry for a directory that no longer exists silently keeps every gate's
+    // gap set one row wider than the tree justifies. `moved` and `deleted` are
+    // different events and only the second retires the entry.
+    let root = repo_root();
+    for (name, condition) in carried_legacy_roots(&root) {
+        assert!(
+            root.join(&name).is_dir(),
+            "carried legacy root `{name}` no longer exists — its deletion condition has fired, so \
+             remove it from carried_legacy_roots (and drop the baselined gaps it justified). \
+             Stated condition: {condition}"
+        );
+    }
+}
+
+#[test]
+fn universe_exclusions_are_all_still_live_roots() {
+    // Same two-sided hygiene from the other end: an exclusion for a root that is gone
+    // (or was never in the universe) is an unreviewable permanent hole.
+    let root = repo_root();
+    let (policy, keys) = load_policy(&root);
+    let observed = collect(&root, &keys);
+    for (name, reason) in &policy.universe_exclusions {
+        assert!(
+            observed.live_roots.contains(name),
+            "universe exclusion `{name}` is not a live governed root — remove it. Stated reason: \
+             {reason}"
+        );
+    }
+}
+
+#[test]
+fn the_governed_universe_is_derived_not_enumerated() {
+    // The thesis of the wave this gate belongs to: what EXISTS must come from the
+    // ADR-0562 closed registry intersected with disk, so a capability that lands is
+    // expected everywhere BY CONSTRUCTION. Pin that the derivation actually reaches
+    // the registry rather than quietly falling back to the four carried legacy roots.
+    let root = repo_root();
+    let universe = live_roots(&root);
+    let legacy: BTreeSet<String> = carried_legacy_roots(&root).into_keys().collect();
+    let derived: BTreeSet<&String> = universe.difference(&legacy).collect();
+    assert!(
+        derived.len() >= 25,
+        "only {} roots came from the registry (universe {:?}) — the derivation is broken and \
+         every site would look complete",
+        derived.len(),
+        universe
+    );
+    // `policy` is registered and has no directory: registry names supply vocabulary,
+    // the filesystem supplies liveness. Demanding a root that does not exist would be
+    // dead_scan_root issued as an order.
+    assert!(!universe.contains("policy"), "policy/ does not exist yet");
+    assert!(universe.contains("comms"), "comms/ is live and registered");
+}
+
+/// Coverage of the collector itself, reported as a measured number rather than
+/// asserted by inspection. Adding `governed_roots` to coverage_bearing_keys pulled
+/// `canonical-json` and `product-protocol-policy` into the universe; before that both
+/// declared roots this gate never saw.
+#[test]
+fn collector_covers_every_registered_policy_file() {
+    let root = repo_root();
+    let (policy, keys) = load_policy(&root);
+    let observed = collect(&root, &keys);
+    let unseen: Vec<&String> = policy
+        .registered_policy_files
+        .iter()
+        .filter(|f| !observed.policy_files_with_roots.contains(*f))
+        .collect();
+    assert!(
+        unseen.is_empty(),
+        "registered policy files the collector never saw declare a root: {unseen:?} — either the \
+         file stopped declaring roots (deregister it) or a coverage-bearing key was dropped"
+    );
+    eprintln!(
+        "{GATE_ID}: coverage — {} policy files declare coverage-bearing roots",
+        observed.policy_files_with_roots.len()
     );
 }
 
@@ -275,6 +544,7 @@ fn red_fixture_dead_root_fails_closed() {
             resolves: false,
         }],
         policy_files_with_roots: ["p.json".to_owned()].into_iter().collect(),
+        ..Observed::default()
     };
     let policy = Policy {
         registered_policy_files: ["p.json".to_owned()].into_iter().collect(),
