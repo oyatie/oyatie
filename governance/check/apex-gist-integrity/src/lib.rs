@@ -86,12 +86,12 @@ impl Site {
 /// One block of member substance carried into an apex.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Block {
-    pub member_id: String,
-    pub site: Site,
+    pub member_id: String, // data_class: INTERNAL_ONLY
+    pub site: Site,        // data_class: INTERNAL_ONLY
     /// Line number in the apex file, for a finding a human can navigate to.
-    pub line: usize,
+    pub line: usize, // data_class: INTERNAL_ONLY
     /// The carried text with its `- **ADR-N** (title):` / `**title** —` lead-in already stripped.
-    pub text: String,
+    pub text: String, // data_class: INTERNAL_ONLY
     /// The `(title)` lead-in's CONTENT, as carried. Empty for a site that has no title lead-in.
     ///
     /// Kept rather than discarded because the title has its OWN, shorter budget than the body and
@@ -99,7 +99,7 @@ pub struct Block {
     /// last forty characters. Before this field existed the balanced-parenthesis branch of the
     /// caller's lead-in stripper threw the title away, so a cut title was unobservable unless it
     /// happened to also unbalance its parentheses — which is the accident, not the population.
-    pub title: String,
+    pub title: String, // data_class: INTERNAL_ONLY
     /// The block's own `(title)` lead-in does not close its parentheses.
     ///
     /// A separate shape from a truncated BODY, and worse in kind: the title is cut at its own
@@ -107,19 +107,19 @@ pub struct Block {
     /// structure is destroyed. The bullet stops being machine-readable — balanced matching never
     /// terminates and splitting on the first `): ` lands somewhere arbitrary — so every downstream
     /// consumer disagrees about where the title ends and the ratified substance begins.
-    pub title_unbalanced: bool,
+    pub title_unbalanced: bool, // data_class: INTERNAL_ONLY
 }
 
 /// A live apex as OBSERVED. The caller supplies this; the kernel never reads a file.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ApexDoc {
-    pub id: String,
-    pub path: String,
+    pub id: String,   // data_class: INTERNAL_ONLY
+    pub path: String, // data_class: INTERNAL_ONLY
     /// Ids from the frontmatter `supersedes:` list, normalized.
-    pub supersedes: Vec<String>,
-    pub blocks: Vec<Block>,
+    pub supersedes: Vec<String>, // data_class: INTERNAL_ONLY
+    pub blocks: Vec<Block>, // data_class: INTERNAL_ONLY
     /// Whole apex body, lowercased once by the caller — the haystack for the topic check.
-    pub body_lower: String,
+    pub body_lower: String, // data_class: INTERNAL_ONLY
 }
 
 /// An archived member as OBSERVED — the ORACLE a carried block is judged against.
@@ -138,17 +138,17 @@ pub struct ArchivedMember {
     /// stem, some the H1, some the frontmatter title. Measured: only 171 of 448 archived members
     /// declare a frontmatter `title:` at all, so a rule that knew about that spelling alone would
     /// report the other 277 as unresolved and be a false-positive engine rather than a gate.
-    pub titles: Vec<String>,
+    pub titles: Vec<String>, // data_class: INTERNAL_ONLY
     /// The member's whole archived body, lowercased once by the caller.
-    pub body_lower: String,
+    pub body_lower: String, // data_class: INTERNAL_ONLY
 }
 
 /// A topic that must not silently vanish across a supersession, expressed as DATA.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct Topic {
-    pub name: String,
+    pub name: String, // data_class: INTERNAL_ONLY
     /// Lowercase needles. A topic is PRESENT in a text when any needle occurs in it.
-    pub needles: Vec<String>,
+    pub needles: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 impl Topic {
@@ -162,25 +162,25 @@ impl Topic {
 /// finding count and a shortfall is itself a finding.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct Policy {
-    pub min_live_apexes: usize,
-    pub min_members: usize,
-    pub min_blocks: usize,
-    pub min_archived_members_read: usize,
-    pub min_topics: usize,
+    pub min_live_apexes: usize,           // data_class: INTERNAL_ONLY
+    pub min_members: usize,               // data_class: INTERNAL_ONLY
+    pub min_blocks: usize,                // data_class: INTERNAL_ONLY
+    pub min_archived_members_read: usize, // data_class: INTERNAL_ONLY
+    pub min_topics: usize,                // data_class: INTERNAL_ONLY
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 pub struct Finding {
-    pub code: String,
-    pub apex: String,
-    pub detail: String,
+    pub code: String,   // data_class: INTERNAL_ONLY
+    pub apex: String,   // data_class: INTERNAL_ONLY
+    pub detail: String, // data_class: INTERNAL_ONLY
 }
 
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Verdict {
-    pub findings: Vec<Finding>,
+    pub findings: Vec<Finding>, // data_class: INTERNAL_ONLY
     /// Per-CODE totals. Convenient, and too coarse to ratchet on — see `counts_by_apex`.
-    pub counts: BTreeMap<String, usize>,
+    pub counts: BTreeMap<String, usize>, // data_class: INTERNAL_ONLY
     /// Per-`(code, apex)` totals, keyed `"{code}@{apex}"`.
     ///
     /// THIS is what the live gate freezes, because a per-code total cannot see an OFFSETTING
@@ -189,7 +189,7 @@ pub struct Verdict {
     /// apex does not close that hole, it NARROWS it — the offsetting pair must now cancel within a
     /// single apex. The residual is stated in the gate's non_claims rather than papered over, and
     /// it disappears entirely for any code the repair drives to 0, where equality is exact.
-    pub counts_by_apex: BTreeMap<String, usize>,
+    pub counts_by_apex: BTreeMap<String, usize>, // data_class: INTERNAL_ONLY
 }
 
 impl Verdict {
@@ -211,7 +211,10 @@ impl Verdict {
 /// a catastrophic finding rather than a bug, which is why it is a named function with its own test.
 #[must_use]
 pub fn normalize_id(raw: &str) -> Option<String> {
-    let digits = raw.trim().trim_start_matches("ADR-").trim_start_matches("adr-");
+    let digits = raw
+        .trim()
+        .trim_start_matches("ADR-")
+        .trim_start_matches("adr-");
     if digits.is_empty() || !digits.bytes().all(|b| b.is_ascii_digit()) {
         return None;
     }
@@ -262,10 +265,10 @@ pub fn ends_midword(text: &str) -> bool {
 pub struct SourceIndex {
     /// Every block, whitespace-collapsed and joined with a single space. Equal to
     /// `normalize_ws(body)`, since collapsing runs of whitespace already collapses a blank line.
-    pub reflowed: String,
+    pub reflowed: String, // data_class: INTERNAL_ONLY
     /// Byte offsets into `reflowed` at which some source block ends. Always includes
     /// `reflowed.len()`.
-    pub block_ends: BTreeSet<usize>,
+    pub block_ends: BTreeSet<usize>, // data_class: INTERNAL_ONLY
 }
 
 impl SourceIndex {
@@ -335,11 +338,7 @@ pub fn cut_from_source(carried: &str, source: Option<&SourceIndex>) -> Option<bo
             .unwrap_or(1);
         from = start + step;
     }
-    if found {
-        Some(true)
-    } else {
-        None
-    }
+    if found { Some(true) } else { None }
 }
 
 /// True when the block leaves a Markdown code fence open.
@@ -673,7 +672,11 @@ mod tests {
         let a = apex(
             &["1"],
             vec![
-                block("1", Site::Gist, "hosted control planes run via a hosted-contr"),
+                block(
+                    "1",
+                    Site::Gist,
+                    "hosted control planes run via a hosted-contr",
+                ),
                 block("1", Site::Residual, "hosted control planes run via Kam"),
             ],
             "hosted",
@@ -747,7 +750,10 @@ mod tests {
         // measured on the real corpus that scoping saw only 87 cuts where this one sees more.
         let archived = BTreeMap::from([(
             "1".to_owned(),
-            member(&[], "First paragraph ends here.\n\nSecond paragraph continues on."),
+            member(
+                &[],
+                "First paragraph ends here.\n\nSecond paragraph continues on.",
+            ),
         )]);
         let a = apex(
             &["1"],
@@ -776,8 +782,16 @@ mod tests {
         let a = apex(
             &["1"],
             vec![
-                block("1", Site::Gist, "First paragraph ends here. Second one too."),
-                block("1", Site::Residual, "First paragraph ends here. Second one too."),
+                block(
+                    "1",
+                    Site::Gist,
+                    "First paragraph ends here. Second one too.",
+                ),
+                block(
+                    "1",
+                    Site::Residual,
+                    "First paragraph ends here. Second one too.",
+                ),
             ],
             "first",
         );
@@ -817,7 +831,10 @@ mod tests {
         // contiguous substring of the source, so containment fails and nothing is emitted.
         let archived = BTreeMap::from([(
             "1".to_owned(),
-            member(&[], "We adopt a single owned substrate for the whole delivery path."),
+            member(
+                &[],
+                "We adopt a single owned substrate for the whole delivery path.",
+            ),
         )]);
         let a = apex(
             &["1"],
@@ -834,11 +851,18 @@ mod tests {
         // finds nothing and reports a comprehensively cut corpus as clean.
         let archived = BTreeMap::from([(
             "1".to_owned(),
-            member(&[], "the rule holds\n   across every\nline of source. and then more."),
+            member(
+                &[],
+                "the rule holds\n   across every\nline of source. and then more.",
+            ),
         )]);
         let a = apex(
             &["1"],
-            vec![block("1", Site::Gist, "The rule holds across every line of source.")],
+            vec![block(
+                "1",
+                Site::Gist,
+                "The rule holds across every line of source.",
+            )],
             "the rule holds",
         );
         let v = evaluate(&[a], &archived, &[], &permissive_policy());
@@ -851,11 +875,18 @@ mod tests {
         // same defect and make the two frozen numbers non-additive.
         let archived = BTreeMap::from([(
             "1".to_owned(),
-            member(&[], "hosted control planes run via a hosted-controller model."),
+            member(
+                &[],
+                "hosted control planes run via a hosted-controller model.",
+            ),
         )]);
         let a = apex(
             &["1"],
-            vec![block("1", Site::Gist, "hosted control planes run via a hosted-contr")],
+            vec![block(
+                "1",
+                Site::Gist,
+                "hosted control planes run via a hosted-contr",
+            )],
             "hosted",
         );
         let v = evaluate(&[a], &archived, &[], &permissive_policy());
@@ -866,7 +897,13 @@ mod tests {
     #[test]
     fn a_title_matching_any_spelling_the_member_offers_resolves() {
         // Stem, frontmatter title and H1 are all legitimate carries; the generator used each.
-        let archived = BTreeMap::from([("1".to_owned(), member(&["the-file-stem", "A Declared Title", "T-9 — An H1 Heading"], "body"))]);
+        let archived = BTreeMap::from([(
+            "1".to_owned(),
+            member(
+                &["the-file-stem", "A Declared Title", "T-9 — An H1 Heading"],
+                "body",
+            ),
+        )]);
         for carried in ["the-file-stem", "A Declared Title", "T-9 — An H1 Heading"] {
             let a = apex(
                 &["1"],
@@ -874,7 +911,11 @@ mod tests {
                 "body finishes.",
             );
             let v = evaluate(&[a], &archived, &[], &permissive_policy());
-            assert_eq!(v.count(CODE_TITLE_UNRESOLVED), 0, "rejected a real title: {carried}");
+            assert_eq!(
+                v.count(CODE_TITLE_UNRESOLVED),
+                0,
+                "rejected a real title: {carried}"
+            );
         }
     }
 
@@ -908,7 +949,12 @@ mod tests {
         // archive size is what catches a collapsed walk, not a burst of unresolvable titles.
         let a = apex(
             &["1"],
-            vec![block_titled("1", Site::Gist, "any-title-at-all", "Body finishes.")],
+            vec![block_titled(
+                "1",
+                Site::Gist,
+                "any-title-at-all",
+                "Body finishes.",
+            )],
             "body finishes.",
         );
         let v = evaluate(&[a], &BTreeMap::new(), &[], &permissive_policy());
@@ -923,7 +969,11 @@ mod tests {
         let archived = BTreeMap::new();
         let mut left = apex(&["1"], vec![block("1", Site::Gist, "cut mid-wor")], "cut");
         left.id = "700".to_owned();
-        let mut right = apex(&["2"], vec![block("2", Site::Gist, "also cut mid-wor")], "cut");
+        let mut right = apex(
+            &["2"],
+            vec![block("2", Site::Gist, "also cut mid-wor")],
+            "cut",
+        );
         right.id = "709".to_owned();
         let v = evaluate(&[left, right], &archived, &[], &permissive_policy());
         assert_eq!(v.count(CODE_TRUNCATED_MIDWORD), 2);
@@ -984,7 +1034,10 @@ mod tests {
             needles: vec!["sev-snp".to_owned(), "tdx".to_owned()],
         }];
         let archived = BTreeMap::from([
-            ("1".to_owned(), member(&[], "runtime tier uses sev-snp attestation")),
+            (
+                "1".to_owned(),
+                member(&[], "runtime tier uses sev-snp attestation"),
+            ),
             ("2".to_owned(), member(&[], "also mentions tdx enclaves")),
         ]);
         let a = apex(

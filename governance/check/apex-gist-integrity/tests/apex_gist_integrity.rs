@@ -12,9 +12,9 @@ use std::sync::OnceLock;
 
 use check_apex_gist_integrity::{
     ApexDoc, ArchivedMember, Block, CODE_CUT_FROM_SOURCE, CODE_MEMBER_WITHOUT_GIST,
-    CODE_MEMBER_WITHOUT_RESIDUAL, CODE_TITLE_UNRESOLVED, CODE_TOPIC_DROPPED, CODE_TRUNCATED_MIDWORD,
-    CODE_UNBALANCED_TITLE, CODE_UNCLOSED_FENCE, CODE_VACUOUS_SCAN, Policy, Site, Topic, Verdict,
-    evaluate, normalize_id,
+    CODE_MEMBER_WITHOUT_RESIDUAL, CODE_TITLE_UNRESOLVED, CODE_TOPIC_DROPPED,
+    CODE_TRUNCATED_MIDWORD, CODE_UNBALANCED_TITLE, CODE_UNCLOSED_FENCE, CODE_VACUOUS_SCAN, Policy,
+    Site, Topic, Verdict, evaluate, normalize_id,
 };
 
 const POLICY_PATH: &str = "governance/check/apex-gist-integrity/apex-gist-integrity-policy.json";
@@ -95,7 +95,9 @@ fn load_config(root: &Path) -> Config {
                     .as_u64()
                     .unwrap_or_else(|| panic!("findings_by_apex.{key} is not a number"));
                 assert!(
-                    KNOWN_CODES.iter().any(|code| key.starts_with(&format!("{code}@"))),
+                    KNOWN_CODES
+                        .iter()
+                        .any(|code| key.starts_with(&format!("{code}@"))),
                     "findings_by_apex key `{key}` names no known finding code; a typo here \
                      freezes a pair that can never be observed and silently exempts the real one"
                 );
@@ -238,12 +240,18 @@ fn read_apexes(root: &Path) -> Vec<ApexDoc> {
                 .to_string_lossy()
                 .into_owned();
             let name = path.file_name().and_then(|n| n.to_str()).expect("name");
-            let id = normalize_id(name.strip_prefix("ADR-").unwrap_or("").get(..4).unwrap_or(""))
-                .unwrap_or_else(|| panic!("apex id not parseable from {name}"));
+            let id = normalize_id(
+                name.strip_prefix("ADR-")
+                    .unwrap_or("")
+                    .get(..4)
+                    .unwrap_or(""),
+            )
+            .unwrap_or_else(|| panic!("apex id not parseable from {name}"));
 
-            let front = text.split("---").nth(1).unwrap_or_else(|| {
-                panic!("{} has no --- delimited frontmatter", path.display())
-            });
+            let front = text
+                .split("---")
+                .nth(1)
+                .unwrap_or_else(|| panic!("{} has no --- delimited frontmatter", path.display()));
             let supersedes = parse_supersedes(front);
             assert!(
                 !supersedes.is_empty(),
@@ -347,8 +355,8 @@ fn read_archive(root: &Path) -> BTreeMap<String, ArchivedMember> {
         let Some(id) = normalize_id(&digits) else {
             continue;
         };
-        let text =
-            std::fs::read_to_string(&path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
+        let text = std::fs::read_to_string(&path)
+            .unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
         let stem = name.trim_end_matches(".md");
         out.insert(
             id,
@@ -407,7 +415,11 @@ fn observed() -> &'static Observed {
 /// before would be compared against nothing and pass — which is the same shape of hole as an
 /// unratcheted count, one level down.
 fn assert_frozen(observed: &BTreeMap<String, usize>, frozen: &BTreeMap<String, usize>, why: &str) {
-    let keys: BTreeMap<&String, ()> = frozen.keys().chain(observed.keys()).map(|k| (k, ())).collect();
+    let keys: BTreeMap<&String, ()> = frozen
+        .keys()
+        .chain(observed.keys())
+        .map(|k| (k, ()))
+        .collect();
     let drift: Vec<String> = keys
         .into_keys()
         .filter_map(|key| {
@@ -642,8 +654,7 @@ fn the_gist_leadin_stripper_survives_a_title_containing_parentheses() {
     // gist bullets un-title-checkable: the balanced branch used to discard the title entirely, so
     // only the 22 accidentally-unbalanced ones were ever looked at.
     assert_eq!(
-        lead.title,
-        "Rename `application` layer to `usecase` (amends ADR-0105)",
+        lead.title, "Rename `application` layer to `usecase` (amends ADR-0105)",
         "the balanced branch discarded or truncated the title"
     );
 
@@ -655,14 +666,18 @@ fn the_gist_leadin_stripper_survives_a_title_containing_parentheses() {
     )
     .expect("recovers rather than dropping the block");
     assert_eq!(lead.id, "213");
-    assert!(lead.title_unbalanced, "an unclosed title paren must be reported");
+    assert!(
+        lead.title_unbalanced,
+        "an unclosed title paren must be reported"
+    );
     assert!(
         lead.body.starts_with("Oyatie ships"),
         "body not recovered: {}",
         lead.body
     );
     assert!(
-        lead.title.starts_with("Ecosystem-as-a-Service architecture"),
+        lead.title
+            .starts_with("Ecosystem-as-a-Service architecture"),
         "title not recovered on the unbalanced branch: {}",
         lead.title
     );
@@ -678,10 +693,7 @@ fn the_gist_leadin_stripper_survives_a_title_containing_parentheses() {
 fn every_archived_member_offers_at_least_a_stem_and_a_heading_to_resolve_titles_against() {
     let root = repo_root();
     let archive = read_archive(&root);
-    let with_heading = archive
-        .values()
-        .filter(|m| m.titles.len() >= 2)
-        .count();
+    let with_heading = archive.values().filter(|m| m.titles.len() >= 2).count();
     assert_eq!(
         with_heading,
         archive.len(),

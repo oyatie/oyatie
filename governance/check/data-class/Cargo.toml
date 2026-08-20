@@ -6,10 +6,26 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
+# Pure-fn kernel (port-in-kernel, ADR-0056). Validates that every `pub` field of a kernel-tier
+# crate carries a data-class annotation, against the MFL-0008 legacy allowance ledger.
+# The kernel stays pure; the LIVE-TREE walk that grounds it lives in tests/.
+
+[dev-dependencies]
+serde_json = { workspace = true }
+toml = { workspace = true }
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+
 [lib]
 name = "check_data_class"
 path = "src/lib.rs"
 doctest = false
+
+# The fixture suite inside src/lib.rs proves the kernel correct and says nothing about this
+# repository. This target is the LIVE-TREE walk that grounds the doctrine in the real kernel-crate
+# corpus; it stands BESIDE those fixtures, never in place of them.
+[[test]]
+name = "data_class_coverage"
+path = "tests/data_class_coverage.rs"
 
 [lints]
 workspace = true
