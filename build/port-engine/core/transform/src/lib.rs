@@ -22,10 +22,12 @@ mod sources;
 pub use sources::CRATE_SOURCES;
 
 mod accumulator;
+mod accumulator_fold;
 mod apply;
 mod body;
 mod body_argument;
 mod body_call;
+mod body_mapped;
 mod body_choice;
 mod body_parts;
 mod body_place;
