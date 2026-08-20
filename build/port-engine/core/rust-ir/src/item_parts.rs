@@ -93,6 +93,11 @@ pub struct RustFn {
     pub params: Vec<RustParam>,
     /// The return type. `None` and the unit type both render without an arrow.
     pub ret: Option<RustType>,
+    /// Attributes the function carries, without the brackets a reader would write.
+    ///
+    /// The pack decides which and why; this face only spells them. Empty for a function that wants
+    /// none, which is most of them.
+    pub attrs: Vec<String>, // data_class: INTERNAL_ONLY
     /// The body. `None` is a signature with no body, which is what a trait item is.
     pub body: Option<Vec<RustStmt>>,
 }

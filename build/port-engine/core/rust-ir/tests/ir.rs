@@ -54,6 +54,7 @@ fn free_fn(name: &str, body: Vec<RustStmt>) -> RustItem {
             },
         ],
         ret: Some(RustType::path("i64")),
+        attrs: Vec::new(),
         body: Some(body),
     })
 }
@@ -140,6 +141,7 @@ fn a_trait_method_carries_no_visibility() {
             receiver: Some(Receiver::Shared),
             params: Vec::new(),
             ret: Some(RustType::path("String")),
+            attrs: Vec::new(),
             body: None,
         }],
     }]);
@@ -172,6 +174,7 @@ fn a_receiver_mode_is_a_choice_the_ir_can_express() {
                 receiver: Some(receiver),
                 params: Vec::new(),
                 ret: None,
+                attrs: Vec::new(),
                 body: None,
             }],
         }]);
@@ -215,6 +218,7 @@ fn a_struct_renders_fields_and_an_inherent_impl() {
             receiver: Some(Receiver::Shared),
             params: Vec::new(),
             ret: Some(RustType::path("i64")),
+            attrs: Vec::new(),
             body: Some(vec![RustStmt::Tail(RustExpr::Literal("0".to_owned()))]),
         }],
     }]);

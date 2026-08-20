@@ -222,6 +222,26 @@ fn lower_named_fields(fields: &[RustField]) -> Result<Vec<TokenStream>, PortErro
 
 fn lower_fn(function: &RustFn) -> Result<TokenStream, PortError> {
     let docs = lower_docs(&function.docs);
+    // Parsed rather than pasted, so an attribute the pack cannot spell refuses here instead of in
+    // the emitted file.
+    let attrs = function
+        .attrs
+        .iter()
+        .map(|attr| {
+            // Parsed as an item that CARRIES the attribute, because an attribute alone is not a
+            // parseable unit — and what comes back is the attribute, so an unspellable one refuses
+            // here rather than in the emitted file.
+            syn::parse_str::<syn::ItemStruct>(&format!("{attr} struct A;"))
+                .map_err(|err| PortError::Render {
+                    detail: format!("`{attr}` is not a valid target attribute: {err}"),
+                })
+                .and_then(|item| {
+                    item.attrs.into_iter().next().ok_or_else(|| PortError::Render {
+                        detail: format!("`{attr}` parsed as no attribute at all"),
+                    })
+                })
+        })
+        .collect::<Result<Vec<_>, _>>()?;
     let vis = lower_vis(function.vis);
     let name = parse_ident(&function.name)?;
 
@@ -259,10 +279,10 @@ fn lower_fn(function: &RustFn) -> Result<TokenStream, PortError> {
     };
 
     match &function.body {
-        None => Ok(quote! { #docs #vis fn #name(#(#inputs),*) #ret ; }),
+        None => Ok(quote! { #docs #(#attrs)* #vis fn #name(#(#inputs),*) #ret ; }),
         Some(body) => {
             let statements = lower_block(body)?;
-            Ok(quote! { #docs #vis fn #name(#(#inputs),*) #ret { #statements } })
+            Ok(quote! { #docs #(#attrs)* #vis fn #name(#(#inputs),*) #ret { #statements } })
         }
     }
 }

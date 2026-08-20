@@ -3974,3 +3974,42 @@ fn merge_round(acc: u64, val: u64) -> u64 {
     (acc ^ round(0, val)).wrapping_mul(PRIME1).wrapping_add(PRIME4)
 }
 ```
+
+## R2a — the attribute whose ABSENCE changes the program
+
+Three reviews asked for `#[inline]` on the hash primitives, and the third named the reason precisely:
+the absence is what you expect from somebody porting rather than somebody writing the target's hash
+crate. That is a style observation with a semantic argument underneath it, and the argument is the
+one that made this worth doing.
+
+**This is the rare case where NOT emitting something changes the ported program.** The source's
+compiler inlines a small function by a cost heuristic with no annotation; the target's does not,
+across codegen units, for a non-generic private one. So the source's helper is inlined and the port's
+is a call — a performance difference the TRANSLATION introduced rather than one the author chose.
+Emitting the attribute restores a decision the source already made.
+
+**One expression is the bound, and the narrowness is the argument.** That shape is what the source's
+own heuristic would certainly have inlined, so the attribute recovers a fact rather than inventing a
+judgement. `inline` and not `inline(always)`: the stronger form overrides the target's optimiser,
+which is a decision about a particular program that no translation can make. A PUBLIC function is
+left alone — whether to promise inlining across a crate boundary is the ported library's contract,
+and that belongs to whoever ports it.
+
+The attribute is parsed rather than pasted, through a carrier item, so one the pack cannot spell
+refuses at the IR rather than in the emitted file.
+
+`xxhash`'s two primitives now read:
+
+```rust
+#[inline]
+fn round(acc: u64, input: u64) -> u64 {
+    acc.wrapping_add(input.wrapping_mul(PRIME2)).rotate_left(31).wrapping_mul(PRIME1)
+}
+```
+
+**Declined, and worth writing down because it looks like a defect.** The same review called
+`MARSHALED_SIZE = MAGIC.len() + 8 * 5 + 32` its most decisive tell, on the grounds that `MAGIC` is
+`[u8; 4]` and the length is already in the type. True — and `.len()` on a fixed array is const,
+correct, and stays correct if the magic ever changes length, which folding it to `4` would not. The
+author wrote the derivation; the engine keeps it. What the reviewer is really seeing is that the
+CONSTANT exists at all, which is the source's wire format, not the engine's spelling of it.

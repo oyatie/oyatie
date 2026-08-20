@@ -914,6 +914,15 @@
       "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
       "seed_license": "MIT",
       "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
+    },
+    {
+      "id": "single_expression_is_inline",
+      "shape": "private_function_whose_body_is_one_expression",
+      "method": "#[inline]",
+      "reason": "A private function whose body is ONE expression carries the target's inline attribute. This is the rare case where NOT emitting something changes the ported program relative to the source: the source's compiler inlines a small function by a cost heuristic with no annotation, and the target's does not across codegen units for a non-generic private one. So the source's helper is inlined and the port's is a call, which is a performance difference the translation introduced rather than one the author chose. Three reviewers reading real ported packages asked for it, and the third named exactly this: the absence is what you expect from somebody porting rather than somebody writing the target's hash crate. ONE EXPRESSION is the bound, and it is deliberately narrow -- it is the shape the source's own heuristic would certainly have inlined, so the attribute restores a decision the source already made rather than inventing one. `inline` and not `inline(always)`: the stronger form overrides the target's optimiser, which is a judgement about a particular program that no translation can make.",
+      "seed_source": "github.com/jason931225/rust-skills/rules/lint-warn-style.md",
+      "seed_license": "MIT",
+      "seed_commit": "a28144ccd0f111d31c3c0873362182b238e80dbd"
     }
   ],
   "literal_constructors": {

@@ -78,6 +78,8 @@ pub const DISPOSITION_OWNED_POINTER: &str = "escaping_owned";
 pub const IDIOM_EMPTY_STRING: &str = "empty_string_comparison";
 /// The idiom that borrows a sequence as a slice rather than as its owned container.
 pub const IDIOM_BORROWED_SLICE: &str = "borrowed_sequence_is_a_slice";
+/// The idiom id for the target's inline hint on a private one-expression function.
+pub const IDIOM_SINGLE_EXPRESSION_INLINE: &str = "single_expression_is_inline";
 /// The idiom that spells a type as `Self` inside its own impl block.
 pub const IDIOM_SELF_IN_IMPL: &str = "self_inside_own_impl";
 /// The idiom that a counter used only as an index needs neither of the two conversions.

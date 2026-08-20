@@ -236,6 +236,7 @@ pub(crate) fn method_signature(
             // The trait fixed it, and this call exists only for the body it produces.
             crate::body::ResultShape::Inherited => results_owned(method, resolver)?,
         },
+        attrs: crate::params::inline_attrs(statements.as_deref(), vis, resolver),
         body: statements,
     })
 }

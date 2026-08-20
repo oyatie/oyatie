@@ -55,6 +55,7 @@ pub mod basic {
     }
     // region: oyatie_example_portengine_fixture_corpus_basic__go_func__normalize
     /// Returns n in its canonical form, which for a plain count is n itself.
+    #[inline]
     fn normalize(n: i64) -> i64 {
         n
     }
