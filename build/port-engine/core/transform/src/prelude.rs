@@ -62,6 +62,25 @@ pub(crate) fn prelude_items(
     if convention.alias.is_empty() || !unit_can_fail(unit, semantics, model) {
         return Vec::new();
     }
+    // NOT UNDER A NAME THIS UNIT ALREADY DECLARES. `tidwall/gjson` declares `type Result struct`,
+    // and the pack's alias is also `Result` — two public items of one name in one module, which is
+    // a redefinition error if both are emitted and a silent shadow of whichever loses if they are
+    // not. The unit's own type is the SOURCE'S CONTRACT and the alias is this engine's convenience,
+    // so the alias is the one that yields.
+    //
+    // A unit that both declares the name and needs the alias refuses at the point it needs it,
+    // rather than being given an alias under an invented second name — which would put a spelling
+    // in the emitted API that no reader of the source could predict.
+    let declares_alias = |name: &str| {
+        model
+            .declarations(unit)
+            .iter()
+            .flatten()
+            .any(|declaration| crate::naming::to_pascal_case(&declaration.name) == name)
+    };
+    if declares_alias(&convention.alias) {
+        return Vec::new();
+    }
     // The failure type gets a NAME of its own when the pack gives it one, and the result alias then
     // defaults to that name rather than to the spelling. Both aliases fit on a line; the one that
     // carried the spelling in its default did not, and broke across four.

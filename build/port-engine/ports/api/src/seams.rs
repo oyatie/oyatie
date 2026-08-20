@@ -204,6 +204,16 @@ pub trait PackSemantics {
     /// How the source's documentation convention differs from the target's.
     fn doc_convention(&self) -> &DocConvention;
 
+    /// The source method name that means "render me as text", or `""` when the pack names none.
+    ///
+    /// DEFAULTED, so a pack authored before this question was asked still admits: an empty name
+    /// matches no method and the rule simply does not fire. The name is pack data for the same
+    /// reason the failure interface's method name is — it is a convention of the SOURCE language,
+    /// and a pack for a different source language names a different one, or none.
+    fn display_method_source(&self) -> &str {
+        ""
+    }
+
     /// The derives a ported type earns, and what blocks each.
     fn derives(&self) -> &[DeriveRule];
 

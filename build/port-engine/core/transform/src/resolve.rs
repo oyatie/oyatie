@@ -78,6 +78,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) integer_arithmetic: &'a IntegerArithmetic,
     /// How the source's documentation convention differs from the target's.
     pub(crate) doc_convention: &'a DocConvention,
+    /// The source method name that means "render me as text", or `""` when the pack names none.
+    pub(crate) display_method_source: &'a str,
     /// The derives a ported type earns, and what blocks each.
     pub(crate) derives: &'a [DeriveRule],
     /// Idiom rules: spellings the target prefers, which change nothing about the program.

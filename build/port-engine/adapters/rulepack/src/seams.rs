@@ -101,6 +101,10 @@ impl PackSemantics for LoadedRulePack {
         self.failure_convention.as_ref()
     }
 
+    fn display_method_source(&self) -> &str {
+        &self.display_method_source
+    }
+
     fn trait_object_forms(&self) -> &BTreeMap<String, String> {
         &self.trait_object_forms
     }

@@ -50,6 +50,13 @@ pub(crate) struct RulepackDocument {
     pub(crate) zero_values: BTreeMap<String, String>,
     #[serde(default)]
     pub(crate) trait_object_forms: BTreeMap<String, String>,
+    /// The source method name that means "render me as text". See the pack's reason field.
+    #[serde(default)]
+    pub(crate) display_method_source: String,
+    /// Why that method IS the target's display trait. Carried like every other pack reason: a
+    /// decision whose justification is not in the pack is a decision nobody can audit.
+    #[serde(default)]
+    pub(crate) display_method_reason: String,
     #[serde(default)]
     pub(crate) failure_convention: Option<FailureDoc>,
     #[serde(default)]

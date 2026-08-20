@@ -40,7 +40,9 @@ pub(crate) fn inherent_methods(
     // would be an inherent method shadowing a trait method of the same name: it compiles because
     // inherent wins path resolution, and deleting the inherent one turns the trait impl's forward
     // into infinite recursion — a stack overflow introduced by removing code.
-    let claimed = methods_claimed_by_traits(declaration, resolver);
+    let mut claimed = methods_claimed_by_traits(declaration, resolver);
+    // THE DISPLAY METHOD too, when one will be emitted. See `impls::display_claims`.
+    claimed.extend(crate::impls::display_claims(declaration, resolver));
     let mut methods = Vec::new();
     for method in declaration
         .children_of_kind(CHILD_METHOD)

@@ -104,10 +104,11 @@ pub fn to_snake_case(raw: &str) -> String {
 /// `point` → `Point`. Rust's type convention; already-capitalized names pass through.
 #[must_use]
 pub fn to_pascal_case(raw: &str) -> String {
+    let chars: Vec<char> = raw.chars().collect();
     let mut out = String::with_capacity(raw.len());
     let mut capitalize_next = true;
     let mut previous_was_upper = false;
-    for ch in raw.chars() {
+    for (index, &ch) in chars.iter().enumerate() {
         if !ch.is_ascii_alphanumeric() {
             capitalize_next = true;
             continue;
@@ -115,20 +116,32 @@ pub fn to_pascal_case(raw: &str) -> String {
         if capitalize_next {
             out.push(ch.to_ascii_uppercase());
             capitalize_next = false;
-        } else {
-            // LOWER after the first letter of a run, which is what turns the source's `ID` into
-            // `Id` and its `HTTPServer` into `HttpServer`. The source's convention capitalises a
-            // whole acronym and the target's does not — RFC 430 spells one as a word — and copying
-            // the source's form is a naming a reviewer reads as the other language's, correctly.
-            //
-            // A letter that FOLLOWS a lower-case one starts a new word and keeps its own case, so
-            // `KSUID` becomes `Ksuid` and `NewKSUID` becomes `NewKsuid` rather than `Newksuid`.
-            out.push(match previous_was_upper {
-                true => ch.to_ascii_lowercase(),
-                false => ch,
-            });
+            previous_was_upper = ch.is_ascii_uppercase();
+            continue;
         }
-        previous_was_upper = ch.is_ascii_uppercase();
+        // LOWER after the first letter of a run, which turns the source's `ID` into `Id`. The
+        // source's convention capitalises a whole acronym and the target's does not — RFC 430
+        // spells one as a word — and copying the source's form reads as the other language's.
+        //
+        // THE LAST LETTER OF A RUN BELONGS TO THE NEXT WORD when a lower-case letter follows it.
+        // `UUIDFormat` is `UUID` and `Format`, not one word: the `F` opens the second. Without this
+        // the whole tail was folded into the acronym and `ErrInvalidUUIDFormat` came out as
+        // `InvalidUuidformat` — which a reviewer read as a typo, because beside
+        // `InvalidBracketedFormat` that is exactly what it looks like.
+        //
+        // This rule was already WRITTEN here, claiming `HTTPServer` became `HttpServer`. It did
+        // not; it became `Httpserver`. A comment describing behaviour the code does not have is
+        // worse than no comment, because it stops the next reader from checking.
+        let starts_next_word = previous_was_upper
+            && ch.is_ascii_uppercase()
+            && chars
+                .get(index + 1)
+                .is_some_and(|next| next.is_ascii_lowercase());
+        out.push(match previous_was_upper && !starts_next_word {
+            true => ch.to_ascii_lowercase(),
+            false => ch,
+        });
+        previous_was_upper = ch.is_ascii_uppercase() && !starts_next_word;
     }
     if out.is_empty() {
         out.push_str("Item");
