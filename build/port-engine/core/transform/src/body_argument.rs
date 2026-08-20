@@ -65,7 +65,57 @@ pub(crate) fn argument(
     let Some(target) = target else {
         return Ok(expr);
     };
+    // A parameter the callee BORROWS takes a borrow. The argument was built for a value position —
+    // a field read of a non-copying type CLONES, because reading one moves in the target — and a
+    // clone handed to a borrowing parameter is both the wrong type and an allocation the source
+    // never performed. `parse_int(self.str.clone())` where the callee takes `&str`.
+    //
+    // This is the call-site half of a decision the signature already made, applied at the other
+    // end — the same shape as the pointer disposition above, for the case where the parameter is a
+    // borrow the pack chose rather than one a disposition did.
+    // Read from the SPELLING, because a borrowed parameter reaches the table both ways: the pack's
+    // slice and string idioms produce a path that already carries the `&`, and a pointer
+    // disposition produces a structured reference. One test that covers both is one answer; two
+    // tests are how the signature and the call site come to disagree.
+    if target.ty.spelling().starts_with('&') {
+        return Ok(borrowed_for(expr, cx));
+    }
     Ok(own_string_for(expr, &target.ty.spelling(), cx))
+}
+
+/// An argument for a parameter the callee BORROWS.
+///
+/// A `.clone()` is UNDONE rather than borrowed: `&x.clone()` borrows a temporary that dies at the
+/// end of the statement, and the clone itself exists only because a value position needed an owned
+/// copy. This position does not.
+///
+/// An expression that is already a reference is left exactly alone — borrowing it again yields a
+/// double reference, which is the defect the range loop already had to learn.
+fn borrowed_for(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
+    if let RustExpr::Reference { .. } = expr {
+        return expr;
+    }
+    // ALREADY BORROWED because the enclosing signature borrows it. `u64(&b)` where `b` is already
+    // `&[u8]` is `clippy::needless_borrow`, and under the deny-warnings policy that is a build
+    // failure. The same answer the signature gave, read rather than derived a second time — which
+    // is what the range loop reads for exactly this question.
+    if let RustExpr::Path(name) = &expr
+        && cx.borrowed.contains(name)
+    {
+        return expr;
+    }
+    let inner = match expr {
+        RustExpr::MethodCall {
+            receiver,
+            ref method,
+            ref args,
+        } if method == "clone" && args.is_empty() => *receiver,
+        other => other,
+    };
+    RustExpr::Reference {
+        mutable: false,
+        inner: Box::new(inner),
+    }
 }
 
 /// Build the argument the construction describes.

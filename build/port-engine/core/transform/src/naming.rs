@@ -63,7 +63,15 @@ pub fn region_id_for_declaration(unit: &UnitId, rule: &RuleId, declaration: &str
 /// `MaxRetries` → `MAX_RETRIES`. Rust's constant convention.
 #[must_use]
 pub fn to_screaming_snake(raw: &str) -> String {
-    to_snake_case(raw).to_ascii_uppercase()
+    // NOT `to_snake_case(..).to_uppercase()`. That form escapes a target keyword first, and
+    // uppercasing the escape produces `R#FALSE` — which is not an identifier at all. Go's
+    // `const False` refused with a renderer error for exactly that, and took `True` with it,
+    // leaving `Type` numbered 0, 2, 3, 5: a public numbered type with two values missing and no
+    // hole where a reader could see them.
+    //
+    // No escape is needed here in the first place. Every target keyword is lower-case, so a
+    // SCREAMING name can never be one.
+    unescaped_snake_case(raw).to_ascii_uppercase()
 }
 
 /// `MaxRetries` → `max_retries`. Rust's function and binding convention.
@@ -71,6 +79,15 @@ pub fn to_screaming_snake(raw: &str) -> String {
 /// Runs of capitals are kept together, so `ParseURL` becomes `parse_url` and not `parse_u_r_l`.
 #[must_use]
 pub fn to_snake_case(raw: &str) -> String {
+    escape_keyword(&unescaped_snake_case(raw))
+}
+
+/// The same conversion WITHOUT the keyword escape.
+///
+/// Split out because the escape belongs to the binding form and not to the case conversion: a
+/// SCREAMING name is never a keyword, and escaping before uppercasing produced an identifier the
+/// renderer could not parse.
+fn unescaped_snake_case(raw: &str) -> String {
     let chars: Vec<char> = raw.chars().collect();
     let mut out = String::with_capacity(raw.len() + 4);
     for (index, ch) in chars.iter().enumerate() {
@@ -98,7 +115,7 @@ pub fn to_snake_case(raw: &str) -> String {
     if out.as_bytes().first().is_some_and(u8::is_ascii_digit) {
         out.insert(0, '_');
     }
-    escape_keyword(&out)
+    out
 }
 
 /// `point` → `Point`. Rust's type convention; already-capitalized names pass through.

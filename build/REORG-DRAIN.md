@@ -6333,3 +6333,70 @@ Go's `len(c)` is a builtin over the value, and the target's is a method on the t
 the type's obligations with it.
 
 Ten of ten packages now pass `rustc` and `clippy-driver` under `--deny=warnings`.
+
+## R3u — the receiver an interface binds, and two values that were never emitted
+
+Both review gates named the same three things. All three were engine decisions, not the Go source.
+
+### `&mut self` does not merely demand mutability — it forbids sharing
+
+The pack's fallback for a trait method receiver was EXCLUSIVE, argued as the choice that forbids
+nothing:
+
+> a shared receiver makes a mutating method unimplementable, whereas an exclusive one only demands
+> mutability from implementations that do not need it, which is a compile-time inconvenience rather
+> than a lost capability
+
+The premise is false, and both gates found the case that shows it. `memberlist.Delegate` carries its
+own documentation across — "All the methods must be thread-safe, as they can and generally will be
+called concurrently" — above five methods taking `&mut self`, which is the one signature that
+guarantees they cannot be. That is a lost capability, not an inconvenience.
+
+Neither default forbids nothing; they forbid opposite things. What decides it is what an interface
+value IS in the source: a copyable, aliasable handle that may be called from several goroutines at
+once, whose implementations mutate under their OWN synchronization.
+`TransmitLimitedQueue.GetBroadcasts` takes `q.mu.Lock()` before it touches anything. That is shared
+access with interior mutability, and the target spells it `&self`.
+
+So the fallback is now SHARED. It remains only a fallback: where an implementor is observed to
+mutate, the front end still escalates per method, and that answer still wins.
+
+`Send + Sync` was NOT added, though a reviewer asked for it. It is a bound the source's interface
+does not state, and an interface is not thread-safe because its documentation says implementations
+should be.
+
+### `R#FALSE` is not an identifier
+
+`gjson`'s `Type` emitted 0, 2, 3, 5 — a public numbered type with two values missing and no hole
+where a reader could see them. The Go-aware gate called it a silent fidelity break, correctly.
+
+`to_screaming_snake` was `to_snake_case(..).to_ascii_uppercase()`. The snake form ESCAPES a target
+keyword, so `False` became `r#false`, and uppercasing the escape produced `R#FALSE` — which the
+renderer refused, by name, for a reason that named the symptom. No escape was needed at all: every
+target keyword is lower-case, so a SCREAMING name can never be one. The escape belongs to the
+binding form and not to the case conversion, and it is now split out.
+
+Both constants emit. `Type` is 0 through 5.
+
+### A parameter the callee borrows takes a borrow
+
+    parse_int(self.str.clone())     // callee takes `&str`
+
+Newly reachable once those constants emitted, and it is doctrine §9 made visible: the argument was
+built for a VALUE position, where a field read of a non-copying type clones because reading one
+moves — and the clone handed to a borrowing parameter is both the wrong type and an allocation the
+source never performed.
+
+The mechanism was already there for the other direction: the signature table records each
+parameter's destination so an argument site can read the SAME decision. Only the borrowing case had
+no arm. It reads the target's SPELLING rather than its shape, because a borrowed parameter arrives
+both ways — the pack's slice and string idioms produce a path already carrying the `&`, and a
+pointer disposition produces a structured reference — and two tests for one question is how the two
+ends come to disagree.
+
+The `.clone()` is UNDONE rather than borrowed: `&x.clone()` borrows a temporary that dies at the end
+of the statement. And a parameter the enclosing signature already borrows is not borrowed again,
+which is the same answer the range loop reads for the same question.
+
+Ten of ten packages pass `rustc` and `clippy-driver` under `--deny=warnings`. The five goal
+repositories translate 162 declarations between them.
