@@ -146,6 +146,17 @@ func ownershipFactsSeen(
 				if rootIdent(arg) != name {
 					continue
 				}
+				// A VALUE argument cannot carry an effect back. `d.v1` is a `uint64` -- the call
+				// receives a COPY, and nothing it does can reach `d`. Asking the callee about it
+				// made `appendUint64(b, d.v1)` poison the receiver of every method that marshals,
+				// because that callee passes its own value parameter to a foreign call and the
+				// analysis stopped there. What it stopped at could not have mattered.
+				//
+				// The TYPE decides, not the expression: `d.mem[:d.n]` roots at `d` too and is a
+				// slice, which aliases the receiver and is still asked about.
+				if !carriesEffect(ctx.info.TypeOf(arg)) {
+					continue
+				}
 				inner, ok := calleeParameterFacts(typed, index, ctx, seen)
 				if !ok {
 					unknown = true
@@ -234,4 +245,48 @@ func isPointerReceiver(sig *types.Signature) bool {
 	}
 	_, pointer := types.Unalias(recv.Type()).(*types.Pointer)
 	return pointer
+}
+
+// carriesEffect reports whether a value of this type can carry an effect back to what it came from.
+//
+// A copy is all the callee gets, so only a type holding a REFERENCE to something else can let it
+// reach the caller's value: a pointer, a slice, a map, a channel, a function, an interface, or an
+// unsafe pointer. An integer cannot, and neither can a struct or an array made only of things that
+// cannot -- the copy is complete.
+//
+// Conservative on anything unrecognised: an unknown type is assumed to carry, because being wrong
+// that way costs a refusal and being wrong the other way costs a borrow chosen on a fact that was
+// never true.
+func carriesEffect(t types.Type) bool {
+	return carriesEffectSeen(t, map[types.Type]bool{})
+}
+
+func carriesEffectSeen(t types.Type, seen map[types.Type]bool) bool {
+	if t == nil {
+		return true
+	}
+	if seen[t] {
+		// A type reaching itself does so through a pointer, which has already answered yes.
+		return false
+	}
+	seen[t] = true
+	switch typed := t.(type) {
+	case *types.Basic:
+		return typed.Kind() == types.UnsafePointer
+	case *types.Named:
+		return carriesEffectSeen(typed.Underlying(), seen)
+	case *types.Array:
+		return carriesEffectSeen(typed.Elem(), seen)
+	case *types.Struct:
+		for i := 0; i < typed.NumFields(); i++ {
+			if carriesEffectSeen(typed.Field(i).Type(), seen) {
+				return true
+			}
+		}
+		return false
+	case *types.Pointer, *types.Slice, *types.Map, *types.Chan, *types.Signature, *types.Interface:
+		return true
+	default:
+		return true
+	}
 }

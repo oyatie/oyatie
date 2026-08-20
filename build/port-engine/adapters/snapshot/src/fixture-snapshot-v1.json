@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:91f4a1e88798cc3f89fe24d14ca56b16cd3e135cb56de2fe770ded14f3e2c886",
+  "snapshot_digest": "sha256:1e708931b836b9392ca669f2408c1ba34c126879f47187c626eb3861423527fa",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -2548,10 +2548,7 @@
               "type": {
                 "kind": "basic",
                 "name": "int64"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -2660,10 +2657,7 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "param",
@@ -2671,10 +2665,7 @@
               "type": {
                 "kind": "basic",
                 "name": "int64"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -2790,10 +2781,7 @@
               "type": {
                 "kind": "basic",
                 "name": "string"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -2996,10 +2984,7 @@
               "type": {
                 "kind": "basic",
                 "name": "int64"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -3108,10 +3093,7 @@
               "type": {
                 "kind": "basic",
                 "name": "int64"
-              },
-              "flags": [
-                "effect_unknown"
-              ]
+              }
             },
             {
               "kind": "result",
@@ -3222,7 +3204,6 @@
                 "name": "int64"
               },
               "flags": [
-                "effect_unknown",
                 "escapes"
               ]
             },
