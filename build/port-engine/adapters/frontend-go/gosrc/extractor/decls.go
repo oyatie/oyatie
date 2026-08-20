@@ -107,6 +107,11 @@ func typeDecl(obj *types.TypeName, base node, ctx *extractCtx) (node, error) {
 		return base, nil
 	}
 
+	if ctx.unsafeOnly[obj] {
+		base.Flags = append(base.Flags, flagUnsafeLayoutOnly)
+		sort.Strings(base.Flags)
+	}
+
 	named, ok := obj.Type().(*types.Named)
 	if !ok {
 		// A non-alias TypeName that is not Named is a builtin (`error`, `any`); the corpus

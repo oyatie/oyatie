@@ -72,6 +72,11 @@ pub(crate) struct UnmappableCallsRule {
 pub(crate) struct UnmappableTypesRule {
     #[serde(default)]
     pub(crate) types: std::collections::BTreeMap<String, String>,
+    /// Keyed by a FACT the front end records about a type, not by the type's name. A property that
+    /// makes a type unportable holds for every type that has it, in any package, and naming the
+    /// instances instead would make the rule a list of one repo's types.
+    #[serde(default)]
+    pub(crate) facts: std::collections::BTreeMap<String, String>,
     #[serde(default)]
     pub(crate) reason: String,
 }

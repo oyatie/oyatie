@@ -14,10 +14,35 @@ use crate::resolve::Resolver;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{CHILD_EMBEDS, CHILD_FIELD, POSITION_FIELD, POSITION_SUPERTRAIT};
 
+/// Refuse a type whose meaning is the SOURCE RUNTIME's memory layout.
+///
+/// The front end reports the fact; the pack supplies the reason. Asked before anything is built,
+/// because what is wrong with such a type is not any part of its translation — every field maps, the
+/// struct renders, and the result compiles. It is that the thing it describes does not exist on this
+/// side, so a faithful-looking translation is the worst possible outcome.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] naming the type, with the pack's reason.
+fn refuse_unportable_facts(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<(), TransformError> {
+    for flag in &declaration.flags {
+        if let Some(reason) = resolver.unmappable_facts.get(flag) {
+            return Err(TransformError::Unsupported {
+                name: declaration.name.clone(),
+                detail: format!("`{}` is `{flag}` — {reason}", declaration.name),
+            });
+        }
+    }
+    Ok(())
+}
+
 pub(crate) fn build_type_alias(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
 ) -> Result<RustItem, TransformError> {
+    refuse_unportable_facts(declaration, resolver)?;
     Ok(RustItem::TypeAlias {
         // The source's own aliases are concrete; only the failure alias takes a parameter.
         generics: Vec::new(),
@@ -39,6 +64,7 @@ pub(crate) fn build_newtype(
     resolver: &Resolver<'_>,
     body: Body,
 ) -> Result<RustItem, TransformError> {
+    refuse_unportable_facts(declaration, resolver)?;
     let vis = visibility(declaration);
     Ok(RustItem::Struct {
         docs: docs_of(declaration, resolver)?,
@@ -61,6 +87,7 @@ pub(crate) fn build_struct(
     resolver: &Resolver<'_>,
     body: Body,
 ) -> Result<RustItem, TransformError> {
+    refuse_unportable_facts(declaration, resolver)?;
     let mut fields = Vec::new();
     // The SOURCE types, kept alongside the resolved ones: a derive is decided by what the source
     // guarantees about a field, and the target spelling has already lost that.
@@ -93,6 +120,7 @@ pub(crate) fn build_trait(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
 ) -> Result<RustItem, TransformError> {
+    refuse_unportable_facts(declaration, resolver)?;
     Ok(RustItem::Trait {
         docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),

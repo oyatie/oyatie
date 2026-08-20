@@ -64,6 +64,7 @@ pub(crate) struct Resolver<'a> {
     pub(crate) unmappable_calls: &'a BTreeMap<String, String>,
     /// Types the pack refuses to map, and why each one cannot be mapped faithfully.
     pub(crate) unmappable_types: &'a BTreeMap<String, String>,
+    pub(crate) unmappable_facts: &'a BTreeMap<String, String>,
     /// What a source string constant becomes when its content is not text.
     pub(crate) binary_string: &'a port_engine_api::BinaryString,
     pub(crate) bit_pattern_constants: &'a port_engine_api::BitPatternConstants,

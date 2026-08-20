@@ -41,6 +41,7 @@ pub struct LoadedRulePack {
     pub(crate) target_imports: BTreeMap<String, String>,
     pub(crate) unmappable_calls: BTreeMap<String, String>,
     pub(crate) unmappable_types: BTreeMap<String, String>,
+    pub(crate) unmappable_facts: BTreeMap<String, String>,
     pub(crate) binary_string: BinaryString,
     pub(crate) bit_pattern_constants: BitPatternConstants,
     pub(crate) allocation: Allocation,

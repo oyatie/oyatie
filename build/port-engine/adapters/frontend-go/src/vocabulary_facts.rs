@@ -39,6 +39,7 @@ pub const KNOWN_FLAGS: &[&str] = &[
     // which the leading underscore answers without changing the signature.
     "unread",
     "variadic",
+    "unsafe_layout_only",
 ];
 
 /// The closed attribute-key vocabulary, closed for the same reason as the flags.

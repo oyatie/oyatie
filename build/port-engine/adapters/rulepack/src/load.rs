@@ -189,9 +189,16 @@ impl LoadedRulePack {
                 .unmappable_calls
                 .map(|rule| rule.calls)
                 .unwrap_or_default(),
+            // CLONED because both maps come from the one rule and each is read on its own. The
+            // rule is consumed once; taking two fields out of it needs the take to happen here.
             unmappable_types: doc
                 .unmappable_types
-                .map(|rule| rule.types)
+                .as_ref()
+                .map(|rule| rule.types.clone())
+                .unwrap_or_default(),
+            unmappable_facts: doc
+                .unmappable_types
+                .map(|rule| rule.facts)
                 .unwrap_or_default(),
             sequence_append: crate::load_values::sequence_append(doc.sequence_append),
             allocation: crate::load_values::allocation(doc.allocation),

@@ -1,9 +1,9 @@
 package main
 
 import (
-	"go/token"
 	"fmt"
 	"go/ast"
+	"go/token"
 	"go/types"
 	"strconv"
 	"strings"

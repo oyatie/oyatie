@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"sort"
 	"go/ast"
 	"go/parser"
 	"go/token"
 	"go/types"
 	"path/filepath"
+	"sort"
 )
 
 // One package: parse, type-check, and index what the declaration walk needs.
@@ -118,12 +118,13 @@ func extractPackage(
 	}
 
 	ctx := &extractCtx{
-		qualify:   qualify,
-		info:      info,
-		bodies:    bodies,
-		docs:      docs,
-		fieldDocs: fieldDocs,
-		varInits:  indexVarInitializers(files, tpkg),
+		qualify:    qualify,
+		info:       info,
+		bodies:     bodies,
+		docs:       docs,
+		fieldDocs:  fieldDocs,
+		varInits:   indexVarInitializers(files, tpkg),
+		unsafeOnly: indexUnsafeOnlyTypes(files, info, tpkg),
 	}
 	ctx.varWrites, ctx.varInitOnly = packageVarWrites(files, info, tpkg)
 	ctx.initAssignments = indexInitAssignments(files, tpkg)
@@ -255,6 +256,10 @@ type extractCtx struct {
 	// records its value and a `var` recorded nothing, so every package variable reached the engine
 	// as a name with no content.
 	varInits map[types.Object]varInit
+	// unsafeOnly names this package's own types whose every reference is inside the source's
+	// `unsafe.Pointer` escape hatch. Such a type describes the source runtime's memory layout,
+	// which the target does not share, so it is refused rather than ported. See unsafeuse.go.
+	unsafeOnly map[types.Object]bool
 	// reread names the bindings the enclosing body reads MORE THAN ONCE. The source copies a
 	// value on every read and the target moves it, so a second read of a non-copying binding is a
 	// use after move — and a binding read once is moved, which is what someone would write.

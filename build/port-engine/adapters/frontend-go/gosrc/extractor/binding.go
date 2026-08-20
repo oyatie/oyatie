@@ -3,8 +3,8 @@ package main
 import (
 	"go/ast"
 	"go/token"
-	"sort"
 	"go/types"
+	"sort"
 )
 
 // Statements that INTRODUCE a name or WRITE one.
