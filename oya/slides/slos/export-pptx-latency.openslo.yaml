@@ -40,7 +40,7 @@ spec:
     - kind: AlertPolicy
       metadata: { name: export-pptx-burn-rate }
       spec:
-        notificationTargets: [{ target: grafana-oncall:slides-sev3 }]
+        notificationTargets: [{ target: "grafana-oncall:slides-sev3" }]
         conditions:
           - kind: AlertCondition
             spec: { op: lt, threshold: 0.85, lookbackWindow: 1h, alertAfter: 0m }

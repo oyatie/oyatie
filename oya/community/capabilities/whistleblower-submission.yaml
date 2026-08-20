@@ -48,7 +48,8 @@ scope:
 
 encryption_model:
   scheme: hybrid (X25519 key agreement + AES-256-GCM content encryption)
-  key_custody: dual-control per ADR-0300 §W-3
+  key_custody: |
+    dual-control per ADR-0300 §W-3
     - key_share_1: trust-and-safety principal (ops-security team)
     - key_share_2: general-counsel designated trustee
     - both shares required to decrypt; neither can decrypt alone
