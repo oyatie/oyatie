@@ -47,7 +47,6 @@
     "governance/policy/ci-scope.cedar::source_ip": 2,
     "marketplace/plugin-app-store/policy/tenant-scope.cedar::rate_limit": 1,
     "oya/calendar/policy/public-read.cedar::rate_limit": 1,
-    "oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar::source_ip": 1,
     "oya/community/policy/anonymity-mode-fully-anonymous.cedar::ddos": 1,
     "oya/community/policy/anonymity-mode-fully-anonymous.cedar::rate_limit": 8,
     "oya/docs/policy/public-read.cedar::rate_limit": 2,
@@ -67,6 +66,7 @@
     "storage/imaging/policies/dose-monitoring-can-read-aggregate.cedar::ddos": 3,
     "tenancy/policy/abuse-defence.cedar::bot_score": 2,
     "workflow/forms/policy/public-read.cedar::waf": 1,
-    "workflow/tasks/policy/public-read.cedar::rate_limit": 1
+    "workflow/tasks/policy/public-read.cedar::rate_limit": 1,
+    "app/ci-webhook-gateway/policy/ci-webhook-gateway.cedar::source_ip": 1
   }
 }

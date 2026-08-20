@@ -10,7 +10,7 @@
     "iam/identity",
     "intelligence",
     "observability",
-    "oya/ci-webhook-gateway",
+    "app/ci-webhook-gateway",
     "oya/community",
     "secrets/kms"
   ]

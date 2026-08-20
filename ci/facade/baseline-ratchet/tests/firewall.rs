@@ -19,8 +19,8 @@ use std::sync::OnceLock;
 
 use ci_baseline_ratchet::{
     Baseline, FROZEN_SNAPSHOT_PATH, FrozenBaseline, RATCHET_POLICY_PATH, SIGNOFF_FIXER_COMMAND,
-    SIGNOFF_PATH, SignOff, baseline_keys_map, evaluate_firewall, ratchet_growth,
-    relabel_baseline_for_renames,
+    SIGNOFF_PATH, SignOff, baseline_keys_map, derive_directory_renames, evaluate_firewall,
+    ratchet_growth, relabel_baseline_for_renames,
 };
 use serde_json::Value;
 
@@ -78,6 +78,27 @@ fn ratchet_policy_path(root: &Path) -> PathBuf {
 /// missing merge-base, shallow clone) this returns an EMPTY map, which relabels nothing
 /// and leaves the ratchet in its strict pre-existing behaviour. The failure mode of this
 /// helper is therefore a false RED that a human investigates, never a false GREEN.
+/// Tracked paths at HEAD, so the directory-rename derivation can tell a WHOLESALE move
+/// from a partial one (a directory that still holds tracked files did not move).
+fn head_tracked_paths(root: &Path) -> BTreeSet<String> {
+    let Ok(out) = Command::new("git")
+        .current_dir(root)
+        .args(["ls-files", "-z"])
+        .output()
+    else {
+        return BTreeSet::new();
+    };
+    if !out.status.success() {
+        return BTreeSet::new();
+    }
+    std::str::from_utf8(&out.stdout)
+        .unwrap_or_default()
+        .split('\0')
+        .filter(|path| !path.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
 fn detect_renames(root: &Path, merge_base: &str) -> BTreeMap<String, String> {
     let mut renames = BTreeMap::new();
     if merge_base.is_empty() {
@@ -548,7 +569,16 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
     // an in-place edit and the debt follows the file. Not a waiver: the key count per code
     // is unchanged, the violation stays tolerated, and debt ADDED alongside a move still
     // regresses. See `relabel_baseline_for_renames` for the existence/non-collision guards.
-    let renames = detect_renames(&root, &frozen.merge_base);
+    let mut renames = detect_renames(&root, &frozen.merge_base);
+    // Git reports FILE renames, but some gates key their debt by crate DIRECTORY
+    // (`cloud-ci-target-parity` keys a workspace member dir). Without this, a wholesale
+    // directory move leaves those keys unrelabelled and scores as a regression at the
+    // destination plus a fix at the source — net-zero debt that still REDs the gate.
+    // The derivation only pairs directories that moved WHOLESALE and unambiguously.
+    renames.extend(derive_directory_renames(
+        &renames.clone(),
+        &head_tracked_paths(&root),
+    ));
     if !renames.is_empty() {
         eprintln!(
             "FIREWALL rename-relabel: {} path rename(s) detected since merge-base {}; \

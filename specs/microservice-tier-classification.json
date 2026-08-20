@@ -39,7 +39,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "audit/manifest.json": {
@@ -77,7 +77,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "billing/manifest.json": {
@@ -91,7 +91,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "billing/tax/manifest.json": {
@@ -105,7 +105,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "cell/cell-lifecycle/manifest.json": {
@@ -397,7 +397,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "gateway/connector/manifest.json": {
@@ -679,7 +679,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "marketplace/plugin-app-store/manifest.json": {
@@ -1009,7 +1009,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "storage/imaging/manifest.json": {
@@ -1023,7 +1023,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "storage/manifest.json": {
@@ -1037,7 +1037,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "storage/recordings/manifest.json": {
@@ -1051,7 +1051,7 @@
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 \u00a7D-1 DAG node yet; forward-declared (Appendix C class)"
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
     "tenancy/manifest.json": {
@@ -1121,7 +1121,7 @@
           "tenancy"
         ],
         "consumed_by_substrates": [],
-        "_note": "ADR-0562 capability-registry declares workflow tier=substrate stratum=S4. depends_on is the UNION of the absorbed service manifests, all four of which declare the identical set. It was empty, which erased every workflow substrate edge for any DAG projection or operational ordering that reads the capability root instead of the per-service manifests \u2014 the root is strictly more depended-upon than its parts, never less."
+        "_note": "ADR-0562 capability-registry declares workflow tier=substrate stratum=S4. depends_on is the UNION of the absorbed service manifests, all four of which declare the identical set. It was empty, which erased every workflow substrate edge for any DAG projection or operational ordering that reads the capability root instead of the per-service manifests — the root is strictly more depended-upon than its parts, never less."
       }
     },
     "workflow/tasks/manifest.json": {
