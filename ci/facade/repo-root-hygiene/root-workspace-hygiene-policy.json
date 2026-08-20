@@ -366,6 +366,23 @@
           "oya/",
           "libs/"
         ]
+      },
+      "yaml_files": {
+        "prefixes": [
+          ""
+        ],
+        "suffixes": [
+          ".yaml",
+          ".yml"
+        ]
+      },
+      "json_files": {
+        "prefixes": [
+          ""
+        ],
+        "suffixes": [
+          ".json"
+        ]
       }
     },
     "counts": {
@@ -375,7 +392,9 @@
       "live_adr_files": 19,
       "dotdir_files": 242,
       "reorg_paths": 25,
-      "oya_legacy_root_files": 1868
+      "oya_legacy_root_files": 1868,
+      "yaml_files": 3025,
+      "json_files": 1279
     },
     "reviewed_raises": {
       "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
