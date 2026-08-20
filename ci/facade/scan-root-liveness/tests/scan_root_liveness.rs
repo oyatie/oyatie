@@ -295,11 +295,15 @@ fn collect(root: &Path, coverage_keys: &[String]) -> Observed {
 
     let facade = root.join("ci/facade");
     // NOT `else { return Observed::default() }`. That was this crate's own defect,
-    // in the crate that exists to detect it: an unreadable ci/facade produced an
-    // EMPTY corpus, every check then passed over nothing, and the only thing standing
-    // between that and a green gate was the min_expected_roots floor — a guard that
-    // happened to be there, not a guarantee. An unreadable scan root is a gate
-    // failure and must name the path.
+    // in the crate that exists to detect it. MEASURED, by pointing this path at an
+    // absent directory on the pre-change code: `live_corpus_is_green_against_the_
+    // frozen_policy` — the assertion that carries the gate's VERDICT — passed GREEN
+    // over a corpus of zero. It was not the min_expected_roots floor that objected
+    // either; what failed were three collateral fidelity checks, and each of them
+    // told the reader to `remove it from baselined_dead_roots`, i.e. handed them a
+    // remediation that would have made the vacuous gate permanently green. An
+    // unreadable corpus root is a gate failure, it must be reported as one, and it
+    // must name the path.
     let gate_dirs = std::fs::read_dir(&facade).unwrap_or_else(|e| {
         panic!(
             "cannot read the gate corpus root {}: {e} — this is a GATE FAILURE, not an empty \
