@@ -90,15 +90,15 @@ exclude = [
   # (ci/facade/automation-language-policy gained a Cargo manifest with ADR-0716 so the
   # rust-first ratchet is enforced by the cargo merge path.)
   #
-  # `governance/check/integ-envelope` is matched by `governance/check/*` but holds only
-  # judgments/waivers DATA (no [package] manifest) — exclude so cargo/freshness resolve.
+    # `governance/check/integ-envelope` was excluded here while it held only
+    # judgments/waivers DATA. ADR-0711 Phase B gives it an evaluator, so it is a
+    # crate now and rejoins the `governance/check/*` member glob.
   #
   # The ~23 `<cap>/observability`-shaped entries that used to live here are GONE, not relocated:
   # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
   "ci/facade/harness",
-  "governance/check/integ-envelope",
   # os/harness/{attestation-relying-party,oci-executor-oracle} absorbed into
   # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
   "kernel",

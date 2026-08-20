@@ -393,7 +393,7 @@
       "dotdir_files": 242,
       "reorg_paths": 25,
       "oya_legacy_root_files": 1869,
-      "yaml_files": 3022,
+      "yaml_files": 3023,
       "json_files": 1286
     },
     "reviewed_raises": {
@@ -422,6 +422,11 @@
         "from": 1285,
         "to": 1286,
         "reason": "governance/check/id-discipline/id-discipline-policy.json is the FIRST machine-readable declaration of the canonical ID scheme in this repository. The rule lived only in ADR prose, which is why ADR-0709 contradicted itself in four places. The same change wires id-discipline to the live corpus and removes it from baselined_dark_gate_crates, so one JSON file buys an enforceable rule and one fewer dark gate."
+      },
+      "yaml_files": {
+        "from": 3022,
+        "to": 3023,
+        "reason": "registry/catalog/check-integ-envelope.yaml is the catalog row the crate-catalog-coverage gate requires for the ADR-0711 Phase B envelope gate crate. Forced by another gate, not chosen."
       }
     }
   }
