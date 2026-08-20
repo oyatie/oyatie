@@ -146,7 +146,6 @@ mod tests {
     }
 }
 
-
 // ---------------------------------------------------------------------------
 // Freshness of the de-committed `scm-facts.generated.json` face.
 //
@@ -167,7 +166,6 @@ mod tests {
 
 use std::fs;
 use std::path::{Path, PathBuf};
-
 
 /// Locate the git index for `root`, following the `gitdir:` pointer that a linked
 /// worktree writes into its `.git` file. Returns `None` when there is no index to
@@ -249,7 +247,10 @@ mod scm_face_freshness_tests {
         touch(&index, now);
 
         let verdict = declared_face_is_fresh(&dir, &face);
-        assert!(verdict.is_err(), "a face older than the index must be rejected");
+        assert!(
+            verdict.is_err(),
+            "a face older than the index must be rejected"
+        );
         let reason = verdict.unwrap_err();
         assert!(
             reason.contains("STALE") && reason.contains("rm "),
