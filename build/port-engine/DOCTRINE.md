@@ -271,6 +271,30 @@ Not gaps — decisions. Each would require emitting machinery that changes obser
 
 State on 2026-08-20. Update with measurements, not impressions.
 
+### Measure `compiles`, never `translated`
+
+`survey` reports how many declarations TRANSLATED. That is the engine's confidence, not a fact about
+Rust. Run `compile-corpus.sh` after every rule. Current: 6 of 9 emitted packages compile; gjson (6
+errors), chi (5), ksuid (8) do not.
+
+A rule is finished when its cause has left the histogram AND the output still compiles. Coverage is
+not the test in either direction — a rule that lowers coverage by refusing something it cannot spell
+is a good rule, and a rule that raises it can break the build. Both have now happened:
+the tagless-switch rule raised coverage and broke `uuid`; the string-slice refusal lowered coverage
+and fixed gjson.
+
+### Trust the instrument only after testing the instrument
+
+Three separate times a measurement was wrong before the engine was:
+
+- `rustc -o /dev/null` cannot create its temporary directory. Six packages read as broken.
+- Concatenating the emitted modules into one file made names collide across two source packages.
+  Nine of chi's fourteen errors were the harness.
+- `survey_cause` had no arm for `UndecidedForm`, so one cause split into eighteen single-site rows
+  and the largest structural blocker in the corpus never appeared in the ranking at all.
+
+A number that changes the plan is worth one experiment against a case whose answer is already known.
+
 ### Ownership is decided per declaration and never reconciled across the call graph
 
 Probe (`Mutate`/`Callee`, real output):
@@ -296,8 +320,13 @@ accidental, not designed, and the deep-copy variant of the same mistake would co
 
 - **Closures (`FuncLit`) have no translation.** Measured top cause: 30 sites across gjson and chi.
   Closures are a capture-ownership problem, so the ownership solver is underneath them, not after.
-- **Go strings are bytes, not UTF-8.** A Go string may hold invalid UTF-8 and may be sliced at
-  non-boundaries; Rust `String` may not. Not yet modelled.
+- **Go strings are bytes.** Indexing goes through `as_bytes()`; SLICING refuses, because `&s[a..b]`
+  panics when a bound falls inside a multi-byte character and the source cannot fail there at all.
+  Deciding the ported program's string type is what unblocks it.
+- **Package-scope variable state is the largest structural cause** — 57 sites, three undecided forms.
+  `init_written_package_var` is the tractable one: a variable only the package initialiser writes is
+  computed once and never changes, and what it lacks is an initialising expression rather than a
+  concurrency decision.
 - **Nil interface ≠ interface holding a typed nil pointer.** Not yet distinguished.
 - **`memberlist` does not extract** — type-checks into `golang.org/x/sys/unix`.
 - **No differential execution against Go.** `rustc` supplies memory safety; it says nothing about
