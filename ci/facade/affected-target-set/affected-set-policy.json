@@ -61,6 +61,7 @@
       "root//ci/facade/supply-chain-audit:",
       "root//governance/check/doc-catalog:",
       "root//governance/check/image-signing-discipline:",
+      "root//governance/check/integ-envelope:",
       "root//governance/check/slsa-l3-evidence-grounded:",
       "root//libs/oya-ci-config:",
       "root//libs/oya-crate-registrar-app:",
@@ -88,6 +89,7 @@
       "root//ci/facade/supply-chain-audit:",
       "root//governance/check/doc-catalog:",
       "root//governance/check/image-signing-discipline:",
+      "root//governance/check/integ-envelope:",
       "root//governance/check/slsa-l3-evidence-grounded:",
       "root//libs/oya-governance-gate-catalog-domain:",
       "root//marketplace/facade/dev-cli:"
