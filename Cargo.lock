@@ -1253,6 +1253,9 @@ version = "0.1.0"
 [[package]]
 name = "check-layered-architecture-discipline"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-metric-cardinality"
@@ -1343,6 +1346,9 @@ version = "0.1.0"
 [[package]]
 name = "check-shardability"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-slsa-l3-evidence-grounded"
