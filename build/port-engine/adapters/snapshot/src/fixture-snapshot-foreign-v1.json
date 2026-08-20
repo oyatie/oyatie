@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
-  "snapshot_digest": "sha256:17ec4e21ca7693d9cb22a6a7d55497286575f62e3a966089a4d7f38838db501e",
+  "build_config": "linux/amd64 go1.22 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:bbb179d53e58a9d52d791ef786ef7ffbd319d5a75b9dcd352539e6ead18b38f9",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign",

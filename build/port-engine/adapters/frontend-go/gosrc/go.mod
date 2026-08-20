@@ -6,4 +6,12 @@
 // graph, oya-deps.toml, or deny.toml.
 module oyatie.example/portengine-fixture
 
-go 1.24
+// The release the extractor is CONFIGURED for, which it treats as a ceiling: a corpus declaring a
+// later one is refused rather than silently checked below what its own module requires. This module
+// declared go1.24 while extraction ran at the configured release, so `regen-fixtures.sh` had been
+// failing since that guard landed, and the declaration is what moved.
+//
+// go1.22 is the engine's minimum supported release, and the reason is loop-variable scoping: 1.22
+// gave each iteration its own variables, so a corpus checked at the wrong release differs in what a
+// closure captures -- same syntax, different program.
+go 1.22

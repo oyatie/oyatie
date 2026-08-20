@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
-  "snapshot_digest": "sha256:520b22447c18565ec76945f08c4a32749b3513e240cf2fded540e292832b858b",
+  "build_config": "linux/amd64 go1.22 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:cbeeb12b53433d9e19f8a3494154d02160b943d5ff8831b1c7b2655dd24de88e",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-ownership/corpus-ownership/escaping",

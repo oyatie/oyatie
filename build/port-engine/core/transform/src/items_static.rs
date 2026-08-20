@@ -381,23 +381,29 @@ pub(crate) const CONSTRUCTION: &str = CONSTRUCTION_RUST_STATIC;
 
 /// A sequence of BYTE LITERALS as the target's byte-string literal.
 ///
-/// Every element must be a byte literal in the printable ASCII range and none may need escaping:
-/// `b"..."` carries its bytes literally, so a quote, a backslash or anything unprintable would have
-/// to be escaped by rules this does not implement, and getting one wrong changes a byte.
+/// Every element must be a byte literal, and each is carried by VALUE rather than by spelling. A
+/// byte the string can hold literally is written as itself; a quote, a backslash or anything
+/// outside the printable range is written as its own `\xHH`, which is the same byte and is what the
+/// target would print back.
+///
+/// This used to refuse any element that needed escaping, on the grounds that "getting one wrong
+/// changes a byte". Decoding removes the risk rather than avoiding it — the value is read once and
+/// re-spelled from the number — and refusing was not free: chi's terminal-colour tables all begin
+/// with an escape byte, so seventeen of them emitted the long form and `clippy::byte_char_slices`
+/// rejected every one under the deny-warnings policy.
 fn byte_string(initialiser: &Declaration, body: &Body<'_>) -> Option<RustExpr> {
     let mut bytes = String::new();
     for element in &initialiser.children {
         let RustExpr::Literal(spelled) = expression(element, body).ok()? else {
             return None;
         };
-        let inner = spelled.strip_prefix("b'")?.strip_suffix('\'')?;
-        let [byte] = inner.as_bytes() else {
-            return None;
-        };
-        if !byte.is_ascii_graphic() || *byte == b'"' || *byte == b'\\' {
-            return None;
+        let byte = u8::try_from(crate::body_escape::rune_code_point(spelled.strip_prefix('b')?)?)
+            .ok()?;
+        // The printable range, less the two characters that would end or escape the string.
+        match (0x20..=0x7e).contains(&byte) && byte != b'"' && byte != b'\\' {
+            true => bytes.push(char::from(byte)),
+            false => bytes.push_str(&format!("\\x{byte:02x}")),
         }
-        bytes.push(char::from(*byte));
     }
     match bytes.is_empty() {
         true => None,

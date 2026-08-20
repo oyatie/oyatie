@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
-  "snapshot_digest": "sha256:1e2bb55f61e70d542f80a7da074da1b41cd7073b86a9123afa8ad049862df56d",
+  "build_config": "linux/amd64 go1.22 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:23bcc670c49ab18064a8e02d11c1e79756a8e339a3b47fad915434febfb6ef8f",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/drift",

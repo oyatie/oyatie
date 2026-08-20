@@ -245,9 +245,17 @@ buf[x:y]             → &buf[x..y]
 closure              → Box<dyn Fn(..)> / impl Fn, by capture analysis
 ```
 
-Go releases 1.21 through latest are in scope. The extractor type-checks at a stated release and the
-release is a receipt axis (§5). The ceiling is the installed toolchain: a release it does not know
-is refused, correctly, rather than silently downgraded.
+Go releases **1.22 through latest** are in scope. The extractor type-checks at a stated release and
+the release is a receipt axis (§5). The ceiling is the installed toolchain: a release it does not
+know is refused, correctly, rather than silently downgraded.
+
+The floor is 1.22 and not 1.21 BY DECISION. Go 1.22 gave each loop iteration its own variables, so
+a closure created in a loop captures a shared variable under the old rule and a fresh one under the
+new. That is the same syntax and a different program, and nothing downstream — not the compile
+proof, not a reviewer — can see which rule was meant. Supporting 1.21 would mean implementing both
+capture rules and selecting per module; making 1.22 the floor deletes the choice rather than
+answering it. A module declaring 1.21 or earlier is refused by the ceiling check, which is the
+correct outcome for semantics this engine does not implement.
 
 ---
 

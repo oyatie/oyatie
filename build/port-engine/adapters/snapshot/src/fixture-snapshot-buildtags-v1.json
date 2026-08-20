@@ -1,8 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
-  "snapshot_digest": "sha256:7c3b80911073aa5fa74e31547fd4717052b753ebb6bfe69cda7285838cc9f3b5",
+  "build_config": "linux/amd64 go1.22 tooltags=amd64.v1",
+  "snapshot_digest": "sha256:b7706a35f135f93ed3d2b83f111da5c3284af5753cd9609b36f6ce60919a5efe",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-buildtags/corpus-buildtags/tagged",

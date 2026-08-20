@@ -6880,3 +6880,68 @@ The four that landed beside it:
 - A type is promoted to `pub` only on behalf of a declaration that is actually EMITTED. chi's
   `RouteCtxKey` refuses as `exported_package_var` and was still widening `contextKey` to `pub` —
   a type made public on behalf of a reader that does not exist.
+
+## R4j — an escape denotes a number, and the number is the same in both languages
+
+The refusal histogram named chi's top cause, and reading it as the method requires showed it was
+not a refusal at all:
+
+    17  renderer refused: `b'\033'` is not a valid target literal: cannot parse string into token stream
+
+`\033` is how the source spells ESC. The rune path copied the source's spelling into a target byte
+literal — `b{value}` — and the target has no octal escape, so `syn` could not parse it. Seventeen
+declarations of a real package were blocked on a literal whose value was never in doubt.
+
+The source's escape vocabulary is WIDER: `\a`, `\b`, `\f`, `\v` and three-digit octal have no target
+spelling. They cannot be carried across as text. They can be COMPUTED, because an escape denotes a
+number and the number is the same in both. `body_escape.rs` decodes one and the caller re-spells it:
+`'\033'` becomes `b'\x1b'`, and a `char` gets `'\u{..}'`.
+
+The escapes the two languages SHARE keep the source's spelling. `'\n'` stays `'\n'` — respelling by
+code point is for the escapes that need it, and making it the rule for all of them would be a worse
+output for no gain. That case is a test rather than a comment.
+
+chi went 33 → 50 translated, 17.5% → 26.5%. Then the compile gate went red with 18 errors, which is
+the whole point of running it after every rule:
+
+    error: can be more succinctly written as a byte str    x17
+
+`clippy::byte_char_slices`. The byte-string rule refused any element needing an escape, on the
+grounds that "getting one wrong changes a byte" — and chi's colour tables all BEGIN with the escape
+byte, so every one of them emitted the long form. Decoding removes that risk rather than avoiding
+it: the byte is read once as a value and re-spelled from the number.
+
+    const N_BLACK: [u8; 5] = *b"\x1b[30m";
+
+A byte the string can hold literally is written as itself; a quote, a backslash, or anything outside
+the printable range is written as its own `\xHH`.
+
+TWO RULES, ONE FINDING, and the second only existed because the first landed. A rule is not finished
+when its cause leaves the histogram.
+
+## R4k — the minimum supported release is go1.22, and it is not the same number as the extraction release
+
+Go 1.22 gave each loop iteration its own variables. A closure created in a loop captures one shared
+variable under the old rule and a fresh one under the new: the same syntax, a different program, and
+nothing downstream can see which was meant. Supporting 1.21 would mean implementing BOTH capture
+rules and selecting per module. Making 1.22 the floor deletes the choice instead of answering it.
+
+`regen-fixtures.sh` had been failing since the ceiling guard landed — the fixture module declared
+go1.24 while extraction ran at the configured go1.21 — so the fixtures had not been regenerable for
+some time and nothing said so. The module now declares 1.22.
+
+The two numbers are DIFFERENT THINGS and the constant was conflating them. `defaultRelease` is the
+engine's floor. The release a corpus is extracted at is the one ITS OWN module declares — gjson and
+chi say go1.23, memberlist says go1.25 — and it is a receipt axis, so it is passed per corpus rather
+than defaulted. Raising the floor to 22 made that visible by refusing three corpora that had been
+extracting by accident.
+
+Moving the floor changed `build_config` and nothing else: the golden is byte-identical at 1.22.
+
+## R4l — the manifest is only the whole engine if something regenerates it
+
+Adding `body_escape.rs` turned `the_manifest_is_the_whole_engine` red, correctly: a source nobody
+lists changes emitted bytes with no axis movement. The step was documented as required after every
+source change and had no tool, so it was done by hand or not at all. `regen-sources.sh` does it, and
+its first run reproduced all thirteen existing manifests byte-for-byte while adding the one missing
+line — which is the evidence that it matches what was there.
