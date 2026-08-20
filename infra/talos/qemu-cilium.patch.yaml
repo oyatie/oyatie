@@ -1,8 +1,0 @@
-# Apply with `talosctl cluster create dev --config-patch @...` so both node types
-# disable the bundled CNI and kube-proxy before Cilium is installed.
-cluster:
-  network:
-    cni:
-      name: none
-  proxy:
-    disabled: true

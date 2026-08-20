@@ -157,7 +157,7 @@ pub(crate) fn fallible_return(
         });
     }
 
-    if !is_certainly_a_failure(failure, cx) {
+    if !is_certainly_a_failure(failure, cx.resolver) {
         return Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),
             detail: format!(

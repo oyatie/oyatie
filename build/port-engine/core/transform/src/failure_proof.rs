@@ -12,6 +12,7 @@ use port_engine_api::Declaration;
 use port_engine_rust_ir::RustExpr;
 
 use crate::body::Body;
+use crate::resolve::Resolver;
 use crate::naming::to_screaming_snake;
 use crate::vocabulary::{
     ATTR_CALLEE, ATTR_OP, KIND_CALL, KIND_COMPOSITE, KIND_IDENT, KIND_UNARY, OPERATOR_ADDRESS_OF,
@@ -40,9 +41,9 @@ use crate::vocabulary::{
 /// The TESTED binding — `if err != nil { return 0, err }` — is not listed because it never reaches
 /// here: the propagation rule recognises that whole shape and rewrites it to the target's operator,
 /// which is the translation that makes the check impossible to forget.
-pub(crate) fn is_certainly_a_failure(operand: &Declaration, cx: &Body<'_>) -> bool {
+pub(crate) fn is_certainly_a_failure(operand: &Declaration, resolver: &Resolver<'_>) -> bool {
     match operand.kind.as_str() {
-        KIND_CALL => cx.resolver.failure.is_some_and(|convention| {
+        KIND_CALL => resolver.failure.is_some_and(|convention| {
             operand
                 .attr(ATTR_CALLEE)
                 .is_some_and(|callee| convention.constructors.contains(callee))
@@ -57,7 +58,7 @@ pub(crate) fn is_certainly_a_failure(operand: &Declaration, cx: &Body<'_>) -> bo
         // A SENTINEL, which the unit declares as a failure built by a declared constructor. Proven
         // for the same reason the direct call is: the constructor has no absent result to return,
         // and the sentinel is that call's value under a name.
-        KIND_IDENT => cx.resolver.scope.sentinels.contains_key(&operand.name),
+        KIND_IDENT => resolver.scope.sentinels.contains_key(&operand.name),
         _ => false,
     }
 }

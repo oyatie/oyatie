@@ -38,6 +38,19 @@ pub(crate) fn returned_operand(
     }
     // A getter's result is a BORROW of the receiver, so the field read is not a copy and needs no
     // clone. Same proof the signature read, so the two cannot disagree.
+    // A stored FAILURE is lent, not copied: the field holds an owned optional box and the result
+    // is an optional borrow. The target spells that conversion with one method, and which method
+    // is the pack's to say.
+    if cx.results.borrows_failure
+        && index == 0
+        && let Some(method) = cx.resolver.idiom_method(crate::vocabulary::IDIOM_FAILURE_GETTER)
+    {
+        return Ok(RustExpr::MethodCall {
+            receiver: Box::new(crate::body_place::field_place(operand, cx)?),
+            method: method.to_owned(),
+            args: Vec::new(),
+        });
+    }
     if cx.results.borrows_receiver && index == 0 {
         return Ok(RustExpr::Reference {
             mutable: false,

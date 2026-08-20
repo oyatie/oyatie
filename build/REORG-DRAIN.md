@@ -4553,3 +4553,56 @@ that exists and is justified, not a new concept.
 
 Nothing was built this phase. The measurement is the deliverable: 13/32, the discriminator, and the
 fact that three symptoms recorded separately are one cause.
+
+## R2m — the nullability hole closed, and a recorded decision overturned
+
+R2l diagnosed it; this builds the part that is provable. The source's `error` is a nullable interface
+value and the pack mapped it, in every position that stores one, to a target type that cannot be
+absent. Two changes, both narrow:
+
+**A stored failure is optional.** A FIELD of the failure type now takes `Option<Box<dyn StdError +
+Send + Sync>>`. Seeded from `rust-skills/rules/type-option-nullable.md` (MIT,
+d525d2c8ff47f5f08d038319f89cacf9e9f1ee60): use `Option<T>` for a value that might not exist, so
+absence cannot masquerade as a normal value. One line moved in the hermetic golden —
+`Report.cause` — which is the corpus proving it had the case all along.
+
+**A getter of a stored failure lends it.** A sole failure result whose EVERY return reads a field of
+the receiver becomes `Option<&(dyn StdError + Send + Sync)>`, and the read becomes `as_deref`. This
+is the target's own shape for it: `std::error::Error::source` has exactly that signature.
+
+**The overturn, stated plainly.** The refusal fixture's own documentation recorded the opposite
+decision — that a getter's optional form would be *"reading intent from a shape, not proving it"*, so
+the engine refused and named the missing proof. That objection was right about the rule I first
+wrote. My initial discriminator was "no return hands back the absent value", which cannot tell a
+getter from a validator that delegates: `func Validate() error { return doCheck() }` never returns
+`nil` literally either, and turning that into `Option<E>` would change a fallible operation's API on
+a shape rather than a proof.
+
+So the rule was narrowed to what is actually proven: every return reads a field of the RECEIVER —
+the same proof `borrows_from_receiver` already makes for strings, and already accepted as sound. The
+claim is not that the function is semantically a getter. It is that the value handed back is a stored
+field that may be absent, and an optional borrow says exactly that, where `Result` would claim an
+operation succeeded or failed and `Ok(())` would have to mean "there is no cause".
+
+**The fence was preserved rather than deleted, which is the part that mattered.** With `Cause`
+translating, the fixture no longer refused anything, and the honest response to a failing invariant
+is not to weaken it. A `Check() (int, error)` case was ADDED, returning the same possibly-absent
+field in a trailing position beside a companion result. There the operand is the CHANNEL, `Err(..)`
+is unconditional, and no alternative spelling exists — so it still refuses, still by OPERAND, which
+is what keeps it distinguishable from `Wrapped` returning a declared constructor.
+
+**Two things the engine's own gates caught, both real.** The compile proof rejected the first
+attempt: `Option<Box<dyn Error>>` is not `Clone`, so a getter could not hand its field back at all —
+which is what forced the borrowed form rather than a preference for it. And the fixture's content
+address rejected the edit until its digest was recomputed, which is the snapshot layer doing its job
+on a hand-edited fixture.
+
+**Licensing.** The new idiom was written before its provenance was found, and the loader refused it
+for missing `seed_source`. The seed was then located rather than invented:
+`rust-skills/rules/anti-clone-excessive.md` — *don't clone when borrowing works* — which here is not
+merely cheaper but the only spelling that exists, since the target's boxed failure is not clonable.
+
+**Coverage is unchanged everywhere, and that is expected.** `errors` stays at 0%: with the error
+model corrected, `withMessage` now refuses on `fmt.Fprintf` in its `Format` method — which is the
+R2i type/method cascade, one hard method sinking its whole type. The two findings compose exactly as
+predicted, and `errors` needs both.

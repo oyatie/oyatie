@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:63ed159888dd8cceed10a321f28821b77125864b4d90835bf4759a1f252762d1",
+  "snapshot_digest": "sha256:cd949f356bb08dbc7f0ca3b1f1807f5fb4e195ae987289180e579dc5f51b10f1",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-unproven/corpus-unproven/stored",
@@ -36,7 +36,7 @@
                 "pointer_receiver"
               ],
               "attrs": {
-                "doc": "Cause returns why the attempt did not succeed.\n\nREFUSED. The operand is a stored field that may be absent, and neither proof the engine has\napplies to it: it is not a call to a declared failure constructor, and it is not the address of a\nfresh composite. What the source means here is a GETTER, and the target spells a getter as an\noptional rather than as a result — but choosing that would be reading intent from a shape, not\nproving it, so this refuses and says which proof is missing."
+                "doc": "Cause returns why the attempt did not succeed.\n\nTRANSLATED, and this doc previously said the opposite. The earlier reading was that a getter's optional form would be \"reading intent from a shape, not proving it\", so the engine refused and named the missing proof. What changed is that there IS a proof: every return of this sole-failure-result function reads a field of the RECEIVER, which is the same proof the borrowed string getter one type over already makes. The claim is not that this is semantically a getter -- it is that the value handed back is a stored field that may be absent, and an optional borrow says exactly that. `Result` would say the operation succeeded or failed, which is a claim about an operation that is not here: `Ok(())` would mean \"there is no cause\".\n\nThe fence this fixture exists for is unchanged and is carried by `Check` below."
               },
               "children": [
                 {
@@ -154,6 +154,72 @@
                               "attrs": {
                                 "lit_kind": "STRING",
                                 "value": "\"attempt failed\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Check",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Check reports the stored count and whether the attempt failed.\n\nREFUSED, and this is the fence. The trailing operand is the CHANNEL: the target spells it `Err(..)`, which reports failure unconditionally, and this operand is a stored field that may be absent -- so the emitted program would report failure at exactly the points the source reported success. Unlike `Cause` there is no alternative spelling to fall back on, because the companion result means the signature is a fallible operation and not a value handed back. The refusal must name the OPERAND rather than the signature, which is what makes the distinction from `Wrapped` possible at all."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "named_interface",
+                    "name": "error"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "literal",
+                          "name": "",
+                          "attrs": {
+                            "value": "0",
+                            "lit_kind": "INT"
+                          }
+                        },
+                        {
+                          "kind": "selector",
+                          "name": "cause",
+                          "type": {
+                            "kind": "named_interface",
+                            "name": "error"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "receiver"
                               }
                             }
                           ]

@@ -178,6 +178,14 @@ pub struct FailureConvention {
     pub param_type: String, // data_class: INTERNAL_ONLY
     /// Why that form and not the general interface one.
     pub param_type_reason: String, // data_class: INTERNAL_ONLY
+    /// The target type for a failure value in a position that may hold NOTHING.
+    pub nullable_type: String, // data_class: INTERNAL_ONLY
+    /// Why a stored failure is optional where a returned one is not.
+    pub nullable_type_reason: String, // data_class: INTERNAL_ONLY
+    /// The target type a GETTER of a stored failure returns.
+    pub nullable_borrowed_type: String, // data_class: INTERNAL_ONLY
+    /// Why a getter borrows where a constructor owns.
+    pub nullable_borrowed_type_reason: String, // data_class: INTERNAL_ONLY
     /// How a caller asks whether a failure IS a particular sentinel. Empty to refuse the question.
     pub identity_test: String, // data_class: INTERNAL_ONLY
     /// Why that form, and what it does not cover.

@@ -14,7 +14,7 @@ use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case, to_snake_case};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    POSITION_PARAM, SOURCE_STRING, TYPE_ARRAY, TYPE_NAMED_INTERFACE,
+    POSITION_FIELD, POSITION_PARAM, SOURCE_STRING, TYPE_ARRAY, TYPE_NAMED_INTERFACE,
 };
 
 impl Resolver<'_> {
@@ -215,6 +215,23 @@ impl Resolver<'_> {
                         ),
                     }),
                 };
+            }
+            // A FIELD may hold nothing. The source's error is an interface value and `nil` is a
+            // legal value of it, so the plain target form -- which cannot be absent -- types a
+            // nullable value as though it always holds one. That is not a spelling preference: it
+            // is a nullable value mapped to a non-nullable type, and every read of such a field
+            // then has to invent a presence the source never promised.
+            //
+            // Only where the pack declares the form. Without one this falls through to the plain
+            // type exactly as before, so a pack that has not made this decision is not silently
+            // given one.
+            if position == POSITION_FIELD
+                && let Some(form) = self
+                    .failure
+                    .map(|convention| convention.nullable_type.as_str())
+                    .filter(|form| !form.is_empty())
+            {
+                return Ok(RustType::path(form));
             }
             return self.failure_target(declaration_name).map(RustType::path);
         }

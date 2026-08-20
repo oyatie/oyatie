@@ -181,7 +181,7 @@ pub mod fallible {
         /// Names what was attempted.
         action: String,
         /// Why it did not succeed.
-        cause: Box<dyn StdError + Send + Sync>,
+        cause: Option<Box<dyn StdError + Send + Sync>>,
     }
     // region: oyatie_example_portengine_fixture_corpus_fallible__go_func__measure
     /// Reports the length of s, failing on the empty string.

@@ -1,7 +1,0 @@
-rust_library(
-    name = "tenancy-data-residency-enforcer",
-    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "tenancy_data_residency_enforcer",
-    crate_root = "src/lib.rs",
-    visibility = ["PUBLIC"],
-)

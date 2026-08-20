@@ -115,11 +115,18 @@ fn an_escaping_receiver_is_refused_with_its_reason() {
 /// expression cannot be absent — and where it can, the emitted program reports failure at exactly
 /// the points the source reported SUCCESS. That compiles, and it is a different program.
 ///
-/// `Cause` and `Wrapped` share a signature, a receiver and a field, and get different answers:
-/// `Wrapped` returns a call to a declared failure constructor, which has no absent result to
-/// return, and `Cause` returns the field, which may be absent. So the fence is not that the
-/// corpus refuses — it is that the refusal names the OPERAND rather than the signature, which is
-/// what makes the distinction between the two possible at all.
+/// The fence is carried by `Check`, and it used to be carried by `Cause`. That move is the whole
+/// point of the distinction rather than a weakening of it: a sole failure result whose every return
+/// reads a field of the RECEIVER now has a faithful spelling — an optional borrow, which says
+/// exactly "a stored value that may be absent" — so refusing it is no longer the honest answer.
+/// `Check` has a companion result, which makes its trailing operand the CHANNEL, and there `Err(..)`
+/// is unconditional and no alternative spelling exists.
+///
+/// `Check` and `Wrapped` share a receiver and a field and get different answers: `Wrapped` returns a
+/// call to a declared failure constructor, which has no absent result to return, and `Check` returns
+/// the field, which may be absent. So the fence is not that the corpus refuses — it is that the
+/// refusal names the OPERAND rather than the signature, which is what makes the distinction between
+/// the two possible at all.
 #[test]
 fn a_failure_the_engine_cannot_prove_is_refused_by_its_operand() {
     let err = driver::port_go_refused_unproven()
@@ -127,7 +134,7 @@ fn a_failure_the_engine_cannot_prove_is_refused_by_its_operand() {
 
     let message = err.to_string();
     assert!(
-        message.contains("Cause"),
+        message.contains("Check"),
         "the refusal must name the declaration it refused, got: {message}"
     );
     assert!(
