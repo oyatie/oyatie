@@ -218,6 +218,18 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,
+        value: "governance/check/ontology-projection-coverage/ontology-projection-coverage-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen owner-to-manifest binding ENUMERATES which tracked manifest declares each canonical-entity owner, and one of those owners IS a forbidden stem (`foundry`, declared by oya/intelligence/_legacy-foundry/manifest.json). Listing the debt is the census, not the debt. The gate CANNOT be repaired by renaming the entry: the key must equal the owner name in CANONICAL_ENTITY_OWNERS and the path `git ls-files` observes, or the ratchet stops matching the corpus it governs.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/active-artifact-contract/active-artifact-contract-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen unknown-artifact-profile baseline ENUMERATES the registry rows naming a profile outside the kernel's closed enum, keyed by their own artifact_id; three of those ids carry a forbidden stem. Same rationale as the sibling entry above.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
         value: "evidence/audit-chain.jsonl",
         exempt_stems: &[],
         reason: "append-only audit chain — NEVER rewritten",

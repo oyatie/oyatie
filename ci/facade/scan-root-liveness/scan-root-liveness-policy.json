@@ -94,7 +94,6 @@
   ],
   "baselined_dark_gate_crates": [
     "a11y-discipline",
-    "active-artifact-contract",
     "aspirational-enforcement",
     "audit-chain-seal-coverage",
     "benchmark",
@@ -115,7 +114,6 @@
     "mobile-native",
     "no-grouping",
     "olap-tier-discipline",
-    "ontology-projection-coverage",
     "openapi-rest-route-parity",
     "otel-trace-propagation",
     "oya-check-adr-index",
