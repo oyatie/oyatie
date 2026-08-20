@@ -388,7 +388,7 @@
     "counts": {
       "evidence_files": 54,
       "planning_files": 11,
-      "docs_markdown_files": 1435,
+      "docs_markdown_files": 1434,
       "live_adr_files": 19,
       "dotdir_files": 242,
       "reorg_paths": 25,
@@ -402,11 +402,6 @@
         "from": 53,
         "to": 54,
         "reason": "evidence/reorg/rr-intel-remainder-execute-20260814.json is the reorg receipt for the G024 remainder rehome (78 crates -> intelligence/). ADR-0562 move plans are admitted against a recorded receipt, so the artifact is load-bearing for the migration it documents, not sprawl. The prior 52->53 raise is superseded by this exact from->to because a stale raise fails closed."
-      },
-      "docs_markdown_files": {
-        "from": 1434,
-        "to": 1435,
-        "reason": "ADR-0718 (docs/decisions/ADR-0718-ci-lane-split-five-minute-wall-clock.md) is the authorization ADR-0716-D3's replacement-window mechanism REQUIRES by construction: that mechanism refuses any ADR already present on the protected merge-base, so the CI lane split cannot be authorized by amending an existing record and must add exactly one file. Load-bearing, not sprawl. The prior 1433->1434 raise for ADR-0717 is superseded by this exact from->to because a stale raise fails closed."
       },
       "live_adr_files": {
         "from": 18,
