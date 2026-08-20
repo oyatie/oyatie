@@ -40,40 +40,40 @@ pub const CODE_MALFORMED_CLAIM: &str = "IE-MALFORMED-CLAIM";
 
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct Finding {
-    pub code: String,
-    pub subject: String,
-    pub detail: String,
+    pub code: String,    // data_class: INTERNAL_ONLY
+    pub subject: String, // data_class: INTERNAL_ONLY
+    pub detail: String,  // data_class: INTERNAL_ONLY
 }
 
 /// One registered envelope owner: a root or a plane.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Owner {
     /// The branch that owns it, e.g. `integ/hr`.
-    pub branch: String,
+    pub branch: String, // data_class: INTERNAL_ONLY
     /// The globs it may write, e.g. `["app/hr/**"]`.
-    pub globs: Vec<String>,
+    pub globs: Vec<String>, // data_class: INTERNAL_ONLY
 }
 
 /// A tolerated out-of-envelope leaf, claimed for one branch.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct AdjunctClaim {
-    pub path_glob: String,
-    pub claiming_branch: String,
+    pub path_glob: String,       // data_class: INTERNAL_ONLY
+    pub claiming_branch: String, // data_class: INTERNAL_ONLY
 }
 
 /// A hub path a branch may touch this wave.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd)]
 pub struct HubWaiver {
-    pub branch: String,
-    pub hub: String,
+    pub branch: String, // data_class: INTERNAL_ONLY
+    pub hub: String,    // data_class: INTERNAL_ONLY
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Authority {
-    pub owners: Vec<Owner>,
-    pub hub_paths: BTreeSet<String>,
-    pub adjunct_claims: Vec<AdjunctClaim>,
-    pub hub_waivers: BTreeSet<HubWaiver>,
+    pub owners: Vec<Owner>,                // data_class: INTERNAL_ONLY
+    pub hub_paths: BTreeSet<String>,       // data_class: INTERNAL_ONLY
+    pub adjunct_claims: Vec<AdjunctClaim>, // data_class: INTERNAL_ONLY
+    pub hub_waivers: BTreeSet<HubWaiver>,  // data_class: INTERNAL_ONLY
 }
 
 /// Match a path against one envelope glob.
