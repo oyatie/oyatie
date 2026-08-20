@@ -117,7 +117,8 @@ fn build_const(
             true => format!("{}({})", ty.spelling(), value),
             false => crate::items_value::bit_pattern(declaration, resolver)
                 .or_else(|| crate::items_value::readable_literal(value, resolver))
-                .unwrap_or_else(|| value.to_owned()),
+                .map(|spelled| pointed_for(spelled, &ty))
+                .unwrap_or_else(|| pointed_for(value.to_owned(), &ty)),
         },
         ty,
     })
@@ -268,4 +269,25 @@ pub(crate) fn build_unit_item(construction: &str, region: &str) -> Option<RustIt
         attrs: Vec::new(),
         body: Some(Vec::new()),
     }))
+}
+
+/// A whole-number value spelled for a FLOATING-POINT constant.
+///
+/// The source's untyped constant carries no point and takes one from wherever it is used;
+/// `const pushPullScaleThreshold = 32` is a float because every use of it is. The target's constant
+/// states its type at the declaration, and `const T: f64 = 32` does not typecheck — a literal with
+/// no point is an integer there.
+///
+/// Only a value that is entirely DIGITS. Anything else already carries a point, an exponent or a
+/// sign it spelled for itself, and appending to it would produce something that is not a number.
+fn pointed_for(spelled: String, ty: &RustType) -> String {
+    let float = matches!(ty.spelling().as_str(), "f32" | "f64");
+    let whole = !spelled.is_empty()
+        && spelled
+            .bytes()
+            .all(|byte| byte.is_ascii_digit() || byte == b'_');
+    match float && whole {
+        true => format!("{spelled}.0"),
+        false => spelled,
+    }
 }

@@ -325,6 +325,19 @@ func packageConstUses(files []*ast.File, info *types.Info, tpkg *types.Package) 
 			if used, isBasic := at.(*types.Basic); !isBasic || used.Info()&types.IsUntyped != 0 {
 				return true
 			}
+			// A use at the constant's DEFAULT type is not evidence of its type. Go applies the
+			// default exactly where the context constrains nothing -- an `interface{}` parameter
+			// being the common case, and `fmt.Errorf("%d", ProtocolVersionMax)` being the one that
+			// cost a real answer here. Counting it made `ProtocolVersionMax` disagree with
+			// `ProtocolVersionMin uint8` and fall back to the default anyway, so the pair that
+			// bounds one inclusive range came out `i64` and `u8` and could not be compared.
+			//
+			// Excluding it can only change the answer when some OTHER use constrains the value,
+			// and that use is the one carrying information. Where every use is the default, there
+			// is no agreement to find and the default still stands.
+			if types.Identical(at, types.Default(konst.Type())) {
+				return true
+			}
 			switch previous, seen := agreed[konst]; {
 			case !seen:
 				agreed[konst] = at
