@@ -37,20 +37,46 @@ use crate::vocabulary::{ATTR_CALLEE, ATTR_VALUE, FLAG_REBOUND, KIND_CALL, KIND_L
 /// - that argument is a LITERAL, because a message computed from anything else is not a constant
 ///   expression, and `fmt.Errorf` is exactly the case that fails here.
 pub(crate) fn sentinels(declarations: &[Declaration], failure: Option<&FailureConvention>) -> BTreeMap<String, String> {
+    sentinels_with(declarations, failure, &BTreeMap::new())
+        .into_iter()
+        .map(|(name, (message, _))| (name, message))
+        .collect()
+}
+
+/// The same, keeping each sentinel's format ARGUMENTS.
+///
+/// A source sentinel is sometimes built by a FORMATTING constructor over constants —
+/// `fmt.Errorf("Valid KSUIDs are %v bytes", byteLength)`. Its message is fixed at compile time, so
+/// it is a sentinel as surely as one built from a bare literal; it is simply not spelled as one. Ten
+/// of the corpus's seventeen sentinels are built this way, and while they were unrecognised every
+/// `return Nil, errStrSize` refused for want of a proof the sentinel would have supplied.
+///
+/// A NON-CONSTANT argument disqualifies it. A message that depends on a runtime value is not one
+/// value the program has — it is a different string per call, which is a formatted error rather than
+/// a sentinel, and the difference is exactly what a caller comparing against it relies on.
+pub(crate) fn sentinels_with(
+    declarations: &[Declaration],
+    failure: Option<&FailureConvention>,
+    verbs: &BTreeMap<String, String>,
+) -> BTreeMap<String, (String, Vec<String>)> {
     let Some(convention) = failure else {
         return BTreeMap::new();
     };
     declarations
         .iter()
         .filter_map(|declaration| {
-            let message = message_of(declaration, convention)?;
-            Some((declaration.name.clone(), message))
+            let carried = message_of(declaration, convention, verbs)?;
+            Some((declaration.name.clone(), carried))
         })
         .collect()
 }
 
 /// The message a sentinel declaration carries, if this declaration is one.
-fn message_of(declaration: &Declaration, convention: &FailureConvention) -> Option<String> {
+fn message_of(
+    declaration: &Declaration,
+    convention: &FailureConvention,
+    verbs: &BTreeMap<String, String>,
+) -> Option<(String, Vec<String>)> {
     if declaration.kind != KIND_VAR || declaration.flags.iter().any(|flag| flag == FLAG_REBOUND) {
         return None;
     }
@@ -73,5 +99,28 @@ fn message_of(declaration: &Declaration, convention: &FailureConvention) -> Opti
     let [only] = literals.as_slice() else {
         return None;
     };
-    Some(only.attr(ATTR_VALUE)?.to_owned())
+    let message = only.attr(ATTR_VALUE)?.to_owned();
+    // Every remaining operand must be a package CONSTANT, or the message is not fixed.
+    let mut arguments = Vec::new();
+    for operand in call.children.iter().skip(1) {
+        if operand.kind == KIND_LITERAL {
+            continue;
+        }
+        if operand.kind != crate::vocabulary::KIND_IDENT
+            || operand.attr(crate::vocabulary::ATTR_REF) != Some(crate::vocabulary::REF_CONST)
+        {
+            return None;
+        }
+        arguments.push(operand.name.clone());
+    }
+    if arguments.is_empty() {
+        return Some((message, arguments));
+    }
+    // The source's VERBS become the target's placeholders, through the same table the formatting
+    // calls use — so a sentinel's message and an inline formatted message cannot disagree.
+    let mut rendered = message;
+    for (verb, placeholder) in verbs {
+        rendered = rendered.replace(verb, placeholder);
+    }
+    Some((rendered, arguments))
 }

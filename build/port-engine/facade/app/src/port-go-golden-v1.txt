@@ -140,10 +140,9 @@ pub mod fallible {
 
     impl fmt::Display for Error {
         fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-            let message = match self {
-                Self::Empty => "empty",
-            };
-            f.write_str(message)
+            match self {
+                Self::Empty => f.write_str("empty"),
+            }
         }
     }
 

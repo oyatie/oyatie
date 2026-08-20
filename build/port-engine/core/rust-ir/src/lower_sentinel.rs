@@ -35,7 +35,21 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                 let message = parse_expr(&variant.message, "sentinel message")?;
                 let variant_docs = lower_docs(&variant.docs);
                 cases.push(quote! { #variant_docs #ident });
-                arms.push(quote! { Self::#ident => #message });
+                // Each arm WRITES rather than yielding a string, so a plain message and a formatted
+                // one can sit in the same match. Binding one value first only works while every
+                // message is a literal, and a sentinel built by a formatting constructor over
+                // constants is not — its message is still fixed, just not spelled as one literal.
+                arms.push(match variant.arguments.is_empty() {
+                    true => quote! { Self::#ident => f.write_str(#message) },
+                    false => {
+                        let args = variant
+                            .arguments
+                            .iter()
+                            .map(crate::lower_expr::lower_expr)
+                            .collect::<Result<Vec<_>, _>>()?;
+                        quote! { Self::#ident => write!(f, #message #(, #args)*) }
+                    }
+                });
             }
             // NON_EXHAUSTIVE is the pack's answer, not this face's: whether a caller may match the
             // whole set is a question about the ported library's compatibility promise.
@@ -58,8 +72,7 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                         // used as an argument across ten lines with a trailing comma after the
                         // block, where the formatter most authors run collapses it — a difference
                         // a reviewer read, correctly, as output nobody had formatted.
-                        let message = match self { #(#arms),* };
-                        f.write_str(message)
+                        match self { #(#arms),* }
                     }
                 }
 
