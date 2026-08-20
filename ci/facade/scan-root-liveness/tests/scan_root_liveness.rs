@@ -82,6 +82,21 @@ fn load_policy(root: &Path) -> (Policy, Vec<String>) {
             .map(|v| v.as_str().expect("string").to_owned())
             .collect(),
         min_expected_roots: doc["min_expected_roots"].as_u64().expect("floor") as usize,
+        baselined_dark_gate_crates: doc["baselined_dark_gate_crates"]
+            .as_array()
+            .expect("baselined_dark_gate_crates")
+            .iter()
+            .map(|v| v.as_str().expect("string").to_owned())
+            .collect(),
+        min_expected_gate_crates: doc["min_expected_gate_crates"]
+            .as_u64()
+            .expect("gate-crate floor") as usize,
+        exempt_gate_crates: doc["exempt_gate_crates"]
+            .as_object()
+            .expect("exempt_gate_crates")
+            .iter()
+            .map(|(k, v)| (k.clone(), v.as_str().expect("exemption reason").to_owned()))
+            .collect(),
     };
     (policy, coverage_keys)
 }
@@ -235,7 +250,91 @@ fn collect(root: &Path, coverage_keys: &[String]) -> Observed {
     Observed {
         roots,
         policy_files_with_roots: files_with_roots,
+        gate_crates: collect_gate_crates(root),
     }
+}
+
+/// Substrings that mean a test reads the REAL repository rather than a fixture: walking up
+/// to the repo root, resolving the manifest dir, reading the scm-facts face, or shelling to
+/// the producer with `--repo-root`. A test containing none of these cannot be looking at
+/// this tree.
+const LIVE_CORPUS_MARKERS: [&str; 5] = [
+    "repo_root",
+    "CARGO_MANIFEST_DIR",
+    "scm-facts",
+    "--repo-root",
+    "PRODUCER_ENV",
+];
+
+/// The crate-path prefixes that make a crate a GATE crate. Kept here rather than in the
+/// policy because it is the definition of the gate's universe, not tunable debt.
+const GATE_CRATE_PREFIXES: [&str; 4] = [
+    "ci/facade/",
+    "governance/check/",
+    "libs/oya-check-",
+    "libs/oya-governance-",
+];
+
+/// Map every gate crate to whether ANY of its test code reads the real tree.
+fn collect_gate_crates(root: &Path) -> BTreeMap<String, bool> {
+    let mut out = BTreeMap::new();
+    for prefix in GATE_CRATE_PREFIXES {
+        let (dir, stem) = match prefix.rsplit_once('/') {
+            Some((d, s)) if !s.is_empty() => (root.join(d), Some(s.to_owned())),
+            _ => (root.join(prefix.trim_end_matches('/')), None),
+        };
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if !path.is_dir() {
+                continue;
+            }
+            let name = entry.file_name().to_string_lossy().into_owned();
+            if let Some(stem) = &stem
+                && !name.starts_with(stem)
+            {
+                continue;
+            }
+            if !path.join("Cargo.toml").is_file() {
+                continue;
+            }
+            out.insert(name, crate_has_live_corpus_test(&path));
+        }
+    }
+    out
+}
+
+fn crate_has_live_corpus_test(crate_dir: &Path) -> bool {
+    let mut stack = vec![crate_dir.to_path_buf()];
+    while let Some(dir) = stack.pop() {
+        let Ok(entries) = std::fs::read_dir(&dir) else {
+            continue;
+        };
+        for entry in entries.flatten() {
+            let path = entry.path();
+            if path.is_dir() {
+                if path.file_name().and_then(|n| n.to_str()) != Some("target") {
+                    stack.push(path);
+                }
+                continue;
+            }
+            if path.extension().and_then(|e| e.to_str()) != Some("rs") {
+                continue;
+            }
+            let Ok(text) = std::fs::read_to_string(&path) else {
+                continue;
+            };
+            let is_test_code = path.components().any(|c| c.as_os_str() == "tests")
+                || text.contains("#[test]")
+                || text.contains("#[cfg(test)]");
+            if is_test_code && LIVE_CORPUS_MARKERS.iter().any(|m| text.contains(m)) {
+                return true;
+            }
+        }
+    }
+    false
 }
 
 #[test]
@@ -275,6 +374,7 @@ fn red_fixture_dead_root_fails_closed() {
             resolves: false,
         }],
         policy_files_with_roots: ["p.json".to_owned()].into_iter().collect(),
+        ..Default::default()
     };
     let policy = Policy {
         registered_policy_files: ["p.json".to_owned()].into_iter().collect(),
