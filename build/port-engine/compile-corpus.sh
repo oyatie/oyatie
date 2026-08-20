@@ -65,10 +65,19 @@ for package in "${packages[@]}"; do
 
   # Dead code is EXPECTED and is not a defect: the engine emits only what it can prove, so a
   # translated helper whose only caller refused is unused through no fault of its own.
-  errors=$(rustc --edition 2021 --crate-type lib --emit=metadata \
-             -A dead_code -A unused \
+  # `-D warnings` because that is the gate the engine is actually held to. Running without it
+  # measured a weaker claim: `pub const K: PrivateType` is a WARNING, and a warning under this
+  # policy is a build failure -- so the table said "compiles" for a crate that does not.
+  # CLIPPY, not just rustc. The gate the engine is held to is both, each with `--deny=warnings`,
+  # and clippy sees a whole class rustc does not: a manual range test, a byte string written as an
+  # array of byte literals, a tab inside a doc comment. Those are exactly the shapes a reviewer
+  # names as "translated", so measuring without them measured the wrong thing.
+  checker=rustc
+  command -v clippy-driver > /dev/null && checker=clippy-driver
+  errors=$("$checker" --edition 2021 --crate-type lib --emit=metadata \
+             -A dead_code -A unused -D warnings \
              -o "$work/$package.rmeta" "$crate/lib.rs" 2>&1 \
-           | grep -cE '^error(\[E[0-9]+\])?: ')
+           | grep -cE '^(error|warning)')
   if [ "$errors" -eq 0 ]; then
     printf '%-14s %s\n' "$package" "compiles"
   else

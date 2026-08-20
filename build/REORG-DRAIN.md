@@ -6127,3 +6127,76 @@ graph agree is a transitive problem and a different rule. That regression appear
 the compile check within one cycle.
 
 ksuid: 8 compile errors → 3. Every other package still compiles.
+
+## R3q — the gate was measuring a weaker claim than the one the engine is held to
+
+`compile-corpus.sh` ran `rustc` without `-D warnings` and without clippy. The goal says both, each
+denying warnings, and the difference is not academic: `pub const K: PrivateType` is a WARNING, so
+the table said "compiles" for a crate that under the real policy does not build. Turning both on
+was the single most productive change of the phase — every finding below came from it, and each one
+had also been named independently by a reviewer.
+
+### A type reached by an exported declaration must be as visible as it
+
+    pub const REQUEST_ID_KEY: CtxKeyRequestId = CtxKeyRequestId(0);   // type is private
+
+Go lets an exported declaration have an unexported type — `var RequestIDKey ctxKeyRequestID` is
+idiomatic, and a consumer holds the value without being able to name the type. The target has no
+such asymmetry.
+
+The TYPE is widened, not the declaration hidden. Hiding it would delete an exported name from the
+ported API, which is the source's contract; widening keeps every consumer able to do exactly what
+the source let them do and nothing more. Computed to a fixpoint, because a `pub struct` whose field
+type is private is the identical diagnostic one level down.
+
+### A parameter written THROUGH A CALL is still written
+
+    func withSequenceNumber(id KSUID, n uint16) KSUID { binary.BigEndian.PutUint16(id[len(id)-2:], n); return id }
+
+The source spells a write into a value as a CALL and the target spells it as a mutation of the
+receiver, so a parameter that only ever appears as such an argument was never seen assigned — and
+came out immutable, and did not compile. The walk that answers this already existed for named
+results; the parameters simply never asked it.
+
+### The length of an ARRAY is a constant
+
+Go defines `len(a)` on an array type as a constant expression: the length is part of the type. So
+folding it is the source's own rule rather than an optimisation applied to it — and it removes a
+borrow the source does not have. `PutUint16(id[len(id)-2:], n)` writes into a slice of `id` whose
+bound READS `id`; the source allows the overlap and the target does not. With the length folded
+there is no read.
+
+Only an ARRAY. A slice's length is a run-time property, and the source draws the same line.
+
+### Four idiom rules, each named by a reviewer and by clippy
+
+- `x >= A && x <= B` is `(A..=B).contains(&x)`, and `x < A || x > B` is its negation. Recognised
+  from the BUILT operands, requiring the same subject on both sides, constant bounds, and a subject
+  where reading twice is the same as reading once — the source evaluates it twice and the range
+  evaluates it once, which differs whenever a call has effects. A negative bound is a unary negation
+  rather than a literal, and requiring a bare literal silently declined the widest test in `gjson`.
+- A byte range that IS a standard class becomes the predicate for it: `is_ascii_digit`,
+  `is_ascii_lowercase`, `is_ascii_uppercase`. Matched on the exact delimiting bytes — a range that
+  merely overlaps a class is not it.
+- A sequence of byte literals is a byte string, keyed on the ELEMENTS rather than the declared type,
+  because the source spells a fixed-size sequence two ways that arrive as different kinds.
+- Tabs in doc comments become four spaces. The source indents with tabs because its formatter does.
+
+### Where the range rule went, and why it is not pack data
+
+It is code. The pack answers questions with more than one defensible answer; this one has exactly
+one — the two forms are the same predicate over the same values, and a pack that said otherwise
+would be wrong rather than different.
+
+There is also a governance reason, and it is the better one. The pack's idiom table REQUIRES
+`seed_source`, `seed_license` and `seed_commit`, because `specs/k8s-port/licensing.json` fail-closes
+on a rust-skills-derived rule that cannot be re-checked. This rule is not derived from a seed — it
+comes from the target's own lint, `clippy::manual_range_contains` — and the only way to satisfy that
+schema would have been to invent a commit hash. The policy is fail-closed on purpose, so the rule
+went where it needs no such claim rather than being dressed up to pass.
+
+### Result
+
+Nine of ten packages pass `rustc` AND `clippy-driver` with `--deny=warnings` under
+`#![forbid(unsafe_code)]`. All five repositories the goal names are among them. `semver` remains, on
+`len_without_is_empty`.

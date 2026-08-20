@@ -90,7 +90,7 @@ pub(crate) fn named_result_bindings(
 }
 
 /// Names this subtree ASSIGNS to, so a binding is declared mutable only where it is written.
-fn collect_assigned(
+pub(crate) fn collect_assigned(
     node: &Declaration,
     resolver: &crate::resolve::Resolver<'_>,
     into: &mut BTreeSet<String>,

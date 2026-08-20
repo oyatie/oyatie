@@ -68,7 +68,12 @@ pub(crate) fn docs_from_block(
             .lines()
             // A leading space is what `///` puts between the slashes and the text; the renderer
             // re-adds it, so carrying it here would double it.
-            .map(|line| format!(" {}", line.trim_end()))
+            //
+            // TABS BECOME SPACES. The source's doc comments indent with tabs because its own
+            // formatter does, and a tab inside a target doc comment is `clippy::tabs_in_doc_comments`
+            // — which `--deny=warnings` makes a build failure. Four spaces is what that lint asks
+            // for, and the indentation the author wrote is preserved rather than collapsed.
+            .map(|line| format!(" {}", line.trim_end().replace('\t', "    ")))
             .collect()
         }
     }

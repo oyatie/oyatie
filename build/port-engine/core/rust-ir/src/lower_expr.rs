@@ -217,9 +217,16 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 .collect::<Result<Vec<_>, PortError>>()?;
             Ok(quote! { #path { #(#rendered),* } })
         }
-        RustExpr::Range { start, end } => {
+        RustExpr::Range {
+            start,
+            end,
+            inclusive,
+        } => {
             let (start, end) = (lower_expr(start)?, lower_expr(end)?);
-            Ok(quote! { #start..#end })
+            match inclusive {
+                true => Ok(quote! { #start..=#end }),
+                false => Ok(quote! { #start..#end }),
+            }
         }
         RustExpr::Reference { mutable, inner } => {
             let inner = lower_postfix_base(inner)?;

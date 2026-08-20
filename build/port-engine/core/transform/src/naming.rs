@@ -238,3 +238,23 @@ pub(crate) fn visibility(declaration: &Declaration) -> Visibility {
         Visibility::Inherited
     }
 }
+
+/// The same, widened when an EXPORTED declaration of this unit names the type.
+///
+/// Go lets an exported declaration have an unexported type: `var RequestIDKey ctxKeyRequestID` is
+/// idiomatic, and a consumer holds the value without being able to name the type. The target has no
+/// such asymmetry — a `pub` item whose type is private is `private_interfaces`, and
+/// `--deny=warnings` makes that a build failure rather than a note.
+///
+/// The TYPE is widened rather than the declaration hidden. Hiding it would delete an exported name
+/// from the ported API, which is the source's contract; widening keeps every consumer able to do
+/// exactly what the source let them do, and nothing more.
+pub(crate) fn type_visibility(
+    declaration: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+) -> Visibility {
+    match resolver.scope.publicly_reachable.contains(&declaration.name) {
+        true => Visibility::Public,
+        false => visibility(declaration),
+    }
+}

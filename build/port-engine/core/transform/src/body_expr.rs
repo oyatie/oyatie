@@ -213,7 +213,7 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         name: cx.owner.to_owned(),
         detail: format!("binary operator `{spelling}` has no direct translation"),
     })?;
-    Ok(RustExpr::Binary {
+    let built = RustExpr::Binary {
         op,
         lhs: Box::new(left),
         // CONCATENATION is not symmetric in the target. The source adds two strings and gets a
@@ -222,7 +222,24 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         // difference because it has only one string type — which is exactly why the asymmetry has to
         // be added here rather than recovered from the operand.
         rhs: Box::new(borrowed_concat_operand(node, right, spelling, cx)),
-    })
+    };
+
+    // A BOUNDED COMPARISON is a range test, which the target has and the source does not. Read from
+    // what was BUILT rather than from the source shape, so it cannot fire on a conjunction that
+    // merely looks like one — the same way the membership test is recognised.
+    //
+    // MECHANISM, not pack data, and the distinction is worth stating because most of this file's
+    // decisions go the other way. The pack answers questions with more than one defensible answer;
+    // this one has exactly one — `(A..=B).contains(&x)` and `x >= A && x <= B` are the same
+    // predicate over the same values in the target, and a pack that said otherwise would be wrong
+    // rather than different. It is also not derived from a seed: it comes from the target's own
+    // lint, `clippy::manual_range_contains`, and the pack's idiom table requires a seed commit that
+    // could only be invented here. The licensing policy that requires it is fail-closed on purpose,
+    // so the rule goes where it needs no such claim.
+    if let Some(ranged) = crate::body_swap::bounded_range(&built) {
+        return Ok(ranged);
+    }
+    Ok(built)
 }
 
 /// A method-call receiver that is a bare integer literal, given the type the operation has.
