@@ -34,11 +34,40 @@ pub(crate) fn without_dangling_sentences(
     subject: &str,
     resolver: &Resolver<'_>,
 ) -> String {
-    let kept: Vec<&str> = sentences(block)
-        .into_iter()
-        .filter(|sentence| !names_something_absent(sentence, subject, resolver))
-        .collect();
+    // A DROPPED SENTENCE TAKES ITS PRONOUNS WITH IT. Removing one because it names something the
+    // crate does not contain is right; leaving the next sentence to open with "It's used as a
+    // pointer so it fits in an interface{} without allocation" is not, because the subject that
+    // "It" referred to has just gone. A reviewer read that line and said it had no subject, which
+    // was exactly true.
+    //
+    // So a sentence whose subject was dropped is dropped too, and the rule carries forward: three
+    // sentences where the first goes and the second refers to it lose both, and the third is kept
+    // only if it does not refer to the second.
+    let mut kept: Vec<&str> = Vec::new();
+    let mut dropped_previous = false;
+    for sentence in sentences(block) {
+        let absent = names_something_absent(sentence, subject, resolver);
+        let orphaned = dropped_previous && opens_with_a_pronoun(sentence);
+        dropped_previous = absent || orphaned;
+        if !dropped_previous {
+            kept.push(sentence);
+        }
+    }
     kept.join(" ")
+}
+
+/// Whether this sentence opens with a PRONOUN, and so leans on the one before it.
+///
+/// A closed list, because the cost of being wrong runs in one direction only: a sentence wrongly
+/// held to lean on its predecessor is dropped along with it and the documentation is shorter, while
+/// one wrongly kept is prose that refers to something no longer there.
+fn opens_with_a_pronoun(sentence: &str) -> bool {
+    let first = sentence.split_whitespace().next().unwrap_or_default();
+    let word = first.trim_end_matches(|ch: char| !ch.is_ascii_alphanumeric());
+    matches!(
+        word.to_ascii_lowercase().as_str(),
+        "it" | "it's" | "its" | "this" | "that" | "they" | "them" | "these" | "those" | "he" | "she"
+    )
 }
 
 /// A block split into sentences, keeping each one whole.
