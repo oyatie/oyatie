@@ -231,13 +231,28 @@ impl Resolver<'_> {
         }
         // Collected before descending: the visited set is threaded through the recursion, so a
         // borrow held by an iterator across the recursive call would be a second unique borrow.
-        let fresh: Vec<String> = named_references(field)
+        let fresh: Vec<(String, String)> = named_references(field)
             .into_iter()
-            .filter(|name| seen.insert(name.clone()))
+            .filter(|reference| seen.insert(reference.1.clone()))
             .collect();
-        for name in fresh {
-            let Some(inputs) = self.scope.derive_inputs.get(&name) else {
-                continue;
+        for (package, name) in fresh {
+            // Resolved against the DECLARING package, not the referring one. A field may name
+            // another package's type, and whether that type earns a trait is a fact about its own
+            // declaration: `Bounds{Min, Max shapes.Point}` derived `Copy` while `Point` — holding a
+            // `String` — did not, and E0204 was the result. A name alone cannot carry the lookup
+            // either, because two packages may declare the same one; this corpus declares `Counter`
+            // in two, so a bare-name table answers a reference to one with the other's fields.
+            //
+            // An empty package is a reference this unit declares itself.
+            let declarer = match package.is_empty() {
+                true => self.scope.package.clone(),
+                false => package,
+            };
+            let Some(inputs) = self.scope.derive_inputs.get(&(declarer, name)) else {
+                // Nothing in the model declares it — an interface literal, or a type from outside
+                // the corpus. Unresolvable is not the same as harmless: the engine cannot prove the
+                // trait, so it does not claim it.
+                return true;
             };
             if inputs.iter().any(|input| self.blocks(input, blocked, seen, derive)) {
                 return true;
@@ -339,21 +354,27 @@ impl Resolver<'_> {
     }
 }
 
-/// Every name a type tree refers to, unqualified.
+/// Every named type a type tree refers to, as (declaring package, unqualified name).
 ///
 /// A reference to another declaration of this unit can sit at any depth — `*stack`, `[]frame`,
 /// `map[string]entry` — so the whole tree is walked rather than only its root.
-fn named_references(type_ref: &TypeRef) -> Vec<String> {
+///
+/// The package rides along because the name alone does not identify the type: two packages may
+/// declare the same one, and the caller resolves names against a single unit's table.
+fn named_references(type_ref: &TypeRef) -> Vec<(String, String)> {
     let mut out = Vec::new();
-    if !type_ref.name.is_empty() {
-        out.push(
+    // Only the `named` kind. A basic carries a name too — `int`, `string` — that no declaration
+    // answers, and the caller now reads an unresolved reference as blocking.
+    if type_ref.kind == "named" && !type_ref.name.is_empty() {
+        out.push((
+            type_ref.package.clone(),
             type_ref
                 .name
                 .rsplit('.')
                 .next()
                 .unwrap_or(&type_ref.name)
                 .to_owned(),
-        );
+        ));
     }
     for arg in &type_ref.args {
         out.extend(named_references(arg));

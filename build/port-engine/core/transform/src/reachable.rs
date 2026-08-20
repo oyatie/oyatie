@@ -50,11 +50,20 @@ where
 {
     let every = BTreeSet::new();
     let mut next = BTreeMap::new();
+    let derive_inputs = crate::resolve_scope::model_derive_inputs(model);
     for unit in model.units() {
         let Some(declarations) = model.declarations(&unit) else {
             continue;
         };
-        let scope = LocalScope::with_failure(&declarations, pack.failure_convention());
+        let scope = LocalScope::with_facts(
+            &declarations,
+            &unit.0,
+            pack.failure_convention(),
+            &crate::resolve_scope::PackFacts {
+                derive_inputs: &derive_inputs,
+                ..Default::default()
+            },
+        );
         let mut kept = BTreeSet::new();
         for (position, declaration) in declarations.iter().enumerate() {
             let mut round = SurveyReport {

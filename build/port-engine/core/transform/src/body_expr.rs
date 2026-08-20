@@ -152,6 +152,10 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
     if let Some(rendered) = emptiness_test(spelling, lhs, rhs, cx)? {
         return Ok(rendered);
     }
+    // The same idiom asked of a LENGTH rather than of a string literal. See `emptiness_of_length`.
+    if let Some(rendered) = crate::body_idiom::emptiness_of_length(spelling, lhs, rhs, cx)? {
+        return Ok(rendered);
+    }
 
     // IS THIS FAILURE THAT SENTINEL? The source compares identity; the target asks the trait object
     // what concrete type it holds. Available only because the sentinel became a type — while it was

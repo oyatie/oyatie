@@ -389,20 +389,38 @@ pub(crate) fn display_claims(declaration: &Declaration, resolver: &Resolver<'_>)
 /// The tail and every `return`. See [`RustExpr::FormatterWrite`] for how each one is written, which
 /// depends on what the value is and is decided in one place for all of them.
 fn written_exits(body: Vec<RustStmt>) -> Vec<RustStmt> {
+    // A WRITE BORROWS ITS VALUE, so a copy made for a value position is dropped straight after
+    // being written. `f.write_str(&self.addr.clone())` allocates a whole string, borrows it, writes
+    // it and drops it, on every call — in `Address::fmt`, which log paths call. The clone is
+    // correct where the value is KEPT; nothing here keeps it.
     let mut written: Vec<RustStmt> = body.into_iter().map(write_returns).collect();
     if let Some(RustStmt::Tail(value)) = written.pop() {
-        written.push(RustStmt::Tail(RustExpr::FormatterWrite(Box::new(value))));
+        written.push(RustStmt::Tail(RustExpr::FormatterWrite(Box::new(unowned(value)))));
     } else {
         // No tail: the body ends in a `return`, which the walk above already wrapped.
     }
     written
 }
 
+/// A value with a copy taken off it, where the copy was made for a position that keeps the value.
+///
+/// See `written_exits`: a write borrows, so the clone is dropped immediately after being written.
+fn unowned(value: RustExpr) -> RustExpr {
+    match value {
+        RustExpr::MethodCall {
+            receiver,
+            ref method,
+            ref args,
+        } if method == "clone" && args.is_empty() => *receiver,
+        other => other,
+    }
+}
+
 /// The same statement with every `return` inside it writing rather than yielding text.
 fn write_returns(statement: RustStmt) -> RustStmt {
     match statement {
         RustStmt::Return(Some(value)) => {
-            RustStmt::Return(Some(RustExpr::FormatterWrite(Box::new(value))))
+            RustStmt::Return(Some(RustExpr::FormatterWrite(Box::new(unowned(value)))))
         }
         RustStmt::Semi(expr) => RustStmt::Semi(write_returns_in(expr)),
         RustStmt::Tail(expr) => RustStmt::Tail(write_returns_in(expr)),

@@ -57,7 +57,13 @@ pub struct LocalScope {
     /// So the TYPE is promoted rather than the declaration hidden. Hiding the declaration would
     /// delete an exported name from the ported API, which is the source's contract; widening the
     /// type keeps every consumer able to do exactly what the source let them do.
-    pub(crate) publicly_reachable: BTreeSet<String>,
+    ///
+    /// Keyed by the promoted name and VALUED by what promoted it, because a declaration that
+    /// REFUSES is not in the emitted crate and cannot leak anything. `chi`'s `RouteCtxKey` is an
+    /// exported var of type `*contextKey` — and it refuses, as an exported package variable whose
+    /// form the pack has not decided — so it widened `contextKey` to `pub` on behalf of an item
+    /// that is not there. Six of chi's unexported types were public for that reason.
+    pub(crate) publicly_reachable: BTreeMap<String, BTreeSet<String>>,
     /// Per local declaration, the source type refs that decide which traits it EARNS.
     ///
     /// A newtype's is its own underlying type; a struct's are its fields'. Held so the derive rule
@@ -65,7 +71,14 @@ pub struct LocalScope {
     /// everything. That assumption used to be written down as safe — "every emitted struct gets the
     /// same list" — and it is not: a newtype over a slice earns no total equality, so a struct
     /// holding one and deriving `Eq` does not compile. The corpus proved it.
-    pub(crate) derive_inputs: BTreeMap<String, Vec<port_engine_api::TypeRef>>,
+    pub(crate) derive_inputs: DeriveInputs,
+    /// The package this scope IS, so a named type can be told local from foreign.
+    ///
+    /// `derive_inputs` is keyed by bare name and holds ONE unit, so a reference to another
+    /// package's type both misses it and — where the two packages declare the same name — collides
+    /// with the local declaration of that name. `TypeRef::package` is what makes the reference
+    /// addressable; this is the other half of that comparison.
+    pub(crate) package: String,
     pub(crate) length_constants: BTreeSet<String>,
     /// Member source name → the declaration that OWNS it.
     ///
@@ -91,6 +104,81 @@ pub struct LocalScope {
     pub(crate) sentinel_order: Vec<(String, String)>,
 }
 
+/// Per named declaration, the source type refs that decide which traits it EARNS.
+///
+/// Keyed by (declaring package, name) because the name alone does not identify a declaration: the
+/// fixture corpus alone declares `Counter` in two packages, and a table keyed by bare name answers
+/// a reference to one with the other's fields.
+pub type DeriveInputs = BTreeMap<(String, String), Vec<port_engine_api::TypeRef>>;
+
+/// The derive inputs every unit of `model` contributes.
+///
+/// Built across the WHOLE model because a struct field may name another package's type, and whether
+/// that type earns a trait is a fact about its declaration rather than about the referring unit.
+pub fn model_derive_inputs(model: &dyn port_engine_api::SourceModel) -> DeriveInputs {
+    let mut out = DeriveInputs::new();
+    for unit in model.units() {
+        let Some(declarations) = model.declarations(&unit) else {
+            continue;
+        };
+        out.extend(declaration_inputs(&declarations, &unit.0));
+    }
+    out
+}
+
+/// The same, for one unit's declarations.
+fn declaration_inputs(declarations: &[Declaration], package: &str) -> DeriveInputs {
+    declarations
+        .iter()
+        .map(|declaration| {
+            let inputs = match declaration.kind.as_str() {
+                "named" => vec![declaration.type_ref.clone()],
+                _ => declaration
+                    .children_of_kind(crate::vocabulary::CHILD_FIELD)
+                    .into_iter()
+                    .map(|field| field.type_ref.clone())
+                    .collect(),
+            };
+            ((package.to_owned(), declaration.name.clone()), inputs)
+        })
+        .collect()
+}
+
+/// What the PACK contributes to a scope, as one value.
+///
+/// Grouped rather than passed one by one: these arrive together from the pack, they are threaded
+/// unchanged through every construction site, and as separate parameters they pushed the
+/// constructor past the argument count clippy allows.
+pub struct PackFacts<'a> {
+    /// The pack's length functions, for recognising a constant that is a length.
+    pub lengths: &'a BTreeSet<String>,
+    /// The pack's formatting functions.
+    pub renders: &'a BTreeSet<String>,
+    /// The callees that take a length argument.
+    pub takes_length: &'a BTreeSet<String>,
+    /// The pack's format verbs.
+    pub verbs: &'a BTreeMap<String, String>,
+    /// Every unit's derive inputs, so a field naming another package's type resolves against that
+    /// type's own declaration.
+    pub derive_inputs: &'a DeriveInputs,
+}
+
+static NO_NAMES: BTreeSet<String> = BTreeSet::new();
+static NO_VERBS: BTreeMap<String, String> = BTreeMap::new();
+static NO_INPUTS: DeriveInputs = BTreeMap::new();
+
+impl Default for PackFacts<'_> {
+    fn default() -> Self {
+        Self {
+            lengths: &NO_NAMES,
+            renders: &NO_NAMES,
+            takes_length: &NO_NAMES,
+            verbs: &NO_VERBS,
+            derive_inputs: &NO_INPUTS,
+        }
+    }
+}
+
 impl LocalScope {
     /// Every named declaration in the unit contributes its emitted name.
     ///
@@ -98,40 +186,27 @@ impl LocalScope {
     /// source language's kind vocabulary in the neutral face. Every named declaration is recorded
     /// instead, and a collision is impossible because the front end already refuses two
     /// declarations sharing a name in one namespace.
-    pub fn of(declarations: &[Declaration]) -> Self {
-        Self::with_failure(declarations, None)
+    pub fn of(declarations: &[Declaration], package: &str) -> Self {
+        Self::with_facts(declarations, package, None, &PackFacts::default())
     }
 
-    /// The same, plus the unit's sentinels, which need the pack's failure convention to recognise.
-    pub fn with_failure(
+    /// The same, plus what the PACK contributes: its failure convention and `PackFacts`.
+    pub fn with_facts(
         declarations: &[Declaration],
+        package: &str,
         failure: Option<&port_engine_api::FailureConvention>,
+        facts: &PackFacts<'_>,
     ) -> Self {
-        Self::with_lengths(
+        let length_constants = crate::length_consts::length_constants(
             declarations,
-            failure,
-            &BTreeSet::new(),
-            &BTreeSet::new(),
-            &BTreeSet::new(),
-            &BTreeMap::new(),
-        )
-    }
-
-    /// The same, plus the constants that are lengths, which needs the pack's length callees.
-    pub fn with_lengths(
-        declarations: &[Declaration],
-        failure: Option<&port_engine_api::FailureConvention>,
-        lengths: &BTreeSet<String>,
-        renders: &BTreeSet<String>,
-        takes_length: &BTreeSet<String>,
-        verbs: &BTreeMap<String, String>,
-    ) -> Self {
-        let length_constants =
-            crate::length_consts::length_constants(declarations, lengths, renders, takes_length);
+            facts.lengths,
+            facts.renders,
+            facts.takes_length,
+        );
         // Carried WITH their arguments: a sentinel built by a formatting constructor over constants
         // has a fixed message that is not one literal, and dropping the values would emit a format
         // string with nothing to fill it.
-        let carried = crate::sentinel::sentinels_with(declarations, failure, verbs);
+        let carried = crate::sentinel::sentinels_with(declarations, failure, facts.verbs);
         let sentinels: BTreeMap<String, String> = carried
             .iter()
             .map(|(name, (message, _))| (name.clone(), message.clone()))
@@ -153,20 +228,11 @@ impl LocalScope {
                 )
             })
             .collect();
-        let derive_inputs: BTreeMap<String, Vec<port_engine_api::TypeRef>> = declarations
-            .iter()
-            .map(|declaration| {
-                let inputs = match declaration.kind.as_str() {
-                    "named" => vec![declaration.type_ref.clone()],
-                    _ => declaration
-                        .children_of_kind(crate::vocabulary::CHILD_FIELD)
-                        .into_iter()
-                        .map(|field| field.type_ref.clone())
-                        .collect(),
-                };
-                (declaration.name.clone(), inputs)
-            })
-            .collect();
+        // The model-wide table first, then this unit's own declarations over the top. `with_failure`
+        // and `of` pass an empty model-wide table, so the local pass is what keeps those paths able
+        // to resolve at all; where both hold a key they hold the same declaration.
+        let mut derive_inputs: DeriveInputs = facts.derive_inputs.clone();
+        derive_inputs.extend(declaration_inputs(declarations, package));
         let newtypes: BTreeMap<String, port_engine_api::TypeRef> = declarations
             .iter()
             .filter(|declaration| declaration.kind == "named")
@@ -209,6 +275,7 @@ impl LocalScope {
             sentinel_arguments,
             newtypes,
             derive_inputs,
+            package: package.to_owned(),
             types,
             sentinels,
             sentinel_order,
@@ -276,21 +343,35 @@ fn record_rename(into: &mut BTreeMap<String, Option<String>>, source: &str, targ
 /// and promoting it makes ITS own members exported for the same reason — so the walk is repeated
 /// until nothing new appears, because a `pub struct` whose field type is private is the identical
 /// diagnostic one level down.
-fn publicly_reachable(declarations: &[Declaration]) -> BTreeSet<String> {
-    let mut reachable = BTreeSet::new();
+fn publicly_reachable(declarations: &[Declaration]) -> BTreeMap<String, BTreeSet<String>> {
+    let mut reachable: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
     let mut settled = false;
     while !settled {
         settled = true;
         for declaration in declarations {
             let exported = declaration.flags.iter().any(|flag| flag == "exported")
-                || reachable.contains(&declaration.name);
+                || reachable.contains_key(&declaration.name);
             if !exported {
                 continue;
             }
             let mut named = Vec::new();
             collect_named_types(declaration, &mut named);
             for name in named {
-                if declarations.iter().any(|other| other.name == name) && reachable.insert(name) {
+                if !declarations.iter().any(|other| other.name == name) {
+                    continue;
+                }
+                // The PROMOTER is recorded, so a promotion made on behalf of a declaration that
+                // never reaches the crate can be discounted at the point the visibility is decided.
+                // A name promoted TRANSITIVELY carries its promoter's own promoters, because the
+                // chain is only as real as the item at its head.
+                let promoters: BTreeSet<String> = match reachable.get(&declaration.name) {
+                    Some(inherited) => inherited.clone(),
+                    None => BTreeSet::from([declaration.name.clone()]),
+                };
+                let entry = reachable.entry(name).or_default();
+                let before = entry.len();
+                entry.extend(promoters);
+                if entry.len() != before {
                     settled = false;
                 }
             }

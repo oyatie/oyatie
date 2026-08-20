@@ -89,6 +89,8 @@ pub fn apply_with_provenance(
     // alphabetical. A declaration with no position — a unit-level region — sorts first, which is
     // where a prelude belongs.
     let mut region_order: Vec<(isize, usize, String)> = Vec::new();
+    let derive_inputs = crate::resolve_scope::model_derive_inputs(model);
+    let renders: BTreeSet<String> = semantics.format_calls().functions.keys().cloned().collect();
     let mut items: Vec<(String, RustItem)> = Vec::new();
     // One region may hold several items, because one declaration may emit several — a type
     // and the trait impls its observed satisfactions call for.
@@ -146,13 +148,17 @@ pub fn apply_with_provenance(
                 .ok_or_else(|| TransformError::UnitNotInModel {
                     unit: step.unit.0.clone(),
                 })?;
-        let scope = LocalScope::with_lengths(
+        let scope = LocalScope::with_facts(
             &declarations,
+            &step.unit.0,
             semantics.failure_convention(),
-            semantics.length_functions(),
-            &semantics.format_calls().functions.keys().cloned().collect(),
-            semantics.length_argument_callees(),
-            &semantics.format_calls().verbs,
+            &crate::resolve_scope::PackFacts {
+                lengths: semantics.length_functions(),
+                renders: &renders,
+                takes_length: semantics.length_argument_callees(),
+                verbs: &semantics.format_calls().verbs,
+                derive_inputs: &derive_inputs,
+            },
         );
         // EVERY name, because this pipeline requires every declaration to translate: one that does
         // not fails the whole run, so there is no fixpoint to compute and nothing to exclude.

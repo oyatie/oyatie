@@ -78,17 +78,23 @@ where
         emittable = shrunk;
     }
 
+    let derive_inputs = crate::resolve_scope::model_derive_inputs(model);
+    let renders: BTreeSet<String> = pack.format_calls().functions.keys().cloned().collect();
     for unit in model.units() {
         let Some(declarations) = model.declarations(&unit) else {
             continue;
         };
-        let scope = LocalScope::with_lengths(
+        let scope = LocalScope::with_facts(
             &declarations,
+            &unit.0,
             pack.failure_convention(),
-            pack.length_functions(),
-            &pack.format_calls().functions.keys().cloned().collect(),
-            pack.length_argument_callees(),
-            &pack.format_calls().verbs,
+            &crate::resolve_scope::PackFacts {
+                lengths: pack.length_functions(),
+                renders: &renders,
+                takes_length: pack.length_argument_callees(),
+                verbs: &pack.format_calls().verbs,
+                derive_inputs: &derive_inputs,
+            },
         );
         for (position, declaration) in declarations.iter().enumerate() {
             survey_declaration(

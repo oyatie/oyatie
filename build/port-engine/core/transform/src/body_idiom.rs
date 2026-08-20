@@ -78,3 +78,77 @@ fn is_empty_string(node: &Declaration) -> bool {
         && node.attr(ATTR_LIT_KIND) == Some(LIT_KIND_STRING)
         && node.attr(ATTR_VALUE) == Some("\"\"")
 }
+
+/// `len(x) == 0` and `len(x) > 0`, which the target spells as a method on the sequence.
+///
+/// Exactly equivalent, and the same idiom the empty-STRING comparison above already is: a length
+/// is zero precisely when the sequence is empty. The source has no such method and must compare,
+/// which is why the comparison survives a mechanical port and reads as one — and here it reads
+/// doubly so, because the length's own mapping adds a conversion first: `(buf.len() as i64) == 0`.
+///
+/// The literal must be ZERO and the operator one that tests against it. `len(x) > 1` is a different
+/// question with no method, and `len(x) >= 0` is always true — neither is this shape.
+pub(crate) fn emptiness_of_length(
+    spelling: &str,
+    lhs: &Declaration,
+    rhs: &Declaration,
+    cx: &Body<'_>,
+) -> Result<Option<RustExpr>, TransformError> {
+    let Some(method) = cx.resolver.idiom_method(IDIOM_EMPTY_STRING) else {
+        return Ok(None);
+    };
+    // The LENGTH on one side and the literal zero on the other, in either order — with the operator
+    // read from the length's side, so `0 < len(x)` and `len(x) > 0` reach the same answer.
+    let (length, negated) = match (is_zero(lhs), is_zero(rhs)) {
+        (true, false) => (
+            rhs,
+            match spelling {
+                "==" => false,
+                "!=" | "<" => true,
+                _ => return Ok(None),
+            },
+        ),
+        (false, true) => (
+            lhs,
+            match spelling {
+                "==" => false,
+                "!=" | ">" => true,
+                _ => return Ok(None),
+            },
+        ),
+        _ => return Ok(None),
+    };
+    if length.kind != crate::vocabulary::KIND_CALL
+        || !length
+            .attr(crate::vocabulary::ATTR_CALLEE)
+            .is_some_and(|callee| cx.resolver.length_functions.contains(callee))
+    {
+        return Ok(None);
+    }
+    let [_, sequence] = length.children.as_slice() else {
+        return Ok(None);
+    };
+    let call = RustExpr::MethodCall {
+        // A PLACE: the method borrows, and a value position would copy the sequence to ask whether
+        // it has anything in it.
+        receiver: Box::new(crate::body_index::unwrapped_in(
+            sequence,
+            cx,
+            crate::body_expr::Position::Place,
+        )?),
+        method: method.to_owned(),
+        args: Vec::new(),
+    };
+    Ok(Some(match negated {
+        true => RustExpr::Unary {
+            op: port_engine_rust_ir::UnaryOp::Not,
+            operand: Box::new(call),
+        },
+        false => call,
+    }))
+}
+
+/// Whether this operand is the literal zero.
+fn is_zero(node: &Declaration) -> bool {
+    node.kind == KIND_LITERAL && node.attr(ATTR_VALUE) == Some("0")
+}

@@ -6832,3 +6832,51 @@ EVERY exit, and only literals. A method with one computed branch has no static t
 and rewriting the branches that do would leave arms that no longer agree.
 
     pub fn network(&self) -> &'static str { "mock" }
+
+## R4i — a derive is a claim about a type, so ask the package that DECLARES it
+
+Five rules landed together, four of them small. The fifth found a hole under all of them.
+
+`Copy` joined the derive list, blocked by the kinds that cannot be copied — interface, slice, map,
+pointer, string, chan, func. Twenty-nine of the fifty-six derived types in the corpus earn it, and
+`clone_on_copy` stays silent, so no `.clone()` survived on a type that no longer needs one.
+
+Then the fixture corpus refused to compile:
+
+    error[E0204]: the trait `Copy` cannot be implemented for this type
+        pub min: crate::shapes::Point,   // this field does not implement `Copy`
+
+`Bounds` holds two `shapes.Point`, and `Point` holds a `String`. The recursion that answers "does
+this field block the derive" already followed named references — but through a table holding ONE
+unit, keyed by bare name. A reference to another package missed it, and the miss was read as
+"blocks nothing". The engine claimed a trait it had never checked.
+
+The same table makes a worse mistake it had not yet been caught making. This corpus declares
+`Counter` in both `handoff` and `pointers`. A bare-name lookup answers a reference to one with the
+OTHER's fields — not a missing answer but a confidently wrong one. `TypeRef::package` exists for
+exactly this, and its doc already said so: it "is what makes a named type ADDRESSABLE. Without it,
+a reference to another package's type is indistinguishable from a local one."
+
+So the table is now built across the whole model and keyed by (declaring package, name), and a
+reference resolves against the package that declares it. An empty package means the referring unit
+declares it itself.
+
+An unresolved reference now BLOCKS rather than continuing. Nothing in the model declares it — an
+interface literal, a type from outside the corpus — so the engine cannot prove the trait, and it
+does not claim it. Only `named` references participate: a basic carries a name too, `int`, `string`,
+that no declaration answers, and blocking on those would have blocked everything.
+
+Blocking alone was measured first and REJECTED as the whole fix. It is correct and it is lossy:
+`Bounds` earned nothing at all, when `Point` legitimately earns `Debug, Clone, Default, PartialEq,
+Eq, Hash` and only `Copy` was ever wrong. Resolution restores exactly those six. Across the thirteen
+corpus packages no emitted struct is left without a derive line, so the conservatism costs nothing
+measurable and buys back a compile failure and a silent collision.
+
+The four that landed beside it:
+
+- A write borrows its value. `f.write_str(&self.addr.clone())` allocates a copy to hand to something
+  that only reads it.
+- A length of zero is emptiness. `len(x) == 0` is `x.is_empty()`, and `> 0` is `!x.is_empty()`.
+- A type is promoted to `pub` only on behalf of a declaration that is actually EMITTED. chi's
+  `RouteCtxKey` refuses as `exported_package_var` and was still widening `contextKey` to `pub` —
+  a type made public on behalf of a reader that does not exist.

@@ -106,18 +106,25 @@ impl SignatureTable {
         // Every module the emitted crate will have, so a signature naming a package outside them
         // refuses here rather than producing a path that resolves to nothing.
         let units: BTreeSet<String> = model.units().into_iter().map(|unit| unit.0).collect();
+        let derive_inputs = crate::resolve_scope::model_derive_inputs(model);
+        let renders: BTreeSet<String> =
+            semantics.format_calls().functions.keys().cloned().collect();
         for unit in model.units() {
             let Some(declarations) = model.declarations(&unit) else {
                 continue;
             };
-            let scope = LocalScope::with_lengths(
-            &declarations,
-            semantics.failure_convention(),
-            semantics.length_functions(),
-            &semantics.format_calls().functions.keys().cloned().collect(),
-            semantics.length_argument_callees(),
-            &semantics.format_calls().verbs,
-        );
+            let scope = LocalScope::with_facts(
+                &declarations,
+                &unit.0,
+                semantics.failure_convention(),
+                &crate::resolve_scope::PackFacts {
+                    lengths: semantics.length_functions(),
+                    renders: &renders,
+                    takes_length: semantics.length_argument_callees(),
+                    verbs: &semantics.format_calls().verbs,
+                    derive_inputs: &derive_inputs,
+                },
+            );
             // Every name: a SIGNATURE names no body, so nothing here can depend on whether another
             // declaration's body translated.
             let declared: BTreeSet<String> = declarations

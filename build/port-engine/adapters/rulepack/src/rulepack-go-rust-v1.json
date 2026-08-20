@@ -827,6 +827,21 @@
         "named_interface",
         "chan",
         "func",
+        "unsupported",
+        "slice",
+        "map",
+        "pointer",
+        "string"
+      ],
+      "name": "Copy",
+      "reason": "A source type whose every field is a fixed-size value IS a value type there: `uuid.UUID` is `[16]byte`, it is passed by value everywhere, and it is used as a map key. The target's `Clone` alone makes the same type move-only, so every read of it costs an explicit `.clone()` -- which is not merely noise, it is a different program shape spreading through every call site written against it. BLOCKED by exactly the kinds whose target counterpart owns a heap allocation or a vtable: a slice, a map, a string, a pointer, a channel, a function, an interface. Those are the ones `Clone` itself is doing real work for. Checked through the whole type tree and through this unit's own declarations, like every other derive, so a struct holding a newtype over a slice earns neither."
+    },
+    {
+      "blocked_by": [
+        "interface",
+        "named_interface",
+        "chan",
+        "func",
         "unsupported"
       ],
       "name": "Default",

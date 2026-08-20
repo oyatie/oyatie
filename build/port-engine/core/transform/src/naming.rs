@@ -297,7 +297,19 @@ pub(crate) fn type_visibility(
     declaration: &Declaration,
     resolver: &crate::resolve::Resolver<'_>,
 ) -> Visibility {
-    match resolver.scope.publicly_reachable.contains(&declaration.name) {
+    // Promoted only on behalf of a declaration that is actually EMITTED. One that refuses is not in
+    // the crate and can leak nothing, so widening a type for it makes public a name the source kept
+    // private and nothing needs.
+    let promoted = resolver
+        .scope
+        .publicly_reachable
+        .get(&declaration.name)
+        .is_some_and(|promoters| {
+            promoters
+                .iter()
+                .any(|promoter| resolver.emitted.contains(promoter))
+        });
+    match promoted {
         true => Visibility::Public,
         false => visibility(declaration),
     }
