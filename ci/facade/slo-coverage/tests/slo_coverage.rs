@@ -149,7 +149,12 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  enumerates three fewer rows than the rebased base. Not a
 ///                                  collapsed enumeration. The pin moved 742 -> 739 before the
 ///                                  rebase; the base's own +1 is what makes it 740.
-const SLO_CATALOG_CENSUS: usize = 740;
+///   2026-08-20  740 -> pin 741     ROW ADDED, legitimately: registry/catalog/
+///                                  scripted-http-server.yaml, the catalog row for the
+///                                  owned test server replacing httpmock. Corpus gained
+///                                  exactly one row, face gained exactly one; the
+///                                  enumeration did not widen.
+const SLO_CATALOG_CENSUS: usize = 741;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
