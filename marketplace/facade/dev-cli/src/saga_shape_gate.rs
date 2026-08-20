@@ -14,8 +14,8 @@ use std::fs;
 use std::path::PathBuf;
 
 use oya_check_saga_shape::{
-    canonical_microservice_catalog, validate_saga_shape, AuditClass, CompensationKind,
-    IdempotencyKeyStrategy, RollbackStrategy, SagaDefinition, SagaStep,
+    AuditClass, CompensationKind, IdempotencyKeyStrategy, RollbackStrategy, SagaDefinition,
+    SagaStep, canonical_microservice_catalog, validate_saga_shape,
 };
 use serde_json::Value;
 
@@ -116,8 +116,8 @@ pub(crate) fn validate_saga_shape_gate(
 
     let mut sagas: Vec<SagaDefinition> = Vec::with_capacity(saga_files.len());
     for path in &saga_files {
-        let definition = read_saga_definition(path)
-            .map_err(|error| format!("{}: {error}", path.display()))?;
+        let definition =
+            read_saga_definition(path).map_err(|error| format!("{}: {error}", path.display()))?;
         sagas.push(definition);
     }
 
@@ -173,8 +173,8 @@ fn discover_saga_files(service_roots: &[PathBuf]) -> Result<Vec<PathBuf>, String
 }
 
 fn read_saga_definition(path: &PathBuf) -> Result<SagaDefinition, String> {
-    let contents = fs::read_to_string(path)
-        .map_err(|error| format!("unreadable saga file: {error}"))?;
+    let contents =
+        fs::read_to_string(path).map_err(|error| format!("unreadable saga file: {error}"))?;
     let root: Value = serde_json::from_str(&contents)
         .map_err(|error| format!("saga file is not valid JSON: {error}"))?;
     let object = root
@@ -243,14 +243,13 @@ fn read_step(step_value: &Value) -> Result<SagaStep, String> {
         other => return Err(format!("unknown compensation_action.kind {other}")),
     };
     let compensation_capability_ref = optional_string(compensation_object, "capability_ref");
-    let idempotency_key_strategy = match required_string(object, "idempotency_key_strategy")?
-        .as_str()
-    {
-        "saga-step-attempt" => IdempotencyKeyStrategy::SagaStepAttempt,
-        "request-body-hash" => IdempotencyKeyStrategy::RequestBodyHash,
-        "client-supplied" => IdempotencyKeyStrategy::ClientSupplied,
-        other => return Err(format!("unknown idempotency_key_strategy {other}")),
-    };
+    let idempotency_key_strategy =
+        match required_string(object, "idempotency_key_strategy")?.as_str() {
+            "saga-step-attempt" => IdempotencyKeyStrategy::SagaStepAttempt,
+            "request-body-hash" => IdempotencyKeyStrategy::RequestBodyHash,
+            "client-supplied" => IdempotencyKeyStrategy::ClientSupplied,
+            other => return Err(format!("unknown idempotency_key_strategy {other}")),
+        };
     let timeout_budget_ms = object
         .get("timeout_budget_ms")
         .and_then(|value| value.as_u64())
@@ -289,10 +288,7 @@ fn read_step(step_value: &Value) -> Result<SagaStep, String> {
     })
 }
 
-fn required_string(
-    object: &serde_json::Map<String, Value>,
-    key: &str,
-) -> Result<String, String> {
+fn required_string(object: &serde_json::Map<String, Value>, key: &str) -> Result<String, String> {
     object
         .get(key)
         .and_then(|value| value.as_str())
