@@ -12,7 +12,7 @@ use crate::params::params;
 use crate::results::{results, results_owned};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    ATTR_RECEIVER, CHILD_BODY, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC, POSITION_PARAM, POSITION_RESULT,
+    ATTR_RECEIVER, CHILD_BODY, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC, POSITION_PARAM, POSITION_RESULT, POSITION_TRAIT_METHOD_PARAM,
 };
 
 /// Whether a method's body is translated, stubbed, or absent.
@@ -94,13 +94,14 @@ pub(crate) fn trait_methods(
         .children_of_kind(CHILD_METHOD)
         .into_iter()
         .map(|method| {
-            let mut rendered = method_signature(
+            let mut rendered = method_signature_at(
                 method,
                 resolver,
                 Visibility::Inherited,
                 Body::None,
                 &declaration.name,
                 crate::body::ResultShape::Own,
+                POSITION_TRAIT_METHOD_PARAM,
             )?;
             rendered.receiver = Some(method_receiver(method, resolver, &declaration.name)?);
             Ok(rendered)
@@ -158,6 +159,25 @@ pub(crate) fn method_signature(
     body: Body,
     owner: &str,
     result: crate::body::ResultShape,
+) -> Result<RustFn, TransformError> {
+    method_signature_at(method, resolver, vis, body, owner, result, POSITION_PARAM)
+}
+
+/// The same, with the position its PARAMETERS occupy stated.
+///
+/// A trait's declared method and every impl of it must agree, so both pass the trait-method
+/// position and an inherent method passes the ordinary one. Threaded rather than inferred from the
+/// body's presence: an impl method HAS a body and still needs the trait's answer, and inferring it
+/// from what happened to be in hand is how a signature and its implementation come to disagree.
+#[allow(clippy::too_many_arguments)]
+pub(crate) fn method_signature_at(
+    method: &Declaration,
+    resolver: &Resolver<'_>,
+    vis: Visibility,
+    body: Body,
+    owner: &str,
+    result: crate::body::ResultShape,
+    position: &str,
 ) -> Result<RustFn, TransformError> {
 
     // A pointer receiver used to be refused outright, because `&self` drops the mutation it
@@ -233,7 +253,7 @@ pub(crate) fn method_signature(
         vis,
         name: to_snake_case(&method.name),
         receiver: Some(receiver),
-        params: params(method, resolver, owner, &consumed)?,
+        params: crate::params::params_at(method, resolver, owner, &consumed, position)?,
         ret: match result {
             crate::body::ResultShape::Own => results(method, resolver)?,
             // The trait fixed it, and this call exists only for the body it produces.

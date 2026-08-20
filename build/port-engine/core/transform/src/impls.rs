@@ -122,13 +122,18 @@ fn implementing_method(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
 ) -> Result<RustFn, TransformError> {
-    let mut rendered = method_signature(
+    // THE TRAIT'S POSITION, because an impl's signature must be the trait's. The parameters here
+    // are the ones the trait declared, so they take the trait's form — an impl that spelled an
+    // interface parameter `&impl Trait` while the trait spelled it `&dyn Trait` is not an impl of
+    // that trait at all.
+    let mut rendered = crate::signature::method_signature_at(
         observed,
         resolver,
         Visibility::Inherited,
         Body::None,
         &declaration.name,
         crate::body::ResultShape::Inherited,
+        crate::vocabulary::POSITION_TRAIT_METHOD_PARAM,
     )?;
     rendered.receiver = Some(method_receiver(observed, resolver, &declaration.name)?);
 

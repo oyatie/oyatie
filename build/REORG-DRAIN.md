@@ -6200,3 +6200,33 @@ went where it needs no such claim rather than being dressed up to pass.
 Nine of ten packages pass `rustc` AND `clippy-driver` with `--deny=warnings` under
 `#![forbid(unsafe_code)]`. All five repositories the goal names are among them. `semver` remains, on
 `len_without_is_empty`.
+
+## R3r — an interface parameter's form depends on where the method is DECLARED
+
+The pack answered "a parameter of interface type is `&impl Trait`" with a good argument: it accepts
+every implementor exactly as the source's does, monomorphises rather than dispatching, needs no
+allocation, and avoids the `&dyn` at every boundary that reviewers had named as a port artifact.
+
+The argument holds everywhere except the one place it was applied without qualification.
+
+    // memberlist/queue.go — declared ON the Broadcast interface
+    Invalidates(b Broadcast) bool
+
+`impl Trait` in a trait method's argument position makes the trait NOT DYN-COMPATIBLE. So
+`&impl Broadcast` made `Box<dyn Broadcast>` impossible — and `[]Broadcast`, a slice of the interface,
+is the one data structure the interface exists to hold. It also gave each implementor its own
+generic parameter, so two broadcast types could never be compared, which is precisely what
+invalidation does.
+
+A trait's declared method and every impl of it now take a `trait_method_param` position, which the
+pack answers `&dyn {0}`. The monomorphisation argument keeps everything it can: a free function or
+an inherent method still gets `&impl`, because nothing there needs a vtable.
+
+The position is THREADED rather than inferred from whether a body is in hand. An impl method has a
+body and still needs the trait's answer — inferring it from what happened to be available is how a
+signature and its implementation come to disagree, which this file has now paid for six times.
+
+    fn invalidates(&self, b: &dyn Broadcast) -> bool;
+
+Nine of ten packages still pass `rustc` and `clippy-driver` under `--deny=warnings`; all five the
+goal names are among them.

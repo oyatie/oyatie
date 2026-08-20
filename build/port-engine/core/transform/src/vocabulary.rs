@@ -155,6 +155,10 @@ pub const POSITION_SUPERTRAIT: &str = "supertrait";
 /// The position an `impl Trait for Type` names its trait in — the one place a trait appears as
 /// itself rather than as something holding it, and still declared rather than special-cased.
 pub const POSITION_TRAIT: &str = "trait";
+/// A parameter of a method DECLARED ON A TRAIT, which is a different question from a parameter of a
+/// free function: `impl Trait` there makes the trait not dyn-compatible, and the source's interface
+/// values live in slices that need `Box<dyn Trait>` to exist. See the pack's `trait_object_forms`.
+pub const POSITION_TRAIT_METHOD_PARAM: &str = "trait_method_param";
 
 /// Type kind: a named type whose underlying type is an interface.
 ///
