@@ -134,6 +134,14 @@ fn mapped_call(
     };
     refuse_wrong_argument_shape(node, identity, mapping, cx)?;
 
+    // STRUCTURED where the form is one the target spells as a method call, which is most of them.
+    // A mapped call used to arrive as target TEXT, and text is opaque to everything downstream: the
+    // accumulator fold cannot substitute into it, so a body whose chain passes through one kept its
+    // statements. The tree costs nothing and every later rule can see through it.
+    if let Some(built) = structured_method(&mapping.form, args) {
+        return Ok(Some(built));
+    }
+
     let mut rendered = mapping.form.clone();
     for (index, arg) in args.iter().enumerate() {
         let operand = render_operand(arg).ok_or_else(|| TransformError::Unsupported {
@@ -263,4 +271,42 @@ pub(crate) fn render_operand(arg: &RustExpr) -> Option<String> {
         RustExpr::Literal(text) | RustExpr::Path(text) => Some(text.clone()),
         _ => None,
     }
+}
+
+/// A mapping form as a METHOD CALL, when that is the shape it has.
+///
+/// `{0}.rotate_left({1})` is a receiver, a name, and arguments — a tree the rest of the engine can
+/// read. Anything else stays the text substitution it always was: a form with a cast, a turbofish,
+/// or a construction is not this shape, and pretending otherwise would build a tree that renders
+/// differently from the form the pack wrote.
+///
+/// Every argument must be a bare placeholder, in order from `{1}`. A form that reorders or repeats
+/// them is doing something this shape cannot express.
+fn structured_method(form: &str, args: &[RustExpr]) -> Option<RustExpr> {
+    let rest = form.strip_prefix("{0}.")?;
+    let (method, tail) = rest.split_once('(')?;
+    let inside = tail.strip_suffix(')')?;
+    if !method
+        .chars()
+        .all(|ch| ch.is_ascii_alphanumeric() || ch == '_')
+        || method.is_empty()
+    {
+        return None;
+    }
+    let receiver = args.first()?.clone();
+    let mut taken = Vec::new();
+    if !inside.is_empty() {
+        for (offset, placeholder) in inside.split(", ").enumerate() {
+            if placeholder != format!("{{{}}}", offset + 1) {
+                return None;
+            }
+            taken.push(args.get(offset + 1)?.clone());
+        }
+    }
+    // Every argument the call has must be consumed, or the form is dropping one.
+    (taken.len() + 1 == args.len()).then(|| RustExpr::MethodCall {
+        receiver: Box::new(receiver),
+        method: method.to_owned(),
+        args: taken,
+    })
 }
