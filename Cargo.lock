@@ -1204,6 +1204,9 @@ version = "0.1.0"
 [[package]]
 name = "check-event-schema-versioning"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-glossary-coverage"
@@ -1235,6 +1238,9 @@ version = "0.1.0"
 [[package]]
 name = "check-idempotency-key-coverage"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-image-signing-discipline"

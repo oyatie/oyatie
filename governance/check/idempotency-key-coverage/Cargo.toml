@@ -9,8 +9,12 @@ license = "Apache-2.0"
 # Pure-fn kernel (port-in-kernel, ADR-0056). Reads OpenAPI 3.2.0
 # documents handed in by the runner; returns exact "state-changing
 # operation missing Idempotency-Key" findings per ADR-0149.
+# The kernel stays pure; the LIVE-TREE walk that grounds it lives in tests/.
 
 [dependencies]
+
+[dev-dependencies]
+serde_json = { workspace = true }
 
 [lib]
 name = "check_idempotency_key_coverage"
