@@ -1,86 +1,136 @@
-//! What documentation may NOT say about the code it documents.
+//! What documentation may not SAY about the code it documents.
 //!
-//! Split from `docs.rs` because the two are different jobs: that file REWRITES prose into the
-//! target's conventions, and this decides when prose cannot be carried at all.
+//! Split from `docs.rs` because the two are different jobs: that file rewrites prose into the
+//! target's conventions, and this decides what cannot be carried at all.
 //!
-//! Both refusals here are the same idea at the prose layer — the engine can see that a sentence is
-//! false about the thing it documents, and it cannot write a true one. One names an API the crate
-//! does not have; the other describes a program that was not ported. A doc comment that lies is
-//! worse than none, because it is written in the voice of somebody who checked.
+//! All three cases here are one idea — the engine can see that a sentence is false about the thing
+//! it documents. One names an API the crate does not have because a sibling refused; one names a
+//! package that did not come along; one describes the source language itself. A doc comment that
+//! lies is worse than none, because it is written in the voice of somebody who checked.
+//!
+//! The sentence is DROPPED, and the declaration survives. That was not the first answer: these
+//! refused the whole declaration, which is what self-containment does everywhere else and is wrong
+//! here. A body naming something absent does not compile; prose naming it is just false. And the
+//! cost was not what a coverage number showed — it took out `Digest`, the central type of the most
+//! complete package in the corpus, over one sentence reading `Digest implements hash.Hash64.`
+//! while the two sentences after it were good documentation that survives the port intact.
+//!
+//! Dropping is prose surgery, and the engine already performs it: the opening rewrite strips the
+//! source's leading identifier, the narration rewrite strips `is returned when`, and the type-name
+//! rewrite replaces `uint64` with `u64`. This is the same category with a stronger warrant — those
+//! change how a true sentence reads, and this removes a false one.
+
+use std::collections::BTreeMap;
 
 use port_engine_api::Declaration;
 
-use crate::error::TransformError;
 use crate::resolve::Resolver;
 
-/// Refuse prose that NAMES something the emitted crate does not contain.
+/// The doc block with every sentence that names something absent removed.
 ///
-/// Self-containment, at the prose layer. A body that calls a declaration which refused is refused,
-/// because the emitted crate would not contain the name; a doc comment that describes one is the
-/// same defect and reads worse — it documents an API that is not there, in the voice of somebody
-/// who checked. A reviewer reading a real ported package ranked exactly this as their single most
-/// decisive piece of evidence that nobody had read the output.
-///
-/// Two shapes, one reason. A word that names a declaration of THIS unit which is not being emitted;
-/// and a qualified name whose package is not a unit of this model, which no module here can reach.
-///
-/// Deliberately narrow. A word only counts when the unit actually declares it, so ordinary English
-/// is untouched; a qualified name only counts in the source's own `package.Exported` shape, so a
-/// decimal number and a sentence boundary are not it.
-pub(crate) fn refuse_dangling_reference(
+/// A sentence is the unit because a sentence is what carries the claim. Dropping the whole block
+/// would lose documentation that is still true, and keeping it would emit a claim the crate does
+/// not honour.
+pub(crate) fn without_dangling_sentences(
     block: &str,
     declaration: &Declaration,
     resolver: &Resolver<'_>,
-) -> Result<(), TransformError> {
-    for word in block.split(|ch: char| !(ch.is_alphanumeric() || ch == '_' || ch == '.')) {
-        if let Some((package, member)) = qualified(word)
-            && !resolver.units.contains(package)
-        {
-            return Err(TransformError::Unsupported {
-                name: declaration.name.clone(),
-                detail: format!(
-                    "its documentation names `{package}.{member}`, which is in a package this \
-                     snapshot does not contain — the emitted crate has nothing by that name, so \
-                     the prose describes an API that is not there"
-                ),
-            });
-        }
-        // Named by this unit, and not being emitted.
-        //
-        // EXPORTED only, which is the same bound the rename map's own construction uses and for the
-        // same reason: an unexported source name is lower-case and indistinguishable from English.
-        // Without it a unit with a field called `con` refused every declaration whose prose used
-        // the word — the exact false positive that bound exists to prevent, arrived at from the
-        // other direction.
-        //
-        // A SENTINEL counts as emitted. It is emitted, as a type, by a path that does not go
-        // through the reachability set — so asking that set alone reported seven of `semver`'s own
-        // error types as absent while they sat in the output.
-        let exported = word.chars().next().is_some_and(char::is_uppercase);
-        // A declaration's own name is never dangling: the prose describes THIS declaration, and
-        // this declaration is the one being emitted.
-        if !exported || word == declaration.name || !resolver.scope.renames.contains_key(word) {
-            continue;
-        }
-        // A MEMBER is emitted exactly when its owner is, so that is what is asked about it. The
-        // top-level set knows nothing about members, and asking it reported every one of them
-        // absent — including the ones in the output.
-        let subject = resolver
-            .scope
-            .member_owners
-            .get(word)
-            .map_or(word, String::as_str);
-        if !resolver.emitted.contains(subject) && !resolver.scope.sentinels.contains_key(subject) {
-            return Err(TransformError::Unsupported {
-                name: declaration.name.clone(),
-                detail: format!(
-                    "its documentation names `{word}`, which this unit declares and is not \
-                     emitting — the prose would describe an API the crate does not contain"
-                ),
-            });
+) -> String {
+    let kept: Vec<&str> = sentences(block)
+        .into_iter()
+        .filter(|sentence| !names_something_absent(sentence, declaration, resolver))
+        .collect();
+    kept.join(" ")
+}
+
+/// A block split into sentences, keeping each one whole.
+///
+/// A sentence ends at a period followed by whitespace or by the end of the text. Newlines inside a
+/// block are the source's wrapping rather than boundaries, so they are treated as spaces — a doc
+/// wrapped mid-claim is still one claim.
+fn sentences(block: &str) -> Vec<&str> {
+    let mut out = Vec::new();
+    let mut start = 0;
+    let bytes = block.as_bytes();
+    for (at, byte) in bytes.iter().enumerate() {
+        let ends = *byte == b'.'
+            && bytes
+                .get(at + 1)
+                .is_none_or(|next| next.is_ascii_whitespace());
+        if ends {
+            let sentence = block[start..=at].trim();
+            if !sentence.is_empty() {
+                out.push(sentence);
+            }
+            start = at + 1;
         }
     }
-    Ok(())
+    let tail = block[start..].trim();
+    if !tail.is_empty() {
+        out.push(tail);
+    }
+    out
+}
+
+/// Whether this sentence names something the emitted crate does not contain.
+fn names_something_absent(
+    sentence: &str,
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> bool {
+    for word in sentence.split(|ch: char| !(ch.is_alphanumeric() || ch == '_' || ch == '.')) {
+        // A trailing period is the sentence's, not the identifier's. Absorbing it made
+        // `hash.Hash64.` the member name, which is nobody's identifier.
+        let word = word.trim_end_matches('.');
+        if names_the_source_language(word, resolver) {
+            return true;
+        }
+        if let Some((package, _)) = qualified(word)
+            && !resolver.units.contains(package)
+        {
+            return true;
+        }
+        if names_an_unemitted_declaration(word, declaration, resolver) {
+            return true;
+        }
+    }
+    false
+}
+
+/// Whether this word names the SOURCE LANGUAGE or something only it has.
+///
+/// Safe to include the language's own name because the opening rewrite has already run: the
+/// source's convention opens a doc with the identifier, so a package declaring a method called `Go`
+/// has lost the word before this looks. The English verb is lower-case, which the list is not.
+fn names_the_source_language(word: &str, resolver: &Resolver<'_>) -> bool {
+    resolver
+        .doc_convention
+        .source_language_words
+        .iter()
+        .any(|listed| listed == word)
+}
+
+/// Whether this word names a declaration of THIS unit that is not being emitted.
+///
+/// EXPORTED only, which is the same bound the rename map's own construction uses and for the same
+/// reason: an unexported source name is lower-case and indistinguishable from English. A
+/// declaration's own name is never absent — the prose describes it, and it is the one being built.
+/// A MEMBER is emitted exactly when its owner is, so that is what is asked about it.
+fn names_an_unemitted_declaration(
+    word: &str,
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> bool {
+    let exported = word.chars().next().is_some_and(char::is_uppercase);
+    if !exported || word == declaration.name || !resolver.scope.renames.contains_key(word) {
+        return false;
+    }
+    let subject = resolver
+        .scope
+        .member_owners
+        .get(word)
+        .map_or(word, String::as_str);
+    !resolver.emitted.contains(subject) && !resolver.scope.sentinels.contains_key(subject)
 }
 
 /// A word in the source's `package.Exported` shape, split into its two halves.
@@ -96,47 +146,7 @@ fn qualified(word: &str) -> Option<(&str, &str)> {
         .then_some((package, member))
 }
 
-/// Refuse prose that documents the SOURCE LANGUAGE rather than the emitted code.
-///
-/// A doc naming the source language, its runtime, or something only it has is documentation about a
-/// program that was not ported. `The consts are used when possible in Go code to avoid MOVs but we
-/// need a contiguous array for the assembly code.` reached rustdoc on a crate that denies `unsafe`
-/// and has no assembly; a reviewer called it conclusive on its own, and it was.
-///
-/// Checked on the REWRITTEN prose, and that is what makes the language's own name safe to look for.
-/// The source's convention opens a doc with the identifier, so a package declaring a method called
-/// `Go` has already lost the word by the time this runs — and the English verb is lower-case, which
-/// the list is not.
-///
-/// The declaration refuses rather than losing the sentence, for the reason prose naming an absent
-/// API refuses: the engine can see the documentation is false about what it documents, and it
-/// cannot write a true one.
-///
-/// # Errors
-/// [`TransformError::Unsupported`] naming the declaration and the word that gave it away.
-pub(crate) fn refuse_source_language_prose(
-    lines: &[String],
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> Result<(), TransformError> {
-    let words = &resolver.doc_convention.source_language_words;
-    if words.is_empty() {
-        return Ok(());
-    }
-    for line in lines {
-        for word in line.split(|ch: char| !(ch.is_alphanumeric() || ch == '_')) {
-            if words.iter().any(|listed| listed == word) {
-                return Err(TransformError::Unsupported {
-                    name: declaration.name.clone(),
-                    detail: format!(
-                        "its documentation says `{word}`, which names the source language or \
-                         something only it has — the prose describes a program that was not \
-                         ported, and the engine can see it is false about what it documents \
-                         without being able to write a true one"
-                    ),
-                });
-            }
-        }
-    }
-    Ok(())
+/// Rewrite source TYPE names inside text the emitted program itself carries.
+pub(crate) fn rename_types_in_text(text: &str, types: &BTreeMap<String, String>) -> String {
+    crate::docs::rename_types_in_text(text, types)
 }

@@ -27,10 +27,13 @@ pub(crate) fn docs_of(
     let Some(block) = declaration.attr(ATTR_DOC) else {
         return Ok(Vec::new());
     };
-    crate::docs_refuse::refuse_dangling_reference(block, declaration, resolver)?;
-    let rendered = docs_from_block(block, &declaration.name, resolver);
-    crate::docs_refuse::refuse_source_language_prose(&rendered, declaration, resolver)?;
-    Ok(rendered)
+    // A sentence naming something the crate does not contain is DROPPED, and the declaration
+    // survives. See `docs_refuse` for why that is the right unit and why refusing was not.
+    let kept = crate::docs_refuse::without_dangling_sentences(block, declaration, resolver);
+    if kept.trim().is_empty() {
+        return Ok(Vec::new());
+    }
+    Ok(docs_from_block(&kept, &declaration.name, resolver))
 }
 
 /// The same, from a doc block and the name it opens with, for a declaration not in hand.
