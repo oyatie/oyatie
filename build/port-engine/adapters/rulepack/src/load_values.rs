@@ -46,6 +46,8 @@ pub(crate) fn allocation(rule: Option<AllocationRule>) -> Allocation {
         empty_with_capacity_reason: rule.empty_with_capacity_reason,
         filled: rule.filled,
         filled_reason: rule.filled_reason,
+        owned_from_slice: rule.owned_from_slice,
+        owned_from_slice_reason: rule.owned_from_slice_reason,
         reason: rule.reason,
     })
     .unwrap_or_default()

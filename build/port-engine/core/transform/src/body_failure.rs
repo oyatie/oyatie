@@ -106,7 +106,7 @@ pub(crate) fn translated_return(
             .collect::<Result<Vec<_>, _>>()?;
         match values.len() {
             0 => None,
-            1 => values.into_iter().next().map(|expr| own_returned_string(expr, cx)),
+            1 => values.into_iter().next().map(|expr| crate::body_ops::own_returned_sequence(own_returned_string(expr, cx), cx)),
             // Several results leave as a tuple, matching how the signature renders them.
             _ => Some(RustExpr::Tuple(values)),
         }
@@ -145,10 +145,15 @@ pub(crate) fn fallible_return(
             .collect::<Result<Vec<_>, _>>()?;
         let ok = match values.len() {
             0 => RustExpr::Tuple(Vec::new()),
-            1 => values
-                .into_iter()
-                .next()
-                .unwrap_or_else(|| unreachable!("the arm matched exactly one value")),
+            // OWNED here too. A successful return through the failure channel is still a return,
+            // and the result type it has to fit is the one inside `Ok`.
+            1 => crate::body_ops::own_returned_sequence(
+                values
+                    .into_iter()
+                    .next()
+                    .unwrap_or_else(|| unreachable!("the arm matched exactly one value")),
+                cx,
+            ),
             _ => RustExpr::Tuple(values),
         };
         return Ok(RustExpr::Call {

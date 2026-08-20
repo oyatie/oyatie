@@ -86,6 +86,19 @@ pub enum RustExpr {
     /// A tuple, which is how a multi-value result leaves a function.
     Tuple(Vec<RustExpr>),
     /// `<base>.<name>` — a field access.
+    /// A TUPLE INDEX — `x.0`, the one field of a newtype.
+    ///
+    /// Not a [`Self::Field`] with a numeric name. The target spells the two the same way and means
+    /// different things by them: a field is an identifier and `0` is not a valid one, so lowering a
+    /// tuple index as a field refuses the whole declaration. It did, in six packages at once, and
+    /// the failure was invisible because what it produced was a REFUSAL rather than bad output —
+    /// the compile proof went green because the type was no longer emitted at all.
+    TupleIndex {
+        /// What the index reads from.
+        base: Box<RustExpr>,
+        /// Which element, counted from zero.
+        index: usize,
+    },
     Field {
         /// What the field is read from.
         base: Box<RustExpr>,
@@ -202,6 +215,7 @@ impl RustExpr {
             | Self::Block(_)
             | Self::Tuple(_)
             | Self::Field { .. }
+            | Self::TupleIndex { .. }
             | Self::Call { .. }
             | Self::MethodCall { .. }
             | Self::MacroCall { .. }

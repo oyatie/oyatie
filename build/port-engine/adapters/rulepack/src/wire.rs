@@ -146,6 +146,12 @@ pub(crate) struct FailureDoc {
     #[serde(default)]
     pub(crate) satisfaction_reason: String,
     #[serde(default)]
+    pub(crate) message_method_source: String,
+    #[serde(default)]
+    pub(crate) message_method: String,
+    #[serde(default)]
+    pub(crate) message_method_reason: String,
+    #[serde(default)]
     pub(crate) identity_test: String,
     #[serde(default)]
     pub(crate) identity_test_reason: String,

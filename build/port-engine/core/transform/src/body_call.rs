@@ -96,7 +96,18 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
     // emitted a method call on a package name.
     if node.attr(ATTR_CALLEE_KIND) == Some(CALLEE_KIND_METHOD) {
         let receiver_node = one_child(callee, cx, "selector")?;
+        // ABSENCE FIRST. A receiver that may hold nothing has no methods of what it holds, and that
+        // includes the mapped one below — mapping before checking turned `self.cause.Error()` into
+        // `self.cause.to_string()` on an option, which is a different method that does not exist
+        // either. The order is the rule: what the receiver IS has to be settled before what the
+        // call becomes.
         refuse_absent_capable_receiver(receiver_node, &callee.name, cx)?;
+        // The source interface's MESSAGE METHOD, which the target takes from a different trait. The
+        // call is mappable even though the interface is not implementable — see the pack's
+        // `message_method_reason`.
+        if let Some(rendered) = message_method_call(receiver_node, &callee.name, cx)? {
+            return Ok(rendered);
+        }
         refuse_dropped_method(receiver_node, &callee.name, cx)?;
         return Ok(RustExpr::MethodCall {
             // The receiver of a method call is a PLACE, not a value: `x.m()` borrows `x` rather
@@ -300,9 +311,9 @@ fn refuse_absent_capable_receiver(
     method: &str,
     cx: &Body<'_>,
 ) -> Result<(), TransformError> {
-    if receiver.type_ref.name.is_empty() && receiver.type_ref.kind.is_empty() {
+    let Some(type_ref) = receiver_type_ref(receiver, cx) else {
         return Ok(());
-    }
+    };
     // ASKED of the resolver, and of EVERY receiver rather than only the pointer-typed ones. What
     // makes a receiver unusable is that its target type is absent-capable, and a pointer is not
     // the only way there: a stored failure is an option too, because the source's error interface
@@ -313,10 +324,7 @@ fn refuse_absent_capable_receiver(
         true => crate::vocabulary::POSITION_FIELD,
         false => crate::vocabulary::POSITION_PARAM,
     };
-    let Ok(resolved) = cx
-        .resolver
-        .resolve_in(&receiver.type_ref, cx.owner, position)
-    else {
+    let Ok(resolved) = cx.resolver.resolve_in(&type_ref, cx.owner, position) else {
         return Ok(());
     };
     if !resolved.spelling().starts_with("Option<") {
@@ -383,4 +391,58 @@ fn refuse_dropped_method(
              self-contained"
         ),
     })
+}
+
+/// A call to the source interface's message method, as the target's own.
+///
+/// Recognised by the receiver's TYPE being the failure interface, never by the method's name alone:
+/// a type of this corpus may declare a method with the same name meaning something else, and
+/// rewriting that would be answering for a call the pack never spoke about.
+fn message_method_call(
+    receiver: &Declaration,
+    method: &str,
+    cx: &Body<'_>,
+) -> Result<Option<RustExpr>, TransformError> {
+    let Some(convention) = cx.resolver.failure else {
+        return Ok(None);
+    };
+    if convention.message_method.is_empty()
+        || method != convention.message_method_source
+    {
+        return Ok(None);
+    }
+    if !receiver_type_ref(receiver, cx).is_some_and(|found| cx.resolver.is_failure_type(&found)) {
+        return Ok(None);
+    }
+    Ok(Some(RustExpr::MethodCall {
+        receiver: Box::new(in_position(receiver, cx, Position::Place)?),
+        method: convention.message_method.clone(),
+        args: Vec::new(),
+    }))
+}
+
+/// The source TYPE a receiver expression has, where the body can work it out.
+///
+/// The front end records a type on an expression only where one is needed, so an index into a
+/// sequence carries none — and the two rules that ask what a receiver IS were both silently inert on
+/// exactly that shape. What the body can reconstruct is the one case the corpus has: an index whose
+/// base is a value of one of this unit's newtypes, whose underlying is a sequence, has the sequence's
+/// ELEMENT type.
+///
+/// Deliberately not more than that. A general expression-typer is the front end's job, and guessing
+/// here would answer for shapes nobody measured.
+fn receiver_type_ref(receiver: &Declaration, cx: &Body<'_>) -> Option<port_engine_api::TypeRef> {
+    if !receiver.type_ref.name.is_empty() || !receiver.type_ref.kind.is_empty() {
+        return Some(receiver.type_ref.clone());
+    }
+    if receiver.kind != crate::vocabulary::KIND_INDEX {
+        return None;
+    }
+    let base = receiver.children.first()?;
+    let owner = match crate::body_ops::is_receiver(base) {
+        true => cx.receiver_type?,
+        false => base.type_ref.name.as_str(),
+    };
+    let underlying = cx.resolver.scope.newtypes.get(owner)?;
+    underlying.args.first().cloned()
 }

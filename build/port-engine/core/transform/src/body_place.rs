@@ -156,6 +156,16 @@ pub(crate) fn convert(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tra
 
     if target.kind == "basic" && cx.resolver.converts_by_cast(target) {
         let rendered = cx.resolver.resolve(target, cx.owner)?;
+        // A cast that changes nothing is not written. Reaching through a newtype already produced a
+        // value of the underlying type, and the source's conversion was a no-op there too — it
+        // exists in the source only because the name and the underlying are distinct types. The
+        // target's own lint rejects the redundant cast, and this engine is held to that lint.
+        if crate::body_index::unwraps_newtype(source, cx)
+            && let Some(underlying) = newtype_underlying(source, cx)
+            && cx.resolver.resolve(&underlying, cx.owner)?.spelling() == rendered.spelling()
+        {
+            return Ok(operand);
+        }
         return Ok(RustExpr::Cast {
             expr: Box::new(operand),
             ty: rendered,
@@ -171,4 +181,16 @@ pub(crate) fn convert(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tra
             target.describe()
         ),
     })
+}
+
+/// What a newtype occurrence wraps, when the body can tell which newtype it is.
+fn newtype_underlying(
+    source: &Declaration,
+    cx: &Body<'_>,
+) -> Option<port_engine_api::TypeRef> {
+    let owner = match crate::body_ops::is_receiver(source) {
+        true => cx.receiver_type?,
+        false => source.type_ref.name.as_str(),
+    };
+    cx.resolver.scope.newtypes.get(owner).cloned()
 }

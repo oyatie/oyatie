@@ -24,6 +24,10 @@ use crate::ty::RustType;
 /// `(a + b).x` and `a + b.x` are different expressions, and the tree already knows which one it
 /// holds — so the brackets come from the structure rather than from emitting them everywhere.
 pub(crate) fn lower_postfix_base(expr: &RustExpr) -> Result<TokenStream, PortError> {
+    // A SLICE in postfix position is a PLACE, not a borrowed value. See `lower_slice_place`.
+    if matches!(expr, RustExpr::Slice { .. }) {
+        return crate::lower_expr::lower_slice_place(expr);
+    }
     let tokens = lower_expr(expr)?;
     match expr {
         RustExpr::Binary { .. }

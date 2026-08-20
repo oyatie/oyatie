@@ -188,6 +188,12 @@ pub struct FailureConvention {
     pub nullable_borrowed_type_reason: String, // data_class: INTERNAL_ONLY
     /// Why a satisfaction of the failure interface is not emitted as a trait impl.
     pub satisfaction_reason: String, // data_class: INTERNAL_ONLY
+    /// The source interface method that yields the message.
+    pub message_method_source: String, // data_class: INTERNAL_ONLY
+    /// The target method that yields the same message.
+    pub message_method: String, // data_class: INTERNAL_ONLY
+    /// Why the two correspond.
+    pub message_method_reason: String, // data_class: INTERNAL_ONLY
     /// How a caller asks whether a failure IS a particular sentinel. Empty to refuse the question.
     pub identity_test: String, // data_class: INTERNAL_ONLY
     /// Why that form, and what it does not cover.

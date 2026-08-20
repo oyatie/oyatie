@@ -84,19 +84,24 @@ pub(crate) fn slice(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Trans
 /// here unchanged rather than being guessed at.
 pub(crate) fn unwrapped_base(base: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
     let translated = expression(base, cx)?;
-    let wraps = match crate::body_ops::is_receiver(base) {
+    let wraps = unwraps_newtype(base, cx);
+    if !wraps {
+        return Ok(translated);
+    }
+    Ok(RustExpr::TupleIndex {
+        base: Box::new(translated),
+        index: 0,
+    })
+}
+
+/// Whether this occurrence is a value of one of this unit's NEWTYPES, which the target wraps.
+pub(crate) fn unwraps_newtype(base: &Declaration, cx: &Body<'_>) -> bool {
+    match crate::body_ops::is_receiver(base) {
         true => cx
             .receiver_type
             .is_some_and(|owner| cx.resolver.scope.newtypes.contains_key(owner)),
         // A PARAMETER of newtype type, which the signature stated and the body was told.
         false => base.kind == crate::vocabulary::KIND_IDENT
             && cx.newtype_parameters.contains(&base.name),
-    };
-    if !wraps {
-        return Ok(translated);
     }
-    Ok(RustExpr::Field {
-        base: Box::new(translated),
-        name: "0".to_owned(),
-    })
 }
