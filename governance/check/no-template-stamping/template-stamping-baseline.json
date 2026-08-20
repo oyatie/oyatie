@@ -2,7 +2,6 @@
   "_comment": "FROZEN shrink-only baseline of template-stamped document groups, keyed <directory> -> the sorted sizes of every stamped group in that directory. A directory can hold MORE THAN ONE group, so the value is a list and not a count: keying by count alone silently dropped 27 of the 66 groups when this file was first drafted. Grandfathers what the detector finds today so the gate is born-blocking on NEW stamping without demanding the existing corpus be rewritten first. Provenance: the scan scope was ['docs','microservices'] until this change -- microservices/ held zero tracked files and docs/ excluded every capability runbook, so the detector saw 1435 of 3990 markdown files and reported 10 of these 66 groups.",
   "rule_id": "synthesis-audit-P0-template-stamping",
   "_scope_floor_remeasure_2026_08_20": "scanned_markdown_files 3520 -> 3519. DOWNWARD by exactly one, and it is a DELETION rather than a narrowed scope: this change removes docs/governance-lanes/adr-citation.md, the lane doc for a retired gate. The scan configuration is untouched. Cross-check that the walk did not shrink: docs/governance-lanes carries NO entry in `groups`, so groups_total 44, files_total 268 and every per-directory group list are unchanged and were re-asserted by equality on the same run — a narrowed scope moves those too, a single-file delete does not.",
-
   "threshold": 0.7,
   "scanned_markdown_files": 3519,
   "scanned_directories": 686,
