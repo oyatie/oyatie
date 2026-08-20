@@ -134,6 +134,10 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 false => Ok(quote! { #name!(#template, #(#args),*) }),
             }
         }
+        RustExpr::Deref(inner) => {
+            let inner = crate::lower_precedence::lower_postfix_base(inner)?;
+            Ok(quote! { *#inner })
+        }
         RustExpr::ArrayLiteral(elements) => {
             let elements = lower_each(elements)?;
             Ok(quote! { [#(#elements),*] })

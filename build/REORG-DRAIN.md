@@ -5944,3 +5944,58 @@ preimage covers:
 
 A degradation that changes what was checked has to change the identity of what was produced, or the
 receipt is certifying two different things under one digest.
+
+## R3m — all five goal repositories compile
+
+`uuid`, `gjson`, `chi`, `go-multierror` and `memberlist` now emit Rust that `rustc` accepts under
+`#![forbid(unsafe_code)]`. Three rules, all from the compile check, all universal.
+
+### A bare integer literal has no type until something gives it one
+
+    2.wrapping_add(label.len() as i64)      // E0689: ambiguous numeric type
+
+Every other position in the target infers a literal's type from its neighbours. A method call is not
+one of those positions — the receiver has to be typed before the method can be found. The type comes
+from the OPERATION, which is the type the source gave the whole expression, so the literal is spelled
+at the type it already had rather than at one chosen here.
+
+### A scrutinee and its patterns must be the same type, and the target breaks that two ways
+
+The source guarantees they agree: a switch compares its tag against each case with `==`, and it would
+not compile if they differed. The target has two ways to lose that, and they need opposite fixes.
+
+A NEWTYPE scrutinee with literal cases:
+
+    switch vsn { case 0: ... }              // `type encryptionVersion uint8`
+
+There the defined type and its underlying are one thing, so this compares numbers. Here the newtype
+is a struct and `0` is not one. The SCRUTINEE reaches through the wrapper, because a pattern has no
+field access and cannot.
+
+A BORROWED RECEIVER with constant cases:
+
+    func (t NodeStateType) metricsString() string { switch t { case StateAlive: ... } }
+
+A method on a value receiver still takes `&self` here, so `match self` has type `&T` while every
+constant the source names has type `T`. The scrutinee is DEREFERENCED — the opposite direction — and
+not the patterns wrapped, because `&CONST` is not a pattern the target accepts either. Nothing
+moves: a constant pattern binds nothing, so the place is only read.
+
+`RustExpr::Deref` is its own node rather than a `UnaryOp`. Those are arithmetic and logical
+operators on a value; this reaches a place through a reference, and neither should have to carry the
+other's precedence rule.
+
+### Where the corpus stands
+
+    uuid         125 decls   29 translated  23.2%   compiles
+    gjson        124          18            14.5%   compiles
+    chi          189          33            17.5%   compiles
+    multierror    14           1             7.1%   compiles
+    memberlist   186          78            41.9%   compiles
+
+Nine of ten measured packages compile; only `ksuid` remains, at 7 errors.
+
+The compile gate is now met for every repository the goal names. The REVIEW gates are not: both
+reviewers returned DO_NOT_MERGE, and their structural findings — closures with no translation at
+all, `Uint128` reimplementing `u128`, `NullUuid` where `Option` belongs, Go's named results
+surviving as dead locals — are untouched. Compiling was the first of five conditions, not the last.
