@@ -186,7 +186,6 @@
       "libs/oya-governance-lifecycle-kernel",
       "libs/oya-governance-mistakes-ledger-kernel",
       "libs/oya-governance-naming-justifications",
-      "libs/oya-governance-no-template-stamping",
       "libs/oya-governance-orphan-detection-kernel",
       "libs/oya-governance-pack-overlay-completeness",
       "libs/oya-governance-portfolio-citation-kernel",

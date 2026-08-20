@@ -142,29 +142,42 @@ pub fn format_text_report(outcome: &GovernanceCheckOutcome) -> String {
 
 fn discover_document_shapes(repo_root: &Path) -> Result<Vec<DocumentShape>> {
     let mut documents = Vec::new();
-    for base in ["docs", "microservices"] {
-        let root = repo_root.join(base);
-        if !root.exists() {
+    // Walks the WHOLE repository, not a hardcoded base list.
+    //
+    // The previous scope was `["docs", "microservices"]`. `microservices/` holds ZERO tracked
+    // files -- the tier was drained -- so half the declared scope was a dead root, the exact
+    // defect ci/facade/scan-root-liveness exists to catch and does not cover this crate. The
+    // surviving half made the check docs-only, and template stamping is not a docs-only
+    // phenomenon: 78 identical-length `hot-split.md`, 78 `cold-merge.md` and 78
+    // `auto-rebalance.md` sit under `<capability>/runbooks/`, and NOT ONE of them is under
+    // `docs/`. The detector was blind to every one.
+    for entry in WalkDir::new(repo_root)
+        .follow_links(false)
+        .into_iter()
+        .filter_entry(|entry| {
+            // Prune build output and VCS internals rather than reading them: they are not authored
+            // documents, and target/ alone is large enough to dominate the walk.
+            !matches!(
+                entry.file_name().to_str(),
+                Some(".git" | "target" | "node_modules" | "buck-out" | ".jj")
+            )
+        })
+    {
+        let entry = entry.with_context(|| format!("failed to walk {}", repo_root.display()))?;
+        if !entry.file_type().is_file() || !has_markdown_extension(entry.path()) {
             continue;
         }
 
-        for entry in WalkDir::new(&root).follow_links(false) {
-            let entry = entry.with_context(|| format!("failed to walk {}", root.display()))?;
-            if !entry.file_type().is_file() || !has_markdown_extension(entry.path()) {
-                continue;
-            }
-
-            let path = entry.path().to_path_buf();
-            let content = fs::read_to_string(&path)
-                .with_context(|| format!("failed to read {}", path.display()))?;
-            let line_shapes = compute_line_shapes(&content);
-            if line_shapes.len() >= MIN_LINE_SHAPES {
-                documents.push(DocumentShape {
-                    directory: path.parent().unwrap_or(repo_root).to_path_buf(),
-                    path,
-                    line_shapes,
-                });
-            }
+        let path = entry.path().to_path_buf();
+        let content = fs::read_to_string(&path)
+            .with_context(|| format!("failed to read {}", path.display()))?;
+        let line_shapes = compute_line_shapes(&content);
+        if line_shapes.len() >= MIN_LINE_SHAPES {
+            documents.push(DocumentShape {
+                directory: path.parent().unwrap_or(repo_root).to_path_buf(),
+                path,
+                line_shapes,
+            });
         }
     }
 

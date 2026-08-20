@@ -1,7 +1,7 @@
 {
   "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
-  "count": 1647,
+  "count": 1644,
   "cloud_prefixed_names": [
     "dir:.github/workflows/oya-ci-required.yml",
     "dir:billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md",
@@ -180,7 +180,6 @@
     "dir:libs/oya-governance-lifecycle-kernel",
     "dir:libs/oya-governance-mistakes-ledger-kernel",
     "dir:libs/oya-governance-naming-justifications",
-    "dir:libs/oya-governance-no-template-stamping",
     "dir:libs/oya-governance-orphan-detection-kernel",
     "dir:libs/oya-governance-pack-overlay-completeness",
     "dir:libs/oya-governance-portfolio-citation-kernel",
@@ -946,7 +945,6 @@
     "dir:registry/catalog/oya-governance-lifecycle-kernel.yaml",
     "dir:registry/catalog/oya-governance-mistakes-ledger-kernel.yaml",
     "dir:registry/catalog/oya-governance-naming-justifications.yaml",
-    "dir:registry/catalog/oya-governance-no-template-stamping.yaml",
     "dir:registry/catalog/oya-governance-orphan-detection-kernel.yaml",
     "dir:registry/catalog/oya-governance-pack-overlay-completeness.yaml",
     "dir:registry/catalog/oya-governance-portfolio-citation-app.yaml",
@@ -1324,7 +1322,6 @@
     "name:libs/oya-governance-mistakes-ledger-kernel/Cargo.toml:oya-governance-mistakes-ledger-kernel",
     "name:libs/oya-governance-mistakes-ledger-kernel/Cargo.toml:oya_governance_mistakes_ledger_kernel",
     "name:libs/oya-governance-naming-justifications/Cargo.toml:oya-governance-naming-justifications",
-    "name:libs/oya-governance-no-template-stamping/Cargo.toml:oya-governance-no-template-stamping",
     "name:libs/oya-governance-orphan-detection-kernel/Cargo.toml:oya-governance-orphan-detection-kernel",
     "name:libs/oya-governance-orphan-detection-kernel/Cargo.toml:oya_governance_orphan_detection_kernel",
     "name:libs/oya-governance-pack-overlay-completeness/Cargo.toml:oya-governance-pack-overlay-completeness",
