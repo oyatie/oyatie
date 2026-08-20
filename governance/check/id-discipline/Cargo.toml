@@ -6,11 +6,15 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Pure-fn kernel (port-in-kernel, ADR-0056). Reads OpenAPI/AsyncAPI
-# schemas; flags auto-increment / UUID v4 / fabricated id formats
-# where ULID is canonical per ADR-0156.
+# Pure-fn kernel (port-in-kernel, ADR-0056). Reads OpenAPI/AsyncAPI/JSON
+# schemas; flags any canonical id field whose declared format does not pin
+# UUIDv7, which is canonical per ADR-0709 D-1. The previous comment cited
+# ADR-0156 (the PII registry decision) and named ULID canonical -- both wrong.
 
 [dependencies]
+
+[dev-dependencies]
+serde_json = { workspace = true }
 
 [lib]
 name = "check_id_discipline"

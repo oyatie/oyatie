@@ -26,12 +26,15 @@ trace context.
 ### 1. Header format
 
 ```
-X-Request-Id: <ulid>
+X-Request-Id: <uuidv7>
 ```
 
-- ULID per ADR-0156 (id-discipline kernel emits ULID for every
-  inbound HTTP request).
-- 26-character canonical Crockford-base32 form.
+- UUIDv7 per ADR-0709 D-1, which names request IDs explicitly. The earlier
+  text said ULID and cited ADR-0156 — that ADR is the PII registry decision and
+  says nothing about identifiers.
+- 36-character canonical hyphenated form, with the version nibble pinned to 7.
+  The machine-readable declaration is
+  `governance/check/id-discipline/id-discipline-policy.json`.
 
 ### 2. Propagation rules
 

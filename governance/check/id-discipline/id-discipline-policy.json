@@ -1,0 +1,69 @@
+{
+  "_comment": "Policy-as-data for the id-discipline gate. This is the FIRST machine-readable declaration of the canonical ID scheme in this repository. Until it existed the rule lived only in ADR prose, which is exactly why it drifted: ADR-0709 D-1 declares UUIDv7 the single canonical scheme and states 'The rule covers request IDs', while the same document's ADR-0151 and ADR-0154 residuals still describe X-Request-Id as a ULID. Prose cannot be diffed against a tree; this file can. The gate reads the schema corpus and enforces that any canonical id field which DECLARES a format pins UUIDv7 -- the version nibble 7 and the RFC 4122 variant -- because a bare 'format: uuid' admits v4, which has no time ordering and is what D-1 exists to forbid.",
+  "gate_id": "governance-id-discipline",
+  "schema_version": "1.0.0",
+  "authority_adr": "ADR-0709",
+  "canonical_scheme": "uuidv7",
+  "_pattern_comment": "The version nibble must be 7 and the variant nibble must be one of 8/9/a/b. specs/residency-attestation-schema.json already declares exactly this shape for attestation_id and is the positive control the live test asserts against -- without one compliant declaration in the corpus, a green verdict would only prove the matcher never fires.",
+  "uuidv7_pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+  "_fields_comment": "Enumerated from ADR-0709 D-1's own list of covered surfaces rather than invented here: 'The rule covers event IDs. The rule covers audit-chain row IDs. The rule covers VCS changeset IDs. The rule covers tenant IDs. The rule covers cell IDs. The rule covers principal IDs. The rule covers resource IDs. The rule covers request IDs.'",
+  "canonical_id_fields": [
+    "attestation_id",
+    "audit_id",
+    "cell_id",
+    "changeset_id",
+    "channel_id",
+    "event_id",
+    "job_id",
+    "message_id",
+    "outbox_id",
+    "principal_id",
+    "request_id",
+    "resource_id",
+    "tenant_id",
+    "trace_id"
+  ],
+  "scan_roots": [
+    "contracts",
+    "packs",
+    "registry",
+    "specs"
+  ],
+  "_floor_comment": "Anti-vacuity on the CENSUS, not the attribution. Without these a broken walk reports zero violations, which is indistinguishable from a clean corpus -- the exact false green this gate was dark for. They are floors rather than equality pins on purpose: the schema corpus churns, and pinning 1251 exactly would red this gate on any unrelated PR that deletes a yaml. ATTRIBUTION is guarded separately and two-sided, by every_frozen_entry_still_names_a_live_underspecified_declaration, which asserts set equality between the frozen list and the live violations. Live census when these were set: 1251 documents, 607 id fields, 3 declared formats.",
+  "min_expected_scanned_files": 1000,
+  "min_expected_id_fields": 500,
+  "_frozen_comment": "Shrink-only. A canonical id field declaring a format that does not pin UUIDv7 is tolerated ONLY if listed here. Adding an entry is a regression; removing one records a win. An entry that no longer matches a live declaration is itself a finding (ID-STALE-BASELINE), so the list cannot rot into a permanent unaudited exemption.",
+  "frozen_underspecified_id_formats": [
+    {
+      "path": "specs/finops-cost-attribution.json",
+      "field": "tenant_id",
+      "declared": "uuid",
+      "reason": "bare `format: uuid` admits v4; predates the UUIDv7 canon and is retrofitted with the rest of the finops attribution schema"
+    },
+    {
+      "path": "specs/finops-cost-attribution.json",
+      "field": "cell_id",
+      "declared": "uuid",
+      "reason": "bare `format: uuid` admits v4; same schema and same retrofit as tenant_id above"
+    }
+  ],
+  "_ulid_surface_comment": "DECLARATION ONLY -- this gate does not enforce over Rust code, and saying so here is the point. ADR-0709 D-1 names UUIDv7 the single canonical scheme, but a live in-house ULID kernel ships with three consumers. Recording that split as data rather than leaving it as a contradiction between two lines of the same ADR is what makes it a tracked migration instead of doctrine that lies about the tree. These entries are enumerated so the set is closed and countable; retiring the kernel removes them.",
+  "declared_ulid_surface": [
+    {
+      "path": "libs/oya-shared-ulid-id-kernel",
+      "reason": "the in-house ULID minting kernel: Crockford-base32, 26 characters"
+    },
+    {
+      "path": "tenancy/adapters/tenant-lifecycle-authz-pdp",
+      "reason": "mints tenant lifecycle ids via the ULID kernel"
+    },
+    {
+      "path": "iam/facade/cloud-pdp-app",
+      "reason": "consumes the ULID kernel through the PDP surface"
+    },
+    {
+      "path": "iam/adapters/pdp-cedar",
+      "reason": "consumes the ULID kernel through the Cedar PDP adapter"
+    }
+  ]
+}
