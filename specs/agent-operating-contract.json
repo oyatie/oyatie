@@ -50,7 +50,6 @@
   "related_specs": [
     "/specs/root-hub-pointers.json",
     "/specs/master-plan-sequencing.json",
-    "/specs/markdown-retirement-policy.json",
     "/specs/gitops-vcs-replacement.json"
   ],
   "related_adrs": [

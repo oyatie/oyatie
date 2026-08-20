@@ -718,7 +718,7 @@
       "prefix": "secrets/manifest.json"
     },
     {
-      "anchor": "ADR-0388 amendment (E4 preparation): specs/BUCK exports markdown-retirement-policy.json as the declared policy input to the cross-artifact evaluator; the policy remains preparation-only and non-authoritative.",
+      "anchor": "ADR-0388 amendment (E4 preparation): the idea-archive policy input to the cross-artifact evaluator now lives beside that gate at ci/facade/cross-artifact-agreement/idea-archive-policy.json and is exported by its own package; the policy remains preparation-only and non-authoritative.",
       "prefix": "specs/BUCK"
     },
     {

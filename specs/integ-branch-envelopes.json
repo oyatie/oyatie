@@ -1198,7 +1198,7 @@
       "specs/integ-branch-envelopes.json": "keep_forever",
       "specs/naming-taxonomy.json": "keep_forever",
       "specs/agentic-operating-patterns.json": "keep_forever",
-      "specs/markdown-retirement-policy.json": "keep_forever",
+      "ci/facade/cross-artifact-agreement/idea-archive-policy.json": "keep_forever",
       "specs/reorg/": "keep_forever",
       "specs/microservices/": "reorg_now",
       "specs/products/": "reorg_now",
@@ -1913,14 +1913,14 @@
         "destination": "specs/agentic-operating-patterns.json"
       },
       {
-        "path": "specs/markdown-retirement-policy.json",
+        "path": "ci/facade/cross-artifact-agreement/idea-archive-policy.json",
         "action": "keep_forever",
-        "greenfield_destination": "specs/markdown-retirement-policy.json",
+        "greenfield_destination": "ci/facade/cross-artifact-agreement/idea-archive-policy.json",
         "shape": "docs lifecycle policy",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/markdown-retirement-policy.json` → `specs/markdown-retirement-policy.json` (docs lifecycle policy). Full 7-point judgment still pending before structural change.",
-        "destination": "specs/markdown-retirement-policy.json"
+        "rationale": "keep_forever, RESOLVED: the executable idea-archive clause was rehomed beside the gate that reads it; the 204 lines of overdue migration phases around it were retired (docs lifecycle policy). Full 7-point judgment still pending before structural change.",
+        "destination": "ci/facade/cross-artifact-agreement/idea-archive-policy.json"
       },
       {
         "path": "specs/reorg/",
