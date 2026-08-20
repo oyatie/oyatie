@@ -145,3 +145,155 @@ mod tests {
         }
     }
 }
+
+
+// ---------------------------------------------------------------------------
+// Freshness of the de-committed `scm-facts.generated.json` face.
+//
+// The face is gitignored (`**/*.generated.json`) and materialized fresh by the
+// required workflow before Cargo runs, so preferring it is correct in CI. It is
+// wrong the moment the file outlives the tree it describes, which happens
+// routinely on a developer machine: materialize once, then check out, merge, or
+// delete files, and every later run silently counts the OLD tracked-path set.
+//
+// Because the path is gitignored, `git status` never shows the stale file, so it
+// presents as a gate that is green locally and red in CI -- or worse, green
+// locally on a baseline CI rejects.
+//
+// The check compares modification times against the git index, which costs no
+// Git invocation and so keeps the boundary these gates hold: a live-corpus test
+// consumes a declared face and never derives SCM facts itself.
+// ---------------------------------------------------------------------------
+
+use std::fs;
+use std::path::{Path, PathBuf};
+
+
+/// Locate the git index for `root`, following the `gitdir:` pointer that a linked
+/// worktree writes into its `.git` file. Returns `None` when there is no index to
+/// compare against, which is not a failure: an exported tree or a container build
+/// legitimately has none, and the caller then trusts the declared face.
+pub fn git_index_path(root: &Path) -> Option<PathBuf> {
+    let dot_git = root.join(".git");
+    let metadata = fs::symlink_metadata(&dot_git).ok()?;
+
+    if metadata.is_dir() {
+        return Some(dot_git.join("index"));
+    }
+
+    // Linked worktree: `.git` is a file holding `gitdir: <abs-or-rel path>`.
+    let pointer = fs::read_to_string(&dot_git).ok()?;
+    let target = pointer.strip_prefix("gitdir:")?.trim();
+    let target = PathBuf::from(target);
+    let resolved = if target.is_absolute() {
+        target
+    } else {
+        root.join(target)
+    };
+    Some(resolved.join("index"))
+}
+
+/// `Err(reason)` when the declared face is provably older than the tree it claims
+/// to describe. Fails CLOSED only on that comparison; anything it cannot measure
+/// is treated as fresh, so this can never turn a legitimately-green run red.
+pub fn declared_face_is_fresh(root: &Path, face: &Path) -> Result<(), String> {
+    let Some(index) = git_index_path(root) else {
+        return Ok(());
+    };
+    let (Ok(face_meta), Ok(index_meta)) = (fs::metadata(face), fs::metadata(&index)) else {
+        return Ok(());
+    };
+    let (Ok(face_time), Ok(index_time)) = (face_meta.modified(), index_meta.modified()) else {
+        return Ok(());
+    };
+
+    if face_time >= index_time {
+        return Ok(());
+    }
+
+    Err(format!(
+        "the declared SCM facts face is STALE: {} is older than {}.\n\
+         It is gitignored, so `git status` will not show it, and every gate that counts a corpus \
+         would silently use the tracked-path set from before your last checkout or merge — \
+         reporting green on numbers CI will reject.\n\
+         Delete it and re-run:\n    rm {}",
+        face.display(),
+        index.display(),
+        face.display()
+    ))
+}
+
+#[cfg(test)]
+mod scm_face_freshness_tests {
+    use super::*;
+    use std::time::{Duration, SystemTime};
+
+    fn touch(path: &Path, when: SystemTime) {
+        fs::write(path, "{}").expect("write probe file");
+        let file = fs::File::options()
+            .write(true)
+            .open(path)
+            .expect("open probe file");
+        file.set_modified(when).expect("set probe mtime");
+    }
+
+    #[test]
+    fn a_face_older_than_the_index_is_rejected() {
+        let dir = std::env::temp_dir().join(format!("scmfresh-old-{}", std::process::id()));
+        fs::create_dir_all(dir.join(".git")).expect("probe repo");
+        let face = dir.join("face.json");
+        let index = dir.join(".git/index");
+
+        let now = SystemTime::now();
+        touch(&face, now - Duration::from_secs(600));
+        touch(&index, now);
+
+        let verdict = declared_face_is_fresh(&dir, &face);
+        assert!(verdict.is_err(), "a face older than the index must be rejected");
+        let reason = verdict.unwrap_err();
+        assert!(
+            reason.contains("STALE") && reason.contains("rm "),
+            "the rejection must name the problem and the exact fix: {reason}"
+        );
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    #[test]
+    fn a_face_newer_than_the_index_is_accepted() {
+        let dir = std::env::temp_dir().join(format!("scmfresh-new-{}", std::process::id()));
+        fs::create_dir_all(dir.join(".git")).expect("probe repo");
+        let face = dir.join("face.json");
+        let index = dir.join(".git/index");
+
+        let now = SystemTime::now();
+        touch(&index, now - Duration::from_secs(600));
+        touch(&face, now);
+
+        assert!(
+            declared_face_is_fresh(&dir, &face).is_ok(),
+            "the CI ordering (materialize after checkout) must stay green"
+        );
+        fs::remove_dir_all(&dir).ok();
+    }
+
+    /// The guard must never invent a failure from something it cannot measure —
+    /// otherwise it would red an exported tree or a container build that has no
+    /// index at all.
+    #[test]
+    fn an_unmeasurable_tree_is_treated_as_fresh() {
+        let dir = std::env::temp_dir().join(format!("scmfresh-none-{}", std::process::id()));
+        fs::create_dir_all(&dir).expect("probe dir");
+        let face = dir.join("face.json");
+        fs::write(&face, "{}").expect("write probe face");
+
+        assert!(
+            git_index_path(&dir).is_none(),
+            "a tree with no .git must yield no index path"
+        );
+        assert!(
+            declared_face_is_fresh(&dir, &face).is_ok(),
+            "no index to compare against must not be a failure"
+        );
+        fs::remove_dir_all(&dir).ok();
+    }
+}

@@ -202,6 +202,11 @@ fn observed_from_scm_facts(root: &Path) -> Value {
 fn load_scm_facts(root: &Path) -> Value {
     let declared = root.join(SCM_FACTS_REL);
     if declared.is_file() {
+        // The face is gitignored, so a stale one is invisible to `git status` and would
+        // silently supply the tracked-path set from before the last checkout or merge.
+        if let Err(reason) = ci_path_resolver_ports::declared_face_is_fresh(root, &declared) {
+            panic!("FAIL-CLOSED: {reason}");
+        }
         return load_json(&declared);
     }
     CARGO_SCM_FACTS
