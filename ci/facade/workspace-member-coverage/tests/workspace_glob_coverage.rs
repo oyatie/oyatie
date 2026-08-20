@@ -128,7 +128,8 @@ fn workspace_glob_coverage_verdict_matches_the_live_corpus() {
     );
 }
 
-const BASELINE_REL: &str = "ci/facade/workspace-member-coverage/workspace-glob-coverage-baseline.json";
+const BASELINE_REL: &str =
+    "ci/facade/workspace-member-coverage/workspace-glob-coverage-baseline.json";
 
 fn load_baseline(root: &Path) -> BTreeSet<String> {
     let path = root.join(BASELINE_REL);
