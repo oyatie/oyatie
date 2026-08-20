@@ -177,6 +177,10 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "result",
     "return",
     "then",
+    // A TYPE standing where an expression would. A few of the source's builtins take one —
+    // `make([]byte, 0, n)` names what to allocate — and walking it as an expression recorded the
+    // type syntax as an unsupported node, which refused every declaration that allocates.
+    "type",
     "unary",
     "value",
     // A field a struct literal LEFT OUT, carrying the type whose zero fills it. Recorded

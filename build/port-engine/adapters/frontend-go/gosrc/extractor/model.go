@@ -176,6 +176,11 @@ const (
 	kindKeyed     = "keyed"
 	kindZero      = "zero"
 
+	// kindType is a TYPE standing where an expression would. A few of the source's builtins take
+	// one -- `make([]byte, 0, n)` names what to allocate -- and walking it as an expression
+	// recorded the type syntax as an unsupported node.
+	kindType = "type"
+
 	kindAssign = "assign"
 	kindFor    = "for"
 	kindCond   = "cond"
