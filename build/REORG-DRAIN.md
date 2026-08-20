@@ -4262,3 +4262,45 @@ moves with them; `rustc` and `clippy-driver` both green with `--deny=warnings` o
 that emit anything, compiled under `#![forbid(unsafe_code)]`. The pre-existing clippy failure in
 `ci/facade/cloud-name-ratchet` is outside this lane and untouched by this branch (last changed by
 PR #2102).
+
+## R2h — the largest refusal in the corpus was a lie
+
+Ranking causes by packages blocked put this at the top: *"`composite` needs `type`, which the front
+end did not record"* — 13 sites across FOUR packages, the largest single cause by both measures.
+
+It was false. The front end records a type on every composite literal in every snapshot — checked
+directly rather than inferred. What actually happened is that `resolve()` failed on that type, and
+the call site replaced the resolver's own error with a fabricated `MissingDatum` naming a datum that
+was present. Anyone following that refusal went to the extractor, where there was nothing to find.
+
+Fixed by propagating the resolver's real error, which is one character of code and reclassifies all
+thirteen. Every one of them turned out to be a CASCADE: the package's central type refused, and each
+of these was a literal constructing it. `semver.Version` 8→9 sites, `xid.ID` 4→5, `uuid.UUID` 9.
+
+This is worth stating as a standing rule, because the engine's whole contract rests on it: **a
+refusal that misdescribes what is missing is worse than no refusal, because it is acted on.** The
+goal says the engine must refuse by name, *saying what is missing* — a fabricated cause satisfies the
+first half and inverts the second. Nothing failed here; every gate was green throughout. The only
+thing that could have caught it was reading the refusal and checking whether it was true.
+
+**What the corrected ranking shows.** The dominant structure in the corpus is not any one construct.
+It is a CASCADE: uuid.UUID 9 sites, semver.Version 9, uuid.Variant 6, xid.ID 5, ksuid.KSUID 3,
+uuid.Domain 3 — every one of them "declared in this unit and not emitted, because it refused". Six
+central types account for 35 refusals, and each is a package's principal export.
+
+**And the cascade has a single mechanical cause, now located.** `items_types.rs` builds a struct with
+`methods: inherent_methods(declaration, resolver, body)?`. The `?` is the whole story: ONE method the
+engine cannot translate refuses the ENTIRE TYPE, the type is then not emitted, and every declaration
+that mentions it refuses in turn. A package's coverage is therefore capped by its single hardest
+method, which is why these numbers look the way they do.
+
+Both languages separate a type from its methods — Go declares them outside the struct, Rust puts them
+in their own `impl` block — so a method that cannot be translated does not require refusing the type
+whose shape it never affected. Dropping one is already safe by machinery that exists: self-containment
+refuses any call to something not emitted, so a caller of a dropped method refuses by name. The
+discipline it must not break is that the METHOD's own refusal has to keep being reported by name;
+swallowing it would trade a loud cascade for a silent hole, which is the worse failure.
+
+That is the next change, and it is structural: the per-method refusals have to reach the survey as
+their own entries rather than as one error for the declaration. `DispositionLog` is the precedent for
+threading that through the resolver.

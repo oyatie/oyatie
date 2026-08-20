@@ -77,13 +77,13 @@ pub(crate) fn composite(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, T
         return Ok(rendered);
     }
 
-    let path = cx.resolver.resolve(&node.type_ref, cx.owner).map_err(|_| {
-        TransformError::MissingDatum {
-            construction: "composite".to_owned(),
-            name: cx.owner.to_owned(),
-            datum: "type",
-        }
-    })?;
+    // The resolver's OWN error, not a substituted one. This used to report a missing datum --
+    // "`composite` needs `type`, which the front end did not record" -- for every literal whose type
+    // the resolver could not map, and the type was recorded in every one of them. It was the largest
+    // single refusal in the corpus by both count and package spread, and it named the wrong
+    // component: a reader following it went to the front end, where there was nothing to find.
+    // A refusal that misdescribes what is missing is worse than no refusal, because it is acted on.
+    let path = cx.resolver.resolve(&node.type_ref, cx.owner)?;
 
     let keyed = node.children_of_kind("keyed");
     // Where a literal holds EVERY read of a binding, its final read can move — nothing follows it.
