@@ -67,8 +67,11 @@ pub(crate) fn results_in(
     {
         return Ok(Some(RustType::path(convention.nullable_borrowed_type.clone())));
     }
-    let fallible = crate::failure::is_fallible(declaration, resolver.failure);
-    if fallible {
+    // A signature the body proves cannot fail loses the failure result WITHOUT gaining a `Result`.
+    // See `returns::never_fails` for why carrying it over is not faithfulness.
+    let cannot_fail = crate::returns::never_fails(declaration, resolver);
+    let fallible = crate::failure::is_fallible(declaration, resolver.failure) && !cannot_fail;
+    if fallible || cannot_fail {
         results.pop();
     }
 

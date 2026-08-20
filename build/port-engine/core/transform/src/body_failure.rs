@@ -98,8 +98,15 @@ pub(crate) fn translated_return(
     let value = if cx.fallible {
         Some(fallible_return(node, cx)?)
     } else {
-        let values = node
-            .children
+        // The trailing ABSENT failure comes off, because the signature no longer has that result.
+        // The operand is the source stating it did not fail, and the target states that by the
+        // absence of a `Result` — restating it as a returned value would be a second result nobody
+        // declared.
+        let operands = match cx.drops_absent_failure {
+            true => &node.children[..node.children.len().saturating_sub(1)],
+            false => &node.children[..],
+        };
+        let values = operands
             .iter()
             .enumerate()
             .map(|(index, child)| returned_operand(index, child, cx))

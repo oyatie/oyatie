@@ -397,3 +397,43 @@ pub(crate) fn borrows_failure_from_receiver(
             .iter()
             .all(|node| matches!(node.children.as_slice(), [only] if is_receiver_field(only)))
 }
+
+/// Whether a FALLIBLE signature is one the body proves cannot fail.
+///
+/// The source's convention puts an error last whether or not the function can produce one, and an
+/// interface it satisfies may require the result even when every implementation returns the absent
+/// value — `MarshalBinary() ([]byte, error)` is required to have that shape, and eighteen functions
+/// across all seven corpus packages never give it anything but nil.
+///
+/// Carried over literally, the target gets a `Result` with no failure case: every caller writes `?`
+/// or an unwrap on something that cannot fail, and the crate's own error type appears in a signature
+/// it can never be constructed for. That is not a faithful port of "this cannot fail" — it is the
+/// source's interface obligation restated in a language that does not have it.
+///
+/// Requires a BODY and at least one return, for the reason [`never_absent_pointer`] does: a
+/// signature-only declaration proves nothing, and a body that falls off the end returns the zero
+/// value, which for the failure type IS the absent one but says nothing about the other results.
+pub(crate) fn never_fails(
+    declaration: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+) -> bool {
+    if !crate::failure::is_fallible(declaration, resolver.failure) {
+        return false;
+    }
+    // A SOLE failure result is a different question, answered by `sole_failure_role`: there is no
+    // other value to hand back, so dropping the result would leave the function returning nothing.
+    if declaration.children_of_kind(crate::vocabulary::CHILD_RESULT).len() < 2 {
+        return false;
+    }
+    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
+        return false;
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    !returns.is_empty()
+        && returns.iter().all(|node| {
+            node.children
+                .last()
+                .is_some_and(|operand| crate::failure::is_absent(operand, resolver.failure))
+        })
+}

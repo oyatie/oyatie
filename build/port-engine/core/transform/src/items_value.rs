@@ -39,6 +39,7 @@ pub(crate) fn authored_value(
         borrowed: std::collections::BTreeSet::new(),
         result_is_owned_string: false,
         result_is_owned_sequence: false,
+        drops_absent_failure: false,
         results: crate::returns::ResultFacts::none(),
         usize_counters: std::collections::BTreeSet::new(),
         walked: None,

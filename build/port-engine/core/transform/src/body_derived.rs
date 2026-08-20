@@ -25,6 +25,12 @@ impl<'a> Body<'a> {
         self
     }
 
+    /// The same body, told its signature dropped a failure result the returns still carry.
+    pub(crate) fn with_dropped_failure(mut self, dropped: bool) -> Self {
+        self.drops_absent_failure = dropped;
+        self
+    }
+
     /// The same body, told which type it is a method OF.
     pub(crate) fn with_receiver_type(mut self, name: Option<&'a str>) -> Self {
         self.receiver_type = name;
@@ -40,6 +46,7 @@ impl<'a> Body<'a> {
             fallible: self.fallible,
             result_is_owned_string: self.result_is_owned_string,
             result_is_owned_sequence: self.result_is_owned_sequence,
+            drops_absent_failure: self.drops_absent_failure,
             borrowed: self.borrowed.clone(),
             results: self.results.clone(),
             usize_counters: self.usize_counters.clone(),
@@ -66,6 +73,7 @@ impl<'a> Body<'a> {
             fallible: self.fallible,
             result_is_owned_string: self.result_is_owned_string,
             result_is_owned_sequence: self.result_is_owned_sequence,
+            drops_absent_failure: self.drops_absent_failure,
             borrowed: self.borrowed.clone(),
             results: self.results.clone(),
             usize_counters,

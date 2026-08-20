@@ -58,6 +58,8 @@ pub(crate) struct Body<'a> {
     pub(crate) result_is_owned_string: bool,
     /// Whether the sole result is a SEQUENCE the target owns, so a returned borrow must be owned.
     pub(crate) result_is_owned_sequence: bool,
+    /// Whether each return carries a trailing ABSENT failure the signature no longer has.
+    pub(crate) drops_absent_failure: bool,
     /// The sequence a counted loop WALKS, and the name its element took.
     ///
     /// Set inside a loop the iterator idiom rewrote, so `xs[i]` inside it renders as the element
@@ -114,6 +116,7 @@ impl<'a> Body<'a> {
             results,
             usize_counters: BTreeSet::new(),
             walked: None,
+            drops_absent_failure: false,
             receiver_type: None,
             newtype_parameters: BTreeSet::new(),
         }
@@ -174,8 +177,10 @@ pub(crate) fn statements(
     // function handing an error back as a VALUE has no failing return: its `return w.cause` is an
     // ordinary return of an ordinary value, and running it through the failure path demanded a
     // proof that the value is non-absent, which is exactly what it is not.
+    let cannot_fail = crate::returns::never_fails(declaration, resolver);
     let fallible = crate::failure::is_fallible(declaration, resolver.failure)
-        && !crate::results::returns_failure_as_value(declaration, resolver);
+        && !crate::results::returns_failure_as_value(declaration, resolver)
+        && !cannot_fail;
     let mut translated = translate(
         nodes,
         &Body::new(
@@ -187,6 +192,7 @@ pub(crate) fn statements(
             crate::params::borrowed_parameters(declaration, resolver),
             crate::returns::ResultFacts::of(declaration, resolver, result),
         )
+        .with_dropped_failure(cannot_fail)
         // A parameter the signature made a `usize` is one for the body too, and it reaches the
         // index through the same set a proven loop counter does — so one place decides, and the
         // signature and the body cannot disagree about whether a conversion is needed.
