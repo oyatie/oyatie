@@ -4304,3 +4304,82 @@ swallowing it would trade a loud cascade for a silent hole, which is the worse f
 That is the next change, and it is structural: the per-method refusals have to reach the survey as
 their own entries rather than as one error for the declaration. `DispositionLog` is the precedent for
 threading that through the resolver.
+
+## R2i — breaking the type/method cascade: built, measured, not landed
+
+R2h located the cascade's mechanism. This phase built the fix, measured it, and did NOT land it,
+because it regresses two properties the engine already holds. What follows is the complete design and
+the ranked worklist it produced, so the next attempt is execution rather than rediscovery.
+
+**The change.** `items_types.rs` builds a struct with `methods: inherent_methods(declaration, …)?`.
+Replacing that `?` with a per-method match — keep what translates, record what does not — takes four
+edits:
+
+1. `dropped.rs`: a `DropLog` with interior mutability, the `DispositionLog` precedent, holding
+   `{owner, name, reason}` per dropped method.
+2. `signature.rs`: `inherent_methods` matches per method instead of collecting into `Result`.
+3. `survey.rs`: after the declaration's own outcome, every logged drop is pushed as its own refusal
+   entry, named `Owner::Method`, kind `method`.
+4. `reachable.rs`: the fixpoint must PARTITION. `shrink` removes a name when `round.refused` is
+   non-empty, and a drop arrives in that same list — read naively it evicts the type that was just
+   successfully emitted, rebuilding the cascade through a harder-to-see door, since the type would
+   then be emitted and simultaneously unnameable. The type keeps its name; each SURVIVING method
+   earns a qualified one, `Owner::Method`, in the same set. A body calling a dropped method then
+   names something the crate does not contain, which is the rule that already governs every other
+   reference, and the set still only shrinks — so the fixpoint's termination argument is untouched.
+
+**It works, and the measurement is unambiguous.** Every package's principal export emits for the
+first time: `semver::Version`, `uuid::Uuid`, `xid::Id`, `ksuid::Ksuid`. `errors` and `multierror` go
+from emitting NOTHING to emitting something. Dropped methods are reported by name — `method
+Version::IncMajor`, `Version::UnmarshalText`, `Version::Scan` — so nothing goes missing quietly.
+
+Coverage percentages are NOT comparable across this change and should not be quoted as a gain: the
+denominator moves, because a type with N untranslatable methods used to be one refusal and becomes
+one translation plus N. Absolute translated counts rose in six of seven packages.
+
+**Why it did not land — two regressions, both real.**
+
+*The compile proof.* The emitted crates stop compiling: six of seven fail `clippy-driver
+--deny=warnings`, where before the change five of five passed. Nothing new broke. The defects were
+always in the engine and were masked by the fact that almost nothing reached them, which is precisely
+the failure mode the standing method warns about — a corpus that only contains what the engine
+already handles proves nothing about what it does not.
+
+*Two refusal invariants.* `an_escaping_receiver_is_refused_with_its_reason` and
+`a_failure_the_engine_cannot_prove_is_refused_by_its_operand` both fail. They are not wrong: the
+refusal corpora still refuse, but now against the METHOD rather than the declaration, and those tests
+are the specification of which. Changing what "refused" means for a refusal corpus is a decision that
+deserves its own phase and its own justification, not a side effect of an unrelated fix.
+
+**The worklist this produced, ranked by errors and by packages.** These are pre-existing engine gaps,
+newly visible:
+
+1. **A method call on an `Option<T>` receiver — 44 of semver's 53 errors, one cause.** A
+   pointer-typed receiver maps to `Option<T>` and the call lands on the option rather than on what it
+   holds: `no method named 'major' found for enum Option<T>`.
+2. **`impl Box<dyn StdError + Send + Sync> for X` — 3 packages** (uuid, errors, multierror). The
+   source interface has two target spellings and the engine uses one for both: as a VALUE it is a
+   boxed trait object, in TRAIT POSITION it is the trait itself. The value spelling in trait position
+   is not a trait at all.
+3. **Indexing a newtype — 3 packages.** `cannot index into a value of type &Ksuid` / `&Id` /
+   `&Collection`. The source's named array type indexes directly; the target's newtype needs its
+   field first.
+4. **A string slice where an owned string is required — semver.** `&self.original[..1]` is `&str` and
+   the signature says `String`. The source's slice of a string yields a string; the target's yields a
+   borrow.
+5. **The method self-containment check is inert on a `self` receiver.** Written this phase and
+   verified not to fire for `self.is_nil()`, because the receiver node carries no recorded type — the
+   owner has to come from the enclosing declaration in that case, not from the receiver.
+6. `E0063` missing struct field (ksuid) and `E0425` unresolved name (errors), one each, not yet
+   diagnosed.
+
+**The one structural conclusion worth keeping.** The engine's compile proof runs against the HERMETIC
+corpus only; real-repo output has never been compile-checked by any gate. That is why every gate
+stayed green through a change that stopped six crates from compiling, and it is the gap that let all
+six defects above sit unseen. The engine's own libraries may not invoke a compiler (the ADR-0638 D3
+firewall, which the existing proof documents carefully), so the answer is not to make the engine
+compile its output — it is that the real-repo compile proof must become a gate that runs, and that
+each defect class above must become a static rule that REFUSES rather than emits.
+
+The diff is 283 lines and was reconstructible from this entry alone; it was kept out of history rather
+than committed and reverted, so no bisect lands on a state that does not build.
