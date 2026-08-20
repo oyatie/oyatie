@@ -17,7 +17,7 @@
       "docs/MASTERPLAN.md",
       ".omc/plans/ralplan-dep-seam-phaseout-round-5.md",
       "/specs/root-hub-pointers.json",
-      "/specs/markdown-retirement-policy.json",
+      "/ci/facade/cross-artifact-agreement/idea-archive-policy.json",
       "/specs/gitops-vcs-replacement.json",
       "https://github.com/rtk-ai/grit",
       "/specs/test-standard.json",
@@ -7728,7 +7728,7 @@
         "source_refs": [
           "/specs/masterplan.json#masterplan_v2.surface_dispositions",
           "/specs/masterplan.json#masterplan_v2.projection_freshness",
-          "/specs/markdown-retirement-policy.json"
+          "/ci/facade/cross-artifact-agreement/idea-archive-policy.json"
         ],
         "evidence_refs": [
           "ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness",
