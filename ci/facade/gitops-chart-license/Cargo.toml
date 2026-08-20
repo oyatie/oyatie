@@ -1,0 +1,39 @@
+[package]
+name = "ci-gitops-chart-license"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate resolving the license of every third-party Helm chart the GitOps declaration pulls (infra/gitops/values.yaml app entries + observability/iac/helm/*/Chart.yaml dependencies), evaluated per-plane per ADR-0706 D-5 (ops-internal admits AGPL-3.0; tenant-facing does not)."
+
+# cloud-ci-gitops-chart-license (ADR-0706 D-5 enforcement half; bead oyatie-f2fg): the Cargo
+# license gates (cloud-ci-license-policy) cover Cargo.toml only, so the AGPL-3.0 Grafana Labs
+# charts (grafana/loki/mimir/pyroscope/oncall/tempo under observability/iac/helm/) are entirely
+# outside their reach -- they are Helm chart pulls, not Cargo dependencies. Self-contained,
+# policy-driven meta-gate: collect_chart_rows(root) reads the two GitOps corpora directly (no
+# shared producer face), evaluate_keyed applies the plane-keyed curated allow-list in
+# gitops-chart-license-policy.json. Every chart pull must be a DECLARED policy entry; an
+# undeclared chart fails closed rather than silently passing (ADR-0706 D-5: "an undeclared chart
+# fails closed").
+
+[lib]
+name = "ci_gitops_chart_license"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "gitops-chart-license-gate"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+[lints]
+workspace = true

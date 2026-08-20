@@ -1581,6 +1581,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-gitops-chart-license"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "serde_yaml",
+]
+
+[[package]]
 name = "ci-graphql-usage-policy"
 version = "0.1.0"
 dependencies = [
