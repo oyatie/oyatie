@@ -24,6 +24,18 @@ use serde_json::Value;
 const POLICY_PATH: &str = "ci/facade/scan-root-liveness/scan-root-liveness-policy.json";
 const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 
+/// The reviewed ceiling on tolerated dark gate crates.
+///
+/// The evaluator alone does NOT stop this list growing. A crate that is genuinely
+/// dark and is listed here produces no finding, and a listed crate that is
+/// genuinely dark produces no stale finding — so a PR that adds a new dark gate
+/// AND baselines it in the same change satisfies both directions silently. That
+/// is the laundering path this constant closes: the number cannot move without a
+/// reviewer seeing it move.
+///
+/// Lower it in the same change that wires a gate to the live tree.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 97;
+
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
@@ -447,6 +459,45 @@ fn frozen_baseline_is_exactly_the_live_non_forward_debt_set() {
         EXPECTED_BASELINED_DEAD_ROOTS,
         "the reviewed frozen ceiling is four pre-existing roots plus exactly seven retired \
          top-level cloud roots"
+    );
+}
+
+#[test]
+fn the_dark_gate_baseline_is_exactly_the_live_dark_set_and_cannot_grow() {
+    // Mirrors `frozen_baseline_is_exactly_the_live_non_forward_debt_set`, which the
+    // dead-roots list has had all along and this list has not.
+    let root = repo_root();
+    let (policy, keys) = load_policy(&root);
+    let observed = collect(&root, &keys);
+
+    let live_dark: BTreeSet<String> = observed
+        .gate_crates
+        .iter()
+        .filter(|(_, has_live_test)| !**has_live_test)
+        .map(|(krate, _)| krate.clone())
+        .filter(|krate| {
+            // An exempted crate is not a gate at all, so it is not dark debt.
+            // A blank reason is not an exemption — the evaluator refuses those,
+            // and this filter must agree with it or the two would disagree about
+            // what the debt set is.
+            !policy
+                .exempt_gate_crates
+                .get(krate)
+                .is_some_and(|reason| !reason.trim().is_empty())
+        })
+        .collect();
+
+    assert_eq!(
+        policy.baselined_dark_gate_crates, live_dark,
+        "the frozen baseline must equal all and only the live dark gate crates"
+    );
+    assert_eq!(
+        policy.baselined_dark_gate_crates.len(),
+        EXPECTED_BASELINED_DARK_GATE_CRATES,
+        "the reviewed dark-gate ceiling moved. Wiring a gate to the live tree LOWERS \
+         it — lower the constant in the same change. If this went UP, a new dark gate \
+         was added and baselined in one step, which is the laundering path the \
+         constant exists to refuse."
     );
 }
 
