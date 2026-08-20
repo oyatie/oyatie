@@ -126,5 +126,14 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             Ok(quote! { for #binding in #iter { #body } })
         }
         RustStmt::Break => Ok(quote! { break; }),
+        RustStmt::Continue => Ok(quote! { continue; }),
+        RustStmt::Discard(value) => {
+            let value = lower_expr(value)?;
+            Ok(quote! { let _ = #value; })
+        }
+        RustStmt::Block(body) => {
+            let body = lower_block(body)?;
+            Ok(quote! { { #body } })
+        }
     }
 }

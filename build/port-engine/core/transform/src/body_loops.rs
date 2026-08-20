@@ -13,7 +13,7 @@ use crate::body_expr::expression;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{KIND_IDENT, 
-    ATTR_OP, ATTR_SOURCE_NODE, IDIOM_INDEX_COUNTER, IDIOM_INDEX_LOOP, IDIOM_MATCHES,
+    ATTR_OP, IDIOM_INDEX_COUNTER, IDIOM_INDEX_LOOP, IDIOM_MATCHES,
 };
 
 /// A three-clause or condition-only `for`.
@@ -39,12 +39,100 @@ pub(crate) fn counted_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt
             cond: expression(one_child(cond, cx, "cond")?, cx)?,
             body: translate(&body.children, cx, TailPosition::No)?,
         }),
-        (Some(init), Some(cond), Some(post)) => counted_range(init, cond, post, body, cx),
+        // An init clause with no post is a SCOPE and a loop. The binding belongs to the loop in the
+        // source, so it is wrapped in a block rather than emitted beside the loop, where it would
+        // stay visible to the rest of the enclosing body and could shadow a name the source left
+        // readable there.
+        (Some(init), condition, None) => {
+            let inner = match condition {
+                None => RustStmt::Loop(translate(&body.children, cx, TailPosition::No)?),
+                Some(cond) => RustStmt::While {
+                    cond: expression(one_child(cond, cx, "cond")?, cx)?,
+                    body: translate(&body.children, cx, TailPosition::No)?,
+                },
+            };
+            Ok(RustStmt::Block(vec![
+                crate::body_stmt::statement(one_child(init, cx, "init")?, cx, false)?,
+                inner,
+            ]))
+        }
+        // A post-statement. The CANONICAL ascending-integer form spends it building a range, and
+        // everything else has to spell it as the last statement of the body — which is correct only
+        // when no path can jump over it.
+        (init, Some(cond), Some(post)) => {
+            if let Some(init) = init
+                && let Ok(ranged) = counted_range(init, cond, post, body, cx)
+            {
+                return Ok(ranged);
+            }
+            while_with_post(init, cond, post, body, cx)
+        }
+        // A post-statement and no condition: `for ; ; i++`. The target's `loop` has nowhere to put
+        // the post-statement that a `continue` could not skip, and unlike the condition form there
+        // is no test to hang it after.
         _ => Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),
-            detail: "a `for` with only some of its clauses has no direct target form".to_owned(),
+            detail: "a `for` with a post-statement and no condition has no direct target form"
+                .to_owned(),
         }),
     }
+}
+
+/// `for [init]; cond; post { .. }` as a `while` whose body ends with the post-statement.
+///
+/// REFUSED when any path inside the body can reach the next iteration without running the post
+/// statement. The target's `continue` jumps to the loop's test; the source's jumps to its POST
+/// clause, and the two differ by exactly one statement — so a body containing one would run a
+/// counter's increment on some iterations and not others. That compiles, and it loops a different
+/// number of times, which is the class of defect this engine exists to prevent.
+fn while_with_post(
+    init: Option<&Declaration>,
+    cond: &Declaration,
+    post: &Declaration,
+    body: &Declaration,
+    cx: &Body<'_>,
+) -> Result<RustStmt, TransformError> {
+    if continues_this_loop(body) {
+        return Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: "a `for` with a post-statement contains a `continue`, and the target's \
+                     `continue` jumps to the test rather than to the post-statement — spelling the \
+                     post-statement at the end of the body would skip it on exactly those paths"
+                .to_owned(),
+        });
+    }
+
+    let mut translated = translate(&body.children, cx, TailPosition::No)?;
+    translated.push(crate::body_stmt::statement(
+        one_child(post, cx, "post")?,
+        cx,
+        false,
+    )?);
+    let looped = RustStmt::While {
+        cond: expression(one_child(cond, cx, "cond")?, cx)?,
+        body: translated,
+    };
+
+    match init {
+        None => Ok(looped),
+        Some(init) => Ok(RustStmt::Block(vec![
+            crate::body_stmt::statement(one_child(init, cx, "init")?, cx, false)?,
+            looped,
+        ])),
+    }
+}
+
+/// Whether a `continue` inside this body targets THIS loop.
+///
+/// The walk stops at every nested loop, because a `continue` written inside one targets that loop
+/// and not this one. It does NOT stop at a `switch`: the source's switch is not a loop, so a
+/// `continue` written inside a case continues the loop that encloses the switch.
+fn continues_this_loop(node: &Declaration) -> bool {
+    node.children.iter().any(|child| match child.kind.as_str() {
+        "continue" => true,
+        "for" | "range" => false,
+        _ => continues_this_loop(child),
+    })
 }
 
 /// Recognise `for i := A; i < B; i++` and emit `for i in A..B`.
@@ -82,8 +170,10 @@ fn counted_range(
     if lhs.kind != "ident" || &lhs.name != counter {
         return Err(refuse("the condition does not test the counter"));
     }
-    // The post clause is `i++`, which reaches here as an unsupported IncDecStmt or an assign.
-    if post.attr(ATTR_SOURCE_NODE) != Some("IncDecStmt") {
+    // The post clause has to be `i++`. A DECREMENT with an ascending `<` test is a loop that
+    // either runs forever or not at all, and a range would run it a sensible number of times —
+    // which is the kind of "fix" that makes emitted code mean something the source does not.
+    if post.kind != "incdec" || post.attr(ATTR_OP) != Some("++") {
         return Err(refuse("the post clause is not an increment"));
     }
 

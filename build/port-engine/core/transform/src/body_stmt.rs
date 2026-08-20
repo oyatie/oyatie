@@ -90,6 +90,13 @@ pub(crate) fn statement(
         )?)),
         "assign" => {
             let (target, value) = two_children(node, cx, "assign")?;
+            // `_ = expr` EVALUATES AND DISCARDS. It is not an assignment to a place — the source
+            // has no such place, and treating the blank as a name produced an undeclared
+            // identifier on the left of an `=`. The target spells the same thing as a binding to
+            // its own blank, which evaluates the operand for its effects and keeps nothing.
+            if is_blank(target) {
+                return Ok(RustStmt::Discard(expression(value, cx)?));
+            }
             // `x = append(x, ..)` is a STATEMENT in the target, not an assignment of a call's
             // value: the source's `append` returns a new sequence and the target's `extend` mutates
             // in place and returns nothing.
@@ -204,6 +211,13 @@ pub(crate) fn statement(
             }
         }
         "break" => Ok(RustStmt::Break),
+        // A `continue` is legal HERE unconditionally, because the loop that encloses it is what
+        // decides: a source loop whose post-statement the target has to spell at the end of the
+        // body refuses in [`crate::body_loops`] before ever translating a body that contains one.
+        // Deciding it here instead would need this statement to know which target loop it sits in,
+        // which is the enclosing construct's answer and not this one's.
+        "continue" => Ok(RustStmt::Continue),
+        "incdec" => increment(node, cx),
         "for" => counted_loop(node, cx),
         "range" => range_loop(node, cx),
         // A switch in TAIL position is the body's value, and its arms are too — so an arm yields
@@ -253,4 +267,42 @@ fn starts_as_untyped_number(node: &Declaration) -> bool {
         value.kind == KIND_LITERAL
             && matches!(value.attr(ATTR_LIT_KIND), Some(LIT_KIND_INT | LIT_KIND_FLOAT))
     })
+}
+
+/// `x++` and `x--`.
+///
+/// A read-modify-write of ONE place, spelled as one — `x += 1` rather than `x = x + 1` — because
+/// the source evaluates the place once and so does the target's compound assignment. Rewriting it
+/// into a plain assignment would evaluate an index or a call inside the place twice, which is the
+/// same defect [`RustStmt::Assign`]'s `op` field exists to avoid.
+fn increment(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, TransformError> {
+    let op = match node.attr(ATTR_OP) {
+        Some("++") => port_engine_rust_ir::BinaryOp::Add,
+        Some("--") => port_engine_rust_ir::BinaryOp::Sub,
+        other => {
+            return Err(TransformError::Unsupported {
+                name: cx.owner.to_owned(),
+                detail: format!(
+                    "`{}` is not an increment or a decrement, and the target has no other \
+                     value-less read-modify-write of one place",
+                    other.unwrap_or("")
+                ),
+            });
+        }
+    };
+    Ok(RustStmt::Assign {
+        target: expression(one_child(node, cx, "incdec")?, cx)?,
+        op: Some(op),
+        value: RustExpr::Literal("1".to_owned()),
+    })
+}
+
+/// Whether this node is the source's BLANK identifier.
+///
+/// The blank is a hole rather than a name: the source can assign to it and cannot read it. Every
+/// construct that admits one has to say what the hole means there, because the target has no single
+/// spelling that works in every position — which is why this answers only the question "is it the
+/// blank", and each caller decides what to do about it.
+fn is_blank(node: &Declaration) -> bool {
+    node.kind == "ident" && node.name == "_"
 }

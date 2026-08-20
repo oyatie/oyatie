@@ -113,15 +113,35 @@ func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 	case *ast.DeclStmt:
 		return localDeclaration(typed, ctx)
 
+	case *ast.IncDecStmt:
+		// `x++` is a STATEMENT in the source and has no value, which is why it is recorded as its
+		// own kind rather than as an assignment of `x + 1`: the source cannot write `y = x++`, and
+		// a shape that says it can would admit a program the source has no way to spell. The
+		// operand is a place, so it is recorded as one child and the operator as an attribute.
+		return node{
+			Kind:     kindIncDec,
+			Attrs:    map[string]string{attrOp: typed.Tok.String()},
+			Children: []node{expressionNode(typed.X, ctx)},
+		}
+
 	case *ast.ExprStmt:
 		return node{Kind: kindExprStmt, Children: []node{expressionNode(typed.X, ctx)}}
 
 	case *ast.BranchStmt:
-		// `break` maps directly. `continue` does NOT, because a three-clause loop lowers to a
-		// `while` whose post-statement a `continue` would skip — a different program. `goto` and
-		// labelled breaks have no target form at all.
-		if typed.Tok == token.BREAK && typed.Label == nil {
-			return node{Kind: kindBreak}
+		// `break` and `continue` are RECORDED, not judged. Whether a `continue` is translatable is
+		// a property of the LOOP that encloses it — a loop whose post-statement the target spells
+		// inside the body would skip it, and one that has no post-statement, or spends it building
+		// a range, would not. The extractor cannot answer that without deciding which target loop
+		// the enclosing `for` becomes, which is the transform's decision; recording the branch and
+		// letting the loop refuse keeps the answer in one place. `goto` and labelled branches have
+		// no target form at all.
+		if typed.Label == nil {
+			switch typed.Tok {
+			case token.BREAK:
+				return node{Kind: kindBreak}
+			case token.CONTINUE:
+				return node{Kind: kindContinue}
+			}
 		}
 		return unsupportedNode(stmt)
 

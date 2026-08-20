@@ -86,6 +86,26 @@ pub enum RustStmt {
     },
     /// `break;`
     Break,
+    /// `let _ = <expr>;` — evaluate the operand and keep nothing.
+    ///
+    /// Not a [`RustStmt::Let`] whose name happens to be `_`. The target's blank is a PATTERN and
+    /// not an identifier, so spelling it as a name reaches the renderer as one and is refused
+    /// there; and it is not a [`RustStmt::Semi`] either, because that would drop an operand whose
+    /// value the target warns about discarding.
+    Discard(RustExpr),
+    /// `continue;`
+    ///
+    /// Legal only where the enclosing loop advances WITHOUT a statement at the end of its body.
+    /// The construction that would break this — a source loop whose post-statement the target has
+    /// to spell as the body's last statement — refuses in the transform rather than emitting a
+    /// `continue` that skips it, because that compiles and loops a different number of times.
+    Continue,
+    /// `{ .. }` — a bare block, entered for its SCOPE rather than for a value.
+    ///
+    /// The source's `for init; cond; post` scopes `init` to the loop. Emitting the binding as a
+    /// sibling of the loop would widen that scope to the rest of the enclosing block, where it can
+    /// shadow a name the source left visible — so the block is the scope, spelled.
+    Block(Vec<RustStmt>),
 }
 
 /// One name a destructuring bind introduces.
