@@ -36,6 +36,9 @@ pub(crate) fn params(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
     owner: &str,
+    // Parameters the body FOLDED away, which therefore need no `mut`. Empty where there is no body
+    // to fold — a signature alone answers a different question and must not guess this one.
+    consumed: &BTreeSet<String>,
 ) -> Result<Vec<RustParam>, TransformError> {
     declaration
         .children_of_kind(CHILD_PARAM)
@@ -99,9 +102,11 @@ pub(crate) fn params(
                 // NOT rebound where the body FOLDS it: an accumulator becomes one expression, so
                 // the binding it was assigned through is gone and a `mut` on it would be a
                 // mutability nothing uses. One fact, read by the signature and the body alike.
-                rebound: param.has_flag(FLAG_REBOUND)
-                    && !crate::accumulator::folded_parameters(declaration)
-                        .is_some_and(|(_, consumed)| consumed.contains(&param.name)),
+                // NOT rebound where the body FOLDED it away: the binding it was assigned through
+                // is gone, and a `mut` on it would be a mutability nothing uses. Read from what the
+                // fold DID rather than from what the recogniser predicted, because the two differ
+                // whenever a value arrives as opaque target text.
+                rebound: param.has_flag(FLAG_REBOUND) && !consumed.contains(&param.name),
                 unread: param.has_flag(FLAG_UNREAD),
                 ty,
             })

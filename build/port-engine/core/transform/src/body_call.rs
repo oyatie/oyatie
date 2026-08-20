@@ -58,6 +58,16 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
             ),
         });
     }
+    // A SHORTHAND first, before the arguments are even translated: a call to one of these IS the
+    // call it wraps, so what gets translated is that call with these arguments in it. Translating
+    // the arguments here and again inside would decide their destinations against the wrong
+    // signature — the wrapper's, rather than the wrapped callee's.
+    if let Some(shorthand) = cx.resolver.signatures.eta(callee_id)
+        && let Some(direct) = crate::eta::inlined(shorthand, &node.children[1..])
+    {
+        return expression(&direct, cx);
+    }
+
     let args = node.children[1..]
         .iter()
         .enumerate()

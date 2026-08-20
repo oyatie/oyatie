@@ -131,6 +131,10 @@ fn build_fn(
         });
     }
 
+    // The BODY first, and what it FOLDED with it: the signature below is built from what the fold
+    // did rather than from a prediction of it, because a parameter it substituted away needs no
+    // `mut` and one it could not needs its own.
+    let consumed;
     let body = if translate_body {
         let source = declaration
             .children_of_kind(CHILD_BODY)
@@ -141,7 +145,10 @@ fn build_fn(
                 name: declaration.name.clone(),
                 datum: "body",
             })?;
-        body::statements(&source.children, declaration, resolver, body::ResultShape::Own, None)?
+        let (statements, folded) =
+            body::statements(&source.children, declaration, resolver, body::ResultShape::Own, None)?;
+        consumed = folded;
+        statements
     } else {
         // A rung that does not translate bodies REFUSES the function it cannot write, for the same
         // reason a method does: a body that panics compiles, reads as success to every gate, and
@@ -161,7 +168,7 @@ fn build_fn(
         vis: visibility(declaration),
         name: to_snake_case(&declaration.name),
         receiver: None,
-        params: params(declaration, resolver, &declaration.name)?,
+        params: params(declaration, resolver, &declaration.name, &consumed)?,
         ret: results(declaration, resolver)?,
         body: Some(body),
     };

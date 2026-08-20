@@ -3889,3 +3889,43 @@ that sees meaning rather than form.
 **Every name the chain consumes drops its `mut`,** not only the one returned — a `mut` left on a name
 the fold substituted away is a mutability nothing uses, which the target warns about and the proof
 denies. Verified by exit code rather than by grepping for the word "error".
+
+## R1y — the wrapper that only shortens the source's spelling
+
+Three reviews called the eight `rolN` wrappers the single largest thing to change, and the argument
+is one this engine already accepted once. `func rol31(x uint64) uint64 { return
+bits.RotateLeft64(x, 31) }` is not an abstraction — it is a shorthand, written because the source
+spells the rotation as a free function and eight call sites reading `bits.RotateLeft64(acc, 31)`
+would be unreadable. The target spells the same rotation as a method on the value, so the shorthand
+has nothing left to shorten. Exactly the argument for dropping the source's `Err` prefix from a
+sentinel: both are conventions answering a problem the target does not have.
+
+**Four conditions, and the reasoning only holds where all four do.** Unexported, so the wrapper is
+not API and removing it is invisible outside. Body is one call and nothing else, so there is no logic
+to lose. That call is FOREIGN and the pack MAPS it, which is what makes it a spelling the target
+already has — a wrapper around a local function is somebody's abstraction and stays. Every parameter
+read exactly once, so substituting the arguments neither drops one nor evaluates one twice.
+
+**Two correctness bugs, both mine, both caught by reading the output rather than by any gate.**
+
+The fold substituted each held name over the RUNNING result, so a name inside something already
+substituted was substituted again: `round(0, round(0, val))` — the source's call applied twice. Fixed
+by taking only the names the ORIGINAL value mentions.
+
+Then, worse: a chain link whose translated value is OPAQUE mentions nothing, so the substitution loop
+did nothing and the statement's value silently overwrote the chain. `acc = rol31(acc)` after
+`acc = acc.wrapping_add(..)` emitted `acc.rotate_left(31).wrapping_mul(PRIME1)` and lost the addition
+entirely. A link must READ the name it chains from — the recogniser proved it does in the source — so
+a translated value that does not is opaque and the fold aborts.
+
+Both compile. Both type-check. Neither would have been caught by anything except reading eight lines
+of emitted output, which is the only check this engine has that sees meaning rather than form.
+
+**And the coupling that has now bitten three times is gone.** The recogniser reads the SOURCE and the
+fold reads the TRANSLATION, and they disagree whenever a value arrives as opaque target text — which
+left a body keeping its statements while the signature had already dropped the `mut`. The signature
+is now built from what the fold DID rather than from what the recogniser predicted, which meant
+building the body first in both places that build one.
+
+`MAGIC` is `[u8; 4]` by value now rather than a reference to one: a constant is materialised at every
+use anyway, so the reference bought an indirection and nothing else.
