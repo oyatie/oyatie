@@ -59,7 +59,7 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 // in governance/check/apex-gist-integrity were annotated. Both halves ship together
 // because neither is correct alone -- wiring the gate without the annotations reds on
 // another PR's crate, and annotating without wiring proves nothing.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 88;
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 87;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");

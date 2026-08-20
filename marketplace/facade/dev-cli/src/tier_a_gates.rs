@@ -8,7 +8,7 @@
 //! 3. `rpo-rto-coverage`           — ADR-0152.
 //! 4. `metric-cardinality`         — ADR-0151.
 //! 5. `event-schema-versioning`    — ADR-0154.
-//! 6. `id-discipline`              — ADR-0156.
+//! 6. `id-discipline`              — ADR-0709 D-1.
 //! 7. `image-signing-discipline`   — ADR-0146 + ADR-0039.
 //!
 //! Each gate scans canonical default paths in the repo; arguments
@@ -367,6 +367,59 @@ pub(crate) fn run_event_schema_versioning(args: Vec<String>) -> ExitCode {
 
 // ---------- Gate 6: id-discipline ----------
 
+/// Load the machine-readable ID declaration.
+///
+/// The CLI is a local bridge, not merge authority, so it reads the same policy
+/// the gate crate reads rather than carrying a second copy of the rule — a
+/// duplicated rule is how the ULID/UUIDv7 split survived in the first place.
+fn load_id_discipline_policy() -> Result<id_check::Policy, String> {
+    const POLICY_REL: &str = "governance/check/id-discipline/id-discipline-policy.json";
+    let text = std::fs::read_to_string(POLICY_REL)
+        .map_err(|error| format!("read {POLICY_REL}: {error} (run from the repository root)"))?;
+    let value: serde_json::Value =
+        serde_json::from_str(&text).map_err(|error| format!("parse {POLICY_REL}: {error}"))?;
+
+    let strings = |key: &str| -> std::collections::BTreeSet<String> {
+        value[key]
+            .as_array()
+            .map(|entries| {
+                entries
+                    .iter()
+                    .filter_map(|entry| entry.as_str().map(str::to_owned))
+                    .collect()
+            })
+            .unwrap_or_default()
+    };
+    let frozen = value["frozen_underspecified_id_formats"]
+        .as_array()
+        .map(|entries| {
+            entries
+                .iter()
+                .filter_map(|entry| {
+                    Some(id_check::FrozenEntry {
+                        path: entry["path"].as_str()?.to_owned(),
+                        field: entry["field"].as_str()?.to_owned(),
+                        declared: entry["declared"].as_str()?.to_owned(),
+                    })
+                })
+                .collect()
+        })
+        .unwrap_or_default();
+
+    Ok(id_check::Policy {
+        canonical_id_fields: strings("canonical_id_fields"),
+        uuidv7_pattern: value["uuidv7_pattern"]
+            .as_str()
+            .unwrap_or_default()
+            .to_owned(),
+        frozen,
+        // The CLI scans a narrower corpus than the gate, so the gate's census
+        // floors would fire here as false alarms. Anti-vacuity is the gate's job.
+        min_expected_scanned_files: 0,
+        min_expected_id_fields: 0,
+    })
+}
+
 pub(crate) fn run_id_discipline(args: Vec<String>) -> ExitCode {
     let roots = match resolve_roots(&args) {
         Ok(roots) => roots,
@@ -395,26 +448,32 @@ pub(crate) fn run_id_discipline(args: Vec<String>) -> ExitCode {
         }
     }
 
-    let (report, findings) = id_check::audit_all(documents);
+    let policy = match load_id_discipline_policy() {
+        Ok(policy) => policy,
+        Err(error) => {
+            eprintln!("id-discipline: {error}");
+            return ExitCode::FAILURE;
+        }
+    };
+    let (report, findings) = id_check::audit_all(&documents, &policy);
     println!(
         "id-discipline: {} docs, {} id fields inspected, {} µservices",
         report.documents_checked, report.id_fields_inspected, report.microservices_audited,
     );
-    // Advisory per ADR-0156.
+    // Advisory here; the blocking verdict is the gate crate's own live-corpus test.
     if !findings.is_empty() {
         println!(
             "id-discipline: {} advisory findings (first 30):",
             findings.len()
         );
         for f in findings.iter().take(30) {
-            println!(
-                "  - {}:{} [{}] {}",
-                f.path, f.line, f.microservice, f.message
-            );
+            println!("  - {}:{} [{}] {}", f.path, f.line, f.field, f.message);
         }
         println!(
-            "(advisory mode per ADR-0156; strict-mode promotion tracked under \
-             registry/placeholder-debt/adr-follow-ups.yaml#adr-0156-ulid-impl)"
+            "(advisory here only; ADR-0709 D-1 is the authority and \
+             governance/check/id-discipline/id-discipline-policy.json is its \
+             machine-readable form. The blocking verdict is that crate's own \
+             live-corpus test, not this CLI.)"
         );
     }
     ExitCode::SUCCESS
