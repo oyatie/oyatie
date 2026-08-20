@@ -1184,10 +1184,18 @@ version = "0.1.0"
 [[package]]
 name = "check-cursor-pagination-coverage"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-data-class"
 version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "toml 0.8.23",
+]
 
 [[package]]
 name = "check-doc-catalog"
