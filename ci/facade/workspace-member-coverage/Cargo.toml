@@ -26,6 +26,10 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
+# The canonical glob-aware workspace resolver, used by the live-corpus test ONLY, to re-derive
+# the member set INDEPENDENTLY of the producer and assert set equality against the face. Not a
+# lib dependency: the gate itself stays a pure evaluator over producer-emitted rows.
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 
 [lints]
 workspace = true
