@@ -81,6 +81,7 @@
   },
   "manifest_inventory": {
     "governed_roots": [
+      "app",
       "audit",
       "billing",
       "cell",
@@ -103,10 +104,11 @@
       "tenancy",
       "workflow"
     ],
-    "expected_total": 77,
+    "expected_total": 78,
     "expected_live_v1_total": 56,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
+      "app/ci-webhook-gateway/manifest.json",
       "comms/comms-email/manifest.json",
       "comms/contact-center/manifest.json",
       "comms/emergency/manifest.json",
@@ -115,7 +117,6 @@
       "data/data-pipeline/manifest.json",
       "data/data-warehouse/manifest.json",
       "observability/diagnostics/manifest.json",
-      "oya/ci-webhook-gateway/manifest.json",
       "oya/global-trade/manifest.json",
       "storage/imaging/manifest.json"
     ],

@@ -1,0 +1,10 @@
+
+
+
+# Corpus graph extraction (ADR-0541).
+genrule(
+    name = "corpus-yaml-facts",
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    out = "yaml-facts.json",
+    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//app/ci-webhook-gateway:corpus-yaml-facts --prefix oya/ci-webhook-gateway --out $OUT $SRCS",
+)
