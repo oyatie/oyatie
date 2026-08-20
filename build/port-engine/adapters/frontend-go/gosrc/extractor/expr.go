@@ -212,10 +212,21 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 		}
 
 	case *ast.UnaryExpr:
+		operand := expressionNode(typed.X, ctx)
+		// A CONSTANT EXPRESSION resolves at its OUTERMOST node. go/types records the literal inside
+		// `-9007199254740991` as `untyped int` and puts the conversion to the context's type on the
+		// unary, so a translator reading only the literal sees a type it cannot map -- and spelled
+		// an integer where a float was wanted. The resolved type is pushed down to the operand,
+		// which is where the spelling decision is made.
+		if operand.Kind == kindLiteral && isUntyped(operand.Type) {
+			if tv, ok := ctx.info.Types[typed]; ok && tv.Type != nil {
+				operand.Type = typeTree(tv.Type)
+			}
+		}
 		return node{
 			Kind:     kindUnary,
 			Attrs:    map[string]string{attrOp: typed.Op.String()},
-			Children: []node{expressionNode(typed.X, ctx)},
+			Children: []node{operand},
 		}
 
 	default:
@@ -334,4 +345,13 @@ func typeArgumentIndex(call *ast.CallExpr, ctx *extractCtx) int {
 	default:
 		return -1
 	}
+}
+
+// isUntyped reports whether this recorded type is one of the source's UNTYPED constant kinds.
+//
+// Untyped is not a target type and never maps to one: it is the source saying "this takes its type
+// from where it is used". A node carrying one has not been resolved yet, and anything downstream
+// that spells it is guessing.
+func isUntyped(recorded *typeNode) bool {
+	return recorded != nil && strings.HasPrefix(recorded.Name, "untyped ")
 }

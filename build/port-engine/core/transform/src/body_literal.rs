@@ -284,7 +284,51 @@ fn fully_contained_reads(entries: &[&Declaration]) -> BTreeMap<String, usize> {
 /// The spelling is chosen from the type the PACK resolves the literal to, not from the source's
 /// name for it, so a pack that maps the source's byte somewhere else gets that answer here too.
 /// Anything the target cannot spell as a literal of the wanted type refuses BY NAME.
-pub(crate) fn rune_literal(
+pub(crate) fn typed_literal(
+    node: &Declaration,
+    cx: &Body<'_>,
+    value: &str,
+) -> Option<Result<RustExpr, TransformError>> {
+    match node.attr(crate::vocabulary::ATTR_LIT_KIND) {
+        Some("CHAR") => rune_literal(node, cx, value),
+        Some("INT") => whole_number_literal(node, cx, value),
+        _ => None,
+    }
+}
+
+/// A whole-number literal the source RESOLVED to a floating-point type.
+///
+/// The source's `9007199254740991` is an untyped constant and takes its type from context, so in
+/// `f < -9007199254740991` where `f` is a float it IS a float. The target has no untyped constant:
+/// a literal with no decimal point is an integer there, and comparing one to a float does not
+/// compile. The decimal point is the whole of the fix and it changes no value.
+///
+/// Only the FLOAT case is handled. An integer literal that resolved to an integer type is left
+/// exactly alone — its spelling is already right, and touching it would churn every number in the
+/// corpus to say the same thing.
+fn whole_number_literal(
+    node: &Declaration,
+    cx: &Body<'_>,
+    value: &str,
+) -> Option<Result<RustExpr, TransformError>> {
+    if node.type_ref.is_empty() {
+        return None;
+    }
+    let resolved = match cx.resolver.resolve(&node.type_ref, cx.owner) {
+        Ok(path) => path.spelling(),
+        Err(_) => return None,
+    };
+    if resolved != "f32" && resolved != "f64" {
+        return None;
+    }
+    // Grouped FIRST, then pointed. The grouping rule reads digits and would decline a value that
+    // already carries a decimal point, so the order is not interchangeable.
+    let grouped = crate::items_value::readable_literal(value, cx.resolver)
+        .unwrap_or_else(|| value.to_owned());
+    Some(Ok(RustExpr::Literal(format!("{grouped}.0"))))
+}
+
+fn rune_literal(
     node: &Declaration,
     cx: &Body<'_>,
     value: &str,

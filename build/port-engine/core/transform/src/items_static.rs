@@ -179,7 +179,21 @@ pub(crate) fn build_static(
                 walked: None,
                 receiver_type: None,
             };
-            expression(initialiser, &body)?
+            // AN ARRAY where the declared type is one. `expression` builds the pack's growable
+            // sequence form, because that is the right answer everywhere a body builds a value;
+            // here the type says otherwise, and the two must agree or the constant does not
+            // compile. Built from the SAME element translation rather than by re-rendering, so an
+            // element in an array constant and the same element in a body cannot differ.
+            match &ty {
+                RustType::Array { .. } => RustExpr::ArrayLiteral(
+                    initialiser
+                        .children
+                        .iter()
+                        .map(|element| expression(element, &body))
+                        .collect::<Result<Vec<_>, _>>()?,
+                ),
+                _ => expression(initialiser, &body)?,
+            }
         }
     };
     Ok(RustItem::PackageValue {
@@ -214,13 +228,72 @@ fn static_type(
             .children
             .first()
             .is_some_and(|child| child.kind == KIND_LITERAL);
-    match literal_string {
-        true => Ok(RustType::Reference {
-            mutable: false,
-            inner: Box::new(RustType::Path(TARGET_STR.to_owned())),
-        }),
-        false => resolver.resolve(&declaration.type_ref, &declaration.name),
+    if literal_string {
+        return Ok(borrowed_str());
     }
+    // A SEQUENCE OF LITERALS is an ARRAY here, not a growable one. The pack maps the source's slice
+    // to the target's growable sequence, which is right for a value a body builds and wrong for a
+    // constant: `vec![..]` ALLOCATES, and a constant's initialiser has to be evaluable before the
+    // program runs. The length is known — it is how many elements the source wrote — so the array
+    // is available and the growable one is not.
+    //
+    // This is the hole in the constant-expression test, which admitted "a COMPOSITE literal ...
+    // because a struct, tuple and array constructor are all const in the target". True of all
+    // three, and the source's slice was becoming none of them.
+    if let Some(elements) = constant_sequence(declaration) {
+        let inner = match declaration.type_ref.args.first() {
+            // The element is the source's STRING and every element is a literal, so each is the
+            // target's borrowed string for exactly the reason a scalar string constant is: a
+            // literal is already static storage, and owning it would allocate per element at a
+            // point where nothing may allocate at all.
+            Some(element) if element.name == SOURCE_STRING => borrowed_str(),
+            Some(element) => resolver.resolve(element, &declaration.name)?,
+            None => {
+                return Err(TransformError::Unsupported {
+                    name: declaration.name.clone(),
+                    detail: "a sequence constant whose element type the front end did not record \
+                             has no array type to declare, and the growable sequence the pack maps \
+                             its type to cannot stand in a constant"
+                        .to_owned(),
+                });
+            }
+        };
+        return Ok(RustType::Array {
+            inner: Box::new(inner),
+            len: elements,
+        });
+    }
+    resolver.resolve(&declaration.type_ref, &declaration.name)
+}
+
+/// The target's borrowed string, which is what a string LITERAL already is.
+fn borrowed_str() -> RustType {
+    RustType::Reference {
+        mutable: false,
+        inner: Box::new(RustType::Path(TARGET_STR.to_owned())),
+    }
+}
+
+/// How many elements, when this declaration is a sequence of literals and nothing else.
+///
+/// Every element must be a LITERAL. A sequence holding a call or a name is not one this turns into
+/// an array — the constant-expression proof answers that separately, and guessing here would
+/// declare an array type for an initialiser that then refuses.
+fn constant_sequence(declaration: &Declaration) -> Option<usize> {
+    if declaration.type_ref.kind != "slice" || declaration.children.is_empty() {
+        return None;
+    }
+    let [composite] = declaration.children.as_slice() else {
+        return None;
+    };
+    if composite.kind != KIND_COMPOSITE || composite.children.is_empty() {
+        return None;
+    }
+    composite
+        .children
+        .iter()
+        .all(|element| element.kind == KIND_LITERAL)
+        .then_some(composite.children.len())
 }
 
 /// Whether the target can evaluate this initialiser before the program runs, or a refusal.

@@ -2,7 +2,7 @@
   "schema_version": 2,
   "language": "go",
   "build_config": "linux/amd64 go1.21 tooltags=amd64.v1",
-  "snapshot_digest": "sha256:ca75e042dfedcc5424ff228c17e54104707fdf2370584c5f2f18ec4271c10369",
+  "snapshot_digest": "sha256:17ec4e21ca7693d9cb22a6a7d55497286575f62e3a966089a4d7f38838db501e",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-foreign/corpus-foreign/foreign",
@@ -351,6 +351,17 @@
                   },
                   "flags": [
                     "mutated"
+                  ],
+                  "children": [
+                    {
+                      "kind": "zero",
+                      "name": "",
+                      "type": {
+                        "kind": "named",
+                        "name": "Buffer",
+                        "package": "bytes"
+                      }
+                    }
                   ]
                 },
                 {

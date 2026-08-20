@@ -124,6 +124,11 @@ pub enum RustExpr {
         /// The values the template consumes, in order.
         args: Vec<RustExpr>,
     },
+    /// `[a, b, c]` — a fixed-size array literal.
+    ///
+    /// Not a growable sequence. Kept apart for the same reason [`crate::ty::RustType::Array`] is:
+    /// this is a constant expression in the target and `vec![..]` is not.
+    ArrayLiteral(Vec<RustExpr>),
     /// `vec![<value>; <count>]` — one value, repeated.
     ///
     /// Not a [`RustExpr::MacroCall`]: that carries a format template whose placeholders the macro
@@ -231,6 +236,7 @@ impl RustExpr {
             | Self::MethodCall { .. }
             | Self::MacroCall { .. }
             | Self::VecRepeat { .. }
+            | Self::ArrayLiteral(_)
             | Self::Index { .. }
             | Self::StructLiteral { .. }
             | Self::Try(_)

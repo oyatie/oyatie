@@ -76,6 +76,7 @@ pub(crate) fn binds_tighter_than_cast(expr: &RustExpr) -> bool {
             | RustExpr::MacroCall { .. }
             // Delimited by brackets, so a cast cannot reach inside it.
             | RustExpr::VecRepeat { .. }
+            | RustExpr::ArrayLiteral(_)
     )
 }
 
