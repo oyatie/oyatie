@@ -1,11 +1,11 @@
 {
-  "$comment": "ALLOWLIST-as-DATA for the root-workspace-hygiene gate (ADR-0600). The gate engine is UNIVERSAL: it reads this allowlist as DATA and runs on ANY repo. Oyatie's allowlist is just the pack below. POSTURE: default-DENY. Every TRACKED file at the repository ROOT (a tracked path that carries no '/' separator) MUST match an allowlist rule; ANY tracked root file that matches NO rule fails the gate (root_workspace_unallowlisted_file). This is the complement of the existing scratch DENYLIST (cloud-ci-total-accounting `scratch_artifact`, which catches KNOWN scratch shapes): the allowlist catches EVERY new root file, including scratch shapes nobody has named yet. The two layers compose — denylist = zero-tolerance on known scratch, allowlist = born-blocking on any unrecognized root file. Adding a NEW legitimate root file is a reviewed DATA edit here (never a scanner branch). Top-level DIRECTORIES are governed by `allowed_root_dirs` (a tracked path's first segment must be a permitted capability/meta dir). Rules are evaluated against the BASENAME of each tracked root file; the FIRST matching rule wins (order is significant only for diagnostics).",
+  "$comment": "ALLOWLIST-as-DATA for the root-workspace-hygiene gate (ADR-0600). The gate engine is UNIVERSAL: it reads this allowlist as DATA and runs on ANY repo. Oyatie's allowlist is just the pack below. POSTURE: default-DENY. Every TRACKED file at the repository ROOT (a tracked path that carries no '/' separator) MUST match an allowlist rule; ANY tracked root file that matches NO rule fails the gate (root_workspace_unallowlisted_file). This is the complement of the existing scratch DENYLIST (cloud-ci-total-accounting `scratch_artifact`, which catches KNOWN scratch shapes): the allowlist catches EVERY new root file, including scratch shapes nobody has named yet. The two layers compose \u2014 denylist = zero-tolerance on known scratch, allowlist = born-blocking on any unrecognized root file. Adding a NEW legitimate root file is a reviewed DATA edit here (never a scanner branch). Top-level DIRECTORIES are governed by `allowed_root_dirs` (a tracked path's first segment must be a permitted capability/meta dir). Rules are evaluated against the BASENAME of each tracked root file; the FIRST matching rule wins (order is significant only for diagnostics).",
   "gate_id": "cloud-ci-root-workspace-hygiene",
   "match_kinds": {
     "exact": "the tracked root file basename equals `value`",
     "suffix": "the tracked root file basename ends with `value` (e.g. an extension or a family like `.buckconfig`)",
-    "prefix": "the tracked root file basename starts with `value` (broad — matches any continuation)",
-    "prefix_dot": "the tracked root file basename equals `value` OR starts with `value` followed by `.` or `-` (tight family: README → README, README.md, README-internal.md but NOT READMEILY)"
+    "prefix": "the tracked root file basename starts with `value` (broad \u2014 matches any continuation)",
+    "prefix_dot": "the tracked root file basename equals `value` OR starts with `value` followed by `.` or `-` (tight family: README \u2192 README, README.md, README-internal.md but NOT READMEILY)"
   },
   "allowed_root_files": [
     {
@@ -24,7 +24,7 @@
       "id": "buckconfig",
       "kind": "prefix_dot",
       "value": ".buckconfig",
-      "reason": "buck2 config (.buckconfig, .buckconfig.local, …) but NOT notes.buckconfig"
+      "reason": "buck2 config (.buckconfig, .buckconfig.local, \u2026) but NOT notes.buckconfig"
     },
     {
       "id": "buckroot",
@@ -66,13 +66,13 @@
       "id": "readme",
       "kind": "prefix_dot",
       "value": "README",
-      "reason": "README, README.md, README-internal.md — NOT READMEILY.txt"
+      "reason": "README, README.md, README-internal.md \u2014 NOT READMEILY.txt"
     },
     {
       "id": "license",
       "kind": "prefix_dot",
       "value": "LICENSE",
-      "reason": "LICENSE, LICENSE.md, LICENSE-Apache-2.0 — NOT LICENSEKEY.txt (no separator)"
+      "reason": "LICENSE, LICENSE.md, LICENSE-Apache-2.0 \u2014 NOT LICENSEKEY.txt (no separator)"
     },
     {
       "id": "claude-md",
@@ -252,7 +252,7 @@
       "id": "omc-ultragoal-preamble",
       "kind": "exact",
       "value": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
-      "reason": "keep-with-sunset tombstone only — not live agent authority (ADR-0709)"
+      "reason": "keep-with-sunset tombstone only \u2014 not live agent authority (ADR-0709)"
     },
     {
       "id": "omc-ultragoal-friction-ledger",
@@ -307,7 +307,7 @@
     "auto_fix": "Every finding carries a concrete remediation per offending path: relocate process scratch to `.omc/` (the gitignored scratch home) or `git rm` the file. A NEW legitimate root file is admitted by adding a reviewed allowlist rule here (a DATA edit), never a scanner change.",
     "portability": "The engine reads the allowlist + allowed-dir set as DATA. Another repository adopts the gate by replacing `allowed_root_files` / `allowed_root_dirs` with its own legitimate root surface; zero engine code changes.",
     "hermeticity": "Pure evaluator: the gate consumes the producer's git-ls-files snapshot (scm-facts) as DATA and a committed allowlist; no shell, no network, no clock, no rand, no filesystem access beyond declared inputs. Deterministic, buck2-built.",
-    "runtime_state_drift_control": "Agent/runtime roots are restricted tracked surfaces. `.claude` and `.codex` may carry reviewed shared hook config only; `.omc` may carry only the frozen keep-with-sunset ultragoal path set (OWNERS, tombstone preamble, friction ledger, premise slot) under ADR-0709 — not a live control plane; `.omx` is runtime state and has no tracked exceptions. Any new tracked path under those roots requires an explicit DATA allowlist rule, preventing silent drift and merge-conflict-prone state.",
+    "runtime_state_drift_control": "Agent/runtime roots are restricted tracked surfaces. `.claude` and `.codex` may carry reviewed shared hook config only; `.omc` may carry only the frozen keep-with-sunset ultragoal path set (OWNERS, tombstone preamble, friction ledger, premise slot) under ADR-0709 \u2014 not a live control plane; `.omx` is runtime state and has no tracked exceptions. Any new tracked path under those roots requires an explicit DATA allowlist rule, preventing silent drift and merge-conflict-prone state.",
     "relationship_to_scratch_denylist": "Complements (does not replace) cloud-ci-total-accounting `scratch_artifact`: the denylist is zero-tolerance on KNOWN scratch shapes; this allowlist is born-blocking on ANY unrecognized tracked root file (including unnamed scratch shapes), making committed root scratch structurally impossible."
   },
   "schema_version": "1.2.0",
@@ -392,12 +392,17 @@
       "live_adr_files": 19,
       "dotdir_files": 242,
       "reorg_paths": 25,
-      "oya_legacy_root_files": 1868,
+      "oya_legacy_root_files": 1869,
       "yaml_files": 3022,
-      "json_files": 1285
+      "json_files": 1286
     },
     "reviewed_raises": {
       "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
+      "oya_legacy_root_files": {
+        "from": 1868,
+        "to": 1869,
+        "reason": "oya/crates/oya-application-shell-frontend/src/browser_panic_hook.rs replaces console_error_panic_hook with std panic hook."
+      },
       "evidence_files": {
         "from": 53,
         "to": 54,
@@ -411,12 +416,12 @@
       "live_adr_files": {
         "from": 18,
         "to": 19,
-        "reason": "Same single file as the docs_markdown_files raise above — ADR-0718 is counted by both classes. Recorded as its own exact from->to because the ratchet evaluates each class independently and an unrecorded class is born-blocking."
+        "reason": "Same single file as the docs_markdown_files raise above \u2014 ADR-0718 is counted by both classes. Recorded as its own exact from->to because the ratchet evaluates each class independently and an unrecorded class is born-blocking."
       },
       "json_files": {
-        "from": 1284,
-        "to": 1285,
-        "reason": "governance/check/id-discipline/id-discipline-policy.json is the FIRST machine-readable declaration of the canonical ID scheme in this repository. Until it existed the rule lived only in ADR prose, which is why ADR-0709 came to contradict itself in four places: D-1 declares UUIDv7 canonical and states 'The rule covers request IDs', while its ADR-0151 and ADR-0154 residuals described X-Request-Id and event_id as ULIDs. Prose cannot be diffed against a tree; this file can. The same change wires id-discipline to the live corpus and removes it from baselined_dark_gate_crates (89 -> 88), so one JSON file buys an enforceable rule and one fewer dark gate."
+        "from": 1285,
+        "to": 1286,
+        "reason": "governance/check/id-discipline/id-discipline-policy.json is the FIRST machine-readable declaration of the canonical ID scheme in this repository. The rule lived only in ADR prose, which is why ADR-0709 contradicted itself in four places. The same change wires id-discipline to the live corpus and removes it from baselined_dark_gate_crates, so one JSON file buys an enforceable rule and one fewer dark gate."
       }
     }
   }

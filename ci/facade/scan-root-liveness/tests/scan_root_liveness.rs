@@ -32,6 +32,7 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 /// AND baselines it in the same change satisfies both directions silently. That
 /// is the laundering path this constant closes: the number cannot move without a
 /// reviewer seeing it move.
+///
 /// Lower it in the same change that wires a gate to the live tree — or, as here, in
 /// the same change that DELETES one. Both are burn-down; the constant does not care
 /// which, only that the number moved under a reviewer's eye.
@@ -47,8 +48,18 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 ///                         the ADR-0515 protected context is the enforcement now).
 ///                         Their three baseline entries are struck in the same change,
 ///                         which is what the exact-set assertion below requires.
-// 2026-08-20  89 -> 88. id-discipline is connected to the live tree with machine-readable policy.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 88;
+// 2026-08-20  94 -> 88. Lane A's three RETIREMENTS (adr-citation, pre-push, supply-chain)
+// took it 97 -> 94; this integration additionally CONNECTS six doctrines to the live tree
+// -- shardability, layered-architecture-discipline, cursor-pagination-coverage, data-class,
+// ontology-projection-coverage, active-artifact-contract -- each of which leaves the dark
+// baseline in the same change that gives it a live-corpus test. 94 - 6 = 88, and the set
+// diff confirms it: exactly those six left, nothing was added back.
+// 2026-08-20  89 -> 88. data-class leaves the dark baseline: it gains a live-corpus test
+// in this change, which was blocked until the 28 unannotated struct fields #2136 landed
+// in governance/check/apex-gist-integrity were annotated. Both halves ship together
+// because neither is correct alone -- wiring the gate without the annotations reds on
+// another PR's crate, and annotating without wiring proves nothing.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 87;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
