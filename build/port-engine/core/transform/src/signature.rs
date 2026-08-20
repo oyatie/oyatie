@@ -62,6 +62,7 @@ pub(crate) fn inherent_methods(
         }
     }
     methods.extend(crate::promote::promoted_methods(declaration, resolver, &claimed)?);
+    methods.extend(emptiness_companion(&methods));
     Ok(methods)
 }
 
@@ -297,4 +298,49 @@ fn methods_claimed_by_traits(
         .flat_map(|observed| observed.children_of_kind(CHILD_METHOD))
         .map(|method| method.name.clone())
         .collect()
+}
+
+/// `is_empty`, beside a public `len` that has one.
+///
+/// DERIVED, not invented: `is_empty` is `len() == 0` and nothing else, so this adds no meaning the
+/// source did not already have — it adds the SPELLING every Rust caller reaches for first. The
+/// target's own lint requires it (`clippy::len_without_is_empty`), and under the deny-warnings
+/// policy this engine is held to that makes a type with a public `len` and no `is_empty` a crate
+/// that does not build.
+///
+/// The source has no such convention, which is exactly why nothing carries it across. Go's
+/// `len(c)` is a builtin over the value; the target's is a method on the type, and a method brings
+/// the type's obligations with it.
+fn emptiness_companion(methods: &[RustFn]) -> Option<RustFn> {
+    let length = methods.iter().find(|method| {
+        method.name == "len"
+            && method.vis == Visibility::Public
+            && method.params.is_empty()
+            && method.receiver.is_some()
+    })?;
+    // ALREADY THERE — a source that declares its own emptiness test keeps it, and a second one
+    // would be a duplicate definition rather than a convenience.
+    if methods.iter().any(|method| method.name == "is_empty") {
+        return None;
+    }
+    Some(RustFn {
+        docs: vec![" Whether the collection contains no elements.".to_owned()],
+        vis: Visibility::Public,
+        name: "is_empty".to_owned(),
+        receiver: length.receiver.clone(),
+        params: Vec::new(),
+        ret: Some(port_engine_rust_ir::RustType::path("bool")),
+        attrs: Vec::new(),
+        body: Some(vec![port_engine_rust_ir::RustStmt::Tail(
+            port_engine_rust_ir::RustExpr::Binary {
+                op: port_engine_rust_ir::BinaryOp::Eq,
+                lhs: Box::new(port_engine_rust_ir::RustExpr::MethodCall {
+                    receiver: Box::new(port_engine_rust_ir::RustExpr::SelfValue),
+                    method: "len".to_owned(),
+                    args: Vec::new(),
+                }),
+                rhs: Box::new(port_engine_rust_ir::RustExpr::Literal("0".to_owned())),
+            },
+        )]),
+    })
 }

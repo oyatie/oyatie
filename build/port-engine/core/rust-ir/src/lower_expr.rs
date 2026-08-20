@@ -62,7 +62,24 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
             Ok(path.into_token_stream())
         }
         RustExpr::Binary { op, lhs, rhs } => {
-            let left = lower_operand(lhs, *op, false)?;
+            // A CAST ON THE LEFT OF A COMPARISON IS BRACKETED, and this is a GRAMMAR rule rather
+            // than a precedence one — which is why the precedence table, where a cast binds
+            // tightest and therefore never needs brackets, is right and still not enough.
+            //
+            // `a.len() as i64 < b.len() as i64` does not parse. The target reads `i64 <` as the
+            // start of generic arguments and says so:
+            //
+            //     `<` is interpreted as a start of generic arguments for `i64`, not a comparison
+            //
+            // It cost `gjson::string_less_insensitive`, which refused with a renderer error naming
+            // a missing comma — a message that points nowhere near the cause.
+            let left = match (matches!(**lhs, RustExpr::Cast { .. }), op.is_comparison()) {
+                (true, true) => {
+                    let inner = lower_expr(lhs)?;
+                    quote! { (#inner) }
+                }
+                _ => lower_operand(lhs, *op, false)?,
+            };
             let right = lower_operand(rhs, *op, true)?;
             let operator: TokenStream = op.spelling().parse().map_err(|_| PortError::Render {
                 detail: format!("`{}` is not a valid operator", op.spelling()),

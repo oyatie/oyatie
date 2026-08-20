@@ -69,6 +69,18 @@ impl Precedence {
 const COMPARISON: Precedence = Precedence(3);
 
 impl BinaryOp {
+    /// Whether this operator COMPARES, which is the set whose left operand a cast must be bracketed
+    /// under. `<` and `<=` are the ones the grammar actually trips on — the target reads `T <` as
+    /// generic arguments — and the rest are included because a reader cannot be asked to remember
+    /// which two of six comparisons need brackets and which four do not.
+    #[must_use]
+    pub const fn is_comparison(self) -> bool {
+        matches!(
+            self,
+            Self::Eq | Self::Ne | Self::Lt | Self::Le | Self::Gt | Self::Ge
+        )
+    }
+
     /// The operator's precedence level.
     #[must_use]
     pub const fn precedence(self) -> Precedence {

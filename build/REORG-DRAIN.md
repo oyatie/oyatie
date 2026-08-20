@@ -6297,3 +6297,39 @@ input produces something that is no longer a port of it, and the difference betw
 visible to anyone reading only the output. Those stay.
 
 All ten packages still pass `rustc` and `clippy-driver` under `--deny=warnings`.
+
+## R3t — a `?` in a new file re-opened a cascade the engine had already closed
+
+The Display rule landed and `uuid` fell from 29 translated declarations to 15. `google/uuid.UUID`
+itself refused, and nine declarations refused BECAUSE it had:
+
+    unmapped type `named github.com/google/uuid.UUID — declared in this unit and not emitted,
+    because it refused. Naming it would name a type the crate does not contain`
+
+`display_impl` translated the `String()` method with `?`. A method whose body does not translate is
+an ordinary event — it stays inherent and the type still emits — but the `?` let it out of the
+function that builds the type's impls, so the whole declaration refused and took everything naming
+it with it.
+
+That is R2h exactly: one untranslatable method refusing its entire type. It took six supporting
+rules to close the first time, and one `?` in a new file to re-open. The histogram caught it
+immediately, which is the only reason it was one cycle rather than a phase.
+
+### `x as i64 < y` does not parse
+
+    error: `<` is interpreted as a start of generic arguments for `i64`, not a comparison
+
+A GRAMMAR rule, not a precedence one — which is why the precedence table, where a cast binds
+tightest and so is never bracketed, is right and still not enough. It cost
+`gjson::string_less_insensitive`, whose refusal blamed a missing comma and pointed nowhere near the
+cause. A cast on the left of a comparison is now bracketed.
+
+### `is_empty` beside a public `len`
+
+DERIVED, not invented: `is_empty` is `len() == 0` and nothing else, so it adds no meaning the source
+lacked — it adds the spelling every Rust caller reaches for first, which the target's own lint
+requires. The source has no such convention, and that is exactly why nothing carried it across:
+Go's `len(c)` is a builtin over the value, and the target's is a method on the type, which brings
+the type's obligations with it.
+
+Ten of ten packages now pass `rustc` and `clippy-driver` under `--deny=warnings`.
