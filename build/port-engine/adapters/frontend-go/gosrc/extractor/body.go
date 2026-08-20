@@ -86,7 +86,14 @@ func statementNodes(stmts []ast.Stmt, ctx *extractCtx) []node {
 func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 	switch typed := stmt.(type) {
 	case *ast.ReturnStmt:
-		return node{Kind: kindReturn, Children: expressionNodes(typed.Results, ctx)}
+		// A function literal among these operands OUTLIVES this frame, which is what decides that
+		// its captures must be owned rather than borrowed. Recorded here because this is where the
+		// destination is known; `expressionNode` sees only the literal.
+		outer := ctx.destination
+		ctx.destination = destinationReturn
+		results := expressionNodes(typed.Results, ctx)
+		ctx.destination = outer
+		return node{Kind: kindReturn, Children: results}
 
 	case *ast.BlockStmt:
 		return node{Kind: kindBlock, Children: statementNodes(typed.List, ctx)}

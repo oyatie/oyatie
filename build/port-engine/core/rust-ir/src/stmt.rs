@@ -77,8 +77,8 @@ pub enum RustStmt {
     Loop(Vec<RustStmt>),
     /// `for <binding> in <iter> { .. }`
     ForIn {
-        /// The bound name, already cased for the target.
-        binding: String, // data_class: INTERNAL_ONLY
+        /// What each item is bound to.
+        binding: ForBinding,
         /// What is iterated.
         iter: RustExpr,
         /// The loop body.
@@ -120,4 +120,28 @@ pub struct TupleBind {
     pub name: String, // data_class: INTERNAL_ONLY
     /// Whether the body writes this name after binding it.
     pub mutable: bool,
+}
+
+/// What a `for` loop binds each item to.
+///
+/// Not a `String`. A single name is an IDENTIFIER and a pair is a PATTERN, and the renderer parses
+/// what it is given — spelling `(i, value)` as a name reaches `parse_ident` and is refused, which
+/// is the same mistake the blank binding and the blank parameter each made once before.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ForBinding {
+    /// The blank: the loop runs for each item and names none of them.
+    ///
+    /// A variant rather than the name `_`, because the target's blank is a PATTERN. Spelling it as
+    /// a name reaches `parse_ident`, which is where the blank binding and the blank parameter each
+    /// ended up once before.
+    Blank,
+    /// One name, bound to each item.
+    Name(String), // data_class: INTERNAL_ONLY
+    /// An index and an item, as the target's tuple pattern over `enumerate`.
+    Indexed {
+        /// The index name.
+        index: String, // data_class: INTERNAL_ONLY
+        /// The item name.
+        item: String, // data_class: INTERNAL_ONLY
+    },
 }

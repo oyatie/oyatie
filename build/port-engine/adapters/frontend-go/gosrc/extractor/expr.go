@@ -375,6 +375,9 @@ func isUntyped(recorded *typeNode) bool {
 // synchronization the source never stated.
 func closureNode(lit *ast.FuncLit, ctx *extractCtx) node {
 	out := node{Kind: kindClosure, Type: typeTree(ctx.info.TypeOf(lit))}
+	if ctx.destination != "" {
+		out.Attrs = map[string]string{attrDestination: ctx.destination}
+	}
 	if sig, ok := ctx.info.TypeOf(lit).(*types.Signature); ok {
 		out.Children = append(out.Children, signatureChildren(sig, ctx.qualify)...)
 	}
@@ -383,12 +386,28 @@ func closureNode(lit *ast.FuncLit, ctx *extractCtx) node {
 		if captured.written {
 			capture.Flags = append(capture.Flags, flagMutated)
 		}
+		// WRITTEN ANYWHERE IN THE ENCLOSING BODY, which is a wider question than whether this
+		// literal writes it, and a different one. Go's closure shares the variable's STORAGE, so a
+		// write through any path -- the enclosing function's own, or a second literal capturing the
+		// same variable -- is visible to every holder. A target closure that takes ownership gets a
+		// copy instead, and copies stop agreeing the moment one of them is written.
+		//
+		// Which makes this the predicate that decides whether owning is FAITHFUL: a variable
+		// nothing ever reassigns has one value for its whole life, so a copy of it and the original
+		// are indistinguishable, and `move` means what the source meant.
+		if ctx.assigned != nil && ctx.assigned[captured.obj] {
+			capture.Flags = append(capture.Flags, flagReassigned)
+		}
 		out.Children = append(out.Children, capture)
 	}
-	out.Children = append(out.Children, node{
-		Kind:     kindBody,
-		Children: statementNodes(lit.Body.List, ctx),
-	})
+	// The literal's own body is NOT in this literal's destination. A closure nested inside a
+	// returned one escapes only if its own position says so, and carrying the flag down would mark
+	// every one of them.
+	outer := ctx.destination
+	ctx.destination = ""
+	body := statementNodes(lit.Body.List, ctx)
+	ctx.destination = outer
+	out.Children = append(out.Children, node{Kind: kindBody, Children: body})
 	return out
 }
 

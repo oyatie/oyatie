@@ -256,6 +256,11 @@ const (
 	// flagSpread records that a call passes its last argument's ELEMENTS rather than the argument
 	// itself -- what the source writes `f(xs...)`. Nothing else in the tree distinguishes the two,
 	// and they mean different things to the same callee.
+	// flagReassigned records that the enclosing body writes this captured variable somewhere --
+	// not necessarily inside the literal. See the comment at its only producer: it is what decides
+	// whether a target closure may own its captures instead of sharing them.
+	flagReassigned = "reassigned"
+
 	flagSpread = "spread"
 
 	// flagInitWritten records that EVERY write to this package variable is in the package
@@ -285,6 +290,12 @@ const (
 	receiverShared    = "shared"
 	receiverExclusive = "exclusive"
 
+	// attrDestination names where a function literal GOES, when that is a position outliving the frame
+	// it is written in. Absent when it is not. The value is the destination, not a decision about
+	// ownership: what the target does with it belongs to the transform.
+	attrDestination = "destination"
+	// destinationReturn is the destination of a literal among a `return`'s operands.
+	destinationReturn = "return"
 	// attrOp is a binary or unary operator, spelled as Go source.
 	attrOp = "op"
 	// attrGoNode names the Go AST node an `unsupported` placeholder stands for, so a refusal can

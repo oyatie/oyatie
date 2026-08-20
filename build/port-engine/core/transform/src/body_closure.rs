@@ -25,6 +25,9 @@ use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{CHILD_PARAM, FLAG_MUTATED};
 
+/// The destination the front end records for a literal among a `return`'s operands.
+const DESTINATION_RETURN: &str = "return";
+
 /// A function literal.
 ///
 /// # Errors
@@ -32,6 +35,39 @@ use crate::vocabulary::{CHILD_PARAM, FLAG_MUTATED};
 /// translate.
 pub(crate) fn closure(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
     let captures = node.children_of_kind("capture");
+    // OWNED, when the source says where the literal goes and owning is faithful there.
+    //
+    // Ownership is a property of the DESTINATION, not of the literal, and for most destinations the
+    // engine cannot see it. For one it can: a literal among a `return`'s operands outlives the
+    // frame it is written in, so its captures cannot be borrowed from that frame and must be owned.
+    // The front end records the destination because it is a source fact.
+    //
+    // Owning is not automatically faithful. Go's closure shares the variable's STORAGE, so where
+    // anything reassigns a capture -- the enclosing body, or a second literal over the same
+    // variable -- the source has one value and `move` would make several. A variable nothing
+    // reassigns has one value for its whole life, and there a copy is indistinguishable from the
+    // original. So the reassigned case keeps refusing, and says which capture forced it.
+    if !captures.is_empty() && node.attr(crate::vocabulary::ATTR_DESTINATION) == Some(DESTINATION_RETURN)
+    {
+        if let Some(shared) = captures
+            .iter()
+            .find(|capture| capture.has_flag(crate::vocabulary::FLAG_REASSIGNED))
+        {
+            return Err(TransformError::Unsupported {
+                name: cx.owner.to_owned(),
+                detail: format!(
+                    "a function literal is RETURNED and captures `{}`, which the enclosing body                      reassigns. The source shares one variable with the returned literal, so a                      later write is visible through it; the target's returned closure must own                      what it captures, and an owned copy stops agreeing at that write. Sharing a                      variable that outlives its frame needs a decision about which handle the two                      hold — which the source does not record",
+                    shared.name
+                ),
+            });
+        }
+        return Ok(RustExpr::Closure {
+            moves: true,
+            params: closure_params(node),
+            ret: None,
+            body: translate_tail(&branch(node, "body", cx)?.children, cx)?,
+        });
+    }
     if !captures.is_empty() {
         // The captured NAMES are deliberately not in this text. They are the site, and a cause that
         // carries its site counts once per site — which is how one undecided form read as eighteen
@@ -55,8 +91,23 @@ pub(crate) fn closure(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tra
         });
     }
 
-    let params = node
-        .children_of_kind(CHILD_PARAM)
+    let params = closure_params(node);
+
+    let body = branch(node, "body", cx)?;
+    Ok(RustExpr::Closure {
+        // NOTHING TO MOVE. A literal that captures nothing owns nothing, so `move` would be a
+        // keyword with no operand — and adding it unconditionally is how a translator ends up
+        // moving values the source shared.
+        moves: false,
+        params,
+        ret: None,
+        body: translate_tail(&body.children, cx)?,
+    })
+}
+
+/// The literal's parameters, cased for the target.
+fn closure_params(node: &Declaration) -> Vec<ClosureParam> {
+    node.children_of_kind(CHILD_PARAM)
         .iter()
         .map(|param| ClosureParam {
             name: match param.name.is_empty() || param.name == "_" {
@@ -69,18 +120,7 @@ pub(crate) fn closure(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tra
             // is a compile error rather than a wrong program.
             ty: None,
         })
-        .collect();
-
-    let body = branch(node, "body", cx)?;
-    Ok(RustExpr::Closure {
-        // NOTHING TO MOVE. A literal that captures nothing owns nothing, so `move` would be a
-        // keyword with no operand — and adding it unconditionally is how a translator ends up
-        // moving values the source shared.
-        moves: false,
-        params,
-        ret: None,
-        body: translate_tail(&body.children, cx)?,
-    })
+        .collect()
 }
 
 /// The literal's body, whose last statement is its VALUE.
