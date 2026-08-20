@@ -4143,3 +4143,31 @@ reason now says so rather than implying a decision is being weighed.
 
 A variable the initialiser fills in a LOOP still lacks the fact and is named separately: there is no
 single expression that is its value, and `xid`'s decoding table is one.
+
+## R2f — a rule I wrote, measured, and reverted
+
+`xxhash` emits a private `SliceHeader { s: String, cap: i64 }`. In the source it mirrors the
+runtime's slice layout so a string can be reinterpreted as a byte slice through an unsafe pointer;
+both functions that do that refused, and what was left is a struct whose fields could never mean what
+they meant, in a crate that denies `unsafe`. A reader meeting it has no way to know it is residue.
+
+So I wrote the mirror of self-containment: that rule refuses a declaration which names something
+absent, and this would drop an unexported one that nothing present names. Bounded to unexported
+names, because an exported one is API and a caller outside decides whether it is used.
+
+**It was wrong, and the measurement said so immediately.** It removed `SliceHeader` — and also
+`PRIMES`, `MARSHALED_SIZE`, and `merge_round`, which is the function a reviewer had singled out as
+the part that reads well. Every one of them is genuinely unreferenced in the emitted crate, and that
+is the flaw: in a PARTIAL port almost nothing anchors the reference graph, because the exported
+declarations that would anchor it are the ones that refused. Reachability then measures what the
+refusals happened to orphan rather than what the source means, and deletes accordingly.
+
+**What the case actually needs is narrower and is recorded rather than built.** `unsafe.Pointer` is
+the source's escape from its own type system, and a declaration existing to be reinterpreted through
+it describes the SOURCE RUNTIME's memory layout — which the target does not share. Such a type cannot
+be ported at all, and refusing it BY NAME for that reason is right where dropping it for being
+unreferenced is not. It needs the front end to record which references sit inside that escape hatch,
+which it does not today.
+
+Worth keeping as a general caution: a rule justified by "nothing uses it" is measuring the engine's
+own refusals, not the source. The engine's coverage is the wrong thing to reason from.
