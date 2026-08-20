@@ -172,6 +172,32 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
     Ok(RustExpr::Binary {
         op,
         lhs: Box::new(left),
-        rhs: Box::new(right),
+        // CONCATENATION is not symmetric in the target. The source adds two strings and gets a
+        // third; the target's `+` on an owned string takes a BORROW on the right and reuses the
+        // left's allocation, so two owned operands do not typecheck. The source cannot express the
+        // difference because it has only one string type — which is exactly why the asymmetry has to
+        // be added here rather than recovered from the operand.
+        rhs: Box::new(borrowed_concat_operand(node, right, spelling, cx)),
     })
+}
+
+/// The right operand of a target CONCATENATION, borrowed.
+///
+/// Only for `+` on the source's string type, read from the type the front end recorded on the
+/// operation rather than from the operands: the same operator on integers is arithmetic and must be
+/// left exactly alone.
+fn borrowed_concat_operand(
+    node: &Declaration,
+    right: RustExpr,
+    spelling: &str,
+    cx: &Body<'_>,
+) -> RustExpr {
+    if spelling != "+" || node.type_ref.name != crate::vocabulary::SOURCE_STRING {
+        return right;
+    }
+    let _ = cx;
+    RustExpr::Reference {
+        mutable: false,
+        inner: Box::new(right),
+    }
 }

@@ -63,7 +63,7 @@ pub(crate) fn newtype_parameters(
     declaration
         .children_of_kind(crate::vocabulary::CHILD_PARAM)
         .into_iter()
-        .filter(|param| resolver.scope.newtypes.contains(&param.type_ref.name))
+        .filter(|param| resolver.scope.newtypes.contains_key(&param.type_ref.name))
         .map(|param| param.name.clone())
         .collect()
 }

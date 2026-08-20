@@ -167,8 +167,25 @@ pub fn port_go_refused_failure() -> Result<usize, PipelineError> {
 fn refuse(admitted: AdmittedSnapshot) -> Result<usize, PipelineError> {
     let pack = LoadedRulePack::load_embedded_go_rust().map_err(PipelineError::Rulepack)?;
     let plan = port_engine_kernel::plan(admitted.as_model(), &pack).map_err(PipelineError::Plan)?;
-    let ir = apply(&plan, &pack, admitted.as_model()).map_err(PipelineError::Transform)?;
-    Ok(ir.regions().len())
+    let output = port_engine_transform::apply_with_provenance(&plan, &pack, admitted.as_model())
+        .map_err(PipelineError::Transform)?;
+    // A DROPPED METHOD is a refusal, and this is the path that has to say so. Since the type/method
+    // cascade was broken a method the engine cannot translate no longer refuses its type — the type
+    // is emitted without it — so a corpus that exists to prove a construct is refused would
+    // otherwise come back successful, having quietly emitted the type and swallowed the reason.
+    //
+    // The refusal is unchanged in substance: same reason, reported against the METHOD's own name,
+    // which is finer than the declaration it used to name. What this restores is that the caller
+    // sees it at all.
+    if let Some(dropped) = output.dropped.first() {
+        return Err(PipelineError::Transform(
+            port_engine_transform::TransformError::Unsupported {
+                name: format!("{}::{}", dropped.owner, dropped.name),
+                detail: dropped.reason.clone(),
+            },
+        ));
+    }
+    Ok(output.ir.regions().len())
 }
 
 /// Assemble an emitted tree into one compilable Rust source: a module per source unit.

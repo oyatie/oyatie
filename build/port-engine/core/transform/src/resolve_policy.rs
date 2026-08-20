@@ -190,12 +190,44 @@ impl Resolver<'_> {
         self.derives
             .iter()
             .filter(|rule| {
+                let mut seen = std::collections::BTreeSet::new();
                 !fields
                     .iter()
-                    .any(|field| mentions_kind(field, &rule.blocked_by))
+                    .any(|field| self.blocks(field, &rule.blocked_by, &mut seen))
             })
             .map(|rule| rule.name.clone())
             .collect()
+    }
+
+    /// Whether this type blocks a derive, FOLLOWING references to this unit's own declarations.
+    ///
+    /// A named type of this unit earns a trait only if what it holds earns it, so a reference to one
+    /// has to be answered by looking at that declaration rather than by assuming. The doc on
+    /// `derives_for` used to record the opposite as safe, on the grounds that every emitted struct
+    /// gets the same list — which a NEWTYPE breaks: one over a slice earns no total equality, and a
+    /// struct holding it derived `Eq` and did not compile.
+    ///
+    /// `seen` makes a type that reaches itself terminate. A cycle is reached only through a pointer,
+    /// and a type is not blocked by its own participation in one — the recursion just stops.
+    fn blocks(&self, field: &TypeRef, blocked: &std::collections::BTreeSet<String>, seen: &mut std::collections::BTreeSet<String>) -> bool {
+        if mentions_kind(field, blocked) {
+            return true;
+        }
+        // Collected before descending: the visited set is threaded through the recursion, so a
+        // borrow held by an iterator across the recursive call would be a second unique borrow.
+        let fresh: Vec<String> = named_references(field)
+            .into_iter()
+            .filter(|name| seen.insert(name.clone()))
+            .collect();
+        for name in fresh {
+            let Some(inputs) = self.scope.derive_inputs.get(&name) else {
+                continue;
+            };
+            if inputs.iter().any(|input| self.blocks(input, blocked, seen)) {
+                return true;
+            }
+        }
+        false
     }
 
     /// The target method carrying the source's overflow rule for this operation, if it has one.
@@ -262,4 +294,26 @@ fn divides_without_overflow(node: &Declaration, spelling: &str) -> bool {
         return false;
     };
     divisor.kind == "literal" && divisor.attr("value").is_some_and(|value| value != "-1")
+}
+
+/// Every name a type tree refers to, unqualified.
+///
+/// A reference to another declaration of this unit can sit at any depth — `*stack`, `[]frame`,
+/// `map[string]entry` — so the whole tree is walked rather than only its root.
+fn named_references(type_ref: &TypeRef) -> Vec<String> {
+    let mut out = Vec::new();
+    if !type_ref.name.is_empty() {
+        out.push(
+            type_ref
+                .name
+                .rsplit('.')
+                .next()
+                .unwrap_or(&type_ref.name)
+                .to_owned(),
+        );
+    }
+    for arg in &type_ref.args {
+        out.extend(named_references(arg));
+    }
+    out
 }

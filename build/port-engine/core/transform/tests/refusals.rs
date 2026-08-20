@@ -53,9 +53,23 @@ fn a_pointer_receiver_without_a_matching_rule_refuses() {
     point.children = vec![method];
 
     let pack = Pack::default().with_rule("structs", CONSTRUCTION_RUST_STRUCT_BODY, &["struct"]);
-    let err = apply(&plan_with(&["structs"]), &pack, &model_with(vec![point]))
-        .expect_err("no declared rule accepts these facts");
-    assert!(matches!(err, TransformError::Ownership { .. }), "{err}");
+    // The refusal is now recorded against the METHOD rather than raised for the type. Breaking the
+    // type/method cascade means one untranslatable method no longer takes its type down with it, so
+    // what this asserts is the property that mattered all along: the undeclared decision is REFUSED
+    // and its reason is reported, not invented. Reported more precisely than before, in fact — at
+    // the method that could not be written rather than at the declaration containing it.
+    let output = apply_with_provenance(&plan_with(&["structs"]), &pack, &model_with(vec![point]))
+        .expect("the type is emittable without the method it cannot write");
+    let dropped = output
+        .dropped
+        .first()
+        .expect("no declared rule accepts these facts, so the method must be refused");
+    assert_eq!(dropped.name, "Move", "the refusal must name the method");
+    assert!(
+        dropped.reason.contains("no rule") || dropped.reason.contains("disposition"),
+        "the refusal must say the decision was not declared, got: {}",
+        dropped.reason
+    );
 }
 
 /// And with a rule, the facts decide. A mutating receiver becomes an exclusive borrow — which is
@@ -109,9 +123,17 @@ fn a_disposition_without_a_receiver_form_refuses_the_receiver() {
         .with_rule("structs", CONSTRUCTION_RUST_STRUCT_BODY, &["struct"])
         .with_disposition("owned", None, Some(true), "Option<Box<{0}>>", None);
 
-    let err = apply(&plan_with(&["structs"]), &pack, &model_with(vec![point]))
-        .expect_err("an escaping receiver cannot be borrowed");
-    assert!(matches!(err, TransformError::Ownership { .. }), "{err}");
+    let output = apply_with_provenance(&plan_with(&["structs"]), &pack, &model_with(vec![point]))
+        .expect("the type is emittable without the method it cannot write");
+    let dropped = output
+        .dropped
+        .first()
+        .expect("an escaping receiver cannot be borrowed, so the method must be refused");
+    assert_eq!(dropped.name, "Itself", "the refusal must name the method");
+    assert!(
+        !dropped.reason.is_empty(),
+        "the refusal must carry the reason the disposition declined"
+    );
 }
 
 /// A variadic SIGNATURE needs no decision, because the parameter is already a slice.

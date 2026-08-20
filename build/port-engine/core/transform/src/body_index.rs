@@ -87,7 +87,7 @@ pub(crate) fn unwrapped_base(base: &Declaration, cx: &Body<'_>) -> Result<RustEx
     let wraps = match crate::body_ops::is_receiver(base) {
         true => cx
             .receiver_type
-            .is_some_and(|owner| cx.resolver.scope.newtypes.contains(owner)),
+            .is_some_and(|owner| cx.resolver.scope.newtypes.contains_key(owner)),
         // A PARAMETER of newtype type, which the signature stated and the body was told.
         false => base.kind == crate::vocabulary::KIND_IDENT
             && cx.newtype_parameters.contains(&base.name),

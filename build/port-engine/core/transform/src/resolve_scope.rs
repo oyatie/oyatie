@@ -46,7 +46,15 @@ pub struct LocalScope {
     /// identifier: the front end records a type on an expression only where it is needed, and a
     /// receiver carries none. What the body knows is which declaration it is inside, and this maps
     /// that to whether its target shape wraps.
-    pub(crate) newtypes: BTreeSet<String>,
+    pub(crate) newtypes: BTreeMap<String, port_engine_api::TypeRef>,
+    /// Per local declaration, the source type refs that decide which traits it EARNS.
+    ///
+    /// A newtype's is its own underlying type; a struct's are its fields'. Held so the derive rule
+    /// can follow a reference to another declaration of this unit instead of assuming it earns
+    /// everything. That assumption used to be written down as safe — "every emitted struct gets the
+    /// same list" — and it is not: a newtype over a slice earns no total equality, so a struct
+    /// holding one and deriving `Eq` does not compile. The corpus proved it.
+    pub(crate) derive_inputs: BTreeMap<String, Vec<port_engine_api::TypeRef>>,
     pub(crate) length_constants: BTreeSet<String>,
     /// Member source name → the declaration that OWNS it.
     ///
@@ -119,10 +127,24 @@ impl LocalScope {
                 )
             })
             .collect();
-        let newtypes: BTreeSet<String> = declarations
+        let derive_inputs: BTreeMap<String, Vec<port_engine_api::TypeRef>> = declarations
+            .iter()
+            .map(|declaration| {
+                let inputs = match declaration.kind.as_str() {
+                    "named" => vec![declaration.type_ref.clone()],
+                    _ => declaration
+                        .children_of_kind(crate::vocabulary::CHILD_FIELD)
+                        .into_iter()
+                        .map(|field| field.type_ref.clone())
+                        .collect(),
+                };
+                (declaration.name.clone(), inputs)
+            })
+            .collect();
+        let newtypes: BTreeMap<String, port_engine_api::TypeRef> = declarations
             .iter()
             .filter(|declaration| declaration.kind == "named")
-            .map(|declaration| declaration.name.clone())
+            .map(|declaration| (declaration.name.clone(), declaration.type_ref.clone()))
             .collect();
         let mut types = BTreeMap::new();
         let mut renames: BTreeMap<String, Option<String>> = BTreeMap::new();
@@ -158,6 +180,7 @@ impl LocalScope {
         }
         Self {
             newtypes,
+            derive_inputs,
             types,
             sentinels,
             sentinel_order,
