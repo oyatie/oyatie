@@ -145,8 +145,8 @@ pub fn fd001_tenant_workload_manifest() -> Fd001TenantWorkloadManifest {
                 Fd001TenantWorkloadKind::HrEmployment,
                 "hr-employment-runtime",
                 "hr-employment",
-                "oya-hr-employment-infrastructure",
-                "crates/oya-hr-employment-infrastructure",
+                "hr-employment-infrastructure",
+                "crates/hr-employment-infrastructure",
                 "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json",
             ),
             workload(

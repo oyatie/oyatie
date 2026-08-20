@@ -1,0 +1,28 @@
+rust_library(
+    name = "hr-employment-api",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "hr_employment_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/hr/facade/employment-app:hr-employment-app",
+        "//app/hr/core/employment-domain:hr-employment-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "hr-employment-api-contracts",
+    srcs = ["tests/contracts.rs"],
+    crate = "hr_employment_api_contracts",
+    crate_root = "tests/contracts.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":hr-employment-api",
+        "//app/hr/facade/employment-app:hr-employment-app",
+        "//app/hr/core/employment-domain:hr-employment-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

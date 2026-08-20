@@ -520,6 +520,7 @@
       "_comment": "The cloud/+oya/ deployable SaaS verticals + the web/application shell that are app/<product>/ composition members (app_products_note made machine-readable). They wire 2+ capabilities for a tenant and define no capability engine. PRE-MOVE these live at oya/<product>/; POST-move at app/<product>/. workplace-integration is the 'etc.' catch-all surface in app_products_note. application is the developer application/web shell (product-developer-application-shell) that compiles INTO the console capability per the console boundary_note → app/.",
       "meta_dir": "app/",
       "current_dirs": [
+        "app/hr",
         "oya/application",
         "oya/calendar",
         "oya/community",
@@ -530,7 +531,6 @@
         "oya/docs",
         "oya/financial-planning",
         "oya/global-trade",
-        "oya/hr",
         "oya/incident-management",
         "oya/itsm",
         "oya/learning-management",

@@ -775,12 +775,6 @@
         "expires_at_or_wave": "wave-after-integ-envelope-gate"
       },
       {
-        "path_glob": "Cargo.toml",
-        "claiming_branch": "integ/specs",
-        "reason": "Exclude non-crate governance/check/integ-envelope from workspace members glob so freshness can resolve (ADR-0538 carve-out).",
-        "expires_at_or_wave": "wave-after-integ-envelope-gate"
-      },
-      {
         "path_glob": ".grok/harness/model-routing.v1.json",
         "claiming_branch": "integ/specs",
         "reason": "Bootstrap: model-routing harness pin co-lands with Swarm Delivery Law optional-channel doctrine (advisory channels ≠ merge authority).",
