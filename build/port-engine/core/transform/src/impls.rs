@@ -99,14 +99,20 @@ fn display_impl(
     {
         return Ok(None);
     }
-    let built = crate::signature::method_signature(
+    // NOT PROPAGATED. A display method whose body does not translate leaves the method where it
+    // was — it stays inherent, and the TYPE still emits. Letting the error out refused the whole
+    // declaration, which took `uuid.UUID` with it and cascaded to nine more; that is exactly the
+    // type/method cascade R2h broke, reintroduced by a `?` in a new file.
+    let Ok(built) = crate::signature::method_signature(
         method,
         resolver,
         port_engine_rust_ir::Visibility::Inherited,
         crate::signature::Body::Translate,
         &declaration.name,
         crate::body::ResultShape::Own,
-    )?;
+    ) else {
+        return Ok(None);
+    };
     // A body that did not translate leaves the method where it was rather than emitting an impl
     // with nothing in it.
     let Some(body) = built.body else {
