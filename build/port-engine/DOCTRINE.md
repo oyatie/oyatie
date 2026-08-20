@@ -276,14 +276,33 @@ State on 2026-08-20. Update with measurements, not impressions.
 `survey` reports how many declarations TRANSLATED. That is the engine's confidence, not a fact about
 Rust. Run `compile-corpus.sh` after every rule.
 
-**State on 2026-08-20:** nine of ten emitted packages pass `rustc` AND `clippy-driver` with
-`--deny=warnings` under `#![forbid(unsafe_code)]`. All five repositories the goal names are among
-them — `uuid`, `gjson`, `chi`, `go-multierror`, `memberlist`. `semver` remains, on
-`len_without_is_empty`.
+**State on 2026-08-20:** TEN of ten emitted packages pass `rustc` AND `clippy-driver` with
+`--deny=warnings` under `#![forbid(unsafe_code)]`, including all five the goal names.
 
-Run the gate at the policy the engine is actually held to. Running `rustc` alone, without
-`-D warnings`, measured a weaker claim and reported "compiles" for a crate that does not build:
-`pub const K: PrivateType` is a warning.
+Run the gate at the policy the engine is actually held to, and be precise about what is suppressed.
+Two rounds were measured against a weaker claim than the engine is held to:
+
+- `rustc` alone, without `-D warnings`, reported "compiles" for a crate that does not build —
+  `pub const K: PrivateType` is a warning.
+- `-A unused` suppressed a GROUP. Dead code is genuinely expected of a partial port; `unused_imports`
+  and `unused_variables` are not, and the port was producing both. An expected warning class is one
+  thing; a blanket group that happens to contain it is another.
+
+### The review gates are the slow axis, and they move
+
+| round | blind | Go-aware |
+| --- | --- | --- |
+| 1 | DO_NOT_MERGE | DO_NOT_MERGE |
+| 3 | MERGE_WITH_CHANGES | DO_NOT_MERGE (17 blocking) |
+| 4 | MERGE_WITH_CHANGES (4 blocking) | DO_NOT_MERGE |
+| 5 | MERGE_WITH_CHANGES (1 blocking) | DO_NOT_MERGE (17 blocking) |
+| 6 | MERGE_WITH_CHANGES (**0 blocking**) | MERGE_WITH_CHANGES (12 blocking) |
+
+Two things moved them, and only one is engineering. The rules closed real defects — a fabricated
+error impl, a wire-format rename, a NaN inversion, `int` indices. But three of round 5's blockers
+were removed by TELLING THE REVIEWER what a port is: that behaviour the original also has is
+fidelity rather than a defect introduced here. A gate that has not been told what it is judging
+measures something else, and the difference is not small.
 
 A rule is finished when its cause has left the histogram AND the output still compiles. Coverage is
 not the test in either direction — a rule that lowers coverage by refusing something it cannot spell
