@@ -3,6 +3,7 @@
 // findings. ADR-0083 Tier-3: integration tests assert with unwrap/expect.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -61,6 +62,20 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
 }
 
+/// Assert two enumerated sets are equal, naming exactly which keys are missing/extra on
+/// mismatch. A SET, never a count: a count is unattributable, a set is a reviewable diff of
+/// named keys, and only a set can tell "the corpus shrank" apart from "the producer stopped
+/// seeing most of it".
+fn assert_set_equals(label: &str, face: &BTreeSet<String>, census: &BTreeSet<String>) {
+    let missing_from_face: Vec<&String> = census.difference(face).collect();
+    let extra_in_face: Vec<&String> = face.difference(census).collect();
+    assert!(
+        missing_from_face.is_empty() && extra_in_face.is_empty(),
+        "{label} SET MISMATCH — missing_from_face={missing_from_face:?} \
+         extra_in_face={extra_in_face:?}"
+    );
+}
+
 #[test]
 fn workspace_glob_coverage_verdict_matches_the_live_corpus() {
     let root = repo_root();
@@ -68,11 +83,51 @@ fn workspace_glob_coverage_verdict_matches_the_live_corpus() {
     let rows = face["rows"]
         .as_array()
         .expect("workspace-glob-coverage face rows");
-    assert!(
-        rows.len() > 500,
-        "workspace-glob-coverage should enumerate root members + crate dirs, got {}",
-        rows.len()
-    );
+
+    // INDEPENDENT DYNAMIC CENSUS, not a magnitude floor. The producer derives every one of its
+    // faces from ONE `tracked_paths` vector, so a single narrowing there (an over-broad
+    // exclusion rule, a lost scan root, a truncated SCM face) shrinks this face with no other
+    // signal — measured: a 43% producer-side narrowing left this gate GREEN behind
+    // `rows.len() > 500`. Re-derive both halves of the face from the canonical resolver and
+    // assert EXACT set equality, so a producer that silently drops even ONE member is caught
+    // as a named set difference. Both assertions strictly imply the magnitude floor they
+    // replace. Self-adjusting: the census moves in lockstep with the corpus, never needs a bump.
+    //
+    // The `[workspace].members` entries the face echoes back must be exactly the ones the root
+    // manifest declares — this is the half that proves the face read the real manifest.
+    let face_entries: BTreeSet<String> = rows
+        .iter()
+        .filter_map(|row| row.get("member_entry").and_then(Value::as_str))
+        .map(str::to_owned)
+        .collect();
+    let declared_entries: BTreeSet<String> =
+        oya_workspace_members_kernel::read_workspace_manifest_entries(&root)
+            .expect("read the live root workspace manifest entries")
+            .members
+            .into_iter()
+            .collect();
+    assert_set_equals("member_entry", &face_entries, &declared_entries);
+
+    // Every crate dir a workspace glob COVERS must be exactly a canonically resolved member.
+    // The uncovered remainder is the debt this gate exists to report, so it is deliberately
+    // outside this equality — but the covered majority (887 of 888 rows today) is now pinned
+    // by name rather than by magnitude.
+    let face_covered: BTreeSet<String> = rows
+        .iter()
+        .filter(|row| row.get("covered").and_then(Value::as_bool) == Some(true))
+        .map(|row| {
+            row["crate_dir"]
+                .as_str()
+                .expect("covered row crate_dir")
+                .to_owned()
+        })
+        .collect();
+    let resolved_members: BTreeSet<String> =
+        oya_workspace_members_kernel::resolve_member_dirs(&root)
+            .expect("resolve_member_dirs must resolve the live root workspace Cargo.toml")
+            .into_iter()
+            .collect();
+    assert_set_equals("covered crate_dir", &face_covered, &resolved_members);
 
     let findings = evaluate_keyed(&face);
     let verdict = evaluate(&face).verdict;
