@@ -158,6 +158,12 @@ pub(crate) struct FailureDoc {
     pub(crate) satisfaction_reason: String,
     #[serde(default)]
     pub(crate) message_method_source: String,
+    /// The source method that returns a failure's CAUSE, or empty when the pack names none.
+    #[serde(default)]
+    pub(crate) cause_method_source: String,
+    /// Why an error impl refuses when that method cannot be translated.
+    #[serde(default)]
+    pub(crate) cause_method_reason: String,
     #[serde(default)]
     pub(crate) message_method: String,
     #[serde(default)]

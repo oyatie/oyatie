@@ -221,6 +221,10 @@ impl Pack {
             nullable_borrowed_type: String::new(),
             nullable_borrowed_type_reason: String::new(),
             satisfaction_reason: String::new(),
+            // The test pack names no cause method: these fixtures have no `Unwrap`, and an empty
+            // name matches nothing, so the rule does not fire.
+            cause_method_source: String::new(),
+            cause_method_reason: String::new(),
             message_method_source: String::new(),
             message_method: String::new(),
             message_method_reason: String::new(),

@@ -307,6 +307,28 @@ fn message_impl(
     if !satisfies {
         return Ok(None);
     }
+    // A DECLARED CAUSE the target cannot express refuses the whole impl. The target's `source` has
+    // a default that returns nothing, so emitting the bare impl ASSERTS the failure has no cause —
+    // and a source type declaring the cause method says the opposite. `chain.Unwrap` returns
+    // `e[1:]`, a re-slice of the receiver, and `source` returns a BORROW: there is no reference to
+    // a slice that does not exist yet. See the pack's `cause_method_reason`.
+    let declares_cause = !convention.cause_method_source.is_empty()
+        && declaration
+            .children_of_kind(crate::vocabulary::CHILD_METHOD)
+            .iter()
+            .any(|method| method.name == convention.cause_method_source);
+    if declares_cause {
+        // RECORDED, not raised. The type is still printable and still emits; what it does not get
+        // is the claim that it is an error, because that claim carries an assertion about its cause
+        // that the engine cannot support. Raising here refused the whole declaration and took
+        // `multierror`'s only translated type with it — the type/method cascade, for the third
+        // time, in the third file to reach for `?` where it wanted a decision.
+        resolver.drops.record(crate::dropped::DroppedMethod {
+            owner: declaration.name.clone(),
+            name: convention.cause_method_source.clone(),
+            reason: convention.cause_method_reason.clone(),
+        });
+    }
     let Some(method) = declaration
         .children_of_kind(crate::vocabulary::CHILD_METHOD)
         .into_iter()
@@ -329,7 +351,8 @@ fn message_impl(
         docs: built.docs,
         self_ty: self_ty.clone(),
         body,
-        is_failure: true,
+        // NOT a failure when its cause cannot come along. See above.
+        is_failure: !declares_cause,
     }))
 }
 

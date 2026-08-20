@@ -190,6 +190,14 @@ pub struct FailureConvention {
     pub satisfaction_reason: String, // data_class: INTERNAL_ONLY
     /// The source interface method that yields the message.
     pub message_method_source: String, // data_class: INTERNAL_ONLY
+    /// The source method that returns a failure's CAUSE — Go's `Unwrap`.
+    ///
+    /// The target's error trait has a `source` with a DEFAULT that returns nothing, so an impl that
+    /// says nothing about it asserts there is no cause. A source type that declares this method has
+    /// one, and emitting the bare impl anyway states the opposite of what the source says.
+    pub cause_method_source: String, // data_class: INTERNAL_ONLY
+    /// Why an error impl refuses when that method has no target form.
+    pub cause_method_reason: String, // data_class: INTERNAL_ONLY
     /// The target method that yields the same message.
     pub message_method: String, // data_class: INTERNAL_ONLY
     /// Why the two correspond.
