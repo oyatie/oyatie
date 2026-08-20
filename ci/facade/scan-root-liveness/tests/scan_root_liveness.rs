@@ -58,7 +58,9 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 9;
 // 2026-08-20  86 -> 85. benchmark leaves the dark baseline: a live-corpus test now walks
 // the 14 real PRDs (docs/prds/*.md + docs/products/**/PRD*.md, doc_class-filtered) and
 // freezes 4 real SectionMissing violations two-sided.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 85;
+// 2026-08-20  85 -> 84. retired-vocabulary leaves the dark baseline: it gains a live-corpus test
+// asserting no live documentation mentions retired CLI surfaces, scripts, or hooks.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 84;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
