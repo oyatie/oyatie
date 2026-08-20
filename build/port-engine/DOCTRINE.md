@@ -347,6 +347,33 @@ accidental, not designed, and the deep-copy variant of the same mistake would co
 
 ---
 
+## 9a. Review findings DECLINED, with reasons
+
+Recorded so they are not re-opened each round. Every one has been raised by a review gate at least
+once; each is either the source's own design or a decision the engine has no evidence for.
+
+- **`wrapping_add`/`wrapping_sub` on arithmetic that "cannot overflow".** The source's fixed-width
+  integer arithmetic WRAPS. The target's `+` panics in debug, so plain arithmetic is a different
+  program on overflow — and `byte + 32` reads as un-overflowable only because a human knows the
+  operand is an ASCII letter. Faithful, not stylistic.
+- **`pkcs7decode` panicking on malformed padding.** `buf[:n]` with a negative `n` panics in the
+  source too. An engine that makes its input total is no longer porting it.
+- **A stringly-typed error beside a typed enum** (`validate_key`). That is what the Go does.
+- **`MethodTyp` public while its constants are private.** The exported method
+  `MethodNotAllowedHandler(methodsAllowed ...methodTyp)` names the unexported type, so the target
+  requires the type to be at least as visible — see §9's visibility rule. Hiding it would delete an
+  exported name. The source has the same asymmetry and the same practical consequence.
+- **`Send + Sync` supertraits on interfaces whose docs promise thread safety.** The bound is not in
+  the source. An interface is not thread-safe because its documentation says implementations should
+  be, and adding a supertrait the source does not state is inventing a contract.
+- **`CompressFlusher::flush` taking `&mut self`.** Its implementors are foreign types the corpus
+  never sees, so nothing is observed to mutate; the fallback is §3's reading of what an interface
+  value IS. "Flushing is by definition a mutation" is a fact about the target's conventions, not
+  about the source.
+- **A sub-slice return becoming `Vec`.** Returning a borrow of a parameter needs a lifetime the
+  engine does not infer — see §3, "No lifetime inference". Owned is the form always available, and
+  the cost is an allocation rather than a meaning.
+
 ## 10. Rejected external proposals, with reasons
 
 Recorded so they are not re-proposed as novel.
