@@ -4013,3 +4013,43 @@ fn round(acc: u64, input: u64) -> u64 {
 correct, and stays correct if the magic ever changes length, which folding it to `4` would not. The
 author wrote the derivation; the engine keeps it. What the reviewer is really seeing is that the
 CONSTANT exists at all, which is the source's wire format, not the engine's spelling of it.
+
+## R2b — the sentence is the unit, not the declaration
+
+Four reviews in, the findings had converged on things that are the SOURCE's design — a wire-format
+constant, an error type that exists because a Go interface demands one. Picking at those was picking
+cosmetics, so I went looking for why the module looks PARTIAL instead, which is what a reviewer
+actually reacts to when a 28-line file has no public API.
+
+`xxhash`'s central type refused. The reason:
+
+> its documentation names `hash.Hash64.`
+
+The source's doc is three sentences. The first says `Digest implements hash.Hash64.` — false in the
+port, because that interface did not come along. The other two say a zero-valued `Digest` is not
+ready to receive writes and to call `Reset` first, which are true in the port and are the useful
+part. The engine was throwing away the type, and with it everything that names it, over one sentence.
+
+**So the sentence is the unit.** A sentence is what carries a claim; dropping the block loses
+documentation that is still true, and keeping it emits a claim the crate does not honour. All three
+prose rules — the foreign reference, the unemitted sibling, the source language itself — drop the
+sentence and keep the declaration.
+
+**This is prose surgery, and the engine already performs it.** The opening rewrite strips the
+source's leading identifier; the narration rewrite strips `is returned when`; the type-name rewrite
+replaces `uint64` with `u64`. This is the same category with a stronger warrant: those change how a
+TRUE sentence reads, and this removes a FALSE one.
+
+**And it corrects a measurement I had already made and trusted.** Two phases ago I disabled both
+halves, measured the cost at "xxhash 3.0, semver 1.7, ksuid 2.1 points", and kept them on that basis.
+The number was right and the conclusion was wrong: a coverage delta cannot show that the points lost
+were a package's CENTRAL TYPE, and that everything downstream of it was already gone for other
+reasons and so never appeared in the delta. Cost measured as a scalar hid cost that was structural.
+
+xxhash 52.9 → 58.8, semver 22.4 → 24.1, ksuid 15.1 → 17.2. And `Digest` now refuses for an honest
+reason — an `unproven_owned` pointer disposition, which is the "analysis follows calls" gap the plan
+already names — rather than for a sentence.
+
+**One bug fixed on the way.** The word split treated `.` as an identifier character, so a sentence's
+final period was absorbed: `hash.Hash64.` became the member name, which is nobody's identifier. It
+matched anyway, which is why it went unnoticed.

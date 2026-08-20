@@ -10,9 +10,7 @@ pub mod accumulate {
         sum
     }
     // region: oyatie_example_portengine_fixture_corpus_accumulate__go_func__mix
-    /// Folds the values together with xor, multiply and or.
-    ///
-    /// Not a hash: the trailing or forces the low bit, so the result is always odd.
+    /// Folds the values together with xor, multiply and or. Not a hash: the trailing or forces the low bit, so the result is always odd.
     pub fn mix(values: &[i64]) -> i64 {
         let mut acc = 1i64;
         for value in values.iter().copied() {
@@ -330,9 +328,7 @@ pub mod naming {
     }
     // region: oyatie_example_portengine_fixture_corpus_naming__go_func__newlabel
     impl Label {
-        /// Returns a label that derives its display name from prefix.
-        ///
-        /// The display name starts EMPTY and is derived on the first refresh, so the two fields can differ —
+        /// Returns a label that derives its display name from prefix. The display name starts EMPTY and is derived on the first refresh, so the two fields can differ —
         /// which is what makes refresh a state change rather than a self-assignment.
         pub fn new(prefix: &str) -> Self {
             Self {
