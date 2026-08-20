@@ -179,7 +179,7 @@ pub(crate) fn statements(
     // not want. Folded after translation because the substitution is on target expressions, and
     // recognised before it — on the source — because the signature has to reach the same answer and
     // drop the `mut` this body no longer needs.
-    if let Some(name) = crate::accumulator::folded_parameter(declaration)
+    if let Some((name, _)) = crate::accumulator::folded_parameters(declaration)
         && let Some(folded) =
             crate::accumulator::fold(translated.clone(), &to_snake_case(&name))
     {

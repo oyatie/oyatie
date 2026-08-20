@@ -100,8 +100,8 @@ pub(crate) fn params(
                 // the binding it was assigned through is gone and a `mut` on it would be a
                 // mutability nothing uses. One fact, read by the signature and the body alike.
                 rebound: param.has_flag(FLAG_REBOUND)
-                    && crate::accumulator::folded_parameter(declaration).as_deref()
-                        != Some(param.name.as_str()),
+                    && !crate::accumulator::folded_parameters(declaration)
+                        .is_some_and(|(_, consumed)| consumed.contains(&param.name)),
                 unread: param.has_flag(FLAG_UNREAD),
                 ty,
             })
