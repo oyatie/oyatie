@@ -51,6 +51,18 @@ func extract(
 		}
 		packages[unitIDFor(modulePath, rel)] = dir
 	}
+	// DEPENDENCIES the type-checker will need, resolved by the Go tool. Merged UNDER the corpus:
+	// where both define a path the corpus wins, because the corpus is what is being ported and its
+	// sources are the subject rather than a dependency of it.
+	resolved, err := dependencyDirs(corpusDir)
+	if err != nil {
+		return nil, err
+	}
+	for path, dir := range resolved {
+		if _, inCorpus := packages[path]; !inCorpus {
+			packages[path] = dir
+		}
+	}
 	resolver := newCorpusImporter(packages, cfg)
 
 	model := &snapshot{
@@ -181,6 +193,15 @@ func packageDirs(root string, cfg *buildConfig) ([]string, error) {
 			return err
 		}
 		if info.IsDir() {
+			// The Go tool itself ignores these, and so must the walk: `vendor` holds other
+			// modules' sources, `testdata` is data rather than code, and a leading `_` or `.`
+			// marks a directory the build never considers. Walking them made `chi` fail on an
+			// `_examples` program whose imports are not the library's.
+			name := info.Name()
+			if path != root && (name == "vendor" || name == "testdata" ||
+				strings.HasPrefix(name, "_") || strings.HasPrefix(name, ".")) {
+				return filepath.SkipDir
+			}
 			return nil
 		}
 		if !strings.HasSuffix(path, ".go") || strings.HasSuffix(path, "_test.go") {
