@@ -986,6 +986,9 @@ dependencies = [
 [[package]]
 name = "check-benchmark"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-cedar-fragment-coverage"
