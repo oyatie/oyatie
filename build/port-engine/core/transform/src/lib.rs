@@ -25,6 +25,7 @@ mod accumulator;
 mod accumulator_fold;
 mod apply;
 mod body;
+mod body_alloc;
 mod body_argument;
 mod body_call;
 mod body_mapped;

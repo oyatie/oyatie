@@ -25,7 +25,7 @@ mod type_ref;
 pub use declaration::Declaration;
 pub use error::PortError;
 pub use failure::{
-    BinaryString, DeriveRule, DocConvention, FailureConvention, FormatCalls, FormatFunction,
+    Allocation, BinaryString, DeriveRule, DocConvention, FailureConvention, FormatCalls, FormatFunction,
     FunctionMapping, IdiomRule,
     IntegerArithmetic,
 };

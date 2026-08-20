@@ -87,3 +87,19 @@ pub(crate) struct BinaryStringRule {
     #[serde(default)]
     pub(crate) reason: String,
 }
+
+/// Wire shape for how the source's allocating builtin becomes the target's.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct AllocationRule {
+    #[serde(default)]
+    pub(crate) empty_with_capacity: String,
+    #[serde(default)]
+    pub(crate) empty_with_capacity_reason: String,
+    #[serde(default)]
+    pub(crate) filled: String,
+    #[serde(default)]
+    pub(crate) filled_reason: String,
+    #[serde(default)]
+    pub(crate) reason: String,
+}

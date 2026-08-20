@@ -4053,3 +4053,39 @@ already names — rather than for a sentence.
 **One bug fixed on the way.** The word split treated `.` as an identifier character, so a sentence's
 final period was absorbed: `hash.Hash64.` became the member name, which is nobody's identifier. It
 matched anyway, which is why it went unnoticed.
+
+## R2c — chasing one cascade root to ground
+
+`xxhash` is the most complete package and its central type `Digest` refused, taking everything that
+names it with it. Four steps, each one the honest next reason rather than a guess:
+
+**A doc sentence** — fixed by R2b, the sentence rather than the declaration.
+
+**An unproven pointer disposition.** `MarshalBinary`'s receiver was `effect_unknown` because the
+method calls `appendUint64(b, d.v1)`, and `appendUint64` passes its own value parameter to a foreign
+call the analysis cannot look inside. What it stopped at could not have mattered: `d.v1` is a
+`uint64`, the call receives a COPY, and nothing it does can reach `d`. The TYPE decides and not the
+expression — `d.mem[:d.n]` roots at `d` too and is a slice, which aliases the receiver and is still
+asked about. `carriesEffect` answers for the whole type, conservatively on anything unrecognised,
+because being wrong that way costs a refusal and being wrong the other way costs a borrow chosen on
+a fact that was never true.
+
+**A type standing where an expression would.** `make([]byte, 0, marshaledSize)` names what to
+allocate, and walking that name as an expression recorded `[]byte` as an unsupported node — which
+refused every declaration that allocates anything.
+
+**And the allocation itself.** Its own pack table rather than a row in the function map, because the
+first argument is a type and the meaning changes with the arity — neither of which a form keyed by
+callee identity can express. The distinction that matters is between the two exact shapes:
+`make([]T, 0, n)` has NO elements and room for n, and `make([]T, n)` has n ZERO elements. The same
+number in two different roles, which is exactly the shape of mistake that compiles and means
+something else. Everything else refuses by name, including the map and channel forms: a map's target
+is a decision about which map, and a channel's is a decision about the ported program's concurrency.
+
+`Digest` now refuses on `append`, which is the next honest thing and a harder one — the source
+returns a new sequence and the target mutates in place, so the assignment `b = append(b, x...)` is a
+shape change rather than an expression mapping.
+
+**What this phase is really about.** Coverage moved 52.9 → 58.8 in R2b and has not moved since, and
+that is not failure: each step replaced a wrong or vague reason with the true next one. A cascade
+root is only reachable one layer at a time, and the engine now says which layer it is at.

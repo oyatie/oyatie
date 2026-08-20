@@ -68,6 +68,10 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
         return expression(&direct, cx);
     }
 
+    if let Some(built) = crate::body_alloc::allocation(node, callee_id, cx)? {
+        return Ok(built);
+    }
+
     let args = node.children[1..]
         .iter()
         .enumerate()

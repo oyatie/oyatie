@@ -184,6 +184,7 @@ pub fn apply_with_provenance(
                     unmappable_calls: semantics.unmappable_calls(),
                     unmappable_types: semantics.unmappable_types(),
                     binary_string: semantics.binary_string(),
+                    allocation: semantics.allocation(),
                     integer_arithmetic: semantics.integer_arithmetic(),
                     doc_convention: semantics.doc_convention(),
                     derives: semantics.derives(),
