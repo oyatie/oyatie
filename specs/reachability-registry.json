@@ -10,8 +10,8 @@
       "prefix": ".claude/BUCK"
     },
     {
-      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under .claude/workflows/ (local bridge feedback only; merge authority remains oya-ci-required).",
-      "prefix": ".claude/workflows/"
+      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under tools/delivery/ (local bridge feedback only; merge authority remains oya-ci-required).",
+      "prefix": "tools/delivery/"
     },
     {
       "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",

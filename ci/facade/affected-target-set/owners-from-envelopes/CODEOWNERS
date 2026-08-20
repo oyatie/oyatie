@@ -30,8 +30,6 @@ LICENSE @teams/build
 app/hr/ @teams/hr
 kernel/ @teams/kernel
 policy/ @teams/policy
-.claude/ @teams/ci
-.cursor/ @teams/ci
 .github/ @teams/ci
 Makefile @teams/build
 app/crm/ @teams/crm
@@ -77,6 +75,7 @@ app/community/ @teams/community
 app/warehouse/ @teams/warehouse
 observability/ @teams/observability
 app/whiteboard/ @teams/whiteboard
+tools/delivery/ @teams/ci
 app/application/ @teams/application
 app/procurement/ @teams/procurement
 app/real-estate/ @teams/real-estate

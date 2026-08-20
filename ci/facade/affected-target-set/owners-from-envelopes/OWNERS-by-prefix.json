@@ -1,6 +1,4 @@
 {
-  ".claude/": "ci",
-  ".cursor/": "ci",
   ".github/": "ci",
   ".grok/": "ci",
   "app/": "app",
@@ -73,5 +71,6 @@
   "templates/": "docs",
   "tenancy/": "tenancy",
   "tools/": "tools",
+  "tools/delivery/": "ci",
   "workflow/": "workflow"
 }

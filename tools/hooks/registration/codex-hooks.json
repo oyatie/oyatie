@@ -1,0 +1,43 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/stop-did-you-forget-suggester.sh" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/main-checkout-guard.sh" },
+          { "type": "command", "command": "tools/hooks/local-authority-enforcer.sh" },
+          { "type": "command", "command": "tools/hooks/stale-tool-suggester.sh" }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/pre-dispatch-guide.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|MultiEdit|Write",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/spec-version-pin-suggester.sh" },
+          { "type": "command", "command": "tools/hooks/adr-orphan-detect.sh" },
+          { "type": "command", "command": "tools/hooks/vacuous-green-gate-detect.sh" }
+        ]
+      },
+      {
+        "matcher": "Bash|WebFetch|WebSearch",
+        "hooks": [
+          { "type": "command", "command": "tools/hooks/injection-content-scanner.sh" }
+        ]
+      }
+    ]
+  }
+}

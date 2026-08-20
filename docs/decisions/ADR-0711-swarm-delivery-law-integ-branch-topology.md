@@ -703,7 +703,7 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - operating-patterns catalog: `specs/agentic-operating-patterns.json`
 - Policy: `specs/integ-branch-envelopes.json`
 - Portable rule text: `governance/contracts/PORTABLE-SWARM-CONTRACT.md`
-- Harness: `.claude/workflows/deliver.js` (Claim + Land)
+- Harness: `tools/delivery/deliver.js` (Claim + Land)
 - Concurrent-safe registry: `registry/vcs/concurrent-safe-paths.yaml`
 - Operating contract: `docs/AGENTS.md` (worktree-per-lane; sole required merge-admission context)
 - Layout apex: ADR-0701 (capability-first; supersedes ADR-0562 / ADR-0131 as live law)

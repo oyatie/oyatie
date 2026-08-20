@@ -12,7 +12,7 @@
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
-    "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
+    "primary_consumer": "governance/check/integ-envelope + tools/delivery/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit forever ci/process-kit (Rust-first; no tools/swarm birth on #1644; BAN agent-dotdirs forever homes), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
     "prior_version": "1.16.24"
   },
@@ -607,12 +607,11 @@
       "branch": "integ/ci",
       "envelope_globs": [
         ".github/**",
-        ".claude/**",
-        ".cursor/**",
         "AGENTS.md",
         "CLAUDE.md",
         "README.md",
-        "HANDOFF.md"
+        "HANDOFF.md",
+        "tools/delivery/**"
       ],
       "note": "PROCESS_META — PROCESS_KIT + root operating-contract entry hubs (ADR-0700; markdown-retirement survival set). Forever owner integ/ci (not integ/docs): docs plane stays docs/** (apex docs/AGENTS.md); root AGENTS/CLAUDE/README/HANDOFF and .cursor/** are session entry / editor kit peers of .github/.claude — adjuncts expire, so do not park forever ownership on integ/docs. HANDOFF.md is the founder thin fresh-session redirect (keep_forever at root; no path move). Bootstrap wave may still adjunct-claim from integ/specs. Closes root-ops-contract-route / northstar-envelope-holes for these paths.",
       "forward_declared_owner": "integ/ci",
@@ -709,7 +708,7 @@
     ],
     "active": [
       {
-        "path_glob": ".claude/workflows/**",
+        "path_glob": "tools/delivery/**",
         "claiming_branch": "integ/specs",
         "reason": "deliver.js Claim/Land harness is the primary consumer of envelopes; co-land with policy-as-data on integ/specs.",
         "expires_at_or_wave": "wave-after-integ-tools-first-land"
@@ -843,13 +842,13 @@
     "mechanical": {
       "rule": "Agent summary first token MUST be exactly CLAIM or REFUSE. Substring /^CLAIM/ is NOT sufficient (CLAIMED/not CLAIM = REFUSE). CLAIM requires docs_touched + docs_action; docs_action=n/a requires docs_action_why.",
       "parsers": [
-        ".claude/workflows/deliver.js#parseClaimPacket"
+        "tools/delivery/deliver.js#parseClaimPacket"
       ],
       "push_check": "deferred: ci/process-kit claim-push (Rust-first); until then Land uses deliver.js merge-tree preflight only"
     },
     "encoded_in": [
-      ".claude/workflows/deliver.js#Claim",
-      ".claude/workflows/deliver.js"
+      "tools/delivery/deliver.js#Claim",
+      "tools/delivery/deliver.js"
     ]
   },
   "concurrent_safe_exemptions": {
@@ -1259,7 +1258,6 @@
       "tasks/": "reorg_now",
       "benchmarks/": "reorg_now",
       ".grok/": "keep_forever",
-      ".claude/": "keep_forever",
       ".codex/": "keep_forever",
       ".github/": "keep_forever",
       ".cargo/": "keep_forever",
@@ -4647,16 +4645,6 @@
         "destination": ".grok/"
       },
       {
-        "path": ".claude/",
-        "action": "keep_forever",
-        "greenfield_destination": ".claude/",
-        "shape": "PROCESS_KIT: deliver.js + settings",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.claude/` → `.claude/` (PROCESS_KIT: deliver.js + settings). Full 7-point judgment still pending before structural change.",
-        "destination": ".claude/"
-      },
-      {
         "path": ".codex/",
         "action": "keep_forever",
         "greenfield_destination": ".codex/",
@@ -6510,12 +6498,12 @@
         "n/a"
       ],
       "docs_action_why_required_when": "n/a",
-      "parser": ".claude/workflows/deliver.js#parseClaimPacket",
-      "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket",
+      "parser": "tools/delivery/deliver.js#parseClaimPacket",
+      "deliver_gate": "tools/delivery/deliver.js#parseClaimPacket",
       "diff_bind": {
         "rule": "docs_touched paths (when docs_action != n/a) and optional paths inventory MUST appear in git diff --name-only BASE...HEAD",
-        "parser": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)",
-        "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)"
+        "parser": "tools/delivery/deliver.js#parseClaimPacket(bindDiff:true)",
+        "deliver_gate": "tools/delivery/deliver.js#parseClaimPacket(bindDiff:true)"
       }
     }
   },

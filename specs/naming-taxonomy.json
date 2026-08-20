@@ -15,7 +15,7 @@
     "primary_consumers": [
       "specs/integ-branch-envelopes.json#naming",
       "governance/check/integ-envelope (future)",
-      ".claude/workflows/deliver.js Claim (future classifier)"
+      "tools/delivery/deliver.js Claim (future classifier)"
     ],
     "extends": [
       "ADR-0701 (capability-first layout apex)",
@@ -202,7 +202,7 @@
       "integ": "integ/specs bootstrap adjunct or process-kit integ",
       "examples_good": [
         ".grok/programs/delivery-fabric/",
-        ".claude/workflows/deliver.js"
+        "tools/delivery/deliver.js"
       ],
       "examples_bad": [
         ".omc/ as tracked authority"
