@@ -172,11 +172,31 @@ pub(crate) fn fold(statements: Vec<RustStmt>, name: &str) -> Option<Vec<RustStmt
         // AGAIN — `acc = g(acc)` after `val = f(val)` produced `f(f(val))`, applying the source's
         // call twice. A program that compiles and computes something else, in the engine that
         // exists to prevent exactly that.
+        // A chain LINK must read the name it chains from. The recogniser proved it does in the
+        // SOURCE; if the translated value does not, the translation is OPAQUE — a call the pack
+        // answers for arrives as target TEXT rather than as a tree, and nothing can be substituted
+        // into text. Overwriting the chain with it silently dropped every statement before:
+        // `acc = rol31(acc)` after `acc = acc.wrapping_add(..)` emitted
+        // `acc.rotate_left(31).wrapping_mul(PRIME1)` and lost the addition. A program that compiles
+        // and computes something else, which is the one failure this engine exists to prevent.
+        //
+        // A read-modify-write is exempt: its read is implicit and the value need not mention the
+        // name at all.
+        if op.is_none() && held.contains_key(target) && mentions_expr(value, target) == 0 {
+            return None;
+        }
         let mut resolved = value.clone();
+        // A substitution that FAILS aborts the fold. Skipping it silently drops the statement whose
+        // value could not be placed — `acc = rol31(acc)` after `acc = acc.wrapping_add(..)` emitted
+        // `acc.rotate_left(31).wrapping_mul(PRIME1)`, losing the addition entirely. A program that
+        // compiles and computes something else, which is the one failure this engine exists to
+        // prevent, and the second time this fold produced one.
+        //
+        // It fails whenever a value is OPAQUE: a call the pack answers for arrives as target text
+        // rather than as a tree, and nothing can be substituted into text. Those bodies keep their
+        // statements, which is correct and is what the abort delivers.
         for bound in held.keys().filter(|bound| mentions_expr(value, bound) > 0) {
-            if let Some(next) = substituted(&resolved, bound, &held[bound]) {
-                resolved = next;
-            }
+            resolved = substituted(&resolved, bound, &held[bound])?;
         }
         // A READ-MODIFY-WRITE is the same link spelled shorter: `acc ^= v` means `acc = acc ^ v`,
         // and the implicit read is what the chain hands forward. Rebuilding it explicitly is how the

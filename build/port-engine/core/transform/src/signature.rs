@@ -185,6 +185,43 @@ pub(crate) fn method_signature(
         Receiver::Shared
     };
 
+    // The BODY first, because the signature is built from what it did: a parameter the body folded
+    // away needs no `mut`, and that is an outcome rather than a prediction.
+    let mut consumed = std::collections::BTreeSet::new();
+    let statements = match body {
+        // A rung that does not translate bodies REFUSES the method it cannot write. It used to emit
+        // a body that panics, which compiles, passes every gate that reads the output as Rust, and
+        // turns an untranslated method into a runtime abort at the caller — the one failure this
+        // engine exists to prevent, dressed as success.
+        Body::Stub => {
+            return Err(TransformError::Unsupported {
+                name: method.name.clone(),
+                detail: format!(
+                    "`{owner}` is captured by a rule that does not translate method bodies, and \
+                     `{}` has one; emitting the method without it would compile and panic where \
+                     the source computed something",
+                    method.name
+                ),
+            });
+        }
+        Body::Translate => {
+            let source = method
+                .children_of_kind(CHILD_BODY)
+                .first()
+                .copied()
+                .ok_or_else(|| TransformError::MissingDatum {
+                    construction: "rust_struct_body".to_owned(),
+                    name: method.name.clone(),
+                    datum: "body",
+                })?;
+            let (translated, folded) =
+                crate::body::statements(&source.children, method, resolver, result, Some(owner))?;
+            consumed = folded;
+            Some(translated)
+        }
+        Body::None => None,
+    };
+
     Ok(RustFn {
         // A method's documentation is emitted, like every other declaration's. It was being
         // dropped here while the front end captured it — the same silent loss as the interface
@@ -193,49 +230,13 @@ pub(crate) fn method_signature(
         vis,
         name: to_snake_case(&method.name),
         receiver: Some(receiver),
-        params: params(method, resolver, owner)?,
+        params: params(method, resolver, owner, &consumed)?,
         ret: match result {
             crate::body::ResultShape::Own => results(method, resolver)?,
             // The trait fixed it, and this call exists only for the body it produces.
             crate::body::ResultShape::Inherited => results_owned(method, resolver)?,
         },
-        body: match body {
-            // A rung that does not translate bodies REFUSES the method it cannot write. It used to
-            // emit a body that panics, which compiles, passes every gate that reads the output as
-            // Rust, and turns an untranslated method into a runtime abort at the caller — the one
-            // failure this engine exists to prevent, dressed as success. No rung has any business
-            // emitting a promise the crate does not keep.
-            Body::Stub => {
-                return Err(TransformError::Unsupported {
-                    name: method.name.clone(),
-                    detail: format!(
-                        "`{owner}` is captured by a rule that does not translate method bodies, and \
-                         `{}` has one; emitting the method without it would compile and panic where \
-                         the source computed something",
-                        method.name
-                    ),
-                });
-            }
-            Body::Translate => {
-                let source = method
-                    .children_of_kind(CHILD_BODY)
-                    .first()
-                    .copied()
-                    .ok_or_else(|| TransformError::MissingDatum {
-                        construction: "rust_struct_body".to_owned(),
-                        name: method.name.clone(),
-                        datum: "body",
-                    })?;
-                Some(crate::body::statements(
-                    &source.children,
-                    method,
-                    resolver,
-                    result,
-                    Some(owner),
-                )?)
-            }
-            Body::None => None,
-        },
+        body: statements,
     })
 }
 

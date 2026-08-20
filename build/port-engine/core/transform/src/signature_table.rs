@@ -61,6 +61,11 @@ pub(crate) struct SignatureTable {
     /// does: the trailing arguments have to be collected into one, and which of the target's
     /// sequence forms that is has not been decided.
     variadic: BTreeSet<String>,
+    /// Callees that are only a SHORTHAND for a call the target already spells directly.
+    ///
+    /// Held here because it is a fact about another declaration that a CALL SITE needs, which is
+    /// what this table is for. A call to one of these is the call it wraps.
+    eta: BTreeMap<String, crate::eta::EtaWrapper>,
 }
 
 impl SignatureTable {
@@ -69,6 +74,11 @@ impl SignatureTable {
     /// `None` is not a failure and not an empty answer: it means the callee is a method, is
     /// foreign, or has a signature the engine itself could not translate. The caller refuses or
     /// leaves the argument alone; it must never read `None` as "no conversion needed".
+    /// The call this callee is only a shorthand for, when it is one.
+    pub(crate) fn eta(&self, callee: &str) -> Option<&crate::eta::EtaWrapper> {
+        self.eta.get(callee)
+    }
+
     pub(crate) fn param(&self, callee: &str, index: usize) -> Option<&ParamTarget> {
         self.by_callee.get(callee)?.get(index)
     }
@@ -91,6 +101,8 @@ impl SignatureTable {
     ) -> Self {
         let mut by_callee = BTreeMap::new();
         let mut variadic = BTreeSet::new();
+        let mut eta = BTreeMap::new();
+        let mapped: BTreeSet<String> = semantics.function_map().keys().cloned().collect();
         // Every module the emitted crate will have, so a signature naming a package outside them
         // refuses here rather than producing a path that resolves to nothing.
         let units: BTreeSet<String> = model.units().into_iter().map(|unit| unit.0).collect();
@@ -144,7 +156,17 @@ impl SignatureTable {
                 signatures: &Self::default(),
             };
             for declaration in declarations.iter().filter(|d| d.kind == KIND_FUNC) {
-                let Ok(params) = crate::params::params(declaration, &resolver, &unit.0) else {
+                // Keyed by the same IDENTITY a call site carries — the unit path and the name —
+                // because that is what the call names. Keyed by the bare name it matched nothing.
+                if let Some(shorthand) = crate::eta::wrapper(declaration, &mapped, &units) {
+                    eta.insert(format!("{}.{}", unit.0, declaration.name), shorthand);
+                }
+                // EMPTY: this table answers about signatures, and whether a body folds is a fact
+                // about the body. A `mut` here is only ever read for a parameter's destination,
+                // which the fold does not change.
+                let Ok(params) =
+                    crate::params::params(declaration, &resolver, &unit.0, &BTreeSet::new())
+                else {
                     continue;
                 };
                 let targets = declaration
@@ -172,6 +194,7 @@ impl SignatureTable {
         Self {
             by_callee,
             variadic,
+            eta,
         }
     }
 }

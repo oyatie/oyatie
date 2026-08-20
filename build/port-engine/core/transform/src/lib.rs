@@ -49,6 +49,7 @@ mod counters;
 mod docs;
 mod docs_refuse;
 mod error;
+mod eta;
 mod failure;
 mod failure_proof;
 mod impls;

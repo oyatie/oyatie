@@ -152,7 +152,7 @@ pub(crate) fn statements(
     // declaration says it — the receiver is not a child and carries no type — so it is threaded
     // from the signature, which is the only place that knows.
     receiver_type: Option<&str>,
-) -> Result<Vec<RustStmt>, TransformError> {
+) -> Result<(Vec<RustStmt>, BTreeSet<String>), TransformError> {
     // The names a signature's results carry are BINDINGS the body may assign to before returning,
     // and the target binds nothing from a signature — so they are bound here, ahead of everything
     // the body does, exactly as the source binds them at entry.
@@ -179,14 +179,23 @@ pub(crate) fn statements(
     // not want. Folded after translation because the substitution is on target expressions, and
     // recognised before it — on the source — because the signature has to reach the same answer and
     // drop the `mut` this body no longer needs.
-    if let Some((name, _)) = crate::accumulator::folded_parameters(declaration)
+    //
+    // What actually FOLDED is what the signature must be told, not what the recogniser hoped would.
+    // The two are not always the same: the recogniser reads the source and the fold reads the
+    // translation, and a value that arrives as opaque target text cannot be substituted into. When
+    // that happened the body kept its statements while the signature had already dropped the `mut`,
+    // which does not compile — the third time this coupling has bitten, and the last, because the
+    // answer now comes from the outcome rather than from a prediction of it.
+    let mut consumed = BTreeSet::new();
+    if let Some((name, names)) = crate::accumulator::folded_parameters(declaration)
         && let Some(folded) =
             crate::accumulator::fold(translated.clone(), &to_snake_case(&name))
     {
         translated = folded;
+        consumed = names;
     }
     bound.append(&mut translated);
-    Ok(bound)
+    Ok((bound, consumed))
 }
 
 /// Whether the last statement of this sequence is in TAIL position — the position whose value is

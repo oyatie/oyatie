@@ -34,6 +34,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("docs.rs", include_str!("docs.rs")),
     ("docs_refuse.rs", include_str!("docs_refuse.rs")),
     ("error.rs", include_str!("error.rs")),
+    ("eta.rs", include_str!("eta.rs")),
     ("failure.rs", include_str!("failure.rs")),
     ("failure_proof.rs", include_str!("failure_proof.rs")),
     ("impls.rs", include_str!("impls.rs")),
