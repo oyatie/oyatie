@@ -6591,3 +6591,49 @@ re-opened again one function away. Three times, in three files, each time by rea
 the code wanted a decision. The pattern is specific enough to name: **inside the impl builders, a
 failure to translate one member is a fact about that member, and the only correct shapes are
 `Ok(None)` or a recorded drop.**
+
+## R4b — the range rewrite answered the opposite for NaN
+
+Round 5. The blind gate holds at MERGE_WITH_CHANGES with ONE blocking finding, down from four. The
+Go-aware gate found this, and it is the worst kind of defect this engine can produce — a silent
+change of meaning, introduced by a rule added for tidiness.
+
+    Go   (gjson.go:2810):  if f < -9007199254740991 || f > 9007199254740991 { return 0, false }
+    port (R3q):            if !(-9_007_199_254_740_991.0..=9_007_199_254_740_991.0).contains(&f)
+
+Verified by running both:
+
+    go_form(NaN)   = false
+    port_form(NaN) = true
+
+Every comparison against NaN is false, so the source's disjunction is false and the function does
+NOT return early — it returns the value. The negated `contains` is also false, and the `!` turns
+that into true, so the port returns `(0, false)`. `gjson.safe_int(NaN)` is a different function in
+the port, on an input a JSON parser certainly receives.
+
+The POSITIVE form has no such hazard: `x >= A && x <= B` and `contains` are both false for NaN and
+agree everywhere else. Only the negation inverts the disagreement into an answer. So the negated
+rewrite now declines a float bound, read from the spelling — a whole number resolved to a float is
+spelled with a point precisely so the target reads it as one.
+
+### And then clippy demanded the wrong answer back
+
+`clippy::manual_range_contains` fires on the source's own form, and `--deny=warnings` makes that a
+build failure. The lint is wrong here and the engine says so, in the one shape the doctrine permits:
+
+    #[allow(
+        clippy::manual_range_contains,
+        reason = "the range form answers the opposite for NaN: every comparison against NaN is
+                  false, so the source's disjunction is false and the negated contains is true"
+    )]
+
+This is the first `allow` the engine emits, and the conditions it was reserved for are exactly met:
+it is generated, it carries a machine-readable justification, and it is attached to the one function
+whose rewrite was declined rather than to a crate or a module. `DOCTRINE.md` §4 said an allowance
+must be "globally approved by policy, or generated with a machine-readable semantic justification".
+This is the second.
+
+The first attempt at it refused the whole declaration, because the attribute was emitted without its
+`#[..]` wrapper and the renderer parses attributes rather than pasting them. That refusal was
+correct and immediate — the closed vocabulary catching a malformed construction before it reached a
+file.

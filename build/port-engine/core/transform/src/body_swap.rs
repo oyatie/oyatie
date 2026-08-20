@@ -231,6 +231,20 @@ pub(crate) fn bounded_range(rendered: &RustExpr) -> Option<RustExpr> {
         && let Some((again, high)) = bound(rhs, BinaryOp::Gt)
         && subject == again
         && reads_once(subject)
+        // NOT FOR A PARTIAL ORDER, and this is a correctness condition rather than a preference.
+        //
+        // `f < A || f > B` and `!(A..=B).contains(&f)` are the same test for every value that
+        // compares — and OPPOSITE for one that does not. Every comparison against NaN is false, so
+        // the source's `||` yields false and the range's `contains` also yields false, which the
+        // `!` then turns into true. `gjson.safe_int(NaN)` returns the value in the source and
+        // `(0, false)` in the target: a different program, on an input a JSON parser certainly
+        // receives, produced by a rewrite that was applied for tidiness.
+        //
+        // The POSITIVE form has no such hazard: `x >= A && x <= B` and `contains` are both false
+        // for NaN, and agree everywhere else. Only the negation inverts the disagreement into an
+        // answer.
+        && !is_float_bound(low)
+        && !is_float_bound(high)
     {
         return Some(RustExpr::Unary {
             op: port_engine_rust_ir::UnaryOp::Not,
@@ -342,5 +356,74 @@ fn ascii_class(low: &RustExpr, high: &RustExpr) -> Option<&'static str> {
         ("b'a'", "b'z'") => Some("is_ascii_lowercase"),
         ("b'A'", "b'Z'") => Some("is_ascii_uppercase"),
         _ => None,
+    }
+}
+
+/// Whether this bound is a FLOATING-POINT literal, and so orders only partially.
+///
+/// Read from the spelling, which is where the engine puts the distinction: a whole number resolved
+/// to a float is spelled with a point precisely so the target reads it as one. An integer bound
+/// carries no point and orders totally, which is what the negated range rewrite requires.
+fn is_float_bound(expr: &RustExpr) -> bool {
+    let literal = match expr {
+        RustExpr::Literal(text) => text,
+        RustExpr::Unary {
+            op: port_engine_rust_ir::UnaryOp::Neg,
+            operand,
+        } => match operand.as_ref() {
+            RustExpr::Literal(text) => text,
+            _ => return false,
+        },
+        _ => return false,
+    };
+    literal.contains('.')
+}
+
+/// Whether this statement contains a two-sided FLOAT bounds test the range rewrite had to decline.
+///
+/// Mirrors what [`bounded_range`] refuses, so the attribute that silences the lint appears exactly
+/// where the rewrite did not happen and nowhere else.
+pub(crate) fn compares_float_bounds(statement: &RustStmt) -> bool {
+    fn in_expr(expr: &RustExpr) -> bool {
+        match expr {
+            RustExpr::Binary {
+                op: BinaryOp::Or,
+                lhs,
+                rhs,
+            } => {
+                let declined = bound(lhs, BinaryOp::Lt)
+                    .zip(bound(rhs, BinaryOp::Gt))
+                    .is_some_and(|((left, low), (right, high))| {
+                        left == right && (is_float_bound(low) || is_float_bound(high))
+                    });
+                declined || in_expr(lhs) || in_expr(rhs)
+            }
+            RustExpr::Binary { lhs, rhs, .. } => in_expr(lhs) || in_expr(rhs),
+            RustExpr::Unary { operand, .. } => in_expr(operand),
+            RustExpr::If {
+                cond,
+                then,
+                otherwise,
+            } => {
+                in_expr(cond)
+                    || then.iter().any(compares_float_bounds)
+                    || otherwise.as_deref().is_some_and(in_expr)
+            }
+            RustExpr::Block(body) => body.iter().any(compares_float_bounds),
+            RustExpr::Match { arms, .. } => {
+                arms.iter().any(|arm| arm.body.iter().any(compares_float_bounds))
+            }
+            _ => false,
+        }
+    }
+    match statement {
+        RustStmt::Semi(expr) | RustStmt::Tail(expr) | RustStmt::Discard(expr) => in_expr(expr),
+        RustStmt::Return(Some(expr)) => in_expr(expr),
+        RustStmt::Let { value, .. } => value.as_ref().is_some_and(in_expr),
+        RustStmt::While { cond, body } => in_expr(cond) || body.iter().any(compares_float_bounds),
+        RustStmt::Loop(body) | RustStmt::Block(body) | RustStmt::ForIn { body, .. } => {
+            body.iter().any(compares_float_bounds)
+        }
+        _ => false,
     }
 }

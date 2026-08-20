@@ -239,14 +239,31 @@ pub(crate) fn inline_attrs(
     vis: Visibility,
     resolver: &Resolver<'_>,
 ) -> Vec<String> {
+    let mut attrs = Vec::new();
+    // A JUSTIFIED ALLOW, which is the only kind this engine emits. `clippy::manual_range_contains`
+    // asks for a rewrite that is WRONG for a partially-ordered type, and the deny-warnings policy
+    // would otherwise force the engine to choose between a lint and the program's meaning. It
+    // chooses meaning and says why, in the attribute, where the next reader finds it.
+    if body.is_some_and(|statements| {
+        statements
+            .iter()
+            .any(crate::body_swap::compares_float_bounds)
+    }) {
+        attrs.push(
+            "#[allow(clippy::manual_range_contains, reason = \"the range form answers the \
+             opposite for NaN: every comparison against NaN is false, so the source's disjunction \
+             is false and the negated contains is true\")]"
+                .to_owned(),
+        );
+    }
     let Some(method) = resolver.idiom_method(IDIOM_SINGLE_EXPRESSION_INLINE) else {
-        return Vec::new();
+        return attrs;
     };
     if vis != Visibility::Inherited {
-        return Vec::new();
+        return attrs;
     }
-    match body {
-        Some([RustStmt::Tail(_)]) => vec![method.to_owned()],
-        _ => Vec::new(),
+    if let Some([RustStmt::Tail(_)]) = body {
+        attrs.push(method.to_owned());
     }
+    attrs
 }
