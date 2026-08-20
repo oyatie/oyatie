@@ -149,6 +149,7 @@ impl SignatureTable {
                 sequence_append: semantics.sequence_append(),
                 integer_arithmetic: semantics.integer_arithmetic(),
                 doc_convention: semantics.doc_convention(),
+                display_method_source: semantics.display_method_source(),
                 derives: semantics.derives(),
                 idioms: semantics.idioms(),
                 literal_constructors: semantics.literal_constructors(),

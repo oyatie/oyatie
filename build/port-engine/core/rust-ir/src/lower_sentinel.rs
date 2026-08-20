@@ -110,6 +110,16 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                         .collect::<Result<Vec<_>, _>>()?;
                     quote! { write!(f, #template #(, #args)*) }
                 }
+                // ALREADY A REFERENCE. `write_str` takes one, so a tail that is already a borrow
+                // needs no second `&` — and adding one is `clippy::needless_borrow`, which the
+                // deny-warnings policy makes a build failure. The borrow is added only where the
+                // tail is a value.
+                Some(crate::stmt::RustStmt::Tail(
+                    expr @ crate::expr::RustExpr::Reference { mutable: false, .. },
+                )) => {
+                    let expr = crate::lower_expr::lower_expr(expr)?;
+                    quote! { f.write_str(#expr) }
+                }
                 Some(crate::stmt::RustStmt::Tail(expr)) => {
                     let expr = crate::lower_expr::lower_expr(expr)?;
                     quote! { f.write_str(&#expr) }

@@ -57,7 +57,74 @@ pub(crate) fn trait_impls(
         .filter(|observed| !unsatisfiable(observed, declaration, resolver))
         .map(|observed| build_impl(observed, declaration, &self_ty, resolver))
         .chain(message_impl(declaration, &self_ty, resolver).transpose())
+        .chain(display_impl(declaration, &self_ty, resolver).transpose())
         .collect()
+}
+
+/// The source's STRINGER as the target's display trait.
+///
+/// `String() string` and `Display` are the same contract — one method, no arguments, renders the
+/// receiver as text — and each language's printing facilities go through its own one. Emitting it
+/// as an inherent `fn string(&self) -> String` keeps the method and loses the contract: the ported
+/// type then cannot be printed, formatted or converted by anything generic, which is most of what a
+/// caller wants it for.
+///
+/// The BODY is reused exactly as the failure interface's message method is, because the two are the
+/// same shape — a body whose tail is the text — and the renderer already knows how to hand a
+/// formatting call to the formatter instead of allocating a string to copy.
+///
+/// Not emitted when the type ALREADY has a display impl from the failure interface. Two impls of
+/// one trait for one type is a coherence error, and a type that is both an error and a stringer has
+/// one rendering, not two.
+fn display_impl(
+    declaration: &Declaration,
+    self_ty: &RustType,
+    resolver: &Resolver<'_>,
+) -> Result<Option<RustItem>, TransformError> {
+    let wanted = resolver.display_method_source;
+    if wanted.is_empty() || message_impl(declaration, self_ty, resolver)?.is_some() {
+        return Ok(None);
+    }
+    let Some(method) = declaration
+        .children_of_kind(crate::vocabulary::CHILD_METHOD)
+        .into_iter()
+        .find(|method| method.name == wanted)
+    else {
+        return Ok(None);
+    };
+    // NO PARAMETERS and ONE RESULT. A method that merely shares the name is a different method:
+    // the source's contract is nullary, and one taking an argument cannot be the trait's.
+    if !method.children_of_kind(crate::vocabulary::CHILD_PARAM).is_empty()
+        || method.children_of_kind(crate::vocabulary::CHILD_RESULT).len() != 1
+    {
+        return Ok(None);
+    }
+    let built = crate::signature::method_signature(
+        method,
+        resolver,
+        port_engine_rust_ir::Visibility::Inherited,
+        crate::signature::Body::Translate,
+        &declaration.name,
+        crate::body::ResultShape::Own,
+    )?;
+    // A body that did not translate leaves the method where it was rather than emitting an impl
+    // with nothing in it.
+    let Some(body) = built.body else {
+        return Ok(None);
+    };
+    // AN EARLY RETURN cannot come along. The display method's body yields the TEXT, and the impl's
+    // body must yield a formatting RESULT — so only the tail can be rewritten into a write, and a
+    // `return` of a string somewhere in the middle would return that string from `fmt`. Such a
+    // method stays inherent rather than being reshaped, because reshaping it means rewriting every
+    // exit and that is a rule about control flow rather than about the trait.
+    if body.iter().any(returns_early) {
+        return Ok(None);
+    }
+    Ok(Some(RustItem::MessageImpl {
+        docs: built.docs,
+        self_ty: self_ty.clone(),
+        body,
+    }))
 }
 
 fn build_impl(
@@ -273,4 +340,46 @@ pub(crate) fn message_claimed(
                 .into_iter()
                 .any(|method| method.name == convention.message_method_source)
     })
+}
+
+/// The method a display impl CLAIMS from this declaration, when one will be emitted.
+///
+/// Asked by [`crate::signature::inherent_methods`] so the method is not emitted twice — once as an
+/// inherent `fn string` and once as the trait's `fmt`. Both would compile, and the inherent one
+/// wins path resolution, so the duplicate is invisible until someone deletes it.
+pub(crate) fn display_claims(declaration: &Declaration, resolver: &Resolver<'_>) -> Option<String> {
+    let self_ty = RustType::path(to_pascal_case(&declaration.name));
+    match display_impl(declaration, &self_ty, resolver) {
+        Ok(Some(_)) => Some(resolver.display_method_source.to_owned()),
+        _ => None,
+    }
+}
+
+/// Whether this statement, or anything inside it, RETURNS.
+fn returns_early(statement: &port_engine_rust_ir::RustStmt) -> bool {
+    use port_engine_rust_ir::RustStmt;
+    match statement {
+        RustStmt::Return(_) => true,
+        RustStmt::While { body, .. } | RustStmt::Loop(body) | RustStmt::ForIn { body, .. } | RustStmt::Block(body) => {
+            body.iter().any(returns_early)
+        }
+        RustStmt::Semi(expr) | RustStmt::Tail(expr) => returns_in_expression(expr),
+        _ => false,
+    }
+}
+
+/// Whether this expression contains a `return`, which only the block-like forms can.
+fn returns_in_expression(expr: &port_engine_rust_ir::RustExpr) -> bool {
+    use port_engine_rust_ir::RustExpr;
+    match expr {
+        RustExpr::Block(body) => body.iter().any(returns_early),
+        RustExpr::If {
+            then, otherwise, ..
+        } => {
+            then.iter().any(returns_early)
+                || otherwise.as_deref().is_some_and(returns_in_expression)
+        }
+        RustExpr::Match { arms, .. } => arms.iter().any(|arm| arm.body.iter().any(returns_early)),
+        _ => false,
+    }
 }

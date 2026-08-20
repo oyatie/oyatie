@@ -133,6 +133,7 @@ impl LoadedRulePack {
             cast_types: doc.cast_types,
             zero_values: doc.zero_values,
             trait_object_forms: doc.trait_object_forms,
+            display_method_source: doc.display_method_source,
             // A mapping with no reason is the failure mode this pack exists to prevent, so an
             // empty one is refused at load rather than emitted with nobody's name on it.
             // Absent means the pack declines to answer, and the transform then refuses integer

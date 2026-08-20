@@ -35,6 +35,8 @@ pub struct LoadedRulePack {
     pub(crate) cast_types: BTreeSet<String>,
     pub(crate) zero_values: BTreeMap<String, String>,
     pub(crate) trait_object_forms: BTreeMap<String, String>,
+    /// The source method name that means "render me as text".
+    pub(crate) display_method_source: String,
     pub(crate) failure_convention: Option<FailureConvention>,
     pub(crate) function_map: BTreeMap<String, FunctionMapping>,
     pub(crate) format_calls: FormatCalls,

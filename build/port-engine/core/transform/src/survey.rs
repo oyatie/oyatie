@@ -248,6 +248,7 @@ pub(crate) fn survey_declaration<P>(
         sequence_append: pack.sequence_append(),
         integer_arithmetic: pack.integer_arithmetic(),
         doc_convention: pack.doc_convention(),
+        display_method_source: pack.display_method_source(),
         derives: pack.derives(),
         idioms: pack.idioms(),
         literal_constructors: pack.literal_constructors(),

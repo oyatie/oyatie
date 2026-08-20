@@ -6230,3 +6230,70 @@ signature and its implementation come to disagree, which this file has now paid 
 
 Nine of ten packages still pass `rustc` and `clippy-driver` under `--deny=warnings`; all five the
 goal names are among them.
+
+## R3s — the source's `String()` IS the target's `Display`
+
+Third round of review gates, on a bundle of exactly the five repositories the goal names, shaped as
+a crate a reviewer would recognise, compiling clean under clippy. Both still DO_NOT_MERGE. Four of
+their blocking findings were engine defects; the rest are the Go source's own design, which this
+engine does not fix.
+
+### The Stringer
+
+`fmt.Stringer` and `std::fmt::Display` are the same contract — one method, no arguments, renders the
+receiver as text — and each language's printing facilities go through its own one. Emitting
+`String() string` as an inherent `fn string(&self) -> String` keeps the method and loses the
+contract: the ported type cannot then be printed, interpolated, or `to_string()`d by anything
+generic, which is most of what a caller wants it for. Both gates named `Version::string()` and
+`Address::string()` across all three rounds.
+
+The body machinery already existed. The failure interface's message method becomes a display impl by
+the same route, and the renderer already knows to hand a formatting call to the formatter rather
+than allocate a string to copy it. So this is the same construction with a different trigger, and
+the method is CLAIMED so it is not also emitted inherently — both would compile, the inherent one
+would win path resolution, and the duplicate would be invisible until someone deleted it.
+
+REFUSED where the body returns early. The method's body yields the TEXT and the impl's body must
+yield a formatting RESULT, so only the tail can be rewritten into a write; a `return` of a string in
+the middle would return that string from `fmt`. Such a method stays inherent, because reshaping it
+means rewriting every exit and that is a rule about control flow rather than about the trait.
+
+Two clippy failures came with it and both were fixed at their source rather than at the impl:
+concatenation onto a literal now puts the literal in the TEMPLATE (`format!("prefix {}", x)` rather
+than `format!("{}{}", "prefix ", x)` — `clippy::write_literal`, and it reads as slot-filling), and
+`write_str` no longer adds a borrow to a tail that is already one.
+
+### A comment described behaviour the code did not have
+
+    ErrInvalidUUIDFormat  ->  InvalidUuidformat
+
+Beside `InvalidBracketedFormat` that reads as a typo, which is what a reviewer called it. The rule
+is that the LAST letter of an uppercase run belongs to the next word when a lower-case letter
+follows it: `UUIDFormat` is `UUID` and `Format`, and the `F` opens the second.
+
+That rule was already written in the comment above the code, claiming `HTTPServer` became
+`HttpServer`. It did not — it became `Httpserver`. A comment describing behaviour the code does not
+have is worse than none, because it stops the next reader from checking.
+
+### The failure alias yields to a name the unit declares
+
+`tidwall/gjson` declares `type Result struct`, and the pack's failure alias is also `Result`. Two
+public items of one name in one module is a redefinition if both are emitted and a silent shadow of
+whichever loses if they are not. The unit's own type is the SOURCE'S CONTRACT and the alias is this
+engine's convenience, so the alias yields — and a unit that needs both refuses at the point it needs
+the alias, rather than getting one under an invented second name that no reader of the source could
+predict.
+
+Latent rather than live today: gjson's `Result` does not yet translate. It was found by a reviewer
+reading an earlier bundle, and it is a trap that would have sprung the moment that type started
+emitting.
+
+### What was declined, and why
+
+Several blocking findings are the Go source faithfully carried across: `validate_key` returns a
+stringly-typed error thirty lines from a typed enum because that is what the Go does;
+`pkcs7decode` trusts its padding byte because that is what the Go does. An engine that improves its
+input produces something that is no longer a port of it, and the difference between the two is not
+visible to anyone reading only the output. Those stay.
+
+All ten packages still pass `rustc` and `clippy-driver` under `--deny=warnings`.

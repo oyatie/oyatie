@@ -202,10 +202,30 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         && node.type_ref.name == crate::vocabulary::SOURCE_STRING
         && lhs.kind == KIND_LITERAL
     {
-        return Ok(RustExpr::MacroCall {
-            name: "format".to_owned(),
-            template: "{}{}".to_owned(),
-            args: vec![left, right],
+        // THE LITERAL GOES IN THE TEMPLATE. A formatting macro's template is where constant text
+        // belongs; passing it as an argument with an empty placeholder is `clippy::write_literal`,
+        // and it reads as a translator filling slots rather than as someone writing a message.
+        let inlined = match &left {
+            RustExpr::Literal(spelled) => spelled
+                .strip_prefix('"')
+                .and_then(|rest| rest.strip_suffix('"'))
+                // A BRACE in the text is a placeholder to the macro, so it is doubled. Without this
+                // a source string containing `{` would change what the template means, or fail to
+                // parse and take the whole declaration with it.
+                .map(|text| format!("{}{{}}", text.replace('{', "{{").replace('}', "}}"))),
+            _ => None,
+        };
+        return Ok(match inlined {
+            Some(template) => RustExpr::MacroCall {
+                name: "format".to_owned(),
+                template,
+                args: vec![right],
+            },
+            None => RustExpr::MacroCall {
+                name: "format".to_owned(),
+                template: "{}{}".to_owned(),
+                args: vec![left, right],
+            },
         });
     }
 
