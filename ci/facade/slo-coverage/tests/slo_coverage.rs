@@ -133,7 +133,13 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  crates, zero inbound deps, zero deployment refs). The
 ///                                  row set shrinks with its subjects; nothing was retired
 ///                                  to make room.
-const SLO_CATALOG_CENSUS: usize = 742;
+///   2026-08-19  742 -> pin 743     ROW ADDED, legitimately: registry/catalog/
+///                                  ci-corpus-census-adapters.yaml, the catalog row for the
+///                                  new ci/adapters/corpus-census crate this change
+///                                  introduces. The enumeration did NOT widen -- the corpus
+///                                  gained exactly one row and the face gained exactly one,
+///                                  which is the disambiguation this pin exists to force.
+const SLO_CATALOG_CENSUS: usize = 743;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
