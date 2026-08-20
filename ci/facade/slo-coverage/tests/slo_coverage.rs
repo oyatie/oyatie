@@ -147,9 +147,9 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  context). Attributable one-for-one: exactly three `git rm`s
 ///                                  under registry/catalog/ in this change, so the same producer
 ///                                  enumerates three fewer rows than the rebased base. Not a
-///                                  collapsed enumeration. The pin moved 742 -> 739 before the
-///                                  rebase; the base's own +1 is what makes it 740.
-const SLO_CATALOG_CENSUS: usize = 740;
+///   2026-08-20  740 -> pin 741     ROW ADDED: registry/catalog/check-integ-envelope.yaml
+///                                  for the new governance/check/integ-envelope crate.
+const SLO_CATALOG_CENSUS: usize = 741;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
