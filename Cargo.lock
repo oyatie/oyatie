@@ -1998,6 +1998,7 @@ name = "ci-workspace-member-coverage"
 version = "0.1.0"
 dependencies = [
  "ci-path-resolver-adapters",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
