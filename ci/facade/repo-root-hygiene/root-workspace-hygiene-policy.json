@@ -388,21 +388,25 @@
     "counts": {
       "evidence_files": 54,
       "planning_files": 11,
-      "docs_markdown_files": 1434,
+      "docs_markdown_files": 1435,
       "live_adr_files": 19,
       "dotdir_files": 242,
       "reorg_paths": 25,
-      "oya_legacy_root_files": 2359,
-      "yaml_files": 3513,
+      "oya_legacy_root_files": 1868,
+      "yaml_files": 3025,
       "json_files": 1279
     },
-    "_yaml_files_reduction_2026_08_20": "yaml_files 3516 -> 3513. DOWNWARD, and attributable one-for-one rather than to a narrowed class predicate: `git diff --name-only --diff-filter=D origin/dev...HEAD` filtered to .yaml/.yml returns exactly three paths — registry/catalog/check-{adr-citation,supply-chain,pre-push}.yaml — the catalog rows of the three retired gate crates. Independently cross-checked against the boundary the class itself uses: `git ls-files '*.yaml' '*.yml'` counts 3513 on this branch against 3516 on origin/dev. json_files is deliberately NOT moved: this change deletes no tracked JSON, and it held at 1279 by equality on the same run, which is the cross-check that the walk did not shrink.",
     "reviewed_raises": {
       "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
       "evidence_files": {
         "from": 53,
         "to": 54,
         "reason": "evidence/reorg/rr-intel-remainder-execute-20260814.json is the reorg receipt for the G024 remainder rehome (78 crates -> intelligence/). ADR-0562 move plans are admitted against a recorded receipt, so the artifact is load-bearing for the migration it documents, not sprawl. The prior 52->53 raise is superseded by this exact from->to because a stale raise fails closed."
+      },
+      "docs_markdown_files": {
+        "from": 1434,
+        "to": 1435,
+        "reason": "ADR-0718 (docs/decisions/ADR-0718-ci-lane-split-five-minute-wall-clock.md) is the authorization ADR-0716-D3's replacement-window mechanism REQUIRES by construction: that mechanism refuses any ADR already present on the protected merge-base, so the CI lane split cannot be authorized by amending an existing record and must add exactly one file. Load-bearing, not sprawl. The prior 1433->1434 raise for ADR-0717 is superseded by this exact from->to because a stale raise fails closed."
       },
       "live_adr_files": {
         "from": 18,

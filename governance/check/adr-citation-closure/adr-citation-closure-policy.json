@@ -44,9 +44,9 @@
     "adr_citation_dangling_path": 2155,
     "adr_citation_rejected_authority": 6,
     "adr_duplicate_id": 0,
-    "adr_closure_asymmetry": 29,
+    "adr_closure_asymmetry": 30,
     "adr_closure_unresolvable": 8,
-    "adr_closure_ambiguous": 2,
+    "adr_closure_ambiguous": 3,
     "spot_verified_by_hand": [
       "CLAUDE.md:45 cites ADR-0111 as merge-queue authority; docs/adr-archive/ADR-0111-*.md frontmatter says status: Rejected",
       "CLAUDE.md:53 and :59 cite ADR-0709 on lines naming ADR-0515; ADR-0515 declares superseded_by [ADR-0700], so the closure is ADR-0700",

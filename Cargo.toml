@@ -99,8 +99,6 @@ exclude = [
   # an exclusion for satellite dirs outside the four faces.
   "ci/facade/harness",
   "governance/check/integ-envelope",
-  # New on integ/governance tip; exclude until integ/build (root_manifests sole owner) absorbs Cargo.lock membership.
-  "governance/check/apex-gist-integrity",
   # os/harness/{attestation-relying-party,oci-executor-oracle} absorbed into
   # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
   "kernel",
