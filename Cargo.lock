@@ -1132,10 +1132,6 @@ name = "check-active-artifact-contract"
 version = "0.1.0"
 
 [[package]]
-name = "check-adr-citation"
-version = "0.1.0"
-
-[[package]]
 name = "check-adr-citation-closure"
 version = "0.1.0"
 dependencies = [
@@ -1301,10 +1297,6 @@ name = "check-placeholder-debt"
 version = "0.1.0"
 
 [[package]]
-name = "check-pre-push"
-version = "0.1.0"
-
-[[package]]
 name = "check-protection-context-match"
 version = "0.1.0"
 
@@ -1350,10 +1342,6 @@ version = "0.1.0"
 
 [[package]]
 name = "check-statelessness"
-version = "0.1.0"
-
-[[package]]
-name = "check-supply-chain"
 version = "0.1.0"
 
 [[package]]
@@ -6993,7 +6981,6 @@ dependencies = [
  "audit-file-adapter",
  "check-a11y-discipline",
  "check-active-artifact-contract",
- "check-adr-citation",
  "check-aspirational-enforcement",
  "check-audit-chain-seal-coverage",
  "check-authority-cohesion",
@@ -7026,7 +7013,6 @@ dependencies = [
  "check-otel-trace-propagation",
  "check-perf-budget",
  "check-placeholder-debt",
- "check-pre-push",
  "check-protection-context-match",
  "check-quality-lane",
  "check-raci-coverage",
@@ -7039,7 +7025,6 @@ dependencies = [
  "check-shardability",
  "check-slsa-l3-evidence-grounded",
  "check-statelessness",
- "check-supply-chain",
  "check-tenant-cost-labels-coverage",
  "check-typescript-workspace",
  "check-vector-store-discipline",

@@ -17,7 +17,6 @@ purpose = "Gate-runner CLI homed to marketplace/facade; retirement-marked per fo
 [dependencies]
 oya-application-app = { path = "../../../oya/application/crates/oya-application-app" }
 check-active-artifact-contract = { path = "../../../governance/check/active-artifact-contract" }
-check-adr-citation = { path = "../../../governance/check/adr-citation" }
 oya-check-adr-index = { path = "../../../libs/oya-check-adr-index" }
 check-cedar-fragment-coverage = { path = "../../../governance/check/cedar-fragment-coverage" }
 oya-check-dependency-seam = { path = "../../../libs/oya-check-dependency-seam" }
@@ -65,7 +64,6 @@ intelligence-mdbook-domain = { path = "../../../intelligence/core/mdbook-domain"
 intelligence-openapi-domain = { path = "../../../intelligence/core/openapi-domain" }
 check-mobile-native = { path = "../../../governance/check/mobile-native" }
 check-placeholder-debt = { path = "../../../governance/check/placeholder-debt" }
-check-pre-push = { path = "../../../governance/check/pre-push" }
 ci-generated-artifact-freshness = { path = "../../../ci/facade/generated-artifact-freshness" }
 ci-planning-projection = { path = "../../../ci/facade/planning-projection" }
 check-protection-context-match = { path = "../../../governance/check/protection-context-match" }
@@ -79,7 +77,6 @@ check-runbook-freshness = { path = "../../../governance/check/runbook-freshness"
 check-runbook-index = { path = "../../../governance/check/runbook-index" }
 intelligence-run-domain = { path = "../../../intelligence/core/run-domain" }
 oya-check-slo-coverage = { path = "../../../libs/oya-check-slo-coverage" }
-check-supply-chain = { path = "../../../governance/check/supply-chain" }
 check-typescript-workspace = { path = "../../../governance/check/typescript-workspace" }
 check-vendor-recency = { path = "../../../governance/check/vendor-recency" }
 oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }

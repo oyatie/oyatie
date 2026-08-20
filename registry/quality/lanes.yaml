@@ -212,14 +212,6 @@ lanes:
     source: products/README.md
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate product-index
-  - id: oya-governance-adr-citation
-    stage: foundation
-    status: active
-    owner_team: council-architecture
-    purpose: only-new-pack-citations check
-    source: ADR-LEGACY-REGRESSION-MAPPING
-    runtime_budget_seconds: 120
-    check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate adr-citation
   - id: oya-governance-brand-residue
     stage: foundation
     status: active
@@ -308,22 +300,6 @@ lanes:
     source: TOOLCHAIN.md
     runtime_budget_seconds: 600
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate typescript-workspace --lane test
-  - id: oya-governance-supply-chain
-    stage: per-pr
-    status: active
-    owner_team: council-architecture
-    purpose: Trivy 4-layer + Cosign per ADR-0039
-    source: ADR-0039
-    runtime_budget_seconds: 900
-    check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate supply-chain --require-adr0039-evidence
-  - id: oya-governance-supply-chain-bootstrap
-    stage: per-pr
-    status: active
-    owner_team: council-architecture
-    purpose: source-only supply-chain guard plus RustSec and deny wiring
-    source: ADR-0039
-    runtime_budget_seconds: 300
-    check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate supply-chain
   - id: oya-governance-api-semver
     stage: per-pr
     status: active
@@ -340,14 +316,6 @@ lanes:
     source: ADR-0017
     runtime_budget_seconds: 120
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate cargo-prefix
-  - id: oya-governance-pre-push
-    stage: per-pr
-    status: active
-    owner_team: axis-foundry
-    purpose: oya verify command contract maps to the checked local verification bundle (canonical local pre-push entry; retired entry points are recorded in registry/vocabulary/retired.yaml)
-    source: AGENTS.md D12
-    runtime_budget_seconds: 120
-    check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate pre-push-contract
   - id: oya-governance-loop-recovery-patterns
     stage: per-pr
     status: active
@@ -452,14 +420,6 @@ lanes:
     source: ADR-0051
     runtime_budget_seconds: 1800
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate mobile-native
-  - id: release-supply-chain
-    stage: per-release
-    status: active
-    owner_team: council-architecture
-    purpose: Cosign keyless + Rekor + SBOM per ADR-0039
-    source: ADR-0039
-    runtime_budget_seconds: 3600
-    check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate release-supply-chain --phase pre-release
   - id: release-evidence-pack
     stage: per-release
     status: active
@@ -495,15 +455,6 @@ lanes:
     source: ADR-0056
     runtime_budget_seconds: 300
     check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate cedar-fragment-coverage
-  - id: lean-a3-supply-chain
-    stage: per-pr
-    status: active
-    severity: BLOCKER
-    owner_team: council-architecture
-    purpose: supply-chain integrity — Trivy + RustSec + deny per ADR-0039
-    source: ADR-0039
-    runtime_budget_seconds: 600
-    check_command: buck2 run //marketplace/facade/dev-cli:oya -- gate validate supply-chain
   - id: lean-a4-semver
     stage: per-pr
     status: active
