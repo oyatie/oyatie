@@ -19,20 +19,28 @@
   },
   "min_expected_roots": 150,
   "coverage_bearing_keys": [
+    "authority_surfaces",
+    "capability_roots",
+    "crate_root_globs",
+    "external_secret_scan_roots",
+    "governed_roots",
+    "governed_service_roots",
+    "manifest_paths",
     "roots",
     "scan_roots",
-    "crate_root_globs",
-    "manifest_paths",
     "store_manifest_paths"
   ],
   "registered_policy_files": [
     "ci/facade/automation-language-policy/rust-first-automation-policy.json",
     "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json",
+    "ci/facade/canonical-json/canonical-json-policy.json",
     "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json",
     "ci/facade/endpoint-authorization-coverage/authz-coverage-policy.json",
     "ci/facade/layer-dependency-acyclicity/tier-dependency-acyclicity-policy.json",
     "ci/facade/module-membership/capability-membership-policy.json",
-    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json"
+    "ci/facade/operator-secret-rbac/operator-secret-bootstrap-policy.json",
+    "ci/facade/product-protocol-policy/product-protocol-policy.json",
+    "ci/facade/service-tier-metadata/tier-field-coverage-policy.json"
   ],
   "exempt_policy_files": {},
   "forward_declarations": {
