@@ -88,6 +88,13 @@ pub fn to_snake_case(raw: &str) -> String {
 /// SCREAMING name is never a keyword, and escaping before uppercasing produced an identifier the
 /// renderer could not parse.
 fn unescaped_snake_case(raw: &str) -> String {
+    // THE BLANK stays blank. The source's `_` is a hole rather than a name — it binds nothing and
+    // cannot be read — and the target spells the same hole the same way. Falling through to the
+    // empty-name fallback below named it `item`, which a reviewer called actively misleading, and
+    // which is a name for a value the source deliberately refused to name.
+    if !raw.is_empty() && raw.chars().all(|ch| ch == '_') {
+        return "_".to_owned();
+    }
     let chars: Vec<char> = raw.chars().collect();
     let mut out = String::with_capacity(raw.len() + 4);
     for (index, ch) in chars.iter().enumerate() {
