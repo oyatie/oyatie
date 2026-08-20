@@ -27,13 +27,7 @@ pub(crate) fn docs_of(
     let Some(block) = declaration.attr(ATTR_DOC) else {
         return Ok(Vec::new());
     };
-    // A sentence naming something the crate does not contain is DROPPED, and the declaration
-    // survives. See `docs_refuse` for why that is the right unit and why refusing was not.
-    let kept = crate::docs_refuse::without_dangling_sentences(block, declaration, resolver);
-    if kept.trim().is_empty() {
-        return Ok(Vec::new());
-    }
-    Ok(docs_from_block(&kept, &declaration.name, resolver))
+    Ok(docs_from_block(block, &declaration.name, resolver))
 }
 
 /// The same, from a doc block and the name it opens with, for a declaration not in hand.
@@ -51,6 +45,19 @@ pub(crate) fn docs_from_block(
     resolver: &Resolver<'_>,
 ) -> Vec<String> {
     let convention = resolver.doc_convention;
+    // The DROP happens here, inside the one function every doc path goes through, rather than in
+    // the caller that happened to think of it. It used to sit in `docs_of`, and the grouped failure
+    // enum reaches this function directly — so every variant's prose skipped the check entirely, and
+    // a doc comment naming `errors.Is` reached the output with the rule that forbids it already
+    // written and already correct. A blind reviewer called that line the single most decisive
+    // evidence the code was mechanically translated.
+    //
+    // The comment below this function already said the two spellings would drift; they drifted
+    // anyway, because what was factored was the rewriting and not the refusing.
+    let block = &crate::docs_refuse::without_dangling_sentences(block, name, resolver);
+    if block.trim().is_empty() {
+        return Vec::new();
+    }
     {
         {
             rename_references(
