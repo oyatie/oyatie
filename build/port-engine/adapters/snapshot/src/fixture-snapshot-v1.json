@@ -1,7 +1,8 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:1e708931b836b9392ca669f2408c1ba34c126879f47187c626eb3861423527fa",
+  "build_config": "linux/amd64 go1.21",
+  "snapshot_digest": "sha256:2e2034d592c19fa741f82d9f9c3db5f099deb08d4625c809400759bccffed89b",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -1620,6 +1621,7 @@
                       "kind": "ident",
                       "name": "errors",
                       "attrs": {
+                        "package_path": "errors",
                         "ref": "package"
                       }
                     }
@@ -1912,6 +1914,7 @@
                                       "kind": "ident",
                                       "name": "errors",
                                       "attrs": {
+                                        "package_path": "errors",
                                         "ref": "package"
                                       }
                                     }
@@ -2613,6 +2616,7 @@
                               "kind": "ident",
                               "name": "fmt",
                               "attrs": {
+                                "package_path": "fmt",
                                 "ref": "package"
                               }
                             }
@@ -2730,6 +2734,7 @@
                               "kind": "ident",
                               "name": "fmt",
                               "attrs": {
+                                "package_path": "fmt",
                                 "ref": "package"
                               }
                             }
@@ -2846,6 +2851,7 @@
                               "kind": "ident",
                               "name": "fmt",
                               "attrs": {
+                                "package_path": "fmt",
                                 "ref": "package"
                               }
                             }
@@ -2947,6 +2953,7 @@
                               "kind": "ident",
                               "name": "fmt",
                               "attrs": {
+                                "package_path": "fmt",
                                 "ref": "package"
                               }
                             }
@@ -3049,6 +3056,7 @@
                               "kind": "ident",
                               "name": "fmt",
                               "attrs": {
+                                "package_path": "fmt",
                                 "ref": "package"
                               }
                             }
@@ -3158,6 +3166,7 @@
                               "kind": "ident",
                               "name": "fmt",
                               "attrs": {
+                                "package_path": "fmt",
                                 "ref": "package"
                               }
                             }
@@ -3336,6 +3345,7 @@
                                       "kind": "ident",
                                       "name": "fmt",
                                       "attrs": {
+                                        "package_path": "fmt",
                                         "ref": "package"
                                       }
                                     }

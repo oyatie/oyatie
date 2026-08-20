@@ -24,8 +24,16 @@ const schemaVersion = 2
 // ---------------------------------------------------------------------------------
 
 type snapshot struct {
-	SchemaVersion  int       `json:"schema_version"`
-	Language       string    `json:"language"`
+	SchemaVersion int    `json:"schema_version"`
+	Language      string `json:"language"`
+	// BuildConfig is the configuration the corpus was type-checked FOR, canonicalised.
+	//
+	// It is an input that changes what is extracted, and until it was recorded here it was the one
+	// input that changed nothing observable: two extractions of one corpus at Go 1.21 and Go 1.24
+	// produced byte-identical snapshots and the same digest. Go 1.22 rescoped the loop variable --
+	// same syntax, different program -- so the engine could emit a different program with every
+	// receipt axis holding, which is the exact failure the receipt exists to prevent.
+	BuildConfig    string    `json:"build_config"`
 	SnapshotDigest string    `json:"snapshot_digest"`
 	Packages       []pkgNode `json:"packages"`
 }

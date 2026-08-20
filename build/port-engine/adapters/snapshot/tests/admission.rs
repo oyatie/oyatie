@@ -155,9 +155,9 @@ fn v1_preimage_moves_when_a_declaration_moves() {
     let mut unexported = base.clone();
     unexported.flags.clear();
 
-    let original = snapshot_preimage_v1("go", &[("u", producer, vec![base.clone()])]);
-    let after_type = snapshot_preimage_v1("go", &[("u", producer, vec![retyped])]);
-    let after_flag = snapshot_preimage_v1("go", &[("u", producer, vec![unexported])]);
+    let original = snapshot_preimage_v1("go", "", &[("u", producer, vec![base.clone()])]);
+    let after_type = snapshot_preimage_v1("go", "", &[("u", producer, vec![retyped])]);
+    let after_flag = snapshot_preimage_v1("go", "", &[("u", producer, vec![unexported])]);
 
     assert_ne!(original, after_type, "a changed type must move the digest");
     assert_ne!(original, after_flag, "a changed flag must move the digest");
@@ -197,8 +197,8 @@ fn v1_preimage_distinguishes_nesting_from_sibling_order() {
     flat.children.clear();
 
     assert_ne!(
-        snapshot_preimage_v1("go", &[("u", producer, vec![nested])]),
-        snapshot_preimage_v1("go", &[("u", producer, vec![flat, leaf("a")])]),
+        snapshot_preimage_v1("go", "", &[("u", producer, vec![nested])]),
+        snapshot_preimage_v1("go", "", &[("u", producer, vec![flat, leaf("a")])]),
     );
 }
 

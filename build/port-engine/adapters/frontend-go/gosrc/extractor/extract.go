@@ -68,6 +68,7 @@ func extract(
 	model := &snapshot{
 		SchemaVersion: schemaVersion,
 		Language:      "go",
+		BuildConfig:   cfg.describe(),
 		Packages:      make([]pkgNode, 0, len(dirs)),
 	}
 
