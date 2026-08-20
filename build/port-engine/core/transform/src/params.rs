@@ -40,6 +40,22 @@ pub(crate) fn params(
     // to fold — a signature alone answers a different question and must not guess this one.
     consumed: &BTreeSet<String>,
 ) -> Result<Vec<RustParam>, TransformError> {
+    params_at(declaration, resolver, owner, consumed, POSITION_PARAM)
+}
+
+/// The same, at a stated POSITION.
+///
+/// The position decides what an interface parameter becomes, and a trait method's answer differs
+/// from a free function's — not by preference but by necessity: `impl Trait` in a trait method's
+/// argument makes the trait not dyn-compatible, and the source's interface values live in slices
+/// that need a boxed trait object to exist at all.
+pub(crate) fn params_at(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+    owner: &str,
+    consumed: &BTreeSet<String>,
+    position: &str,
+) -> Result<Vec<RustParam>, TransformError> {
     // WRITTEN THROUGH A CALL. The source spells a write into a value as a call — `PutUint16(id[..],
     // n)` fills the array it is given — and the target spells it as a mutation of the receiver. A
     // parameter that only ever appears as such an argument is never SEEN assigned, so it came out
@@ -98,7 +114,7 @@ pub(crate) fn params(
                     resolver.ownership,
                 )?)
             } else {
-                resolver.resolve_in(&param.type_ref, &declaration.name, POSITION_PARAM)?
+                resolver.resolve_in(&param.type_ref, &declaration.name, position)?
             };
             // An unnamed parameter is legal in the source and illegal in the target, so it is
             // given a positional name. The position is already its identity, so nothing is
