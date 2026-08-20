@@ -102,7 +102,11 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
     if !args.is_empty() {
         let mut operands = args.clone();
         for (offset, operand) in operands.iter_mut().enumerate().skip(1) {
-            *operand = crate::body_index::unwrapped_base(&node.children[offset + 1], cx)?;
+            *operand = crate::body_index::unwrapped_in(
+                &node.children[offset + 1],
+                cx,
+                crate::body_expr::Position::Place,
+            )?;
         }
         if let Some(rendered) = crate::body_format::formatted_call(node, &operands, cx)? {
             return Ok(rendered);

@@ -6432,3 +6432,23 @@ that is entirely digits gets one; anything else already carries a point, an expo
 spelled for itself.
 
 Found by the compile gate one cycle after the rule that caused it, which is what the gate is for.
+
+## R3w — a borrow position does not need the copy a value position asks for
+
+Both gates called the clones gratuitous, and they were — but not because the clone rule is wrong.
+A field read of a non-copying type CLONES because reading one moves in the target, and that is
+correct wherever the value is kept. Four places asked for a value and keep nothing:
+
+- the receiver of the emptiness idiom — `self.name.clone().is_empty()` allocated a string to ask
+  whether it was empty and dropped it again;
+- a FORMAT operand, which the macro takes by reference;
+- a MATCH scrutinee, which is read and never consumed when the patterns are constants —
+  `match self.r#type.clone()` allocated on every call to ask which variant it was;
+- and the operand of a concatenation being rewritten INTO a format call, which is a format operand
+  by the time it lands.
+
+The method-call receiver already had this right and had had it for phases; the other four had never
+been asked. `unwrapped_in` now takes the position, and each site states which one it is.
+
+Clones across the five goal repositories: uuid 0, gjson 0, chi 0, multierror 0, memberlist 1 — and
+the last one is real, an owned string returned out of a field.

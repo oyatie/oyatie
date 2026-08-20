@@ -51,7 +51,15 @@ pub(crate) fn emptiness_test(
     };
 
     let call = RustExpr::MethodCall {
-        receiver: Box::new(expression(subject, cx)?),
+        // A PLACE, because a method receiver is borrowed and not consumed. Built as a value it
+        // CLONES — a field read of a non-copying type moves in the target, so the value position
+        // asks for a copy — and `self.name.clone().is_empty()` allocates a string to ask whether
+        // it is empty and drops it again. Both review gates named that allocation.
+        receiver: Box::new(crate::body_expr::in_position(
+            subject,
+            cx,
+            crate::body_expr::Position::Place,
+        )?),
         method: method.to_owned(),
         args: Vec::new(),
     };
