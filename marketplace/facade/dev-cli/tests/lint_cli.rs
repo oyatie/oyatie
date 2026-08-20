@@ -188,13 +188,21 @@ fn lint_foundry_phase00_evidence_accepts_minimal_fixture() {
 }
 
 fn asyncapi_fixture_root(proto_ref: &str) -> PathBuf {
+    // The pid+timestamp pair is NOT unique across sibling tests: `as_nanos()` reports at
+    // the platform clock's granularity, so two tests in the same process that build a
+    // fixture in the same tick land on the SAME directory. Each writes a different proto,
+    // and whichever reads second lints the other's file — which is why these two tests
+    // alternated failing under parallel execution while passing with --test-threads=1.
+    // A process-wide counter makes the path unique by construction rather than by luck.
+    static FIXTURE_SEQ: std::sync::atomic::AtomicUsize = std::sync::atomic::AtomicUsize::new(0);
     let root = std::env::temp_dir().join(format!(
-        "oya-lint-asyncapi-{}-{}",
+        "oya-lint-asyncapi-{}-{}-{}",
         std::process::id(),
         std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .expect("system time after epoch")
-            .as_nanos()
+            .as_nanos(),
+        FIXTURE_SEQ.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
     ));
     let asyncapi_dir = root.join("contracts").join("asyncapi").join("cloud");
     let proto_dir = root

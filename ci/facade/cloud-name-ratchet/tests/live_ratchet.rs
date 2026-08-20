@@ -121,9 +121,14 @@ fn relabel_for_renames(root: &Path, frozen: BTreeSet<String>) -> BTreeSet<String
     frozen
         .into_iter()
         .map(|key| {
+            // Boundary-aligned, never a substring: `oya` must not match inside
+            // `billing/oya-billing`. The keys here are `dir:<path>` and
+            // `name:<path>:<name>`, so `:` bounds a component as well as `/`.
             for (old, new) in &pairs {
-                if key.contains(old.as_str()) {
-                    return key.replacen(old.as_str(), new, 1);
+                if let Some(relabelled) =
+                    ci_baseline_ratchet::replace_path_component(&key, old, new)
+                {
+                    return relabelled;
                 }
             }
             key

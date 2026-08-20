@@ -1,0 +1,274 @@
+{
+  "$schema": "https://grafana.com/schema/dashboards/v10.0.0/dashboard.json",
+  "uid": "governance-finding-rate",
+  "title": "Governance — Finding Rate + Audit-Chain Health",
+  "tags": [
+    "governance",
+    "evidence-emitter",
+    "audit-chain"
+  ],
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "microservice",
+        "type": "query",
+        "datasource": "Mimir-governance",
+        "query": "label_values(oya_governance_finding_emitted_total, microservice)"
+      },
+      {
+        "name": "severity",
+        "type": "custom",
+        "query": "BLOCKER,WARN,INFO",
+        "current": {
+          "value": "BLOCKER"
+        }
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Total Findings (24h)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(oya_governance_finding_emitted_total[24h]))"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "stat",
+      "title": "BLOCKER Findings (24h)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 6,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(oya_governance_finding_emitted_total{severity=\"BLOCKER\"}[24h]))"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "stat",
+      "title": "Unsealed Findings Age p99",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 12,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_governance_unsealed_finding_age_seconds_bucket[5m])) by (le))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 60
+              },
+              {
+                "color": "red",
+                "value": 300
+              }
+            ]
+          }
+        }
+      },
+      "description": "F-03 detection: unsealed Findings older than 300s trigger OnCall page."
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "Audit-chain seal latency p99",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 18,
+        "y": 0,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.99, sum(rate(oya_governance_audit_seal_latency_seconds_bucket[5m])) by (le))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 1
+              },
+              {
+                "color": "red",
+                "value": 5
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Finding Rate by Severity (1h moving)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by (severity) (rate(oya_governance_finding_emitted_total[5m]))",
+          "legendFormat": "{{severity}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "Finding Rate by Microservice (top 10)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 12,
+        "y": 4,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "topk(10, sum by (microservice) (rate(oya_governance_finding_emitted_total{microservice=~\"$microservice\"}[5m])))",
+          "legendFormat": "{{microservice}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "table",
+      "title": "Top 20 Rules by Finding Count (24h)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "topk(20, sum by (rule_id, lane_id) (increase(oya_governance_finding_emitted_total[24h])))",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "timeseries",
+      "title": "Evidence Blob Ingest Rate (MB/s)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 12,
+        "y": 12,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum(rate(oya_governance_evidence_blob_bytes_total[5m])) / 1024 / 1024",
+          "legendFormat": "MB/s"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "Bps"
+        }
+      }
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Audit-Chain Seal Backlog (F-03 signal)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 20,
+        "w": 12,
+        "h": 6
+      },
+      "targets": [
+        {
+          "expr": "sum(oya_governance_unsealed_finding_queue_depth)",
+          "legendFormat": "Queue depth"
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "type": "timeseries",
+      "title": "False-Positive Suspect Rate (per rule_id; F-02 signal)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 12,
+        "y": 20,
+        "w": 12,
+        "h": 6
+      },
+      "description": "Sustained > 5% on a single rule_id is the F-02 signal.",
+      "targets": [
+        {
+          "expr": "topk(10, (sum by (rule_id) (rate(oya_governance_finding_emitted_total[10m])) / sum (rate(oya_governance_lane_run_total[10m])) ))",
+          "legendFormat": "{{rule_id}}"
+        }
+      ]
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "datasource": "Mimir-governance",
+        "name": "F-03 evidence gap events",
+        "iconColor": "red",
+        "expr": "oya_governance_audit_seal_failure_total > 0",
+        "tagKeys": "reason"
+      }
+    ]
+  }
+}

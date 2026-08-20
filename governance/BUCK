@@ -5,3 +5,23 @@ export_file(
     name = "capability-registry.json",
     visibility = ["PUBLIC"],
 )
+
+load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")
+
+# Hermetic input set for gates that must validate every live service manifest. The
+# governance service manifest landed here when oya/governance was absorbed.
+filegroup(
+    name = "live-service-manifest-corpus",
+    srcs = glob(["**/manifest.json"]),
+    visibility = ["PUBLIC"],
+)
+
+# Corpus graph extraction (ADR-0541). oya/BUCK's glob carried this root's YAML until
+# oya/ was emptied and deleted; without this package the reclaimed contracts, SLOs,
+# capabilities and dashboards count as unpackaged debt. Nested check/*/BUCK packages keep
+# their own files under buck's nearest-package ownership, so this covers only what they
+# do not.
+corpus_yaml_facts_shards(
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    shard_size = 256,
+)

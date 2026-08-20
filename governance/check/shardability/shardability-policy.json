@@ -9,6 +9,6 @@
   "min_sql_files": 16,
   "min_tables_seen": 28,
   "frozen_unsharded_tables": {
-    "oya/intelligence/iac/postgres/migrations/guardrails-001-init-schema.sql::classifier_model_versions": 1
+    "intelligence/iac/postgres/migrations/guardrails-001-init-schema.sql::classifier_model_versions": 1
   }
 }

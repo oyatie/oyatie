@@ -76,10 +76,10 @@
     "marketplace/runbooks": [
       4
     ],
-    "oya/governance/runbooks": [
+    "governance/runbooks": [
       3
     ],
-    "oya/intelligence/runbooks": [
+    "intelligence/runbooks": [
       4
     ],
     "app/payments/runbooks": [

@@ -1,161 +1,88 @@
-# cloud-intelligence — agent-dispatch gateway
+---
+doc_class: ServiceReadme
+template_id: TPL-README
+microservice: intelligence
+status: Accepted
+classification: INTERNAL_ONLY
+date: 2026-05-20
+owner_team: axis-intelligence
+related_adrs: [ADR-0255, ADR-0263, ADR-0296]
+doc_status: published
+---
 
-A clean-room Rust **LLM key-pool reverse-proxy gateway**. It multiplexes the
-Oyatie AI-agent fleet over pooled Codex / Claude / OpenAI / Gemini API keys,
-rotating keys round-robin, blacklisting failing keys with a jittered cooldown,
-and streaming provider responses (including SSE) straight through.
+# intelligence — Two-Layer AI Substrate
 
-This is an original reimplementation of the *concept* of an LLM key-pool
-reverse proxy. **No third-party source was read or copied.**
+Library-first dispatch substrate for the oyatie AI surface per ADR-0255 (two-layer AI Substrate +
+Consumer Brand Surface) and the ADR-0255 amendment (library-first network-opt-in clarification). The
+`intelligence` µservice owns provider routing, refusal-baseline guardrails, output evaluation,
+citation attribution, and the consumer brand UX surface used across every product. Embeddings and
+fine-tuning are now separate µservices (`intelligence-embeddings`, `intelligence-fine-tuning`) per
+ADR-0255 §D promotion and are NOT in scope here.
 
-## Crates (ADR-0131 flat microservice, ADR-0105 layers)
+## Bounded contexts
 
-| Crate | Layer | Responsibility |
-|-------|-------|----------------|
-| [`oya-cloud-intelligence-kernel`](../../crates/oya-cloud-intelligence-kernel) | `kernel` | **Pure** key-pool state machine. No I/O, no async, no clock, no RNG, no external crate. Round-robin selection (`AtomicUsize`), per-key `failure_count` + blacklist threshold, jittered cooldown timestamps, success-reset / lazy restore-to-active, the `ProviderChannel` enum (OpenAI / Anthropic / Gemini). Time and jitter are injected so every transition is deterministic and unit-tested. |
-| [`oya-cloud-intelligence-rest`](../../crates/oya-cloud-intelligence-rest) | `rest` | The axum reverse-proxy app + binary. SSE streaming passthrough, per-provider channel adapters, owned secret-provider/KMS handles, failover/retry, two constant-time auth realms, Prometheus `/metrics`, hash-only logging. |
+| BC | Purpose |
+|---|---|
+| `model-routing` | Provider selection across Anthropic / OpenAI / Google / Bedrock / vLLM / SGLang / Apple Foundation / OpenRouter / Together / Groq / HuggingFace / Replicate. |
+| `providers` | Per-provider adapter pool (16 first-class adapters at launch). |
+| `guardrails` | Input + output content filtering, refusal policy, classification, EU AI Act Annex III floors. |
+| `eval` | Output-quality evaluation, canonicalen-set scoring, online A/B. |
+| `attribution` | Citation rendering, source attribution, provenance graph. |
+| `brand-ux-surface` | Consumer brand-UX components (sparkle icon, tier badges, streaming text, citation rendering). |
+| `credential-resolver` | `SecretReference` resolution per ADR-0255 §D-4 — provider-BYOK by default, platform-default for B2C. |
+| `audit-tap` | Audit-event emission per ADR-0263 onto the audit-chain seal stream. |
 
-## v1 feature checklist
+## Architecture posture
 
-- **True SSE streaming passthrough** — the upstream `reqwest` byte stream is
-  piped directly into the axum response body (`Body::from_stream`). Response
-  bodies are **never** buffered, parsed, or logged. Works for both streamed and
-  unary responses.
-- **Per-provider channel adapters** — inject the correct auth + base URL:
-  - OpenAI: `Authorization: Bearer <key>`
-  - Anthropic: `x-api-key: <key>` + `anthropic-version: <ver>`
-  - Gemini: `X-Goog-Api-Key: <key>`
-- **Key pool** — round-robin selection, per-key failure counting, blacklist on
-  a configurable threshold, jittered cooldown, success-reset, lazy restore.
-- **Failover / retry** — on a configurable status set (default `429, 500, 502,
-  503, 504`) the proxy rotates to the next key, with a max-attempt cap and
-  jittered backoff. Transport errors are always retryable.
-- **Two auth realms** — admin/control and ingress proxy-key, both compared in
-  constant time via [`subtle`].
-- **Owned secret-provider sourcing** — pooled credentials are resolved from
-  `secret-ref://` / `kms-ref://` handles at startup and on periodic refresh.
-  **No pooled key is ever read from a plaintext file or environment variable.**
-  Concrete stores are transient adapters behind cloud-secrets/cloud-kms.
-- **Prometheus metrics** — `oya_cloud_intelligence_*`: per-key success/failure,
-  retries, upstream latency histogram, active-key gauge, request outcomes.
-- **Hash-only logging** — structured logs identify a key only by a
-  non-reversible SHA-256-derived fingerprint. The key, the prompt, and the
-  response body are never logged.
+- **Library-first dispatch** per the ADR-0255 amendment. Consumers link the dispatch SDK directly;
+  the network surface is the opt-in fallback for cross-language callers and for the
+  brand-ux-surface chrome.
+- **Multi-modal day one.** Text, image, audio, and video transports share one dispatch envelope.
+- **Caller-side RAG.** This µservice never owns the corpus; embeddings live in
+  `intelligence-embeddings` and retrieval is the caller's responsibility.
+- **Audience-tag-on-every-call.** Every dispatch carries the audience tag (`consumer`, `developer`,
+  `internal-foundry`) per ADR-0255 §"Audience surface enumeration".
+- **Substrate tier.** `intelligence` is a substrate µservice; substrate dependencies are declared
+  in `manifest.json` (`cloud-secrets`, `policy-engine`, `observability`, `audit-chain`, `cell`).
+- **provider-BYOK by default.** Provider credentials never live in the substrate; the
+  `credential-resolver` BC resolves `SecretReference`s on the tenant's behalf per ADR-0255 §D-4.
 
-## Key sourcing (load-bearing security)
+## Document map
 
-```
-secret-ref://cloud-intelligence/<tenant>/<provider>/<seat>
-kms-ref://cloud-intelligence/<tenant>/<provider>/<seat>
-```
+| Class | Files |
+|---|---|
+| Strategic | `PRD.md`, `ARCHITECTURE.md`, `PHASE-01-INTELLIGENCE-TWO-LAYER-MVP.md`, `PHASE-02-CONSUMER-BRAND-SURFACE.md`, `threat-model.md`, `dpia.md` |
+| Architecture / ops | `capacity-model.md`, `cost-budget.md`, `failure-modes.md`, `multi-region.md`, `incident-response.md`, `backfill-replay.md`, `compliance.md`, `competitor-parity-matrix.md`, `sdk-plan.md` |
+| Policy | `policy/*.cedar`, `policy/data-residency.md`, `policy/tenant-isolation.md` |
+| Runbooks | `runbooks/*.md` |
+| Contracts | `contracts/openapi/intelligence-v1.yaml`, `contracts/asyncapi/intelligence-events-v1.yaml`, `contracts/proto/intelligence-v1.proto`, `contracts/provider-adapter-trait.md` |
+| Capabilities | `capabilities/*.yaml` |
+| Dashboards | `dashboards/*.json` + `*.md` |
+| SLOs | `slos/*.openslo.yaml` |
+| Implementation plans | `IP-001-..IP-025-*.md` |
+| Catalog records | `catalog/oya-intelligence-*.yaml` |
+| IaC | `iac/k8s/*`, `iac/helm/*`, `iac/terraform/*` |
+| Manifest + audit | `manifest.json`, `scorecards/overrides.json`, `AUDIT-FINDINGS-2026-05-20.json` |
 
-The gateway receives opaque handles and a short-lived secret-provider adapter
-token from Kubernetes projection. The cloud-secrets/cloud-kms substrate owns
-encryption-at-rest, KMS policy, and any backing-store adapters. There is no
-plaintext file/env key source.
+## Audience served
 
-## Configuration
+| Audience tag | Description | Default cost ownership |
+|---|---|---|
+| `consumer` | Personal-AI brand surface end-user | platform-default (oyatie covers cost float) |
+| `developer` | Builder-on-platform calling the dispatch SDK | tenant provider-credential BYOK (ADR-0255 §D-4) |
+| `internal-foundry` | Foundry agent caller (planning, review, exec, doubt) | platform-default + tenant-cell shadow |
 
-Non-secret routing config is declarative (a ConfigMap-mounted JSON file at
-`$GATEWAY_CONFIG`). Secrets are sourced only from owned secret-provider/KMS
-handles projected by Kubernetes.
+## References
 
-```json
-{
-  "listen_addr": "0.0.0.0:8080",
-  "secret_provider": { "address": "https://cloud-secrets-adapter.cloud-secrets.svc.cluster.local:8200", "handle_schemes": ["secret-ref://", "kms-ref://"] },
-  "key_refresh_secs": 300,
-  "groups": [
-    {
-      "name": "codex",
-      "channel": "openai",
-      "upstream_base_url": "https://api.openai.com",
-      "secret_handle": "secret-ref://cloud-intelligence/dogfood/openai/default",
-      "retry": { "retry_on_statuses": [429, 500, 502, 503, 504], "max_attempts": 3 }
-    },
-    {
-      "name": "claude",
-      "channel": "anthropic",
-      "upstream_base_url": "https://api.anthropic.com",
-      "secret_handle": "secret-ref://cloud-intelligence/dogfood/anthropic/default",
-      "anthropic_version": "2023-06-01"
-    }
-  ]
-}
-```
+- ADR-0255 — Intelligence as two-layer AI Substrate (authority).
+- ADR-0255 amendment — Library-first network-opt-in clarification.
+- ADR-0263 — Audit-tap per-call emission.
+- ADR-0296 — Sidecar credential-handle path.
+- `docs/standards/documentation-rigor.md`.
 
-Environment (all injected from k8s Secrets at deploy; never plaintext files):
+## Doctrine references
 
-| Var | Purpose |
-|-----|---------|
-| `GATEWAY_CONFIG` | Path to the ConfigMap JSON above (non-secret). |
-| `OYA_CLOUD_INTEL_SECRET_PROVIDER_TOKEN` | Short-lived token for the owned secret-provider adapter. |
-| `ADMIN_TOKEN` | Admin/control realm token. |
-| `INGRESS_PROXY_KEYS` | Comma-separated ingress proxy-keys for the agent fleet. |
-
-## Ingress surface
-
-| Route | Purpose |
-|-------|---------|
-| `ANY /proxy/{group}/{*rest}` | Reverse proxy. Caller presents `x-oya-proxy-key`; the gateway forwards to `<upstream_base_url>/<rest>` with pooled auth injected. |
-| `GET /healthz` | Liveness. |
-| `GET /metrics` | Prometheus exposition. |
-
-## Live fanout: how parallel agents use this gateway
-
-After the operator-runtime steps in [SETUP-RUNBOOK.md](./SETUP-RUNBOOK.md) are complete (secret-provider handles registered, image built, Deployment Ready, HPA active), parallel agents (Claude Code / Codex / Anthropic SDK / OpenAI SDK / Gemini SDK callers) can route through the gateway instead of each agent calling provider APIs directly.
-
-### Agent-side env vars
-
-Each agent sets these BEFORE invoking its provider SDK:
-
-```sh
-# Anthropic SDK (Claude Code, claude-cli)
-export ANTHROPIC_BASE_URL="http://cloud-intelligence.oya-cloud-intelligence.svc.cluster.local:8080/v1/anthropic"
-export ANTHROPIC_API_KEY="$INGRESS_PROXY_KEY"   # one of the ingress proxy keys from secret-ref://cloud-intelligence/ingress-proxy-keys
-
-# OpenAI SDK (Codex, openai-cli)
-export OPENAI_BASE_URL="http://cloud-intelligence.oya-cloud-intelligence.svc.cluster.local:8080/v1/openai"
-export OPENAI_API_KEY="$INGRESS_PROXY_KEY"
-
-# Gemini SDK
-export GEMINI_BASE_URL="http://cloud-intelligence.oya-cloud-intelligence.svc.cluster.local:8080/v1/gemini"
-export GEMINI_API_KEY="$INGRESS_PROXY_KEY"
-```
-
-### Namespace opt-in (cell-boundary)
-
-The Cilium L3/L4 NetworkPolicy at `infra/cilium/cell-boundaries/oya-cloud-intelligence-ingress.netpol.yaml` only allows traffic from namespaces labelled `oya.gateway-client=true`. For each agent-hosting namespace:
-
-```sh
-kubectl label namespace <my-agent-ns> oya.gateway-client=true
-```
-
-### What the gateway does for the agent
-
-1. Strips the agent's `Authorization` header.
-2. Looks up the next available key from the per-provider key pool (round-robin with cooldown on 429/5xx per ADR-0193 + ADR-0381 D1).
-3. Re-signs the upstream request with the provider's expected header (`Authorization: Bearer ...` for OpenAI, `x-api-key + anthropic-version` for Anthropic, `X-Goog-Api-Key` for Gemini).
-4. Forwards SSE / streaming responses back to the agent unchanged.
-
-### Horizontal scaling
-
-- Deployment baseline: `replicas: 3`.
-- HPA: 3 → 20 replicas, target 60% CPU + 75% memory utilization.
-- Each replica is stateless; key-pool state is per-replica (no cross-replica coordination — the per-provider key set is small enough that independent round-robin tolerates skew).
-- For N concurrent agents, the gateway scales horizontally without coordination overhead.
-
-### Observability
-
-Once observability lands (PR #260 + ADR-0383), the gateway emits OTel metrics on:
-- request rate per provider + per group
-- key-pool occupancy / blacklist count / cooldown remaining
-- upstream latency (p50/p95/p99 per provider)
-
-## Status / non-claims
-
-`CS-CLOUD-INTELLIGENCE-AGENT-DISPATCH-001` is a **code-backed local foundation**: the
-workspace builds, clippy is clean, and unit tests pass. There is **no** live
-deployment, container image, k8s manifest, measured SLO, persistence, or
-audit-chain runtime. See [`manifest.json`](./manifest.json) for the full
-machine-readable claim set and explicit non-claims.
+- [ADR-0346](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): `./bin/oya verify --ci-required` is the canonical local pre-push verifier and MUST locally mirror the full CI matrix, blocking on exit-0 of each mandatory step before returning success. Enforced by `oya-governance-oya-verify-ci-mirror-coverage`, `oya-governance-oya-verify-ci-step-exit-semantics`, `oya-governance-oya-verify-skip-flag-allowlist`, `oya-governance-oya-submit-calls-verify`, and `oya-governance-oya-verify-exit-code-contract`.
+- [ADR-0347](../../docs/decisions/ADR-0709-general-live-apex.md): Every `oya-governance-*` CI lane prefix RENAMES to `oya-governance-*` in one Wave 15-ZB bulk-rename pull request rather than 34 per-lane migration IPs. Enforced by `oya-governance-no-foundry-fitness-residue`, `oya-governance-lane-prefix-vocabulary`, and `oya-governance-rename-inventory-presence`.
+- [ADR-0348](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Cellular topology MUST support control-plane-driven AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING, with manifest-declared configuration, residency/compliance constraints, audit-chain emission, and reversibility. Enforced by `oya-governance-sharding-automation-coverage`, `oya-governance-autosharding-manual-mode-refusal`, `oya-governance-auto-rebalance-residency-honored`, `oya-governance-dynamic-sharding-threshold-coverage`, `oya-governance-audit-chain-emit-on-automation-events`, and `oya-governance-tenant-migration-reversibility`.
+- [ADR-0349](../../docs/decisions/ADR-0700-ci-admission-live-apex.md): Jenkins (LTS) and ArgoCD are the canonical self-hostable CI/CD substrates; Jenkins augments GitHub Actions for self-hostable contexts, and ArgoCD is the canonical GitOps CD orchestrator that replaces manual `kubectl apply` and Helm CLI deploys. Enforced by `oya-governance-jenkins-github-actions-parity`, `oya-governance-argocd-application-cosign-verified`, `oya-governance-argocd-tenant-namespace-isolation`, `oya-governance-jenkins-jcasc-only`, and `oya-governance-deploy-audit-chain-emit`.

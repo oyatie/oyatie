@@ -24,10 +24,10 @@
       "storage/drive/manifest.json"
     ],
     "foundry": [
-      "oya/intelligence/_legacy-foundry/manifest.json"
+      "intelligence/_legacy-foundry/manifest.json"
     ],
     "governance": [
-      "oya/governance/manifest.json"
+      "governance/manifest.json"
     ],
     "mail": [
       "comms/mail/manifest.json"

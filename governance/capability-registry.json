@@ -439,8 +439,7 @@
         "audit"
       ],
       "absorbs_current_dirs": [
-        "compliance",
-        "oya/governance"
+        "compliance"
       ],
       "dag_node": "compliance",
       "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): compliance (regulatory-evidence engine) and audit (always-on tamper-evident log substrate) stay SEPARATE across their clean port seam; compliance consumes audit. A collapse would need its own ADR amendment (ADR-0562 §7). NOTE (ADR-0615 §2 Q13): oya/governance does NOT belong in this absorb — it is 0-crate enforcement/policy residue that decomposes to governance/ (authority) + ci/gateway/cell (SLOs) + iac/ in the compliance/governance Batch-5 move-plan; this absorb entry is retained until that atomic move to avoid orphaning."
