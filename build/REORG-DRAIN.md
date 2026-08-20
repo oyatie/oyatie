@@ -6400,3 +6400,35 @@ which is the same answer the range loop reads for the same question.
 
 Ten of ten packages pass `rustc` and `clippy-driver` under `--deny=warnings`. The five goal
 repositories translate 162 declarations between them.
+
+## R3v — a use at the DEFAULT type is not evidence of a type
+
+    PROTOCOL_VERSION_MIN: u8 = 1
+    PROTOCOL_VERSION2_COMPATIBLE: u8 = 2
+    PROTOCOL_VERSION_MAX: i64 = 5
+
+The min and max of one inclusive range, at two different integer types, so the range check the Go
+performs is not expressible at all. Both gates named it.
+
+In the source all three are untyped except the first. `ProtocolVersionMax` is used as `uint8` in
+`[]uint8{ProtocolVersionMin, ProtocolVersionMax, ..}` and in `conf.ProtocolVersion > ProtocolVersionMax`
+— and as `int` inside `fmt.Errorf("...%d...", .., ProtocolVersionMax)`, because an `interface{}`
+parameter constrains nothing and Go then applies the constant's DEFAULT type.
+
+R3p's rule counted that as a use, saw two answers, found no unanimity, and fell back to the default
+— which is the answer the disagreeing use had already supplied. A use at the default type carries no
+information: it is what the language does when the context says nothing.
+
+Excluding it can only change the answer when some OTHER use constrains the value, and that use is
+the one carrying information. Where every use is the default there is no agreement to find and the
+default still stands. All three constants are now `u8`.
+
+### And the value has to be spelled at the type it now has
+
+`const pushPullScaleThreshold = 32` is a float in the source because every use of it is one, and the
+rule above now sees that. The target states a constant's type at its declaration, and
+`const T: f64 = 32` does not typecheck — a literal with no point is an integer there. Only a value
+that is entirely digits gets one; anything else already carries a point, an exponent or a sign it
+spelled for itself.
+
+Found by the compile gate one cycle after the rule that caused it, which is what the gate is for.
