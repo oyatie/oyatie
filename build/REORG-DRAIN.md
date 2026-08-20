@@ -4500,3 +4500,56 @@ proof is required of anything.
 Verification: 11 crates' tests green by exit code; clippy `-D warnings` green; `delta` Green/Unchanged;
 golden byte-identical; `clippy-driver --deny=warnings` green over all five packages that emit, under
 `#![forbid(unsafe_code)]`. Coverage unchanged, as expected for a prose rule.
+
+## R2l — the error model has a nullability hole, and it is upstream of three separate symptoms
+
+Chasing why `errors` sits at 0% led to one root cause that also explains two findings recorded
+elsewhere as if they were unrelated. Written down before building, because the fix is one coherent
+change and slicing it leaves the pieces disagreeing with each other.
+
+**The hole.** The source's `error` is an INTERFACE VALUE and is nullable — `nil` is a legal value of
+it in every position. The pack maps it, in every position that STORES the value, to
+`Box<dyn StdError + Send + Sync>`, which is not. The comment at that branch is careful and correct
+about why the form is owned and boxed (a failure outlives the call that produced it), and it names
+"a field, a result and a composite element" as sharing that property. What it does not address is
+that the source value can be absent and the target type cannot say so.
+
+So a struct field holding a source error is typed as though it always holds one. That is a nullable
+value mapped to a non-nullable type, which is the class of defect this engine exists to prevent, and
+it is currently invisible because the declarations that would expose it refuse first.
+
+**Symptom one — `errors` at 0%.** Its central types (`withMessage`, `withStack`, `fundamental`,
+`stack`) refuse, and 8 of the package's 19 refusals are cascades from them. The trigger is
+`func (w *withMessage) Cause() error { return w.cause }`: a sole `error` result is read as the
+failure channel, so the method becomes `-> Result<(), E>` and `return w.cause` has to be PROVEN a
+failure, which a stored field can never be. The refusal is correct given the mapping. The mapping is
+what is wrong: `Ok(())` would mean "there is no cause" and `Err(e)` would mean "the cause is e" —
+the failure channel carrying data.
+
+**Symptom two — the sole-result ambiguity, now measured.** A sole `error` result means two different
+things in the source and the discriminator is mechanical. Across the corpus, 45 functions have one:
+**13 never return the absent value on any path, 32 do.** The split lands exactly where the semantics
+say it should — every `Cause`, `Unwrap` and `StackTrace` getter on the data side together with the
+`New`/`Errorf` constructors, and every `Unmarshal*`, `Scan` and `validate*` on the channel side. Ten
+of the 13 are in `errors`. A validator that returns `nil` on success is a channel and stays
+`Result<(), E>`; a getter that never returns `nil` literally is handing back a value.
+
+**Symptom three — the `impl Box<dyn StdError + Send + Sync> for X` defect from R2i.** Recorded there
+as its own item across three packages. It is the same root: one source type with several target
+spellings selected by POSITION, and the engine holding fewer spellings than there are positions. As
+a bound or an impl target the answer is the trait; as a value known present it is the boxed object;
+as a value that may be absent it is the option of that.
+
+**Why it is one phase and not three.** The three spellings have to agree. Give the getter an
+`Option<E>` result while its backing field stays non-optional and the body cannot typecheck; fix the
+field alone and every existing result disagrees with it. The existing `trait_object_forms` table is
+the right shape to extend — it already maps POSITION to target form for interface types, with
+`param`, `trait` and `supertrait` declared and reasoned — and the failure convention needs the same
+treatment rather than a single `target_type` that answers for every storing position at once.
+
+**The one thing already verified about the shape.** `trait_object_forms` proves the pack can express
+position-dependent spellings and that the engine consults them; this is an extension of a mechanism
+that exists and is justified, not a new concept.
+
+Nothing was built this phase. The measurement is the deliverable: 13/32, the discriminator, and the
+fact that three symptoms recorded separately are one cause.
