@@ -327,7 +327,7 @@ fn emptiness_companion(methods: &[RustFn]) -> Option<RustFn> {
         docs: vec![" Whether the collection contains no elements.".to_owned()],
         vis: Visibility::Public,
         name: "is_empty".to_owned(),
-        receiver: length.receiver.clone(),
+        receiver: length.receiver,
         params: Vec::new(),
         ret: Some(port_engine_rust_ir::RustType::path("bool")),
         attrs: Vec::new(),
