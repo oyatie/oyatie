@@ -3929,3 +3929,31 @@ building the body first in both places that build one.
 
 `MAGIC` is `[u8; 4]` by value now rather than a reference to one: a constant is materialised at every
 use anyway, so the reference bought an indirection and nothing else.
+
+## R1z — a mapped call is a tree, not text
+
+The wrapper inlining landed and `round` still would not fold, for a reason worth naming: a call the
+pack answers for arrived as target TEXT. `structured()` produced `RustExpr::Literal("acc.rotate_left(31)")`
+— a string wearing an expression's type — and text is opaque to everything downstream. The
+accumulator fold could not substitute into it, so it correctly aborted and the body kept its
+statements.
+
+Most mapping forms are one shape: `{0}.method({1})`, a receiver and a name and arguments. That is a
+tree, and building it costs nothing:
+
+```rust
+fn round(acc: u64, input: u64) -> u64 {
+    acc.wrapping_add(input.wrapping_mul(PRIME2)).rotate_left(31).wrapping_mul(PRIME1)
+}
+```
+
+**Anything else stays the text substitution it always was.** A form with a cast, a turbofish, or a
+construction is not this shape, and pretending otherwise would build a tree that renders differently
+from the form the pack wrote. Every argument must be a bare placeholder in order, and every argument
+the call has must be consumed — a form that reorders, repeats, or drops one is doing something this
+shape cannot express.
+
+This is the same lesson as the formatting call two phases back: **text is the wrong currency between
+rules.** A rule that emits text ends every rule downstream of it, silently, by producing something
+nothing else can read. Both times the symptom was a later rule quietly declining to fire, and both
+times the fix was a tree.
