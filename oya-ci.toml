@@ -170,7 +170,7 @@ reason = "CI-011 faithful point-in-time inventory of retiring CLI subcommands; f
 # vocabulary. Core kit surfaces under .grok/{bin,harness,hooks,workflows} remain scanned.
 [[vocab.carve_outs]]
 kind = "path_exact"
-value = ".grok/programs/cas-fabric/evidence/ultragoal-ledger.snapshot.jsonl"
+value = "evidence/ultragoal-ledger.snapshot.jsonl"
 reason = "append-only historical ultragoal ledger snapshot embedded in mm-kit program evidence; quotes retired path/package tokens (foundry, oya-vcs) as provenance only"
 
 [[vocab.carve_outs]]

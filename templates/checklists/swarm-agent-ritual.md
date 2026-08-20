@@ -36,7 +36,7 @@ Operating-contract pointer: `docs/AGENTS.md` § Doctrine survival → Per-dispat
 
 ## B. Reasoning map (before implementing / verdicting / planning)
 
-1. **Lens selection** — ≥2 task-fit lenses (`.grok/harness/lenses.v1.json`); full 16 only at root decisions; leaves inherit.
+1. **Lens selection** — ≥2 task-fit lenses (`ci/facade/harness/lenses.v1.json`); full 16 only at root decisions; leaves inherit.
 2. **Claim digraph** — build digraph (or tagged list if single-claim). Untagged claims = narrative, not reasoning.
 3. **Challenges[]** — ≥1 real challenge (Chesterton first). Empty / templated = stamp; reject your own work.
 

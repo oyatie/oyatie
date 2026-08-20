@@ -3,7 +3,7 @@
   "id": "northstar-daemon-hotset",
   "status": "binding",
   "authority": "ADR-0711 Amendment A-2 + D-5; specs/integ-branch-envelopes.json#merge_windows",
-  "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+  "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md",
   "script": "//ci/process-kit:oya-process-kit-check-daemon",
   "daemon": "ci/process-kit/src/bin/check_daemon.rs",
   "achieves": "Early buck2 [check] feedback on at most hot_set_max restackable integ stations without worker-lane builds or cargo revival.",

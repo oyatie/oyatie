@@ -264,7 +264,7 @@ Full clustered KEEP/BAN from the 137-entry Amendment C archive distillation: **A
 ### Amendment A (2026-08-10)
 
 Binding amendment to the Swarm Delivery Law. Full portable mirror:
-`.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment A.
+`governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment A.
 
 #### A-1 — Docs governability track (beads epic)
 
@@ -333,7 +333,7 @@ admission.
 ### Amendment B (2026-08-10) — REORG NOW (ternary layout map)
 
 Binding amendment. **Reorg happens NOW** — classification is a move map, not a parking lot.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment B.
+Portable mirror: `governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment B.
 Policy-as-data: `specs/integ-branch-envelopes.json` → `reorg_debt_freeze`.
 
 #### B-0 — Greenfield question (placement law)
@@ -440,7 +440,7 @@ dual-emit legacy+forever merge contexts in-repo until founder flips protection i
 
 #### B-1c — Full 16-lens battery (new AND existing patterns)
 
-Authority pack: [`.grok/harness/lenses.v1.json`](../../.grok/harness/lenses.v1.json).
+Authority pack: [`ci/facade/harness/lenses.v1.json`](../../ci/facade/harness/lenses.v1.json).
 **Never a subset.** Every judgment that keeps, replaces, or deletes an existing pattern/decision/
 architecture/design MUST run the full battery and record:
 
@@ -509,7 +509,7 @@ First wave = evaluated decisions with evidence (`judgments_done` / `first_wave`)
 
 Binding amendment. Distilled from **all 137** archive entries (14 batch distillers,
 000–136) into the operating-patterns catalog. Encode **clusters**, not 137 paraphrases.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment C.
+Portable mirror: `governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment C.
 Policy-as-data: `specs/agentic-operating-patterns.json`.
 
 These clusters reinforce (do not replace) D-1…D-9, Amendment A, and Amendment B.
@@ -553,7 +553,7 @@ Any distill note that said **keep the name `oya-ci-required`** is **OVERRULED**.
 ### Amendment D (2026-08-10) — Anti-drift documentation doctrine
 
 Binding amendment. Machine law + packet + same-wave colocation so docs cannot drift after change.
-Portable mirror: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md` § Amendment D.
+Portable mirror: `governance/contracts/PORTABLE-SWARM-CONTRACT.md` § Amendment D.
 Policy-as-data: `specs/integ-branch-envelopes.json#anti_drift` (`anti_drift_doctrine_version`).
 
 #### INV-DOC-1…9 (RFC 2119)
@@ -702,7 +702,7 @@ Does not authorize `sweep-execute` naming moves before `#1644` land. Observation
 - Naming taxonomy: `specs/naming-taxonomy.json`
 - operating-patterns catalog: `specs/agentic-operating-patterns.json`
 - Policy: `specs/integ-branch-envelopes.json`
-- Portable rule text: `.grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md`
+- Portable rule text: `governance/contracts/PORTABLE-SWARM-CONTRACT.md`
 - Harness: `.claude/workflows/deliver.js` (Claim + Land)
 - Concurrent-safe registry: `registry/vcs/concurrent-safe-paths.yaml`
 - Operating contract: `docs/AGENTS.md` (worktree-per-lane; sole required merge-admission context)

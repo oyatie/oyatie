@@ -222,7 +222,7 @@ Mirror of ADR-0711 Amendment B.
    `name_forever`. Merge-gate contexts dual-emit legacy+forever in-repo until founder flips
    branch protection — agents never edit protection settings.
 8. **Full 16-lens battery (binding):** every keep/replace/delete of an *existing* pattern runs
-   all ids in `.grok/harness/lenses.v1.json` — record `lenses_applied: all-16` and
+   all ids in `ci/facade/harness/lenses.v1.json` — record `lenses_applied: all-16` and
    `challenges[]` (Chesterton's fence: why it existed, then still replace if indefensible).
    Never a subset. If not defensible under the full battery → delete or reshape; do not silently
    follow anti-patterns.

@@ -592,7 +592,7 @@
     ]
   },
   "lens_battery": {
-    "authority": ".grok/harness/lenses.v1.json",
+    "authority": "ci/facade/harness/lenses.v1.json",
     "required": "all-16",
     "rule": "Judgments that keep or replace existing patterns MUST set lenses_applied=all-16 and challenges[]. Taxonomy REPLACES indefensible practice; it must not encode anti-patterns as forever grammar.",
     "ids": [

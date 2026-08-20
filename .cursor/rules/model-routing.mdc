@@ -46,7 +46,7 @@ Quality (for hard judgment) goes **up** cost, not down:
 7. **Cost-sensitive mechanical** bulk → Terra Extra High or Luna Max **only** when wrong answers are cheap to catch.
 8. **BAN all `*-fast` model slugs** (incl. `composer-2.5-fast`).
 9. Unavailable `composer-2.5` on narrow slice → prefer Luna-max first; never a fast-tier fallback. Unavailable Luna-max → Composer. Substantive implement omission → `cursor-grok-4.5-high`. `inherit` only if parent is already Grok 4.5.
-10. Machine-readable priors: `.grok/harness/model-routing.v1.json` (advisory; Cursor Task slugs above govern Task dispatches).
+10. Machine-readable priors: `ci/facade/harness/model-routing.v1.json` (advisory; Cursor Task slugs above govern Task dispatches).
 11. Re-read CursorBench when changing presets; record score/cost/date in the harness `cursorbench` block when present.
 
 ## Optional advisory channels (omx / omc / gjc / grok)

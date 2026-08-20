@@ -237,3 +237,12 @@ _ralplan_workflow.js
 /.beads/
 /.cursor/
 /infra/capi/_out/
+
+# Agent working directories must never be committed. Load-bearing content is
+# drained to a real home first (see PLAN.md 39); these hold scratch only.
+.grok/
+.claude/
+.codex/
+.cursor/
+.agents/
+.beads/

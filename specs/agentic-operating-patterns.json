@@ -17,7 +17,7 @@
     "corpus_entries": "000-136",
     "prior_version": "1.1.0",
     "primary_consumers": [
-      ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+      "governance/contracts/PORTABLE-SWARM-CONTRACT.md",
       "specs/integ-branch-envelopes.json",
       ".claude/workflows/deliver.js Claim (advisory)"
     ],

@@ -1223,7 +1223,7 @@ n/a). Missing packet = REFUSE. Prose MUST cite JSON pointers — never re-list #
       {none,refactor,rewrite,delete}. REFUSE git-mv-only / rename-only waves and any change
       when judgment is \`pending\`. PR body MUST paste the 7-point judgment.
    C) KEEP/REPLACE of an *existing* pattern at ROOT scope: require \`lenses_applied: all-16\`
-      (ids in .grok/harness/lenses.v1.json) and non-empty \`challenges[]\`. Leaf MAY use
+      (ids in ci/facade/harness/lenses.v1.json) and non-empty \`challenges[]\`. Leaf MAY use
       \`inherit-root\`. Empty/templated challenges with all-16 = REFUSE (anti-stamp).
    D) RENAMES: require taxonomy \`kind\` + \`name_now\`/\`name_forever\` + \`grammar_compliant\`;
       taxonomy REPLACES brand/ADR naming anti-patterns — does not encode them.
