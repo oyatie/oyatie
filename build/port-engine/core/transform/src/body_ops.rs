@@ -116,7 +116,10 @@ pub(crate) fn unary_operator(spelling: &str) -> Option<UnaryOp> {
 /// question about position inside the tuple that this does not answer — so it says no rather than
 /// answering for the wrong member.
 /// Whether the sole result is a SEQUENCE the target owns.
-pub(crate) fn returns_owned_sequence(declaration: &Declaration, resolver: &Resolver<'_>) -> bool {
+pub(crate) fn returns_owned_sequence(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> std::collections::BTreeSet<usize> {
     let mut results = declaration.children_of_kind(CHILD_RESULT);
     // The FAILURE result comes off first, exactly as the signature takes it off. A fallible function
     // returning a sequence has two results and one value, and asking for a sole result would answer
@@ -125,10 +128,15 @@ pub(crate) fn returns_owned_sequence(declaration: &Declaration, resolver: &Resol
     if crate::failure::is_fallible(declaration, resolver.failure) {
         results.pop();
     }
-    let [result] = results.as_slice() else {
-        return false;
-    };
-    result.type_ref.kind == "slice"
+    // Per POSITION, not one answer for the declaration. A function returning `([]byte, uint64)`
+    // renders as a tuple, and only its first element is a sequence the target owns — asking once for
+    // the whole signature answered "no" and left a borrow in a tuple whose type said otherwise.
+    results
+        .iter()
+        .enumerate()
+        .filter(|(_, result)| result.type_ref.kind == "slice")
+        .map(|(index, _)| index)
+        .collect()
 }
 
 pub(crate) fn returns_owned_string(declaration: &Declaration, resolver: &Resolver<'_>) -> bool {
@@ -166,8 +174,8 @@ pub(crate) fn returns_owned_string(declaration: &Declaration, resolver: &Resolve
 /// receiver's own copy — and the target's `&self.0[..]` borrows what the receiver owns, which is not
 /// what a result declared as the owned sequence asks for. The method that converts is the pack's to
 /// name; where it names none this leaves the expression alone.
-pub(crate) fn own_returned_sequence(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
-    if !cx.result_is_owned_sequence {
+pub(crate) fn own_returned_sequence(expr: RustExpr, index: usize, cx: &Body<'_>) -> RustExpr {
+    if !cx.result_is_owned_sequence.contains(&index) {
         return expr;
     }
     let method = cx.resolver.allocation.owned_from_slice.clone();

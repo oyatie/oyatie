@@ -5140,3 +5140,53 @@ The neighbouring finding on the SAME line is different and is not declined: `Com
 whatever the source allowed, and belongs to the doc rules that already drop a sentence naming
 something the crate does not contain — a sentence naming a property the type does not have is the
 same defect one step further in. Not yet built; recorded here as the next doc rule.
+
+## R2x — the byte-order package, and four gaps it uncovered
+
+Worked the standing goal's first instruction: build the histogram, rank by packages blocked, read the
+top cause and check it is TRUE before acting. The top was `encoding/binary` — **48 call sites across
+four of seven packages**, the largest by both measures. The claim held: the package is not in the
+snapshot and the target has direct equivalents.
+
+**Why nothing could answer it before.** These are METHODS on a package-level value —
+`binary.BigEndian.Uint32(b)` — and the front end deliberately records no callee identity for a method,
+because a method is not nameable by package path. So every rule keyed on identity was structurally
+unable to see them.
+
+What it does now record is the package's IMPORT PATH, added here. That is the sound key: an import may
+be aliased, so `binary.BigEndian` and `bin.BigEndian` are one call written two ways, and keying on the
+local name would have been right by convention rather than by construction.
+
+**Built as a tree, not a template.** The pack names the pieces — order suffixes, the integer type each
+method yields, the fit and the write methods — and the engine assembles the shape. This engine has
+twice been bitten by a rule emitting target TEXT, which is opaque to every rule downstream. A read
+becomes `u16::from_be_bytes(x[7..9].try_into().unwrap())`; the unwrap is not an invention, because
+the source's own read panics on a short slice.
+
+Verified against upstream rather than assumed: Go's `binary.BigEndian.Uint16(id[7:9])` and the
+emitted `u16::from_be_bytes(self.0[7..9].try_into().unwrap())` agree on bounds and order.
+
+**Four gaps it uncovered, each fixed.** This is the pattern the goal warns about — a rule that unlocks
+code reveals what was behind it:
+
+*A newtype argument to a MAPPED call reaches through its wrapper.* `len(id)` on a named array becomes
+`id.0.len()`: the target's length belongs to the array, and the newtype has none. Only for mapped
+callees — a call to this unit's own function takes the newtype, which is what its signature declares.
+
+*A bare return in a function with NAMED results returns those results.* The source binds them at entry
+and `return` hands back whatever they hold; the engine emitted `return;` from a function with a result
+type.
+
+*A call that WRITES INTO an argument assigns to it.* The source spells the write as a call and the
+target as a mutation, so a binding appearing only as such an argument was never observed assigned,
+came out immutable, and did not compile. Which callees write is pack data — the same table that maps
+them.
+
+*Sequence ownership is per RESULT POSITION.* A function returning `([]byte, uint64)` renders as a
+tuple of which only the first element is a sequence the target owns; one answer for the whole
+signature said no and left a borrow where the type said otherwise.
+
+**Translated 97 → 100, and `encoding/binary` leaves the histogram entirely.** All seven packages
+compile clean. The new top is the failing-return proof at 12 sites across four packages.
+
+An extractor change means every snapshot fixture was regenerated, per the standing verification list.

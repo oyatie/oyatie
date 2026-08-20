@@ -106,6 +106,17 @@ pub(crate) fn translated_return(
             true => &node.children[..node.children.len().saturating_sub(1)],
             false => &node.children[..],
         };
+        // A BARE return in a function with NAMED results returns those results. The source binds
+        // them at entry and `return` hands back whatever they hold — so an empty return is not a
+        // return of nothing, and emitting one produced `return;` from a function with a result type.
+        if operands.is_empty()
+            && let Some(named) = crate::body_wider::named_results(cx)
+        {
+            return Ok(match is_last {
+                true => RustStmt::Tail(named),
+                false => RustStmt::Return(Some(named)),
+            });
+        }
         let values = operands
             .iter()
             .enumerate()
@@ -113,9 +124,17 @@ pub(crate) fn translated_return(
             .collect::<Result<Vec<_>, _>>()?;
         match values.len() {
             0 => None,
-            1 => values.into_iter().next().map(|expr| crate::body_ops::own_returned_sequence(own_returned_string(expr, cx), cx)),
+            1 => values.into_iter().next().map(|expr| crate::body_ops::own_returned_sequence(own_returned_string(expr, cx), 0, cx)),
             // Several results leave as a tuple, matching how the signature renders them.
-            _ => Some(RustExpr::Tuple(values)),
+            // Each ELEMENT owns on its own terms: a tuple of results is several results, and only
+            // some of them are sequences the target owns.
+            _ => Some(RustExpr::Tuple(
+                values
+                    .into_iter()
+                    .enumerate()
+                    .map(|(index, value)| crate::body_ops::own_returned_sequence(value, index, cx))
+                    .collect(),
+            )),
         }
     };
     match (is_last, value) {
@@ -159,6 +178,7 @@ pub(crate) fn fallible_return(
                     .into_iter()
                     .next()
                     .unwrap_or_else(|| unreachable!("the arm matched exactly one value")),
+                0,
                 cx,
             ),
             _ => RustExpr::Tuple(values),

@@ -27,6 +27,7 @@ mod apply;
 mod body;
 mod body_alloc;
 mod body_argument;
+mod body_bytes;
 mod body_call;
 mod body_mapped;
 mod body_choice;

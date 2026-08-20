@@ -72,6 +72,13 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 			kind = "receiver"
 		}
 		attrs := map[string]string{attrRef: kind}
+		// The package's IMPORT PATH, not the local name it was bound to. A rule that keys on a
+		// package-qualified call has to key on something stable, and the local name is not: an
+		// import may be aliased, so `binary.BigEndian` and `bin.BigEndian` are the same call
+		// written two ways. The path is the identity go/types already knows.
+		if pkg, ok := ctx.info.Uses[typed].(*types.PkgName); ok {
+			attrs[attrPackagePath] = pkg.Imported().Path()
+		}
 		if readCount != "" {
 			attrs[attrReadCount] = readCount
 		}

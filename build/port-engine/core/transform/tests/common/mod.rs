@@ -15,6 +15,7 @@ use port_engine_transform::*;
 
 #[derive(Default)]
 pub struct Pack {
+    byte_order_calls: port_engine_api::ByteOrderCalls,
     readable_literals: port_engine_api::ReadableLiterals,
     unmappable_facts: std::collections::BTreeMap<String, String>,
     bit_pattern_constants: port_engine_api::BitPatternConstants,
@@ -290,6 +291,12 @@ impl PackSemantics for Pack {
         // EMPTY, so a fixture's literal keeps the spelling it was written with. How a long literal
         // is grouped is a target convention, exercised against the corpus.
         &self.readable_literals
+    }
+
+    fn byte_order_calls(&self) -> &port_engine_api::ByteOrderCalls {
+        // EMPTY, so a fixture's call to a package the snapshot lacks still refuses by name. Which
+        // package supplies byte-order conversions is a judgement about real source.
+        &self.byte_order_calls
     }
 
 

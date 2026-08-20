@@ -42,7 +42,7 @@ pub(crate) fn named_result_bindings(
 ) -> Result<Vec<RustStmt>, TransformError> {
     let mut written = BTreeSet::new();
     for child in &declaration.children {
-        collect_assigned(child, &mut written);
+        collect_assigned(child, resolver, &mut written);
     }
     let mut bindings = Vec::new();
     for result in declaration.children_of_kind(crate::vocabulary::CHILD_RESULT) {
@@ -75,7 +75,21 @@ pub(crate) fn named_result_bindings(
 }
 
 /// Names this subtree ASSIGNS to, so a binding is declared mutable only where it is written.
-fn collect_assigned(node: &Declaration, into: &mut BTreeSet<String>) {
+fn collect_assigned(
+    node: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+    into: &mut BTreeSet<String>,
+) {
+    // A call that WRITES INTO an argument assigns to it. The source spells the write as a call and
+    // the target spells it as a mutation, so a binding that only ever appears as such an argument is
+    // never seen assigned — and comes out immutable, and does not compile. Which callees write is
+    // the pack's to say; it already names them, because they are the same ones it maps.
+    if node.kind == crate::vocabulary::KIND_CALL
+        && crate::body_bytes::writes_into_first_argument(node, resolver)
+        && let Some(destination) = node.children.get(1)
+    {
+        into.extend(root_name(destination));
+    }
     if node.kind == "assign"
         && let Some(target) = node.children.first()
         && target.kind == crate::vocabulary::KIND_IDENT
@@ -92,7 +106,15 @@ fn collect_assigned(node: &Declaration, into: &mut BTreeSet<String>) {
         }
     }
     for child in &node.children {
-        collect_assigned(child, into);
+        collect_assigned(child, resolver, into);
+    }
+}
+
+/// The identifier a place expression is rooted at — `out` for `out`, `out[:]`, `out[1:2]`.
+fn root_name(node: &Declaration) -> Option<String> {
+    match node.kind.as_str() {
+        crate::vocabulary::KIND_IDENT => Some(node.name.clone()),
+        _ => node.children.first().and_then(root_name),
     }
 }
 
@@ -166,4 +188,26 @@ fn local_named_type(operand: &Declaration, cx: &Body<'_>) -> Option<String> {
     // package that had one. Whether a type is a newtype is a fact about the source, so ask the
     // source.
     cx.resolver.scope.types.get(&type_ref.name).cloned()
+}
+
+/// The NAMED results a bare return hands back, as one expression.
+///
+/// The source binds named results at entry and `return` with no operands returns whatever they hold.
+/// The target has no such binding, so the names have to be spelled — one of them directly, several as
+/// the tuple the signature renders them as.
+///
+/// `None` where the enclosing declaration has no named results, which is when a bare return really
+/// does return nothing.
+pub(crate) fn named_results(cx: &crate::body::Body<'_>) -> Option<port_engine_rust_ir::RustExpr> {
+    let names = cx.named_results.clone();
+    match names.len() {
+        0 => None,
+        1 => names
+            .into_iter()
+            .next()
+            .map(port_engine_rust_ir::RustExpr::Path),
+        _ => Some(port_engine_rust_ir::RustExpr::Tuple(
+            names.into_iter().map(port_engine_rust_ir::RustExpr::Path).collect(),
+        )),
+    }
 }

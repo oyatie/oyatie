@@ -8,7 +8,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Allocation, BinaryString, BitPatternConstants, DeriveRule, DocConvention, FailureConvention, ReadableLiterals,
+    Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, DeriveRule, DocConvention, FailureConvention, ReadableLiterals,
     FormatCalls, FormatFunction, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
     PointerConstruction, PointerDisposition, RuleId, SequenceAppend, UnitId,
 };
@@ -212,6 +212,21 @@ impl LoadedRulePack {
                     min_digits: rule.min_digits,
                     group: rule.group,
                     separator: rule.separator,
+                    reason: rule.reason,
+                })
+                .unwrap_or_default(),
+            byte_order_calls: doc
+                .byte_order_calls
+                .map(|rule| ByteOrderCalls {
+                    package: rule.package,
+                    orders: rule.orders,
+                    reads: rule.reads,
+                    writes: rule.writes,
+                    read_form: rule.read_form,
+                    fit_method: rule.fit_method,
+                    fit_unwrap: rule.fit_unwrap,
+                    write_form: rule.write_form,
+                    write_method: rule.write_method,
                     reason: rule.reason,
                 })
                 .unwrap_or_default(),

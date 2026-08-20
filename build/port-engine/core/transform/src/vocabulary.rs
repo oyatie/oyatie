@@ -160,6 +160,12 @@ pub const TYPE_INTERFACE: &str = "interface";
 
 /// Attribute key classifying what an identifier resolves to.
 pub const ATTR_REF: &str = "ref";
+
+/// Attribute key holding a package identifier's IMPORT PATH.
+///
+/// A rule keying on a package-qualified call keys on this rather than on the local name, because an
+/// import may be aliased and the two spellings are one call.
+pub const ATTR_PACKAGE_PATH: &str = "package_path";
 /// The [`ATTR_REF`] value for an identifier naming a constant.
 pub const REF_CONST: &str = "const";
 /// The [`ATTR_REF`] value for an identifier naming a PACKAGE, which is not a value at all.

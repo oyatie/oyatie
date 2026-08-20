@@ -289,6 +289,9 @@ const (
 	// rendering a reference to `MaxRetries` as `max_retries` would be a dangling name, not a
 	// style choice. go/types knows the answer, so it is recorded here rather than guessed there.
 	attrRef = "ref"
+	// attrPackagePath holds a package identifier's IMPORT PATH, so a rule keying on a
+	// package-qualified call keys on the identity rather than on a local alias.
+	attrPackagePath = "package_path"
 	// attrDoc is the declaration's documentation block, newline-separated. Recorded because the
 	// target emits it: dropping it here is a silent loss of everything the source explained about
 	// itself, and no downstream check looks for prose that is simply absent.

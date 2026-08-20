@@ -59,6 +59,31 @@ pub struct BinaryString {
     pub reason: String, // data_class: INTERNAL_ONLY
 }
 
+/// How the source's byte-order package becomes the target's own integer conversions.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ByteOrderCalls {
+    /// The source package's IMPORT PATH, never a local alias.
+    pub package: String, // data_class: INTERNAL_ONLY
+    /// Source order value name to the target's order suffix.
+    pub orders: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
+    /// Source reading method to the target integer type it yields.
+    pub reads: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
+    /// Source writing method to the target integer type it takes.
+    pub writes: BTreeMap<String, String>, // data_class: INTERNAL_ONLY
+    /// The reading path, with `{type}` and `{order}`.
+    pub read_form: String, // data_class: INTERNAL_ONLY
+    /// The method fitting a slice to a fixed-size array.
+    pub fit_method: String, // data_class: INTERNAL_ONLY
+    /// The method taking the fit's value, whose failure the source shares.
+    pub fit_unwrap: String, // data_class: INTERNAL_ONLY
+    /// The writing method, with `{order}`.
+    pub write_form: String, // data_class: INTERNAL_ONLY
+    /// The method copying the written bytes into the destination.
+    pub write_method: String, // data_class: INTERNAL_ONLY
+    /// Why the target needs no library for this, and why it is keyed by path.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// How a long DECIMAL literal is spelled so its magnitude is readable.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct ReadableLiterals {
