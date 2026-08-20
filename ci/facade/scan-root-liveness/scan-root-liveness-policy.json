@@ -97,7 +97,6 @@
     "image-signing-discipline",
     "metric-cardinality",
     "mobile-native",
-    "no-grouping",
     "olap-tier-discipline",
     "openapi-rest-route-parity",
     "otel-trace-propagation",

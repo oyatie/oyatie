@@ -53,13 +53,9 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 9;
 // -- shardability, layered-architecture-discipline, cursor-pagination-coverage, data-class,
 // ontology-projection-coverage, active-artifact-contract -- each of which leaves the dark
 // baseline in the same change that gives it a live-corpus test. 94 - 6 = 88, and the set
-// diff confirms it: exactly those six left, nothing was added back.
-// 2026-08-20  89 -> 88. data-class leaves the dark baseline: it gains a live-corpus test
-// in this change, which was blocked until the 28 unannotated struct fields #2136 landed
-// in governance/check/apex-gist-integrity were annotated. Both halves ship together
-// because neither is correct alone -- wiring the gate without the annotations reds on
-// another PR's crate, and annotating without wiring proves nothing.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 87;
+// 2026-08-20  87 -> 86. no-grouping leaves the dark baseline: it gains a live-corpus test
+// asserting flat single-concern microservices under specs/microservices/ with zero grouping wrappers.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 86;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
