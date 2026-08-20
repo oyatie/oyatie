@@ -1,0 +1,27 @@
+{
+  "_comment": "cloud-ci-benchmark (ADR-0062 residual, restated live by ADR-0709). Every PRD markdown must carry a `## Competitive Benchmark` section naming a competitor or a measured number. `known_competitors` is transcribed from ADR-0062's own Quality-bar table (archived text; ADR-0709's apex gist truncates the table mid-word, so the archived doc is the readable source for the list itself, not for authority). Findings are frozen TWO-SIDED by path: a new SectionMissing/SectionEmpty/SectionUnsubstantiated blocks, and a frozen one that stops firing blocks until struck in the same change.",
+  "gate_id": "cloud-ci-benchmark",
+  "known_competitors": [
+    "stripe",
+    "palantir",
+    "linear",
+    "superhuman",
+    "auth0",
+    "okta",
+    "confluent",
+    "kafka",
+    "opensearch",
+    "algolia",
+    "tantivy",
+    "pgroonga",
+    "typst"
+  ],
+  "frozen_violations": [
+    "docs/prds/communications.md::SectionMissing",
+    "docs/products/erp-coverage/PRD.md::SectionMissing",
+    "docs/products/foundry/PRD.md::SectionMissing",
+    "docs/products/workplace-integration/PRD.md::SectionMissing"
+  ],
+  "min_expected_prds": 10,
+  "min_expected_prds_note": "10, not 14: floor is deliberately looser than the live count so it survives one PRD being added or retired without a re-freeze, while still refusing a walk that collapses toward zero."
+}

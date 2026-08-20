@@ -187,6 +187,12 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         reason: "the frozen missing-cursor baseline ENUMERATES the OpenAPI operations still owing ADR-0150 cursor pagination, keyed by their tracked document path; four of those tracked paths carry a forbidden stem in their own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by rewording the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs.",
     },
     CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/benchmark/benchmark-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen competitive-benchmark violation set NAMES real tracked PRD paths -- one of them is docs/products/foundry/PRD.md, a real product PRD, not brand residue. A file that names the debt (a missing benchmark section) is not the debt (same rationale as cloud-name-baseline.json below).",
+    },
+    CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "libs/oya-ci-config/",
         exempt_stems: &[],
