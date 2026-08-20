@@ -24,6 +24,9 @@ impl RustItem {
             Self::Const { ty, .. } | Self::PackageValue { ty, .. } | Self::TypeAlias { ty, .. } => {
                 ty.spellings(&mut out);
             }
+            // The impl's SELF TYPE, which is a name the emitted module must have. The traits it
+            // implements are the target's own and contribute nothing to resolve.
+            Self::MessageImpl { self_ty, .. } => self_ty.spellings(&mut out),
             Self::Struct { shape, .. } => match shape {
                 StructShape::Unit => {}
                 StructShape::Tuple(fields) | StructShape::Named(fields) => {

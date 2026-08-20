@@ -194,6 +194,10 @@ pub struct FailureConvention {
     pub message_method: String, // data_class: INTERNAL_ONLY
     /// Why the two correspond.
     pub message_method_reason: String, // data_class: INTERNAL_ONLY
+    /// Derives a field of the failure type still earns.
+    pub field_derives: Vec<String>, // data_class: INTERNAL_ONLY
+    /// Why those and not the rest.
+    pub field_derives_reason: String, // data_class: INTERNAL_ONLY
     /// How a caller asks whether a failure IS a particular sentinel. Empty to refuse the question.
     pub identity_test: String, // data_class: INTERNAL_ONLY
     /// Why that form, and what it does not cover.

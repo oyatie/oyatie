@@ -53,7 +53,9 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
         }
 
         RustItem::Nothing => Ok(quote! {}),
-        item @ (RustItem::SentinelEnum { .. } | RustItem::SentinelError { .. }) => {
+        item @ (RustItem::SentinelEnum { .. }
+        | RustItem::SentinelError { .. }
+        | RustItem::MessageImpl { .. }) => {
             crate::lower_sentinel::lower(item)
         }
 

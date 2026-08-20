@@ -152,6 +152,10 @@ pub(crate) struct FailureDoc {
     #[serde(default)]
     pub(crate) message_method_reason: String,
     #[serde(default)]
+    pub(crate) field_derives: Vec<String>,
+    #[serde(default)]
+    pub(crate) field_derives_reason: String,
+    #[serde(default)]
     pub(crate) identity_test: String,
     #[serde(default)]
     pub(crate) identity_test_reason: String,

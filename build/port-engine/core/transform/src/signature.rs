@@ -264,7 +264,14 @@ fn methods_claimed_by_traits(
         // A satisfaction that will NOT be emitted claims nothing. Claiming it would delete the
         // method from the inherent block on the strength of a trait impl that never appears, which
         // loses the method entirely — the silent hole this engine exists to avoid.
-        .filter(|observed| !crate::impls::unsatisfiable(observed, declaration, resolver))
+        //
+        // The FAILURE interface is the exception, and it is not one: its satisfaction is emitted,
+        // as a display impl built from this very method. So the method IS claimed — by that impl
+        // rather than by a trait impl of the source's interface. See `impls::message_impl`.
+        .filter(|observed| {
+            !crate::impls::unsatisfiable(observed, declaration, resolver)
+                || crate::impls::message_claimed(observed, declaration, resolver)
+        })
         .flat_map(|observed| observed.children_of_kind(CHILD_METHOD))
         .map(|method| method.name.clone())
         .collect()

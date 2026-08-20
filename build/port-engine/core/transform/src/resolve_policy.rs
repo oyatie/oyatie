@@ -193,7 +193,7 @@ impl Resolver<'_> {
                 let mut seen = std::collections::BTreeSet::new();
                 !fields
                     .iter()
-                    .any(|field| self.blocks(field, &rule.blocked_by, &mut seen))
+                    .any(|field| self.blocks(field, &rule.blocked_by, &mut seen, &rule.name))
             })
             .map(|rule| rule.name.clone())
             .collect()
@@ -209,8 +209,24 @@ impl Resolver<'_> {
     ///
     /// `seen` makes a type that reaches itself terminate. A cycle is reached only through a pointer,
     /// and a type is not blocked by its own participation in one — the recursion just stops.
-    fn blocks(&self, field: &TypeRef, blocked: &std::collections::BTreeSet<String>, seen: &mut std::collections::BTreeSet<String>) -> bool {
-        if mentions_kind(field, blocked) {
+    fn blocks(
+        &self,
+        field: &TypeRef,
+        blocked: &std::collections::BTreeSet<String>,
+        seen: &mut std::collections::BTreeSet<String>,
+        derive: &str,
+    ) -> bool {
+        // The FAILURE type is the one interface with a target form, and the pack says which derives
+        // that form still earns. Without this the block on interfaces is total, and a type the
+        // source satisfied its error interface with cannot meet the bound its own error impl needs.
+        //
+        // Asked at EVERY node rather than only at the root: the failure sits inside a sequence as
+        // often as it stands alone — `[]error` is the shape that found this — and a check that only
+        // looked at the outermost type answered for neither.
+        let permitted = self
+            .failure
+            .is_some_and(|convention| convention.field_derives.iter().any(|kept| kept == derive));
+        if self.mentions_blocked(field, blocked, permitted) {
             return true;
         }
         // Collected before descending: the visited set is threaded through the recursion, so a
@@ -223,7 +239,7 @@ impl Resolver<'_> {
             let Some(inputs) = self.scope.derive_inputs.get(&name) else {
                 continue;
             };
-            if inputs.iter().any(|input| self.blocks(input, blocked, seen)) {
+            if inputs.iter().any(|input| self.blocks(input, blocked, seen, derive)) {
                 return true;
             }
         }
@@ -294,6 +310,33 @@ fn divides_without_overflow(node: &Declaration, spelling: &str) -> bool {
         return false;
     };
     divisor.kind == "literal" && divisor.attr("value").is_some_and(|value| value != "-1")
+}
+
+impl Resolver<'_> {
+    /// Whether any node of this type tree is blocked, skipping the failure type where the pack says
+    /// the derive survives it.
+    fn mentions_blocked(
+        &self,
+        type_ref: &TypeRef,
+        blocked: &std::collections::BTreeSet<String>,
+        permitted: bool,
+    ) -> bool {
+        if permitted && self.is_failure_type(type_ref) {
+            // Its target form is a boxed trait object: opaque, and already known to carry the
+            // derive. Descending into what the source wrote inside it would answer about a type the
+            // target does not have.
+            return false;
+        }
+        if blocked.contains(&type_ref.kind)
+            || (type_ref.kind == "basic" && blocked.contains(&type_ref.name))
+        {
+            return true;
+        }
+        type_ref
+            .args
+            .iter()
+            .any(|arg| self.mentions_blocked(arg, blocked, permitted))
+    }
 }
 
 /// Every name a type tree refers to, unqualified.

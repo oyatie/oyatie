@@ -56,6 +56,7 @@ pub(crate) fn trait_impls(
         // reason is the pack's. See `unsatisfiable`.
         .filter(|observed| !unsatisfiable(observed, declaration, resolver))
         .map(|observed| build_impl(observed, declaration, &self_ty, resolver))
+        .chain(message_impl(declaration, &self_ty, resolver).transpose())
         .collect()
 }
 
@@ -192,4 +193,79 @@ pub(crate) fn unsatisfiable(
         reason: convention.satisfaction_reason.clone(),
     });
     true
+}
+
+/// The DISPLAY impl a type earns by satisfying the source's error interface.
+///
+/// The source satisfies that interface with one method returning the message. The target's error
+/// trait declares no such method — it takes the message from the display trait — so the method
+/// BECOMES that impl, and the error impl follows from it. What the type had in the source, it has
+/// here: it can be printed, it can be boxed as an error, and `?` accepts it.
+///
+/// This is the other half of what `unsatisfiable` refuses. Refusing the satisfaction was right and
+/// is still right — the two traits do not take the same methods — but leaving the method as an
+/// inherent `error()` produced a type carrying a message nothing could reach, beside a real display
+/// impl for a different type in the same file. A reviewer named that pair as the clearest evidence
+/// the code had been converted rather than written.
+///
+/// `None` unless the type actually satisfies the interface. A method that merely shares the name is
+/// the corpus's own, and rewriting it would answer for something the pack never spoke about.
+fn message_impl(
+    declaration: &Declaration,
+    self_ty: &RustType,
+    resolver: &Resolver<'_>,
+) -> Result<Option<RustItem>, TransformError> {
+    let Some(convention) = resolver.failure else {
+        return Ok(None);
+    };
+    if convention.message_method_source.is_empty() {
+        return Ok(None);
+    }
+    let satisfies = declaration
+        .children_of_kind(CHILD_IMPLEMENTS)
+        .into_iter()
+        .any(|observed| observed.type_ref.name == convention.source_type);
+    if !satisfies {
+        return Ok(None);
+    }
+    let Some(method) = declaration
+        .children_of_kind(crate::vocabulary::CHILD_METHOD)
+        .into_iter()
+        .find(|method| method.name == convention.message_method_source)
+    else {
+        return Ok(None);
+    };
+    let built = crate::signature::method_signature(
+        method,
+        resolver,
+        port_engine_rust_ir::Visibility::Inherited,
+        crate::signature::Body::Translate,
+        &declaration.name,
+        crate::body::ResultShape::Own,
+    )?;
+    let Some(body) = built.body else {
+        return Ok(None);
+    };
+    Ok(Some(RustItem::MessageImpl {
+        docs: built.docs,
+        self_ty: self_ty.clone(),
+        body,
+    }))
+}
+
+/// Whether the failure interface's satisfaction will be emitted as a display impl, which CLAIMS the
+/// method it is built from.
+pub(crate) fn message_claimed(
+    observed: &Declaration,
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> bool {
+    resolver.failure.is_some_and(|convention| {
+        observed.type_ref.name == convention.source_type
+            && !convention.message_method_source.is_empty()
+            && declaration
+                .children_of_kind(crate::vocabulary::CHILD_METHOD)
+                .into_iter()
+                .any(|method| method.name == convention.message_method_source)
+    })
 }

@@ -222,6 +222,8 @@ impl Pack {
             message_method_source: String::new(),
             message_method: String::new(),
             message_method_reason: String::new(),
+            field_derives: Vec::new(),
+            field_derives_reason: String::new(),
             identity_test: String::new(),
             identity_test_reason: String::new(),
             inferred_construction: String::new(),

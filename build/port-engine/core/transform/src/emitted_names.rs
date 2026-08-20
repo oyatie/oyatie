@@ -22,10 +22,15 @@ use port_engine_rust_ir::{RustItem, RustType, Visibility};
 /// refused must not gain an import for them.
 pub(crate) fn import_items(items: &[RustItem], declared: &BTreeMap<String, String>) -> Vec<RustItem> {
     let mut paths: BTreeSet<String> = BTreeSet::new();
+    // The MESSAGE IMPL renders the same three names the sentinel form does, for the same reason:
+    // it IS a display impl plus the error impl that follows from it. Adding it to the same question
+    // rather than a second one is what keeps the import and the form derived from one fact.
     let has_sentinel = items.iter().any(|item| {
         matches!(
             item,
-            RustItem::SentinelError { .. } | RustItem::SentinelEnum { .. }
+            RustItem::SentinelError { .. }
+                | RustItem::SentinelEnum { .. }
+                | RustItem::MessageImpl { .. }
         )
     });
     if has_sentinel {
