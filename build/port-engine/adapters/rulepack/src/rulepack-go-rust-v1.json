@@ -1025,6 +1025,12 @@
     "min_value": 256,
     "reason": "Which integer constants the target spells in hexadecimal. A count and a bit pattern wear the same syntax and are read differently: a count is a quantity and belongs in decimal, while a mask, seed, or multiplier is read as its bits and belongs in hex, where a reviewer can check it against the specification that defines it. A reviewer of this engine's output said exactly that, having had to run a script to verify five hash primes written in decimal. The TYPE decides and magnitude cannot: measured over the corpus, seven package constants exceed 32 bits and two of them -- the ticks between 1582 and the Unix epoch -- are counts typed at the source's counting integer, while the five that are patterns are typed at a fixed-width unsigned one, which is what an author reaches for when the bits are the point. `min_value` keeps small flags and enumerations readable as numbers, since a one-byte value spelled `0x07` gains nothing over `7`."
   },
+  "readable_literals": {
+    "min_digits": 5,
+    "group": 3,
+    "separator": "_",
+    "reason": "How a long DECIMAL literal is spelled so a reader can see its magnitude. The target groups digits with an underscore and the source does not, so a value carried over unchanged is correct and unreadable: two reviewers independently picked out `10000000` and `1000000` on nearby lines as indistinguishable at a glance, and they differ by a factor of ten. Grouping is from the RIGHT, which is what makes the groups mean thousands.\n\nApplies only where the literal stays decimal. A value the type says is a bit pattern is spelled in hexadecimal by `bit_pattern_constants` and grouped by its own convention, and running both would produce a hex literal with decimal grouping.\n\n`min_digits` is 5 rather than 4, because a four-digit number is read at a glance and a year is the common one -- `2026_` reads worse than `2026`."
+  },
   "allocation": {
     "empty_with_capacity": "Vec::with_capacity({0})",
     "empty_with_capacity_reason": "`make([]T, 0, n)` -- a sequence with NO elements and room for n. The target's growable sequence spells exactly that, and the two agree on everything a program can observe: length zero, capacity n, no allocation beyond it until the n+1st push. The ZERO length is required, not incidental. `make([]T, n)` gives n ZERO ELEMENTS and `Vec::with_capacity(n)` gives none -- the same number in two different roles, which is exactly the shape of mistake that compiles and means something else. Every other shape refuses by name.",

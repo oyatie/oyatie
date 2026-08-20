@@ -49,9 +49,19 @@ pub(crate) fn in_position(
         // parsed and compiled. Where the two languages' lexical forms diverge — a rune literal, an
         // imaginary literal — the pass-through fails the parse, which is the correct outcome and
         // is why no attempt is made to normalise numbers here.
+        // A LITERAL keeps its value and may not keep its spelling: a long decimal one is grouped,
+        // because the target groups digits and the source does not. Applied here as well as at a
+        // constant's declaration, since the same literal reaches the output both ways — a constant
+        // whose value is an expression carries its numbers through this path and was left ungrouped
+        // beside neighbours that were not.
         "literal" => node
             .attr(ATTR_VALUE)
-            .map(|value| RustExpr::Literal(value.to_owned()))
+            .map(|value| {
+                RustExpr::Literal(
+                    crate::items_value::readable_literal(value, cx.resolver)
+                        .unwrap_or_else(|| value.to_owned()),
+                )
+            })
             .ok_or_else(|| TransformError::MissingDatum {
                 construction: "literal".to_owned(),
                 name: cx.owner.to_owned(),

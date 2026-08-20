@@ -15,6 +15,7 @@ use port_engine_transform::*;
 
 #[derive(Default)]
 pub struct Pack {
+    readable_literals: port_engine_api::ReadableLiterals,
     unmappable_facts: std::collections::BTreeMap<String, String>,
     bit_pattern_constants: port_engine_api::BitPatternConstants,
     /// rule → (construction, precondition, captures)
@@ -283,6 +284,12 @@ impl PackSemantics for Pack {
         // EMPTY, so a fixture's integer constant keeps the base it was written in. Which types hold
         // bit patterns is a judgement about real source, measured against the corpus.
         &self.bit_pattern_constants
+    }
+
+    fn readable_literals(&self) -> &port_engine_api::ReadableLiterals {
+        // EMPTY, so a fixture's literal keeps the spelling it was written with. How a long literal
+        // is grouped is a target convention, exercised against the corpus.
+        &self.readable_literals
     }
 
 

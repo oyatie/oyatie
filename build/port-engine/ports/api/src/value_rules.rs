@@ -59,6 +59,19 @@ pub struct BinaryString {
     pub reason: String, // data_class: INTERNAL_ONLY
 }
 
+/// How a long DECIMAL literal is spelled so its magnitude is readable.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct ReadableLiterals {
+    /// Below this many digits a literal is left alone.
+    pub min_digits: usize, // data_class: INTERNAL_ONLY
+    /// How many digits per group, counted from the right.
+    pub group: usize, // data_class: INTERNAL_ONLY
+    /// What separates the groups.
+    pub separator: String, // data_class: INTERNAL_ONLY
+    /// Why grouping, and why it does not apply to a bit pattern.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// Which integer constants the target spells as a BIT PATTERN rather than as a number.
 ///
 /// The two are different kinds of value wearing the same syntax. A count is read as a quantity and

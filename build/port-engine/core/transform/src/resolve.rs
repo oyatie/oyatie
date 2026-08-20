@@ -68,6 +68,7 @@ pub(crate) struct Resolver<'a> {
     /// What a source string constant becomes when its content is not text.
     pub(crate) binary_string: &'a port_engine_api::BinaryString,
     pub(crate) bit_pattern_constants: &'a port_engine_api::BitPatternConstants,
+    pub(crate) readable_literals: &'a port_engine_api::ReadableLiterals,
     /// How the source's allocating builtin becomes the target's.
     pub(crate) allocation: &'a port_engine_api::Allocation,
     /// How the source's `append` becomes the target's.
