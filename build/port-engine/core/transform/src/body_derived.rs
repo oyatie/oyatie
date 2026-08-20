@@ -19,6 +19,12 @@ impl<'a> Body<'a> {
         self
     }
 
+    /// The same body, told which of its parameters are newtypes the target wraps.
+    pub(crate) fn with_newtype_parameters(mut self, names: BTreeSet<String>) -> Self {
+        self.newtype_parameters.extend(names);
+        self
+    }
+
     /// The same body, told which type it is a method OF.
     pub(crate) fn with_receiver_type(mut self, name: Option<&'a str>) -> Self {
         self.receiver_type = name;
@@ -29,6 +35,7 @@ impl<'a> Body<'a> {
     pub(crate) fn with_element(&self, counter: &str, sequence: &str, element: &str) -> Self {
         Self {
             owner: self.owner,
+            newtype_parameters: self.newtype_parameters.clone(),
             resolver: self.resolver,
             fallible: self.fallible,
             result_is_owned_string: self.result_is_owned_string,
@@ -53,6 +60,7 @@ impl<'a> Body<'a> {
         usize_counters.insert(counter.to_owned());
         Self {
             owner: self.owner,
+            newtype_parameters: self.newtype_parameters.clone(),
             resolver: self.resolver,
             fallible: self.fallible,
             result_is_owned_string: self.result_is_owned_string,

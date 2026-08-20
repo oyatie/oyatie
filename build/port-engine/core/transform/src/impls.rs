@@ -52,6 +52,9 @@ pub(crate) fn trait_impls(
         // impl says something weaker AND conflicts with the blanket one — which is not a
         // redundancy the target tolerates, it is a coherence error.
         .filter(|observed| observed.attr(ATTR_BUNDLE) != Some("true"))
+        // A satisfaction the target's trait cannot take the METHODS of is not emitted, and the
+        // reason is the pack's. See `unsatisfiable`.
+        .filter(|observed| !unsatisfiable(observed, declaration, resolver))
         .map(|observed| build_impl(observed, declaration, &self_ty, resolver))
         .collect()
 }
@@ -158,3 +161,35 @@ fn implementing_method(
     Ok(rendered)
 }
 
+
+/// Whether this observed satisfaction cannot be spelled as a target trait impl.
+///
+/// The FAILURE interface is the case, and the mapping that covers it is right everywhere else: as a
+/// BOUND the source's error interface is the target's error trait. What does not carry over is the
+/// method set. The source's interface is satisfied by one method returning the message; the target's
+/// trait declares no such method and takes the message from its display trait instead. Emitting the
+/// source's method into the impl produced `method `error` is not a member of trait `StdError``.
+///
+/// Recorded as a DROP rather than refusing the type, on the same reasoning as a dropped method: the
+/// conformance is one thing the type has, not the whole of it. The method itself is not lost — it is
+/// left unclaimed, so it stays in the inherent block under its own name — and the drop is reported
+/// so a reader learns the conformance is absent.
+pub(crate) fn unsatisfiable(
+    observed: &Declaration,
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> bool {
+    let Some(convention) = resolver.failure else {
+        return false;
+    };
+    if observed.type_ref.name != convention.source_type || convention.satisfaction_reason.is_empty()
+    {
+        return false;
+    }
+    resolver.drops.record(crate::dropped::DroppedMethod {
+        owner: declaration.name.clone(),
+        name: format!("impl {}", observed.type_ref.name),
+        reason: convention.satisfaction_reason.clone(),
+    });
+    true
+}

@@ -144,6 +144,8 @@ pub(crate) struct FailureDoc {
     #[serde(default)]
     pub(crate) nullable_borrowed_type_reason: String,
     #[serde(default)]
+    pub(crate) satisfaction_reason: String,
+    #[serde(default)]
     pub(crate) identity_test: String,
     #[serde(default)]
     pub(crate) identity_test_reason: String,

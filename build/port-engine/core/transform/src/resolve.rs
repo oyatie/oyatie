@@ -117,6 +117,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) receiver: Option<(&'a str, &'a str)>,
     /// The pack's ownership rules, and the log every decision is recorded into.
     pub(crate) ownership: &'a OwnershipContext<'a>,
+    /// Where a method dropped from an emitted type is recorded, so the drop is never silent.
+    pub(crate) drops: &'a crate::dropped::DropLog,
     /// The names of THIS unit that will actually be emitted.
     ///
     /// Self-containment one step further in than [`Self::units`]: a body may name a declaration of

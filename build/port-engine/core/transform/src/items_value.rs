@@ -32,6 +32,7 @@ pub(crate) fn authored_value(
 ) -> Option<RustExpr> {
     let authored = declaration.children.first()?;
     let body = crate::body::Body {
+        newtype_parameters: std::collections::BTreeSet::new(),
         owner: &declaration.name,
         resolver,
         fallible: false,

@@ -186,6 +186,8 @@ pub struct FailureConvention {
     pub nullable_borrowed_type: String, // data_class: INTERNAL_ONLY
     /// Why a getter borrows where a constructor owns.
     pub nullable_borrowed_type_reason: String, // data_class: INTERNAL_ONLY
+    /// Why a satisfaction of the failure interface is not emitted as a trait impl.
+    pub satisfaction_reason: String, // data_class: INTERNAL_ONLY
     /// How a caller asks whether a failure IS a particular sentinel. Empty to refuse the question.
     pub identity_test: String, // data_class: INTERNAL_ONLY
     /// Why that form, and what it does not cover.

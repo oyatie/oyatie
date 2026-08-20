@@ -51,3 +51,19 @@ pub(crate) fn indexes_only_parameter(
     };
     crate::counters::indexes_only(body, &param.name)
 }
+
+/// The parameters whose declared type is one of this unit's NEWTYPES.
+///
+/// Read from the SIGNATURE, which is the only place a parameter's type is stated: the body sees an
+/// identifier, and the front end annotates an expression only where the annotation is needed.
+pub(crate) fn newtype_parameters(
+    declaration: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+) -> BTreeSet<String> {
+    declaration
+        .children_of_kind(crate::vocabulary::CHILD_PARAM)
+        .into_iter()
+        .filter(|param| resolver.scope.newtypes.contains(&param.type_ref.name))
+        .map(|param| param.name.clone())
+        .collect()
+}

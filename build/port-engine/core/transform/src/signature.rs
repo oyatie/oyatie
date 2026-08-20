@@ -40,7 +40,7 @@ pub(crate) fn inherent_methods(
     // would be an inherent method shadowing a trait method of the same name: it compiles because
     // inherent wins path resolution, and deleting the inherent one turns the trait impl's forward
     // into infinite recursion — a stack overflow introduced by removing code.
-    let claimed = methods_claimed_by_traits(declaration);
+    let claimed = methods_claimed_by_traits(declaration, resolver);
     let mut methods = declaration
         .children_of_kind(CHILD_METHOD)
         .into_iter()
@@ -251,10 +251,17 @@ pub(crate) fn declared_visibility(declaration: &Declaration) -> Visibility {
 /// Those are emitted THERE and not in the inherent block, because a type carrying both an inherent
 /// `describe` and a trait `describe` is the shadowing footgun above. A method that satisfies no
 /// interface keeps its inherent impl, because there is no trait to put it in.
-fn methods_claimed_by_traits(declaration: &Declaration) -> BTreeSet<String> {
+fn methods_claimed_by_traits(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> BTreeSet<String> {
     declaration
         .children_of_kind(CHILD_IMPLEMENTS)
         .into_iter()
+        // A satisfaction that will NOT be emitted claims nothing. Claiming it would delete the
+        // method from the inherent block on the strength of a trait impl that never appears, which
+        // loses the method entirely — the silent hole this engine exists to avoid.
+        .filter(|observed| !crate::impls::unsatisfiable(observed, declaration, resolver))
         .flat_map(|observed| observed.children_of_kind(CHILD_METHOD))
         .map(|method| method.name.clone())
         .collect()

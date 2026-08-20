@@ -246,6 +246,7 @@ impl LoadedRulePack {
                 nullable_type_reason: failure.nullable_type_reason,
                 nullable_borrowed_type: failure.nullable_borrowed_type,
                 nullable_borrowed_type_reason: failure.nullable_borrowed_type_reason,
+                satisfaction_reason: failure.satisfaction_reason,
                 identity_test: failure.identity_test,
                 identity_test_reason: failure.identity_test_reason,
                 inferred_construction: failure.inferred_construction,

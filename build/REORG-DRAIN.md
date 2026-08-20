@@ -4738,3 +4738,57 @@ one-line check that says which tree is actually being built — worth running af
 working directory. The lane now builds with a generated minimal workspace listing only the
 port-engine crates, kept untracked, and with its own `CARGO_TARGET_DIR` so it no longer shares the
 other lane's artifacts.
+
+## R2p — four qualifier rules, and the cascade break down to fourteen errors
+
+Working method this phase: re-apply the R2i cascade break as scratch state, read what stops
+compiling, turn each cause into a rule, and land the rules alone. The break itself still does not
+land, because it cannot until every package compiles.
+
+**Where the break now stands.** Under it, `xxhash`, `uuid`, `xid` compile clean and `semver`, `ksuid`,
+`errors` carry **fourteen errors between them**, down from roughly eighty-seven when R2i measured it.
+Coverage under the break: `errors` 0 → 6 translated, `uuid` 11 → 26, `ksuid` 16 → 21, `semver` 14 → 19.
+
+**The rules, each measured by what it removed.**
+
+*A method call through an absent-capable receiver refuses* — took semver from 51 errors to 11, the
+single largest cause in the corpus. The source's pointer admits its absent value, so the target holds
+it as an option; the source spells `c.con.Major()` and calling a method on an absent pointer is legal
+there, where the target has no such method on an option at all. Neither invention is faithful:
+unwrapping claims a value the source never promised and panics where the source ran, and mapping over
+the option silently skips a call the source made. Both are decisions about what the program DOES when
+the pointer is absent, which the source states nowhere.
+
+The check asks the RESOLVER what the occurrence resolved to rather than reading the node's kind,
+because a source pointer does not always become an option — the ownership rules give some of them a
+borrow, which has no absent case. Guessing from syntax would have refused calls that translate
+correctly today. This is R2n's qualifier mismatch, handled the way the engine's contract says: refuse
+and name the missing proof.
+
+*A satisfaction the target trait cannot take the methods of is not emitted* — cleared `uuid`
+entirely. The pack maps the source's error interface to the target's error trait, which is right for
+a BOUND, but the two do not take the same methods: the source's is satisfied by one method returning
+the message, and the target's takes the message from its display trait instead. The method is not
+lost — it is left unclaimed so it stays in the inherent block — and the drop is recorded, because
+trading a loud failure for a silent hole is the worse outcome.
+
+*A dropped method refuses its callers* — semver 11 → 7. This is a hole the cascade break itself opens
+and R2i recorded as written-but-inert: the earlier version asked the receiver node for its type, and
+a receiver carries none, so it never fired for a single `self.method()` call in the corpus. It takes
+the owner from the enclosing method's receiver type instead.
+
+*A newtype parameter is indexed through its wrapper* — ksuid 11 → 3, extending R2o from the receiver
+case. The body cannot learn this from the identifier, so the parameter set is threaded from the
+signature exactly as the borrowed and usize parameter sets already are.
+
+**What is landed here is only the rules.** All seven packages compile, every gate is green, and
+coverage moves only slightly — `uuid` 11.3% → 11.1% and `xid` 11.5% → 11.1%, because two calls that
+used to be emitted now refuse and say why. That is the correct direction: they did not compile under
+the break and would not have been right without it.
+
+**The remaining fourteen, ranked for whoever takes it next.** `errors` has eight: two method calls on
+an option the resolver did not catch (the receiver's type is not recorded on those nodes), a cast of
+a reference to an integer, an equality on an option, and two derive bounds — `Hash` and `Eq` derived
+on a struct holding a field that implements neither, which is a provable rule since the engine knows
+every field's type. `semver` has two type mismatches. `ksuid` has two empty composite literals of a
+newtype, `Uint128 {}`, which should be the type's zero rather than a struct literal with no fields.

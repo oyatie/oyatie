@@ -95,14 +95,13 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
     // source spells `value.Method()` and `package.Function()` the same way, and deciding by shape
     // emitted a method call on a package name.
     if node.attr(ATTR_CALLEE_KIND) == Some(CALLEE_KIND_METHOD) {
+        let receiver_node = one_child(callee, cx, "selector")?;
+        refuse_absent_capable_receiver(receiver_node, &callee.name, cx)?;
+        refuse_dropped_method(receiver_node, &callee.name, cx)?;
         return Ok(RustExpr::MethodCall {
             // The receiver of a method call is a PLACE, not a value: `x.m()` borrows `x` rather
             // than reading it, so cloning here would call the method on a temporary.
-            receiver: Box::new(in_position(
-                one_child(callee, cx, "selector")?,
-                cx,
-                Position::Place,
-            )?),
+            receiver: Box::new(in_position(receiver_node, cx, Position::Place)?),
             method: to_snake_case(&callee.name),
             args,
         });
@@ -275,4 +274,111 @@ pub(crate) fn render_operand(arg: &RustExpr) -> Option<String> {
         RustExpr::Literal(text) | RustExpr::Path(text) => Some(text.clone()),
         _ => None,
     }
+}
+
+/// Refuse a method call whose receiver may hold NOTHING in the target.
+///
+/// The source's pointer admits its absent value, so a FIELD of pointer type is emitted as an option
+/// — that mapping is right and is not what is in question here. What is in question is the call: the
+/// source spells `c.con.Major()` and calling a method on an absent pointer is legal there, where the
+/// target has no method of that name on an option at all. Emitted as written it does not compile,
+/// and 39 of one package's 51 compile errors were this one shape.
+///
+/// Neither answer the engine could invent is faithful. Unwrapping claims a value the source never
+/// promised is present and panics where the source ran; mapping over the option silently skips a
+/// call the source made. Both are decisions about what the program DOES when the pointer is absent,
+/// which the source states nowhere, so this refuses and says which proof is missing.
+///
+/// Narrow on purpose: only a FIELD read, because that is the position the engine is known to emit as
+/// an option. A pointer PARAMETER is bound by the ownership rules to a borrow and has no absent
+/// case, and refusing one would refuse a call that translates correctly today.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] naming the receiver, the method, and what would have to be proved.
+fn refuse_absent_capable_receiver(
+    receiver: &Declaration,
+    method: &str,
+    cx: &Body<'_>,
+) -> Result<(), TransformError> {
+    if receiver.type_ref.kind != crate::vocabulary::TYPE_POINTER {
+        return Ok(());
+    }
+    // ASKED of the resolver rather than assumed from the node's kind. A source pointer does not
+    // always become an option — the ownership rules give some of them a borrow, which has no absent
+    // case and whose methods resolve fine — so the question is what THIS occurrence resolved to.
+    // Guessing from the syntax would refuse calls that translate correctly today.
+    let position = match receiver.kind == crate::vocabulary::KIND_SELECTOR {
+        true => crate::vocabulary::POSITION_FIELD,
+        false => crate::vocabulary::POSITION_PARAM,
+    };
+    let Ok(resolved) = cx
+        .resolver
+        .resolve_in(&receiver.type_ref, cx.owner, position)
+    else {
+        return Ok(());
+    };
+    if !resolved.spelling().starts_with("Option<") {
+        return Ok(());
+    }
+    Err(TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: format!(
+            "`{}` is of pointer type and resolves to a value that may be ABSENT, \
+             and `{method}` is a method of what it holds rather than of the option. The source \
+             permits this call when the pointer is absent and says nothing about what the program \
+             does then; unwrapping would panic where the source ran, and skipping the call would \
+             drop work the source performed. What is missing is a proof that this field is never \
+             absent at the call",
+            receiver.name
+        ),
+    })
+}
+
+/// Refuse a call to a method the receiver's own type is not emitting.
+///
+/// Breaking the type/method cascade made this necessary: a method the engine cannot translate is now
+/// dropped from its type's `impl` while the type itself is emitted, so a call to one names something
+/// the emitted crate does not contain. Every other kind of reference is already governed by that
+/// rule; a method call was not, and unlike a missing function it fails at the call site with nothing
+/// to say why.
+///
+/// The owner comes from the RECEIVER TYPE when the receiver is the enclosing method's own — a
+/// receiver carries no recorded type, so an earlier version of this check asked the receiver node
+/// and was silently inert for every `self.method()` call in the corpus.
+///
+/// Silent where the type is not this unit's or was not recorded: a check that cannot see the type
+/// cannot claim the method is absent, and refusing on absence of evidence would refuse every call
+/// the type-checker happened not to annotate.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] naming the type and the method, when the type is emitted and the
+/// method is not.
+fn refuse_dropped_method(
+    receiver: &Declaration,
+    method: &str,
+    cx: &Body<'_>,
+) -> Result<(), TransformError> {
+    let owner = match crate::body_ops::is_receiver(receiver) {
+        true => cx.receiver_type.unwrap_or_default(),
+        false => receiver
+            .type_ref
+            .name
+            .rsplit('.')
+            .next()
+            .unwrap_or_default(),
+    };
+    if owner.is_empty() || !cx.resolver.emitted.contains(owner) {
+        return Ok(());
+    }
+    if cx.resolver.emitted.contains(&format!("{owner}::{method}")) {
+        return Ok(());
+    }
+    Err(TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: format!(
+            "`{owner}` is emitted but its method `{method}` is not — that method refused, so a call \
+             to it would name something the crate does not contain. What is emitted has to be \
+             self-contained"
+        ),
+    })
 }

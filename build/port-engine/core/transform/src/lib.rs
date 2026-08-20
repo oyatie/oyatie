@@ -67,6 +67,7 @@ mod items_static;
 mod naming;
 mod ownership;
 mod params;
+mod dropped;
 mod emitted_names;
 mod prelude;
 mod promote;
