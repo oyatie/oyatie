@@ -12,6 +12,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("body.rs", include_str!("body.rs")),
     ("body_alloc.rs", include_str!("body_alloc.rs")),
     ("body_argument.rs", include_str!("body_argument.rs")),
+    ("body_bytes.rs", include_str!("body_bytes.rs")),
     ("body_call.rs", include_str!("body_call.rs")),
     ("body_choice.rs", include_str!("body_choice.rs")),
     ("body_cond.rs", include_str!("body_cond.rs")),

@@ -14,7 +14,7 @@ use crate::rule::{
     IdiomWireRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver, UndecidedForm,
 };
 use crate::rule_format::{
-    AllocationRule, BinaryStringRule, BitPatternConstantsRule, ReadableLiteralsRule, FormatCallsRule, FormatFunctionRule,
+    AllocationRule, BinaryStringRule, BitPatternConstantsRule, ByteOrderCallsRule, ReadableLiteralsRule, FormatCallsRule, FormatFunctionRule,
     SequenceAppendRule, TargetImportsRule, UnmappableCallsRule, UnmappableTypesRule,
 };
 
@@ -68,6 +68,8 @@ pub(crate) struct RulepackDocument {
     pub(crate) bit_pattern_constants: Option<BitPatternConstantsRule>,
     #[serde(default)]
     pub(crate) readable_literals: Option<ReadableLiteralsRule>,
+    #[serde(default)]
+    pub(crate) byte_order_calls: Option<ByteOrderCallsRule>,
     #[serde(default)]
     pub(crate) allocation: Option<AllocationRule>,
     #[serde(default)]

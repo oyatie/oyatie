@@ -57,9 +57,14 @@ pub(crate) struct Body<'a> {
     /// source, and nothing inside the `return` says which the destination wants.
     pub(crate) result_is_owned_string: bool,
     /// Whether the sole result is a SEQUENCE the target owns, so a returned borrow must be owned.
-    pub(crate) result_is_owned_sequence: bool,
+    pub(crate) result_is_owned_sequence: std::collections::BTreeSet<usize>,
     /// Whether each return carries a trailing ABSENT failure the signature no longer has.
     pub(crate) drops_absent_failure: bool,
+    /// The NAMED results of the enclosing declaration, in signature order.
+    ///
+    /// A bare `return` hands these back; without them it emits a return of nothing from a function
+    /// that has a result type.
+    pub(crate) named_results: Vec<String>,
     /// The sequence a counted loop WALKS, and the name its element took.
     ///
     /// Set inside a loop the iterator idiom rewrote, so `xs[i]` inside it renders as the element
@@ -102,7 +107,7 @@ impl<'a> Body<'a> {
         resolver: &'a Resolver<'a>,
         fallible: bool,
         result_is_owned_string: bool,
-        result_is_owned_sequence: bool,
+        result_is_owned_sequence: std::collections::BTreeSet<usize>,
         borrowed: BTreeSet<String>,
         results: crate::returns::ResultFacts,
     ) -> Self {
@@ -117,6 +122,7 @@ impl<'a> Body<'a> {
             usize_counters: BTreeSet::new(),
             walked: None,
             drops_absent_failure: false,
+            named_results: Vec::new(),
             receiver_type: None,
             newtype_parameters: BTreeSet::new(),
         }
@@ -193,6 +199,14 @@ pub(crate) fn statements(
             crate::returns::ResultFacts::of(declaration, resolver, result),
         )
         .with_dropped_failure(cannot_fail)
+        .with_named_results(
+            declaration
+                .children_of_kind(crate::vocabulary::CHILD_RESULT)
+                .into_iter()
+                .filter(|result| !result.name.is_empty())
+                .map(|result| crate::naming::to_snake_case(&result.name))
+                .collect(),
+        )
         // A parameter the signature made a `usize` is one for the body too, and it reaches the
         // index through the same set a proven loop counter does — so one place decides, and the
         // signature and the body cannot disagree about whether a conversion is needed.

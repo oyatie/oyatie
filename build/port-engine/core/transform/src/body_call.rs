@@ -77,6 +77,17 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
         .enumerate()
         .map(|(index, arg)| argument(arg, callee_id, index, cx))
         .collect::<Result<Vec<_>, _>>()?;
+    // A MAPPED callee's form describes what the UNDERLYING value supports, so a newtype argument
+    // reaches through its wrapper. `len(id)` on a named array becomes `id.0.len()`: the target's
+    // length is the array's, and the newtype has none. Only for mapped callees — a call to one of
+    // this unit's own functions takes the newtype itself, which is what its signature declares.
+    let args = match cx.resolver.function_map.contains_key(callee_id) {
+        true => node.children[1..]
+            .iter()
+            .map(|arg| crate::body_index::unwrapped_base(arg, cx))
+            .collect::<Result<Vec<_>, _>>()?,
+        false => args,
+    };
 
     // The pack answers for the callee FIRST, by identity. A call it answers for is one the target
     // has no name of its own for — a builtin, or something from a standard library that does not
@@ -96,6 +107,13 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
     // emitted a method call on a package name.
     if node.attr(ATTR_CALLEE_KIND) == Some(CALLEE_KIND_METHOD) {
         let receiver_node = one_child(callee, cx, "selector")?;
+        // A BYTE-ORDER call, which is a method on another package's value and so has no callee
+        // identity for the ordinary map to key on. Answered before the receiver checks, because the
+        // receiver here is a package's value rather than a value of this program — asking whether it
+        // may be absent is asking about the wrong thing.
+        if let Some(rendered) = crate::body_bytes::byte_order_call(callee, &args, cx)? {
+            return Ok(rendered);
+        }
         // ABSENCE FIRST. A receiver that may hold nothing has no methods of what it holds, and that
         // includes the mapped one below — mapping before checking turned `self.cause.Error()` into
         // `self.cause.to_string()` on an option, which is a different method that does not exist

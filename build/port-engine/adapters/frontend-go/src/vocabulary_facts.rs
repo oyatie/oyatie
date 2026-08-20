@@ -52,6 +52,7 @@ pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_INTERFACE,
     ATTR_LIT_KIND,
     ATTR_OP,
+    ATTR_PACKAGE_PATH,
     ATTR_RANGE_KEY,
     ATTR_READ_COUNT,
     ATTR_RANGE_VALUE,
@@ -124,6 +125,13 @@ pub const ATTR_READ_COUNT: &str = "read_count";
 
 /// Attribute key holding a binary or unary operator, spelled as source.
 pub const ATTR_OP: &str = "op";
+
+/// Attribute key holding a package identifier's IMPORT PATH.
+///
+/// A rule that keys on a package-qualified call must key on the identity rather than on the local
+/// name, because an import may be aliased: `binary.BigEndian` and `bin.BigEndian` are one call
+/// written two ways.
+pub const ATTR_PACKAGE_PATH: &str = "package_path";
 
 /// Attribute key naming the source AST node an `unsupported` placeholder stands for, so a refusal
 /// can say WHAT it refused rather than only that it refused.

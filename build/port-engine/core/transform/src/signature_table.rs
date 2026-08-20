@@ -143,6 +143,7 @@ impl SignatureTable {
                 binary_string: semantics.binary_string(),
                 bit_pattern_constants: semantics.bit_pattern_constants(),
                 readable_literals: semantics.readable_literals(),
+                byte_order_calls: semantics.byte_order_calls(),
                 allocation: semantics.allocation(),
                 sequence_append: semantics.sequence_append(),
                 integer_arithmetic: semantics.integer_arithmetic(),

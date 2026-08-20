@@ -3,7 +3,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{
-    Allocation, BinaryString, BitPatternConstants, ReadableLiterals, DeriveRule, Digest, DocConvention,
+    Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ReadableLiterals, DeriveRule, Digest, DocConvention,
     FailureConvention, FormatCalls, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
     PackSemantics, PointerDisposition, RuleId, RulePack, SequenceAppend, UnitId,
 };
@@ -45,6 +45,7 @@ pub struct LoadedRulePack {
     pub(crate) binary_string: BinaryString,
     pub(crate) bit_pattern_constants: BitPatternConstants,
     pub(crate) readable_literals: ReadableLiterals,
+    pub(crate) byte_order_calls: ByteOrderCalls,
     pub(crate) allocation: Allocation,
     pub(crate) sequence_append: SequenceAppend,
     pub(crate) length_argument_callees: BTreeSet<String>,

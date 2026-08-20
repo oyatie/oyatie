@@ -69,6 +69,7 @@ pub(crate) struct Resolver<'a> {
     pub(crate) binary_string: &'a port_engine_api::BinaryString,
     pub(crate) bit_pattern_constants: &'a port_engine_api::BitPatternConstants,
     pub(crate) readable_literals: &'a port_engine_api::ReadableLiterals,
+    pub(crate) byte_order_calls: &'a port_engine_api::ByteOrderCalls,
     /// How the source's allocating builtin becomes the target's.
     pub(crate) allocation: &'a port_engine_api::Allocation,
     /// How the source's `append` becomes the target's.

@@ -687,6 +687,29 @@
       "reason": "The source answers with a byte offset or -1; the target answers with an optional byte offset. Same search, same units -- both count BYTES rather than characters, which is the thing that usually differs between two languages' index functions -- so only the absent case needs spelling, and -1 is how the source spells it. Kept as the sentinel rather than turned into an option because the call sites are the source's and they compare against -1."
     }
   },
+  "byte_order_calls": {
+    "package": "encoding/binary",
+    "orders": {
+      "BigEndian": "be",
+      "LittleEndian": "le"
+    },
+    "reads": {
+      "Uint16": "u16",
+      "Uint32": "u32",
+      "Uint64": "u64"
+    },
+    "writes": {
+      "PutUint16": "u16",
+      "PutUint32": "u32",
+      "PutUint64": "u64"
+    },
+    "read_form": "{type}::from_{order}_bytes",
+    "fit_method": "try_into",
+    "fit_unwrap": "unwrap",
+    "write_form": "to_{order}_bytes",
+    "write_method": "copy_from_slice",
+    "reason": "How the source's byte-order package becomes the target's own conversions. It was the largest refusal in the corpus by both measures -- 48 call sites across four of seven packages -- because `encoding/binary` is a standard library the emitted crate does not have, and the calls are METHODS on a package-level value, so nothing keyed by function identity could answer for them.\n\nThe target needs no library for this: every fixed-width integer carries its own byte-order conversions. A READ is the target's `from_<order>_bytes` over a fixed-size array, and the source's slice becomes one by a fallible fit whose failure the source has too -- `binary.BigEndian.Uint32(b)` panics when `b` is short, and so does the fit, so the unwrap is the source's own behaviour rather than an invention. A WRITE copies the conversion's bytes into the destination, which is what the source's Put does.\n\nKeyed by the package's IMPORT PATH, never by the local name it was bound to: an import may be aliased, and `binary.BigEndian` and `bin.BigEndian` are one call written two ways."
+  },
   "length_functions": {
     "names": [
       "len",

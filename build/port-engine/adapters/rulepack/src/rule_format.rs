@@ -93,6 +93,32 @@ pub(crate) struct BinaryStringRule {
     pub(crate) reason: String,
 }
 
+/// Wire shape for the byte-order call mapping.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ByteOrderCallsRule {
+    #[serde(default)]
+    pub(crate) package: String,
+    #[serde(default)]
+    pub(crate) orders: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    pub(crate) reads: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    pub(crate) writes: std::collections::BTreeMap<String, String>,
+    #[serde(default)]
+    pub(crate) read_form: String,
+    #[serde(default)]
+    pub(crate) fit_method: String,
+    #[serde(default)]
+    pub(crate) fit_unwrap: String,
+    #[serde(default)]
+    pub(crate) write_form: String,
+    #[serde(default)]
+    pub(crate) write_method: String,
+    #[serde(default)]
+    pub(crate) reason: String,
+}
+
 /// Wire shape for how a long decimal literal is grouped.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]

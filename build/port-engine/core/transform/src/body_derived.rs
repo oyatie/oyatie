@@ -31,6 +31,12 @@ impl<'a> Body<'a> {
         self
     }
 
+    /// The same body, told the NAMED results a bare return hands back.
+    pub(crate) fn with_named_results(mut self, names: Vec<String>) -> Self {
+        self.named_results = names;
+        self
+    }
+
     /// The same body, told which type it is a method OF.
     pub(crate) fn with_receiver_type(mut self, name: Option<&'a str>) -> Self {
         self.receiver_type = name;
@@ -45,8 +51,9 @@ impl<'a> Body<'a> {
             resolver: self.resolver,
             fallible: self.fallible,
             result_is_owned_string: self.result_is_owned_string,
-            result_is_owned_sequence: self.result_is_owned_sequence,
+            result_is_owned_sequence: self.result_is_owned_sequence.clone(),
             drops_absent_failure: self.drops_absent_failure,
+            named_results: self.named_results.clone(),
             borrowed: self.borrowed.clone(),
             results: self.results.clone(),
             usize_counters: self.usize_counters.clone(),
@@ -72,8 +79,9 @@ impl<'a> Body<'a> {
             resolver: self.resolver,
             fallible: self.fallible,
             result_is_owned_string: self.result_is_owned_string,
-            result_is_owned_sequence: self.result_is_owned_sequence,
+            result_is_owned_sequence: self.result_is_owned_sequence.clone(),
             drops_absent_failure: self.drops_absent_failure,
+            named_results: self.named_results.clone(),
             borrowed: self.borrowed.clone(),
             results: self.results.clone(),
             usize_counters,
