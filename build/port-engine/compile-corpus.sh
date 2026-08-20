@@ -65,6 +65,11 @@ for package in "${packages[@]}"; do
 
   # Dead code is EXPECTED and is not a defect: the engine emits only what it can prove, so a
   # translated helper whose only caller refused is unused through no fault of its own.
+  #
+  # `unused` is NOT suppressed, and used to be. It hid three real translator artifacts — an import
+  # emitted into modules that never name it, and a loop binding nobody reads — which a reviewer
+  # found by running the compiler without the flag this script was passing. An expected warning
+  # class is one thing; a blanket group that happens to contain it is another.
   # `-D warnings` because that is the gate the engine is actually held to. Running without it
   # measured a weaker claim: `pub const K: PrivateType` is a WARNING, and a warning under this
   # policy is a build failure -- so the table said "compiles" for a crate that does not.
@@ -75,7 +80,7 @@ for package in "${packages[@]}"; do
   checker=rustc
   command -v clippy-driver > /dev/null && checker=clippy-driver
   errors=$("$checker" --edition 2021 --crate-type lib --emit=metadata \
-             -A dead_code -A unused -D warnings \
+             -A dead_code -D warnings \
              -o "$work/$package.rmeta" "$crate/lib.rs" 2>&1 \
            | grep -cE '^(error|warning)')
   if [ "$errors" -eq 0 ]; then

@@ -125,6 +125,19 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                     let matched = crate::lower_expr::lower_expr(&borrowed)?;
                     quote! { f.write_str(#matched) }
                 }
+                // A VALUE THAT CAN WRITE ITSELF. `f.write_str(&x.to_string())` allocates a string
+                // purely to copy it into the formatter and drop it. The source had no choice — its
+                // method must RETURN a string — and the target's formatter takes the value
+                // directly. Recognised from the tail being exactly `to_string()`, so a body that
+                // computes anything else is untouched.
+                Some(crate::stmt::RustStmt::Tail(crate::expr::RustExpr::MethodCall {
+                    receiver,
+                    method,
+                    args,
+                })) if method == "to_string" && args.is_empty() => {
+                    let inner = crate::lower_expr::lower_expr(receiver)?;
+                    quote! { fmt::Display::fmt(&#inner, f) }
+                }
                 // ALREADY A REFERENCE. `write_str` takes one, so a tail that is already a borrow
                 // needs no second `&` — and adding one is `clippy::needless_borrow`, which the
                 // deny-warnings policy makes a build failure. The borrow is added only where the
