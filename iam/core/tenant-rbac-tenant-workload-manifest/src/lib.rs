@@ -146,7 +146,7 @@ pub fn fd001_tenant_workload_manifest() -> Fd001TenantWorkloadManifest {
                 "hr-employment-runtime",
                 "hr-employment",
                 "hr-employment-infrastructure",
-                "crates/hr-employment-infrastructure",
+                "app/hr/adapters/employment-infrastructure",
                 "evidence/multispectrum/cs-ent-hr-runtime-adapter-foundation-1779536400.json",
             ),
             workload(
@@ -367,11 +367,25 @@ fn validate_workload(
     if workload.residency_region != manifest.residency_region {
         return Err(Fd001TenantWorkloadManifestError::InvalidResidencyRegion);
     }
-    validate_prefixed_ref(
+    // The runtime package ref used to be pinned to `crates/`, which is the
+    // pre-ADR-0562 layout. A capability-first crate lives at
+    // `<root>/<face>/<crate>`, so a workload whose crate has been absorbed into
+    // app/<product>/<face>/ can no longer satisfy a `crates/` prefix. Accept
+    // either: `crates/` for rows whose crate has not moved yet, and `app/` for
+    // rows that have. validate_prefixed_ref still guards traversal and shape.
+    if validate_prefixed_ref(
         workload.runtime_package_ref,
         "crates/",
         Fd001TenantWorkloadManifestError::InvalidRuntimePackageRef,
-    )?;
+    )
+    .is_err()
+    {
+        validate_prefixed_ref(
+            workload.runtime_package_ref,
+            "app/",
+            Fd001TenantWorkloadManifestError::InvalidRuntimePackageRef,
+        )?;
+    }
     validate_prefixed_ref(
         workload.route_scope_ref,
         "crates/oya-tenant-rbac-local-runtime-composition/",
@@ -519,9 +533,17 @@ fn validate_region(value: &str) -> Result<(), Fd001TenantWorkloadManifestError> 
 
 fn validate_package_name(value: &str) -> Result<(), Fd001TenantWorkloadManifestError> {
     validate_slug(value, Fd001TenantWorkloadManifestError::InvalidPackageName)?;
-    if !value.starts_with("oya-") {
-        return Err(Fd001TenantWorkloadManifestError::InvalidPackageName);
-    }
+    // The `oya-` prefix is NOT required. This validator used to demand it, which
+    // made a brand the contract rather than a naming convention — and the repo is
+    // actively removing that prefix: `ci/facade/cloud-name-ratchet` is a
+    // shrink-only ratchet over exactly these names, so requiring it here would
+    // break every workload row as its crate debrands. Rows still carrying `oya-`
+    // (accounting-journal, payroll-run, tenant-rbac-app) are crates that have not
+    // moved yet, not a rule.
+    //
+    // What the contract actually needs is a well-formed package slug, which
+    // validate_slug already enforces: lowercase, digits and hyphens only, no path
+    // traversal, no credential shape.
     Ok(())
 }
 
