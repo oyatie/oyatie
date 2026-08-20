@@ -253,6 +253,12 @@ const (
 	// can only be observed by walking the declarations.
 	flagInitWritten = "init_written"
 
+	// flagUnsafeLayoutOnly records that EVERY reference to this type sits inside the source's
+	// `unsafe.Pointer` escape hatch, so what it describes is the source runtime's memory layout
+	// rather than a value. The target does not share that layout, and in a crate that denies
+	// `unsafe` the ported struct could never mean what it meant. See unsafeuse.go.
+	flagUnsafeLayoutOnly = "unsafe_layout_only"
+
 	// Ownership facts, observed intra-procedurally. See ownershipFacts for what each means and
 	// why the third one exists.
 	flagMutated       = "mutated"

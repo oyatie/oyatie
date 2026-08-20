@@ -155,6 +155,8 @@ pub trait PackSemantics {
     /// mapping is owed; one it has looked at refuses saying a mapping would be wrong — the target
     /// has a type of the same name or purpose and a different shape.
     fn unmappable_types(&self) -> &BTreeMap<String, String>;
+    /// Why a type carrying one of these FACTS has no faithful target form.
+    fn unmappable_facts(&self) -> &BTreeMap<String, String>;
     /// What a source string constant becomes when its content is not text.
     fn binary_string(&self) -> &BinaryString;
 

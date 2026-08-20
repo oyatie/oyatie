@@ -15,6 +15,7 @@ use port_engine_transform::*;
 
 #[derive(Default)]
 pub struct Pack {
+    unmappable_facts: std::collections::BTreeMap<String, String>,
     bit_pattern_constants: port_engine_api::BitPatternConstants,
     /// rule → (construction, precondition, captures)
     pub rules: BTreeMap<&'static str, (&'static str, &'static str, Vec<String>)>,
@@ -276,6 +277,12 @@ impl PackSemantics for Pack {
         // EMPTY, like the tables beside it: which types cannot be mapped is the real pack's
         // judgement about a real standard library.
         &self.unmappable_types
+    }
+
+    fn unmappable_facts(&self) -> &std::collections::BTreeMap<String, String> {
+        // EMPTY, so a fixture's type is judged on its shape alone. Which FACTS make a type
+        // unportable is a judgement about real source, measured against the corpus.
+        &self.unmappable_facts
     }
 
 

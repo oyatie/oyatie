@@ -4383,3 +4383,57 @@ each defect class above must become a static rule that REFUSES rather than emits
 
 The diff is 283 lines and was reconstructible from this entry alone; it was kept out of history rather
 than committed and reverted, so no bisect lands on a state that does not build.
+
+## R2j — the decisive tell, refused by name
+
+Four blind reviews running, `SliceHeader` has been the single most decisive evidence that the output
+was mechanically translated. R2f established what the case needs and why the obvious instrument was
+wrong; R2g confirmed an independent reviewer reaches the same conclusion by the same reasoning. This
+phase built it.
+
+**The rule.** `unsafe.Pointer` is the source's escape from its own type system. A type whose EVERY
+reference in its own package sits inside that hatch is not describing a value — it is describing how
+the source runtime lays one out in memory, and the target does not share that layout. So there is
+nothing for the fields to mean, and the type is refused BY NAME rather than ported into a crate that
+denies `unsafe`, where a reader has no way to identify it as residue.
+
+EVERY reference, not merely one: a type used both ways is a real type that also happens to be
+reinterpreted somewhere, and refusing that would be refusing the author's work on the strength of a
+single use.
+
+**The front end had to learn to see it.** Checked before assuming: the string `unsafe` does not occur
+anywhere in the xxhash snapshot. Both uses of `sliceHeader` sit under a `StarExpr` that the walker
+records as unsupported without descending, so the reference and the hatch were both lost before any
+rule could look. `unsafeuse.go` adds a package-wide pass that counts, per type of this package, how
+many of its USES (never its definition) sit inside an expression mentioning the `unsafe` package —
+resolved through the type-checker, so a local variable named `unsafe` is not the hatch. Equal counts
+and non-zero means the flag.
+
+**Measured over the whole corpus: one hit, zero false positives.** `xxhash.sliceHeader` and nothing
+else across seven packages and 336 declarations. The emitted xxhash module no longer contains
+`SliceHeader`, and the survey reports the refusal against the type's own name with the pack's reason.
+
+**The cost, stated plainly.** xxhash coverage falls 58.8% → 55.9%. Refusing a declaration always
+does. It is the right trade and the direction the standing goal points: the type that came out was
+`struct SliceHeader { s: String, cap: i64 }`, which compiles, means nothing, and is exactly the
+"output that compiles and means something different" the engine exists to prevent.
+
+**Shape notes for the next rule of this kind.** The reason is pack data keyed by the FACT rather than
+by the type's name — a property that makes a type unportable holds for every type that has it in any
+package, and keying by name would have made the rule a list of one repo's types. It went in as a
+sibling map inside the existing `unmappable_types` rule, which already means "no faithful target
+form, and the pack says why", so it cost one field rather than a whole new table.
+
+The refusal is asked BEFORE anything is built, and that ordering is the point: nothing about such a
+type's translation is wrong. Every field maps, the struct renders, the result compiles. What is wrong
+is that the thing it describes does not exist on this side, so a faithful-looking translation is the
+worst available outcome.
+
+**One process note.** Three crates appeared to hang for 90 seconds after this change and did not —
+the extractor and pack edits invalidated the build cache, and a cold compile of those test targets
+outran the window I gave it. Worth remembering before diagnosing a fixpoint loop that is not there:
+after a front-end or pack change, the first `cargo test` is a cold build.
+
+Verification: Go tests green; 11 crates' Rust tests green by exit code; clippy `-D warnings` green;
+`delta` Green/Unchanged; golden byte-identical; `clippy-driver --deny=warnings` green over all five
+packages that emit, under `#![forbid(unsafe_code)]`.
