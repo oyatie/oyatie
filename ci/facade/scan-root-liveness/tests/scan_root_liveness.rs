@@ -54,7 +54,7 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 // ontology-projection-coverage, active-artifact-contract -- each of which leaves the dark
 // baseline in the same change that gives it a live-corpus test. 94 - 6 = 88, and the set
 // diff confirms it: exactly those six left, nothing was added back.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 88;
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 89;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");

@@ -9,9 +9,10 @@
   "min_get_operations": 420,
   "min_list_operations": 50,
   "min_capabilities": 60,
-  "_frozen_offset_or_page_comment": "ADR-0150 FORBIDS offset/page pagination, and every Oyatie-authored contract in this tree obeys: the single frozen key is a captured snapshot of a THIRD-PARTY API (Workday REST v40, servers: https://wd2-impl-services1.workday.com), where the offset parameter is a fact about Workday's API that no change here can repair. It is frozen rather than excluded on purpose: dropping vendor snapshots from the corpus would narrow the scan to make the number pretty, and the other nine connector snapshots are read on exactly the same terms. Pinned by EQUALITY over the whole set, never by a floor — a floor on a term whose honest target is zero goes red the moment the corpus is clean, and a guard that reds on success gets deleted.",
+  "_frozen_offset_or_page_comment": "ADR-0150 FORBIDS offset/page pagination. TWO keys are frozen, and they are frozen for OPPOSITE reasons -- do not collapse them into one rule.\n(1) gateway/adapters/workday-connector/specs/openapi.snapshot.yaml::/workers::offset is a captured snapshot of a THIRD-PARTY API (Workday REST v40, servers: https://wd2-impl-services1.workday.com). The offset parameter is a fact about Workday's API that no change to this repository can remove; it is permanently frozen and is NOT debt.\n(2) storage/imaging/contracts/openapi.yaml::/dicomweb/studies::offset is OYATIE-AUTHORED and IS debt. A QIDO-RS study-query endpoint declaring limit + offset. It is frozen so the gate is green today, and it is the first key that should leave this set. An earlier version of this comment asserted that every Oyatie-authored contract in the tree obeys ADR-0150; that was FALSE, and it was false because the gate could not see this operation rather than because anyone checked. The offset detector compared `name: offset` exactly after trim_start(), so the ordinary YAML sequence form `- name: offset` never matched, while the sibling cursor arm used `contains` and did. Fixed in the same change that adds this key.",
   "frozen_offset_or_page_operations": [
-    "gateway/adapters/workday-connector/specs/openapi.snapshot.yaml::/workers::offset"
+    "gateway/adapters/workday-connector/specs/openapi.snapshot.yaml::/workers::offset",
+    "storage/imaging/contracts/openapi.yaml::/dicomweb/studies::offset"
   ],
   "frozen_list_ops_missing_cursor": [
     "comms/mail/contracts/openapi/mail.yaml::/mailboxes/{mailboxId}/threads",
