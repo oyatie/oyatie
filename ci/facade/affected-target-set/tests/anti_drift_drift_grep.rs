@@ -4,8 +4,11 @@
 //    — never re-lists the cite set.
 // 2. RED fixture: prose root enumeration / freeze path table MUST Refuse.
 // 3. GREEN fixture: cite-only Swarm surface is Green.
-// 4. When ADR-0711 + envelopes exist on tip: live-bind cite authority + evaluate in-scope prose.
-//    When absent (parked integ/ci before #1644 land): skip live load; fixture proofs still bind.
+// 4. Live-bind the cite authority from the envelopes and evaluate the in-scope prose surfaces.
+//    Every declared surface (envelopes, ADR-0711, the portable contract) is a REQUIRED input:
+//    an absent or relocated surface is RED and names the path. This used to `return` with a
+//    "skip live anti-drift bind" note, which meant renaming any one of them left the suite green
+//    on fixture proofs alone — the scan silently narrowed to nothing.
 //
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
@@ -138,15 +141,22 @@ SSOT: specs/integ-branch-envelopes.json#anti_drift.\n";
 }
 
 #[test]
-fn live_surfaces_bind_when_present() {
+fn live_surfaces_bind() {
     let root = repo_root();
     let envelopes = root.join(ENVELOPES_PATH);
     let adr = root.join(ADR_PATH);
-    if !envelopes.is_file() || !adr.is_file() {
-        eprintln!(
-            "skip live anti-drift bind: envelopes and/or ADR-0711 absent on tip (expected until integ/specs lands)"
+    for (label, rel, path) in [
+        ("cite authority", ENVELOPES_PATH, &envelopes),
+        ("in-scope prose surface", ADR_PATH, &adr),
+    ] {
+        assert!(
+            path.is_file(),
+            "declared {label} {rel} does not resolve under {} — a declared surface that is \
+             absent must be RED and name the path, never a skip that leaves this gate scanning \
+             nothing while reporting green. If the surface moved, repoint the constant in the \
+             same change that moves it",
+            root.display()
         );
-        return;
     }
 
     let env_raw = fs::read_to_string(&envelopes).expect("read envelopes");
@@ -164,12 +174,17 @@ fn live_surfaces_bind_when_present() {
         text: adr_text,
     });
     let portable = root.join(PORTABLE_PATH);
-    if portable.is_file() {
-        surfaces.push(ProseSurface {
-            path: PORTABLE_PATH.to_owned(),
-            text: fs::read_to_string(&portable).expect("read PORTABLE"),
-        });
-    }
+    assert!(
+        portable.is_file(),
+        "declared in-scope prose surface {PORTABLE_PATH} does not resolve under {} — it was \
+         previously included only `if portable.is_file()`, so relocating it dropped a scanned \
+         surface with no signal at all",
+        root.display()
+    );
+    surfaces.push(ProseSurface {
+        path: PORTABLE_PATH.to_owned(),
+        text: fs::read_to_string(&portable).expect("read PORTABLE"),
+    });
 
     let policy = load_policy(&root);
     let report = evaluate(&policy, &cite_authority, &surfaces);

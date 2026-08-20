@@ -9,27 +9,41 @@ use ci_affected_target_set::owners_from_envelopes::{
     owners_map_json,
 };
 
+/// Anchor on this gate's OWN directory, never on the subject under test.
+///
+/// The previous anchor was [`ENVELOPES_RELPATH`] itself, which made the root walk and the
+/// input check the same predicate — so the `if !envelopes_path.is_file()` skip below was
+/// unreachable, and, worse, in a nested checkout (a git worktree under the primary clone) the
+/// walk climbed straight out of the worktree and bound the PARENT clone's copy of the file.
+/// The gate then reported green over a tree it was not asked to judge. Anchoring on a marker
+/// this crate owns keeps the walk inside the checkout under test and makes the absence of the
+/// subject a real, RED, named failure.
+const GATE_DIR_MARKER: &str = "ci/facade/affected-target-set/Cargo.toml";
+
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
     for _ in 0..16 {
-        if dir.join(ENVELOPES_RELPATH).is_file() {
+        if dir.join(GATE_DIR_MARKER).is_file() {
             return dir;
         }
         if !dir.pop() {
             break;
         }
     }
-    panic!("failed to locate repo root (dir holding {ENVELOPES_RELPATH})");
+    panic!("failed to locate repo root (dir holding {GATE_DIR_MARKER})");
 }
 
 #[test]
 fn live_envelopes_generate_codeowners_and_owners_map() {
     let root = repo_root();
     let envelopes_path = root.join(ENVELOPES_RELPATH);
-    if !envelopes_path.is_file() {
-        eprintln!("skip: {ENVELOPES_RELPATH} absent on tip");
-        return;
-    }
+    assert!(
+        envelopes_path.is_file(),
+        "declared owners SSOT {ENVELOPES_RELPATH} does not resolve under {} — CODEOWNERS and \
+         the owners map are derived from it, so an absent authority must be RED and name the \
+         path. If the SSOT moved, repoint ENVELOPES_RELPATH in the same change that moves it",
+        root.display()
+    );
     let text = fs::read_to_string(&envelopes_path).expect("read envelopes");
     let envelopes: serde_json::Value = serde_json::from_str(&text).expect("parse envelopes");
     assert!(

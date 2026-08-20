@@ -1012,9 +1012,16 @@ fn live_adr_authority_reconciliation_is_green() {
         .collect::<BTreeSet<_>>();
     for corpus_rel in ["docs/decisions", "docs/adr-archive"] {
         let corpus_dir = root.join(corpus_rel);
-        if !corpus_dir.is_dir() {
-            continue;
-        }
+        // A declared corpus root that no longer resolves is NOT "nothing to reconcile" — it is a
+        // root that scans zero ADRs and reports green over an empty set. This used to `continue`,
+        // so `mv docs/decisions` left this reconciliation passing with an empty authority map.
+        assert!(
+            corpus_dir.is_dir(),
+            "declared ADR corpus root {corpus_rel} does not resolve under {} — reconciliation \
+             over a missing root scans nothing and reports green; repoint the root in the same \
+             change that moves it",
+            root.display()
+        );
         for entry in fs::read_dir(&corpus_dir).unwrap_or_else(|e| panic!("read {corpus_rel}: {e}"))
         {
             let path = entry.expect("ADR entry").path();
