@@ -2435,7 +2435,7 @@
         "shrink_source_integ": "integ/cloud"
       },
       {
-        "path": "oya/payments/",
+        "path": "app/payments/",
         "action": "reorg_now",
         "greenfield_destination": "app/payments/",
         "destination": "app/payments/",
@@ -2443,7 +2443,7 @@
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
-        "name_now": "oya/payments/",
+        "name_now": "app/payments/",
         "name_forever": "app/payments/",
         "kind": "app-product",
         "grammar_compliant": true,
@@ -2469,14 +2469,14 @@
         "rationale": "1) 102-file zero-crate product dump (capabilities/catalog/contracts/policy/iac/slos/runbooks/docs) under oya/payments; crates deleted #1451. 2) Brand-prefixed oya/ nest vs ADR-0562 app product forever home. 3) Provide PSP charge/refund/payout product surface. 4) Must exist at app/payments/; must not fold into billing/. 5) Fit: envelopes roots.payments forward_declared integ/payments → app/payments/**. 6) rewrite-into-durable-shape (not git-mv-only); delete AUDIT-FINDINGS-2026-05-20.json on land. 7) Forever: app/payments/ (land_status ready_for_integ_payments).",
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/payments | wc -l → 102; Cargo.toml count → 0 (zero-crate)",
-          "oya/payments/AUDIT-FINDINGS-2026-05-20.json present — scout 1f761030 classifies delete_permanently (closed receipt)",
+          "app/payments/AUDIT-FINDINGS-2026-05-20.json present — scout 1f761030 classifies delete_permanently (closed receipt)",
           "governance/capability-registry.json app_products.current_dirs includes oya/payments → forever app/payments/",
           "billing/ is keep_forever registered capability (metering/tax) — NOT payments forever dest",
           "envelopes roots.payments forward_declared integ/payments → app/payments/** (1.14.0)",
           "scout seat-B packet 1f761030"
         ],
         "destination_integ": "integ/payments",
-        "land_when": "After this judgment: integ/payments rewrites oya/payments/** → app/payments/** (fix phantom microservices/crate refs); delete AUDIT-FINDINGS-2026-05-20.json; do NOT route into billing/; hub retargets only on tip-free integ/specs — not this judgment commit",
+        "land_when": "After this judgment: integ/payments rewrites app/payments/** → app/payments/** (fix phantom microservices/crate refs); delete AUDIT-FINDINGS-2026-05-20.json; do NOT route into billing/; hub retargets only on tip-free integ/specs — not this judgment commit",
         "land_status": "ready_for_integ_payments",
         "shrink_source_integ": "integ/oya"
       },
@@ -5249,7 +5249,7 @@
       },
       {
         "id": "W-oya-leaf-payments",
-        "path": "oya/payments/",
+        "path": "app/payments/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5257,7 +5257,7 @@
         "land_status": "ready_for_integ_payments",
         "shrink_source_integ": "integ/oya",
         "status": "judgment_closed_on_integ_specs_wave1",
-        "two_phase_note": "Phase 1: integ/payments absorb oya/payments/** → app/payments/**; Phase 2: integ/oya shrink-only delete"
+        "two_phase_note": "Phase 1: integ/payments absorb app/payments/** → app/payments/**; Phase 2: integ/oya shrink-only delete"
       },
       {
         "id": "W-oya-leaf-calendar",
@@ -5446,7 +5446,6 @@
         "land_status": "ready_for_batch_path_drain",
         "status": "judgment_closed_on_integ_specs_oya_batch1b",
         "products": [
-          "oya/calendar/",
           "oya/governance/",
           "app/translate/",
           "app/sites/",
@@ -5455,12 +5454,6 @@
           "oya/ci-controller/"
         ],
         "product_destinations": {
-          "oya/calendar/": {
-            "action": "reorg_now",
-            "destination_integ": "integ/calendar",
-            "shrink_source_integ": "integ/oya",
-            "land_status": "ready_for_integ_calendar"
-          },
           "oya/governance/": {
             "action": "reorg_now",
             "destination_integ": "integ/governance",
@@ -5864,7 +5857,7 @@
       "two_phase_guidance_ref": "reorg_debt_freeze.land_status_two_phase",
       "rule": "destination_owns_reorg_now: Phase 1 absorb/rewrite on destination_integ forever path; Phase 2 shrink-only delete on shrink_source_integ after content verified alive on destination tip.",
       "product_rails": {
-        "oya/payments/": {
+        "app/payments/": {
           "destination_integ": "integ/payments",
           "forever": "app/payments/**",
           "shrink_source_integ": "integ/oya"
@@ -5993,12 +5986,6 @@
           "forever": "app/warehouse/**",
           "shrink_source_integ": "integ/oya",
           "note": "rule 3d OVERRULE: integ/warehouse owns app/warehouse/**; integ/app glue only"
-        },
-        "oya/calendar/": {
-          "destination_integ": "integ/calendar",
-          "forever": "app/calendar/**",
-          "shrink_source_integ": "integ/oya",
-          "note": "OVERRULE 1.16.7: was delete_permanently; scaffold reclaim on integ/calendar before source shrink"
         },
         "oya/social/": {
           "destination_integ": "integ/social",
@@ -6211,7 +6198,7 @@
       "docs/raw/",
       "cloud/cloud-os/",
       "cloud/cloud-kernel/",
-      "oya/payments/",
+      "app/payments/",
       "oya/office/",
       "oya/crm/",
       "oya/itsm/",
@@ -6229,7 +6216,6 @@
       "tools/",
       "tools/swarm/",
       "toolchains/",
-      "oya/calendar/",
       "oya/governance/",
       "app/translate/",
       "app/sites/",

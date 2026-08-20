@@ -1,7 +1,7 @@
 {
   "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
-  "count": 978,
+  "count": 977,
   "cloud_prefixed_names": [
     "dir:.github/workflows/oya-ci-required.yml",
     "dir:billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md",
@@ -908,7 +908,6 @@
     "name:observability/iac/helm/tempo/Chart.yaml:oya-observability-tempo",
     "name:observability/iac/helm/timescaledb-extension/Chart.yaml:oya-observability-timescaledb-extension",
     "name:observability/iac/k8s/helm/Chart.yaml:oya-observability",
-    "name:oya/calendar/iac/helm/Chart.yaml:oya-calendar",
     "name:oya/governance/iac/helm/_oya-helpers/Chart.yaml:oya-helpers",
     "name:oya/intelligence/iac/helm/intelligence/Chart.yaml:oya-intelligence",
     "name:oya/intelligence/iac/helm/milvus/Chart.yaml:oya-intelligence-milvus",
@@ -923,8 +922,8 @@
     "name:oya/intelligence/iac/helm/supervisor/supervisor-controller/Chart.yaml:oya-intelligence-supervisor-controller",
     "name:oya/intelligence/iac/helm/timescaledb-extension/Chart.yaml:oya-intelligence-timescaledb-extension",
     "name:oya/intelligence/iac/helm/wasmtime-sandbox/Chart.yaml:oya-wasmtime-sandbox",
-    "name:oya/payments/iac/helm/payments-app/Chart.yaml:oya-payments-app",
-    "name:oya/payments/iac/helm/payments-webhook-handler/Chart.yaml:oya-payments-webhook-handler",
+    "name:app/payments/iac/helm/payments-app/Chart.yaml:oya-payments-app",
+    "name:app/payments/iac/helm/payments-webhook-handler/Chart.yaml:oya-payments-webhook-handler",
     "name:secrets/facade/kms-operator-app/Cargo.toml:oya-cloud-kms-operator",
     "name:secrets/kms/iac/k8s/helm/Chart.yaml:oya-cloud-kms",
     "name:storage/drive/iac/helm/Chart.yaml:oya-drive",
