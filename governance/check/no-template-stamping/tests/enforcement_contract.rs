@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_governance_no_template_stamping::{
+use check_no_template_stamping::{
     EnforcementStatus, RULE_ID, enforce_no_template_stamping,
 };
 

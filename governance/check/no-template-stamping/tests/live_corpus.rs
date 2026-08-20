@@ -23,14 +23,14 @@ fn repo_root() -> PathBuf {
 
 fn frozen(root: &Path) -> serde_json::Value {
     let path =
-        root.join("libs/oya-governance-no-template-stamping/template-stamping-baseline.json");
+        root.join("governance/check/no-template-stamping/template-stamping-baseline.json");
     serde_json::from_str(&std::fs::read_to_string(&path).expect("read the frozen baseline"))
         .expect("parse the frozen baseline")
 }
 
 /// Observed stamped groups, keyed the same way the baseline is: directory -> sorted group sizes.
 fn observed(root: &Path) -> BTreeMap<String, Vec<usize>> {
-    let outcome = oya_governance_no_template_stamping::enforce_no_template_stamping(root)
+    let outcome = check_no_template_stamping::enforce_no_template_stamping(root)
         .expect("run the detector over the live tree");
     let mut by_dir: BTreeMap<String, Vec<usize>> = BTreeMap::new();
     for violation in &outcome.violations {
@@ -114,7 +114,7 @@ fn the_detector_still_sees_the_whole_repository() {
     // silently examined 1435 of 3990 markdown files. A scope regression would make every
     // assertion above pass by seeing nothing.
     let root = repo_root();
-    let outcome = oya_governance_no_template_stamping::enforce_no_template_stamping(&root)
+    let outcome = check_no_template_stamping::enforce_no_template_stamping(&root)
         .expect("run the detector over the live tree");
     let frozen = frozen(&root);
     let floor = frozen["scanned_markdown_files"]

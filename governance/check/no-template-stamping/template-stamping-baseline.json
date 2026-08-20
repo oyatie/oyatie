@@ -66,10 +66,10 @@
     "intelligence/detection/runbooks": [
       5
     ],
-    "libs/oya-governance-no-template-stamping/tests/fixtures/fail_microservice/microservices/mail/runbooks": [
+    "governance/check/no-template-stamping/tests/fixtures/fail_microservice/microservices/mail/runbooks": [
       3
     ],
-    "libs/oya-governance-no-template-stamping/tests/fixtures/fail_three_adjacent/docs/a": [
+    "governance/check/no-template-stamping/tests/fixtures/fail_three_adjacent/docs/a": [
       3
     ],
     "marketplace/runbooks": [

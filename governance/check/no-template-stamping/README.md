@@ -1,4 +1,4 @@
-# oya-governance-no-template-stamping
+# check-no-template-stamping
 
 Enforces the synthesis-audit P0 anti-template-stamping threshold.
 
@@ -11,7 +11,7 @@ Within each directory under `docs/` and `microservices/`, adjacent Markdown file
 Run when adding or bulk-generating documentation sets.
 
 ```bash
-cargo run --manifest-path crates/oya-governance-no-template-stamping/Cargo.toml -- --root . --strict
+cargo run --manifest-path crates/check-no-template-stamping/Cargo.toml -- --root . --strict
 ```
 
 ## Compliant Output

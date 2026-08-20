@@ -548,7 +548,7 @@
     { "id": "libs/oya-governance-lifecycle-kernel", "kind": "crate", "label": "oya-governance-lifecycle-kernel" },
     { "id": "libs/oya-governance-mistakes-ledger-kernel", "kind": "crate", "label": "oya-governance-mistakes-ledger-kernel" },
     { "id": "libs/oya-governance-naming-justifications", "kind": "crate", "label": "oya-governance-naming-justifications" },
-    { "id": "libs/oya-governance-no-template-stamping", "kind": "crate", "label": "oya-governance-no-template-stamping" },
+    { "id": "governance/check/no-template-stamping", "kind": "crate", "label": "check-no-template-stamping" },
     { "id": "libs/oya-governance-orphan-detection-kernel", "kind": "crate", "label": "oya-governance-orphan-detection-kernel" },
     { "id": "libs/oya-governance-pack-overlay-completeness", "kind": "crate", "label": "oya-governance-pack-overlay-completeness" },
     { "id": "libs/oya-governance-portfolio-citation-kernel", "kind": "crate", "label": "oya-governance-portfolio-citation-kernel" },
