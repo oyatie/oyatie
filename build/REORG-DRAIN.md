@@ -4606,3 +4606,68 @@ merely cheaper but the only spelling that exists, since the target's boxed failu
 model corrected, `withMessage` now refuses on `fmt.Fprintf` in its `Format` method — which is the
 R2i type/method cascade, one hard method sinking its whole type. The two findings compose exactly as
 predicted, and `errors` needs both.
+
+## R2n — what the transpiler literature says this engine is missing
+
+Researched rather than recalled, and mapped onto measured gaps. Three findings change what should be
+built next; one confirms an existing decision was right.
+
+**1. Ownership belongs in a LATTICE, solved by fixpoint — not decided per site.**
+C2Rust's ownership analysis assigns each pointer a permission from `READ < WRITE < MOVE` and solves
+for a consistent assignment; Laertes and the CAV'23 ownership-guided work extend it with lifetimes.
+This engine instead answers per site from flags (`mutated`, `escapes`, `effect_unknown`, `rebound`)
+plus a pack table of dispositions. That works, and it is why R2m had to be discovered BY HAND: "a
+stored failure may be absent" is a nullability qualifier, and the engine has no place to put one, so
+it became a bespoke rule for one type in one position.
+
+The generalization is mechanical: every type occurrence carries a qualifier — present/absent-capable
+crossed with owned/borrowed/shared — and the qualifiers are solved as a monotone fixpoint over
+constraints generated from the source. The engine already runs one monotone fixpoint (emittability)
+and knows why that shape terminates, so this is a second instance of a mechanism it has, not a new
+concept. It would have produced R2m automatically, and it is the same machinery the R2i worklist
+needs for its largest single defect (44 of semver's 53 errors: a method called on an `Option<T>`
+receiver, which is a qualifier mismatch at a call site and nothing else).
+
+**2. Translation validation is the missing THIRD evidence source, and it has a formal shape.**
+The literature's term for what this engine lacks: rather than proving a translator always correct,
+each individual run is followed by a validation phase establishing that the target refines the
+source, via a control mapping from target locations to source locations and a data abstraction
+mapping between their variables. Alive2 does this for LLVM IR.
+
+The engine currently has two correctness arguments and neither is refinement. Determinism (the
+six-axis receipt) proves the same input yields the same bytes. Refusal proves the engine declined
+what it could not justify. Neither says the emitted Rust MEANS what the Go meant. The honest form
+here is a differential oracle over generated inputs, and the engine is the only component that can
+emit its harness, because it alone knows the Go↔Rust symbol correspondence and which declarations
+refused. Every assertion in that harness must still originate outside the engine.
+
+The literature is also clear about the limits, which match the constraint already in force: these
+validators cannot handle unbounded loops, external calls, or complex arithmetic for an SMT solver.
+Value-level comparison is likewise blind to aliasing and mutation visibility, concurrency, allocation
+behaviour, and part of the panic/error boundary. So the division of labour is not a compromise, it
+is the design: **what a differential run cannot witness, the engine must refuse rather than guess.**
+That gives a usable admission test for any new rule — if its correctness can be witnessed neither by
+the compiler nor by a differential run, it needs a written proof in pack data, not a plausible reason.
+
+**3. Being syntax-directed is the thing to keep avoiding.** C2Rust is explicitly syntax-based: it
+rewrites C pointers to `*mut` and keeps unsafe semantics, and the whole Laertes/C2SaferRust line
+exists to lift that output afterwards. This engine's refusal-first, zero-`unsafe` stance is the
+opposite bet, and the research supports it — a syntax-directed port produces code that compiles and
+requires a second research programme to make safe. R2j is this engine's version of the same lesson
+in miniature: the type whose meaning was the source's memory layout had no target spelling at all,
+and emitting it would have been syntax-directed translation of something with no semantics to carry.
+
+**4. Statically checking ownership is undecidable, so incompleteness is expected.** Rust's own borrow
+checker is deliberately incomplete. That is the licence for this engine to refuse and the reason
+refusal is not an admission of weakness — but it also means "the engine refuses" can never be
+evidence that the emitted part is right, which is finding 2's whole point.
+
+**Ranked, by goal impact times provability.** (i) Qualifier lattice, because it generalizes R2m,
+unblocks R2i's largest defect, and replaces hand-discovery with inference. (ii) The differential
+oracle plus mutation testing to give it teeth, because it is the only evidence that originates
+outside the engine and can witness meaning. (iii) SSA and def-use chains, which would replace the
+read-count and "read exactly once" approximations behind the accumulator fold — the area that has
+produced more of this session's real bugs than any other.
+
+Sources: c2rust.com/manual (ownership analysis), CAV'23 ownership-guided C-to-Rust,
+arxiv 2501.14257 (C2SaferRust), Pnueli et al. translation validation, Alive2.
