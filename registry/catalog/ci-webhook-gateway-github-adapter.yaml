@@ -1,0 +1,17 @@
+context: ci-webhook-gateway
+role: adapter
+capability: github-commit-status-poster
+plane: control
+slo: preview-control-plane
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+source_adrs: [ADR-0105, ADR-0112, ADR-0131, ADR-0387]
+traceability:
+  changeset: CS-CI-WEBHOOK-GATEWAY-STAGE5-001
+  source_crate: app/ci-webhook-gateway/adapters/github-adapter/Cargo.toml
+non_claims:
+  - GitHub token injected via constructor — OpenBao integration deferred to Stage-7
+  - security_review remains unreviewed until a code-backed review ChangeSet upgrades it

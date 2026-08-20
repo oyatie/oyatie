@@ -1451,6 +1451,7 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     let root = repo_root();
     let policy = policy();
     let expected_roots = BTreeSet::from([
+        "app".to_owned(),
         "audit".to_owned(),
         "billing".to_owned(),
         "cell".to_owned(),
@@ -1479,7 +1480,7 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
         "the retired cloud root must leave every other governed root unchanged"
     );
     assert_eq!(
-        policy["manifest_inventory"]["expected_total"], 77,
+        policy["manifest_inventory"]["expected_total"], 78,
         "the governed corpus total is review-pinned: retiring the two cloud manifests moved it \
          96 -> 94, and retiring the 51 unreferenced oya product crates moved it 94 -> 77"
     );
@@ -1507,7 +1508,13 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     // product-tier: 95 -> 77 with substrate held at 54. A retirement of product crates that
     // moved the substrate count would mean the walk, not the retirement, changed — so the
     // substrate pin stays exact and is the control on this shrink.
-    assert_eq!(projection["service_count"], 77);
+    // 77 -> 78 when `app` joined governed_roots. That did NOT add a service: it made
+    // app/calendar/manifest.json COUNTABLE. That manifest has existed since PR #1671 landed
+    // the calendar absorb and was invisible to the census the whole time, because `app` was
+    // not a governed root. Substrate stays 54 — an app product is product-tier — which is
+    // the control: a root admission that moved substrate would mean the walk changed, not
+    // the corpus.
+    assert_eq!(projection["service_count"], 78);
     assert_eq!(projection["tier_distribution"]["substrate"], 54);
     assert!(
         projection["services"]

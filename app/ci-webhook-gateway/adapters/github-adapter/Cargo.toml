@@ -1,0 +1,34 @@
+[package]
+name = "ci-webhook-gateway-github-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# GitHub commit-status poster adapter for the CI webhook gateway (ADR-0387 D5).
+# Implements the kernel CommitStatusPoster trait via reqwest blocking HTTP.
+# Posts to the GitHub Statuses API v3 with proper auth headers.
+# Stage-5 GREEN: real HTTP implementation backed by reqwest.
+
+[lib]
+name = "ci_webhook_gateway_github_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+ci-webhook-gateway-kernel = { path = "../../core/kernel" }
+reqwest = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+# default-features=false drops the optional `cookies` feature (basic-cookies /
+# lalrpop codegen, no buck2 fixup). Tests use only the generic header/path/body
+# matchers, never httpmock's cookie matcher. Keeps reindeer feature-unification
+# from re-enabling `cookies` for the vendored httpmock target.
+httpmock = { version = "0.7", default-features = false }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
