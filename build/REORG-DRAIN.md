@@ -5544,3 +5544,52 @@ Ownership is decided per declaration and never reconciled at call sites, and the
 success. Relatedly there is no aliasing model at all: Go's `b := a` shares backing storage and the
 engine emits a move — which fails safe only because rustc rejects the result. The safety is
 accidental, not designed.
+
+## R3f — a pack form is a tree, not text, in the two places it still was not
+
+Ranked by PACKAGES blocked rather than by count in one, the top cause in the corpus was not closures.
+It was this, 34 sites across 8 packages:
+
+> an argument to `len` is a compound expression, and the pack answers for that call with a TEXT
+> template — substituting one would need parentheses the template cannot ask for
+
+The refusal was accurate, and it named a principle the engine had already adopted and then failed to
+finish applying. `body_mapped::structured_method` builds a tree for a form shaped `{0}.method(..)`.
+`len`'s form is `{0}.len() as i64`, which is not that shape — so it fell through to text
+substitution, and text substitution has no way to bracket a compound operand.
+
+A trailing conversion is a WRAPPER around the shape underneath it, not a reason to give up on
+building one. `structured_form` now peels a trailing cast and builds the method call inside it, using
+the same guard `body_call::structured` already used on rendered text: the conversion target must be
+an identifier, so `{0}.rotate_left({1} as u32)` — whose ` as ` sits inside — is left alone.
+
+`make` had the identical defect in `body_alloc`, in two arms. Both now recognise the pack's form
+structurally instead of substituting into it:
+
+- `Vec::with_capacity({0})` → `structured_call`, a path callee and positional arguments.
+- `vec![{1}; {0}]` → `structured_repeat`, and a new `RustExpr::VecRepeat`.
+
+`structured_repeat` reads the placeholder INDICES out of the form rather than assuming them. This is
+the one form in the pack whose operands are not in call order — the source's `make([]T, n)` gives the
+count first and the target's literal gives the value first — and reading the indices means a pack
+that writes the form the other way round gets the other tree instead of silently getting this one.
+
+Both cause classes are now absent from the corpus: zero text-template refusals across all twelve
+packages.
+
+### What this measured about the method, which matters more than the rule
+
+Clearing the largest cause across 8 packages moved total translated declarations by ONE.
+
+The survey reports a declaration's FIRST refusal. Removing that cause does not translate the
+declaration; it surfaces the declaration's next blocker. Coverage moves only where the cleared cause
+was the LAST one. So the histogram ranks CAUSES correctly and says nothing about how close any
+declaration is to translating — a cause with 34 sites across 8 packages can be worth one declaration,
+and a cause with 6 sites can be worth twenty.
+
+The histogram stays the right tool for choosing which rule to write, because a cause blocking 8
+packages is a property of Go and a cause blocking one is a property of a package. But "coverage did
+not move" is not evidence a rule was wrong, and neither is "coverage moved" evidence it was right.
+The check that a rule did what it claimed is that its cause is GONE from the histogram — which is
+what was verified here, and what R2p failed to verify when a broken rule looked green because the
+declarations it damaged had stopped being emitted.

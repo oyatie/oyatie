@@ -134,6 +134,10 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 false => Ok(quote! { #name!(#template, #(#args),*) }),
             }
         }
+        RustExpr::VecRepeat { value, count } => {
+            let (value, count) = (lower_expr(value)?, lower_expr(count)?);
+            Ok(quote! { vec![#value; #count] })
+        }
         RustExpr::Call { callee, args } => {
             let callee = lower_postfix_base(callee)?;
             let args = lower_each(args)?;
