@@ -9,7 +9,7 @@ use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_ci_config_kernel::NamingConfig;
+use ci_corpus_census_adapters::{assert_census_matches, independent_oya_prefix_census};
 use serde_json::Value;
 
 use ci_package_manifest_hygiene::{Verdict, evaluate, evaluate_keyed};
@@ -69,147 +69,6 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
 }
 
-/// INDEPENDENT dynamic census of today's oya-*-prefixed workspace member crates: resolved via
-/// the canonical `oya_workspace_members_kernel::resolve_member_dirs` (NOT the producer's own
-/// `collect_bnf_layer_suffix`/`collect_manifest_hygiene` path, and NOT applying
-/// `is_path_excluded` — that config-driven exclusion is itself a SECOND silent-drop vector the
-/// producer applies; a census that doesn't re-apply it will correctly MISMATCH if an exclusion
-/// rule is ever mis-scoped to drop a real crate), with its OWN from-scratch `[package] name`
-/// parse (see `independent_parse_package_name`). FAILS CLOSED: a resolved member directory whose
-/// Cargo.toml is unreadable or carries no `[package] name` is a hard test failure (panic), never
-/// a silent skip — the exact bug class (scan-root/glob/prefix/parse/truncation regression,
-/// silently dropping an eligible crate) a magic-number floor, or a bare non-empty check, could
-/// never catch. Self-adjusts through future de-brands: the census shrinks in lockstep with the
-/// face as crates lose the oya- prefix, so this stays valid without ever needing a bump.
-fn independent_oya_prefix_census(root: &Path) -> BTreeSet<String> {
-    let prefix = NamingConfig::default().required_prefix;
-    let mut member_dirs = oya_workspace_members_kernel::resolve_member_dirs(root)
-        .expect("resolve_member_dirs must resolve the live workspace Cargo.toml");
-    member_dirs.extend(resolve_nested_workspace_member_dirs(root));
-    let mut names = BTreeSet::new();
-    for dir in member_dirs {
-        let manifest_path = root.join(&dir).join("Cargo.toml");
-        let contents = std::fs::read_to_string(&manifest_path).unwrap_or_else(|e| {
-            panic!(
-                "independent census FAIL-CLOSED: unreadable manifest {} ({e}) — a workspace \
-                 member MUST have a readable Cargo.toml",
-                manifest_path.display()
-            )
-        });
-        let name = independent_parse_package_name(&contents).unwrap_or_else(|| {
-            panic!(
-                "independent census FAIL-CLOSED: no [package] name in {}",
-                manifest_path.display()
-            )
-        });
-        if name.starts_with(&prefix) {
-            names.insert(name);
-        }
-    }
-    names
-}
-
-/// Nested-workspace roots this repo carves out of the root workspace (`[workspace].exclude`
-/// entries that are THEMSELVES a `[workspace]` root — e.g. `cloud/cloud-kernel`'s bare-metal
-/// no_std workspace, `kernel/`'s ADR-0512 rung-0 carve-out): their first-party oya-* crates are
-/// real, tracked, prefix-matching manifests the PRODUCER's tracked-Cargo.toml scan legitimately
-/// includes (it doesn't care which cargo workspace a Cargo.toml belongs to), so the census must
-/// resolve them too or it silently under-counts relative to the face. Discovered from the root
-/// manifest's OWN `exclude` list (not a hardcoded dir list) — self-adjusts if a future carve-out
-/// is added or removed; an excluded entry with no `[workspace]` Cargo.toml (e.g. a buck2-only
-/// gate with no Cargo.toml at all) is simply skipped, not a nested workspace.
-fn resolve_nested_workspace_member_dirs(root: &Path) -> Vec<String> {
-    let root_manifest =
-        std::fs::read_to_string(root.join("Cargo.toml")).expect("read root Cargo.toml");
-    let mut dirs = Vec::new();
-    for excluded in root_workspace_excludes(&root_manifest) {
-        let nested_root = root.join(&excluded);
-        let Ok(nested_text) = std::fs::read_to_string(nested_root.join("Cargo.toml")) else {
-            continue;
-        };
-        if !nested_text.contains("[workspace]") {
-            continue; // excluded for a different reason (no Cargo.toml / not a workspace root).
-        }
-        let members =
-            oya_workspace_members_kernel::resolve_member_dirs_from_str(&nested_text, &nested_root)
-                .expect("resolve nested workspace members");
-        dirs.extend(members.into_iter().map(|m| format!("{excluded}/{m}")));
-    }
-    dirs
-}
-
-/// Minimal, from-scratch extraction of the root workspace's `[workspace] exclude = [...]` array
-/// — a plain independent text scan, not a TOML-library parse, so a bug in that shared parser
-/// cannot hide behind the census reusing it. `#`-comments are stripped PER LINE before any
-/// bracket detection, so a comment mentioning a bracket (e.g. "...its own [workspace]...")
-/// can never be mistaken for the array's own structural delimiter.
-fn root_workspace_excludes(manifest_text: &str) -> Vec<String> {
-    let mut in_exclude = false;
-    let mut body = String::new();
-    for raw in manifest_text.lines() {
-        let line = raw.split('#').next().unwrap_or("");
-        if !in_exclude {
-            if line.trim_start().starts_with("exclude") && line.contains('[') {
-                in_exclude = true;
-                if let Some((_, after)) = line.split_once('[') {
-                    body.push_str(after);
-                    body.push('\n');
-                    if after.contains(']') {
-                        in_exclude = false;
-                    }
-                }
-            }
-            continue;
-        }
-        body.push_str(line);
-        body.push('\n');
-        if line.contains(']') {
-            break;
-        }
-    }
-    body.split('"')
-        .enumerate()
-        .filter(|(i, _)| i % 2 == 1)
-        .map(|(_, seg)| seg.to_owned())
-        .collect()
-}
-
-/// Minimal, deliberately SEPARATE `[package] name` parse — NOT a call into the producer's own
-/// `parse_package_name`. The point of "independent" is that a bug in the shared parser cannot
-/// hide behind the census reusing the same buggy code.
-fn independent_parse_package_name(contents: &str) -> Option<String> {
-    let mut in_package = false;
-    for line in contents.lines() {
-        let trimmed = line.trim();
-        if trimmed.starts_with('[') {
-            in_package = trimmed == "[package]";
-            continue;
-        }
-        if in_package
-            && let Some(rest) = trimmed.strip_prefix("name")
-            && let Some(rest) = rest.trim_start().strip_prefix('=')
-        {
-            let value = rest.trim().trim_matches('"');
-            if !value.is_empty() {
-                return Some(value.to_owned());
-            }
-        }
-    }
-    None
-}
-
-/// Assert the face's enumerated crate-name set exactly equals the independent census, with a
-/// diagnostic naming exactly which keys are missing/extra on mismatch.
-fn assert_census_matches(face_names: &BTreeSet<String>, census: &BTreeSet<String>) {
-    let missing_from_face: Vec<&String> = census.difference(face_names).collect();
-    let extra_in_face: Vec<&String> = face_names.difference(census).collect();
-    assert!(
-        missing_from_face.is_empty() && extra_in_face.is_empty(),
-        "face/census SET MISMATCH — missing_from_face={missing_from_face:?} \
-         extra_in_face={extra_in_face:?}"
-    );
-}
-
 #[test]
 fn manifest_hygiene_is_born_blocking_on_the_live_corpus() {
     let root = repo_root();
@@ -227,6 +86,12 @@ fn manifest_hygiene_is_born_blocking_on_the_live_corpus() {
     // scan-root/glob/prefix/parse/truncation/exclusion regressions a magnitude floor cannot: a
     // producer that silently drops even ONE eligible crate is caught as a set difference, not
     // masked by "some debt survived."
+    //
+    // The census and its assertion live in ci/adapters/corpus-census — SHARED, not inlined. This
+    // gate and ci/facade/crate-layer-suffix each carried a verbatim copy of both, proofs included;
+    // two copies of a control is two places for it to drift. The should_panic proofs that make it
+    // trustworthy (empty face, near-empty face, exactly-one-missing, plus the fail-closed
+    // unreadable/unparseable-manifest fixtures) moved with it and are that crate's own tests.
     let census = independent_oya_prefix_census(&root);
     assert_census_matches(&face_names, &census);
 
@@ -246,127 +111,4 @@ fn manifest_hygiene_is_born_blocking_on_the_live_corpus() {
         !findings.is_empty(),
         "the live corpus must surface at least one manifest-hygiene violation"
     );
-}
-
-// --- assert_census_matches: RED-test the vacuous cases a bare `rows.len() > 0` check is blind
-// to ("some debt survived" is not the same fact as "the corpus was enumerated"). ---
-
-#[test]
-#[should_panic(expected = "SET MISMATCH")]
-fn census_mismatch_is_caught_when_face_is_empty_but_census_is_not() {
-    let face_names: BTreeSet<String> = BTreeSet::new();
-    let census: BTreeSet<String> = ["oya-a-domain".to_string()].into_iter().collect();
-    assert_census_matches(&face_names, &census);
-}
-
-#[test]
-#[should_panic(expected = "SET MISMATCH")]
-fn census_mismatch_is_caught_when_face_is_near_empty() {
-    // The exact vacuous-case bug class a bare `rows.len() > 0` check is blind to: one surviving
-    // row ("some debt survived") is not the same fact as "the corpus was enumerated."
-    let face_names: BTreeSet<String> = ["oya-a-domain".to_string()].into_iter().collect();
-    let census: BTreeSet<String> = ["oya-a-domain", "oya-b-domain", "oya-c-domain"]
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
-    assert_census_matches(&face_names, &census);
-}
-
-#[test]
-#[should_panic(expected = "SET MISMATCH")]
-fn census_mismatch_is_caught_when_exactly_one_crate_is_missing() {
-    let face_names: BTreeSet<String> = ["oya-a-domain", "oya-b-domain"]
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
-    let census: BTreeSet<String> = ["oya-a-domain", "oya-b-domain", "oya-c-domain"]
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
-    assert_census_matches(&face_names, &census);
-}
-
-#[test]
-fn census_match_is_green_when_sets_are_equal() {
-    let names: BTreeSet<String> = ["oya-a-domain", "oya-b-domain"]
-        .into_iter()
-        .map(str::to_owned)
-        .collect();
-    assert_census_matches(&names, &names.clone());
-}
-
-// --- independent_oya_prefix_census: fixture-driven fail-closed proof (unreadable/unparseable
-// eligible manifest) + a happy-path resolve+filter proof. ---
-
-fn census_tmp_root(tag: &str) -> PathBuf {
-    let unique = format!("manifest-hygiene-census-{tag}-{}", std::process::id());
-    let root = std::env::temp_dir().join(unique);
-    let _ = std::fs::remove_dir_all(&root);
-    std::fs::create_dir_all(&root).expect("create temp root");
-    root
-}
-
-#[test]
-#[should_panic(expected = "unreadable manifest")]
-fn independent_census_fails_closed_on_unreadable_member_manifest() {
-    // `resolve_member_dirs` fails when a matched directory has no Cargo.toml. This fixture tests
-    // the next boundary: the manifest exists for membership resolution but is unreadable when the
-    // census parses it. A deliberately unreadable oya-* manifest must RED the census.
-    let root = census_tmp_root("unreadable");
-    let manifest_path = root.join("crates/oya-ghost-domain/Cargo.toml");
-    std::fs::create_dir_all(manifest_path.parent().unwrap()).expect("mkdir");
-    std::fs::write(&manifest_path, "[package]\nname = \"oya-ghost-domain\"\n")
-        .expect("write member manifest");
-    use std::os::unix::fs::PermissionsExt;
-    std::fs::set_permissions(&manifest_path, std::fs::Permissions::from_mode(0o000))
-        .expect("chmod 000");
-    std::fs::write(
-        root.join("Cargo.toml"),
-        "[workspace]\nmembers = [\"crates/*\"]\n",
-    )
-    .expect("write root manifest");
-    let _ = independent_oya_prefix_census(&root);
-}
-
-#[test]
-#[should_panic(expected = "no [package] name")]
-fn independent_census_fails_closed_on_unparseable_member_manifest() {
-    let root = census_tmp_root("unparseable");
-    std::fs::create_dir_all(root.join("crates/oya-broken-domain")).expect("mkdir");
-    std::fs::write(
-        root.join("Cargo.toml"),
-        "[workspace]\nmembers = [\"crates/*\"]\n",
-    )
-    .expect("write root manifest");
-    std::fs::write(
-        root.join("crates/oya-broken-domain/Cargo.toml"),
-        "[dependencies]\n",
-    )
-    .expect("write member manifest");
-    let _ = independent_oya_prefix_census(&root);
-}
-
-#[test]
-fn independent_census_resolves_and_filters_a_small_fixture() {
-    let root = census_tmp_root("happy");
-    std::fs::create_dir_all(root.join("crates/oya-a-domain")).expect("mkdir");
-    std::fs::create_dir_all(root.join("crates/other-b-domain")).expect("mkdir");
-    std::fs::write(
-        root.join("Cargo.toml"),
-        "[workspace]\nmembers = [\"crates/*\"]\n",
-    )
-    .expect("write root manifest");
-    std::fs::write(
-        root.join("crates/oya-a-domain/Cargo.toml"),
-        "[package]\nname = \"oya-a-domain\"\n",
-    )
-    .expect("write member manifest");
-    std::fs::write(
-        root.join("crates/other-b-domain/Cargo.toml"),
-        "[package]\nname = \"other-b-domain\"\n",
-    )
-    .expect("write member manifest");
-    let census = independent_oya_prefix_census(&root);
-    assert_eq!(census, ["oya-a-domain".to_string()].into_iter().collect());
-    let _ = std::fs::remove_dir_all(&root);
 }
