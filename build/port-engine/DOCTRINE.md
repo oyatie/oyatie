@@ -417,6 +417,53 @@ Recorded so they are not re-proposed as novel.
   (§5). Context-varying weights are rejected outright.
 - **`Vec::clone()` for a Go slice assignment.** Rejected: shallow becomes deep (§3).
 
+- **A safe semantic baseline crate** — private `GoSlice<T>`, `GoMap<K,V>`, `GoChannel<T>`,
+  `GoString`, `GoPanic`, eliminated later by native synthesis. Proposed THREE times now, in three
+  separate designs, and declined each time for the reason in §2: the compatibility lane is not an
+  intermediate this engine passes through, because nothing forces the second half to happen. What
+  survives is the analysis the proposal needs, not the runtime it proposes.
+- **A GIR reference interpreter and three-way differential trace validation** (Go / IR / Rust).
+  Not rejected on merit — it is the strongest correctness story on offer, and if the engine ever
+  needs to prove a rule the compiler cannot witness, this is how. Not adopted NOW because it buys
+  what refusal already buys, at a much higher price: an engine that refuses what it cannot prove has
+  no unvalidated output to differentially test. It becomes necessary exactly when the engine starts
+  translating concurrency, and it should be built then rather than retrofitted.
+- **Whole-program points-to and a representation solver.** The engine's position is refusal, not
+  inference (§4), and a solver that picks `Arc<Mutex<T>>` over `T` from a cost model is inferring.
+  Admissible only if its output is PROOF-CARRYING — the certificate names what was checked — which
+  is a different and much larger thing than a cost model.
+
+## 10a. Adopted from external designs, with what changed
+
+- **A finding has five outcomes, not two.** The rule was "a rule or a declared exemption". That is
+  too coarse, and this session proved it: chi's largest refusal was a CHECKER BLIND SPOT wearing a
+  refusal's clothes — `b'\033'` reported as an unsupported literal when the literal's value was
+  never in doubt. The outcomes are: a translation bug, a quality bug, a genuinely unsupported source
+  semantic, a checker blind spot, and a finding that is simply wrong. Only the third is a legitimate
+  refusal, and calling one of the others by that name is how a defect hides in the histogram.
+- **Every rule needs the case where it must NOT fire.** A positive test proves a rule fires; only a
+  near-miss proves it is not overbroad. `'\n'` staying `'\n'` is a test, not a comment, precisely
+  because respelling every escape by code point would pass every positive test.
+- **The held-out corpus.** The two review gates run on the same five repositories the engine is
+  iterated against, which is tuning on the test set: the gates measure how well the engine handles
+  uuid, gjson, chi, multierror and memberlist, not how well it handles Go. A verdict on a repository
+  the engine has never been ratcheted against is worth more than another point of coverage on these.
+  UNRESOLVED, and stated here so it is not mistaken for a solved problem.
+- **Metamorphic stability.** Renaming a local, reordering independent declarations or moving a
+  helper between files in one package must not change the output. This is not hypothetical: a
+  decision has been keyed on FILE ORDER in this engine before, and it read as correct until the
+  order changed.
+
+## 10b. Known semantic exposure this doctrine has not closed
+
+- **A Go `string` is an arbitrary byte sequence, not UTF-8.** The pack maps it to `String`, which is
+  UTF-8 by construction. Every corpus package so far holds text, so nothing has broken; a package
+  that puts arbitrary bytes in a `string` — which the source permits — would be mistranslated rather
+  than refused. This is a known hole, not a solved problem.
+- **Atomics and memory ordering.** Nothing in the corpus emits an atomic. When it does, the source's
+  guarantee is sequential consistency, and `SeqCst` is the only ordering that may be emitted without
+  a proof; weakening it is an optimisation the engine may not make on the author's behalf.
+
 ---
 
 ## 11. Where this doctrine sits
