@@ -1,0 +1,4 @@
+# `go build ./...` drops the compiled extractor next to its source. It is a build artifact — derived
+# from the .go files in this directory, platform-specific, and several megabytes per commit. It was
+# tracked by accident for two commits; this stops that recurring.
+/extractor/extractor

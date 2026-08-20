@@ -189,15 +189,17 @@ const (
 	// recorded the type syntax as an unsupported node.
 	kindType = "type"
 
-	kindAssign = "assign"
-	kindFor    = "for"
-	kindCond   = "cond"
-	kindPost   = "post"
-	kindInit   = "init"
-	kindRange  = "range"
-	kindSwitch = "switch"
-	kindCase   = "case"
-	kindBreak  = "break"
+	kindAssign   = "assign"
+	kindFor      = "for"
+	kindCond     = "cond"
+	kindPost     = "post"
+	kindInit     = "init"
+	kindRange    = "range"
+	kindSwitch   = "switch"
+	kindCase     = "case"
+	kindBreak    = "break"
+	kindContinue = "continue"
+	kindIncDec   = "incdec"
 
 	// kindUnsupported is how the extractor stays FAITHFUL while the engine stays fail-closed.
 	// The snapshot is a model of the source, so a construct the translator cannot yet handle is

@@ -122,6 +122,7 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "break",
     "call",
     "case",
+    "continue",
     "composite",
     "convert",
     "for",
@@ -139,6 +140,7 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     // anywhere else would need the orphan rule answered by the front end, which is a target
     // question the source cannot see.
     "implements",
+    "incdec",
     "index",
     "init",
     "keyed",

@@ -5458,3 +5458,89 @@ And the drift pair broke exactly as the drain says it broke once before: regener
 id `...-upstream` instead of the plain one, the plan stopped selecting the unit and the delta went
 `Unchanged` where the test demands `Explained`. The entry describing that was read and applied rather
 than rediscovered — which is what the record is for.
+
+## R3e — `continue` is a decision about the enclosing loop, not about `continue`
+
+The front end refused every `continue` in the language, with this reason:
+
+> `break` maps directly. `continue` does NOT, because a three-clause loop lowers to a `while` whose
+> post-statement a `continue` would skip — a different program.
+
+The hazard is real and the refusal was in the wrong place. It holds for exactly one loop shape: one
+whose post-statement the target has to spell as the last statement of the body. A `continue` inside
+`for cond {}`, inside `for range xs {}`, or inside a three-clause loop that spends its post-statement
+building a range, skips nothing. The extractor cannot tell those apart without deciding which target
+loop the enclosing `for` becomes — which is the transform's decision, not the extractor's.
+
+So the fact moved to where the decision is. The front end now RECORDS `continue` (and `incdec`, which
+was reaching the transform as an `unsupported` node identified by a string label); `body_loops`
+refuses by name when, and only when, a post-statement would be jumped over:
+
+> a `for` with a post-statement contains a `continue`, and the target's `continue` jumps to the test
+> rather than to the post-statement — spelling the post-statement at the end of the body would skip
+> it on exactly those paths
+
+That unlocked the two loop shapes that had none. `for ; cond; post {}` — 50 sites in gjson alone,
+because a hand-optimised parser reuses one cursor across loops — becomes `while cond { body; post }`.
+`for init; cond; post {}` that is not the canonical ascending-integer form falls back to the same
+form wrapped in a block: `{ init; while cond { body; post } }`. The block is not decoration. Go scopes
+the init clause to the loop; emitting the binding as a sibling of the loop widens that scope to the
+rest of the enclosing body, where it can shadow a name the source left readable there.
+
+`counted_range` also stopped reading `ATTR_SOURCE_NODE == "IncDecStmt"` to recognise its post clause.
+That was a string label from the front end standing in for a structure; now that the increment is a
+real node kind the check reads the kind and the operator, and a `--` with an ascending `<` test no
+longer looks like an increment.
+
+Measured: gjson 12.1% → 16.1%. No package regressed.
+
+### The blank identifier is a hole, not a name
+
+Found by probe, not by the corpus. `_ = len(b)` emitted `item = b.len() as i64;` — an undeclared
+name on the left of an assignment. `to_snake_case` has a fallback that names an empty result `item`,
+and the blank reached it as if it were an identifier.
+
+`_ = expr` EVALUATES AND DISCARDS; there is no place being assigned. It is now `RustStmt::Discard`,
+which renders `let _ = expr;`. Not a `Let` whose name is `_` — the first attempt was exactly that,
+and the renderer refused it correctly, because the target's blank is a PATTERN and `parse_ident`
+does not accept a keyword. That refusal is the closed vocabulary doing its job.
+
+### Two things that were tracked and should not have been
+
+`gosrc/extractor/extractor` — a 7.4 MB arm64 Mach-O binary, dropped there by `go build ./...` and
+committed in R3c and R3d without anyone noticing. It is derived from the `.go` files beside it.
+Untracked, with a `.gitignore` that says why.
+
+`regen_fixtures.sh` lived only in scratch and had the worktree path hardcoded to a DIFFERENT lane, so
+running it regenerated the wrong tree's fixtures — and it omitted two of the eleven corpora entirely.
+It is now `build/port-engine/regen-fixtures.sh`, path-relative, complete, and carrying the two
+lessons that have each cost a phase: a hand edit to a generated fixture is lost at the next
+regeneration, and the drift pair must share ONE module id or the classification comes back
+`Unchanged` instead of `Explained` — a green result for a broken test.
+
+This mattered immediately: the committed fixtures were produced by the older extractor and still
+recorded `IncDecStmt` as `unsupported`, so `port-go` refused a region the transform now handles. That
+failure reads as a transform regression and is not one.
+
+### DOCTRINE.md
+
+The engine had no doctrine document — only this file, which is append-only chronology and answers
+"what happened", not "what is still true". Architecture questions were being re-litigated from
+transcripts. `build/port-engine/DOCTRINE.md` now holds the ownership mapping law, the `native-strict`
+output profile and why the compatibility lane is forbidden, the constructs refused on purpose, the
+measured open gaps, and the external design proposals already rejected with their reasons.
+
+Its §9 records the largest one, found by probe:
+
+    pub fn mutate(s: &mut [i64]) { s[0] = 9; }   // signature correct
+    pub fn callee() -> i64 {
+        let a = vec![1, 2, 3];
+        mutate(a);                                // NOT `&mut a`, and `a` is not `mut`
+        a[0]
+    }
+    port=ok translated=2 refused=0
+
+Ownership is decided per declaration and never reconciled at call sites, and the engine reports
+success. Relatedly there is no aliasing model at all: Go's `b := a` shares backing storage and the
+engine emits a move — which fails safe only because rustc rejects the result. The safety is
+accidental, not designed.

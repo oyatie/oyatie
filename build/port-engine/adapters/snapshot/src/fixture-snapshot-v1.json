@@ -2,7 +2,7 @@
   "schema_version": 2,
   "language": "go",
   "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:2e2034d592c19fa741f82d9f9c3db5f099deb08d4625c809400759bccffed89b",
+  "snapshot_digest": "sha256:58ebca30250f6d20d8fccd26025fa4feae361bb8f647300a857ec9fe384ea52f",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture/corpus/accumulate",
@@ -182,11 +182,28 @@
                       "name": "",
                       "children": [
                         {
-                          "kind": "unsupported",
+                          "kind": "incdec",
                           "name": "",
                           "attrs": {
-                            "go_node": "IncDecStmt"
-                          }
+                            "op": "++"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "3",
+                                "ref": "local"
+                              }
+                            }
+                          ]
                         }
                       ]
                     },
@@ -466,11 +483,28 @@
                       "name": "",
                       "children": [
                         {
-                          "kind": "unsupported",
+                          "kind": "incdec",
                           "name": "",
                           "attrs": {
-                            "go_node": "IncDecStmt"
-                          }
+                            "op": "++"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "3",
+                                "ref": "local"
+                              }
+                            }
+                          ]
                         }
                       ]
                     },

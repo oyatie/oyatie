@@ -2,7 +2,7 @@
   "schema_version": 2,
   "language": "go",
   "build_config": "linux/amd64 go1.21",
-  "snapshot_digest": "sha256:2be73b80800d121a1a916ed905fd3be6ceaae9510877ca136e85b8bcd776807c",
+  "snapshot_digest": "sha256:1de13205320134d7a9cfa44bf7ba5c020bf534e50a2db5a605d6950f8999a76d",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -534,11 +534,28 @@
                       "name": "",
                       "children": [
                         {
-                          "kind": "unsupported",
+                          "kind": "incdec",
                           "name": "",
                           "attrs": {
-                            "go_node": "IncDecStmt"
-                          }
+                            "op": "++"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "i",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "flags": [
+                                "reread"
+                              ],
+                              "attrs": {
+                                "read_count": "3",
+                                "ref": "local"
+                              }
+                            }
+                          ]
                         }
                       ]
                     },
