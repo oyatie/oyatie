@@ -5,7 +5,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{SequenceAppend, Allocation, BinaryString, FormatCalls, DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
+use port_engine_api::{
+    Allocation, BinaryString, BitPatternConstants, DeriveRule, Digest, DocConvention,
+    FailureConvention, FormatCalls, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
+    PackSemantics, PointerDisposition, RuleId, RulePack, SequenceAppend, UnitId,
+};
 
 use crate::pack::LoadedRulePack;
 
@@ -55,6 +59,10 @@ impl PackSemantics for LoadedRulePack {
 
     fn binary_string(&self) -> &BinaryString {
         &self.binary_string
+    }
+
+    fn bit_pattern_constants(&self) -> &BitPatternConstants {
+        &self.bit_pattern_constants
     }
 
     fn unmappable_types(&self) -> &BTreeMap<String, String> {

@@ -2,7 +2,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{SequenceAppend, Allocation, BinaryString, FormatCalls, DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
+use port_engine_api::{
+    Allocation, BinaryString, BitPatternConstants, DeriveRule, Digest, DocConvention,
+    FailureConvention, FormatCalls, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
+    PackSemantics, PointerDisposition, RuleId, RulePack, SequenceAppend, UnitId,
+};
 use port_engine_hash::digest_bytes;
 
 use crate::error::RulepackError;
@@ -38,6 +42,7 @@ pub struct LoadedRulePack {
     pub(crate) unmappable_calls: BTreeMap<String, String>,
     pub(crate) unmappable_types: BTreeMap<String, String>,
     pub(crate) binary_string: BinaryString,
+    pub(crate) bit_pattern_constants: BitPatternConstants,
     pub(crate) allocation: Allocation,
     pub(crate) sequence_append: SequenceAppend,
     pub(crate) length_argument_callees: BTreeSet<String>,
@@ -63,7 +68,6 @@ impl LoadedRulePack {
     pub fn load_embedded() -> Result<Self, RulepackError> {
         Self::load_from_str(RULEPACK_V0_JSON)
     }
-
 
     /// Load and validate the embedded go→rust v1 pack.
     ///

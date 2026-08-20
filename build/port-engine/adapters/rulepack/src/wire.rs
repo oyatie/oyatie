@@ -8,9 +8,15 @@ use std::collections::{BTreeMap, BTreeSet};
 use serde::Deserialize;
 
 use crate::CONFLICT_REFUSE;
-use crate::rule::{DeferredKind, DeriveWireRule, DispositionRule, DocConventionRule, FunctionMappingRule, IdiomWireRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver, UndecidedForm};
-use crate::rule_format::{FormatCallsRule, FormatFunctionRule, TargetImportsRule, UnmappableCallsRule, UnmappableTypesRule, BinaryStringRule, AllocationRule, SequenceAppendRule};
 use crate::rule::{ConstantMap, LengthFunctions, ProseTypeNames};
+use crate::rule::{
+    DeferredKind, DeriveWireRule, DispositionRule, DocConventionRule, FunctionMappingRule,
+    IdiomWireRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver, UndecidedForm,
+};
+use crate::rule_format::{
+    AllocationRule, BinaryStringRule, BitPatternConstantsRule, FormatCallsRule, FormatFunctionRule,
+    SequenceAppendRule, TargetImportsRule, UnmappableCallsRule, UnmappableTypesRule,
+};
 
 fn default_conflict() -> String {
     CONFLICT_REFUSE.to_owned()
@@ -58,6 +64,8 @@ pub(crate) struct RulepackDocument {
     pub(crate) unmappable_types: Option<UnmappableTypesRule>,
     #[serde(default)]
     pub(crate) binary_string: Option<BinaryStringRule>,
+    #[serde(default)]
+    pub(crate) bit_pattern_constants: Option<BitPatternConstantsRule>,
     #[serde(default)]
     pub(crate) allocation: Option<AllocationRule>,
     #[serde(default)]

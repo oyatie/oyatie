@@ -9,6 +9,7 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("error.rs", include_str!("error.rs")),
     ("lib.rs", include_str!("lib.rs")),
     ("load.rs", include_str!("load.rs")),
+    ("load_values.rs", include_str!("load_values.rs")),
     ("pack.rs", include_str!("pack.rs")),
     ("policy.rs", include_str!("policy.rs")),
     ("rule.rs", include_str!("rule.rs")),

@@ -154,3 +154,33 @@ fn decoded_bytes(inner: &str) -> Option<Vec<u8>> {
     }
     Some(out)
 }
+
+/// An integer constant re-spelled as the BIT PATTERN it is.
+///
+/// A count and a mask wear the same syntax and are read completely differently. `122192928000000000`
+/// is a number of ticks and means what it says; `11400714785074694791` is a multiplier whose value
+/// is its bits, and in decimal no reviewer can check it against the specification that defines it —
+/// the one that reviewed this output said so, and had to run a script to verify five constants.
+///
+/// The TYPE decides, because magnitude cannot. Measured over the corpus: seven constants exceed the
+/// 32-bit line and two of them — the ticks between 1582 and the epoch — are counts. What separates
+/// them is that the counts are typed at the source's counting integer and the patterns at a
+/// fixed-width UNSIGNED one, which is what an author reaches for when the bits are the point.
+///
+/// Zero-padded to the type's width, so a mask reads as the machine word it is and two of them line
+/// up under each other.
+pub(crate) fn bit_pattern(declaration: &Declaration, resolver: &Resolver<'_>) -> Option<String> {
+    let rule = resolver.bit_pattern_constants;
+    let width = *rule.widths.get(&declaration.type_ref.name)?;
+    let spelling = declaration.attr(ATTR_VALUE)?;
+    // DECIMAL only. A source that already wrote hex said what it meant, and re-spelling a value the
+    // engine did not parse is how a constant silently changes.
+    if !spelling.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    let value: u128 = spelling.parse().ok()?;
+    if value < rule.min_value {
+        return None;
+    }
+    Some(format!("0x{value:0>width$X}", width = (width / 4) as usize))
+}

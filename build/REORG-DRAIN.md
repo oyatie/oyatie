@@ -4171,3 +4171,94 @@ which it does not today.
 
 Worth keeping as a general caution: a rule justified by "nothing uses it" is measuring the engine's
 own refusals, not the source. The engine's coverage is the wrong thing to reason from.
+
+## R2g — a blind review of current output, and the three rules it produced
+
+Ran a blind review on the emitted `xxhash` module — the measurement the standing goal asks for and
+the one that had gone stalest. Verdict **DO NOT MERGE**, and identified as "mechanically translated,
+source language Go" with five tells ranked by decisiveness. No correctness finding: the reviewer
+verified all five xxHash64 primes against the specification and confirmed every operation wraps.
+
+Three of the five tells were provable and became rules. All three change SPELLING, not coverage —
+which stayed exactly where it was (xxhash 58.8%, semver 24.1%, ksuid 17.2%, xid 11.5%, uuid 11.3%,
+errors and multierror 0.0%).
+
+**Tell 5 → `bit_pattern_constants`.** The primes were emitted in decimal, and the reviewer said
+plainly that they had to run a script to check them, "exactly the wrong property for a hash crate's
+magic numbers". A count belongs in decimal and a bit pattern in hexadecimal, where it can be checked
+against whatever defines it.
+
+The interesting part is the discriminator, because the obvious one is WRONG. Magnitude looks like it
+separates them and does not: measured across the corpus, seven package constants exceed the 32-bit
+line, and two of them — uuid's `g1582` and `g1582ns100`, the ticks between 1582 and the Unix epoch —
+are counts. What separates them is the TYPE. The counts are typed at the source's counting integer;
+the five that are patterns are typed at a fixed-width UNSIGNED one, which is what an author reaches
+for when the bits are the point. The rule fires on exactly those five, corpus-wide, and every count
+stayed decimal. The emitted hex now matches the reviewer's own specification table character for
+character.
+
+**Tell 4 → `retain_used`, and the boundary that makes it legitimate.** The unit emitted
+`pub type BoxError` and `pub type Result<T, E = BoxError>` when nothing in it was fallible; the
+reviewer read them as a design baked in before anything needed it, "the signature of translating a
+language where every function returns error". The cause: `unit_can_fail` asks the SOURCE, and a unit
+whose every fallible function REFUSED still answers yes.
+
+This is the same rule shape that was reverted one phase ago in R2f, and the difference is the whole
+point. A prelude alias is the ENGINE'S OWN INTRODUCTION — nothing upstream asked for it and no
+caller of the source can be relying on it — so the engine may withdraw its own offer when its own
+output does not use it. It may not delete the author's declaration for going unused, because in a
+partial port a source declaration is unreferenced mostly because whatever would have referred to it
+refused. The engine's coverage is the wrong thing to reason from; the engine's own introductions are
+the one thing it IS.
+
+The file this landed in already carried the principle for imports: *"asked of the output rather than
+of the declarations because an import nothing uses is a denied warning"*. Both now live in
+`emitted_names.rs` — rules that ask the output, not the model that produced it — and both fail SAFE,
+keeping the name when the output cannot be inspected.
+
+One bug worth recording, caught by re-measuring rather than by any gate: the first cut matched the
+alias name by splitting on non-identifier characters, so `fmt::Result` in a `Display` impl counted as
+a use of the crate's `Result` and kept the alias alive in three packages that never used it. A
+qualified name is a different name; the alias is introduced unqualified and can only be referred to
+that way inside its own module.
+
+**Tell 6 → the same rule.** `use std::error::Error as StdError` renamed a type with nothing to
+collide with; it exists only to spell `BoxError`, and went with it.
+
+**Tell 1 is not fixed and is the decisive one.** `SliceHeader` remains. R2f establishes what it needs
+— a refusal by name on the ground that `unsafe.Pointer` is the source's escape from its own type
+system, so a type reached only through it describes the source runtime's memory layout, which the
+target does not share. The reviewer reached the same conclusion independently and by the same
+reasoning: "a Rust author would never invent it, because `as_bytes()` already solves the problem for
+free." That needs the front end to record which references sit inside that escape hatch.
+
+**Tell 2** — the comment "Store the primes in an array as well.", carried over with its justification
+(the source's hand-written assembly needs a contiguous array) left behind — has no provable rule yet.
+It is not the existing prose refusal's shape: the sentence names nothing about the source language.
+
+**An honest consequence of `retain_used` worth stating.** No package in the corpus now emits the
+failure aliases, because no package currently emits a single fallible function — every one of them
+refuses. The error model defended three times over is, at this moment, entirely unexercised by the
+output. That is not an argument against it; it is a statement of what the corpus currently proves,
+which is nothing either way.
+
+**Refusal ranking after this phase**, by packages blocked rather than by count in any one: *a failing
+return's operand must be PROVABLY a failure* now blocks FIVE of seven packages (semver 3, ksuid 2,
+uuid 2, errors 1, multierror 1) and is the single largest cause in the corpus. It is what stands
+between `errors` and `multierror` and any coverage at all.
+
+**Housekeeping forced by the above.** Three files crossed the 300-line ceiling and were split along
+real seams rather than at convenient offsets: `emitted_names.rs` (rules that ask the output),
+`value_rules.rs` (what a source VALUE becomes, as pack data), `load_values.rs` (their loaders). Each
+is registered in its crate's `sources.rs` and in the neutrality fence — the fence caught
+`load_values.rs` before I did, which is the gate working. `core/kernel/src/lib.rs` at 520 lines
+remains a DECLARED exemption: it refuses submodule declarations so that "the kernel is exactly this
+file" is a property of the build rather than of a scan. `core/transform/src/apply.rs` is at 309 and
+was already at 308 before this phase — a real breach, not yet fixed, recorded rather than hidden.
+
+Verification: 11 crates' tests green by exit code; clippy `-D warnings` green over the port-engine
+crates; `delta` Green/Unchanged; golden byte-identical; engine source bytes moved, so `engine_digest`
+moves with them; `rustc` and `clippy-driver` both green with `--deny=warnings` over all five packages
+that emit anything, compiled under `#![forbid(unsafe_code)]`. The pre-existing clippy failure in
+`ci/facade/cloud-name-ratchet` is outside this lane and untouched by this branch (last changed by
+PR #2102).

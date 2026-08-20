@@ -88,6 +88,18 @@ pub(crate) struct BinaryStringRule {
     pub(crate) reason: String,
 }
 
+/// Wire shape for which integer constants are bit patterns.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct BitPatternConstantsRule {
+    #[serde(default)]
+    pub(crate) widths: std::collections::BTreeMap<String, u32>,
+    #[serde(default)]
+    pub(crate) min_value: u128,
+    #[serde(default)]
+    pub(crate) reason: String,
+}
+
 /// Wire shape for how the source's allocating builtin becomes the target's.
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]

@@ -15,6 +15,7 @@ use port_engine_transform::*;
 
 #[derive(Default)]
 pub struct Pack {
+    bit_pattern_constants: port_engine_api::BitPatternConstants,
     /// rule → (construction, precondition, captures)
     pub rules: BTreeMap<&'static str, (&'static str, &'static str, Vec<String>)>,
     pub types: BTreeMap<String, String>,
@@ -262,6 +263,12 @@ impl PackSemantics for Pack {
         // EMPTY, so a fixture's string constant stays a string. Which strings are binary is a
         // judgement about real source, exercised against the corpus.
         &self.binary_string
+    }
+
+    fn bit_pattern_constants(&self) -> &port_engine_api::BitPatternConstants {
+        // EMPTY, so a fixture's integer constant keeps the base it was written in. Which types hold
+        // bit patterns is a judgement about real source, measured against the corpus.
+        &self.bit_pattern_constants
     }
 
 

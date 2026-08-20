@@ -17,4 +17,5 @@ pub const CRATE_SOURCES: &[(&str, &str)] = &[
     ("seams.rs", include_str!("seams.rs")),
     ("sources.rs", include_str!("sources.rs")),
     ("type_ref.rs", include_str!("type_ref.rs")),
+    ("value_rules.rs", include_str!("value_rules.rs")),
 ];
