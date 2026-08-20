@@ -33,8 +33,28 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 /// is the laundering path this constant closes: the number cannot move without a
 /// reviewer seeing it move.
 ///
-/// Lower it in the same change that wires a gate to the live tree.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 97;
+/// Lower it in the same change that wires a gate to the live tree — or, as here, in
+/// the same change that DELETES one. Both are burn-down; the constant does not care
+/// which, only that the number moved under a reviewer's eye.
+///
+///   97 -> 94  2026-08-20  Three gate crates retired because each doctrine's successor
+///                         is already live and biting: governance/check/adr-citation
+///                         (adr-citation-closure emits the identical
+///                         `adr_citation_rejected_authority` from a live-tree test),
+///                         governance/check/supply-chain (ci/facade/supply-chain-audit
+///                         scans the real lockfiles against a vendored RustSec mirror),
+///                         governance/check/pre-push (its evidence sources are gone —
+///                         `git ls-files bin/` is empty and no pre-push hook is tracked;
+///                         the ADR-0515 protected context is the enforcement now).
+///                         Their three baseline entries are struck in the same change,
+///                         which is what the exact-set assertion below requires.
+// 2026-08-20  94 -> 88. Lane A's three RETIREMENTS (adr-citation, pre-push, supply-chain)
+// took it 97 -> 94; this integration additionally CONNECTS six doctrines to the live tree
+// -- shardability, layered-architecture-discipline, cursor-pagination-coverage, data-class,
+// ontology-projection-coverage, active-artifact-contract -- each of which leaves the dark
+// baseline in the same change that gives it a live-corpus test. 94 - 6 = 88, and the set
+// diff confirms it: exactly those six left, nothing was added back.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 89;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");

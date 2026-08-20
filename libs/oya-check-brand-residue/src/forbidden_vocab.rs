@@ -181,6 +181,12 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         reason: "the frozen uncovered-operation baseline ENUMERATES the OpenAPI operations still owing an ADR-0149 Idempotency-Key, keyed by their tracked document path; some of those paths carry a forbidden stem in their own filename. Same rationale as the sibling entry above.",
     },
     CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/cursor-pagination-coverage/cursor-pagination-coverage-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen missing-cursor baseline ENUMERATES the OpenAPI operations still owing ADR-0150 cursor pagination, keyed by their tracked document path; four of those tracked paths carry a forbidden stem in their own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by rewording the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs.",
+    },
+    CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "libs/oya-ci-config/",
         exempt_stems: &[],
@@ -209,6 +215,18 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         value: "marketplace/facade/dev-cli/tests/",
         exempt_stems: &[],
         reason: "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — these are structural references to real contract paths, not brand residue; the file was moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/ontology-projection-coverage/ontology-projection-coverage-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen owner-to-manifest binding ENUMERATES which tracked manifest declares each canonical-entity owner, and one of those owners IS a forbidden stem (`foundry`, declared by oya/intelligence/_legacy-foundry/manifest.json). Listing the debt is the census, not the debt. The gate CANNOT be repaired by renaming the entry: the key must equal the owner name in CANONICAL_ENTITY_OWNERS and the path `git ls-files` observes, or the ratchet stops matching the corpus it governs.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/active-artifact-contract/active-artifact-contract-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen unknown-artifact-profile baseline ENUMERATES the registry rows naming a profile outside the kernel's closed enum, keyed by their own artifact_id; three of those ids carry a forbidden stem. Same rationale as the sibling entry above.",
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,

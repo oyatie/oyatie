@@ -383,24 +383,9 @@ fn validate_advisory_score_card(
 
 fn execute_score_card_query(id: &str, query: &str, path: &Path) -> Result<bool, String> {
     match query {
-        "oya gate validate supply-chain --require-adr0039-evidence" => {
-            let current_exe = std::env::current_exe().map_err(|error| {
-                format!(
-                    "{} score-card `{id}` could not resolve current oya executable: {error}",
-                    path.display()
-                )
-            })?;
-            run_score_card_command(
-                id,
-                &current_exe,
-                &[
-                    "gate",
-                    "validate",
-                    "supply-chain",
-                    "--require-adr0039-evidence",
-                ],
-                path,
-            )?;
+        "grep -rhoE 'uses:[[:space:]]*[^[:space:]]+' .github/workflows | grep -vE '@[0-9a-f]{40}$'" =>
+        {
+            require_third_party_actions_are_sha_pinned(id, Path::new(".github/workflows"), path)?;
             Ok(true)
         }
         "grep -qF '[profile.ci]' .config/nextest.toml && cargo nextest list --profile ci --workspace" =>
@@ -446,6 +431,81 @@ fn execute_score_card_query(id: &str, query: &str, path: &Path) -> Result<bool, 
             path.display()
         )),
     }
+}
+
+/// The SHA-pinning half of the retired `check-supply-chain` evidence bundle, re-homed
+/// as a NATIVE score-card predicate rather than dropped with the kernel.
+///
+/// The kernel it came from was fail-fast and demanded `cargo_deny_check_wired` /
+/// `cargo_audit_check_wired`, neither of which this tree may satisfy (shell plus a
+/// network-fetching advisory index are forbidden), so it could never run. Its
+/// `third_party_actions_pinned` clause, by contrast, is checkable here with no shell,
+/// no network and no clock — so it is kept and made to actually read the workflows
+/// instead of asking a gate that no longer exists.
+///
+/// A mutable tag (`@v4`) or a branch (`@main`) is a supply-chain hole: the ref can be
+/// repointed at new code after review. Only a full 40-hex commit SHA is accepted.
+/// Local reusable workflows (`./.github/workflows/x.yml`) carry no ref and are exempt
+/// by construction — they are this repository's own reviewed content.
+fn require_third_party_actions_are_sha_pinned(
+    id: &str,
+    workflows_dir: &Path,
+    score_cards_path: &Path,
+) -> Result<(), String> {
+    let workflow_paths = collect_files_recursively(workflows_dir)?;
+    let mut unpinned = Vec::new();
+    let mut references = 0usize;
+    for workflow_path in &workflow_paths {
+        let extension = workflow_path
+            .extension()
+            .and_then(|extension| extension.to_str())
+            .unwrap_or_default();
+        if extension != "yml" && extension != "yaml" {
+            continue;
+        }
+        let contents = fs::read_to_string(workflow_path).map_err(|error| {
+            format!(
+                "{} score-card `{id}` could not read {}: {error}",
+                score_cards_path.display(),
+                workflow_path.display()
+            )
+        })?;
+        for line in contents.lines() {
+            let trimmed = line.trim_start().trim_start_matches("- ").trim_start();
+            let Some(reference) = trimmed.strip_prefix("uses:") else {
+                continue;
+            };
+            let reference = reference.trim();
+            if reference.is_empty() || reference.starts_with('.') {
+                continue;
+            }
+            references += 1;
+            let pinned = reference.rsplit_once('@').is_some_and(|(_, git_ref)| {
+                git_ref.len() == 40 && git_ref.bytes().all(|byte| byte.is_ascii_hexdigit())
+            });
+            if !pinned {
+                unpinned.push(format!("{}: {reference}", workflow_path.display()));
+            }
+        }
+    }
+    // Anti-vacuity: a walk that finds no references at all proves nothing, and would
+    // turn this card green by collapsing rather than by the tree being clean.
+    if references == 0 {
+        return Err(format!(
+            "{} score-card `{id}` found zero `uses:` references under {} — refuse a vacuously green scan",
+            score_cards_path.display(),
+            workflows_dir.display()
+        ));
+    }
+    if !unpinned.is_empty() {
+        return Err(format!(
+            "{} score-card `{id}`: {} of {references} `uses:` references are not pinned to a 40-hex commit SHA:\n  {}",
+            score_cards_path.display(),
+            unpinned.len(),
+            unpinned.join("\n  ")
+        ));
+    }
+    Ok(())
 }
 
 fn run_score_card_command<P>(id: &str, program: P, args: &[&str], path: &Path) -> Result<(), String>
