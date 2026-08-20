@@ -6710,3 +6710,51 @@ All three read the same set, which is what stops them disagreeing.
 No conversions at all, in the function the reviewer picked out. Casts across the five: 37 → 31, and
 the ones left are on values the source's own signatures hand back as integers — `validstring`
 RETURNS its cursor, so it is an `int` to its caller and changing it would change the signature.
+
+## R4e — the gate was suppressing a lint class that contained real defects
+
+Round 6. **Both gates now say MERGE_WITH_CHANGES.** The Go-aware gate came off DO_NOT_MERGE for the
+first time in six rounds, and its summary is the one worth recording:
+
+> No meaning was changed anywhere — every constant table, bit value, and branch I checked matches
+> the Go exactly
+
+The blind gate had ZERO blocking findings, and said why:
+
+> I found no correctness defect that the port introduced on its own: the hex-value table verifies
+> byte-for-byte against the ASCII digit set, the JSON scanners and `parse_int`/`parse_uint`
+> reproduce the source's wrapping and bounds exactly, and the panics in `pkcs7decode`,
+> `encrypt_overhead` and `Chain::fmt` are the original's behaviour rather than new hazards
+
+That last clause is the fidelity boundary the round-6 instructions made explicit, and it removed
+three blockers that no translation change could ever have removed.
+
+### `-A unused` was hiding three translator artifacts
+
+`compile-corpus.sh` passed `-A dead_code -A unused`. Dead code IS expected — the engine emits only
+what it can prove, so a translated helper whose only caller refused is unused through no fault of its
+own. `unused` is a GROUP, and it contains `unused_imports` and `unused_variables`, neither of which
+is expected and both of which the port was producing. A reviewer found them by running the compiler
+without the flag this script was passing.
+
+An expected warning class is one thing; a blanket group that happens to contain it is another.
+
+Two defects fell out immediately:
+
+- `use std::error::Error as StdError` was emitted into every unit with any message impl — and a
+  display impl built from the source's STRINGER renders `fmt::Display` and nothing else. `gjson` and
+  `chi` imported the error trait and never named it. The import now follows `is_failure`, the same
+  fact the impl itself follows.
+- `for j in 0..4` bound a name the body never mentions. The source counts because it has no other
+  way to repeat four times; the target has `for _ in 0..4`.
+
+### A value that can write itself
+
+    f.write_str(&self.0[0].to_string())
+
+An allocation made purely to copy into the formatter and drop. The source had no choice — its method
+must RETURN a string — and the target's formatter takes the value directly:
+
+    fmt::Display::fmt(&self.0[0], f)
+
+Ten of ten packages pass under the tightened gate.

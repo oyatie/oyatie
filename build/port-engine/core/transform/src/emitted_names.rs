@@ -33,6 +33,21 @@ pub(crate) fn import_items(items: &[RustItem], declared: &BTreeMap<String, Strin
                 | RustItem::MessageImpl { .. }
         )
     });
+    // THE ERROR TRAIT is named only by the impls that are ERRORS. A display impl built from the
+    // source's stringer renders `fmt::Display` and nothing else, so a unit whose only message impl
+    // is one of those imports the error trait and never uses it — which is an unused import, and
+    // an unused import under this policy is a build failure. `gjson` and `chi` both had one.
+    let names_error_trait = items.iter().any(|item| {
+        matches!(
+            item,
+            RustItem::SentinelError { .. }
+                | RustItem::SentinelEnum { .. }
+                | RustItem::MessageImpl {
+                    is_failure: true,
+                    ..
+                }
+        )
+    });
     if has_sentinel {
         // The sentinel form spells `fmt::Display`, `fmt::Formatter` and `fmt::Result`, so a unit
         // with seven sentinels names one std module twenty-one times. The short form and this
@@ -50,7 +65,7 @@ pub(crate) fn import_items(items: &[RustItem], declared: &BTreeMap<String, Strin
     for (short, path) in declared {
         // The sentinel form NAMES the error trait in its own impl, which no type field carries. A
         // unit that emits one needs that import whatever its types say.
-        let by_sentinel = has_sentinel && path.ends_with("::Error");
+        let by_sentinel = names_error_trait && path.ends_with("::Error");
         if by_sentinel || named.iter().any(|spelling| names(spelling, short)) {
             paths.insert(match path.rsplit("::").next() == Some(short.as_str()) {
                 true => path.clone(),

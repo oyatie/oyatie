@@ -311,3 +311,16 @@ fn is_length(node: &Declaration, lengths: &std::collections::BTreeSet<String>) -
             .attr(crate::vocabulary::ATTR_CALLEE)
             .is_some_and(|callee| lengths.contains(callee))
 }
+
+/// Whether the body READS this name at all.
+///
+/// A counted loop whose induction variable the body never mentions binds a name nobody uses, which
+/// is `unused_variables` — and under the deny-warnings policy this engine is held to, a build
+/// failure. The source spells `for j := 0; j < 4; j++` because it has no other way to repeat four
+/// times; the target has `for _ in 0..4`.
+pub(crate) fn reads_name(body: &Declaration, name: &str) -> bool {
+    if body.kind == KIND_IDENT && body.name == name {
+        return true;
+    }
+    body.children.iter().any(|child| reads_name(child, name))
+}

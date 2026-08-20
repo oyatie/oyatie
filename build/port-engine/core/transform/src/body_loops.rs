@@ -227,7 +227,13 @@ fn counted_range(
     };
 
     Ok(RustStmt::ForIn {
-        binding: to_snake_case(counter),
+        // THE BLANK where the body never mentions it. See `counters::reads_name`: the source has no
+        // way to repeat a fixed number of times except by counting, and a name nobody reads is a
+        // denied warning here.
+        binding: match crate::counters::reads_name(body, counter) {
+            true => to_snake_case(counter),
+            false => "_".to_owned(),
+        },
         iter: RustExpr::Range {
             start: Box::new(expression(one_child(init, cx, "let")?, inner)?),
             end: Box::new(end),
