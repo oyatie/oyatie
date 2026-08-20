@@ -118,14 +118,12 @@ fn display_impl(
     let Some(body) = built.body else {
         return Ok(None);
     };
-    // AN EARLY RETURN cannot come along. The display method's body yields the TEXT, and the impl's
-    // body must yield a formatting RESULT — so only the tail can be rewritten into a write, and a
-    // `return` of a string somewhere in the middle would return that string from `fmt`. Such a
-    // method stays inherent rather than being reshaped, because reshaping it means rewriting every
-    // exit and that is a rule about control flow rather than about the trait.
-    if body.iter().any(returns_early) {
-        return Ok(None);
-    }
+    // EVERY EXIT WRITES. The source's method has one job — produce the text — and each of its
+    // `return`s is a place that does it, so each becomes a write into the formatter and so does the
+    // tail. This used to refuse a body with an early return outright, on the grounds that reshaping
+    // it meant rewriting every exit; rewriting every exit is what a person does, and it is two
+    // lines once the write is a node rather than a case in the renderer.
+    let body = written_exits(body);
     Ok(Some(RustItem::MessageImpl {
         docs: built.docs,
         self_ty: self_ty.clone(),
@@ -350,7 +348,7 @@ fn message_impl(
     Ok(Some(RustItem::MessageImpl {
         docs: built.docs,
         self_ty: self_ty.clone(),
-        body,
+        body: written_exits(body),
         // NOT a failure when its cause cannot come along. See above.
         is_failure: !declares_cause,
     }))
@@ -383,6 +381,60 @@ pub(crate) fn display_claims(declaration: &Declaration, resolver: &Resolver<'_>)
     match display_impl(declaration, &self_ty, resolver) {
         Ok(Some(_)) => Some(resolver.display_method_source.to_owned()),
         _ => None,
+    }
+}
+
+/// Every exit of a display body, wrapped so it WRITES into the formatter.
+///
+/// The tail and every `return`. See [`RustExpr::FormatterWrite`] for how each one is written, which
+/// depends on what the value is and is decided in one place for all of them.
+fn written_exits(body: Vec<RustStmt>) -> Vec<RustStmt> {
+    let mut written: Vec<RustStmt> = body.into_iter().map(write_returns).collect();
+    if let Some(RustStmt::Tail(value)) = written.pop() {
+        written.push(RustStmt::Tail(RustExpr::FormatterWrite(Box::new(value))));
+    } else {
+        // No tail: the body ends in a `return`, which the walk above already wrapped.
+    }
+    written
+}
+
+/// The same statement with every `return` inside it writing rather than yielding text.
+fn write_returns(statement: RustStmt) -> RustStmt {
+    match statement {
+        RustStmt::Return(Some(value)) => {
+            RustStmt::Return(Some(RustExpr::FormatterWrite(Box::new(value))))
+        }
+        RustStmt::Semi(expr) => RustStmt::Semi(write_returns_in(expr)),
+        RustStmt::Tail(expr) => RustStmt::Tail(write_returns_in(expr)),
+        RustStmt::Block(body) => RustStmt::Block(body.into_iter().map(write_returns).collect()),
+        other => other,
+    }
+}
+
+/// The same expression with every `return` in a block-like position writing.
+fn write_returns_in(expr: RustExpr) -> RustExpr {
+    match expr {
+        RustExpr::If {
+            cond,
+            then,
+            otherwise,
+        } => RustExpr::If {
+            cond,
+            then: then.into_iter().map(write_returns).collect(),
+            otherwise: otherwise.map(|inner| Box::new(write_returns_in(*inner))),
+        },
+        RustExpr::Block(body) => RustExpr::Block(body.into_iter().map(write_returns).collect()),
+        RustExpr::Match { scrutinee, arms } => RustExpr::Match {
+            scrutinee,
+            arms: arms
+                .into_iter()
+                .map(|arm| port_engine_rust_ir::MatchArm {
+                    patterns: arm.patterns,
+                    body: arm.body.into_iter().map(write_returns).collect(),
+                })
+                .collect(),
+        },
+        other => other,
     }
 }
 

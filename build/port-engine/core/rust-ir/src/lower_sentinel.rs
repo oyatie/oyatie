@@ -88,76 +88,11 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
         } => {
             let docs = lower_docs(docs);
             let self_ty = crate::lower_parts::parse_type(self_ty)?;
-            let (head, tail) = body.split_at(body.len().saturating_sub(1));
-            let leading = crate::lower_body::lower_block(head)?;
-            // The TAIL is the message, and how it is written depends on what it is. A formatting
-            // call is handed to the formatter directly — writing its result would allocate a string
-            // only to copy it, which the target's own lint objects to. Anything else is written as
-            // the string it is.
-            let write = match tail.first() {
-                Some(crate::stmt::RustStmt::Tail(crate::expr::RustExpr::MacroCall {
-                    name,
-                    template,
-                    args,
-                })) if name == "format" => {
-                    let template: proc_macro2::TokenStream = format!("{template:?}").parse().map_err(
-                        |err| PortError::Render {
-                            detail: format!("a message template is not a target literal: {err}"),
-                        },
-                    )?;
-                    let args = args
-                        .iter()
-                        .map(crate::lower_expr::lower_expr)
-                        .collect::<Result<Vec<_>, _>>()?;
-                    quote! { write!(f, #template #(, #args)*) }
-                }
-                // EVERY ARM A LITERAL. The source's method returns a string, so each arm was made
-                // to own one — `"Null".to_owned()` — and the whole match is then borrowed and
-                // written and dropped. One allocation per call, for text that is static.
-                //
-                // Borrowed arms make the match a `&'static str`, which `write_str` takes directly.
-                // Done here rather than in the transform because it is a property of THIS
-                // destination: the same match returned from an ordinary method still owes its
-                // caller an owned string.
-                Some(crate::stmt::RustStmt::Tail(
-                    expr @ crate::expr::RustExpr::Match { .. },
-                )) if let Some(borrowed) = crate::lower_expr::static_str_match(expr) => {
-                    let matched = crate::lower_expr::lower_expr(&borrowed)?;
-                    quote! { f.write_str(#matched) }
-                }
-                // A VALUE THAT CAN WRITE ITSELF. `f.write_str(&x.to_string())` allocates a string
-                // purely to copy it into the formatter and drop it. The source had no choice — its
-                // method must RETURN a string — and the target's formatter takes the value
-                // directly. Recognised from the tail being exactly `to_string()`, so a body that
-                // computes anything else is untouched.
-                Some(crate::stmt::RustStmt::Tail(crate::expr::RustExpr::MethodCall {
-                    receiver,
-                    method,
-                    args,
-                })) if method == "to_string" && args.is_empty() => {
-                    let inner = crate::lower_expr::lower_expr(receiver)?;
-                    quote! { fmt::Display::fmt(&#inner, f) }
-                }
-                // ALREADY A REFERENCE. `write_str` takes one, so a tail that is already a borrow
-                // needs no second `&` — and adding one is `clippy::needless_borrow`, which the
-                // deny-warnings policy makes a build failure. The borrow is added only where the
-                // tail is a value.
-                Some(crate::stmt::RustStmt::Tail(
-                    expr @ crate::expr::RustExpr::Reference { mutable: false, .. },
-                )) => {
-                    let expr = crate::lower_expr::lower_expr(expr)?;
-                    quote! { f.write_str(#expr) }
-                }
-                Some(crate::stmt::RustStmt::Tail(expr)) => {
-                    let expr = crate::lower_expr::lower_expr(expr)?;
-                    quote! { f.write_str(&#expr) }
-                }
-                _ => {
-                    return Err(PortError::Render {
-                        detail: "a message method's body does not end in the message".to_owned(),
-                    });
-                }
-            };
+            // The body already WRITES at every exit — see `RustExpr::FormatterWrite`, which the
+            // transform wraps each `return` and the tail in. This used to decide how to write here,
+            // looking only at the last statement, which is why a body with an early return could
+            // not become a display impl at all. One node, one decision, every exit.
+            let written = crate::lower_body::lower_block(body)?;
             // THE ERROR TRAIT ONLY FOR A FAILURE. See `RustItem::MessageImpl::is_failure`: the
             // display construction is shared between the source's error interface and its stringer,
             // and only one of the two is an error.
@@ -169,8 +104,7 @@ pub(crate) fn lower(item: &RustItem) -> Result<TokenStream, PortError> {
                 #docs
                 impl fmt::Display for #self_ty {
                     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-                        #leading
-                        #write
+                        #written
                     }
                 }
 

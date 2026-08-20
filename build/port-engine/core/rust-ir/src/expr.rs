@@ -139,6 +139,17 @@ pub enum RustExpr {
         /// The body.
         body: Vec<RustStmt>,
     },
+    /// Writing a value into the formatter a display impl is given.
+    ///
+    /// ONE node for every exit of such an impl, because the source's method has one job — produce
+    /// the text — and each of its `return`s is a place that does it. Deciding at the TAIL only
+    /// meant a body with an early return could not become a display impl at all, and two of the
+    /// corpus's `String()` methods stayed inherent for that reason alone.
+    ///
+    /// How the value is written depends on what it IS, and that decision lives in the lowering:
+    /// a formatting call goes to the formatter directly rather than allocating a string to copy;
+    /// a value that can write itself does; anything else is written as the string it is.
+    FormatterWrite(Box<RustExpr>),
     /// `*<inner>` — a dereference.
     ///
     /// Not a [`RustExpr::Unary`]: those are arithmetic and logical operators on a VALUE, and this
@@ -268,6 +279,8 @@ impl RustExpr {
             | Self::VecRepeat { .. }
             | Self::ArrayLiteral(_)
             | Self::Deref(_)
+            // A call or a macro call, either way — postfix, and never needing brackets.
+            | Self::FormatterWrite(_)
             | Self::Index { .. }
             | Self::StructLiteral { .. }
             | Self::Try(_)

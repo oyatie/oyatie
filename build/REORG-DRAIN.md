@@ -6758,3 +6758,38 @@ must RETURN a string — and the target's formatter takes the value directly:
     fmt::Display::fmt(&self.0[0], f)
 
 Ten of ten packages pass under the tightened gate.
+
+## R4f — every exit of a display body writes, so an early return is no longer a refusal
+
+Both gates named it, and the Go-aware one named the tell precisely:
+
+> `Version::string()` and `Address::string()` are Go `String() string` methods left as inherent Rust
+> methods ... The port is inconsistent about how it renders Go's `String()`. Ten types get a real
+> `impl fmt::Display` — including `MockAddress` in this same file — while two are left inherent. Two
+> public types in one file, same shape, opposite mappings.
+
+The discriminator was an early `return`. R3s refused those, arguing that "reshaping it means
+rewriting every exit and that is a rule about control flow rather than about the trait". Rewriting
+every exit is what a PERSON does, and it is two lines once the write is a node rather than a case in
+the renderer.
+
+`RustExpr::FormatterWrite` is that node. How a value reaches the formatter — a formatting call goes
+directly, a match of literals borrows its arms, a value that can write itself does, anything else is
+written as the string it is — was a `match` on the LAST STATEMENT inside the renderer, which is
+exactly why only the tail could ever be rewritten. It is now one node, decided in one place, and the
+transform wraps the tail AND every `return` in it.
+
+    impl fmt::Display for Version {
+        fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+            if self.0 > 15 {
+                return write!(f, "BAD_VERSION_{}", self.0);
+            }
+            write!(f, "VERSION_{}", self.0)
+        }
+    }
+
+Zero inherent `string()` methods remain across the five goal repositories.
+
+The first attempt emitted `f.write_str(&write!(f, ..))` — double-wrapped, because the renderer's old
+tail decision was still there beside the new node. Two spellings of one decision, for the length of
+one build.
