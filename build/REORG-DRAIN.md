@@ -6815,3 +6815,20 @@ something that did not come along.
 The pronoun list is CLOSED, and the cost of being wrong runs one way only. A sentence wrongly held
 to lean on its predecessor is dropped with it and the documentation is shorter; one wrongly kept is
 prose referring to something no longer there.
+
+## R4h — a method whose every exit is a literal hands back a borrow of it
+
+    pub fn network(&self) -> String { "mock".to_owned() }
+
+The source has to return a `string` because that is the only string it has. The target then
+allocates a copy of text that never changes, on every call, and most callers drop it immediately.
+A `&'static str` is the same text with a lifetime the caller can keep just as long.
+
+INHERENT METHODS ONLY, which is why the rule runs where inherent methods are assembled rather than
+over every emitted function: a method implementing a trait owes that trait its signature, and
+changing one end of a contract is not an improvement.
+
+EVERY exit, and only literals. A method with one computed branch has no static text to hand back,
+and rewriting the branches that do would leave arms that no longer agree.
+
+    pub fn network(&self) -> &'static str { "mock" }
