@@ -1,7 +1,7 @@
 {
   "schema_version": 2,
   "language": "go",
-  "snapshot_digest": "sha256:5447e69f9aa166a1eb7c199a7c6fa430d85c4615af2f7f2e3d3b0f7665678f5e",
+  "snapshot_digest": "sha256:25ad7d6677c21556e1972be061f7f3f59bc352854b99a9c53e85c6372264e23b",
   "packages": [
     {
       "unit_id": "oyatie.example/portengine-fixture-refused/corpus-refused/hard",
@@ -1122,10 +1122,7 @@
               "type": {
                 "kind": "basic",
                 "name": "int64"
-              },
-              "flags": [
-                "escapes"
-              ]
+              }
             },
             {
               "kind": "result",
