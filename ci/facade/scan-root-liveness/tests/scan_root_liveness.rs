@@ -48,7 +48,13 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 ///                         the ADR-0515 protected context is the enforcement now).
 ///                         Their three baseline entries are struck in the same change,
 ///                         which is what the exact-set assertion below requires.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 94;
+// 2026-08-20  94 -> 88. Lane A's three RETIREMENTS (adr-citation, pre-push, supply-chain)
+// took it 97 -> 94; this integration additionally CONNECTS six doctrines to the live tree
+// -- shardability, layered-architecture-discipline, cursor-pagination-coverage, data-class,
+// ontology-projection-coverage, active-artifact-contract -- each of which leaves the dark
+// baseline in the same change that gives it a live-corpus test. 94 - 6 = 88, and the set
+// diff confirms it: exactly those six left, nothing was added back.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 88;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
