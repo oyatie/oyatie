@@ -393,9 +393,10 @@
       "dotdir_files": 242,
       "reorg_paths": 25,
       "oya_legacy_root_files": 2359,
-      "yaml_files": 3516,
+      "yaml_files": 3513,
       "json_files": 1279
     },
+    "_yaml_files_reduction_2026_08_20": "yaml_files 3516 -> 3513. DOWNWARD, and attributable one-for-one rather than to a narrowed class predicate: `git diff --name-only --diff-filter=D origin/dev...HEAD` filtered to .yaml/.yml returns exactly three paths — registry/catalog/check-{adr-citation,supply-chain,pre-push}.yaml — the catalog rows of the three retired gate crates. Independently cross-checked against the boundary the class itself uses: `git ls-files '*.yaml' '*.yml'` counts 3513 on this branch against 3516 on origin/dev. json_files is deliberately NOT moved: this change deletes no tracked JSON, and it held at 1279 by equality on the same run, which is the cross-check that the walk did not shrink.",
     "reviewed_raises": {
       "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
       "evidence_files": {
