@@ -13,12 +13,12 @@
     "enforced_by": "oya-cloud-ci-tier-field-coverage-app (born-blocking coverage + enum validity + no type-overload)"
   },
   "tier_distribution": {
-    "substrate": 54,
+    "substrate": 53,
     "product": 23,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 77,
+  "service_count": 76,
   "services": {
     "app/calendar/manifest.json": {
       "service": "app/calendar",
@@ -838,9 +838,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T2"
     },
-    "oya/governance/manifest.json": {
-      "service": "oya/governance",
-      "manifest": "oya/governance/manifest.json",
+    "governance/manifest.json": {
+      "service": "governance",
+      "manifest": "governance/manifest.json",
       "capability": "compliance",
       "tier": "substrate",
       "tier_subtype": "substrate-compliance",
@@ -852,33 +852,9 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/intelligence/_legacy-foundry/manifest.json": {
-      "service": "oya/intelligence",
-      "manifest": "oya/intelligence/_legacy-foundry/manifest.json",
-      "capability": "intelligence",
-      "tier": "substrate",
-      "tier_subtype": "substrate-ai",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "workflow-engine"
-        ]
-      }
-    },
-    "oya/intelligence/manifest.json": {
-      "service": "oya/intelligence",
-      "manifest": "oya/intelligence/manifest.json",
+    "intelligence/_legacy-foundry/manifest.json": {
+      "service": "intelligence",
+      "manifest": "intelligence/_legacy-foundry/manifest.json",
       "capability": "intelligence",
       "tier": "substrate",
       "tier_subtype": "substrate-ai",

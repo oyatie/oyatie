@@ -1450,8 +1450,14 @@ fn internal_proto_contract_content_mutations_fail_closed() {
 fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     let root = repo_root();
     let policy = policy();
+    // `governance` joined and `oya` left in the same change that emptied oya/. governance
+    // holds a deployable service manifest now (the absorbed oya/governance service), and a
+    // governed root is exactly where manifests are counted — the same reason `app`, also a
+    // meta directory, is already here. `oya` leaves because the root no longer exists: a
+    // governed root matching nothing is a dead scan root claiming coverage of an empty set.
     let expected_roots = BTreeSet::from([
         "app".to_owned(),
+        "governance".to_owned(),
         "audit".to_owned(),
         "billing".to_owned(),
         "cell".to_owned(),
@@ -1468,7 +1474,6 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
         "marketplace".to_owned(),
         "network".to_owned(),
         "observability".to_owned(),
-        "oya".to_owned(),
         "secrets".to_owned(),
         "storage".to_owned(),
         "tenancy".to_owned(),
@@ -1480,13 +1485,14 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
         "the retired cloud root must leave every other governed root unchanged"
     );
     assert_eq!(
-        policy["manifest_inventory"]["expected_total"], 77,
+        policy["manifest_inventory"]["expected_total"], 76,
         "the governed corpus total is review-pinned: retiring the two cloud manifests moved it \
          96 -> 94, retiring the 51 unreferenced oya product crates moved it 94 -> 77, admitting \
          `app` as a governed root moved it 77 -> 78 by making the long-invisible \
          app/calendar/manifest.json countable, and draining the oya/calendar duplicate that \
          PR #1671 left behind moved it back 78 -> 77 — the same product had briefly been \
-         counted at both paths"
+         counted at both paths, and absorbing the cloud-intelligence component manifest into \
+         the intelligence capability manifest moved it 77 -> 76"
     );
     let retirement = policy["manifest_inventory"]["_comment"]
         .as_str()
@@ -1524,8 +1530,16 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     // 78 unwinding rather than a service being retired — calendar is still here, at
     // app/calendar. Substrate stays 54 again, and remains the control: a drain that moved
     // the substrate count would mean something other than a product duplicate was removed.
-    assert_eq!(projection["service_count"], 77);
-    assert_eq!(projection["tier_distribution"]["substrate"], 54);
+    // 77 -> 76, and THIS TIME SUBSTRATE MOVES (54 -> 53) — which is the point. The two
+    // previous shifts were bookkeeping and had to leave substrate alone; this one is a real
+    // absorption. `cloud-intelligence` was never a peer service: its crates already lived in
+    // the intelligence capability root (core/account-*, adapters/anthropic-subscription-
+    // adapter) and only its manifest and README stayed split, describing a component as
+    // though it were a service. Folding it into the capability manifest's
+    // absorbed_microservices retires one substrate manifest, so a substrate count that did
+    // NOT move here would mean the absorption did not actually land.
+    assert_eq!(projection["service_count"], 76);
+    assert_eq!(projection["tier_distribution"]["substrate"], 53);
     assert!(
         projection["services"]
             .as_object()

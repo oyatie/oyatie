@@ -3040,7 +3040,7 @@
         "shrink_source_integ": "integ/oya"
       },
       {
-        "path": "oya/governance/",
+        "path": "governance/",
         "action": "reorg_now",
         "greenfield_destination": "governance/ (authority) + ci|gateway|cell/observability/slos/ + iac/",
         "destination": "governance/+ci|gateway|cell+iac/",
@@ -3049,7 +3049,7 @@
         "redesign": "rewrite",
         "disposition": "rewrite-into-durable-shape",
         "judgment_status": "done",
-        "name_now": "oya/governance/",
+        "name_now": "governance/",
         "name_forever": "governance/ + ci|gateway|cell SLOs + iac/",
         "kind": "multi-home-scaffold",
         "grammar_compliant": false,
@@ -5273,7 +5273,7 @@
       },
       {
         "id": "W-oya-leaf-governance",
-        "path": "oya/governance/",
+        "path": "governance/",
         "judgment_status": "done",
         "action": "reorg_now",
         "redesign": "rewrite",
@@ -5446,7 +5446,7 @@
         "land_status": "ready_for_batch_path_drain",
         "status": "judgment_closed_on_integ_specs_oya_batch1b",
         "products": [
-          "oya/governance/",
+          "governance/",
           "app/translate/",
           "app/sites/",
           "app/docs/",
@@ -5454,7 +5454,7 @@
           "oya/ci-controller/"
         ],
         "product_destinations": {
-          "oya/governance/": {
+          "governance/": {
             "action": "reorg_now",
             "destination_integ": "integ/governance",
             "shrink_source_integ": "integ/oya",
@@ -6017,7 +6017,7 @@
           "shrink_source_integ": "integ/oya",
           "note": "OVERRULE 1.16.11 #1611: rule 3d per-product rail integ/patient-monitoring→app/patient-monitoring/** (was integ/healthcare→app/healthcare/patient-monitoring/** at 1.16.9)"
         },
-        "oya/governance/": {
+        "governance/": {
           "destination_integ": "integ/governance",
           "forever": "governance/ + ci|gateway|cell/observability/slos/ + iac/",
           "shrink_source_integ": "integ/oya",
@@ -6216,7 +6216,7 @@
       "tools/",
       "tools/swarm/",
       "toolchains/",
-      "oya/governance/",
+      "governance/",
       "app/translate/",
       "app/sites/",
       "app/docs/",

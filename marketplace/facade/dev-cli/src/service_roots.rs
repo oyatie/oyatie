@@ -59,25 +59,29 @@ use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
-/// Pre-ADR-0562 root that the capability-first strangler migration has not
+/// Pre-ADR-0562 roots that the capability-first strangler migration has not
 /// finished moving.
 ///
-/// `oya/` is in NEITHER the registry's `capabilities` nor its
-/// `meta_directories`, so no registry-driven derivation can produce it —
-/// and it holds the clear majority of the repository's capability
-/// documents. Deriving roots from the registry alone would therefore drop
-/// them from every gate: exactly the silent-shrink bug this module exists
-/// to prevent, wearing a more principled hat.
-///
-/// It is listed here, visibly and on purpose, so that it is impossible to
-/// lose by accident. **Delete this entry when the strangler migration
-/// lands and `oya/` no longer exists on disk** — until then its absence is
-/// an error like any other expected root's, which is what will tell you
-/// the migration finished.
-pub(crate) const LEGACY_SERVICE_ROOTS: &[&str] = &["oya"];
+/// EMPTY as of 2026-08-20, and emptied by following this entry's own
+/// instruction rather than by working around it. `oya/` used to be listed
+/// here because it is in NEITHER the registry's `capabilities` nor its
+/// `meta_directories`, so no registry-driven derivation could produce it,
+/// while it held the clear majority of the repository's capability
+/// documents — dropping it would have been the silent-shrink bug this
+/// module exists to prevent, wearing a more principled hat. The entry said
+/// to delete it "when the strangler migration lands and `oya/` no longer
+/// exists on disk", and that is now true: all 407 files were absorbed into
+/// `intelligence/` and `governance/`, and the root is deleted. Its absence
+/// being an error is exactly what told us the migration had finished.
+pub(crate) const LEGACY_SERVICE_ROOTS: &[&str] = &[];
 
-/// The one `meta_directories` entry that hosts capability document trees.
-const COMPOSITION_RING_ROOT: &str = "app";
+/// The `meta_directories` entries that host capability document trees.
+///
+/// `governance` joined `app` when the absorbed `oya/governance` service
+/// landed there: it now holds a service manifest, SLOs, contracts and
+/// runbooks, so a derivation that skipped it would drop them from every
+/// gate — the same silent shrink the legacy list above guarded against.
+const COMPOSITION_RING_ROOTS: &[&str] = &["app", "governance"];
 
 /// Path of the closed capability registry, relative to the repository root.
 ///
@@ -240,8 +244,10 @@ fn derive_expected_roots(registry_json: &str) -> Result<DerivedRoots, String> {
         }
     }
 
-    // The composition ring, and then the legacy root, appended explicitly.
-    expected.push(COMPOSITION_RING_ROOT.to_string());
+    // The composition ring, and then any legacy roots, appended explicitly.
+    for ring in COMPOSITION_RING_ROOTS {
+        expected.push((*ring).to_string());
+    }
     for legacy in LEGACY_SERVICE_ROOTS {
         expected.push((*legacy).to_string());
     }
@@ -542,17 +548,29 @@ mod tests {
     }
 
     #[test]
-    fn derives_expected_roots_and_keeps_the_legacy_root() {
+    fn derives_expected_roots_and_appends_every_composition_ring_root() {
+        // Was `derives_expected_roots_and_keeps_the_legacy_root`, asserting `oya` survived
+        // derivation. That contract retired with the root: LEGACY_SERVICE_ROOTS is empty
+        // because the strangler migration finished. What must still hold is the half that
+        // guarded against silent shrink — every composition-ring meta root is appended to
+        // the registry-derived capabilities, so document-hosting roots cannot be dropped.
         let derived = derive_expected_roots(FIXTURE).expect("fixture derives");
         assert_eq!(
             derived.expected,
             vec![
                 "app".to_string(),
+                "governance".to_string(),
                 "iam".to_string(),
-                "oya".to_string(),
                 "workflow".to_string()
             ]
         );
+        for ring in COMPOSITION_RING_ROOTS {
+            assert!(
+                derived.expected.contains(&(*ring).to_string()),
+                "composition-ring root {ring} must be expected even when the registry's \
+                 capabilities do not name it"
+            );
+        }
     }
 
     #[test]
@@ -629,13 +647,13 @@ mod tests {
             "data",
             "flags",
             "gateway",
+            "governance",
             "iac",
             "iam",
             "intelligence",
             "k8s",
             "marketplace",
             "observability",
-            "oya",
             "secrets",
             "storage",
             "tenancy",

@@ -1,0 +1,288 @@
+{
+  "schema_version": "1.0",
+  "task": "task-37",
+  "title": "Fitness to governance lane-prefix migration",
+  "created_at": "2026-05-18",
+  "authority": [
+    "evidence/NEXT-SESSION-HANDOFF.md#fitness-governance-glossary",
+    "microservices/governance/PRD.md#canonical-name-governance",
+    "registry/quality/lanes.yaml"
+  ],
+  "migration_rule": "Do not bulk-rename active compatibility lanes. Each old oya-governance-* lane migrates through its own ChangeSet with registry, docs mirror, workflow context, branch-protection, catalog, and historical-reference evidence.",
+  "compatibility_window": {
+    "old_prefix": "oya-governance-",
+    "new_prefix": "oya-governance-",
+    "new_lanes_must_use_new_prefix": true,
+    "existing_old_prefix_lanes_remain_valid_until_their_per_lane_changeset_lands": true
+  },
+  "audit": {
+    "registry_path": "registry/quality/lanes.yaml",
+    "active_old_prefix_lanes": 39,
+    "active_new_prefix_lanes": 25,
+    "new_prefix_audit_result": "pass",
+    "bulk_sweep_status": "forbidden"
+  },
+  "per_lane_ips": [
+    {
+      "ip_id": "GOV-PREFIX-001",
+      "old_lane_id": "oya-governance-authority-cohesion",
+      "new_lane_id": "oya-governance-authority-cohesion",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-002",
+      "old_lane_id": "oya-governance-claim-ceiling",
+      "new_lane_id": "oya-governance-claim-ceiling",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-003",
+      "old_lane_id": "oya-governance-codeowners-mirror",
+      "new_lane_id": "oya-governance-codeowners-mirror",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-004",
+      "old_lane_id": "oya-governance-cohesion",
+      "new_lane_id": "oya-governance-cohesion",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-005",
+      "old_lane_id": "oya-governance-data-class",
+      "new_lane_id": "oya-governance-data-class",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-006",
+      "old_lane_id": "oya-governance-doc-catalog",
+      "new_lane_id": "oya-governance-doc-catalog",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-007",
+      "old_lane_id": "oya-governance-docs",
+      "new_lane_id": "oya-governance-docs",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-008",
+      "old_lane_id": "oya-governance-quality-lanes",
+      "new_lane_id": "oya-governance-quality-lanes",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-009",
+      "old_lane_id": "oya-governance-honest-claims",
+      "new_lane_id": "oya-governance-honest-claims",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-010",
+      "old_lane_id": "oya-governance-aspirational-enforcement",
+      "new_lane_id": "oya-governance-aspirational-enforcement",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-011",
+      "old_lane_id": "oya-governance-workspace-hygiene",
+      "new_lane_id": "oya-governance-workspace-hygiene",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-012",
+      "old_lane_id": "oya-governance-hyperscaler-maturity-claims",
+      "new_lane_id": "oya-governance-hyperscaler-maturity-claims",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-013",
+      "old_lane_id": "oya-governance-foundation-bypass",
+      "new_lane_id": "oya-governance-foundation-bypass",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-014",
+      "old_lane_id": "oya-governance-glossary-cross-doc-coverage",
+      "new_lane_id": "oya-governance-glossary-cross-doc-coverage",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-015",
+      "old_lane_id": "oya-governance-glossary-vocabulary",
+      "new_lane_id": "oya-governance-glossary-vocabulary",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-016",
+      "old_lane_id": "oya-governance-placeholder-debt",
+      "new_lane_id": "oya-governance-placeholder-debt",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-017",
+      "old_lane_id": "oya-governance-license",
+      "new_lane_id": "oya-governance-license",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-018",
+      "old_lane_id": "oya-governance-plane-class",
+      "new_lane_id": "oya-governance-plane-class",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-019",
+      "old_lane_id": "oya-governance-raci-team-coverage",
+      "new_lane_id": "oya-governance-raci-team-coverage",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-020",
+      "old_lane_id": "oya-governance-readme-doc-coverage",
+      "new_lane_id": "oya-governance-readme-doc-coverage",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-021",
+      "old_lane_id": "oya-governance-runbook-index-resolves",
+      "new_lane_id": "oya-governance-runbook-index-resolves",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-022",
+      "old_lane_id": "oya-governance-slo-coverage",
+      "new_lane_id": "cloud-ci-slo-coverage",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-023",
+      "old_lane_id": "oya-governance-catalog-records",
+      "new_lane_id": "oya-governance-catalog-records",
+      "status": "completed"
+    },
+    {
+      "ip_id": "GOV-PREFIX-024",
+      "old_lane_id": "oya-governance-flat-crates",
+      "new_lane_id": "oya-governance-flat-crates",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-025",
+      "old_lane_id": "oya-governance-product-index",
+      "new_lane_id": "oya-governance-product-index",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-026",
+      "old_lane_id": "oya-governance-adr-citation",
+      "new_lane_id": "oya-governance-adr-citation",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-027",
+      "old_lane_id": "oya-governance-brand-residue",
+      "new_lane_id": "oya-governance-brand-residue",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-028",
+      "old_lane_id": "oya-governance-supply-chain",
+      "new_lane_id": "oya-governance-supply-chain",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-029",
+      "old_lane_id": "oya-governance-supply-chain-bootstrap",
+      "new_lane_id": "oya-governance-supply-chain-bootstrap",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-030",
+      "old_lane_id": "oya-governance-api-semver",
+      "new_lane_id": "oya-governance-api-semver",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-031",
+      "old_lane_id": "oya-governance-cargo-prefix",
+      "new_lane_id": "oya-governance-cargo-prefix",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-032",
+      "old_lane_id": "oya-governance-pre-push",
+      "new_lane_id": "oya-governance-pre-push",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-033",
+      "old_lane_id": "oya-governance-loop-recovery-patterns",
+      "new_lane_id": "oya-governance-loop-recovery-patterns",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-034",
+      "old_lane_id": "oya-governance-master-plan-completion",
+      "new_lane_id": "oya-governance-master-plan-completion",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-035",
+      "old_lane_id": "oya-governance-retired-vocabulary",
+      "new_lane_id": "oya-governance-retired-vocabulary",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-036",
+      "old_lane_id": "oya-governance-protection-context-match",
+      "new_lane_id": "oya-governance-protection-context-match",
+      "status": "in_progress"
+    },
+    {
+      "ip_id": "GOV-PREFIX-037",
+      "old_lane_id": "oya-governance-changeset-state-monotonicity",
+      "new_lane_id": "oya-governance-changeset-state-monotonicity",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-038",
+      "old_lane_id": "oya-governance-changeset-state-enum-closed",
+      "new_lane_id": "oya-governance-changeset-state-enum-closed",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-039",
+      "old_lane_id": "oya-governance-vendor-contract-recency",
+      "new_lane_id": "oya-governance-vendor-contract-recency",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-040",
+      "old_lane_id": "oya-governance-mobile-native",
+      "new_lane_id": "oya-governance-mobile-native",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-041",
+      "old_lane_id": "oya-governance-merge-queue-ref-hygiene",
+      "new_lane_id": "oya-governance-merge-queue-ref-hygiene",
+      "status": "queued"
+    },
+    {
+      "ip_id": "GOV-PREFIX-042",
+      "old_lane_id": "oya-governance-dependency-seam",
+      "new_lane_id": "oya-governance-dependency-seam",
+      "status": "in_progress"
+    }
+  ],
+  "per_lane_changeset_acceptance": [
+    "registry/quality/lanes.yaml has exactly one active row for the new lane id",
+    "docs/standards/ci-lanes.md mirrors the same id, purpose, and source",
+    "any .github workflow name, job name, branch-protection context, and dependent workflow reference are migrated together",
+    "catalog rows or historical docs that intentionally keep the old id are marked compatibility-only",
+    "cargo run -q -p oya-dev-cli -- gate validate quality-lanes exits 0",
+    "cargo run -q -p oya-dev-cli -- gate validate retired-vocabulary exits 0",
+    "git diff --check exits 0"
+  ]
+}

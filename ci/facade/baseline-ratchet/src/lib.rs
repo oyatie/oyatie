@@ -605,6 +605,7 @@ pub fn derive_directory_renames_scored(
 
     let mut out = BTreeMap::new();
     for (old_dir, destinations) in candidates {
+        let candidate_counts = destinations.clone();
         let new_dir = if destinations.len() == 1 {
             // Unanimous: one destination accounting for EVERY departure from old_dir.
             let (only, supporting) = destinations.into_iter().next().expect("one destination");
@@ -621,10 +622,32 @@ pub fn derive_directory_renames_scored(
             let mut by_score: Vec<(&String, u32)> =
                 ranked.iter().map(|(dir, score)| (dir, *score)).collect();
             by_score.sort_by(|left, right| right.1.cmp(&left.1));
-            match by_score.as_slice() {
+            let winner = match by_score.as_slice() {
                 [(winner, top), (_, runner_up), ..] if top > runner_up => (*winner).clone(),
                 _ => continue,
+            };
+            // COMPLETENESS, the check this branch was missing. Every rename leaving
+            // old_dir must land in SOME candidate destination — not necessarily the
+            // winner. That is precisely "the directory moved wholesale and git merely
+            // disagreed about which file went where", which is the case this tiebreak
+            // exists to rescue.
+            //
+            // Without it the branch derived `oya` -> `app` from 675 supporting renames
+            // against 1284 departures. oya/ did not move to app/: it emptied into app/,
+            // intelligence/ AND governance/, so only a subset ever pointed at app/. That
+            // top-level pair then rewrote every frozen key containing `oya`, turning
+            // untouched debt like `dir:billing/oya-billing` into `dir:billing/app-billing`
+            // — a path that has never existed — so the real key read as brand-new debt and
+            // the ratchet went red on ~100 keys it should have recognised.
+            //
+            // Measured on that same diff: requiring the WINNER alone to account for every
+            // departure would also have rejected 19 genuine crate moves; requiring all
+            // candidates TOGETHER rejects exactly the one bad pair and keeps 492 of 493.
+            let accounted: usize = candidate_counts.values().sum();
+            if departures.get(&old_dir).copied().unwrap_or(0) != accounted {
+                continue;
             }
+            winner
         };
         // WHOLESALE: nothing tracked may remain behind.
         let prefix = format!("{old_dir}/");
@@ -634,6 +657,38 @@ pub fn derive_directory_renames_scored(
         out.insert(old_dir, new_dir);
     }
     out
+}
+
+/// Replace `old` with `new` in `value` ONLY at a path boundary.
+///
+/// A directory rename is a statement about a path COMPONENT, so a substring match is
+/// wrong and dangerously so: relabelling `oya` -> `app` inside `billing/oya-billing`
+/// invents `billing/app-billing`, a path that has never existed, and the real key then
+/// reads as new debt. The match must therefore be the whole value or be followed by `/`,
+/// and must start the value or follow `/` or `:` — baseline keys are shaped `dir:<path>`
+/// and `name:<path>:<name>`, so `:` is a component boundary here too.
+///
+/// Returns `None` when no boundary-aligned match exists, so callers can leave the key
+/// untouched rather than guess.
+pub fn replace_path_component(value: &str, old: &str, new: &str) -> Option<String> {
+    let mut at = 0usize;
+    while let Some(found) = value[at..].find(old) {
+        let start = at + found;
+        let end = start + old.len();
+        let before_ok = start == 0
+            || value.as_bytes()[start - 1] == b'/'
+            || value.as_bytes()[start - 1] == b':';
+        let after_ok = end == value.len() || value.as_bytes()[end] == b'/';
+        if before_ok && after_ok {
+            let mut out = String::with_capacity(value.len() - old.len() + new.len());
+            out.push_str(&value[..start]);
+            out.push_str(new);
+            out.push_str(&value[end..]);
+            return Some(out);
+        }
+        at = start + 1;
+    }
+    None
 }
 
 pub fn relabel_baseline_for_renames(
@@ -1024,6 +1079,93 @@ mod tests {
             dirs.get("oya/app/crates/oya-surface").map(String::as_str),
             Some("app/x/core/surface"),
             "the byte-identical pairing must win over two boilerplate mis-pairings"
+        );
+    }
+
+    #[test]
+    fn a_plurality_that_does_not_account_for_every_departure_emits_nothing() {
+        // THE LIVE DEFECT, reduced. oya/ did not move to app/ — it emptied into app/,
+        // intelligence/ AND governance/. On the real diff the scored branch saw 675
+        // renames pointing at app/ against 1284 departures and declared `oya -> app`,
+        // a TOP-LEVEL pair that then rewrote every frozen key containing `oya`.
+        let renames = files(&[
+            ("oya/p/a.rs", "app/p/a.rs"),
+            ("oya/p/b.rs", "app/p/b.rs"),
+            // These leave `oya` too, but their destination is one component SHALLOWER
+            // (oya/<product>/x -> <capability>/x), so stripping components far enough to
+            // reduce the source to `oya` empties the destination and yields no candidate
+            // at that level. They are departures that no candidate accounts for — exactly
+            // the shape that let a 675-of-1284 plurality masquerade as unanimity.
+            ("oya/q/deep/c.rs", "intelligence/deep/c.rs"),
+            ("oya/r/deep/d.rs", "governance/deep/d.rs"),
+        ]);
+        let scores: BTreeMap<String, u32> = [
+            ("oya/p/a.rs".to_owned(), 100u32),
+            ("oya/p/b.rs".to_owned(), 90),
+        ]
+        .into_iter()
+        .collect();
+        let dirs = derive_directory_renames_scored(&renames, &scores, &BTreeSet::new());
+        assert!(
+            !dirs.contains_key("oya"),
+            "a plurality must not become a directory rename: {dirs:?}"
+        );
+    }
+
+    #[test]
+    fn a_scaffold_mispairing_still_resolves_because_every_departure_is_accounted_for() {
+        // The case the tiebreak exists for must keep working: all three departures DO
+        // reach a candidate destination, git merely disagreed about which file went where.
+        let renames = files(&[
+            (
+                "oya/x/crates/oya-surface/src/lib.rs",
+                "app/x/core/surface/src/lib.rs",
+            ),
+            (
+                "oya/x/crates/oya-surface/Cargo.toml",
+                "app/y/core/other/Cargo.toml",
+            ),
+            ("oya/x/crates/oya-surface/BUCK", "app/z/core/third/BUCK"),
+        ]);
+        let scores: BTreeMap<String, u32> = [
+            ("oya/x/crates/oya-surface/src/lib.rs".to_owned(), 100u32),
+            ("oya/x/crates/oya-surface/Cargo.toml".to_owned(), 81),
+            ("oya/x/crates/oya-surface/BUCK".to_owned(), 80),
+        ]
+        .into_iter()
+        .collect();
+        let dirs = derive_directory_renames_scored(&renames, &scores, &BTreeSet::new());
+        assert_eq!(
+            dirs.get("oya/x/crates/oya-surface").map(String::as_str),
+            Some("app/x/core/surface")
+        );
+    }
+
+    #[test]
+    fn a_relabel_matches_path_components_not_substrings() {
+        // `oya` must not match inside `billing/oya-billing`. Substring matching invented
+        // `billing/app-billing` — a path that has never existed — so the untouched key
+        // read as brand-new debt.
+        assert_eq!(
+            replace_path_component("dir:billing/oya-billing", "oya", "app"),
+            None
+        );
+        assert_eq!(
+            replace_path_component("name:a/oya-x/Cargo.toml:oya-x", "oya", "app"),
+            None
+        );
+        // Whole component, mid-path, and end-of-value all still relabel.
+        assert_eq!(
+            replace_path_component("dir:oya/hr/x", "oya", "app").as_deref(),
+            Some("dir:app/hr/x")
+        );
+        assert_eq!(
+            replace_path_component("dir:a/oya/b", "oya", "app").as_deref(),
+            Some("dir:a/app/b")
+        );
+        assert_eq!(
+            replace_path_component("dir:a/oya", "oya", "app").as_deref(),
+            Some("dir:a/app")
         );
     }
 

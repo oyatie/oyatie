@@ -873,7 +873,7 @@
     },
     "prd_foundry": {
       "absorbed_by": "intelligence",
-      "absorbing_manifest": "/oya/intelligence/manifest.json",
+      "absorbing_manifest": "/intelligence/manifest.json",
       "absorbing_prd_pointer": "prd_intelligence",
       "current_path": "/specs/microservices/intelligence.json",
       "current_path_status": "retirement_marker_only",
@@ -884,9 +884,9 @@
       "retired_at": "2026-05-21",
       "retired_by_adr": "ADR-0335",
       "retired_by_wave": "15I",
-      "retirement_marker": "/oya/intelligence/README.md",
+      "retirement_marker": "/intelligence/README.md",
       "status": "retired",
-      "target_path_after_md_retirement": "/oya/intelligence/README.md"
+      "target_path_after_md_retirement": "/intelligence/README.md"
     },
     "prd_global_trade": {
       "current_path": "/specs/microservices/global-trade.json",
@@ -903,7 +903,7 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_intelligence": {
-      "absorbing_manifest": "/oya/intelligence/manifest.json",
+      "absorbing_manifest": "/intelligence/manifest.json",
       "current_path": "/specs/microservices/intelligence.json",
       "kind": "prd",
       "migration_phase": "foundry-absorbed-wave-15I",

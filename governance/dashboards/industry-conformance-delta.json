@@ -1,0 +1,276 @@
+{
+  "$schema": "https://grafana.com/schema/dashboards/v10.0.0/dashboard.json",
+  "uid": "governance-industry-conformance-delta",
+  "title": "Governance — Industry Conformance Delta (6-Axis ADR-0133)",
+  "tags": [
+    "governance",
+    "policy-engine",
+    "industry-conformance",
+    "adr-0133"
+  ],
+  "schemaVersion": 39,
+  "refresh": "1m",
+  "time": {
+    "from": "now-90d",
+    "to": "now"
+  },
+  "templating": {
+    "list": [
+      {
+        "name": "axis",
+        "type": "custom",
+        "query": "pipeline,directory,naming,standards,practices,policies",
+        "current": {
+          "value": "All",
+          "text": "All"
+        },
+        "includeAll": true
+      },
+      {
+        "name": "microservice",
+        "type": "query",
+        "datasource": "Mimir-governance",
+        "query": "label_values(oya_governance_conformance_axis_pass_rate, microservice)"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "stat",
+      "title": "Current 6-Axis Conformance (rolling 30d)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 0,
+        "w": 24,
+        "h": 6
+      },
+      "targets": [
+        {
+          "expr": "avg by (axis) (oya_governance_conformance_axis_pass_rate)",
+          "legendFormat": "{{axis}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "red",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 0.85
+              },
+              {
+                "color": "green",
+                "value": 0.95
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Per-Axis Pass Rate (90d trend)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 6,
+        "w": 24,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "avg by (axis) (oya_governance_conformance_axis_pass_rate{axis=~\"$axis\"})",
+          "legendFormat": "{{axis}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      }
+    },
+    {
+      "id": 3,
+      "type": "table",
+      "title": "Per-Axis Findings Open (current; severity=BLOCKER)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by (axis, lane_id) (oya_governance_open_blocker_findings)",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "table",
+      "title": "Per-µservice Conformance (current; rolled up)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 12,
+        "y": 14,
+        "w": 12,
+        "h": 8
+      },
+      "targets": [
+        {
+          "expr": "sum by (microservice, axis) (oya_governance_conformance_axis_pass_rate{microservice=~\"$microservice\"})",
+          "format": "table"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "stat",
+      "title": "Days Since Last Baseline Refresh",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 22,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "(time() - max(oya_governance_baseline_pin_last_refresh_timestamp)) / 86400"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "d",
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "color": "green",
+                "value": 0
+              },
+              {
+                "color": "yellow",
+                "value": 75
+              },
+              {
+                "color": "red",
+                "value": 95
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 6,
+      "type": "stat",
+      "title": "Baseline Pins Out-of-Date",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 6,
+        "y": 22,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "count(oya_governance_baseline_pin_outdated == 1)"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "stat",
+      "title": "Open Audit-Remediation IPs",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 12,
+        "y": 22,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(oya_governance_audit_remediation_ip_open_total)"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "type": "stat",
+      "title": "Quarterly Refresh PRs (last 4 quarters)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 18,
+        "y": 22,
+        "w": 6,
+        "h": 4
+      },
+      "targets": [
+        {
+          "expr": "sum(increase(oya_governance_baseline_refresh_pr_total[365d]))"
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "type": "timeseries",
+      "title": "Self-Application Lane Status (governance gates itself)",
+      "datasource": "Mimir-governance",
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 6
+      },
+      "description": "If this dips below 95% sustained, F-13 self-lock is imminent.",
+      "targets": [
+        {
+          "expr": "sum by (lane_id) (rate(oya_governance_lane_run_total{microservice=\"governance\",verdict=\"PASS\"}[1h])) / sum by (lane_id) (rate(oya_governance_lane_run_total{microservice=\"governance\"}[1h]))",
+          "legendFormat": "{{lane_id}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "max": 1
+        }
+      }
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "datasource": "Mimir-governance",
+        "name": "Quarterly refreshes",
+        "iconColor": "blue",
+        "expr": "increase(oya_governance_baseline_refresh_pr_total[1d]) > 0",
+        "tagKeys": "quarter"
+      },
+      {
+        "datasource": "Mimir-governance",
+        "name": "New axis violations",
+        "iconColor": "yellow",
+        "expr": "increase(oya_governance_axis_violation_first_seen_total[1h]) > 0",
+        "tagKeys": "axis,microservice"
+      }
+    ]
+  }
+}
