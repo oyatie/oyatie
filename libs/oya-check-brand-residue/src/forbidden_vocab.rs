@@ -169,6 +169,18 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         reason: "the frozen cloud-/oya- rename baseline ENUMERATES the identifiers still to be renamed; some of those identifiers contain a forbidden stem, so listing them is the census, not residue (same rationale as oya-check-brand-residue's own source). A file that names the debt is not the debt.",
     },
     CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/event-schema-versioning/event-schema-versioning-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen unversioned-AsyncAPI baseline ENUMERATES the contract paths still owing an ADR-0154 event version header, and two of those tracked paths carry a forbidden stem in their own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by renaming the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/idempotency-key-coverage/idempotency-key-coverage-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen uncovered-operation baseline ENUMERATES the OpenAPI operations still owing an ADR-0149 Idempotency-Key, keyed by their tracked document path; some of those paths carry a forbidden stem in their own filename. Same rationale as the sibling entry above.",
+    },
+    CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "libs/oya-ci-config/",
         exempt_stems: &[],
