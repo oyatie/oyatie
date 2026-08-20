@@ -98,7 +98,24 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 
 	case *ast.CallExpr:
 		children := []node{expressionNode(typed.Fun, ctx)}
-		children = append(children, expressionNodes(typed.Args, ctx)...)
+		// A builtin whose first argument is a TYPE, not a value. `make([]byte, 0, n)` names the
+		// thing to allocate, and walking that name as an expression recorded `[]byte` as an
+		// unsupported node -- which refused every declaration that allocates. The type is what the
+		// call is about, so it is recorded as one.
+		if index := typeArgumentIndex(typed, ctx); index >= 0 {
+			for at, arg := range typed.Args {
+				if at == index {
+					children = append(children, node{
+						Kind: kindType,
+						Type: typeTree(ctx.info.TypeOf(arg)),
+					})
+					continue
+				}
+				children = append(children, expressionNode(arg, ctx))
+			}
+		} else {
+			children = append(children, expressionNodes(typed.Args, ctx)...)
+		}
 		// The callee's IDENTITY, not its spelling. `errors.New` and a local variable named
 		// `errors` are the same text, and only the type-checker can tell them apart — so a rule
 		// that keys on the identity answers for the real function and not for whatever shares
@@ -271,3 +288,24 @@ func unsupportedNode(n ast.Node) node {
 // commentText renders a comment group as plain text, one line per source line, with the
 // comment markers removed. Returns "" when there is no comment, so an undocumented declaration
 // carries no attribute rather than an empty one.
+
+// typeArgumentIndex reports which argument of this call is a TYPE rather than a value, or -1.
+//
+// The source has a handful of builtins shaped this way: `make` and `new` name what to allocate.
+// Everything else takes values, and a type appearing anywhere else is not something this front end
+// has met — so it says -1 and the walker records whatever it finds, which is the honest answer.
+func typeArgumentIndex(call *ast.CallExpr, ctx *extractCtx) int {
+	ident := calleeIdent(call.Fun)
+	if ident == nil || ctx == nil || ctx.info == nil {
+		return -1
+	}
+	if _, isBuiltin := ctx.info.Uses[ident].(*types.Builtin); !isBuiltin {
+		return -1
+	}
+	switch ident.Name {
+	case "make", "new":
+		return 0
+	default:
+		return -1
+	}
+}
