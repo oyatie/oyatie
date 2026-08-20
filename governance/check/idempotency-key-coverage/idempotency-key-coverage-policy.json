@@ -296,7 +296,7 @@
     "oya/calendar/contracts/openapi/calendar.yaml::/invitations/{invitation_id}/rsvp::post",
     "oya/calendar/contracts/openapi/calendar.yaml::/recurrence/expand::post",
     "oya/calendar/contracts/openapi/calendar.yaml::/rooms/{resource_id}/book::post",
-    "oya/ci-webhook-gateway/contracts/openapi-v1.yaml::/webhook/github::post",
+    "app/ci-webhook-gateway/contracts/openapi-v1.yaml::/webhook/github::post",
     "oya/community/contracts/openapi/community.yaml::/kb/articles/{article_id}/attachments::post",
     "oya/community/contracts/openapi/community.yaml::/kb/articles/{article_id}/publish::post",
     "oya/community/contracts/openapi/community.yaml::/kb/articles/{article_id}::patch",

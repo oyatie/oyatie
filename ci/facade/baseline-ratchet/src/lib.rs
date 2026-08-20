@@ -515,6 +515,83 @@ impl FirewallReport {
 ///
 /// Mode, `frozen_empty` and `remediation` are carried through untouched: they are
 /// merge-base DATA, and moving a file must not let a PR rewrite them.
+/// Derive DIRECTORY renames implied by a set of FILE renames.
+///
+/// The firewall baseline is path-keyed, and some gates key their debt by crate
+/// DIRECTORY (`cloud-ci-target-parity` keys a member dir, not a file). Git reports
+/// only file-level renames, so a directory that moved wholesale leaves those keys
+/// unrelabelled: the move scores as a regression at the destination and a fix at
+/// the source — net-zero debt that still REDs the gate. This closes that gap in the
+/// same spirit as the file-level relabel, and with the same conservatism.
+///
+/// A candidate `old_dir -> new_dir` is emitted only when all of:
+///   * at least one file rename supports it, with an IDENTICAL relative subpath;
+///   * every file rename leaving `old_dir` agrees on that same `new_dir` — a
+///     directory whose files scattered emits nothing;
+///   * nothing tracked remains under `old_dir` at HEAD, so the directory moved
+///     WHOLESALE rather than partially.
+///
+/// Each condition fails toward emitting NOTHING, which leaves the ratchet blocking.
+/// The caller then applies the existence and non-collision guards, so a spurious
+/// pair still cannot shrink the baseline.
+pub fn derive_directory_renames(
+    file_renames: &BTreeMap<String, String>,
+    head_paths: &BTreeSet<String>,
+) -> BTreeMap<String, String> {
+    // old_dir -> new_dir -> how many file renames support that exact pairing.
+    let mut candidates: BTreeMap<String, BTreeMap<String, usize>> = BTreeMap::new();
+    // old_dir -> how many file renames leave it at all, by any destination.
+    let mut departures: BTreeMap<String, usize> = BTreeMap::new();
+
+    for (old, new) in file_renames {
+        let old_parts: Vec<&str> = old.split('/').collect();
+        let new_parts: Vec<&str> = new.split('/').collect();
+        // Longest identical trailing subpath: the part of the path the move preserved.
+        let mut common = 0usize;
+        while common < old_parts.len().min(new_parts.len())
+            && old_parts[old_parts.len() - 1 - common] == new_parts[new_parts.len() - 1 - common]
+        {
+            common += 1;
+        }
+        for k in 1..=common {
+            let old_dir = old_parts[..old_parts.len() - k].join("/");
+            let new_dir = new_parts[..new_parts.len() - k].join("/");
+            if old_dir.is_empty() || new_dir.is_empty() || old_dir == new_dir {
+                continue;
+            }
+            *candidates
+                .entry(old_dir)
+                .or_default()
+                .entry(new_dir)
+                .or_default() += 1;
+        }
+        // Count this rename against every ancestor dir it left, whether or not the
+        // relative subpath was preserved — a scattered file must still veto its parent.
+        for depth in 1..old_parts.len() {
+            *departures.entry(old_parts[..depth].join("/")).or_default() += 1;
+        }
+    }
+
+    let mut out = BTreeMap::new();
+    for (old_dir, destinations) in candidates {
+        // Exactly one destination, and it accounts for EVERY departure from old_dir.
+        if destinations.len() != 1 {
+            continue;
+        }
+        let (new_dir, supporting) = destinations.into_iter().next().expect("one destination");
+        if departures.get(&old_dir).copied().unwrap_or(0) != supporting {
+            continue;
+        }
+        // WHOLESALE: nothing tracked may remain behind.
+        let prefix = format!("{old_dir}/");
+        if head_paths.iter().any(|path| path.starts_with(&prefix)) {
+            continue;
+        }
+        out.insert(old_dir, new_dir);
+    }
+    out
+}
+
 pub fn relabel_baseline_for_renames(
     frozen: &Baseline,
     renames: &BTreeMap<String, String>,
@@ -839,6 +916,100 @@ mod tests {
         );
         assert_eq!(unjust.fixed, ["a.rs".to_owned()].into_iter().collect());
         assert!(unjust.fails());
+    }
+
+    fn files(pairs: &[(&str, &str)]) -> BTreeMap<String, String> {
+        pairs
+            .iter()
+            .map(|(old, new)| ((*old).to_owned(), (*new).to_owned()))
+            .collect()
+    }
+
+    fn head(paths: &[&str]) -> BTreeSet<String> {
+        paths.iter().map(|path| (*path).to_owned()).collect()
+    }
+
+    #[test]
+    fn a_wholesale_directory_move_yields_the_directory_rename() {
+        let renames = files(&[
+            (
+                "oya/gw/crates/oya-gw-github/src/lib.rs",
+                "app/gw/adapters/github/src/lib.rs",
+            ),
+            (
+                "oya/gw/crates/oya-gw-github/Cargo.toml",
+                "app/gw/adapters/github/Cargo.toml",
+            ),
+        ]);
+        let dirs =
+            derive_directory_renames(&renames, &head(&["app/gw/adapters/github/Cargo.toml"]));
+        assert_eq!(
+            dirs.get("oya/gw/crates/oya-gw-github").map(String::as_str),
+            Some("app/gw/adapters/github")
+        );
+    }
+
+    #[test]
+    fn a_directory_whose_files_scattered_emits_nothing_for_that_directory() {
+        // Same source dir, two destinations: not a directory move.
+        let renames = files(&[
+            ("oya/gw/crates/x/src/lib.rs", "app/gw/adapters/x/src/lib.rs"),
+            ("oya/gw/crates/x/README.md", "docs/x/README.md"),
+        ]);
+        let dirs = derive_directory_renames(&renames, &BTreeSet::new());
+        assert!(!dirs.contains_key("oya/gw/crates/x"));
+    }
+
+    #[test]
+    fn a_partial_move_that_leaves_files_behind_emits_nothing() {
+        let renames = files(&[("oya/gw/crates/x/src/lib.rs", "app/gw/adapters/x/src/lib.rs")]);
+        // A tracked file REMAINS directly under the crate dir, so the CRATE did not move
+        // wholesale and must not be relabelled. (`x/src` below it did move wholesale and
+        // may legitimately be paired — the veto binds at the level that still holds files.)
+        let dirs = derive_directory_renames(&renames, &head(&["oya/gw/crates/x/Cargo.toml"]));
+        assert!(!dirs.contains_key("oya/gw/crates/x"));
+        assert!(!dirs.contains_key("oya/gw/crates"));
+    }
+
+    #[test]
+    fn a_move_that_preserves_no_relative_subpath_emits_nothing() {
+        let renames = files(&[("oya/gw/crates/x/old.rs", "app/gw/adapters/x/new.rs")]);
+        let dirs = derive_directory_renames(&renames, &BTreeSet::new());
+        assert!(dirs.is_empty());
+    }
+
+    #[test]
+    fn derived_directory_renames_relabel_a_directory_keyed_baseline() {
+        // The live defect: target-parity keys a crate DIRECTORY, so the file-level map
+        // alone leaves it unrelabelled and the pure move REDs the gate.
+        let renames = files(&[
+            (
+                "oya/gw/crates/oya-gw-github/src/lib.rs",
+                "app/gw/adapters/github/src/lib.rs",
+            ),
+            (
+                "oya/gw/crates/oya-gw-github/Cargo.toml",
+                "app/gw/adapters/github/Cargo.toml",
+            ),
+        ]);
+        let dirs = derive_directory_renames(&renames, &BTreeSet::new());
+        let frozen = Baseline::from_value(&json!({
+            "gates": {
+                "cloud-ci-target-parity": {
+                    "member_test_code_without_rust_test_target": {
+                        "mode": "baseline-block-on-new",
+                        "keys": ["oya/gw/crates/oya-gw-github"]
+                    }
+                }
+            }
+        }))
+        .unwrap();
+        let relabelled = relabel_baseline_for_renames(&frozen, &dirs);
+        let keys = &relabelled.gates["cloud-ci-target-parity"]
+            ["member_test_code_without_rust_test_target"]
+            .keys;
+        assert!(keys.contains("app/gw/adapters/github"));
+        assert!(!keys.contains("oya/gw/crates/oya-gw-github"));
     }
 
     #[test]

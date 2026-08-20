@@ -22,14 +22,14 @@ const MAX_YAML_SOURCE_BYTES: u64 = 1_048_576;
 // package. It named oya/oya-authn-device-firmware + oya/oya-identity until wave 25 rehomed both
 // under iam/, where they are outside the oya census these tests evaluate; oya/ci-webhook-gateway is
 // the surviving nested subject and carries 11 YAML in a single literal face.
-const NESTED_REPAIR_PACKAGES: [&str; 1] = ["oya/ci-webhook-gateway"];
+const NESTED_REPAIR_PACKAGES: [&str; 1] = ["app/ci-webhook-gateway"];
 const NESTED_REPAIR_FACE_PATHS: [usize; 1] = [11];
 
 struct LiveObservation {
     packages: Vec<PackageObservation>,
     unpackaged: usize,
-    oya_inputs: Vec<CorpusInput>,
-    oya_faces: Vec<FaceObservation>,
+    product_inputs: Vec<CorpusInput>,
+    product_faces: Vec<FaceObservation>,
 }
 
 struct YamlCandidate {
@@ -179,12 +179,25 @@ fn read_buck_declaration(dir: &Path, package: &str) -> Result<ExtractionDeclarat
         .map_err(|error| format!("BUCK declaration {} failed: {error}", path.display()))
 }
 
+/// The product corpus spans both roots during the ADR-0562 absorb: a product is
+/// covered here whether it still sits under `oya/` or has already moved to `app/`.
+/// Scoping to `oya/` alone would drop each product out of coverage at the moment
+/// it is absorbed, shrinking the gate exactly when it is most needed.
+fn is_product_path(path: &str) -> bool {
+    for root in ["oya", "app"] {
+        if path == root || path.starts_with(&format!("{root}/")) {
+            return true;
+        }
+    }
+    false
+}
+
 fn observe(root: &Path) -> Result<LiveObservation, String> {
     let (packages, yamls) = walk(root)?;
     let package_set: BTreeSet<PathBuf> = packages.into_iter().collect();
     let mut owned: BTreeMap<PathBuf, Vec<CorpusInput>> = BTreeMap::new();
     let mut unpackaged = 0usize;
-    let mut oya_inputs = Vec::new();
+    let mut product_inputs = Vec::new();
 
     for candidate in yamls {
         let relative = candidate
@@ -198,8 +211,8 @@ fn observe(root: &Path) -> Result<LiveObservation, String> {
             path: relative.clone(),
             source_bytes: candidate.source_bytes,
         };
-        if relative.starts_with("oya/") {
-            oya_inputs.push(input.clone());
+        if is_product_path(&relative) {
+            product_inputs.push(input.clone());
         }
 
         let mut cursor = candidate.path.parent();
@@ -234,7 +247,7 @@ fn observe(root: &Path) -> Result<LiveObservation, String> {
     }
 
     let mut observations = Vec::with_capacity(owned.len());
-    let mut oya_faces = Vec::new();
+    let mut product_faces = Vec::new();
     for (dir, inputs) in owned {
         let package = dir
             .strip_prefix(root)
@@ -245,8 +258,8 @@ fn observe(root: &Path) -> Result<LiveObservation, String> {
         let declaration = read_buck_declaration(&dir, &package)?;
         let faces = derive_faces(&package, &inputs, declaration)
             .map_err(|error| format!("face derivation for {package} failed: {error}"))?;
-        if package == "oya" || package.starts_with("oya/") {
-            oya_faces.extend(faces);
+        if is_product_path(&package) {
+            product_faces.extend(faces);
         }
         observations.push(PackageObservation {
             package,
@@ -254,17 +267,17 @@ fn observe(root: &Path) -> Result<LiveObservation, String> {
             indexed: declaration != ExtractionDeclaration::None,
         });
     }
-    oya_inputs.sort_by(|left, right| left.path.as_bytes().cmp(right.path.as_bytes()));
+    product_inputs.sort_by(|left, right| left.path.as_bytes().cmp(right.path.as_bytes()));
     observations.sort_by(|left, right| left.package.cmp(&right.package));
     Ok(LiveObservation {
         packages: observations,
         unpackaged,
-        oya_inputs,
-        oya_faces,
+        product_inputs,
+        product_faces,
     })
 }
 
-fn validate_oya_census(actual: usize, _expected: usize) -> Result<(), String> {
+fn validate_product_census(actual: usize, _expected: usize) -> Result<(), String> {
     // PROCESS_TAX DELETE: hand equality on `expected_yaml_files` is not a merge blocker.
     // Anti-vacuity only — a collapsed Oya walk reports zero and is refuse-closed.
     if actual == 0 {
@@ -285,8 +298,13 @@ fn live_corpus_is_within_the_frozen_ceiling() {
         "corpus index coverage regressed: {:#?}",
         verdict.blocking()
     );
-    validate_oya_census(live.oya_inputs.len(), oya_policy.expected_yaml_files).unwrap();
-    evaluate_face_coverage(&live.oya_inputs, &live.oya_faces, oya_policy.face_limits()).unwrap();
+    validate_product_census(live.product_inputs.len(), oya_policy.expected_yaml_files).unwrap();
+    evaluate_face_coverage(
+        &live.product_inputs,
+        &live.product_faces,
+        oya_policy.face_limits(),
+    )
+    .unwrap();
 }
 
 #[test]
@@ -398,16 +416,16 @@ fn the_frozen_ceilings_bound_todays_counts() {
 
 #[test]
 fn oya_census_vacuous_blocks() {
-    assert!(validate_oya_census(0, 3068).is_err());
-    assert!(validate_oya_census(3067, 3068).is_ok());
+    assert!(validate_product_census(0, 3068).is_err());
+    assert!(validate_product_census(3067, 3068).is_ok());
 }
 
 #[test]
-fn live_oya_union_matches_expected_census() {
+fn live_product_union_matches_expected_census() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let (_, policy) = load_policy(&root);
-    validate_oya_census(live.oya_inputs.len(), policy.expected_yaml_files).unwrap();
+    validate_product_census(live.product_inputs.len(), policy.expected_yaml_files).unwrap();
 }
 
 #[test]
@@ -415,7 +433,12 @@ fn live_faces_have_zero_missing_duplicate_empty() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let (_, policy) = load_policy(&root);
-    evaluate_face_coverage(&live.oya_inputs, &live.oya_faces, policy.face_limits()).unwrap();
+    evaluate_face_coverage(
+        &live.product_inputs,
+        &live.product_faces,
+        policy.face_limits(),
+    )
+    .unwrap();
 }
 
 #[test]
@@ -424,12 +447,14 @@ fn pre_repair_missing_ten_blocks() {
     let live = observe(&root).unwrap();
     let (_, policy) = load_policy(&root);
     let pre_repair: Vec<_> = live
-        .oya_faces
+        .product_faces
         .iter()
         .filter(|face| !NESTED_REPAIR_PACKAGES.contains(&face.package.as_str()))
         .cloned()
         .collect();
-    assert!(evaluate_face_coverage(&live.oya_inputs, &pre_repair, policy.face_limits()).is_err());
+    assert!(
+        evaluate_face_coverage(&live.product_inputs, &pre_repair, policy.face_limits()).is_err()
+    );
 }
 
 #[test]
@@ -437,7 +462,7 @@ fn nested_repair_faces_use_nearest_package_ownership() {
     let root = repo_root();
     let live = observe(&root).unwrap();
     let counts: BTreeMap<_, _> = live
-        .oya_faces
+        .product_faces
         .iter()
         .filter(|face| NESTED_REPAIR_PACKAGES.contains(&face.package.as_str()))
         .map(|face| (face.package.as_str(), face.paths.len()))
