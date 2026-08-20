@@ -303,7 +303,12 @@ pub(crate) fn switch(
     };
 
     let mut arms = Vec::with_capacity(cases.len());
-    let mut wildcard_seen = false;
+    // The WILDCARD's position, so it can be moved. The source lets `default:` be written anywhere
+    // among the cases and still be the fallback; the target takes the first arm that matches, so a
+    // wildcard left in place makes every arm after it unreachable. gjson writes it first, and the
+    // arms it shadowed were the ones that accept a valid escape — so the emitted function rejected
+    // every string the source accepts, and did it while compiling.
+    let mut wildcard: Option<usize> = None;
     for case in cases {
         let patterns_node = named_child(case, "patterns", cx, "switch")?;
         let body = branch(case, "then", cx)?;
@@ -312,7 +317,17 @@ pub(crate) fn switch(
             .iter()
             .map(|pattern| expression(pattern, cx))
             .collect::<Result<Vec<_>, _>>()?;
-        wildcard_seen |= patterns.is_empty();
+        if patterns.is_empty() {
+            if wildcard.is_some() {
+                return Err(TransformError::Unsupported {
+                    name: cx.owner.to_owned(),
+                    detail: "a switch has two `default` cases, and which one is the fallback is \
+                             not a question the target can be asked"
+                        .to_owned(),
+                });
+            }
+            wildcard = Some(arms.len());
+        }
         arms.push(MatchArm {
             patterns,
             // AN ARM OF A TAIL MATCH IS ITSELF IN TAIL POSITION. The source's switch is a statement
@@ -322,6 +337,16 @@ pub(crate) fn switch(
             // pointed at. The top level of a body already got this right; the arms did not.
             body: translate(&body.children, cx, tail)?,
         });
+    }
+
+    // LAST, wherever the source wrote it. Moving it is safe precisely because it matches
+    // everything: no arm it passes over can have been reachable through it, and every arm it passes
+    // over was unreachable while it sat in front of them.
+    if let Some(index) = wildcard
+        && index + 1 != arms.len()
+    {
+        let fallback = arms.remove(index);
+        arms.push(fallback);
     }
 
     let tag_expr = expression(one_child(tag, cx, "tag")?, cx)?;
@@ -337,7 +362,7 @@ pub(crate) fn switch(
 
     // A `match` must be exhaustive and a Go switch need not be. Adding the arm silently would
     // invent a branch the source does not have, so the absence is a refusal — with the fix named.
-    if !wildcard_seen {
+    if wildcard.is_none() {
         return Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),
             detail: "switch has no `default`, and the target's match must be exhaustive — adding \

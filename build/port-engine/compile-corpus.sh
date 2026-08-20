@@ -38,18 +38,36 @@ for package in "${packages[@]}"; do
   snapshot="$snapshots/$package.json"
   [ -f "$snapshot" ] || { printf '%-14s %s\n' "$package" "no snapshot"; continue; }
 
+  # ONE FILE PER MODULE. `port` emits a `// <name>.rs` banner per source package, and those are
+  # separate Rust modules -- concatenating them into one file makes every name the two packages
+  # share collide. chi is two packages (`chi` and `chi/middleware`), and reading their fourteen
+  # duplicate-definition errors as an engine defect was wrong: the engine had emitted them apart.
+  crate="$work/$package"
+  rm -rf "$crate"; mkdir -p "$crate"
+  (cd "$root/../.." && cargo run -q -p port-engine-app -- port "$snapshot" 2>/dev/null) \
+    | sed '/^port=/d' \
+    | awk -v dir="$crate" '
+        /^\/\/ [A-Za-z0-9_]+\.rs$/ { name = substr($2, 1, length($2) - 3); file = dir "/" name ".rs"; next }
+        file { print > file }
+      '
+
   # `forbid` rather than `deny`: the emitted crate may not opt back out, and nothing the engine
   # emits is allowed to try.
-  {
-    echo '#![forbid(unsafe_code)]'
-    (cd "$root/../.." && cargo run -q -p port-engine-app -- port "$snapshot" 2>/dev/null) | sed '/^port=/d'
-  } > "$work/$package.rs"
+  # The module list is built BEFORE lib.rs is opened. A redirect creates its file first, so a glob
+  # evaluated inside the redirect sees lib.rs and declares `pub mod lib;` -- a crate root that
+  # declares itself.
+  declarations='#![forbid(unsafe_code)]'
+  for module in "$crate"/*.rs; do
+    [ -e "$module" ] || continue
+    declarations+=$'\n'"pub mod $(basename "$module" .rs);"
+  done
+  printf '%s\n' "$declarations" > "$crate/lib.rs"
 
   # Dead code is EXPECTED and is not a defect: the engine emits only what it can prove, so a
   # translated helper whose only caller refused is unused through no fault of its own.
   errors=$(rustc --edition 2021 --crate-type lib --emit=metadata \
              -A dead_code -A unused \
-             -o "$work/$package.rmeta" "$work/$package.rs" 2>&1 \
+             -o "$work/$package.rmeta" "$crate/lib.rs" 2>&1 \
            | grep -cE '^error(\[E[0-9]+\])?: ')
   if [ "$errors" -eq 0 ]; then
     printf '%-14s %s\n' "$package" "compiles"
