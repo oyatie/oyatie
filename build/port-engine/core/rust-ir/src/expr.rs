@@ -124,6 +124,17 @@ pub enum RustExpr {
         /// The values the template consumes, in order.
         args: Vec<RustExpr>,
     },
+    /// `vec![<value>; <count>]` — one value, repeated.
+    ///
+    /// Not a [`RustExpr::MacroCall`]: that carries a format template whose placeholders the macro
+    /// checks, and this is two operands separated by `;` with no template at all. Not a sequence
+    /// literal either — the count is an EXPRESSION, so the length is not known here.
+    VecRepeat {
+        /// The value each element takes.
+        value: Box<RustExpr>,
+        /// How many elements there are.
+        count: Box<RustExpr>,
+    },
     Call {
         /// The function being called.
         callee: Box<RustExpr>,
@@ -219,6 +230,7 @@ impl RustExpr {
             | Self::Call { .. }
             | Self::MethodCall { .. }
             | Self::MacroCall { .. }
+            | Self::VecRepeat { .. }
             | Self::Index { .. }
             | Self::StructLiteral { .. }
             | Self::Try(_)

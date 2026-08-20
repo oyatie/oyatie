@@ -170,7 +170,7 @@ fn mapped_call(
     // A mapped call used to arrive as target TEXT, and text is opaque to everything downstream: the
     // accumulator fold cannot substitute into it, so a body whose chain passes through one kept its
     // statements. The tree costs nothing and every later rule can see through it.
-    if let Some(built) = crate::body_mapped::structured_method(&mapping.form, args) {
+    if let Some(built) = crate::body_mapped::structured_form(&mapping.form, args) {
         return Ok(Some(built));
     }
 

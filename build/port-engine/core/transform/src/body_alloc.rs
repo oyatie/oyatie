@@ -57,17 +57,19 @@ pub(crate) fn allocation(
     match sizes {
         // `make([]T, 0, n)` — no elements, room for n.
         [length, capacity] if is_zero(length) && !rule.empty_with_capacity.is_empty() => {
-            let room = crate::body_call::render_operand(&expression(capacity, cx)?)
+            let room = expression(capacity, cx)?;
+            crate::body_mapped::structured_call(&rule.empty_with_capacity, &[room])
+                .map(Some)
                 .ok_or_else(|| {
                     refuse(
-                        "is given a capacity that is a compound expression",
-                        "the pack answers this with a text template, and substituting one would \
-                         need parentheses the template cannot ask for",
+                        "is answered with a form the engine cannot build as a tree",
+                        &format!(
+                            "`{}` is not a path call, and substituting into it as text would need \
+                             parentheses the template cannot ask for",
+                            rule.empty_with_capacity
+                        ),
                     )
-                })?;
-            Ok(Some(RustExpr::Literal(
-                rule.empty_with_capacity.replace("{0}", &room),
-            )))
+                })
         }
         // `make([]T, n)` — n elements, each the element type's zero.
         [length] if !rule.filled.is_empty() => {
@@ -83,16 +85,22 @@ pub(crate) fn allocation(
                     &rule.filled_reason,
                 )
             })?;
-            let count = crate::body_call::render_operand(&expression(length, cx)?)
+            let count = expression(length, cx)?;
+            // The zero is a pack ANSWER rather than a translated expression, so it arrives as the
+            // leaf it is. Everything else in the tree came from the source.
+            let operands = [count, RustExpr::Literal(zero)];
+            crate::body_mapped::structured_repeat(&rule.filled, &operands)
+                .map(Some)
                 .ok_or_else(|| {
                     refuse(
-                        "is given a length that is a compound expression",
-                        "the pack answers this with a text template",
+                        "is answered with a form the engine cannot build as a tree",
+                        &format!(
+                            "`{}` is not a repeated sequence literal, and substituting into it as \
+                             text would need parentheses the template cannot ask for",
+                            rule.filled
+                        ),
                     )
-                })?;
-            Ok(Some(RustExpr::Literal(
-                rule.filled.replace("{0}", &count).replace("{1}", &zero),
-            )))
+                })
         }
         // `make([]T, n, m)` with a non-zero length is BOTH shapes at once, and the target spells
         // them separately. Which of the two a call site wants is a decision about that call site.
