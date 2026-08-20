@@ -103,3 +103,15 @@ pub(crate) struct AllocationRule {
     #[serde(default)]
     pub(crate) reason: String,
 }
+
+/// Wire shape for how the source's `append` becomes the target's.
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct SequenceAppendRule {
+    #[serde(default)]
+    pub(crate) extend: String,
+    #[serde(default)]
+    pub(crate) push: String,
+    #[serde(default)]
+    pub(crate) reason: String,
+}

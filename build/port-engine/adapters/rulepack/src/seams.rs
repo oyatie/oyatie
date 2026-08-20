@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Allocation, BinaryString, FormatCalls, DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
+use port_engine_api::{SequenceAppend, Allocation, BinaryString, FormatCalls, DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PointerDisposition, RuleId, RulePack, UnitId};
 
 use crate::pack::LoadedRulePack;
 
@@ -43,6 +43,10 @@ impl PackSemantics for LoadedRulePack {
     }
     fn length_argument_callees(&self) -> &BTreeSet<String> {
         &self.length_argument_callees
+    }
+
+    fn sequence_append(&self) -> &SequenceAppend {
+        &self.sequence_append
     }
 
     fn allocation(&self) -> &Allocation {

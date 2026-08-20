@@ -68,6 +68,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) binary_string: &'a port_engine_api::BinaryString,
     /// How the source's allocating builtin becomes the target's.
     pub(crate) allocation: &'a port_engine_api::Allocation,
+    /// How the source's `append` becomes the target's.
+    pub(crate) sequence_append: &'a port_engine_api::SequenceAppend,
     /// How integer arithmetic must be spelled so overflow keeps the source's meaning.
     pub(crate) integer_arithmetic: &'a IntegerArithmetic,
     /// How the source's documentation convention differs from the target's.

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"go/token"
 	"fmt"
 	"go/ast"
 	"go/types"
@@ -134,8 +135,17 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 		if calleeIsMethod(typed.Fun, ctx) {
 			attrs = withAttr(attrs, attrCalleeKind, calleeKindMethod)
 		}
+		// A SPREAD last argument, which the source writes `f(xs...)`. It is not a flourish: it
+		// passes the sequence's ELEMENTS where the plain form passes the sequence itself, and the
+		// two mean different things to the same callee. Recorded because nothing else in the tree
+		// distinguishes them, so `append(b, xs...)` and `append(b, x, y)` arrived identical.
+		var flags []string
+		if typed.Ellipsis != token.NoPos {
+			flags = []string{flagSpread}
+		}
 		return node{
 			Kind:     kindCall,
+			Flags:    flags,
 			Attrs:    attrs,
 			Children: children,
 		}

@@ -90,6 +90,12 @@ pub(crate) fn statement(
         )?)),
         "assign" => {
             let (target, value) = two_children(node, cx, "assign")?;
+            // `x = append(x, ..)` is a STATEMENT in the target, not an assignment of a call's
+            // value: the source's `append` returns a new sequence and the target's `extend` mutates
+            // in place and returns nothing.
+            if let Some(built) = crate::body_alloc::appended(target, value, cx)? {
+                return Ok(built);
+            }
             // A read-modify-write carries the operator it applies; a plain assignment carries
             // none. The operator is refused by name when the target has no form for it, which is
             // the same answer the binary expression gives for the same spelling.

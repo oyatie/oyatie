@@ -10,7 +10,7 @@ use std::collections::{BTreeMap, BTreeSet};
 use crate::declaration::Declaration;
 use crate::error::PortError;
 use crate::failure::{
-    Allocation, BinaryString, DeriveRule, DocConvention, FailureConvention, FormatCalls, FunctionMapping, IdiomRule,
+    Allocation, SequenceAppend, BinaryString, DeriveRule, DocConvention, FailureConvention, FormatCalls, FunctionMapping, IdiomRule,
     IntegerArithmetic,
 };
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
@@ -159,6 +159,8 @@ pub trait PackSemantics {
     fn binary_string(&self) -> &BinaryString;
     /// How the source's allocating builtin becomes the target's.
     fn allocation(&self) -> &Allocation;
+    /// How the source's `append` becomes the target's.
+    fn sequence_append(&self) -> &SequenceAppend;
     /// Callees that TAKE a length, so a read there is not evidence against a constant being one.
     ///
     /// The mirror of [`Self::length_functions`]: that one names callees whose VALUE is a length,

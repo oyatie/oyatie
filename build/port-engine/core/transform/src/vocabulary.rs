@@ -192,6 +192,8 @@ pub const FLAG_POINTER_RECEIVER: &str = "pointer_receiver";
 /// the callee's copy is the opposite claim — the caller sees nothing — so one flag carrying both
 /// would demand a borrow for every parameter a body happens to reassign.
 pub const FLAG_REBOUND: &str = "rebound";
+/// The flag saying a call passes its last argument's ELEMENTS rather than the argument itself.
+pub const FLAG_SPREAD: &str = "spread";
 /// Flag marking a binding whose type the source did not write, so the target must not annotate it.
 pub const FLAG_INFERRED: &str = "inferred";
 /// The body never mentions this parameter.

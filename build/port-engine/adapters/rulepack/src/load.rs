@@ -7,7 +7,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Allocation, BinaryString, FormatFunction, FormatCalls, 
+use port_engine_api::{SequenceAppend, Allocation, BinaryString, FormatFunction, FormatCalls, 
     DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
     LanguagePair, PointerConstruction, PointerDisposition, RuleId, UnitId,
 };
@@ -191,6 +191,14 @@ impl LoadedRulePack {
             unmappable_types: doc
                 .unmappable_types
                 .map(|rule| rule.types)
+                .unwrap_or_default(),
+            sequence_append: doc
+                .sequence_append
+                .map(|rule| SequenceAppend {
+                    extend: rule.extend,
+                    push: rule.push,
+                    reason: rule.reason,
+                })
                 .unwrap_or_default(),
             allocation: doc
                 .allocation

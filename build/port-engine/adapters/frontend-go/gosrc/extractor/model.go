@@ -241,6 +241,11 @@ const (
 	// carrying both would make every rebound parameter demand an exclusive borrow.
 	flagRebound = "rebound"
 
+	// flagSpread records that a call passes its last argument's ELEMENTS rather than the argument
+	// itself -- what the source writes `f(xs...)`. Nothing else in the tree distinguishes the two,
+	// and they mean different things to the same callee.
+	flagSpread = "spread"
+
 	// flagInitWritten records that EVERY write to this package variable is in the package
 	// initialiser. Such a variable is computed once before anything runs and never changes after,
 	// which is not the mutable global the write flag alone describes -- and the two need different

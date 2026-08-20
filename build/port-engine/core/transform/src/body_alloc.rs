@@ -10,12 +10,14 @@
 //! compiles and means something else.
 
 use port_engine_api::Declaration;
-use port_engine_rust_ir::RustExpr;
+use port_engine_rust_ir::{RustExpr, RustStmt};
 
 use crate::body::Body;
 use crate::body_expr::expression;
 use crate::error::TransformError;
-use crate::vocabulary::{ATTR_VALUE, KIND_LITERAL, KIND_TYPE};
+use crate::vocabulary::{
+    ATTR_CALLEE, ATTR_VALUE, FLAG_SPREAD, KIND_CALL, KIND_IDENT, KIND_LITERAL, KIND_TYPE,
+};
 
 /// Translate an allocating builtin, or say this is not one.
 ///
@@ -104,4 +106,59 @@ pub(crate) fn allocation(
 /// Whether this argument is the literal zero, which is what separates the two sequence shapes.
 fn is_zero(node: &Declaration) -> bool {
     node.kind == KIND_LITERAL && node.attr(ATTR_VALUE) == Some("0")
+}
+
+/// `x = append(x, ...)` as the statement the target spells.
+///
+/// A STATEMENT rule, and that is the substance rather than a detail of where it lives: the source's
+/// `append` returns a new sequence and the target's `extend` mutates in place and returns nothing.
+/// There is no expression correspondence to write, so the assignment as a whole is what translates.
+///
+/// The SAME NAME on both sides is what carries across. The source leaves whether the result shares
+/// the argument's storage to the capacity at run time, and that question has one answer only when
+/// the result replaces the original — nothing else can observe the difference. `c = append(b, ..)`
+/// refuses by name, because both target answers, extending `b` and aliasing it or cloning it, are a
+/// different program on one of the two run-time paths.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] naming the declaration and the shape the pack does not answer.
+pub(crate) fn appended(
+    target: &Declaration,
+    value: &Declaration,
+    cx: &Body<'_>,
+) -> Result<Option<RustStmt>, TransformError> {
+    let rule = cx.resolver.sequence_append;
+    if value.kind != KIND_CALL || value.attr(ATTR_CALLEE) != Some("append") {
+        return Ok(None);
+    }
+    let [_, into, added @ ..] = value.children.as_slice() else {
+        return Ok(None);
+    };
+    let refuse = |what: &str| TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: format!("`append` {what}: {}", rule.reason),
+    };
+    if target.kind != KIND_IDENT || into.kind != KIND_IDENT || target.name != into.name {
+        return Err(refuse("does not put its result back where it came from"));
+    }
+    let [one] = added else {
+        return Err(refuse(&format!("adds {} things at once", added.len())));
+    };
+
+    // SPREAD adds the elements OF the argument; plain adds the argument itself. Nothing else in the
+    // tree distinguishes them, and translating both the same way would be right for one of them.
+    let form = match value.has_flag(FLAG_SPREAD) {
+        true => &rule.extend,
+        false => &rule.push,
+    };
+    if form.is_empty() {
+        return Err(refuse("is a shape the pack does not answer"));
+    }
+    let receiver = crate::body_call::render_operand(&expression(target, cx)?)
+        .ok_or_else(|| refuse("is applied to a compound expression"))?;
+    let element = crate::body_call::render_operand(&expression(one, cx)?)
+        .ok_or_else(|| refuse("is given a compound expression to add"))?;
+    Ok(Some(RustStmt::Semi(RustExpr::Literal(
+        form.replace("{0}", &receiver).replace("{1}", &element),
+    ))))
 }
