@@ -24,7 +24,18 @@ use port_engine_app::driver;
 #[test]
 fn emitted_rust_compiles() {
     let report = driver::port_go_pipeline().expect("the Go corpus must port");
-    let source = driver::assemble_modules(&report);
+    // FORBIDDEN, not merely absent. The promise is that what the engine emits contains no `unsafe`
+    // at all, and that was checked only by whoever typed the attribute into an ad-hoc harness -- a
+    // promise kept by habit rather than by a gate. `forbid` cannot be lifted by an inner `allow`,
+    // so one unsafe block anywhere in the emitted tree fails here.
+    //
+    // Not hypothetical: the engine REFUSES a type whose meaning is the source's memory layout
+    // precisely because the target denies unsafe (R2j). That refusal and this attribute are one
+    // decision, and only one of them was being enforced.
+    let source = format!(
+        "#![forbid(unsafe_code)]\n{}",
+        driver::assemble_modules(&report)
+    );
 
     let out_dir =
         std::env::temp_dir().join(format!("port-engine-compile-proof-{}", std::process::id()));

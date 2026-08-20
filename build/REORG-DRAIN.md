@@ -5277,3 +5277,35 @@ is worthless, so all three discriminating cases were run:
 nothing runs this in CI. `drift` is a command, not a gate — and the goal's own lesson is that a check
 you retype by hand is one you eventually skip. Making it a gate needs the pin recorded at extraction
 so a snapshot is self-describing; that is the next piece of this thread rather than a detail.
+
+## R3a — the no-unsafe promise becomes a gate, and a refusal that had gone stale
+
+**The promise was being kept by habit.** Every one of the engine's fourteen crates carries
+`#![forbid(unsafe_code)]`, and the only occurrence of the word in engine sources is the Rust keyword
+table in `naming.rs` — checked, not assumed. But the EMITTED output was a different story: the
+engine's own compile proof compiled it without that attribute, and the attribute appeared only in the
+ad-hoc harness I typed by hand each phase.
+
+So the guarantee held because somebody kept remembering it, which is the same class of failure the
+drift command has: a check you retype is one you eventually skip. The compile proof now prepends
+`#![forbid(unsafe_code)]` to the assembled tree. `forbid` cannot be lifted by an inner `allow`, so one
+unsafe block anywhere in the emitted output fails the gate.
+
+It is not hypothetical. R2j refuses a type whose meaning is the source's memory layout precisely
+BECAUSE the target denies unsafe — that refusal and this attribute are one decision, and only one of
+them was enforced.
+
+**A refusal that had gone stale.** The histogram's top cause — 12 sites, four packages — was the
+engine's own declared reason for not emitting an error-interface satisfaction, and it ended: *"The
+METHOD is not lost: it stays in the type's inherent block under its own name."* That stopped being
+true at R2s, which turned the method into a display impl plus the error impl that follows from it.
+
+The reason now says what happens: the satisfaction is not emitted in the SHAPE the source wrote it,
+the conformance is not lost, and the entry marks a translation rather than a gap. It stays reported,
+because a reader comparing the two files should be able to see that `Error() string` has no
+counterpart under that name and where it went instead.
+
+This is the second time a refusal has outlived what it described. The first (R2h) was the largest
+cause in the corpus and pointed at the wrong component entirely. The lesson generalises past
+documentation: **a reason is code that nobody compiles.** Every rule that changes behaviour has to be
+asked whether some other rule's stated reason was describing the behaviour it just changed.
