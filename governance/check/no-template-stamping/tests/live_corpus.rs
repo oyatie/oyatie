@@ -22,8 +22,7 @@ fn repo_root() -> PathBuf {
 }
 
 fn frozen(root: &Path) -> serde_json::Value {
-    let path =
-        root.join("governance/check/no-template-stamping/template-stamping-baseline.json");
+    let path = root.join("governance/check/no-template-stamping/template-stamping-baseline.json");
     serde_json::from_str(&std::fs::read_to_string(&path).expect("read the frozen baseline"))
         .expect("parse the frozen baseline")
 }

@@ -1,9 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use check_no_template_stamping::{
-    EnforcementStatus, RULE_ID, enforce_no_template_stamping,
-};
+use check_no_template_stamping::{EnforcementStatus, RULE_ID, enforce_no_template_stamping};
 
 #[test]
 fn rejects_three_adjacent_template_shaped_docs() {
