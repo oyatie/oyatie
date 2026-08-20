@@ -161,6 +161,7 @@ pub(crate) fn build_static(
             // value in a function cannot come out differently. What is decided here is only
             // whether the target can evaluate it before the program runs.
             let body = Body {
+                newtype_parameters: std::collections::BTreeSet::new(),
                 owner: &declaration.name,
                 resolver,
                 fallible: false,

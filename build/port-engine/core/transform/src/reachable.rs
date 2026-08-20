@@ -81,8 +81,28 @@ where
             // Only a REFUSAL removes a name. A declaration nothing captures is deferred or
             // uncaptured, and neither means the name is absent for a caller's purposes — the
             // caller's own refusal for naming it is raised where the reference is.
-            if round.refused.is_empty() {
+            // A DROPPED METHOD is a refusal of the method, not of the type. It arrives in the same
+            // list because it is reported the same way, and reading it as the type's own refusal
+            // would rebuild the cascade this change exists to break — through a harder-to-see door,
+            // since the type would be emitted and simultaneously unnameable.
+            //
+            // So the type keeps its name and each SURVIVING method earns its own qualified one.
+            // That is what lets a body calling a dropped method refuse: it names something the
+            // emitted crate does not contain, which is the rule that already governs every other
+            // reference. The set still only shrinks, so the fixpoint's termination is untouched.
+            let dropped: BTreeSet<&str> = round
+                .refused
+                .iter()
+                .filter(|entry| entry.kind == crate::survey::KIND_METHOD_ENTRY)
+                .filter_map(|entry| entry.name.split("::").nth(1))
+                .collect();
+            if round.refused.len() == dropped.len() {
                 kept.insert(declaration.name.clone());
+                for method in declaration.children_of_kind(crate::vocabulary::CHILD_METHOD) {
+                    if !dropped.contains(method.name.as_str()) {
+                        kept.insert(format!("{}::{}", declaration.name, method.name));
+                    }
+                }
             }
         }
         next.insert(unit.0, kept);

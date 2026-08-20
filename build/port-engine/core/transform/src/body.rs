@@ -69,6 +69,13 @@ pub(crate) struct Body<'a> {
     /// carries none of its underlying type's operators and the source's defined type carries all of
     /// them.
     pub(crate) receiver_type: Option<&'a str>,
+    /// Parameters whose declared type is one of this unit's NEWTYPES.
+    ///
+    /// The source indexes such a parameter directly, because there the name and its underlying are
+    /// one thing; the target wraps it, so the index has to reach the field. The body cannot learn
+    /// this from the identifier — the front end records a type on an expression only where one is
+    /// needed — so it is threaded from the signature, which is where the parameter's type is stated.
+    pub(crate) newtype_parameters: BTreeSet<String>,
     /// Counter names proven to be used for NOTHING BUT indexing, which are `usize` in the target.
     ///
     /// A property of the enclosing LOOP that only the operands inside it can spend: the range
@@ -104,6 +111,7 @@ impl<'a> Body<'a> {
             usize_counters: BTreeSet::new(),
             walked: None,
             receiver_type: None,
+            newtype_parameters: BTreeSet::new(),
         }
     }
 
@@ -178,6 +186,7 @@ pub(crate) fn statements(
         // index through the same set a proven loop counter does — so one place decides, and the
         // signature and the body cannot disagree about whether a conversion is needed.
         .with_usize_parameters(crate::index_params::index_parameters(declaration, resolver))
+        .with_newtype_parameters(crate::index_params::newtype_parameters(declaration, resolver))
         .with_receiver_type(receiver_type),
         TailPosition::Yes,
     )?;

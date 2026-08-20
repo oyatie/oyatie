@@ -123,6 +123,8 @@ impl SignatureTable {
                 .iter()
                 .map(|declaration| declaration.name.clone())
                 .collect();
+            // A THROWAWAY log: this pass builds SIGNATURES to key the table by and reports nothing.
+            let drops = crate::dropped::DropLog::new();
             let resolver = Resolver {
                 scope: &scope,
                 type_map: semantics.type_map(),
@@ -154,6 +156,7 @@ impl SignatureTable {
                 length_functions: semantics.length_functions(),
                 undecided_forms: semantics.undecided_forms(),
                 ownership,
+                drops: &drops,
                 emitted: &declared,
                 units: &units,
                 unit: &unit,

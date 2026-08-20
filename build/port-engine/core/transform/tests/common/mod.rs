@@ -218,6 +218,7 @@ impl Pack {
             nullable_type_reason: String::new(),
             nullable_borrowed_type: String::new(),
             nullable_borrowed_type_reason: String::new(),
+            satisfaction_reason: String::new(),
             identity_test: String::new(),
             identity_test_reason: String::new(),
             inferred_construction: String::new(),

@@ -165,6 +165,10 @@ pub(crate) struct Site<'a> {
     pub(crate) scope: &'a LocalScope,
 }
 
+/// The kind a dropped method is reported under, and the kind the fixpoint reads back to tell a
+/// method's refusal apart from its type's. One spelling, so the two cannot disagree.
+pub(crate) const KIND_METHOD_ENTRY: &str = "method";
+
 pub(crate) fn survey_declaration<P>(
     site: &Site<'_>,
     declaration: &Declaration,
@@ -212,6 +216,8 @@ pub(crate) fn survey_declaration<P>(
         rules: pack.pointer_dispositions(),
         log: &log,
     };
+    // The REPORTING log: what lands here becomes a refusal entry against the method's own name.
+    let drops = crate::dropped::DropLog::new();
     let resolver = Resolver {
         scope: site.scope,
         type_map: pack.type_map(),
@@ -244,6 +250,7 @@ pub(crate) fn survey_declaration<P>(
         literal_constructors: pack.literal_constructors(),
         receiver: pack.trait_receiver(),
         ownership: &ownership,
+        drops: &drops,
         emitted: site.emitted,
         units: site.units,
         unit: site.unit,
@@ -265,6 +272,18 @@ pub(crate) fn survey_declaration<P>(
             report.translated.push(entry(None));
         }
         Err(error) => report.refused.push(entry(Some(crate::survey_cause::refusal_of(&error)))),
+    }
+    // A method dropped from a type that WAS emitted still refuses, under its own name. The type
+    // survives because its shape does not depend on any body; the method is reported because a
+    // reader looking at the emitted type has no other way to learn it is not there. Trading a loud
+    // cascade for a silent hole would be the worse failure of the two.
+    for dropped in drops.records() {
+        report.refused.push(SurveyEntry {
+            unit: site.unit.0.clone(),
+            name: format!("{}::{}", dropped.owner, dropped.name),
+            kind: KIND_METHOD_ENTRY.to_owned(),
+            reason: Some(dropped.reason),
+        });
     }
 }
 

@@ -160,6 +160,9 @@ pub fn apply_with_provenance(
             .filter(|(_, d)| captures.contains(&d.kind))
         {
             let region = region_id_for_declaration(&step.unit, &step.rule, &declaration.name);
+            // A THROWAWAY log: this path assembles a plan and reports nothing; a method dropped
+            // here is reported by the survey against the same declarations.
+            let drops = crate::dropped::DropLog::new();
             let built = build_item(
                 construction,
                 declaration,
@@ -195,6 +198,7 @@ pub fn apply_with_provenance(
                     literal_constructors: semantics.literal_constructors(),
                     receiver: semantics.trait_receiver(),
                     ownership: &ownership,
+                    drops: &drops,
                     emitted: &declared_names,
                     units: &model_units,
                     unit: &step.unit,
