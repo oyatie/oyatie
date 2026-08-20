@@ -166,6 +166,39 @@ fn live_authority(root: &Path) -> (Authority, BTreeMap<String, Vec<String>>) {
     )
 }
 
+/// Adjunct claims that overlap another rail's envelope, frozen shrink-only.
+///
+/// Every one of these gives `integ/specs` a path another rail already owns. Each
+/// side is individually admissible — the claimant by its claim, the owner by its
+/// envelope — so no per-PR check refuses either, and the conflict only surfaces
+/// as a deadlock when both try to land. The live example that motivated the
+/// check: root `Cargo.toml` is claimed by `integ/specs` while the
+/// `root_manifests` plane names `integ/build` its sole writer, so integ/build
+/// cannot perform a root-manifest edit while that claim stands.
+///
+/// These are pre-existing and are tolerated so the gate can land. Releasing a
+/// claim REMOVES its entry; nothing may be added. The count is pinned so a new
+/// overlap cannot be absorbed silently alongside a release.
+const BASELINED_CLAIM_OVERLAPS: [&str; 17] = [
+    ".claude/workflows/**",
+    "Cargo.toml",
+    ".grok/harness/model-routing.v1.json",
+    ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+    "ci/facade/action-item-accounting/friction-accounting-baseline.json",
+    "ci/facade/action-item-accounting/friction-accounting-policy.json",
+    "ci/facade/action-item-accounting/friction-ledger.jsonl",
+    "ci/facade/contract-slice-conformance/**",
+    "ci/facade/lifecycle-status/**",
+    "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
+    "docs/machine-readable/decisions.json",
+    "flags/release/runtime-safety-policy.json",
+    "governance/check/integ-envelope/OWNERS",
+    "governance/check/integ-envelope/judgments/**",
+    "governance/check/integ-envelope/waivers/**",
+    "libs/oya-governance-lifecycle-kernel/src/lib.rs",
+    "registry/vcs/concurrent-safe-paths.yaml",
+];
+
 #[test]
 fn the_live_envelope_authority_is_structurally_valid() {
     let root = repo_root();
@@ -184,7 +217,44 @@ fn the_live_envelope_authority_is_structurally_valid() {
         authority.hub_paths
     );
 
-    let findings = validate_authority(&authority, &missing);
+    let all = validate_authority(&authority, &missing);
+
+    // Split the frozen pre-existing overlaps from everything else. A NEW overlap,
+    // or any other structural defect, is born-blocking.
+    let frozen: BTreeSet<&str> = BASELINED_CLAIM_OVERLAPS.into_iter().collect();
+    let observed_overlaps: BTreeSet<String> = all
+        .iter()
+        .filter(|f| f.code == check_integ_envelope::CODE_FOREIGN_ENVELOPE)
+        .map(|f| f.subject.clone())
+        .collect();
+    let new_overlaps: Vec<&String> = observed_overlaps
+        .iter()
+        .filter(|s| !frozen.contains(s.as_str()))
+        .collect();
+    assert!(
+        new_overlaps.is_empty(),
+        "NEW adjunct-claim overlap(s), which create two writers for one path: {new_overlaps:?}"
+    );
+    let released: Vec<&&str> = frozen
+        .iter()
+        .filter(|s| !observed_overlaps.contains(**s))
+        .collect();
+    assert!(
+        released.is_empty(),
+        "these claim overlaps are gone — remove them from BASELINED_CLAIM_OVERLAPS and lower the \
+         count in the same change so the win is recorded: {released:?}"
+    );
+    assert_eq!(
+        observed_overlaps.len(),
+        BASELINED_CLAIM_OVERLAPS.len(),
+        "the reviewed overlap ceiling moved"
+    );
+
+    let findings: Vec<_> = all
+        .iter()
+        .filter(|f| f.code != check_integ_envelope::CODE_FOREIGN_ENVELOPE)
+        .cloned()
+        .collect();
     assert!(
         findings.is_empty(),
         "the live envelope authority must be structurally valid; got {} finding(s):\n{}",
