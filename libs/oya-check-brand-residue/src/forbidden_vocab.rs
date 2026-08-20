@@ -181,6 +181,12 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         reason: "the frozen uncovered-operation baseline ENUMERATES the OpenAPI operations still owing an ADR-0149 Idempotency-Key, keyed by their tracked document path; some of those paths carry a forbidden stem in their own filename. Same rationale as the sibling entry above.",
     },
     CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/cursor-pagination-coverage/cursor-pagination-coverage-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen missing-cursor baseline ENUMERATES the OpenAPI operations still owing ADR-0150 cursor pagination, keyed by their tracked document path; four of those tracked paths carry a forbidden stem in their own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by rewording the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs.",
+    },
+    CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "libs/oya-ci-config/",
         exempt_stems: &[],
