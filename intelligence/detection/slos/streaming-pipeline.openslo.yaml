@@ -1,0 +1,38 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: oya-detection-streaming-pipeline-availability
+  displayName: detection streaming-pipeline availability
+  labels:
+    microservice: detection
+    bounded_context: streaming-pipeline
+    owner_team: axis-detection
+    pack_scope: all
+spec:
+  service: detection
+  description: Streaming Pipeline SLO bound to ADR-0307 and ADR-0263.
+  indicator:
+    metadata:
+      name: detection-streaming-pipeline-success-ratio
+    spec:
+      ratioMetric:
+        counter: true
+        good:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: "sum(rate(oya_detection_streaming_pipeline_success_total[5m]))"
+        total:
+          metricSource:
+            type: Prometheus
+            spec:
+              query: "sum(rate(oya_detection_streaming_pipeline_requests_total[5m]))"
+  objectives:
+    -
+      target: 0.999
+      displayName: 30d rolling availability
+  timeWindow:
+    -
+      duration: 30d
+      isRolling: true
+  budgetingMethod: Occurrences

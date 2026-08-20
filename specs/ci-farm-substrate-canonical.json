@@ -1,0 +1,99 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_id": "EXE-CI-FARM-SUBSTRATE-CANONICAL",
+  "spec_kind": "substrate-canonical",
+  "authoring_adr": "ADR-0349",
+  "related_adrs": [
+    "ADR-0111 (merge queue projected state — serial admission of parallel lanes)",
+    "ADR-0181 (cosign-verified image promotion)",
+    "ADR-0196 (SeaweedFS canonical object storage — remote build cache backend)",
+    "ADR-0198 (Karpenter node autoscaling — elastic agent capacity)",
+    "ADR-0338 (pod runtime tiering — Kata/Cloud-Hypervisor for untrusted CI workloads)",
+    "ADR-0346 (oya verify mirrors full CI matrix — lane parity authority)",
+    "ADR-0348 (autosharding/auto-rebalance — lane sharding analogue)"
+  ],
+  "status": "Accepted-foundation",
+  "date": "2026-05-25",
+  "title": "Self-hostable distributed CI farm enabling N-way per-microservice lane parallelism",
+  "purpose": "Define the canonical distributed CI farm that lets every microservice (vertical lane) build and test in parallel on ephemeral Kubernetes agents, with a shared remote build cache so the 121 kernel + 30 shared-substrate crates compile once and are reused across all lane agents. This is the hyperscaler parallelism enabler: logical parallelism is ~one lane per microservice; physical parallelism scales with elastic agent capacity rather than a single host. Honest-foundation scope: IaC + JCasC + pipeline + cache contract only; no live controller, running agent pool, populated cache, or measured build-farm SLO is claimed.",
+  "controller": {
+    "engine": "cloud-ci",
+    "managed_by": "configuration-as-code; numExecutors=0 on controller",
+    "license_class": "Contributor (MIT)",
+    "forbidden_alternatives": [
+      "jenkins-x",
+      "tekton",
+      "spinnaker",
+      "circleci",
+      "travis",
+      "buildkite-saas"
+    ],
+    "github_actions_parity": "RETIRED per ADR-0361: GitHub Actions removed entirely; cloud-ci is the sole CI. No Actions<->cloud-ci parity is maintained (parity gate dropped). The oya verify CI-mirror (ADR-0346) remains the lane authority."
+  },
+  "ephemeral_agents": {
+    "provider": "cloud-ci kubernetes plugin clouds",
+    "namespace": "oya-ci",
+    "container_cap": 20,
+    "runtime_class": "kata-cloud-hypervisor",
+    "pod_runtime_tier": "1 (tenant-untrusted CI workload per ADR-0338)",
+    "security": "allowPrivilegeEscalation=false; capabilities drop ALL; cosign.sigstore.dev/required=true on agent image",
+    "elastic_capacity": "Karpenter node autoscaling (ADR-0198) provisions/deprovisions nodes to match concurrent lane demand; cap is a safety ceiling, not a fixed pool.",
+    "agent_image": "registry.oyatie.dev/ci/rust:stable (cosign-required, digest-pinned)"
+  },
+  "remote_build_cache": {
+    "rationale": "Bazel-RBE-style shared cache is the primary lever for true N-way parallelism: without it each ephemeral agent recompiles the shared substrate (121 *-kernel + 30 oya-shared-* crates + dependency graph) cold. With it, shared-substrate objects are compiled once and reused across all lanes, so per-lane wall-clock is dominated by the lane's own crates.",
+    "compiler_cache": "sccache",
+    "backend": "SeaweedFS S3 API (ADR-0196 canonical object storage; Apache-2.0; self-hostable, license-clean — no external cache dependency)",
+    "bucket": "oya-ci-sccache-shared-prod",
+    "agent_env": {
+      "RUSTC_WRAPPER": "sccache",
+      "SCCACHE_BUCKET": "oya-ci-sccache-shared-prod",
+      "SCCACHE_ENDPOINT": "seaweedfs-s3.oya-ci-jenkins.svc.cluster.local:8333",
+      "SCCACHE_S3_USE_SSL": "false",
+      "SCCACHE_REGION": "oya-local",
+      "SCCACHE_S3_KEY_PREFIX": "rustc/${rust_toolchain_version}",
+      "CARGO_INCREMENTAL": "0"
+    },
+    "credentials": "S3 access/secret bound from OpenBao via the cloud-ci credentials plugin; never inlined in controller config or pipeline definitions.",
+    "cache_key_discipline": "Keyed by rustc version + crate inputs (sccache default) and namespaced by toolchain prefix; cross-lane sharing is safe because cache entries are content-addressed.",
+    "isolation": "Read-write for trunk/dev lanes; pull-request lanes use a read-through view to prevent untrusted PR code poisoning shared entries (write to a PR-scoped prefix, promote on merge)."
+  },
+  "lane_fanout": {
+    "logical_lane_model": "One lane per microservice vertical (microservices/<ms>/ci/pipeline.yaml). The flat-microservice-catalog + workflow-ontology-adapter-layer architecture invariants guarantee lanes are decoupled (no direct cross-service calls), so lanes run concurrently.",
+    "lane_inventory_reference": ".omx/plans/parallel-lane-scoping.md",
+    "concurrency_governor": "Concurrent lanes are bounded by Karpenter capacity + container_cap, not by a single host; a single dev host realistically sustains ~5-6 heavy lanes, the farm sustains many more.",
+    "per_lane_stages": [
+      "checkout",
+      "install rust ci tooling",
+      "cargo fmt --check",
+      "cargo check",
+      "cargo clippy -D warnings",
+      "cargo nextest run (profile ci)",
+      "scoped oya gate validate",
+      "cosign-verified image build (ADR-0181)"
+    ],
+    "shared_library": "oya-ci-shared global library carries the cache-wiring and gate-invocation steps so lanes inherit them rather than duplicating."
+  },
+  "merge_queue_integration": {
+    "admission": "Parallel lane branches fan in through the ADR-0111 merge-queue projected state; the merge queue serializes admission so concurrent lanes never corrupt trunk.",
+    "fan_in_verify": "A single serial ./bin/oya verify --ci-required runs the whole-workspace mirror at fan-in; cross-cutting failures route back to the owning lane.",
+    "deploy_audit": "ArgoCD-driven deploy emits audit-chain rows (ADR-0349 E.5 / ADR-0263)."
+  },
+  "ci_lane": {
+    "parity_gate": "RETIRED (ADR-0361): no Actions<->cloud-ci parity; cloud-ci is the sole CI",
+    "cache_discipline_gate": "oya-governance-ci-farm-remote-cache (planned: asserts every microservices/<ms>/ci/pipeline.yaml and the cloud-ci agent templates declare the sccache->SeaweedFS env and do not inline credentials)",
+    "verify_mirror": "ADR-0346 oya verify --ci-required"
+  },
+  "deployment": {
+    "scope": "This IS the CI, deployed now on a single local node (colima/k3s). One CI, run locally for now — not a throwaway PoC, and not a separate 'local CI' distinct from production. The only gap to full production posture is SCALE/HA, not a different system.",
+    "iac": "infra/ci/ (controller+config+seeds+shared-library, seaweedfs/ S3 cache backend, argocd/ CD + Rollouts, agent-image/ signed image, cache/ warm-cache; deploy-local.sh; README single-node-now vs at-scale deltas)",
+    "evidence": "evidence/ci/ — smoke build SUCCESS on ephemeral agent; real build lane (sccache populate -> 100% cross-agent HIT from SeaweedFS); codegen cold/warm measured; Argo Rollouts canary->analysis->promote; ArgoCD GitOps self-heal; SLSA/cosign/SBOM chain proven (syft SBOM + trivy scan + cosign sign + SLSA provenance + CycloneDX SBOM attestations; cosign verify-attestation PASSED).",
+    "realized": "cloud-ci controller (config-as-code, numExecutors=0, webSocket agents, non-root UID1000+drop-ALL), ephemeral k8s agents, real repo build lane, sccache->SeaweedFS remote cache (write+hit proven), ArgoCD + Argo Rollouts, cosign-verified SLSA provenance + CycloneDX SBOM.",
+    "scale_deltas": "Multi-node Karpenter elasticity (ADR-0198), Kata isolation (ADR-0338), SeaweedFS HA, OpenBao-bound prod creds, and a slim/distroless agent base (trivy found 250 HIGH/CRITICAL in the stock rust base) are the remaining SCALE + hardening deltas. The pipeline + supply-chain stages are identical at scale."
+  },
+  "non_claims": [
+    "No PRODUCTION-SCALE multi-node agent pool or HA is claimed; the CI runs on a single local node now. The CI itself is real and running — scale is the gap, not the system.",
+    "No measured FARM-WIDE throughput or CI SLO at scale is claimed; single-crate + local cache/build/codegen figures are measured, farm-wide-at-scale is pending.",
+    "Concurrency figures beyond the measured local runs are design guidance, bounded by real provisioned capacity."
+  ]
+}

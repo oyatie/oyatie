@@ -1,0 +1,103 @@
+{
+  "_schema_ref": "/specs/active-machine-readable-artifact-contract.json#v3.0.0",
+  "_artifact_id": "markdown-retirement-ledger",
+  "_meta": {
+    "doc_class": "Ledger",
+    "purpose": "Append-only timeline of every Markdown-retirement event. Each row records source_md_path → target_json_path migration + status + date + commit SHA + retirement_phase + replacement_notes. Per user directive 'get rid of markdowns we don't need + consolidate where appropriate'. Conforms to plan-schema.json:ledger profile.",
+    "owner_team": "council-architecture + axis-foundry",
+    "version": "1.1.0",
+    "created_at": "2026-05-13T00:00:00Z",
+    "policy_ref": "/specs/markdown-retirement-policy.json",
+    "reconciled_at": "2026-07-13T00:00:00Z",
+    "execution_authority": "/specs/masterplan.json#masterplan_v2.work_items[id=MPV2-0003]"
+  },
+  "rows": [
+    {
+      "ledger_id": "LDG-MDR-001",
+      "source_md_path": ".omc/plans/ralplan-ops-wave-6-2026-05-13.md",
+      "target_json_path": ".omc/plans/ralplan-ops-wave-6-2026-05-13.json",
+      "status": "migrated-and-deleted",
+      "migration_date": "2026-05-13",
+      "retirement_phase": "PHASE-1-PATTERN-PROVE",
+      "commit_sha": "pending-this-commit",
+      "replacement_notes": "Pattern-prove conversion. Wave 6 v1.0.0 was draft (not Accepted); replaced wholesale with JSON instance of plan-schema.json. Body content semantically preserved across 14 sections.",
+      "consolidation_action": "none"
+    },
+    {
+      "ledger_id": "LDG-MDR-002",
+      "source_md_path": ".omc/plans/ralplan-ops-wave-7-2026-05-13.md",
+      "target_json_path": ".omc/plans/ralplan-ops-wave-7-2026-05-13.json (to be authored next slice)",
+      "status": "deleted-pending-reauthor",
+      "migration_date": "2026-05-13",
+      "retirement_phase": "PHASE-1-PATTERN-PROVE",
+      "commit_sha": "pending-this-commit",
+      "replacement_notes": "Wave 7 v1.0.0 was draft (not Accepted); .md deleted; .json instance follows the same pattern as Wave 6 in a next slice. Defer-with-anchor (not silent loss): plan content captured in source_md_archived_at git history.",
+      "consolidation_action": "none"
+    },
+    {
+      "ledger_id": "LDG-MDR-003",
+      "source_md_path": "docs/CONSTITUTION.md",
+      "target_json_path": "RETIRED-WITHOUT-MIGRATION",
+      "status": "scheduled-for-retirement",
+      "migration_date": "pending PHASE-5",
+      "retirement_phase": "PHASE-5 (per markdown-retirement-policy.json updated row)",
+      "commit_sha": "pending-this-commit (retirement scheduled; deletion follows after content redistribution lands)",
+      "replacement_notes": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution-as-a-concept retired. Content redistributes: (a) mission → masterplan.json §1; (b) decision principles → agent-operating-contract.json `principles` section; (c) prohibitions → new `/specs/forbidden-operations.json` (extends master-plan-sequencing.json forbidden_primitives); (d) decision rights → docs/RACI-OWNERSHIP.md (existing). Existing inbound citations from CI check crates + ADRs + plans must redirect after content redistributes; tracked in PHASE-8 check-crate rewrites.",
+      "consolidation_action": "content-redistributed-across-4-sinks; constitution concept retired"
+    },
+    {
+      "ledger_id": "LDG-MDR-004",
+      "source_md_path": "HANDOFF.md",
+      "target_json_path": "specs/root-hub-pointers.json + specs/masterplan.json#masterplan_v2",
+      "status": "retained-thin-redirect",
+      "migration_date": "2026-07-13",
+      "retirement_phase": "POLICY-LIVE-REBASELINE-EXECUTION-OPEN",
+      "commit_sha": "e4527935562b669c221cc548536886e4ba37cd4c",
+      "replacement_notes": "Removed stale embedded plan/status/baseline content. HANDOFF.md now routes fresh sessions to the root hub, live operating contract, masterplan_v2, ADR lifecycle, and live Git/GitHub evidence; historical prose remains in Git history.",
+      "consolidation_action": "authority-content-migrated; root Markdown retained only as a non-authoritative thin redirect"
+    }
+  ],
+  "planned_backlog_rows": [
+    {
+      "source_md_path": ".omc/plans/ralplan-ops-wave-7-2026-05-13.json [next slice]",
+      "scope": "Wave 7 v1.0.0 re-author as JSON instance"
+    },
+    {
+      "source_md_path": ".omc/plans/ralplan-ops-wave-5-2026-05-13.md",
+      "scope": "Wave 5 v18 ACCEPTED — convert to JSON; large + load-bearing; multi-day surgery"
+    },
+    {
+      "source_md_path": ".omc/plans/ralplan-ops-wave-{2,3,4}-2026-05-13.md",
+      "scope": "Waves 2/3/4 — convert each to JSON"
+    },
+    {
+      "source_md_path": ".omc/plans/ralplan-ops-portal-2026-05-13.md",
+      "scope": "Parent v7 — convert to JSON"
+    },
+    {
+      "source_md_path": ".omc/plans/ralplan-docs-portal-2026-05-13.md",
+      "scope": "Wave 1 — convert to JSON"
+    },
+    {
+      "source_md_path": "docs/decisions/ADR-*.md (historical estimate was 88; 2026-07-13 census is 428)",
+      "scope": "Historical PHASE-4 sketch only; live sequencing belongs to MPV2-0003 and requires an atomic lifecycle-preserving cutover"
+    },
+    {
+      "source_md_path": "docs/{CONSTITUTION,AGENTS,DOC-CATALOG,MASTERPLAN}.md",
+      "scope": "PHASE-5 core docs migration"
+    },
+    {
+      "source_md_path": "docs/microservices/*.md + docs/bounded-contexts/*.md + docs/standards/*.md + docs/runbooks/*.md + docs/prds/*.md",
+      "scope": "PHASE-6 consolidate per-category registries"
+    },
+    {
+      "source_md_path": "docs/templates/*.md + docs/checklists/*.md",
+      "scope": "PHASE-7 templates+checklists"
+    },
+    {
+      "source_md_path": "/specs/*.md + /evidence/goals/*.md + /templates/checklists/*.md",
+      "scope": "PHASE-7 + 4-ROOT-HUB-CANONICAL"
+    }
+  ],
+  "planned_backlog_rows_status": "historical 2026-05-13 snapshot only; non-authoritative and superseded for sequencing by masterplan_v2 MPV2-0003"
+}

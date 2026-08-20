@@ -1,0 +1,220 @@
+rust_library(
+    name = "intelligence-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:tokio",
+        "third-party//:serde",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-tests",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:tokio",
+        "third-party//:serde",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "cost-pricebook-test",
+    srcs = glob(["tests/cost_pricebook.rs"]),
+    crate = "intelligence_kernel_cost_pricebook_test",
+    crate_root = "tests/cost_pricebook.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "xproxy-capability-parity-test",
+    srcs = glob(["tests/xproxy_capability_parity.rs"]),
+    crate = "intelligence_kernel_xproxy_capability_parity_test",
+    crate_root = "tests/xproxy_capability_parity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "xproxy-model-routing-matrix-test",
+    srcs = glob(["tests/xproxy_model_routing_matrix.rs"]),
+    crate = "intelligence_kernel_xproxy_model_routing_matrix_test",
+    crate_root = "tests/xproxy_model_routing_matrix.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "xproxy-pool-headroom-stickiness-test",
+    srcs = glob(["tests/xproxy_pool_headroom_stickiness.rs"]),
+    crate = "intelligence_kernel_xproxy_pool_headroom_stickiness_test",
+    crate_root = "tests/xproxy_pool_headroom_stickiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+
+rust_test(
+    name = "cloud-intelligence-safety-guardrails-test",
+    srcs = glob(["tests/cloud_intelligence_safety_guardrails.rs"]),
+    crate = "intelligence_kernel_cloud_intelligence_safety_guardrails_test",
+    crate_root = "tests/cloud_intelligence_safety_guardrails.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-proptest-invariants-test",
+    srcs = glob(["tests/proptest_kernel_invariants.rs"]),
+    crate = "intelligence_kernel_proptest_kernel_invariants_test",
+    crate_root = "tests/proptest_kernel_invariants.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:proptest",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-proptest-overage-guard-test",
+    srcs = glob(["tests/proptest_overage_guard.rs"]),
+    crate = "intelligence_kernel_proptest_overage_guard_test",
+    crate_root = "tests/proptest_overage_guard.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:proptest",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-loom-seat-lease-atomicity-test",
+    srcs = glob(["tests/loom_seat_lease_atomicity.rs"]),
+    crate = "intelligence_kernel_loom_seat_lease_atomicity_test",
+    crate_root = "tests/loom_seat_lease_atomicity.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-chaos-lite-lease-storm-test",
+    srcs = glob(["tests/chaos_lite_lease_storm.rs"]),
+    crate = "intelligence_kernel_chaos_lite_lease_storm_test",
+    crate_root = "tests/chaos_lite_lease_storm.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-concurrency-no-double-allocation-test",
+    srcs = glob(["tests/concurrency_no_double_allocation.rs"]),
+    crate = "intelligence_kernel_concurrency_no_double_allocation_test",
+    crate_root = "tests/concurrency_no_double_allocation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-d1-selection-test",
+    srcs = glob(["tests/d1_selection.rs"]),
+    crate = "intelligence_kernel_d1_selection_test",
+    crate_root = "tests/d1_selection.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-d6-event-shape-test",
+    srcs = glob(["tests/d6_event_shape.rs"]),
+    crate = "intelligence_kernel_d6_event_shape_test",
+    crate_root = "tests/d6_event_shape.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-d7-cross-tenant-forbid-test",
+    srcs = glob(["tests/d7_cross_tenant_forbid.rs"]),
+    crate = "intelligence_kernel_d7_cross_tenant_forbid_test",
+    crate_root = "tests/d7_cross_tenant_forbid.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-debug-redaction-test",
+    srcs = glob(["tests/debug_redaction.rs"]),
+    crate = "intelligence_kernel_debug_redaction_test",
+    crate_root = "tests/debug_redaction.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-refresh-failed-outcome-test",
+    srcs = glob(["tests/refresh_failed_outcome.rs"]),
+    crate = "intelligence_kernel_refresh_failed_outcome_test",
+    crate_root = "tests/refresh_failed_outcome.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-session-pinning-test",
+    srcs = glob(["tests/session_pinning.rs"]),
+    crate = "intelligence_kernel_session_pinning_test",
+    crate_root = "tests/session_pinning.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-kernel-proptest-session-pinning-test",
+    srcs = glob(["tests/proptest_session_pinning.rs"]),
+    crate = "intelligence_kernel_proptest_session_pinning_test",
+    crate_root = "tests/proptest_session_pinning.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-kernel",
+        "third-party//:proptest",
+    ],
+)

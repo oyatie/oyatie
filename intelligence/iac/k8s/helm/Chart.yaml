@@ -1,0 +1,12 @@
+apiVersion: v2
+name: cloud-intelligence
+description: Oyatie cloud-intelligence gateway — OAuth subscription-pool reverse proxy (ADR-0384 Path B).
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+annotations:
+  oyatie.com/adr-0181: signed-image-promotion-required
+  oyatie.com/adr-0254: kubernetes-everywhere
+  oyatie.com/adr-0349: argocd-application-source
+  oyatie.com/adr-0384: cloud-intelligence-path-b
+  oyatie.com/license-class: internal

@@ -1,0 +1,57 @@
+rust_library(
+    name = "ci-crate-name-prefix",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_crate_name_prefix",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/cargo-prefix-domain:intelligence-cargo-prefix-domain",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-crate-name-prefix-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_crate_name_prefix",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/cargo-prefix-domain:intelligence-cargo-prefix-domain",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+# ADR-0017 :cargo-prefix — the born-blocking self-test over the live corpus. Reads the
+# materialized scm-facts snapshot from the source tree, then runs the producer `--face cargo-prefix`
+# to resolve the live workspace members + package names and asserts the gate's verdict matches the
+# live corpus. Direct Cargo tests use the same Rust SCM emitter + canonical workspace resolver in
+# isolated RAII temporary storage when that declared face is genuinely absent; Buck's explicit
+# producer and declared input still win unchanged. Named -gate to avoid an in-package buck2
+# collision with the rust_library above; the package identity carries the :cargo-prefix gate.
+rust_test(
+    name = "ci-crate-name-prefix-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_crate_name_prefix_corpus",
+    crate_root = "tests/cargo_prefix.rs",
+    # HERMETIC: Buck execs its declared pure producer over its materialized SCM face. The linked
+    # emitter is reachable only behind the exact Cargo-only adapter capability signal; Buck does
+    # not bind that signal, so an absent/malformed/non-regular declared input remains RED.
+    env = {
+        "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-crate-name-prefix",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
+        "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-lib",
+        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:toml",
+    ],
+)

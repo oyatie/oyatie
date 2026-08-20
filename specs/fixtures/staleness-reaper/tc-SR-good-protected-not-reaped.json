@@ -1,0 +1,15 @@
+{
+  "fixture_id": "TC-SR-GOOD-protected-not-reaped",
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "description": "A protected class (ttl.protected:true) is never reaped regardless of age or reachability: a spec aged 9999 days against a 30-day budget with empty reachability still passes because the protected flag exempts it. Protection lives as DATA in ttl-policy, not as an evaluator special-case.",
+  "rows": [
+    {
+      "path": "specs/masterplan.json",
+      "age_days": 9999,
+      "reachable_from": [],
+      "ttl": {"ttl_class": "spec", "budget_days": 30, "protected": true, "action": "report"}
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-staleness-reaper-app/tests/staleness_reaper.rs"
+}

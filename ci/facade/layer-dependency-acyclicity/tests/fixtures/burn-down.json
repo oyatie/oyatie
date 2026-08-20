@@ -1,0 +1,16 @@
+{
+  "_comment": "BURN-DOWN fixture (Phase-0 reorg gate): a SYNTHETIC observed corpus where a previously-baselined inverting edge HAS BEEN REMOVED (the strangler fixed it). Paired with a baseline that still lists that edge, the gate MUST stay GREEN (improving is always allowed) and report the entry as burned down. DATA, not code. Shape == collect_corpus output.",
+  "crate_count": 2,
+  "edge_count": 0,
+  "crates": [
+    { "dir": "cloud/synth-substrate/crates/oya-synth-substrate-app", "service": "cloud/synth-substrate" },
+    { "dir": "oya/synth-product/crates/oya-synth-product-app", "service": "oya/synth-product" }
+  ],
+  "service_tiers": {
+    "cloud/synth-substrate": { "tier": "substrate", "stratum": "S0" },
+    "oya/synth-product": { "tier": "product" }
+  },
+  "edges": [],
+  "registry_capabilities": [],
+  "registry_meta_dirs": ["os"]
+}

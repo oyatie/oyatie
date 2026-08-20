@@ -1,0 +1,270 @@
+{
+  "$schema": "https://docs.oyatie.com/specs/compliance-pack-schema.schema.json",
+  "_meta": {
+    "doc_class": "Machine-Readable-Fixture",
+    "fixture_id": "COMPLIANCE-001-SOC2-CMP-PORTABILITY",
+    "status": "contract-fixture-only",
+    "kanban_task": "t_b70d22bd",
+    "source_adrs": [
+      "ADR-0209",
+      "ADR-0241",
+      "ADR-0250",
+      "ADR-0251",
+      "ADR-0272",
+      "ADR-0276"
+    ],
+    "claim_boundary": "Non-production contract fixture only. This does not assert SOC 2 certification, runtime evidence collection, CMP deployment, portability service readiness, tenant activation, auditor acceptance, or production readiness."
+  },
+  "pack_id": "SOC2-T2",
+  "version": "1.1.0",
+  "standard_version": "AICPA-TSC-2017-plus-2022-updates",
+  "source_revision": {
+    "source_refs": [
+      "ADR-0209-SOC2-CONTINUOUS-EVIDENCE",
+      "ADR-0241-DR-BC-PORTFOLIO",
+      "ADR-0251-COMPLIANCE-PACK-PRIMITIVE",
+      "ADR-0272-CMP-FIVE-PURPOSES",
+      "ADR-0276-PORTABILITY-FORMAT"
+    ],
+    "retrieval_status": "internal-adr-contract-fixture",
+    "sha256": null,
+    "claim_ceiling": "Source/contract fixture only; no SOC 2 Trust Services Criteria control completeness, Type II audit readiness, auditor acceptance, runtime evidence, or customer trust-center publishing claim."
+  },
+  "signed_by": "compliance-office:soc2-t2:v1",
+  "signature": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+  "signature_contract": {
+    "canonicalization": "canonical-cbor-excluding-signature",
+    "signature_algorithm": "Ed25519",
+    "signature_scope": "bundle-without-signature-field",
+    "verification_inputs": {
+      "public_key_ref": "rekor://oyatie-compliance-office/soc2-t2/v1@1111111111111111111111111111111111111111111111111111111111111111",
+      "canonical_bundle_digest_sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+      "signing_principal": "ops-compliance.pack-author",
+      "signed_at": "2026-07-09T00:00:00Z"
+    },
+    "claim_boundary": "Signature metadata records the verification shape only; placeholder digests/signatures in this fixture are not production attestations."
+  },
+  "cedar_fragments": [
+    {
+      "fragment_id": "pack-soc2-t2-auditor-evidence-scope",
+      "version": "1.1.0",
+      "cosign_attestation_ref": "rekor://soc2-auditor-evidence-scope-v11@3333333333333333333333333333333333333333333333333333333333333333",
+      "applies_to_microservices": [
+        "audit-chain",
+        "governance",
+        "tenancy"
+      ]
+    }
+  ],
+  "audit_chain_requirements": {
+    "retention_min": "P3Y",
+    "breach_notification_workflow_id": "wf-breach-notification-soc2",
+    "tamper_detection_frequency": "PT15M",
+    "encryption_required": {
+      "at_rest": true,
+      "in_transit": true,
+      "in_use": false
+    }
+  },
+  "evidence_collectors": [
+    {
+      "collector_id": "ci-artifact-hash",
+      "framework": "SOC2-T2",
+      "source_system": "cloud-ci",
+      "cadence": "per-build",
+      "artifact_kind": "ci_artifact_hash",
+      "seal_required": true,
+      "auditor_publishability": "external-auditor-room",
+      "claim_boundary": "Collector contract only; no runtime CI evidence collector is implemented by this fixture."
+    },
+    {
+      "collector_id": "deploy-receipt",
+      "framework": "SOC2-T2",
+      "source_system": "deploy-ledger",
+      "cadence": "per-deploy",
+      "artifact_kind": "deploy_receipt",
+      "seal_required": true,
+      "auditor_publishability": "external-auditor-room",
+      "claim_boundary": "Collector contract only; no production deploy receipt is emitted by this fixture."
+    },
+    {
+      "collector_id": "access-review-snapshot",
+      "framework": "SOC2-T2",
+      "source_system": "cedar-policy-and-zitadel-role-bindings",
+      "cadence": "weekly",
+      "artifact_kind": "access_review_snapshot",
+      "seal_required": true,
+      "auditor_publishability": "external-auditor-room",
+      "claim_boundary": "Collector contract only; no real access-review snapshot is attached."
+    },
+    {
+      "collector_id": "backup-restore-drill-receipt",
+      "framework": "SOC2-T2",
+      "source_system": "dr-drill-runner",
+      "cadence": "quarterly",
+      "artifact_kind": "backup_restore_drill_receipt",
+      "seal_required": true,
+      "auditor_publishability": "external-auditor-room",
+      "claim_boundary": "Collector contract only; no DR drill pass is claimed."
+    },
+    {
+      "collector_id": "vulnerability-scan-report",
+      "framework": "SOC2-T2",
+      "source_system": "image-vulnerability-scanner",
+      "cadence": "per-image",
+      "artifact_kind": "vulnerability_scan_report",
+      "seal_required": true,
+      "auditor_publishability": "tenant-admin-visible",
+      "claim_boundary": "Collector contract only; no scan result or zero-vulnerability claim is attached."
+    },
+    {
+      "collector_id": "pen-test-report",
+      "framework": "SOC2-T2",
+      "source_system": "external-assessor-upload",
+      "cadence": "annual",
+      "artifact_kind": "pen_test_report",
+      "seal_required": true,
+      "auditor_publishability": "external-auditor-room",
+      "claim_boundary": "Collector contract only; no external pen-test engagement or report is attached."
+    }
+  ],
+  "data_class_extensions": [
+    "CONTROL_EVIDENCE",
+    "ACCESS_REVIEW_EVIDENCE",
+    "DRILL_RECEIPT_EVIDENCE"
+  ],
+  "cell_eligibility": {
+    "requires_certification": [
+      "SOC2-T2-evidence-collecting"
+    ],
+    "forbidden_cells": [
+      "data-plane-unclassified-*"
+    ]
+  },
+  "cell_certification_state": {
+    "state": "evidence_collecting",
+    "certification_level_ref": "SOC2-T2-evidence-collecting",
+    "evidence_required": [
+      {
+        "evidence_kind": "ci_artifact_hash",
+        "required_before_state": "evidence_collecting",
+        "freshness": "per-build"
+      },
+      {
+        "evidence_kind": "deploy_receipt",
+        "required_before_state": "evidence_collecting",
+        "freshness": "per-deploy"
+      },
+      {
+        "evidence_kind": "access_review_snapshot",
+        "required_before_state": "assessor_review",
+        "freshness": "P7D"
+      },
+      {
+        "evidence_kind": "backup_restore_drill_receipt",
+        "required_before_state": "assessor_review",
+        "freshness": "P3M"
+      },
+      {
+        "evidence_kind": "vulnerability_scan_report",
+        "required_before_state": "assessor_review",
+        "freshness": "per-image"
+      },
+      {
+        "evidence_kind": "pen_test_report",
+        "required_before_state": "certified",
+        "freshness": "external-assessor-window"
+      }
+    ],
+    "launch_gate_policy": "deny-unless-evidence-collecting-sandbox-only",
+    "claim_boundary": "The fixture remains evidence_collecting and sandbox-only; it does not satisfy a certified launch gate."
+  },
+  "retention_rules": [
+    {
+      "data_class": "CONTROL_EVIDENCE",
+      "min_duration_iso8601": "P3Y",
+      "max_duration_iso8601": null,
+      "regulator_filing_required": true,
+      "rationale": "SOC 2 Type II evidence packages require retained control-operation evidence for auditor inspection across the review window."
+    }
+  ],
+  "consent_requirements": {
+    "explicit": true,
+    "granular": true,
+    "revocable": true,
+    "purpose_consent_types": [
+      "service-provision",
+      "marketing",
+      "analytics",
+      "profiling",
+      "automated-decision-making",
+      "international-transfer"
+    ],
+    "minimum_age_years": null
+  },
+  "cmp_consent": {
+    "canonical_purposes": [
+      "necessary",
+      "preference",
+      "statistics",
+      "marketing",
+      "personalization"
+    ],
+    "strictly_necessary_purpose": "necessary",
+    "non_necessary_default": false,
+    "no_accept_all_default": true,
+    "audit_event_class": "ConsentRecordChanged",
+    "storage_contract": {
+      "record_schema": "consent-record/v1",
+      "signature_required": true,
+      "prior_record_ref_required": true,
+      "revocation_one_click": true
+    },
+    "claim_boundary": "CMP consent metadata fixes the five-purpose contract only; this fixture does not ship a cookie banner, ledger, GPC handler, or web/mobile enforcement."
+  },
+  "cross_tenant_rules": {
+    "requires_BAA": false,
+    "requires_DPA": true,
+    "requires_NDA": true,
+    "per_action_class_restrictions": {
+      "auditor-room-cross-tenant": {
+        "permitted": false,
+        "requires_additional_attestation": true,
+        "rationale": "Auditor-room evidence remains tenant-scoped and cannot expose another tenant's control evidence."
+      }
+    }
+  },
+  "jurisdiction_overlay": [
+    "*"
+  ],
+  "dpia_template_id": "dpia-soc2-t2",
+  "breach_notification_workflow_id": "wf-breach-notification-soc2",
+  "portability_export": {
+    "format": "JSON-LD-1.1-tar-gzip",
+    "bundle_media_type": "application/gzip+tar",
+    "manifest_schema_ref": "https://contracts.oyatie.dev/portability/v1/manifest.schema.json",
+    "supported_modes": [
+      "full",
+      "incremental"
+    ],
+    "signature_contract": {
+      "tenant_signature_required": true,
+      "oyatie_signature_required": true,
+      "transparency_log_ref_required": true
+    },
+    "fixture_ref": "specs/fixtures/compliance-pack/compliance-001-portability-export-manifest.fixture.json",
+    "claim_boundary": "Portability export metadata and fixture demonstrate the file shape only; no DSR API, export job, import roundtrip, bundle storage, or production data-subject SLA is claimed."
+  },
+  "regulator_references": [
+    "AICPA SOC 2 Trust Services Criteria — Common Criteria and Availability category",
+    "SOC 2 Common Criteria CC6/CC7 access, change, and vulnerability evidence families",
+    "SOC 2 Common Criteria CC9.2 vendor and business-continuity evidence mapping",
+    "GDPR Article 20 portability format planning reference via ADR-0276",
+    "GDPR Article 7 consent evidence planning reference via ADR-0272"
+  ],
+  "effective_at": "2026-07-09T00:00:00Z",
+  "sunset_at": null,
+  "created_by": "ops-compliance.pack-author",
+  "created_at": "2026-07-09T00:00:00Z",
+  "supersedes": []
+}

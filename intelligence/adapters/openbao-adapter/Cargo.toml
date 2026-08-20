@@ -1,0 +1,45 @@
+[package]
+name = "intelligence-openbao-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Real OpenBao Transit envelope-encryption adapter for the cloud-intelligence OAuth
+# subscription pool (ADR-0384 Path B, Stage-7 D8 production seam).
+#
+# Implements `OpenBaoSecretStore` from `intelligence-rest` via
+# direct HTTP to OpenBao's `/v1/transit/encrypt|decrypt/<key_name>` endpoints.
+# Refresh tokens are stored envelope-encrypted under `/v1/secret/data/<key>/<handle>`.
+#
+# ADR citations: ADR-0083 (Tier-3 panic-free), ADR-0105, ADR-0131, ADR-0181,
+#                ADR-0183, ADR-0384.
+
+[lib]
+name = "intelligence_openbao_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-kernel = { path = "../../core/kernel" }
+intelligence-rest = { path = "../rest" }
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+bytes.workspace = true
+base64 = "0.22"
+reqwest = { version = "0.13", default-features = false, features = ["json", "rustls"] }
+tokio = { workspace = true, features = ["sync"] }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
+futures = "0.3"
+# default-features=false drops the optional `cookies` feature (basic-cookies /
+# lalrpop codegen, no buck2 fixup). Tests use only the generic header/path/body
+# matchers, never httpmock's cookie matcher.
+httpmock = { version = "0.7", default-features = false }
+serde_json.workspace = true
+
+[lints]
+workspace = true

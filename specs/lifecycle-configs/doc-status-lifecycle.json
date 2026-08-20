@@ -1,0 +1,76 @@
+{
+  "name": "doc-status",
+  "version": 1,
+  "stages": [
+    {
+      "id": "drafted",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "published",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "stale",
+      "terminal": false,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "archived",
+      "terminal": true,
+      "requires_supersession_edge": false
+    },
+    {
+      "id": "superseded",
+      "terminal": true,
+      "requires_supersession_edge": true
+    }
+  ],
+  "transitions": [
+    {
+      "from": "drafted",
+      "to": "published"
+    },
+    {
+      "from": "published",
+      "to": "stale"
+    },
+    {
+      "from": "published",
+      "to": "archived"
+    },
+    {
+      "from": "published",
+      "to": "superseded"
+    },
+    {
+      "from": "stale",
+      "to": "published"
+    },
+    {
+      "from": "stale",
+      "to": "archived"
+    },
+    {
+      "from": "stale",
+      "to": "superseded"
+    }
+  ],
+  "sources": [
+    {
+      "kind": "yaml_front_matter",
+      "glob": "docs/**/*.md",
+      "stage_field": "doc_status",
+      "supersession_field": "superseded_by",
+      "deadline_field": null,
+      "milestone_field": null
+    }
+  ],
+  "defaults": {
+    "wave": "C",
+    "case_insensitive_stage_match": true
+  },
+  "purpose": "Lifecycle state machine for documentation publication, staleness, supersession, and archival."
+}

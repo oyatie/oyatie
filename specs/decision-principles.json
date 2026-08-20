@@ -1,0 +1,161 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/decision-principles.json",
+  "title": "DecisionPrinciples",
+  "description": "Machine-readable do-list: the 10 normative rules every contributor and every agent follows. Migrated from docs/CONSTITUTION.md §Decision principles — Do during the 2026-05-15 CONSTITUTION strike per root-hub-pointers.json _retired_constitutional_authority migration map.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-DECISION-PRINCIPLES",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-15T00:00:00Z",
+    "supersedes": "docs/CONSTITUTION.md#decision-principles-do",
+    "primary_consumer": "agentic_flow",
+    "applies_to": "every contributor + every agent",
+    "purpose": "Canonical do-list for contributor and agent behavior. Each principle binds; failures to apply produce mechanical or cultural prevention rows in docs/MISTAKES-LEDGER.md."
+  },
+  "principles": [
+    {
+      "id": "DP-01-cohesion-over-portfolio",
+      "title": "Cohesion over portfolio",
+      "statement": "Every architectural decision is judged by whether it preserves the single tenancy / identity / audit-chain / agent-runtime promise. Split-brain decisions that gain local convenience are rejected.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "mechanical",
+        "enforced_by": [
+          "check-cohesion"
+        ],
+        "planned_enforcement_refs": [
+          "oya-governance-cohesion-kernel"
+        ],
+        "evidence": "PR-time cohesion-lane verdict"
+      }
+    },
+    {
+      "id": "DP-02-catalog-first-authoring",
+      "title": "Catalog-first authoring",
+      "statement": "Every change updates the right doc tier in the same PR. Code without doc-update is not 'done'.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "mechanical",
+        "enforced_by": [
+          "check-doc-catalog"
+        ],
+        "planned_enforcement_refs": [
+          "oya-governance-pr-traceability-kernel"
+        ],
+        "evidence": "doc-catalog lane refuses PRs that change a canonical surface without updating dependents the catalog names"
+      }
+    },
+    {
+      "id": "DP-03-mechanical-prevention-over-process",
+      "title": "Mechanical prevention over process",
+      "statement": "Recurring failures produce a CI lane, hook, validator, or schema check — not a checklist line.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "mechanical",
+        "enforced_by": [
+          "docs/MISTAKES-LEDGER.md row contract: every MFL row REQUIRES a non-empty mechanical_prevention field; process-only fixes are rejected per docs/standards/prevention-doctrine.md §6"
+        ],
+        "evidence": "MFL row template in docs/templates/mistakes-ledger-row-template.md enforces field at authoring time"
+      }
+    },
+    {
+      "id": "DP-04-dual-audience-for-instructions",
+      "title": "Dual audience for instructions",
+      "statement": "Every directive read by an agent is also readable to a human, and vice versa. No agent-only checklists; no human-only prose.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "cultural",
+        "enforced_by": null,
+        "evidence": "PR review; no current programmatic check (gap candidate for oya-governance-dual-audience lane)"
+      }
+    },
+    {
+      "id": "DP-05-single-canonical-tree",
+      "title": "Single canonical tree",
+      "statement": "All authority lives under docs/. Files outside the tree are non-authoritative discovery surfaces or working drafts.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "mechanical-deferred",
+        "planned_enforcement_refs": [
+          "oya-governance-authoritative-tracked-kernel"
+        ],
+        "evidence": "Planned authoritative-tracked lane will verify every doc cited as authoritative in docs/AGENTS.md is repo-tracked; current control is PR review."
+      }
+    },
+    {
+      "id": "DP-06-bounded-scope-per-doc",
+      "title": "Bounded scope per doc",
+      "statement": "Every canonical doc has a single class, a single owner, a hard length cap, and an explicit 'Does NOT cover' clause. Drift-by-overlap is a structural failure, not a hope.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "mechanical",
+        "enforced_by": [
+          "check-doc-catalog"
+        ],
+        "planned_enforcement_refs": [
+          "oya-governance-doc-style-kernel"
+        ],
+        "evidence": "doc-style lane enforces length cap + frontmatter shape per doc_class"
+      }
+    },
+    {
+      "id": "DP-07-forward-reference-never-invent",
+      "title": "Forward-reference, never invent",
+      "statement": "A cross-link to a doc that does not yet exist uses the forward-reference sentinel; it does not silently link to nothing.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "cultural",
+        "enforced_by": null,
+        "evidence": "convention: <!-- forward-reference: wave-N --> sentinel; no current programmatic resolution check (gap candidate for oya-governance-forward-reference-resolution lane)"
+      }
+    },
+    {
+      "id": "DP-08-audit-chain-emission",
+      "title": "Audit-chain emission on every cross-axis flow",
+      "statement": "Cross-pillar data movement is audited; auditless cross-flow is a defect, not an optimization.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "deferred",
+        "enforced_by": null,
+        "evidence": "audit-chain emission verification deferred until M02-P04-audit-chain ships the substrate µservice; currently relies on per-PR review"
+      }
+    },
+    {
+      "id": "DP-09-bench-and-stress-before-claiming-performance",
+      "title": "Bench-and-stress before claiming performance",
+      "statement": "Benchmark + at least two stress scenarios precede any 'performance is acceptable' claim.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "cultural",
+        "enforced_by": null,
+        "evidence": "No mechanical enforcement today. The 4 stub crates that claimed to enforce this (check-statelessness, -shardability, -perf-budget, -benchmark) were deleted 2026-05-15 — 6-line doc-stubs claiming 'Accepted' status are worse than no crate (per audit). PRs cite performance claims; review is the only check until real lane crates ship under M02 substrate. Re-introduction requires a real implementation, not a doc-stub."
+      }
+    },
+    {
+      "id": "DP-10-cancel-cleanly",
+      "title": "Cancel cleanly",
+      "statement": "Long-running loops re-walk the Done-Definition checklist before ending; loops do not exit silently.",
+      "binding": "load-bearing",
+      "enforcement": {
+        "mode": "cultural",
+        "enforced_by": null,
+        "evidence": "Done-Definition checklist in docs/AGENTS.md; no programmatic cancel-cleanly gate"
+      }
+    }
+  ],
+  "enforcement_modes": {
+    "mechanical": "A CI lane / hook / validator / fitness function refuses non-compliant changes at PR time or commit time. Programmatic, deterministic, replay-as-eval testable.",
+    "cultural": "No programmatic check today. Compliance via PR review + Done-Definition checklist. Candidate for future mechanization.",
+    "mechanical-stub": "A lane exists by name but the implementation is a placeholder (6-line doc stub). Claim of enforcement is honest only after the stub is replaced. Tracked as a gap.",
+    "deferred": "Enforcement depends on infrastructure not yet shipped (e.g., M02-P04 audit-chain substrate). Will become mechanical once the substrate lands."
+  },
+  "references": [
+    "docs/standards/prevention-doctrine.md — mechanical-prevention authoring guide",
+    "docs/MISTAKES-LEDGER.md — failure-mode row registry with mechanical_prevention field",
+    "specs/root-hub-pointers.json — migration source map (entry_points._retired_constitutional_authority)",
+    "specs/forbidden-operations.json — companion avoid-list (prohibitions)"
+  ]
+}

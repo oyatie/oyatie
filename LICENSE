@@ -1,0 +1,117 @@
+SPDX-License-Identifier: LicenseRef-Oyatie-Proprietary
+
+Oyatie Proprietary and Confidential License
+Copyright (c) 2026 Oyatie. All rights reserved.
+
+1. No Public License Granted
+
+This repository and all source code, object code, documentation, specifications,
+designs, schemas, prompts, workflows, tests, build files, deployment files,
+data, generated artifacts, and other materials in or derived from this
+repository (collectively, the "Repository Materials") are proprietary to
+Oyatie or its applicable rights holders.
+
+Except as expressly permitted in a separate written agreement signed by Oyatie,
+or by an explicit file-level or component-level license notice that applies only
+to the identified file or component, no license, permission, covenant, or other
+right is granted under copyright, patent, trademark, trade secret, database,
+contract, or any other intellectual-property or proprietary right.
+
+All rights not expressly granted are reserved.
+
+2. Restrictions
+
+Without Oyatie's prior written permission, you must not, and must not enable any
+third party to:
+
+- use, execute, copy, reproduce, publish, display, perform, distribute, transmit,
+  host, sublicense, sell, lease, rent, offer, provide as a service, or otherwise
+  exploit the Repository Materials;
+- modify, adapt, translate, merge, port, refactor, transform, create derivative
+  works from, or prepare competing implementations based on the Repository
+  Materials;
+- decompile, disassemble, reverse engineer, extract interfaces from, or attempt
+  to derive source code, designs, models, schemas, protocols, algorithms,
+  prompts, training data, evaluation data, trade secrets, or other underlying
+  ideas from the Repository Materials;
+- remove, alter, obscure, or bypass copyright, proprietary, confidentiality,
+  attribution, audit, provenance, security, or access-control notices;
+- use the Repository Materials to train, fine-tune, evaluate, benchmark, prompt,
+  seed, or otherwise improve any machine-learning, foundation-model, retrieval,
+  code-generation, agentic, or similar automated system;
+- publish benchmarks, comparisons, security findings, vulnerability details, or
+  performance results concerning the Repository Materials without Oyatie's prior
+  written permission; or
+- use the Repository Materials in any manner that competes with, substitutes
+  for, or circumvents Oyatie's products, services, platforms, or commercial
+  terms.
+
+3. Confidentiality and Trade Secrets
+
+Repository Materials that are non-public, access-controlled, marked
+confidential, or reasonably understood to be confidential must be treated as
+Oyatie confidential information and trade secrets. Public availability of any
+portion of the Repository Materials, including through a source-control hosting
+service, does not waive confidentiality in non-public materials and does not
+create any public license.
+
+4. Hosting-Service Carve-Out
+
+If Oyatie chooses to host any portion of the Repository Materials on a
+third-party source-control service, access through that service grants only the
+minimum rights, if any, required by that service's applicable terms and by
+Oyatie's repository-visibility settings. That access does not grant any
+additional right to use, copy, modify, distribute, commercialize, or create
+derivative works from the Repository Materials outside those service-required
+rights.
+
+5. Third-Party and Explicit Component Notices
+
+Third-party materials, vendored dependencies, generated artifacts, or individual
+files/components that include their own explicit license notices remain governed
+by those notices for those materials only. Those notices do not license any other
+Repository Materials and do not convert this repository into an open-source,
+source-available, public-domain, or permissively licensed project.
+
+Package manifests or dependency-policy metadata may identify licenses required
+for package publication, dependency compliance, or third-party attribution. Such
+metadata does not override this repository-default proprietary license unless an
+explicit file-level or component-level license notice says so.
+
+6. Contributions
+
+Oyatie does not accept unsolicited contributions under this license. Any
+contribution, patch, issue content, pull request, design, idea, or other material
+submitted to Oyatie is subject to Oyatie's separate written contributor terms,
+employment agreement, contractor agreement, assignment agreement, or other
+applicable written agreement. In the absence of such an agreement, Oyatie may
+reject, remove, or ignore the submission, and no contributor receives any right
+to the Repository Materials.
+
+7. No Warranty; No Liability
+
+The Repository Materials are provided, if at all, on an "AS IS" and
+"AS AVAILABLE" basis, without warranties or conditions of any kind, whether
+express, implied, statutory, or otherwise, including warranties of
+merchantability, fitness for a particular purpose, title, non-infringement,
+availability, accuracy, security, or uninterrupted operation. To the maximum
+extent permitted by law, Oyatie and its rights holders are not liable for any
+claim, damage, loss, cost, or expense arising from or related to the Repository
+Materials.
+
+8. Enforcement
+
+Unauthorized use of the Repository Materials may violate copyright, patent,
+trademark, trade secret, contract, computer-access, and other laws. Oyatie
+reserves all rights and remedies, including injunctive relief, damages,
+accounting, fees, and recovery of profits.
+
+9. Written Permission
+
+Requests for permission, licensing, security disclosure coordination, or other
+written authorization must be directed to Oyatie through an authorized business
+or legal contact. No employee, contractor, agent, tool, automated system,
+repository setting, issue, pull request, comment, commit message, package
+manifest, or informal communication may grant rights unless the grant is in a
+separate written agreement signed by Oyatie or in an explicit file-level or
+component-level license notice.

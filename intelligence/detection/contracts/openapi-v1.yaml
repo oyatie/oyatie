@@ -1,0 +1,154 @@
+openapi: 3.2.0
+info:
+  title: Detection API
+  version: 0.1.0
+  summary: ADR-0307 detection substrate API with ADR-0263 audit events.
+servers:
+  -
+    url: "https://detection.tenant.example/v1"
+paths:
+  /signals:evaluate:
+    post:
+      operationId: evaluateDetectionSignal
+      summary: Evaluate a tenant-scoped detection signal.
+      x-related-adrs:
+        - ADR-0307-detection-substrate-streaming-batch
+        - ADR-0308-ml-model-lifecycle-ai-act-compliance
+        - ADR-0309-detection-fairness-audit-civil-rights
+        - ADR-0310-investigation-case-management
+        - ADR-0263-observability-emission-contract
+        - ADR-0105-13-layer-enum-and-check-family-patterns
+        - ADR-0131-per-microservice-flat-layout
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DetectionEvaluationRequest"
+      responses:
+        200:
+          description: Score emitted with explanation and audit_id.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DetectionEvaluationResponse"
+  /replay-runs:
+    post:
+      operationId: startDetectionReplay
+      summary: Start deterministic replay for a model or rule version.
+      x-related-adrs:
+        - ADR-0307-detection-substrate-streaming-batch
+        - ADR-0308-ml-model-lifecycle-ai-act-compliance
+        - ADR-0309-detection-fairness-audit-civil-rights
+        - ADR-0310-investigation-case-management
+        - ADR-0263-observability-emission-contract
+        - ADR-0105-13-layer-enum-and-check-family-patterns
+        - ADR-0131-per-microservice-flat-layout
+      responses:
+        202:
+          description: Replay accepted.
+components:
+  x-oyatie-sharding-automation-event-surface:
+    microservice: detection
+    wave: 15-ZF-13
+    artifact_type: contracts
+    scope: OpenAPI components metadata for the sharding_automation event surface.
+    wire_shape: Extension-only annotation; no paths, operations, schemas, requestBodies, responses, headers, securitySchemes, or examples are added.
+    doctrine_refs:
+      ADR-0346:
+        purpose: >-
+          Establish that ./bin/oya verify --ci-required is the canonical local pre-push verifier and MUST locally mirror the full CI matrix and MUST block on exit-0 of EACH step before returning success to the caller.
+        enforced_by:
+          - oya-governance-oya-verify-ci-mirror-coverage
+          - oya-governance-oya-verify-ci-step-exit-semantics
+          - oya-governance-oya-verify-skip-flag-allowlist
+          - oya-governance-oya-submit-calls-verify
+          - oya-governance-oya-verify-exit-code-contract
+      ADR-0347:
+        purpose: >-
+          Declare that every oya-governance-* CI lane prefix in the Oyatie corpus RENAMES to oya-governance-* in a single bulk-rename pull request.
+        enforced_by:
+          - oya-governance-no-foundry-fitness-residue
+          - oya-governance-lane-prefix-vocabulary
+          - oya-governance-rename-inventory-presence
+      ADR-0348:
+        purpose: >-
+          Declare that cellular topology MUST support three control-plane-driven automation modes: AUTOSHARDING, AUTO-REBALANCE, and DYNAMIC SHARDING.
+        enforced_by:
+          - oya-governance-sharding-automation-coverage
+          - oya-governance-autosharding-manual-mode-refusal
+          - oya-governance-auto-rebalance-residency-honored
+          - oya-governance-dynamic-sharding-threshold-coverage
+          - oya-governance-audit-chain-emit-on-automation-events
+          - oya-governance-tenant-migration-reversibility
+        event_surface:
+          autosharding: tenant_to_cell_shard_placement is computed by the control plane automatically.
+          auto_rebalance: tenant migration honors residency and compliance pack constraints and is observable, reversible, and audit-chain-emit per ADR-0263.
+          dynamic_sharding: HOT-SPLIT and COLD-MERGE shard-count operations are atomic and audit-emit.
+          manifest_block: sharding_automation declares autosharding, auto_rebalance, and dynamic_sharding sub-blocks.
+      ADR-0349:
+        purpose: >-
+          Declare Jenkins (LTS) and ArgoCD as the two canonical self-hostable CI/CD substrates for the Oyatie corpus.
+        enforced_by:
+          - oya-governance-jenkins-github-actions-parity
+          - oya-governance-argocd-application-cosign-verified
+          - oya-governance-argocd-tenant-namespace-isolation
+          - oya-governance-jenkins-jcasc-only
+          - oya-governance-deploy-audit-chain-emit
+    consumer_guidance:
+      generators: Ignore this x-extension for SDK and server wire generation.
+      governance: Use this x-extension as doctrine metadata for sharding_automation event-surface review only.
+  schemas:
+    DetectionEvaluationRequest:
+      type: object
+      required:
+        - tenant_id
+        - principal_id
+        - family
+        - entity_id
+        - trace_id
+        - compliance_packs
+      properties:
+        tenant_id:
+          type: string
+          description: Tenant scope from ADR-0244.
+        principal_id:
+          type: string
+          description: Caller principal.
+        family:
+          type: string
+          enum:
+            - payment-fraud
+            - account-takeover
+            - synthetic-identity
+            - aml-sanctions
+            - content-abuse
+            - fake-reviews-engagement
+            - insider-risk
+            - policy-violation
+        entity_id:
+          type: string
+        trace_id:
+          type: string
+        compliance_packs:
+          type: array
+          items:
+            type: string
+    DetectionEvaluationResponse:
+      type: object
+      required:
+        - score
+        - severity
+        - explanation
+        - audit_id
+      properties:
+        score:
+          type: number
+        severity:
+          type: string
+        explanation:
+          type: array
+          items:
+            type: string
+        audit_id:
+          type: string

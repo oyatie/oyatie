@@ -1,0 +1,104 @@
+# oya-deps.toml — closed-schema DATA contract for Oyatie dependency automation.
+# ADR-0535 rejects external dependency-bot adoption for the owned stack. The destination actuator is an
+# in-house Rust bump-bot that opens scm-facts ChangeSets and runs license/advisory/version gates
+# before proposing dependency changes. GitHub PRs are a transitional adapter, not the source of truth.
+schema_version = "1.0.0"
+
+[metadata]
+purpose = "Owned dependency automation policy for the in-house Rust bump-bot."
+owner = "cloud-ci-platform"
+decision = "ADR-0535"
+status = "accepted"
+
+[automation]
+engine = "owned-rust-bump-bot"
+changeset_transport = "scm-facts"
+github_actions = "adapter-only"
+external_bots = "disabled"
+merge_authority = "oya-ci-required"
+
+[rust]
+channel = "stable"
+pin = "1.97.1"
+update_policy = "latest-stable"
+drift_guard = "ci/facade/generated-artifact-freshness/src/rust_toolchain_drift.rs"
+exclusions = []
+
+[supply_chain]
+license_policy = "deny.toml"
+advisory_policy = "cargo-deny"
+audit_policy = "cargo-vet"
+stewardship_registry = "specs/oss-stewardship-registry.json"
+bot_gate = "cloud-ci-dependency-automation"
+
+[[managed_file]]
+path = "rust-toolchain.toml"
+role = "rust-toolchain-pin"
+update = "sync-rust-pin"
+reason = "Canonical stable Rust toolchain pin."
+
+[[managed_file]]
+path = "Cargo.toml"
+role = "workspace-msrv"
+update = "sync-rust-pin"
+reason = "Workspace MSRV follows the stable Rust pin."
+
+[[managed_file]]
+path = "Dockerfile.distroless"
+role = "container-builder-toolchain"
+update = "sync-rust-pin"
+reason = "Release image builder uses the same Rust pin."
+
+[[managed_file]]
+path = "toolchains/BUCK"
+role = "buck2-toolchain-comment"
+update = "sync-rust-pin"
+reason = "Buck2 toolchain documentation follows the same Rust pin."
+
+[[managed_file]]
+path = "docs/standards/dependency-policy.md"
+role = "human-policy-summary"
+update = "sync-rust-pin"
+reason = "Human policy row remains aligned with the machine policy."
+
+# ---------------------------------------------------------------------------
+# Crate dependency freshness (oyatie-gr1n). Sibling of the [rust] toolchain pin
+# above: that clause tracks the TOOLCHAIN, this one tracks the CRATES.
+#
+# Motivation, measured rather than assumed: deny.toml sets
+# advisories.unmaintained = "workspace" and the advisory mirror models
+# informational: unmaintained correctly, but RustSec has never filed an
+# unmaintained advisory for serde_yaml and ZERO workspace-declared dependencies
+# carry one. That gate is not broken; it is blind by construction, because
+# RustSec coverage is voluntary and lagging. Time-since-last-release needs no
+# third party to file anything.
+[freshness]
+mirror = "ci/facade/dep-freshness/mirror/freshness.json"
+manifest = "ci/facade/dep-freshness/mirror/freshness-manifest.json"
+producer = "oya-dep-freshness-producer"
+kernel = "ci/facade/dep-freshness/src/kernel.rs"
+
+# THRESHOLD IS DATA, not a constant in code, so it can be tuned without a code
+# review. 90 days is the starting window; on the 2026-08-17 corpus it selects
+# 27 of 75 direct dependencies (median age 42 days).
+stale_after_days = 90
+
+# ADVISORY, not blocking — and that is a correctness requirement, not a
+# softening. Staleness is TIME-driven: it advances with the calendar, with no
+# repository change. A blocking staleness gate therefore reds the required
+# context on whichever unrelated PR happens to be open that day, which is the
+# ADR-0717 docs-budget pathology. Precedent: the required lint job runs clippy
+# under continue-on-error and blocks only on changed-file rustfmt.
+enforcement = "advisory"
+
+# The single blocking case is CHANGE-driven and cannot fire on an unrelated PR:
+# a diff that ADDS a dependency, or bumps one TO a version, that is already
+# stale or carries an unmaintained advisory. That is the actual incident shape —
+# the failure was INTRODUCING a deprecated dependency, not tolerating one.
+blocking_exception = "added-or-bumped-to-stale"
+
+# BEHIND (a newer stable exists) and STALE (no release in the window) are
+# different failures with different remedies. They must not share a threshold or
+# a waiver: serde_yaml is STALE and NOT behind, because 0.9.34+deprecated IS the
+# latest version — which is exactly why version-only bots report it current.
+signals = ["DEP-FRESHNESS-BEHIND", "DEP-FRESHNESS-STALE", "DEP-FRESHNESS-UNKNOWN"]

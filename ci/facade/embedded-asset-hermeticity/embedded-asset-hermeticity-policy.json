@@ -1,0 +1,60 @@
+{
+  "_comment": "Embedded-asset hermeticity gate policy (DATA, not code). Motivated by FRIC-1781131000: a crate's include_str!(\"../policy/x.cedar\") was mapped to the wrong sandbox path, so buck2 never built it hermetically (rustc 'couldn't read', masked as a downstream 'missing rmeta'). This gate statically asserts that every Rust include_str!/include_bytes! STRING-LITERAL path resolves, relative to the including source file's sandbox location, to a destination that the owning BUCK target's srcs/mapped_srcs actually provides. It reimplements Bazel/Buck hermetic-action missing-input enforcement Rust-native (founder doctrine: proven patterns, Rust reimplementation). ALL repo-specifics live here; the Rust kernel hardcodes no oyatie path and runs on any repo by repointing scan_roots + the extension/allowlist sets. See ADR-0545.",
+  "gate_id": "cloud-ci-embedded-asset-hermeticity",
+  "schema_version": "1.0.0",
+  "scan_roots": [
+    "app",
+    "base",
+    "build",
+    "ci",
+    "cloud",
+    "data",
+    "oya",
+    "libs",
+    "tools",
+    "infra",
+    "marketplace",
+    "iam",
+    "intelligence",
+    "os",
+    "policy",
+    "governance"
+  ],
+  "exclude_path_substrings": [
+    "/target/",
+    "/.git/",
+    "/node_modules/",
+    "/vendor/",
+    "/third-party/"
+  ],
+  "rust_extension": "rs",
+  "embedded_extensions": [
+    "cedar",
+    "cedarschema",
+    "json",
+    "sql",
+    "proto",
+    "toml",
+    "yaml",
+    "yml",
+    "txt",
+    "html",
+    "css",
+    "schemas.json",
+    "cedarschema.json"
+  ],
+  "out_of_scope_path_prefixes": [
+    "out/",
+    "../out/",
+    "../../out/",
+    "../../../out/"
+  ],
+  "product_contract": {
+    "resolution_model": "include_str!/include_bytes! resolve the literal RELATIVE TO THE DIRECTORY OF THE INCLUDING SOURCE FILE (rustc semantics). In the buck2 sandbox that file sits at the destination its target maps it to. The gate computes the include base dir = dirname(sandbox-destination of the including .rs), resolves the literal against it (lexical .. / . normalization, NO filesystem touch), and asserts the resolved path is present in the owning target's EFFECTIVE sandbox destination set = (glob-expanded srcs relative-path destinations) UNION (mapped_srcs dict VALUES). The check is against sandbox DESTINATIONS, never the on-disk repo filesystem layout — the cedar-adapter file lives on disk outside its crate and is mapped INTO the sandbox via a mapped_srcs value.",
+    "born_pack_shaped": "scan_roots, exclude substrings, the rust + embedded extension sets, and the out-of-scope build-output prefixes are DATA here. The Rust kernel fixes only the OBSERVED ROW SCHEMA and the include/BUCK resolution algorithm (its engine contract); an adopting repo repoints this policy at its own tree.",
+    "fail_closed_conservative": "The gate flags a hard violation (embedded_asset_unmapped_include) ONLY for an include site it can fully resolve: a single string literal whose owning target's srcs/mapped_srcs the minimal parser can evaluate. Anything it cannot statically resolve (non-literal path, an unmodelled BUCK construct, no bindable target) is surfaced as a SKIP key (embedded_asset_unparseable_skip / embedded_asset_no_target), never a silent pass — skips are baselined + capped so skip-debt cannot grow to launder a real miss.",
+    "out_of_scope_build_outputs": "A literal resolving outside the crate into a non-source build tree (e.g. include_bytes!(\"../../../out/svc.elf\")) with an extension not in embedded_extensions is a generated build artifact, not a tracked embedded asset, and is classified out-of-scope (no finding) — the gate polices SOURCE assets the BUCK target must map, not buck2 action outputs.",
+    "execution": "Buck2-native Rust gate; no Cargo command is required for enforcement."
+  },
+  "purpose": "Embedded-asset hermeticity meta-gate. Every Rust include_str!/include_bytes! string-literal embedded asset must be present, at its include-relative sandbox location, in the owning BUCK target's srcs/mapped_srcs destinations — so a crate cannot reach the merge queue with an unmapped embedded asset that builds non-hermetically. See ADR-0545, FRIC-1781131000."
+}

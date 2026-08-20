@@ -1,0 +1,5 @@
+filegroup(
+    name = "top-level-hook-scripts",
+    srcs = glob(["*.sh"]),
+    visibility = ["PUBLIC"],
+)

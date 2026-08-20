@@ -1,0 +1,67 @@
+{
+  "$id": "https://docs.oyatie.com/specs/toolchain-tenant-isolation-fixtures.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-security + platform-toolchain",
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "spec_id": "EXE-TOOLCHAIN-TENANT-ISOLATION-FIXTURES",
+    "status": "fixture-contract-not-live-enforcement",
+    "updated_at": "2026-06-02T15:03:11Z",
+    "version": "0.1.0"
+  },
+  "claim_boundary": "Specifies RED/GREEN tenant-isolation fixtures for cloud-ci/cloud-cd toolchain lanes; does not claim live tenant isolation until the cloud-ci required context runs these fixtures on candidate SHAs.",
+  "description": "Fixture corpus for the P0.0 tenant-pipeline isolation baseline. This is a fixture contract, not a production-readiness or tenant-facing claim.",
+  "fixtures": [
+    {
+      "expected_verdict": "RED",
+      "expected_violations": [
+        "shared tenant pipeline surfaces across identity, secrets, runners, workspaces, caches, artifacts, logs/evidence, release ledgers, deploy targets, status callbacks, and audit events",
+        "implicit oyatie-internal bypass without TTL breakglass, reviewer acknowledgment, and audit-chain event"
+      ],
+      "fixture_id": "T-ISOLATION-0-BAD-shared-pipeline-surfaces",
+      "internal_bypass_without_breakglass": true,
+      "shared_surfaces": [
+        "identity",
+        "secrets",
+        "runners",
+        "workspaces",
+        "caches",
+        "artifacts",
+        "logs_evidence",
+        "release_ledgers",
+        "deploy_targets",
+        "status_callbacks",
+        "audit_events"
+      ]
+    },
+    {
+      "breakglass": "TTL-bound, reviewer-acked, audit-chain event required",
+      "expected_verdict": "GREEN",
+      "expected_violations": [],
+      "fixture_id": "T-ISOLATION-0-GOOD-separated-pipeline-surfaces",
+      "separation_model": "per-tenant identity, secret lease, runner/workspace/cache/artifact/log/evidence namespace, release ledger, deploy target, status callback identity, and audit event partition",
+      "tenant_ids": [
+        "oyatie-internal",
+        "customer-a",
+        "customer-b"
+      ]
+    }
+  ],
+  "required_separation_surfaces": [
+    "identity",
+    "secrets",
+    "runners",
+    "workspaces",
+    "caches",
+    "artifacts",
+    "logs_evidence",
+    "release_ledgers",
+    "deploy_targets",
+    "status_callbacks",
+    "audit_events"
+  ],
+  "title": "ToolchainTenantIsolationFixtures"
+}

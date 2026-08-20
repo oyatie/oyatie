@@ -1,0 +1,25 @@
+rust_library(
+    name = "tenancy-tenant-lifecycle-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "tenancy_tenant_lifecycle_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "third-party//:serde",
+    ],
+)
+
+rust_test(
+    name = "tenancy-tenant-lifecycle-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "tenancy_tenant_lifecycle_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "third-party//:serde",
+    ],
+)

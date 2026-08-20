@@ -1,0 +1,24 @@
+rust_library(
+    name = "intelligence-translation-kernel",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_translation_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "intelligence-translation-kernel-tests",
+    srcs = glob(["src/**/*.rs", "tests/**/*.rs", "**/*.json", "**/*.yaml", "**/*.yml"]),
+    crate = "intelligence_translation_kernel_tests",
+    crate_root = "tests/xproxy_translation_fixtures.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-translation-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

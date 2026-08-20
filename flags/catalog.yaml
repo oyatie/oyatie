@@ -1,0 +1,18 @@
+apiVersion: oyatie.com/v1
+kind: MicroserviceCatalog
+metadata:
+  name: oya-flags
+spec:
+  role: tenant-service
+  context: feature-flag-substrate
+  data_classes_owned:
+    - TENANT_CONFIG
+  operational_classes_owned:
+    - AUDIT
+  adr_cite: ADR-0481
+  owner_team: council-platform
+  criticality_tier: substrate-critical
+  flat_layout_authority: ADR-0131
+  no_grouping_authority: ADR-0132
+  pattern: single-crate-per-service
+  adr: ADR-0509

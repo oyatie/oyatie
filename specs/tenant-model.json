@@ -1,0 +1,1845 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/tenant-model.schema.json",
+  "title": "Oyatie Tenant Model",
+  "version": "1.0.0",
+  "description": "Canonical JSON Schema 2020-12 contract for Oyatie tenant rows. This schema binds ADR-0244 tenant-as-universal-scoping-primitive, ADR-0311 dual-tenant personal/work boundary, and ADR-0313 conglomerate tenant hierarchy into one machine-readable tenant model that downstream Cedar, audit-chain, FinOps, residency, compliance-pack, and ontology-projection surfaces can cite.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-TENANT-MODEL",
+    "status": "Proposed",
+    "enforcement_status": "advisory-until-tenant-bootstrap-lands",
+    "owner_team": "founder",
+    "created_at": "2026-05-20T00:00:00Z",
+    "binding_adr": "ADR-0242",
+    "keystone_bundle": "2026-05-20-foundational-doctrine",
+    "keystone_position": "1-of-14",
+    "related_adrs": [
+      "ADR-0009",
+      "ADR-0010",
+      "ADR-0049",
+      "ADR-0105",
+      "ADR-0128",
+      "ADR-0131",
+      "ADR-0145",
+      "ADR-0218",
+      "ADR-0240",
+      "ADR-0241",
+      "ADR-0242",
+      "ADR-0243",
+      "ADR-0244",
+      "ADR-0245",
+      "ADR-0246",
+      "ADR-0247",
+      "ADR-0248",
+      "ADR-0251"
+    ],
+    "purpose": "Canonical machine-readable schema for the Tenant data model per ADR-0242 §D-7. Every workload in the platform is a principal under a tenant; `oyatie` itself is a reserved-namespace tenant. The same tenant primitive carries audience type, jurisdiction, capabilities, compliance packs, audit-stream routing, FinOps cost attribution, KYC status, DR tier, marketplace roles, DSAR contact, and lifecycle locks. This schema is consumed by the tenancy microservice migrations, the reserved-namespace validator, and the Cedar policy engine's tenant-context evaluator.",
+    "industry_citations": [
+      {
+        "vendor": "AWS",
+        "source": "AWS Organizations + IAM principal ARN hierarchy",
+        "convention": "hierarchical principal paths with reserved partition slug `aws`"
+      },
+      {
+        "vendor": "Google",
+        "source": "GCP Resource Manager + folder/project hierarchy",
+        "convention": "hierarchical resource hierarchy with `google` system project"
+      },
+      {
+        "vendor": "Microsoft",
+        "source": "Azure AD multi-tenant + First-Party Tenant pattern",
+        "convention": "platform-owner as in-scope tenant"
+      },
+      {
+        "vendor": "Stripe",
+        "source": "Stripe platform/sub-merchant model",
+        "convention": "platform_facilitator role + sub-merchant capabilities"
+      },
+      {
+        "vendor": "Salesforce",
+        "source": "Salesforce multi-tenant architecture + Trailhead",
+        "convention": "first-class tenant primitive across all surfaces"
+      },
+      {
+        "vendor": "Palantir",
+        "source": "Palantir Apollo internal-tenant deployment model",
+        "convention": "self-as-tenant of own platform"
+      }
+    ]
+  },
+  "type": "object",
+  "required": [
+    "tenant_id",
+    "parent_tenant_id",
+    "audience_type",
+    "home_cell",
+    "dr_cell",
+    "jurisdiction",
+    "capabilities",
+    "merchant_status",
+    "dsar_contact",
+    "audit_streams",
+    "finops_cost_center",
+    "trust_score",
+    "kyc_status",
+    "compliance_packs",
+    "eligible_capabilities",
+    "locked",
+    "created_at",
+    "created_by",
+    "updated_at",
+    "updated_by",
+    "business_continuity_dr_tier"
+  ],
+  "properties": {
+    "tenant_id": {
+      "type": "string",
+      "description": "Canonical tenant slug. Lowercase ASCII, dot-separated hierarchical sub-scope path. Reserved roots (`oyatie`, `oya`, `oyat`, `oyati`, prefix family `oyatie-*`/`oyatie.*`/`oyatie_*`) refuse registration per ADR-0242 §D-6 reserved-namespace enforcement. Validated via NFKC normalization + diacritic strip + Unicode TR#39 confusables table.",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?){0,5}$",
+      "minLength": 2,
+      "maxLength": 253,
+      "x-reserved-namespace-check": "tenancy.reserved_namespace::is_reserved() must return Available before persistence; Cedar fragment policy-engine/fragments/reserved-tenant-namespace.cedar forbids registration of any case-folded/NFKC-normalized/diacritic-stripped equivalent of reserved roots",
+      "x-max-sub-scope-depth": 4,
+      "examples": [
+        "oyatie",
+        "oyatie.foundry.ci-agent",
+        "tenant-acme-corp",
+        "tenant-acme-corp.team-payments",
+        "oyatie.dev.jasonlee",
+        "oyatie.preview.123"
+      ]
+    },
+    "parent_tenant_id": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Parent tenant for hierarchical sub-scopes. NULL for root tenants. Sub-scopes inherit jurisdiction, home_cell, capability flags, and Cedar policy from parent unless explicitly overridden. Audit events roll up to parent's audit stream. Cost attribution defaults to deepest sub-scope; FinOps portal rolls up.",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?){0,5}$",
+      "examples": [
+        null,
+        "oyatie",
+        "oyatie.foundry",
+        "tenant-acme-corp"
+      ]
+    },
+    "audience_type": {
+      "type": "string",
+      "description": "Intent classification for the tenant. Replaces the deprecated per-microservice `audience` manifest field (ADR-0221 §M-04). Audience moves to the tenant primitive; microservices serve all tenants.",
+      "enum": [
+        "PLATFORM_OWNER",
+        "B2B_TENANT",
+        "B2C_CONSUMER",
+        "DEVELOPER",
+        "SANDBOX",
+        "PREVIEW",
+        "PARTNER_AGENCY",
+        "RESELLER",
+        "INTERNAL_AUDITOR_3PAO",
+        "B2B_HR_ADMIN",
+        "B2B_INTERNAL_AUDIT",
+        "B2C_JOB_SEEKER_ACTIVE"
+      ],
+      "x-enum-descriptions": {
+        "PLATFORM_OWNER": "The `oyatie` tenant itself + reserved sub-scopes. Operates as a tenant of its own platform (Amazon/Stripe/Palantir/Apple shape).",
+        "B2B_TENANT": "Customer organization (enterprise, SMB, or otherwise). Onboarded via standard onboard saga; may carry sub-tenants for departments/teams.",
+        "B2C_CONSUMER": "Individual end-user consumer. Typically onboarded via passkey/OIDC; may federate with B2B parent via SSO.",
+        "DEVELOPER": "Third-party developer building plugins/integrations/marketplace listings. KYC/KYB lighter than B2B_TENANT; capabilities gated by plugin-app-store.",
+        "SANDBOX": "Per-engineer or per-team development sandbox. Auto-teardown on inactivity (ADR-0242 §D-8). Bounded resources.",
+        "PREVIEW": "Per-PR ephemeral preview tenant. Created on PR open, torn down on PR close. Used for reviewer testing of actual PR code.",
+        "PARTNER_AGENCY": "Implementation/services agency operating on behalf of one or more customer tenants. Carries assume-role flows to customer tenants per ADR-0244.",
+        "RESELLER": "Reseller of the platform to downstream tenants. Bills downstream; oyatie bills reseller. Sub-tenants under reseller follow reseller's permission boundary.",
+        "INTERNAL_AUDITOR_3PAO": "ADR-0311 enum extension for third-party assessment organizations and regulator-style auditors. The principal may receive narrowly scoped read permits to audited work-tenant surfaces and never inherits personal-tenant reach.",
+        "B2B_HR_ADMIN": "ADR-0311 enum extension for employer HR administrators. The tenant can operate work-tenant lifecycle and offboarding workflows but cannot inspect personal-tenant surfaces.",
+        "B2B_INTERNAL_AUDIT": "ADR-0311 enum extension for employer internal-audit principals. The scope is work-tenant evidence and retained work data only; personal-tenant data remains default-deny.",
+        "B2C_JOB_SEEKER_ACTIVE": "ADR-0311 enum extension for a personal tenant in active job-seeking posture. This is a B2C_CONSUMER sub-tier that enables portable employment workflows without granting employer access to personal data."
+      },
+      "examples": [
+        "PLATFORM_OWNER",
+        "B2B_TENANT",
+        "B2C_CONSUMER",
+        "DEVELOPER",
+        "SANDBOX",
+        "PREVIEW",
+        "PARTNER_AGENCY",
+        "RESELLER",
+        "INTERNAL_AUDITOR_3PAO",
+        "B2B_HR_ADMIN",
+        "B2B_INTERNAL_AUDIT",
+        "B2C_JOB_SEEKER_ACTIVE"
+      ]
+    },
+    "home_cell": {
+      "type": "string",
+      "description": "Canonical cell identifier where the tenant's primary read/write traffic lands. Per ADR-0009 cell-architecture-per-tenant-per-region and ADR-0248 Amazon-shape cellular architecture. Cell identifier format: `<plane>-<role>-<region>-<az>-<shard>`.",
+      "pattern": "^(data|control|bootstrap)-(plane|cell)-[a-z]{2}-[a-z]+-[0-9]+-[a-z]$",
+      "examples": [
+        "data-plane-us-west-2-a",
+        "control-plane-eu-central-1-b",
+        "bootstrap-cell-us-east-1-a"
+      ]
+    },
+    "dr_cell": {
+      "type": "string",
+      "description": "Disaster-recovery paired cell for failover per ADR-0241 + ADR-0049 cross-region replication. Replication shape determined by `business_continuity_dr_tier`.",
+      "pattern": "^(data|control|bootstrap)-(plane|cell)-[a-z]{2}-[a-z]+-[0-9]+-[a-z]$",
+      "examples": [
+        "data-plane-us-east-1-b",
+        "control-plane-eu-west-1-a"
+      ]
+    },
+    "jurisdiction": {
+      "type": "object",
+      "description": "Primary regulatory jurisdiction + allowed data-residency regions for this tenant. Cedar overlays per ADR-0240 sovereign-cloud-per-regional-pack key off `primary`. `data_residency_allowed` enumerates ISO 3166-1 alpha-2 codes where this tenant's data may legally reside; egress to any non-listed code is refused at the inter-cell traffic Cedar gate.",
+      "required": [
+        "primary",
+        "data_residency_allowed"
+      ],
+      "properties": {
+        "primary": {
+          "type": "string",
+          "description": "Primary jurisdiction code. ISO 3166-1 alpha-2 for country-level (e.g., `US`, `KR`, `DE`) or ISO 3166-2 for sub-national (e.g., `US-DE` for Delaware, `US-CA` for California).",
+          "pattern": "^[A-Z]{2}(-[A-Z0-9]{1,3})?$",
+          "examples": [
+            "US-DE",
+            "US-CA",
+            "KR",
+            "DE",
+            "EU",
+            "JP"
+          ]
+        },
+        "data_residency_allowed": {
+          "type": "array",
+          "description": "Enumerated regions where this tenant's data may reside. Inter-cell traffic Cedar gate refuses egress to non-listed regions. Empty array means data must remain only in `primary`.",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}$"
+          },
+          "uniqueItems": true,
+          "minItems": 1,
+          "examples": [
+            [
+              "US"
+            ],
+            [
+              "US",
+              "EU"
+            ],
+            [
+              "KR"
+            ],
+            [
+              "US",
+              "EU",
+              "KR",
+              "JP"
+            ]
+          ]
+        }
+      },
+      "examples": [
+        {
+          "primary": "US-DE",
+          "data_residency_allowed": [
+            "US",
+            "EU",
+            "KR"
+          ]
+        },
+        {
+          "primary": "DE",
+          "data_residency_allowed": [
+            "EU"
+          ]
+        },
+        {
+          "primary": "KR",
+          "data_residency_allowed": [
+            "KR"
+          ]
+        }
+      ]
+    },
+    "sovereign_cloud_pack": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Identifier of a sovereign-cloud regional pack per ADR-0240 that applies overlay rules beyond the default pack matrix. NULL means default pack matrix per cell. Examples include `KR-CSAP-v3.1`, `EU-GAIA-X`, `US-FedRAMP-High`, `SG-MTCS-L3`.",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9.]+)+$",
+      "examples": [
+        null,
+        "KR-CSAP-v3.1",
+        "EU-GAIA-X",
+        "US-FedRAMP-High",
+        "SG-MTCS-L3",
+        "AU-IRAP-PROTECTED"
+      ]
+    },
+    "capabilities": {
+      "type": "object",
+      "description": "Boolean capability flags gating payment, settlement, and sub-merchant facilitation. Flips on each capability are gated by KYC/KYB certification per ADR-0251 compliance-pack-cell-certification-levels and Cedar permits. All flags default false at registration; flipped true only after certification.",
+      "required": [
+        "can_pay",
+        "can_receive",
+        "can_settle",
+        "can_facilitate_sub_merchants"
+      ],
+      "properties": {
+        "can_pay": {
+          "type": "boolean",
+          "description": "Tenant may initiate outbound payments (e.g., card-present, card-not-present, ACH-debit, SEPA-debit). Requires PCI-DSS + per-jurisdiction payment-services certification."
+        },
+        "can_receive": {
+          "type": "boolean",
+          "description": "Tenant may receive inbound payments (e.g., as merchant of record, or as marketplace seller). Requires merchant-status + KYB."
+        },
+        "can_settle": {
+          "type": "boolean",
+          "description": "Tenant may settle funds to bank accounts. Requires KYB + tax registration + per-jurisdiction money-transmitter-license check."
+        },
+        "can_facilitate_sub_merchants": {
+          "type": "boolean",
+          "description": "Tenant may onboard sub-merchants under itself (Stripe platform-facilitator pattern). Requires platform-facilitator certification + sub-merchant onboarding workflow."
+        }
+      },
+      "examples": [
+        {
+          "can_pay": false,
+          "can_receive": false,
+          "can_settle": false,
+          "can_facilitate_sub_merchants": false
+        },
+        {
+          "can_pay": true,
+          "can_receive": true,
+          "can_settle": true,
+          "can_facilitate_sub_merchants": true
+        }
+      ]
+    },
+    "merchant_status": {
+      "type": "string",
+      "description": "Merchant-of-record classification for payment/marketplace flows.",
+      "enum": [
+        "not_a_merchant",
+        "pending_kyb",
+        "merchant_of_record",
+        "marketplace_seller",
+        "platform_facilitator",
+        "suspended",
+        "offboarded"
+      ],
+      "x-enum-descriptions": {
+        "not_a_merchant": "No payment capabilities; tenant operates as a pure consumer or non-commercial entity.",
+        "pending_kyb": "KYB documents submitted; pending review by ops-compliance.",
+        "merchant_of_record": "Standard merchant; sells goods/services and is responsible for tax, chargebacks, etc.",
+        "marketplace_seller": "Sells through an oyatie marketplace; oyatie is platform-facilitator.",
+        "platform_facilitator": "Operates a platform under which sub-merchants sell. `oyatie` itself is platform_facilitator.",
+        "suspended": "Merchant capabilities suspended pending compliance review.",
+        "offboarded": "Merchant capabilities permanently revoked."
+      }
+    },
+    "payout_method": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Settlement instrument identifier. Format: `<method>:<masked-account-fingerprint>`. NULL when settlement not applicable (e.g., `oyatie` itself uses `internal`).",
+      "enum": [
+        null,
+        "internal",
+        "ach:masked",
+        "sepa:masked",
+        "wire:masked",
+        "card:masked",
+        "crypto:masked",
+        "kr-bank:masked",
+        "jp-zengin:masked"
+      ],
+      "examples": [
+        null,
+        "internal",
+        "ach:masked",
+        "sepa:masked",
+        "kr-bank:masked"
+      ]
+    },
+    "tax_registrations": {
+      "type": "array",
+      "description": "Per-jurisdiction tax registrations carried by this tenant. Drives tax-engine routing decisions (Cedar policy selects which engine — US sales tax, EU VAT, KR 부가세, JP consumption tax, AU GST, etc. — per the registration list).",
+      "items": {
+        "type": "object",
+        "required": [
+          "jurisdiction",
+          "tax_id",
+          "tax_type",
+          "effective_at"
+        ],
+        "properties": {
+          "jurisdiction": {
+            "type": "string",
+            "pattern": "^[A-Z]{2}(-[A-Z0-9]{1,3})?$",
+            "description": "ISO 3166-1/2 jurisdiction code."
+          },
+          "tax_id": {
+            "type": "string",
+            "description": "Tax identifier in jurisdiction-native format (e.g., US EIN, EU VAT number, KR 사업자등록번호)."
+          },
+          "tax_type": {
+            "type": "string",
+            "enum": [
+              "sales-tax",
+              "vat",
+              "gst",
+              "consumption",
+              "withholding",
+              "corporate-income",
+              "other"
+            ],
+            "description": "Tax category."
+          },
+          "effective_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "sunset_at": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        }
+      },
+      "examples": [
+        [],
+        [
+          {
+            "jurisdiction": "US-DE",
+            "tax_id": "XX-XXXXXXX",
+            "tax_type": "corporate-income",
+            "effective_at": "2024-01-01T00:00:00Z"
+          },
+          {
+            "jurisdiction": "EU",
+            "tax_id": "DE-XXXXXXXXX",
+            "tax_type": "vat",
+            "effective_at": "2024-06-01T00:00:00Z"
+          }
+        ]
+      ]
+    },
+    "dsar_contact": {
+      "type": "object",
+      "description": "DSAR (Data Subject Access Request) intake point per GDPR Article 12 + KR PIPA Article 36 + state-level laws. Applied uniformly per ADR-0242 §D-4 to `oyatie` and all customer tenants — no carve-outs.",
+      "required": [
+        "legal_owner",
+        "email",
+        "response_sla_days"
+      ],
+      "properties": {
+        "legal_owner": {
+          "type": "string",
+          "description": "Internal team or named legal counsel responsible for DSAR response. Free-form but should match a known team/principal slug.",
+          "examples": [
+            "council-legal",
+            "tenant-acme-corp.legal",
+            "external-counsel:kim-chang"
+          ]
+        },
+        "email": {
+          "type": "string",
+          "format": "email",
+          "description": "Contact email for DSAR intake confirmations + clarification."
+        },
+        "response_sla_days": {
+          "type": "integer",
+          "description": "Maximum days to substantive response (acknowledge + erasure plan + execution). GDPR Article 12 default 30; some jurisdictions shorter.",
+          "minimum": 1,
+          "maximum": 90,
+          "default": 30
+        }
+      },
+      "examples": [
+        {
+          "legal_owner": "council-legal",
+          "email": "dsar@oyatie.com",
+          "response_sla_days": 30
+        },
+        {
+          "legal_owner": "tenant-acme-corp.privacy-officer",
+          "email": "privacy@acme.example",
+          "response_sla_days": 30
+        }
+      ]
+    },
+    "audit_streams": {
+      "type": "array",
+      "description": "Sealed audit-chain stream identifiers this tenant emits to. Default rollup is the root tenant stream; sub-scopes emit to per-sub-scope sub-streams that roll up to parent. Per ADR-0028 inheritance + per-period Merkle sealing cadence.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "examples": [
+        [
+          "oyatie.root",
+          "oyatie.foundry",
+          "oyatie.security",
+          "oyatie.finance",
+          "oyatie.platform-ops"
+        ],
+        [
+          "tenant-acme-corp"
+        ],
+        [
+          "tenant-acme-corp",
+          "tenant-acme-corp.team-payments"
+        ]
+      ]
+    },
+    "finops_cost_center": {
+      "type": "string",
+      "description": "Identifier for the cost center to which this tenant's per-action spend (LLM tokens, compute-hours, storage, network egress, third-party API fees) attributes by default. Per ADR-0174 FinOps tags + sub-scope rollup default.",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$",
+      "examples": [
+        "oyatie-platform",
+        "oyatie.foundry",
+        "tenant-acme-corp",
+        "tenant-acme-corp.cost-center.payments"
+      ]
+    },
+    "marketplace_roles": {
+      "type": "array",
+      "description": "Marketplace participation roles. A single tenant may carry multiple roles simultaneously (e.g., a tenant that both sells and resells).",
+      "items": {
+        "type": "string",
+        "enum": [
+          "BUYER",
+          "SELLER",
+          "RESELLER",
+          "DROPSHIPPER",
+          "FULFILLER",
+          "PLATFORM_OPERATOR",
+          "ESCROW_HOLDER",
+          "PAYMENT_FACILITATOR",
+          "PLUGIN_PUBLISHER",
+          "PLUGIN_REVIEWER",
+          "TEMPLATE_AUTHOR",
+          "AFFILIATE",
+          "AUCTIONEER"
+        ]
+      },
+      "uniqueItems": true,
+      "examples": [
+        [],
+        [
+          "BUYER"
+        ],
+        [
+          "PLATFORM_OPERATOR",
+          "PAYMENT_FACILITATOR"
+        ],
+        [
+          "SELLER",
+          "FULFILLER",
+          "PLUGIN_PUBLISHER"
+        ]
+      ]
+    },
+    "seller_categories": {
+      "type": "array",
+      "description": "Selling categories the tenant has been certified for. Drives compliance-pack eligibility (e.g., HEALTH category requires HIPAA-2024 pack on US-resident customer data).",
+      "items": {
+        "type": "string",
+        "enum": [
+          "DIGITAL_GOODS",
+          "PHYSICAL_GOODS",
+          "SAAS",
+          "PROFESSIONAL_SERVICES",
+          "HEALTH",
+          "FINANCIAL_SERVICES",
+          "INSURANCE",
+          "EDUCATION",
+          "GOVERNMENT",
+          "MEDIA",
+          "MARKETPLACE",
+          "ADULT",
+          "GAMBLING",
+          "FIREARMS",
+          "CONTROLLED_SUBSTANCES",
+          "REGULATED_OTHER"
+        ]
+      },
+      "uniqueItems": true,
+      "examples": [
+        [],
+        [
+          "SAAS"
+        ],
+        [
+          "DIGITAL_GOODS",
+          "SAAS"
+        ],
+        [
+          "HEALTH",
+          "PROFESSIONAL_SERVICES"
+        ]
+      ]
+    },
+    "fulfillment_capabilities": {
+      "type": "array",
+      "description": "Fulfillment modes the tenant can serve. Drives shipping/logistics workflow routing.",
+      "items": {
+        "type": "string",
+        "enum": [
+          "DIGITAL_DELIVERY",
+          "SAAS_PROVISION",
+          "SHIPPED_GOODS",
+          "PICKUP",
+          "DROPSHIP",
+          "ONSITE_SERVICE",
+          "REMOTE_SERVICE",
+          "EVENT_TICKETED",
+          "SUBSCRIPTION_RECURRING"
+        ]
+      },
+      "uniqueItems": true,
+      "examples": [
+        [],
+        [
+          "SAAS_PROVISION"
+        ],
+        [
+          "SHIPPED_GOODS",
+          "PICKUP"
+        ],
+        [
+          "DIGITAL_DELIVERY",
+          "SUBSCRIPTION_RECURRING"
+        ]
+      ]
+    },
+    "trust_score": {
+      "type": "number",
+      "description": "Composite trust score in [0, 1]. Input to risk-evaluation Cedar fragments (high-risk actions gated by minimum trust_score thresholds). Computed from KYC/KYB, chargeback history, dispute rate, account age, and behavioral signals.",
+      "minimum": 0.0,
+      "maximum": 1.0,
+      "examples": [
+        0.0,
+        0.5,
+        0.95,
+        1.0
+      ]
+    },
+    "kyc_status": {
+      "type": "string",
+      "description": "Know-Your-Customer / Know-Your-Business verification state.",
+      "enum": [
+        "not_required",
+        "pending_documents",
+        "in_review",
+        "verified",
+        "verified_enhanced",
+        "rejected",
+        "expired",
+        "suspended"
+      ],
+      "x-enum-descriptions": {
+        "not_required": "Tenant audience type does not require KYC (e.g., SANDBOX, PREVIEW).",
+        "pending_documents": "Tenant has not yet submitted KYC/KYB documents.",
+        "in_review": "Documents submitted; ops-compliance review in progress.",
+        "verified": "Standard KYC verified; suitable for most B2B and B2C consumer flows.",
+        "verified_enhanced": "Enhanced due diligence (e.g., PEP screening, sanctions check, source-of-funds review). Required for high-risk categories.",
+        "rejected": "KYC rejected; tenant cannot transact.",
+        "expired": "KYC verification has expired; re-verification required.",
+        "suspended": "KYC suspended pending investigation."
+      }
+    },
+    "compliance_packs": {
+      "type": "array",
+      "description": "Active compliance pack identifiers per ADR-0251. Each pack ships a bundle of Cedar fragments + retention rules + audit chain requirements + DPIA template references. Activation gated by `eligible_capabilities` + KYB.",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9.]+)*$"
+      },
+      "uniqueItems": true,
+      "examples": [
+        [],
+        [
+          "SOC2-T2"
+        ],
+        [
+          "HIPAA-2024",
+          "SOC2-T2"
+        ],
+        [
+          "EU-GDPR-2018-baseline",
+          "KR-PIPA-2023-amendment",
+          "PCI-DSS-L1-v4"
+        ]
+      ]
+    },
+    "provider_credential_mode": {
+      "type": "string",
+      "enum": [
+        "platform_default",
+        "byok",
+        "byok_required_by_pack"
+      ],
+      "default": "platform_default",
+      "description": "Per ADR-0255 §D-4. LLM/provider API credential resolution mode (Anthropic, OpenAI, Google, Cohere, Bedrock, self-hosted vLLM, etc.). `platform_default` uses oyatie-owned provider credentials (default for B2C personal-use surfaces). `byok` opts in to tenant-owned provider credentials/subscriptions. `byok_required_by_pack` is set automatically when at least one active compliance pack carries `provider_byok_required: true` (HIPAA / PCI / FedRAMP / IL5-6 / KR-FSS / EU-AI-Act high-risk); the tenant cannot select `platform_default` while such a pack is active. Disjoint from encryption-key BYOK, which is tracked under the encryption substrate (ADR-0251 §D-10)."
+    },
+    "policy_evaluation_mode": {
+      "type": "string",
+      "description": "ADR-0244 Wave-3-A amendment field selecting how tenant-scoped Cedar decisions dispatch. `library_first` uses the in-process audited library path by default. `network_only` forces policy-engine network evaluation. `library_first_with_attested_fallback` permits cached/library decisions only until `attested_fallback_threshold`, then requires attested network fallback under the meta-trust-root witness path.",
+      "enum": [
+        "library_first",
+        "network_only",
+        "library_first_with_attested_fallback"
+      ],
+      "default": "library_first",
+      "examples": [
+        "library_first",
+        "network_only",
+        "library_first_with_attested_fallback"
+      ]
+    },
+    "attested_fallback_threshold": {
+      "type": "string",
+      "description": "ISO 8601 duration equivalent of the ADR-0244 `attested_fallback_threshold` interval. Applies when `policy_evaluation_mode` is `library_first_with_attested_fallback`; cached/library decisions older than this duration require attested policy-engine fallback.",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "default": "P1D",
+      "examples": [
+        "PT30M",
+        "PT24H",
+        "P1D"
+      ]
+    },
+    "ontology_read_mode": {
+      "type": "string",
+      "description": "ADR-0244 / ADR-0257 amendment field selecting how ontology reads resolve for this tenant. `library_first` uses the local substrate path; `network_only` forces ontology service reads; `library_first_with_freshness_floor` uses local reads until data age exceeds `freshness_floor`.",
+      "enum": [
+        "library_first",
+        "network_only",
+        "library_first_with_freshness_floor"
+      ],
+      "default": "library_first",
+      "examples": [
+        "library_first",
+        "network_only",
+        "library_first_with_freshness_floor"
+      ]
+    },
+    "freshness_floor": {
+      "type": "string",
+      "description": "ISO 8601 duration equivalent of ADR-0244 `freshness_floor`. Applies when `ontology_read_mode` is `library_first_with_freshness_floor`; ontology projection data older than this duration must refresh through the network path before serving regulated or tenant-visible reads.",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "default": "PT5S",
+      "examples": [
+        "PT2S",
+        "PT5S",
+        "PT30S"
+      ]
+    },
+    "controls_tenants": {
+      "type": "array",
+      "description": "ADR-0313 denormalized index of child tenant ids this tenant controls through source-of-truth conglomerate_grants. This is a read-optimized mirror only; the grant table remains canonical and Cedar decides parent-scope actions.",
+      "items": {
+        "$ref": "#/definitions/tenantId"
+      },
+      "uniqueItems": true,
+      "default": [],
+      "examples": [
+        [],
+        [
+          "tenant-acme-us",
+          "tenant-acme-kr"
+        ],
+        [
+          "tenant-holdco-subsidiary-a"
+        ]
+      ]
+    },
+    "controlled_by_tenants": {
+      "type": "array",
+      "description": "ADR-0313 denormalized reverse index of parent tenant ids that control this tenant through source-of-truth conglomerate_grants. The field exists for lookup speed; parent authority, residency preservation, information barriers, and personal-tenant refusal remain Cedar-governed.",
+      "items": {
+        "$ref": "#/definitions/tenantId"
+      },
+      "uniqueItems": true,
+      "default": [],
+      "examples": [
+        [],
+        [
+          "tenant-acme-global-holdco"
+        ],
+        [
+          "tenant-jv-parent-a",
+          "tenant-jv-parent-b"
+        ]
+      ]
+    },
+    "is_personal_tenant": {
+      "type": "boolean",
+      "description": "ADR-0311 shortcut classifier. True only when the tenant is a personal-tenant surface (`audience_type` is `B2C_CONSUMER` or `B2C_JOB_SEEKER_ACTIVE`). Work-tenant principals cannot read personal-tenant resources absent self-access or ADR-0312 warrant-scoped piercing.",
+      "default": false,
+      "examples": [
+        false,
+        true
+      ]
+    },
+    "eligible_capabilities": {
+      "type": "array",
+      "description": "Capability identifiers the tenant is eligible to activate (post-KYB/KYC + post-pack-adoption). A tenant may be eligible without having activated the capability.",
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$"
+      },
+      "uniqueItems": true,
+      "examples": [
+        [],
+        [
+          "workflow-engine.execute",
+          "intelligence.llm-chat"
+        ],
+        [
+          "payments.charge",
+          "payments.payout",
+          "marketplace.list-product",
+          "messenger.send"
+        ]
+      ]
+    },
+    "locked": {
+      "type": "boolean",
+      "description": "Lifecycle lock. When true, the tenant row cannot be modified or deleted without ops-compliance approval via the unlock saga. `oyatie` root tenant is locked at bootstrap.",
+      "default": false
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Tenant creation timestamp (ISO 8601 / RFC 3339 with timezone)."
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Principal identifier that created this tenant. For bootstrap-created tenants, `system:bootstrap-migration`.",
+      "examples": [
+        "system:bootstrap-migration",
+        "oyatie.platform-ops.onboarding-agent",
+        "tenant-acme-corp.admin#user-1"
+      ]
+    },
+    "updated_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Most-recent update timestamp."
+    },
+    "updated_by": {
+      "type": "string",
+      "description": "Principal identifier that performed the most-recent update.",
+      "examples": [
+        "oyatie.platform-ops.tenant-admin",
+        "tenant-acme-corp.admin#user-7"
+      ]
+    },
+    "dsar_status": {
+      "type": "object",
+      "description": "Current DSAR cascade state for this tenant (most-recent or open request).",
+      "properties": {
+        "open_request_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "UUID of any open DSAR cascade; NULL if none open."
+        },
+        "last_request_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Timestamp of most-recent DSAR request."
+        },
+        "last_completed_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time",
+          "description": "Timestamp of most-recent completed DSAR response."
+        },
+        "open_holds": {
+          "type": "array",
+          "description": "Legal/regulatory holds that supersede erasure for some data classes.",
+          "items": {
+            "type": "object",
+            "required": [
+              "hold_id",
+              "reason",
+              "data_classes_held",
+              "effective_at"
+            ],
+            "properties": {
+              "hold_id": {
+                "type": "string"
+              },
+              "reason": {
+                "type": "string",
+                "enum": [
+                  "litigation",
+                  "regulatory-investigation",
+                  "tax-retention",
+                  "sox-retention",
+                  "hipaa-retention",
+                  "frcp-37e",
+                  "other"
+                ]
+              },
+              "data_classes_held": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "effective_at": {
+                "type": "string",
+                "format": "date-time"
+              },
+              "sunset_at": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "format": "date-time"
+              }
+            }
+          }
+        }
+      },
+      "examples": [
+        {
+          "open_request_id": null,
+          "last_request_at": null,
+          "last_completed_at": null,
+          "open_holds": []
+        },
+        {
+          "open_request_id": "550e8400-e29b-41d4-a716-446655440000",
+          "last_request_at": "2026-05-15T10:00:00Z",
+          "last_completed_at": null,
+          "open_holds": []
+        }
+      ]
+    },
+    "business_continuity_dr_tier": {
+      "type": "string",
+      "description": "DR tier per ADR-0241 portfolio policy. Tenant-level default; per-microservice declarations may override for specific services this tenant uses.",
+      "enum": [
+        "T1",
+        "T2",
+        "T3",
+        "T4"
+      ],
+      "x-enum-descriptions": {
+        "T1": "Active-active multi-AZ cross-region warm. RTO < 5min; RPO 0s. Quarterly + ad-hoc drills.",
+        "T2": "Active-passive cross-region continuous replication. RTO < 60min; RPO < 60s. Quarterly drills.",
+        "T3": "Backup/restore cross-region warm. RTO < 240min; RPO < 900s. Semi-annual drills.",
+        "T4": "Backup/restore cold. RTO < 1440min; RPO < 3600s. Semi-annual tabletop drills."
+      }
+    }
+  },
+  "definitions": {
+    "tenantId": {
+      "type": "string",
+      "description": "Shared tenant identifier used by tenant rows, parent/child denormalized indexes, audit streams, Cedar contexts, and ontology projections. Lowercase ASCII with up to six dotted path segments.",
+      "pattern": "^[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?){0,5}$",
+      "minLength": 2,
+      "maxLength": 253,
+      "examples": [
+        "oyatie",
+        "tenant-acme-corp",
+        "tenant-acme-corp.team-payments"
+      ]
+    },
+    "principalRef": {
+      "type": "string",
+      "description": "Shared principal reference for created_by, updated_by, legal owners, Cedar signer references, and tenant-local actor ids.",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:#/-]*$",
+      "minLength": 3,
+      "maxLength": 256,
+      "examples": [
+        "system:bootstrap-migration",
+        "oyatie.platform-ops.onboarding-agent",
+        "tenant-acme-corp.admin#user-1"
+      ]
+    },
+    "cellId": {
+      "type": "string",
+      "description": "Shared cell identifier for home and DR routing decisions.",
+      "pattern": "^(data|control|bootstrap)-(plane|cell)-[a-z]{2}-[a-z]+-[0-9]+-[a-z]$",
+      "examples": [
+        "data-plane-us-west-2-a",
+        "data-plane-eu-central-1-a",
+        "bootstrap-cell-us-east-1-a"
+      ]
+    },
+    "jurisdictionCode": {
+      "type": "string",
+      "description": "ISO 3166-1 alpha-2, ISO 3166-2, or portfolio-level region shorthand used by residency and compliance pack decisions.",
+      "pattern": "^[A-Z]{2}(-[A-Z0-9]{1,3})?$",
+      "examples": [
+        "US",
+        "US-DE",
+        "KR",
+        "DE",
+        "EU"
+      ]
+    },
+    "compliancePackId": {
+      "type": "string",
+      "description": "Compliance pack identifier per ADR-0251 and /specs/compliance-pack-schema.json.",
+      "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9.]+)*$",
+      "examples": [
+        "SOC2-T2",
+        "HIPAA-2024",
+        "EU-GDPR-2018-baseline",
+        "KR-PIPA-2023-amendment"
+      ]
+    },
+    "auditStreamId": {
+      "type": "string",
+      "description": "Audit-chain stream identifier for baseline, sub-scope, pack-specific, and dual-sealed tenant emissions.",
+      "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$",
+      "examples": [
+        "oyatie.root",
+        "oyatie.foundry",
+        "tenant-acme-corp",
+        "tenant-acme-corp.team-payments"
+      ]
+    },
+    "capabilityId": {
+      "type": "string",
+      "description": "Tenant-eligible capability id used before capability-tier grant activation.",
+      "pattern": "^[a-z0-9]([a-z0-9.-]*[a-z0-9])?$",
+      "examples": [
+        "workflow-engine.execute",
+        "intelligence.llm-chat",
+        "payments.charge",
+        "partner.assume-role-customer-tenant"
+      ]
+    },
+    "isoDuration": {
+      "type": "string",
+      "description": "ISO 8601 duration string used for thresholds, retention floors, and freshness floors.",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "examples": [
+        "PT5S",
+        "PT24H",
+        "P30D",
+        "P7Y"
+      ]
+    },
+    "legalHold": {
+      "type": "object",
+      "description": "Shared legal-hold object used by DSAR state and compliance-pack retention overlays.",
+      "required": [
+        "hold_id",
+        "reason",
+        "data_classes_held",
+        "effective_at"
+      ],
+      "properties": {
+        "hold_id": {
+          "type": "string",
+          "minLength": 3
+        },
+        "reason": {
+          "type": "string",
+          "enum": [
+            "litigation",
+            "regulatory-investigation",
+            "tax-retention",
+            "sox-retention",
+            "hipaa-retention",
+            "frcp-37e",
+            "other"
+          ]
+        },
+        "data_classes_held": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 2
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "effective_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "sunset_at": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "format": "date-time"
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "description": "PLATFORM_OWNER audience implies reserved-namespace tenant_id (must start with `oyatie`).",
+      "if": {
+        "properties": {
+          "audience_type": {
+            "const": "PLATFORM_OWNER"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "tenant_id": {
+            "pattern": "^oyatie(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?){0,5}$"
+          },
+          "locked": {
+            "const": true
+          }
+        }
+      }
+    },
+    {
+      "description": "SANDBOX and PREVIEW audience types must declare auto-teardown via parent oyatie.dev.* or oyatie.preview.* path.",
+      "if": {
+        "properties": {
+          "audience_type": {
+            "enum": [
+              "SANDBOX",
+              "PREVIEW"
+            ]
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "tenant_id": {
+            "pattern": "^oyatie\\.(dev|preview|ci)\\.[a-z0-9][a-z0-9-]*$"
+          },
+          "kyc_status": {
+            "const": "not_required"
+          }
+        }
+      }
+    },
+    {
+      "description": "If can_settle is true, tenant must have at least one tax registration and merchant_status of merchant_of_record, marketplace_seller, or platform_facilitator.",
+      "if": {
+        "properties": {
+          "capabilities": {
+            "properties": {
+              "can_settle": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "merchant_status": {
+            "enum": [
+              "merchant_of_record",
+              "marketplace_seller",
+              "platform_facilitator"
+            ]
+          },
+          "tax_registrations": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "description": "If can_facilitate_sub_merchants is true, merchant_status must be platform_facilitator.",
+      "if": {
+        "properties": {
+          "capabilities": {
+            "properties": {
+              "can_facilitate_sub_merchants": {
+                "const": true
+              }
+            }
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "merchant_status": {
+            "const": "platform_facilitator"
+          }
+        }
+      }
+    },
+    {
+      "description": "B2B_TENANT and DEVELOPER audience types require KYC verification before any payment capability flips true.",
+      "if": {
+        "anyOf": [
+          {
+            "properties": {
+              "capabilities": {
+                "properties": {
+                  "can_pay": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "capabilities": {
+                "properties": {
+                  "can_receive": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          },
+          {
+            "properties": {
+              "capabilities": {
+                "properties": {
+                  "can_settle": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        ]
+      },
+      "then": {
+        "properties": {
+          "kyc_status": {
+            "enum": [
+              "verified",
+              "verified_enhanced"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "x-reserved-namespace-roots": [
+    "oyatie",
+    "oya",
+    "oyat",
+    "oyati"
+  ],
+  "x-reserved-namespace-validation": {
+    "normalization_steps": [
+      "NFKC",
+      "lowercase",
+      "strip-diacritics",
+      "remove-unicode-confusables (UTS #39)"
+    ],
+    "match_rules": [
+      "exact match against reserved root",
+      "prefix match: `<root>-`, `<root>.`, `<root>_`",
+      "IDN-homograph variants per UTR #36 confusables table"
+    ],
+    "enforcement": "tenancy.reserved_namespace::is_reserved() + Cedar fragment policy-engine/fragments/reserved-tenant-namespace.cedar"
+  },
+  "examples": [
+    {
+      "tenant_id": "oyatie",
+      "parent_tenant_id": null,
+      "audience_type": "PLATFORM_OWNER",
+      "home_cell": "control-plane-us-east-1-a",
+      "dr_cell": "control-plane-us-west-2-b",
+      "jurisdiction": {
+        "primary": "US-DE",
+        "data_residency_allowed": [
+          "US",
+          "EU",
+          "KR"
+        ]
+      },
+      "sovereign_cloud_pack": null,
+      "capabilities": {
+        "can_pay": true,
+        "can_receive": true,
+        "can_settle": true,
+        "can_facilitate_sub_merchants": true
+      },
+      "merchant_status": "platform_facilitator",
+      "payout_method": "internal",
+      "tax_registrations": [
+        {
+          "jurisdiction": "US-DE",
+          "tax_id": "XX-XXXXXXX",
+          "tax_type": "corporate-income",
+          "effective_at": "2024-01-01T00:00:00Z"
+        }
+      ],
+      "dsar_contact": {
+        "legal_owner": "council-legal",
+        "email": "dsar@oyatie.com",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "oyatie.root",
+        "oyatie.foundry",
+        "oyatie.security",
+        "oyatie.finance",
+        "oyatie.platform-ops"
+      ],
+      "finops_cost_center": "oyatie-platform",
+      "marketplace_roles": [
+        "PLATFORM_OPERATOR",
+        "PAYMENT_FACILITATOR"
+      ],
+      "seller_categories": [],
+      "fulfillment_capabilities": [
+        "SAAS_PROVISION"
+      ],
+      "trust_score": 1.0,
+      "kyc_status": "verified_enhanced",
+      "compliance_packs": [
+        "SOC2-T2",
+        "ISO27001-2022",
+        "EU-GDPR-2018-baseline"
+      ],
+      "eligible_capabilities": [
+        "workflow-engine.execute",
+        "intelligence.llm-chat",
+        "policy-engine.publish-fragment"
+      ],
+      "locked": true,
+      "created_at": "2026-05-20T00:00:00Z",
+      "created_by": "system:bootstrap-migration",
+      "updated_at": "2026-05-20T00:00:00Z",
+      "updated_by": "system:bootstrap-migration",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": null,
+        "last_completed_at": null,
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T1"
+    },
+    {
+      "tenant_id": "oyatie.foundry.ci-agent",
+      "parent_tenant_id": "oyatie.foundry",
+      "audience_type": "PLATFORM_OWNER",
+      "home_cell": "control-plane-us-east-1-a",
+      "dr_cell": "control-plane-us-west-2-b",
+      "jurisdiction": {
+        "primary": "US-DE",
+        "data_residency_allowed": [
+          "US"
+        ]
+      },
+      "sovereign_cloud_pack": null,
+      "capabilities": {
+        "can_pay": false,
+        "can_receive": false,
+        "can_settle": false,
+        "can_facilitate_sub_merchants": false
+      },
+      "merchant_status": "not_a_merchant",
+      "payout_method": null,
+      "tax_registrations": [],
+      "dsar_contact": {
+        "legal_owner": "council-legal",
+        "email": "dsar@oyatie.com",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "oyatie.foundry.ci-agent"
+      ],
+      "finops_cost_center": "oyatie.foundry.ci-agent",
+      "marketplace_roles": [],
+      "seller_categories": [],
+      "fulfillment_capabilities": [],
+      "trust_score": 1.0,
+      "kyc_status": "not_required",
+      "compliance_packs": [
+        "SOC2-T2"
+      ],
+      "eligible_capabilities": [
+        "workflow-engine.execute",
+        "foundry.trigger-build",
+        "foundry.publish-evidence"
+      ],
+      "locked": true,
+      "created_at": "2026-05-20T00:00:00Z",
+      "created_by": "system:bootstrap-migration",
+      "updated_at": "2026-05-20T00:00:00Z",
+      "updated_by": "system:bootstrap-migration",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": null,
+        "last_completed_at": null,
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T2"
+    },
+    {
+      "tenant_id": "tenant-acme-corp",
+      "parent_tenant_id": null,
+      "audience_type": "B2B_TENANT",
+      "home_cell": "data-plane-us-west-2-a",
+      "dr_cell": "data-plane-us-east-1-b",
+      "jurisdiction": {
+        "primary": "US-CA",
+        "data_residency_allowed": [
+          "US"
+        ]
+      },
+      "sovereign_cloud_pack": null,
+      "capabilities": {
+        "can_pay": true,
+        "can_receive": true,
+        "can_settle": true,
+        "can_facilitate_sub_merchants": false
+      },
+      "merchant_status": "merchant_of_record",
+      "payout_method": "ach:masked",
+      "tax_registrations": [
+        {
+          "jurisdiction": "US-CA",
+          "tax_id": "XX-XXXXXXX",
+          "tax_type": "sales-tax",
+          "effective_at": "2025-01-01T00:00:00Z"
+        }
+      ],
+      "dsar_contact": {
+        "legal_owner": "tenant-acme-corp.privacy-officer",
+        "email": "privacy@acme.example",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "tenant-acme-corp"
+      ],
+      "finops_cost_center": "tenant-acme-corp",
+      "marketplace_roles": [
+        "SELLER"
+      ],
+      "seller_categories": [
+        "SAAS"
+      ],
+      "fulfillment_capabilities": [
+        "SAAS_PROVISION"
+      ],
+      "trust_score": 0.88,
+      "kyc_status": "verified",
+      "compliance_packs": [
+        "SOC2-T2",
+        "EU-GDPR-2018-baseline"
+      ],
+      "eligible_capabilities": [
+        "workflow-engine.execute",
+        "intelligence.llm-chat",
+        "messenger.send"
+      ],
+      "locked": false,
+      "created_at": "2025-09-12T14:23:00Z",
+      "created_by": "oyatie.platform-ops.onboarding-agent",
+      "updated_at": "2026-04-22T10:14:00Z",
+      "updated_by": "tenant-acme-corp.admin#user-1",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": null,
+        "last_completed_at": null,
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T2"
+    },
+    {
+      "tenant_id": "consumer-7da9c4b1",
+      "parent_tenant_id": null,
+      "audience_type": "B2C_CONSUMER",
+      "home_cell": "data-plane-eu-central-1-a",
+      "dr_cell": "data-plane-eu-west-1-b",
+      "jurisdiction": {
+        "primary": "DE",
+        "data_residency_allowed": [
+          "EU"
+        ]
+      },
+      "sovereign_cloud_pack": "EU-GAIA-X",
+      "capabilities": {
+        "can_pay": true,
+        "can_receive": false,
+        "can_settle": false,
+        "can_facilitate_sub_merchants": false
+      },
+      "merchant_status": "not_a_merchant",
+      "payout_method": null,
+      "tax_registrations": [],
+      "dsar_contact": {
+        "legal_owner": "council-legal",
+        "email": "dsar@oyatie.com",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "consumer-7da9c4b1"
+      ],
+      "finops_cost_center": "consumer-7da9c4b1",
+      "marketplace_roles": [
+        "BUYER"
+      ],
+      "seller_categories": [],
+      "fulfillment_capabilities": [],
+      "trust_score": 0.62,
+      "kyc_status": "verified",
+      "compliance_packs": [
+        "EU-GDPR-2018-baseline"
+      ],
+      "eligible_capabilities": [
+        "intelligence.llm-chat",
+        "messenger.send"
+      ],
+      "locked": false,
+      "created_at": "2026-02-14T08:00:00Z",
+      "created_by": "oyatie.platform-ops.onboarding-agent",
+      "updated_at": "2026-05-01T18:30:00Z",
+      "updated_by": "consumer-7da9c4b1#self",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": "2026-04-10T12:00:00Z",
+        "last_completed_at": "2026-04-12T09:00:00Z",
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T3"
+    },
+    {
+      "tenant_id": "oyatie.dev.jasonlee",
+      "parent_tenant_id": "oyatie",
+      "audience_type": "SANDBOX",
+      "home_cell": "data-plane-us-west-2-a",
+      "dr_cell": "data-plane-us-east-1-b",
+      "jurisdiction": {
+        "primary": "US-DE",
+        "data_residency_allowed": [
+          "US"
+        ]
+      },
+      "sovereign_cloud_pack": null,
+      "capabilities": {
+        "can_pay": false,
+        "can_receive": false,
+        "can_settle": false,
+        "can_facilitate_sub_merchants": false
+      },
+      "merchant_status": "not_a_merchant",
+      "payout_method": null,
+      "tax_registrations": [],
+      "dsar_contact": {
+        "legal_owner": "council-legal",
+        "email": "dsar@oyatie.com",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "oyatie.dev.jasonlee"
+      ],
+      "finops_cost_center": "oyatie.dev.jasonlee",
+      "marketplace_roles": [],
+      "seller_categories": [],
+      "fulfillment_capabilities": [],
+      "trust_score": 1.0,
+      "kyc_status": "not_required",
+      "compliance_packs": [],
+      "eligible_capabilities": [
+        "workflow-engine.execute",
+        "intelligence.llm-chat"
+      ],
+      "locked": false,
+      "created_at": "2026-05-19T09:00:00Z",
+      "created_by": "oyatie.platform-ops.sandbox-provisioner",
+      "updated_at": "2026-05-20T00:00:00Z",
+      "updated_by": "oyatie.platform-ops.sandbox-provisioner",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": null,
+        "last_completed_at": null,
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T4"
+    },
+    {
+      "tenant_id": "oyatie.preview.123",
+      "parent_tenant_id": "oyatie",
+      "audience_type": "PREVIEW",
+      "home_cell": "data-plane-us-west-2-a",
+      "dr_cell": "data-plane-us-east-1-b",
+      "jurisdiction": {
+        "primary": "US-DE",
+        "data_residency_allowed": [
+          "US"
+        ]
+      },
+      "sovereign_cloud_pack": null,
+      "capabilities": {
+        "can_pay": false,
+        "can_receive": false,
+        "can_settle": false,
+        "can_facilitate_sub_merchants": false
+      },
+      "merchant_status": "not_a_merchant",
+      "payout_method": null,
+      "tax_registrations": [],
+      "dsar_contact": {
+        "legal_owner": "council-legal",
+        "email": "dsar@oyatie.com",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "oyatie.preview.123"
+      ],
+      "finops_cost_center": "oyatie.preview",
+      "marketplace_roles": [],
+      "seller_categories": [],
+      "fulfillment_capabilities": [],
+      "trust_score": 1.0,
+      "kyc_status": "not_required",
+      "compliance_packs": [],
+      "eligible_capabilities": [
+        "workflow-engine.execute"
+      ],
+      "locked": false,
+      "created_at": "2026-05-20T11:00:00Z",
+      "created_by": "oyatie.foundry.ci-agent",
+      "updated_at": "2026-05-20T11:00:00Z",
+      "updated_by": "oyatie.foundry.ci-agent",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": null,
+        "last_completed_at": null,
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T4"
+    },
+    {
+      "tenant_id": "tenant-kim-builder-3a2b",
+      "parent_tenant_id": null,
+      "audience_type": "DEVELOPER",
+      "home_cell": "data-plane-kr-seoul-1-a",
+      "dr_cell": "data-plane-kr-busan-1-b",
+      "jurisdiction": {
+        "primary": "KR",
+        "data_residency_allowed": [
+          "KR"
+        ]
+      },
+      "sovereign_cloud_pack": "KR-CSAP-v3.1",
+      "capabilities": {
+        "can_pay": false,
+        "can_receive": true,
+        "can_settle": true,
+        "can_facilitate_sub_merchants": false
+      },
+      "merchant_status": "marketplace_seller",
+      "payout_method": "kr-bank:masked",
+      "tax_registrations": [
+        {
+          "jurisdiction": "KR",
+          "tax_id": "XXX-XX-XXXXX",
+          "tax_type": "vat",
+          "effective_at": "2026-01-01T00:00:00Z"
+        }
+      ],
+      "dsar_contact": {
+        "legal_owner": "tenant-kim-builder-3a2b.owner",
+        "email": "kim@example.kr",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "tenant-kim-builder-3a2b"
+      ],
+      "finops_cost_center": "tenant-kim-builder-3a2b",
+      "marketplace_roles": [
+        "SELLER",
+        "PLUGIN_PUBLISHER"
+      ],
+      "seller_categories": [
+        "DIGITAL_GOODS"
+      ],
+      "fulfillment_capabilities": [
+        "DIGITAL_DELIVERY"
+      ],
+      "trust_score": 0.71,
+      "kyc_status": "verified",
+      "compliance_packs": [
+        "KR-PIPA-2023-amendment"
+      ],
+      "eligible_capabilities": [
+        "plugin-app-store.publish",
+        "marketplace.list-product"
+      ],
+      "locked": false,
+      "created_at": "2026-03-01T00:00:00Z",
+      "created_by": "oyatie.platform-ops.onboarding-agent",
+      "updated_at": "2026-05-01T00:00:00Z",
+      "updated_by": "tenant-kim-builder-3a2b.owner#self",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": null,
+        "last_completed_at": null,
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T2"
+    },
+    {
+      "tenant_id": "tenant-implementation-partners-llc",
+      "parent_tenant_id": null,
+      "audience_type": "PARTNER_AGENCY",
+      "home_cell": "data-plane-us-east-1-a",
+      "dr_cell": "data-plane-us-west-2-b",
+      "jurisdiction": {
+        "primary": "US-NY",
+        "data_residency_allowed": [
+          "US",
+          "EU"
+        ]
+      },
+      "sovereign_cloud_pack": null,
+      "capabilities": {
+        "can_pay": false,
+        "can_receive": true,
+        "can_settle": true,
+        "can_facilitate_sub_merchants": false
+      },
+      "merchant_status": "merchant_of_record",
+      "payout_method": "ach:masked",
+      "tax_registrations": [
+        {
+          "jurisdiction": "US-NY",
+          "tax_id": "XX-XXXXXXX",
+          "tax_type": "sales-tax",
+          "effective_at": "2025-01-01T00:00:00Z"
+        }
+      ],
+      "dsar_contact": {
+        "legal_owner": "tenant-implementation-partners-llc.privacy",
+        "email": "privacy@impl-partners.example",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "tenant-implementation-partners-llc"
+      ],
+      "finops_cost_center": "tenant-implementation-partners-llc",
+      "marketplace_roles": [],
+      "seller_categories": [
+        "PROFESSIONAL_SERVICES"
+      ],
+      "fulfillment_capabilities": [
+        "REMOTE_SERVICE",
+        "ONSITE_SERVICE"
+      ],
+      "trust_score": 0.93,
+      "kyc_status": "verified_enhanced",
+      "compliance_packs": [
+        "SOC2-T2"
+      ],
+      "eligible_capabilities": [
+        "partner.assume-role-customer-tenant",
+        "workflow-engine.execute"
+      ],
+      "locked": false,
+      "created_at": "2025-06-15T00:00:00Z",
+      "created_by": "oyatie.platform-ops.onboarding-agent",
+      "updated_at": "2026-04-10T00:00:00Z",
+      "updated_by": "tenant-implementation-partners-llc.admin#user-1",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": null,
+        "last_completed_at": null,
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T2"
+    },
+    {
+      "tenant_id": "tenant-reseller-emea-distrib",
+      "parent_tenant_id": null,
+      "audience_type": "RESELLER",
+      "home_cell": "data-plane-eu-central-1-a",
+      "dr_cell": "data-plane-eu-west-1-b",
+      "jurisdiction": {
+        "primary": "DE",
+        "data_residency_allowed": [
+          "EU"
+        ]
+      },
+      "sovereign_cloud_pack": "EU-GAIA-X",
+      "capabilities": {
+        "can_pay": true,
+        "can_receive": true,
+        "can_settle": true,
+        "can_facilitate_sub_merchants": true
+      },
+      "merchant_status": "platform_facilitator",
+      "payout_method": "sepa:masked",
+      "tax_registrations": [
+        {
+          "jurisdiction": "EU",
+          "tax_id": "DE-XXXXXXXXX",
+          "tax_type": "vat",
+          "effective_at": "2024-01-01T00:00:00Z"
+        }
+      ],
+      "dsar_contact": {
+        "legal_owner": "tenant-reseller-emea-distrib.dpo",
+        "email": "dpo@emea-distrib.example",
+        "response_sla_days": 30
+      },
+      "audit_streams": [
+        "tenant-reseller-emea-distrib"
+      ],
+      "finops_cost_center": "tenant-reseller-emea-distrib",
+      "marketplace_roles": [
+        "RESELLER",
+        "PAYMENT_FACILITATOR"
+      ],
+      "seller_categories": [
+        "SAAS"
+      ],
+      "fulfillment_capabilities": [
+        "SAAS_PROVISION"
+      ],
+      "trust_score": 0.91,
+      "kyc_status": "verified_enhanced",
+      "compliance_packs": [
+        "EU-GDPR-2018-baseline",
+        "ISO27001-2022",
+        "SOC2-T2"
+      ],
+      "eligible_capabilities": [
+        "reseller.onboard-downstream",
+        "payments.facilitate",
+        "marketplace.list-product"
+      ],
+      "locked": false,
+      "created_at": "2025-04-01T00:00:00Z",
+      "created_by": "oyatie.platform-ops.onboarding-agent",
+      "updated_at": "2026-05-15T00:00:00Z",
+      "updated_by": "tenant-reseller-emea-distrib.admin#user-1",
+      "dsar_status": {
+        "open_request_id": null,
+        "last_request_at": null,
+        "last_completed_at": null,
+        "open_holds": []
+      },
+      "business_continuity_dr_tier": "T2"
+    }
+  ]
+}

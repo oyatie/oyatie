@@ -1,0 +1,30 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (ADR-0064)
+name: oya-feature-flags-killswitch-kernel
+role: kernel
+context: feature-flags
+plane: control
+slo: killswitch-fire-latency
+contracts_consumed: []
+contracts_exposed:
+  - microservices/feature-flags/contracts/feature-flags-v1.proto
+  - microservices/feature-flags/contracts/asyncapi-v1.yaml
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-fedramp, oya-pack-eu-ai-act]
+lifecycle: {state: incubating, preview_since: 2026-05-20}
+traceability:
+  github_issue: "oya-governance-pipeline://feature-flags-buildout-2026-05-20"
+  source_adrs: [ADR-0105, ADR-0131, ADR-0159, ADR-0243, ADR-0244, ADR-0248, ADR-0252, ADR-0263, ADR-0295, ADR-0298]
+allowed_dependency_edges:
+  - oya-shared-policy-eval
+  - oya-shared-hlc
+  - oya-shared-kafka-producer
+  - oya-shared-audit-emitter
+  - oya-shared-step-up-auth
+data_classes_owned: [KILLSWITCH_STATE, KILLSWITCH_AUDIT_RECORD]
+operational_classes_owned: [KILLSWITCH_FIRE_LATENCY_MS, KILLSWITCH_PROPAGATION_LAG_MS]
+autonomy_tier_required: T1
+life_safety: true
+step_up_class_required: C
+kafka_topic: oya.feature-flags.killswitch-engaged
+kafka_partitions: 50
+broadcast_slo_ms: 1000
+naming_justification: "oya-feature-flags-killswitch-kernel — BC=killswitch + layer=kernel per ADR-0105 13-layer BNF v4.1; life-safety critical; Kafka fan-out ≤1s to all cells"

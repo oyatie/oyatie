@@ -1,0 +1,28 @@
+{
+  "claim_rows": [
+    {
+      "allowed_language_now": "mechanically enforced",
+      "artifact": "specs/fixtures/phase0-claim-ceiling/tc-0.17-bad-local-oya-authority-claim.json",
+      "claim_text": "mechanically enforced by local oya verify",
+      "claim_tier": "mechanically_enforced",
+      "current_evidence": [
+        "local-only command",
+        "legacy oya CLI invocation"
+      ],
+      "id": "BAD-local-oya-mechanical-enforcement",
+      "missing_for_next_tier": [],
+      "owner": "platform-toolchain",
+      "regulated_terms": [
+        "mechanically enforced",
+        "green"
+      ]
+    }
+  ],
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "forbidden_local_or_oya_evidence_for_mechanical_claim"
+  ],
+  "fixture_id": "TC-0.17-BAD-local-oya-authority-claim",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.17.2",
+  "text": "P0.0 is mechanically enforced and green because oya verify --ci-required passed locally."
+}

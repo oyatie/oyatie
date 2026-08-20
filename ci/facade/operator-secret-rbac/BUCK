@@ -1,0 +1,42 @@
+rust_library(
+    name = "ci-operator-secret-rbac",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_operator_secret_rbac",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:serde_yaml",
+    ],
+)
+
+rust_test(
+    name = "ci-operator-secret-rbac-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_operator_secret_rbac",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:serde_yaml",
+    ],
+)
+
+# GH #980 + GH #988 cloud-ci-operator-secret-bootstrap: live-tree self-test plus hermetic RED/GREEN
+# fixtures. The live leg runs the real read-only collector over the committed SVID operator chart,
+# static and values-backed ExternalSecret contracts, and OpenBao manifest; it asserts least-privilege
+# RBAC, provisioned join token, store/role/remote-key scope, and plaintext-listener NetworkPolicy
+# isolation. RED fixtures prove
+# the gate catches both the #980 and #988 defect classes.
+rust_test(
+    name = "ci-operator-secret-rbac-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_operator_secret_rbac_gate",
+    crate_root = "tests/operator_secret_bootstrap.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-operator-secret-rbac",
+        "third-party//:serde_json",
+        "third-party//:serde_yaml",
+    ],
+)

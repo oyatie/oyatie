@@ -1,0 +1,9 @@
+{
+  "pack": "feature-flags",
+  "scope_tier": "scaffold",
+  "scanned_files": 2,
+  "excluded_files": 1,
+  "violations": {},
+  "ip_files_thin": [],
+  "verdict": "SCAFFOLD_ONLY"
+}

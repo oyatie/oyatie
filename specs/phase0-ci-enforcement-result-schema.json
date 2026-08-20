@@ -1,0 +1,161 @@
+{
+  "$id": "https://docs.oyatie.com/specs/phase0-ci-enforcement-result-schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "_meta": {
+    "created_at": "2026-06-02T00:00:00Z",
+    "doc_class": "Machine-Readable-Spec",
+    "owner_team": "platform-toolchain + platform-security",
+    "related_acceptance_criteria": [
+      "AC-0.0",
+      "AC-0.12",
+      "AC-0.16",
+      "AC-0.17"
+    ],
+    "related_plan": ".omx/plans/prd-platform-readiness.md#P0.0",
+    "related_test_spec": ".omx/plans/test-spec-phase0.md#T0.0",
+    "spec_id": "EXE-PHASE0-CI-ENFORCEMENT-RESULT-SCHEMA",
+    "status": "result_schema_not_live_authority",
+    "updated_at": "2026-06-02T15:46:00Z",
+    "version": "0.1.0"
+  },
+  "additionalProperties": false,
+  "description": "Structured result bundle schema for P0.0 cloud-ci/oya-ci fixture runs. A conforming bundle is evidence input only; live enforcement still requires the protected required context on the candidate SHA.",
+  "properties": {
+    "candidate_sha": {
+      "description": "Full candidate commit object id that the required context is posted to; synthetic fixtures must still use a valid 40-hex placeholder and carry claim_boundary metadata.",
+      "maxLength": 40,
+      "minLength": 40,
+      "pattern": "^[0-9a-fA-F]{40}$",
+      "type": "string"
+    },
+    "claim_boundary": {
+      "additionalProperties": false,
+      "properties": {
+        "p0_0_green": {
+          "type": "boolean"
+        },
+        "phase0_complete": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "p0_0_green",
+        "phase0_complete"
+      ],
+      "type": "object"
+    },
+    "fixture_results": {
+      "items": {
+        "additionalProperties": false,
+        "properties": {
+          "expected_verdict": {
+            "enum": [
+              "RED",
+              "GREEN"
+            ]
+          },
+          "fixture_id": {
+            "minLength": 1,
+            "type": "string"
+          },
+          "observed_verdict": {
+            "enum": [
+              "RED",
+              "GREEN"
+            ]
+          },
+          "violations": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array"
+          }
+        },
+        "required": [
+          "fixture_id",
+          "expected_verdict",
+          "observed_verdict",
+          "violations"
+        ],
+        "type": "object"
+      },
+      "minItems": 1,
+      "type": "array"
+    },
+    "observed_verdict": {
+      "enum": [
+        "RED",
+        "GREEN"
+      ]
+    },
+    "producer": {
+      "additionalProperties": false,
+      "properties": {
+        "candidate_bytes_policy": {
+          "type": "string"
+        },
+        "context": {
+          "enum": [
+            "cloud-ci-required",
+            "oya-ci-required",
+            "missing"
+          ]
+        },
+        "gate_definition_source": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "trusted_control_state": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "context",
+        "kind",
+        "trusted_control_state"
+      ],
+      "type": "object"
+    },
+    "provenance": {
+      "additionalProperties": false,
+      "properties": {
+        "recorded_at": {
+          "minLength": 1,
+          "type": "string"
+        },
+        "sources": {
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "type": "array"
+        }
+      },
+      "required": [
+        "recorded_at",
+        "sources"
+      ],
+      "type": "object"
+    },
+    "required_context": {
+      "enum": [
+        "cloud-ci-required",
+        "oya-ci-required",
+        "missing"
+      ]
+    }
+  },
+  "required": [
+    "candidate_sha",
+    "required_context",
+    "producer",
+    "fixture_results",
+    "observed_verdict",
+    "provenance",
+    "claim_boundary"
+  ],
+  "title": "Phase0CiEnforcementResult",
+  "type": "object"
+}

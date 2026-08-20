@@ -1,0 +1,141 @@
+rust_library(
+    name = "intelligence-codex-sdk",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_codex_sdk",
+    crate_root = "src/lib.rs",
+    rustc_flags = ["--cfg", "feature=\"async\""],
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-codex-sdk-tests",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_codex_sdk",
+    crate_root = "src/lib.rs",
+    rustc_flags = ["--cfg", "feature=\"async\""],
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:tokio",
+    ],
+)
+
+rust_binary(
+    name = "intelligence-codex-sdk-app-server-example",
+    srcs = glob(["examples/app_server.rs"]),
+    crate = "intelligence_codex_sdk_app_server_example",
+    crate_root = "examples/app_server.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "intelligence-codex-sdk-quickstart-example",
+    srcs = glob(["examples/quickstart.rs"]),
+    crate = "intelligence_codex_sdk_quickstart_example",
+    crate_root = "examples/quickstart.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+    ],
+)
+
+rust_binary(
+    name = "intelligence-codex-sdk-streaming-example",
+    srcs = glob(["examples/streaming.rs"]),
+    crate = "intelligence_codex_sdk_streaming_example",
+    crate_root = "examples/streaming.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+    ],
+)
+
+rust_test(
+    name = "intelligence-codex-sdk-app-server-contract-test",
+    srcs = glob(["tests/app_server_contract.rs"]),
+    crate = "intelligence_codex_sdk_app_server_contract_test",
+    crate_root = "tests/app_server_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+    ],
+)
+
+rust_test(
+    name = "intelligence-codex-sdk-async-app-server-contract-test",
+    srcs = glob(["tests/async_app_server_contract.rs"]),
+    crate = "intelligence_codex_sdk_async_app_server_contract_test",
+    crate_root = "tests/async_app_server_contract.rs",
+    rustc_flags = ["--cfg", "feature=\"async\""],
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-codex-sdk-live-app-server-test",
+    srcs = glob(["tests/live_app_server.rs"]),
+    crate = "intelligence_codex_sdk_live_app_server_test",
+    crate_root = "tests/live_app_server.rs",
+    rustc_flags = ["--cfg", "feature=\"async\""],
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "intelligence-codex-sdk-protocol-schema-contract-test",
+    srcs = glob(["tests/protocol_schema_contract.rs"]),
+    crate = "intelligence_codex_sdk_protocol_schema_contract_test",
+    crate_root = "tests/protocol_schema_contract.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+    ],
+)
+
+rust_test(
+    name = "intelligence-codex-sdk-runtime-resolution-test",
+    srcs = glob(["tests/runtime_resolution.rs"]),
+    crate = "intelligence_codex_sdk_runtime_resolution_test",
+    crate_root = "tests/runtime_resolution.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+    ],
+)
+
+rust_test(
+    name = "intelligence-codex-sdk-sdk-behavior-test",
+    srcs = glob(["tests/sdk_behavior.rs"]),
+    crate = "intelligence_codex_sdk_sdk_behavior_test",
+    crate_root = "tests/sdk_behavior.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-codex-sdk",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+    ],
+)

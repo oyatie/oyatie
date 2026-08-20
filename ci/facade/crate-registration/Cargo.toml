@@ -1,0 +1,37 @@
+[package]
+name = "ci-crate-registration"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Register-crate orchestrator: wires the pure crate-registrar kernel plan to the on-disk writers + the cloud-ci producer registration bridges (G011 born-accounting slice 3b, ADR-0568)."
+
+# G011 born-accounting slice 3b (ADR-0568): the ORCHESTRATOR half of register_crate. It lives under
+# ci/facade/ (NOT libs/) on purpose — it depends SAME-LAYER on the cloud-ci producer
+# (fix_owners/fix_reachability/allocate_next_adr_id) and DOWNWARD on the libs/ kernel + writers; a
+# libs/ crate may not depend on ci/facade/ (forbidden layer inversion, ADR-0131/0512).
+
+[lib]
+name = "ci_crate_registration"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-crate-registrar-kernel = { path = "../../../libs/oya-crate-registrar-kernel" }
+oya-crate-registrar-app = { path = "../../../libs/oya-crate-registrar-app" }
+oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
+ci-artifact-inventory-registry = { path = "../artifact-inventory-registry" }
+ci-module-membership = { path = "../module-membership" }
+ci-artifact-accountability = { path = "../artifact-accountability" }
+ci-slo-coverage = { path = "../slo-coverage" }
+ci-service-catalog-parity = { path = "../service-catalog-parity" }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

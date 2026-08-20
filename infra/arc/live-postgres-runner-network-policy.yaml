@@ -1,0 +1,93 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: live-postgres-runner-ingress-deny
+  namespace: arc-runners
+  labels:
+    app.kubernetes.io/part-of: oya-cloud-ci
+spec:
+  podSelector:
+    matchLabels:
+      oya.io/ci-cell: live-postgres
+  policyTypes:
+    - Ingress
+  # PostgreSQL has no Service and is consumed only over same-Pod localhost.
+  # Deny every cross-Pod ingress path to the runner/database Pod.
+  ingress: []
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: ci-runners-egress-allowlist
+  namespace: arc-runners
+  labels:
+    app.kubernetes.io/part-of: oya-cloud-ci
+spec:
+  podSelector:
+    matchExpressions:
+      - key: oya.io/ci-cell
+        operator: In
+        values: [general, live-postgres]
+  policyTypes: [Egress]
+  # Standard NetworkPolicy has allow semantics only. Selecting these Pods with
+  # Egress makes the declaration default-deny, then restores only DNS, the two
+  # runner substrate namespaces, and public IPv4. Private/link-local ranges stay
+  # excluded, so oya-data and every other unlisted in-cluster namespace fail
+  # closed without a Cilium-only CRD. Live CNI enforcement still needs readback.
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+      ports:
+        - { protocol: UDP, port: 53 }
+        - { protocol: TCP, port: 53 }
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-ci
+      ports:
+        - { protocol: TCP, port: 50051 }
+        - { protocol: TCP, port: 50052 }
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-registry
+      ports:
+        - { protocol: TCP, port: 5000 }
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 100.64.0.0/10
+              - 127.0.0.0/8
+              - 169.254.0.0/16
+              - 172.16.0.0/12
+              - 192.0.0.0/24
+              - 192.168.0.0/16
+              - 198.18.0.0/15
+              - 224.0.0.0/4
+              - 240.0.0.0/4
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: general-ci-runner-openbao-egress
+  namespace: arc-runners
+  labels:
+    app.kubernetes.io/part-of: oya-cloud-ci
+spec:
+  podSelector:
+    matchLabels:
+      oya.io/ci-cell: general
+  policyTypes: [Egress]
+  egress:
+    # TLS-only OpenBao migration listener for short-lived CI identity. The
+    # live-Postgres cell never issues cache identities and receives no path.
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: oya-kms
+      ports:
+        - { protocol: TCP, port: 8202 }

@@ -1,0 +1,24 @@
+[package]
+name = "ci-k8s-program-docs"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "ci_k8s_program_docs"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "ci-k8s-program-docs"
+path = "src/main.rs"
+
+[dependencies]
+# The regenerable-region declaration and the divergence ledger are JSON, so they are NAVIGATED
+# rather than line-scanned. Already a third-party dep of ~10 sibling ci/facade/* crates.
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

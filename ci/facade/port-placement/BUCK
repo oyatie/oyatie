@@ -1,0 +1,52 @@
+rust_library(
+    name = "ci-port-placement",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_port_placement",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-port-placement-app-bin",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-port-placement",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-port-placement-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_port_placement",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+    ],
+)
+
+# ADR-0570 cloud-ci-port-placement: live-corpus self-test over the real */adapters/* crates plus
+# RED/GREEN fixtures. It scans each adapter crate's src for `pub trait` definitions and asserts the
+# live corpus is born-advisory GREEN (every NEW port-in-adapter beyond the frozen baseline fails
+# closed) while every violation class fails closed without a filesystem.
+rust_test(
+    name = "ci-port-placement-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_port_placement_gate",
+    crate_root = "tests/port_placement.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-port-placement",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+    ],
+)

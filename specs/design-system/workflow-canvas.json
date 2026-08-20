@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/design-system/workflow-canvas.schema.json",
+  "title": "DesignSystemComponent:WorkflowCanvas",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "DS-WORKFLOW_CANVAS",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-design-system + workflow-team",
+    "created_at": "2026-05-16T17:45:00Z",
+    "purpose": "Node-edge authoring canvas for durable Workflow definitions with explicit state, branch, join, capability-call, and jurisdiction-overlay affordances."
+  },
+  "component_id": "workflow-canvas",
+  "purpose": "Node-edge authoring canvas for durable Workflow definitions with explicit state, branch, join, capability-call, and jurisdiction-overlay affordances.",
+  "variants": [
+    "authoring",
+    "read-only-review",
+    "debug-overlay",
+    "jurisdiction-overlay"
+  ],
+  "states": [
+    "empty",
+    "loading-skeleton",
+    "invalid-edge",
+    "policy-denied-node",
+    "unsaved-offline-buffer",
+    "collaboration-conflict"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": "100% keyboard authoring through palette, node traversal, edge creation, delete, and save; no mouse-only graph operations",
+    "screen_reader": "announces selected node, inbound/outbound edges, validation status, and overlay scope through a structured outline mirror"
+  },
+  "security_invariants": [
+    "canvas never renders LLM-authored spec until schema validation succeeds",
+    "tenant, cell, and jurisdiction overlays remain visible before save",
+    "destructive graph edits require undo snapshot and audit-safe diff summary"
+  ],
+  "test_refs": [
+    "crates/oya-saas-workflow-studio-app/tests/a11y.rs::test_canvas_keyboard_tour",
+    "crates/oya-saas-workflow-studio-domain/tests/spec_emit.rs::test_visual_round_trip"
+  ],
+  "consumers": [
+    "$ref:specs/microservices/workflow-studio.json#frontend_components"
+  ],
+  "verification_commands": [
+    "target/debug/oya gate validate product-prd-json",
+    "python3 -m json.tool specs/design-system/<component>.json",
+    "target/debug/oya gate validate active-artifact-contract"
+  ],
+  "sources_scanned": [
+    "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
+    "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
+    "$ref:/Users/jasonlee/bominal/docs/design-system/accessibility.md",
+    "$ref:/Users/jasonlee/bominal/docs/design-system/motion.md",
+    "$ref:/Users/jasonlee/bominal/docs/design-system/tone-voice.md"
+  ]
+}

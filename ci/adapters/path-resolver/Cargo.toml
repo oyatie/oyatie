@@ -1,0 +1,25 @@
+[package]
+name = "ci-path-resolver-adapters"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# ci/adapters: the git + manifest implementations of the ci/ports move-aware path-resolution
+# contract. ManifestBijection loads the de-committed move-manifest fail-closed (both-side injective);
+# GitCliFrozenRefSource is the live git merge-base seam; ManifestPathResolver is the fail-closed,
+# presence-verified, straddle-safe resolution. The single sanctioned git boundary (the scm-facts
+# emitter) consumes this; the firewall gate itself never calls git.
+
+[lib]
+name = "ci_path_resolver_adapters"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+ci-path-resolver-ports = { path = "../../ports/path-resolver" }
+
+[lints]
+workspace = true

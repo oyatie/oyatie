@@ -1,0 +1,19 @@
+{
+  "fixture_id": "TC-OWN-BAD-over-broad-excess-unowned",
+  "description": "ADR-0555 hardening (FRIC-1781400000): the breadth bound. A single OWNERS file claiming more tracked paths than [owners] max_paths_per_owners_file (here 3) cannot bulk-neuter a tree's unowned accounting — only the first <bound> covered paths (path-sorted, deterministic) keep ownership, the excess stays UNOWNED, and the producer names the split-the-registration fix. Closes the breadth-unlimited weakness (PR #704 review, MED-2).",
+  "max_paths_per_owners_file": 3,
+  "owners_files": {
+    "tree/OWNERS": "cloud-ci-platform\n"
+  },
+  "tracked_paths": ["tree/OWNERS", "tree/a.rs", "tree/b.rs", "tree/c.rs", "tree/d.rs"],
+  "expected_owned": {
+    "tree/OWNERS": "OWNERS:tree",
+    "tree/a.rs": "OWNERS:tree",
+    "tree/b.rs": "OWNERS:tree"
+  },
+  "expected_invalid": {},
+  "expected_over_broad": {
+    "tree/OWNERS": 5
+  },
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs::owners_schema_fixtures_execute_red_green_cases"
+}

@@ -1,0 +1,32 @@
+[package]
+name = "ci-endpoint-authorization-coverage"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate ENFORCING authz coverage on HTTP control-plane surfaces (issue #770, AUTH-005 class): every NEW axum Router with a mutating route (post/put/patch/delete) or a per-resource path param must carry fail-closed authz — a router-level auth layer or a per-handler authz guard (admin_tenant_allowed / authorize / PDP decide) — so an unauthenticated control plane is IMPOSSIBLE to ship. Ratchets against a frozen baseline of currently-known surfaces."
+
+# cloud-ci-authz-coverage (issue #770): self-contained, policy-driven gate. A pure
+# evaluate_keyed(policy, observed) asserts that no NEW HTTP control-plane surface lacks authz. The
+# observed signal is a read-only walk of the candidate tree's Rust source extracting axum Router
+# surfaces, their mutating routes, and per-handler authz-guard presence (NO shell/network/VCS). R0
+# pack-shaped: all repo-specifics (authz-guard idents, auth-layer idents, exempt read paths, scan
+# roots/excludes, the frozen baseline of known-unauthenticated surfaces) live in
+# authz-coverage-policy.json.
+
+[lib]
+name = "ci_endpoint_authorization_coverage"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

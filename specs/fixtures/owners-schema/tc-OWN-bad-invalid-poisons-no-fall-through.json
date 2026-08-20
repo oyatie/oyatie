@@ -1,0 +1,18 @@
+{
+  "fixture_id": "TC-OWN-BAD-invalid-poisons-no-fall-through",
+  "description": "ADR-0555 hardening (FRIC-1781400000), adversarial composition: an invalid OWNERS file still POISONS resolution at its directory — its subtree does NOT fall through to a broader valid ancestor. Invalid content can never yield owned rows, and corrupting an existing OWNERS surfaces as NEW unowned keys (firewall RED) instead of being silently absorbed by the parent.",
+  "owners_files": {
+    "parent/OWNERS": "council-architecture\n",
+    "parent/child/OWNERS": "BROKEN! not a principal\n"
+  },
+  "tracked_paths": ["parent/OWNERS", "parent/doc.md", "parent/child/OWNERS", "parent/child/code.rs"],
+  "expected_owned": {
+    "parent/OWNERS": "OWNERS:parent",
+    "parent/doc.md": "OWNERS:parent"
+  },
+  "expected_invalid": {
+    "parent/child/OWNERS": "not a valid owner principal"
+  },
+  "expected_over_broad": {},
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-accounting-registry-app/src/main.rs::owners_schema_fixtures_execute_red_green_cases"
+}

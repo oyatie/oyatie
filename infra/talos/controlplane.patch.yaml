@@ -1,0 +1,30 @@
+# Control-plane config patch (applied on top of `talosctl gen config` controlplane.yaml).
+# - install.image: pins the Kata/CLH-baked Image Factory installer so the extension is on-disk.
+# - kernel.modules: vhost_net/vhost_vsock for Kata cloud-hypervisor guest networking/vsock.
+# - network vip: floating control-plane VIP (L2, same subnet, CP-only) = the HA kube-apiserver
+#   endpoint. Parallels Shared net = 10.211.55.0/24 (host .2); nodes get DHCP, VIP is static .240.
+# - cluster.network.cni=none + proxy.disabled: Talos hands CNI + kube-proxy to Cilium (see cilium-values.yaml).
+machine:
+  install:
+    image: factory.talos.dev/installer/3da7f440f279f4814fa73bdf83c84710a8e93c40a4a3cbba4d969f14afb96298:v1.13.2
+  kernel:
+    modules:
+      - name: vhost_net
+      - name: vhost_vsock
+  network:
+    interfaces:
+      - interface: eth0
+        dhcp: true
+        vip:
+          ip: 10.211.55.240
+cluster:
+  apiServer:
+    certSANs:
+      - k8s.oyatie.dev          # apiserver TLS SAN for secure access via Cloudflare (ADR-0371 pending)
+      - api.oyatie.dev
+      - 10.211.55.240           # control-plane VIP
+  network:
+    cni:
+      name: none
+  proxy:
+    disabled: true

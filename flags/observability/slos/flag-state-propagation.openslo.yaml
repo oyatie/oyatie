@@ -1,0 +1,57 @@
+apiVersion: openslo/v1
+kind: SLO
+metadata:
+  name: feature-flags-flag-state-propagation
+  labels:
+    microservice: feature-flags
+    bc: flag
+    binding-adr: ADR-0159
+spec:
+  description: |
+    Flag definition changes propagate to all cells within 5s p99.
+    Measured as the fraction of flag-state-changed events that are
+    reflected in all cells within 5s of the source write.
+    Hyperscaler precedent: LaunchDarkly relay-proxy targets <1s propagation;
+    oyatie targets ≤5s cross-region (Patroni WAL streaming).
+    Kill-switch uses separate Kafka broadcast path (≤1s); this SLO covers
+    the WAL-replication path for non-kill-switch flag changes.
+  service: feature-flags
+  sloOwner: axis-governance
+  timeWindow:
+    - duration: 28d
+      isRolling: true
+  budgetingMethod: Occurrences
+  objectives:
+    - displayName: cross-region propagation ≤5s
+      op: lte
+      value: 5.0
+      target: 0.99
+  indicator:
+    metadata:
+      name: flag-state-propagation-lag
+    spec:
+      ratioMetric:
+        good:
+          metricSource:
+            type: prometheus
+            spec:
+              query: |
+                sum(rate(oya_feature_flag_replication_lag_seconds_bucket{le="5.0"}[5m]))
+        total:
+          metricSource:
+            type: prometheus
+            spec:
+              query: |
+                sum(rate(oya_feature_flag_replication_lag_seconds_count[5m]))
+  alerting:
+    burnRateAlerts:
+      - shortWindow: 5m
+        longWindow: 1h
+        burnRateThreshold: 14
+        severity: critical
+        description: "Flag propagation lag exceeding 5s — cross-region consistency degraded"
+      - shortWindow: 30m
+        longWindow: 6h
+        burnRateThreshold: 3
+        severity: warning
+        description: "Flag propagation lag trending high"

@@ -1,0 +1,48 @@
+{
+  "fixture_id": "PDF-PARITY-TARGET-SOURCE-TRACKING-BAD-AUTHORITY-20260630",
+  "parity_targets": [
+    {
+      "target_id": "linux-libc-abi-c-ward",
+      "reference_kind": "linux_libc_abi_pessimistic_input",
+      "source_refs": [
+        {
+          "url": "https://github.com/sunfishcode/c-ward",
+          "retrieved_at": "2026-06-30T00:00:00Z",
+          "external_authority": true
+        }
+      ],
+      "source_tracking_state": "promotion_pending",
+      "freshness_state": "fresh_at_collection",
+      "parity_posture": "approved_product_ready",
+      "authority_boundary": "external source is merge_authority",
+      "validation_refs": [],
+      "stop_conditions": [],
+      "userspace_abi_preserved": true,
+      "internal_kernel_api_stable": true,
+      "known_gaps": []
+    },
+    {
+      "target_id": "linux-libc-abi-c-ward",
+      "reference_kind": "linux_libc_abi_pessimistic_input",
+      "source_refs": [],
+      "source_tracking_state": "tracked_inventory",
+      "freshness_state": "fresh_at_collection",
+      "parity_posture": "pessimistic_reference_only",
+      "authority_boundary": "duplicate row must fail",
+      "validation_refs": [
+        "libs/oya-check-honest-claims/src/lib.rs#validate_parity_target_source_tracking"
+      ],
+      "stop_conditions": [
+        "source_changed_reopen_required"
+      ],
+      "userspace_abi_preserved": true,
+      "internal_kernel_api_stable": false,
+      "known_gaps": [
+        "getent runtime dependency",
+        "nightly dependency",
+        "incomplete implementation",
+        "linux-gnu-only ABI coverage"
+      ]
+    }
+  ]
+}

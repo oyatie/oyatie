@@ -1,0 +1,42 @@
+rust_library(
+    name = "ci-slo-coverage",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_slo_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-check-slo-coverage:oya-check-slo-coverage",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-slo-coverage-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_slo_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-check-slo-coverage:oya-check-slo-coverage",
+        "third-party//:serde_json",
+    ],
+)
+
+# Live-corpus gate: runs the buck2-built producer with the committed scm-facts boundary snapshot
+# and checks the catalog SLO face through this gate's pure evaluator.
+rust_test(
+    name = "ci-slo-coverage-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_slo_coverage_corpus",
+    crate_root = "tests/slo_coverage.rs",
+    env = {
+        "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-slo-coverage",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
+        "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "third-party//:serde_json",
+    ],
+)

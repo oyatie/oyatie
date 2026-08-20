@@ -1,0 +1,41 @@
+rust_library(
+    name = "ci-service-catalog-parity",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_service_catalog_parity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-service-catalog-parity-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_service_catalog_parity",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# Live-corpus gate: runs the buck2-built producer with the committed scm-facts boundary snapshot
+# and checks the catalog-liveness face through this gate's pure evaluator. The RED-fixture leg
+# synthesizes a fake dead-unmarked record and asserts the gate discriminates (not inert).
+rust_test(
+    name = "ci-service-catalog-parity-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_service_catalog_parity_corpus",
+    crate_root = "tests/catalog_liveness.rs",
+    env = {
+        "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-service-catalog-parity",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
+        "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "third-party//:serde_json",
+    ],
+)

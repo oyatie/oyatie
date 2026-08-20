@@ -1,0 +1,31 @@
+{
+  "claim_rows": [
+    {
+      "allowed_language_now": "target/non-claim only",
+      "artifact": "specs/fixtures/phase0-claim-ceiling/tc-0.17-good-target-non-claim-with-owner.json",
+      "claim_text": "hyperscaler-grade target/non-claim",
+      "claim_tier": "target_non_claim",
+      "current_evidence": [
+        "owner",
+        "phase",
+        "source_decision",
+        "specific_gap_list",
+        "blocking_path_to_next_tier"
+      ],
+      "id": "GOOD-hyperscaler-target-row",
+      "missing_for_next_tier": [
+        "per-service production_ready evidence bundle"
+      ],
+      "next_gate": "cloud-ci-claim-ceiling",
+      "owner": "platform-sre",
+      "regulated_terms": [
+        "hyperscaler-grade"
+      ]
+    }
+  ],
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "fixture_id": "TC-0.17-GOOD-target-non-claim-with-owner",
+  "source_test": ".omx/plans/test-spec-phase0.md#T0.17",
+  "text": "cloud-ci is a hyperscaler-grade target/non-claim until per-service evidence exists; this row is a planned destination, not a readiness assertion."
+}

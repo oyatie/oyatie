@@ -1,0 +1,1222 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/capability-tier-schema.schema.json",
+  "title": "Oyatie Capability Tier Definition Schema",
+  "description": "Canonical JSON Schema 2020-12 contract for capability-tier definitions. Binds ADR-0316 capability-tier-over-product-fragmentation doctrine, ADR-0243 Cedar-as-universal-gate policy coverage, ADR-0244 tenant scoping, ADR-0251 compliance pack overlays, ADR-0257 ontology revision pins, and ADR-0263 audit-event evidence into one machine-readable tier definition surface.",
+  "version": "1.0.0",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-CAPABILITY-TIER-SCHEMA",
+    "status": "Proposed",
+    "enforcement_status": "advisory-until-capability-tier-registry-lands",
+    "owner_team": "council-architecture + axis-policy-engine + axis-ontology",
+    "created_at": "2026-05-20T00:00:00Z",
+    "binding_adr": "ADR-0316",
+    "related_adrs": [
+      "ADR-0132",
+      "ADR-0243",
+      "ADR-0244",
+      "ADR-0245",
+      "ADR-0249",
+      "ADR-0251",
+      "ADR-0257",
+      "ADR-0263",
+      "ADR-0313",
+      "ADR-0316",
+      "ADR-0317"
+    ],
+    "purpose": "Define the canonical shape for tenant-grantable capability tiers. A capability tier is not a product microservice. It is a named, versioned projection bundle over shared substrates: Cedar permit sets, ontology projections, workflow template libraries, UX shell manifests, compliance pack overlays, observability metadata, cost metadata, lifecycle state, and evidence."
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "capability_tier_id",
+    "version",
+    "display_name",
+    "description",
+    "lifecycle_state",
+    "owning_microservices",
+    "tenant_grant_contract",
+    "permit_sets",
+    "ontology_projections",
+    "workflow_template_libraries",
+    "ux_shell_manifests",
+    "compliance_pack_overlays",
+    "observability_profile",
+    "cost_profile",
+    "activation_prerequisites",
+    "promotion_requirements",
+    "sunset_policy",
+    "evidence"
+  ],
+  "properties": {
+    "example_name": {
+      "type": "string",
+      "description": "Optional human-readable example label. Production tier definitions may omit this; examples include it to satisfy named-payload traceability.",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "capability_tier_id": {
+      "$ref": "#/definitions/capabilityTierId",
+      "description": "Stable machine id for the tier. ADR-0316 examples use ids such as sales-cloud-core, marketing-automation-core, itsm-core, and learning-management-core. The id is a tenant-visible activation unit, not a service boundary."
+    },
+    "version": {
+      "$ref": "#/definitions/semver",
+      "description": "Semantic version of this tier definition. Major changes alter grant semantics or visible object/action surface; minor changes add optional projections or templates; patch changes are editorial or metadata-only."
+    },
+    "display_name": {
+      "type": "string",
+      "description": "Tenant-facing label. Display names may use product language such as Sales Cloud or Service Desk, but ADR-0316 requires the machine id to remain a capability-tier id rather than a service name.",
+      "minLength": 2,
+      "maxLength": 120
+    },
+    "description": {
+      "type": "string",
+      "description": "Clear prose explaining what tenant-visible outcome this tier activates and which shared primitives provide it.",
+      "minLength": 80,
+      "maxLength": 4000
+    },
+    "lifecycle_state": {
+      "$ref": "#/definitions/lifecycleState",
+      "description": "Grantability state from ADR-0316 Section D-8."
+    },
+    "owning_microservices": {
+      "type": "array",
+      "description": "Flat services that contribute owned artifacts to this tier. ADR-0316 keeps ownership per microservice even when the tenant sees one product-like tier.",
+      "items": {
+        "$ref": "#/definitions/microserviceSlug"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "tenant_grant_contract": {
+      "type": "object",
+      "description": "Tenant-scoped grant contract for activating this tier. This corresponds to ADR-0316 tenant_capability_tier_grants.",
+      "additionalProperties": false,
+      "required": [
+        "grant_scope",
+        "default_grant_posture",
+        "supported_audience_types",
+        "home_cell_required",
+        "jurisdiction_pack_required",
+        "revocable",
+        "audit_event_classes"
+      ],
+      "properties": {
+        "grant_scope": {
+          "type": "string",
+          "enum": [
+            "tenant",
+            "tenant_sub_scope",
+            "role_projection"
+          ],
+          "description": "Scope at which the tier may be granted."
+        },
+        "default_grant_posture": {
+          "type": "string",
+          "enum": [
+            "deny_by_default",
+            "preview_allowlist",
+            "admin_opt_in",
+            "platform_seeded"
+          ],
+          "description": "Initial posture before a tenant admin or tenant RBAC workflow activates the tier."
+        },
+        "supported_audience_types": {
+          "type": "array",
+          "description": "Tenant audience types from /specs/tenant-model.json allowed to activate this tier.",
+          "items": {
+            "$ref": "#/definitions/audienceType"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "home_cell_required": {
+          "type": "boolean",
+          "description": "True when activation must pin a home cell before the first grant becomes active."
+        },
+        "jurisdiction_pack_required": {
+          "type": "boolean",
+          "description": "True when activation must select at least one compliance or regional pack."
+        },
+        "revocable": {
+          "type": "boolean",
+          "description": "False only for bootstrap/platform tiers whose removal would violate tenant bootstrap invariants."
+        },
+        "audit_event_classes": {
+          "type": "array",
+          "description": "Audit-event classes emitted for grant create, activate, revoke, deprecate, and sunset transitions per ADR-0263.",
+          "items": {
+            "$ref": "#/definitions/auditEventClass"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "permit_sets": {
+      "type": "array",
+      "description": "Cedar permit sets required by ADR-0316 Section D-1. Every tier must include at least one permit set and corresponding default-deny coverage.",
+      "items": {
+        "$ref": "#/definitions/permitSetRef"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "ontology_projections": {
+      "type": "array",
+      "description": "Ontology projection manifests required by ADR-0316 Section D-2 unless the tier explicitly declares workflow-only posture.",
+      "items": {
+        "$ref": "#/definitions/ontologyProjectionRef"
+      },
+      "uniqueItems": true
+    },
+    "workflow_template_libraries": {
+      "type": "array",
+      "description": "Workflow template libraries required by ADR-0316 Section D-3 unless the tier explicitly declares read-only posture.",
+      "items": {
+        "$ref": "#/definitions/workflowTemplateLibraryRef"
+      },
+      "uniqueItems": true
+    },
+    "ux_shell_manifests": {
+      "type": "array",
+      "description": "UX shell manifests required by ADR-0316 Section D-4 for interactive tiers. API-only tiers may provide an empty array only when api_only_posture is true.",
+      "items": {
+        "$ref": "#/definitions/uxShellManifestRef"
+      },
+      "uniqueItems": true
+    },
+    "api_only_posture": {
+      "type": "boolean",
+      "description": "True only when the tier intentionally has no interactive UX shell. API-only posture must still have Cedar, audit, cost, and contract references.",
+      "default": false
+    },
+    "workflow_only_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Required when ontology_projections is empty. Explains why this tier has no tenant-visible ontology projection.",
+      "minLength": 40,
+      "maxLength": 1000
+    },
+    "read_only_reason": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "description": "Required when workflow_template_libraries is empty. Explains why this tier does not mutate state or launch workflow templates.",
+      "minLength": 40,
+      "maxLength": 1000
+    },
+    "compliance_pack_overlays": {
+      "type": "array",
+      "description": "Pack overlays that bind the tier to data class, jurisdiction, tenant residency, regulated decision, retention, export, and evidence rules per ADR-0316 Section D-5 and ADR-0251.",
+      "items": {
+        "$ref": "#/definitions/complianceOverlayRef"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "observability_profile": {
+      "$ref": "#/definitions/observabilityProfile",
+      "description": "Metrics, traces, logs, and audit classes emitted with tenant, tier, pack, workflow template, and ontology projection dimensions."
+    },
+    "cost_profile": {
+      "$ref": "#/definitions/costProfile",
+      "description": "FinOps dimensions and default budgets for per-tier cost reporting."
+    },
+    "activation_prerequisites": {
+      "type": "array",
+      "description": "Prerequisites that must pass before the tier may move to preview or active.",
+      "items": {
+        "$ref": "#/definitions/activationPrerequisite"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "promotion_requirements": {
+      "type": "array",
+      "description": "Evidence requirements for draft->preview, preview->active, active->deprecated, deprecated->sunset_pending, and sunset_pending->sunset.",
+      "items": {
+        "$ref": "#/definitions/promotionRequirement"
+      },
+      "minItems": 1
+    },
+    "sunset_policy": {
+      "type": "object",
+      "description": "Rules for deprecating and retiring this tier without orphaning tenant workflows, exports, or audit evidence.",
+      "additionalProperties": false,
+      "required": [
+        "replacement_tier_id",
+        "tenant_notice_period",
+        "export_path_required",
+        "write_permits_disabled_in_sunset",
+        "audit_retention_after_sunset"
+      ],
+      "properties": {
+        "replacement_tier_id": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Replacement capability tier id, or null if no replacement exists.",
+          "pattern": "^[a-z0-9][a-z0-9.-]*[a-z0-9]$"
+        },
+        "tenant_notice_period": {
+          "$ref": "#/definitions/isoDuration",
+          "description": "Minimum notice window before sunset_pending can become sunset."
+        },
+        "export_path_required": {
+          "type": "boolean",
+          "description": "True when tenants must receive export/portability semantics before sunset."
+        },
+        "write_permits_disabled_in_sunset": {
+          "type": "boolean",
+          "const": true,
+          "description": "ADR-0316 requires no user write actions after sunset."
+        },
+        "audit_retention_after_sunset": {
+          "$ref": "#/definitions/isoDuration",
+          "description": "Minimum audit retention after sunset."
+        }
+      }
+    },
+    "evidence": {
+      "type": "object",
+      "description": "Evidence and validator linkage proving this tier definition is not a hidden product fragment.",
+      "additionalProperties": false,
+      "required": [
+        "binding_adr",
+        "review_evidence_refs",
+        "validator_lanes",
+        "runbook_refs",
+        "test_refs"
+      ],
+      "properties": {
+        "binding_adr": {
+          "type": "string",
+          "const": "ADR-0316"
+        },
+        "review_evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/evidenceRef"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "validator_lanes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^oya-governance-[a-z0-9-]+$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "runbook_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/artifactRef"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "test_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/artifactRef"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    }
+  },
+  "allOf": [
+    {
+      "description": "API-only tiers may omit UX shell manifests; interactive tiers must include at least one UX shell manifest.",
+      "if": {
+        "properties": {
+          "api_only_posture": {
+            "const": false
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "ux_shell_manifests": {
+            "minItems": 1
+          }
+        }
+      }
+    },
+    {
+      "description": "Tiers with no ontology projections must explain workflow-only posture.",
+      "if": {
+        "properties": {
+          "ontology_projections": {
+            "maxItems": 0
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "workflow_only_reason"
+        ]
+      }
+    },
+    {
+      "description": "Tiers with no workflow templates must explain read-only posture.",
+      "if": {
+        "properties": {
+          "workflow_template_libraries": {
+            "maxItems": 0
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "read_only_reason"
+        ]
+      }
+    }
+  ],
+  "definitions": {
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
+      "examples": [
+        "1.0.0",
+        "1.2.3",
+        "2.0.0-rc.1"
+      ]
+    },
+    "capabilityTierId": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9.-]*[a-z0-9]$",
+      "minLength": 3,
+      "maxLength": 160,
+      "examples": [
+        "sales-cloud-core",
+        "analytics.executive-dashboard.readonly",
+        "content-classification-core"
+      ]
+    },
+    "lifecycleState": {
+      "type": "string",
+      "enum": [
+        "draft",
+        "preview",
+        "active",
+        "deprecated",
+        "sunset_pending",
+        "sunset"
+      ],
+      "examples": [
+        "draft",
+        "preview",
+        "active"
+      ]
+    },
+    "microserviceSlug": {
+      "type": "string",
+      "pattern": "^[a-z0-9][a-z0-9-]*[a-z0-9]$",
+      "examples": [
+        "ontology",
+        "workflow-engine",
+        "policy-engine",
+        "analytics",
+        "mail"
+      ]
+    },
+    "audienceType": {
+      "type": "string",
+      "enum": [
+        "PLATFORM_OWNER",
+        "B2B_TENANT",
+        "B2C_CONSUMER",
+        "DEVELOPER",
+        "SANDBOX",
+        "PREVIEW",
+        "PARTNER_AGENCY",
+        "RESELLER",
+        "INTERNAL_AUDITOR_3PAO",
+        "B2B_HR_ADMIN",
+        "B2B_INTERNAL_AUDIT",
+        "B2C_JOB_SEEKER_ACTIVE"
+      ]
+    },
+    "artifactRef": {
+      "type": "string",
+      "pattern": "^(specs|docs|microservices|crates|registry|evidence)/[A-Za-z0-9._/-]+$",
+      "examples": [
+        "specs/ontology-projection-schema.json",
+        "microservices/ontology/policy/customer-graph.cedar"
+      ]
+    },
+    "evidenceRef": {
+      "type": "string",
+      "pattern": "^(evidence|docs|registry)/[A-Za-z0-9._/-]+$",
+      "examples": [
+        "evidence/capability-tiers/sales-cloud-core-review.json",
+        "registry/capability-tiers/sales-cloud-core.json"
+      ]
+    },
+    "auditEventClass": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Za-z0-9]+$",
+      "examples": [
+        "CapabilityTierGrantCreated",
+        "CapabilityTierGrantRevoked",
+        "CapabilityTierProjectionRead"
+      ]
+    },
+    "permitSetRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "permit_set_id",
+        "cedar_fragment_refs",
+        "default_deny_ref",
+        "schema_ref"
+      ],
+      "properties": {
+        "permit_set_id": {
+          "type": "string",
+          "pattern": "^[a-z0-9][a-z0-9.-]*[a-z0-9]$"
+        },
+        "cedar_fragment_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/artifactRef"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "default_deny_ref": {
+          "$ref": "#/definitions/artifactRef"
+        },
+        "schema_ref": {
+          "$ref": "#/definitions/artifactRef"
+        }
+      }
+    },
+    "ontologyProjectionRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "projection_id",
+        "schema_revision_pin",
+        "manifest_ref"
+      ],
+      "properties": {
+        "projection_id": {
+          "type": "string",
+          "pattern": "^op_[a-z0-9][a-z0-9_]*$"
+        },
+        "schema_revision_pin": {
+          "type": "string",
+          "pattern": "^ontology\\.[A-Za-z0-9_.-]+\\.v[0-9]+$"
+        },
+        "manifest_ref": {
+          "$ref": "#/definitions/artifactRef"
+        }
+      }
+    },
+    "workflowTemplateLibraryRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "library_id",
+        "version",
+        "template_refs"
+      ],
+      "properties": {
+        "library_id": {
+          "type": "string",
+          "pattern": "^wtl_[a-z0-9][a-z0-9_]*$"
+        },
+        "version": {
+          "$ref": "#/definitions/semver"
+        },
+        "template_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/artifactRef"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "uxShellManifestRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "ux_shell_manifest_id",
+        "manifest_ref",
+        "a11y_review_ref"
+      ],
+      "properties": {
+        "ux_shell_manifest_id": {
+          "type": "string",
+          "pattern": "^uxs_[a-z0-9][a-z0-9_]*$"
+        },
+        "manifest_ref": {
+          "$ref": "#/definitions/artifactRef"
+        },
+        "a11y_review_ref": {
+          "$ref": "#/definitions/evidenceRef"
+        }
+      }
+    },
+    "complianceOverlayRef": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "overlay_id",
+        "pack_ids",
+        "manifest_ref"
+      ],
+      "properties": {
+        "overlay_id": {
+          "type": "string",
+          "pattern": "^po_[a-z0-9][a-z0-9_]*$"
+        },
+        "pack_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z][A-Za-z0-9]*(-[A-Za-z0-9.]+)*$"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "manifest_ref": {
+          "$ref": "#/definitions/artifactRef"
+        }
+      }
+    },
+    "observabilityProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "profile_id",
+        "metric_dimensions",
+        "trace_attributes",
+        "log_fields",
+        "audit_event_classes"
+      ],
+      "properties": {
+        "profile_id": {
+          "type": "string",
+          "pattern": "^obs_[a-z0-9][a-z0-9_]*$"
+        },
+        "metric_dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        },
+        "trace_attributes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        },
+        "log_fields": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 4,
+          "uniqueItems": true
+        },
+        "audit_event_classes": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/auditEventClass"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "costProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "cost_profile_id",
+        "dimensions",
+        "default_budget_policy"
+      ],
+      "properties": {
+        "cost_profile_id": {
+          "type": "string",
+          "pattern": "^cost_[a-z0-9][a-z0-9_]*$"
+        },
+        "dimensions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "default_budget_policy": {
+          "type": "string",
+          "enum": [
+            "meter_only",
+            "warn_at_budget",
+            "deny_at_budget",
+            "tenant_configured"
+          ]
+        }
+      }
+    },
+    "activationPrerequisite": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "prerequisite_id",
+        "description",
+        "validator_lane",
+        "required_for"
+      ],
+      "properties": {
+        "prerequisite_id": {
+          "type": "string",
+          "pattern": "^pre_[a-z0-9_]+$"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 20
+        },
+        "validator_lane": {
+          "type": "string",
+          "pattern": "^oya-governance-[a-z0-9-]+$"
+        },
+        "required_for": {
+          "type": "array",
+          "items": {
+            "enum": [
+              "preview",
+              "active"
+            ]
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "promotionRequirement": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "from_state",
+        "to_state",
+        "evidence_refs",
+        "approver_roles"
+      ],
+      "properties": {
+        "from_state": {
+          "$ref": "#/definitions/lifecycleState"
+        },
+        "to_state": {
+          "$ref": "#/definitions/lifecycleState"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/evidenceRef"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "approver_roles": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 3
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        }
+      }
+    },
+    "isoDuration": {
+      "type": "string",
+      "pattern": "^P(?:[0-9]+Y)?(?:[0-9]+M)?(?:[0-9]+W)?(?:[0-9]+D)?(?:T(?:[0-9]+H)?(?:[0-9]+M)?(?:[0-9]+S)?)?$",
+      "examples": [
+        "P30D",
+        "P90D",
+        "P7Y"
+      ]
+    }
+  },
+  "examples": [
+    {
+      "example_name": "sales cloud core active tenant tier",
+      "capability_tier_id": "sales-cloud-core",
+      "version": "1.0.0",
+      "display_name": "Sales Cloud",
+      "description": "Activates a CRM-class tenant surface over ontology account/contact/opportunity projections, workflow deal review templates, community and marketplace collaboration, mail and messenger follow-up paths, Cedar tier permits, and FinOps reporting without creating a CRM service island.",
+      "lifecycle_state": "active",
+      "owning_microservices": [
+        "ontology",
+        "workflow-engine",
+        "community",
+        "marketplace",
+        "mail",
+        "messenger",
+        "analytics",
+        "policy-engine"
+      ],
+      "tenant_grant_contract": {
+        "grant_scope": "tenant",
+        "default_grant_posture": "admin_opt_in",
+        "supported_audience_types": [
+          "B2B_TENANT",
+          "RESELLER",
+          "PARTNER_AGENCY"
+        ],
+        "home_cell_required": true,
+        "jurisdiction_pack_required": true,
+        "revocable": true,
+        "audit_event_classes": [
+          "CapabilityTierGrantCreated",
+          "CapabilityTierGrantRevoked",
+          "CapabilityTierProjectionRead"
+        ]
+      },
+      "permit_sets": [
+        {
+          "permit_set_id": "sales-cloud-core.permit-set",
+          "cedar_fragment_refs": [
+            "microservices/policy-engine/policy/sales-cloud-core.cedar"
+          ],
+          "default_deny_ref": "microservices/policy-engine/policy/default-deny.cedar",
+          "schema_ref": "specs/cedar-policy-schema.json"
+        }
+      ],
+      "ontology_projections": [
+        {
+          "projection_id": "op_sales_cloud_core",
+          "schema_revision_pin": "ontology.sales_cloud_core.v1",
+          "manifest_ref": "registry/capability-tiers/sales-cloud-core/projection.json"
+        }
+      ],
+      "workflow_template_libraries": [
+        {
+          "library_id": "wtl_sales_cloud_core",
+          "version": "1.0.0",
+          "template_refs": [
+            "microservices/workflow-engine/templates/lead-to-opportunity.yaml",
+            "microservices/workflow-engine/templates/quote-approval.yaml"
+          ]
+        }
+      ],
+      "ux_shell_manifests": [
+        {
+          "ux_shell_manifest_id": "uxs_sales_cloud_core",
+          "manifest_ref": "microservices/ontology/ux/sales-cloud-core.shell.json",
+          "a11y_review_ref": "evidence/capability-tiers/sales-cloud-core-a11y.json"
+        }
+      ],
+      "api_only_posture": false,
+      "workflow_only_reason": null,
+      "read_only_reason": null,
+      "compliance_pack_overlays": [
+        {
+          "overlay_id": "po_sales_cloud_general",
+          "pack_ids": [
+            "SOC2-T2",
+            "EU-GDPR-2018-baseline"
+          ],
+          "manifest_ref": "registry/capability-tiers/sales-cloud-core/compliance-overlay.json"
+        }
+      ],
+      "observability_profile": {
+        "profile_id": "obs_sales_cloud_core",
+        "metric_dimensions": [
+          "tenant_id",
+          "capability_tier_id",
+          "pack_id",
+          "ontology_projection_id"
+        ],
+        "trace_attributes": [
+          "tenant_id",
+          "capability_tier_id",
+          "workflow_template_library_id",
+          "permit_set_id"
+        ],
+        "log_fields": [
+          "tenant_id",
+          "sub_scope_path",
+          "capability_tier_id",
+          "audit_id"
+        ],
+        "audit_event_classes": [
+          "CapabilityTierGrantCreated",
+          "CapabilityTierProjectionRead"
+        ]
+      },
+      "cost_profile": {
+        "cost_profile_id": "cost_sales_cloud_core",
+        "dimensions": [
+          "ontology_reads",
+          "workflow_runs",
+          "mail_sends",
+          "messenger_messages"
+        ],
+        "default_budget_policy": "warn_at_budget"
+      },
+      "activation_prerequisites": [
+        {
+          "prerequisite_id": "pre_cedar_fixtures",
+          "description": "Cedar positive and negative fixtures must pass for the tier permit set.",
+          "validator_lane": "oya-governance-capability-tier-cedar-coverage",
+          "required_for": [
+            "preview",
+            "active"
+          ]
+        }
+      ],
+      "promotion_requirements": [
+        {
+          "from_state": "preview",
+          "to_state": "active",
+          "evidence_refs": [
+            "evidence/capability-tiers/sales-cloud-core-dry-run.json"
+          ],
+          "approver_roles": [
+            "council-architecture",
+            "ops-compliance"
+          ]
+        }
+      ],
+      "sunset_policy": {
+        "replacement_tier_id": null,
+        "tenant_notice_period": "P90D",
+        "export_path_required": true,
+        "write_permits_disabled_in_sunset": true,
+        "audit_retention_after_sunset": "P7Y"
+      },
+      "evidence": {
+        "binding_adr": "ADR-0316",
+        "review_evidence_refs": [
+          "evidence/capability-tiers/sales-cloud-core-review.json"
+        ],
+        "validator_lanes": [
+          "oya-governance-capability-tier-registry-shape",
+          "oya-governance-capability-tier-ontology-projection-pin"
+        ],
+        "runbook_refs": [
+          "docs/runbooks/capability-tier-grant-rollback.md"
+        ],
+        "test_refs": [
+          "crates/oya-shared-capability-tier-registry/tests/grant_lifecycle.rs"
+        ]
+      }
+    },
+    {
+      "example_name": "analytics executive dashboard readonly",
+      "capability_tier_id": "analytics.executive-dashboard.readonly",
+      "version": "1.0.0",
+      "display_name": "Executive Dashboard",
+      "description": "Activates read-only analytics projections for executive reporting. The tier provides ontology-backed metrics, dashboard UX, Cedar read permits, audit reads, and FinOps dimensions without workflow mutation templates.",
+      "lifecycle_state": "preview",
+      "owning_microservices": [
+        "analytics",
+        "ontology",
+        "policy-engine",
+        "audit-chain"
+      ],
+      "tenant_grant_contract": {
+        "grant_scope": "role_projection",
+        "default_grant_posture": "preview_allowlist",
+        "supported_audience_types": [
+          "B2B_TENANT",
+          "B2B_INTERNAL_AUDIT"
+        ],
+        "home_cell_required": true,
+        "jurisdiction_pack_required": false,
+        "revocable": true,
+        "audit_event_classes": [
+          "CapabilityTierGrantCreated",
+          "CapabilityTierProjectionRead"
+        ]
+      },
+      "permit_sets": [
+        {
+          "permit_set_id": "analytics.executive-dashboard.readonly",
+          "cedar_fragment_refs": [
+            "microservices/analytics/policy/executive-dashboard-readonly.cedar"
+          ],
+          "default_deny_ref": "microservices/policy-engine/policy/default-deny.cedar",
+          "schema_ref": "specs/cedar-policy-schema.json"
+        }
+      ],
+      "ontology_projections": [
+        {
+          "projection_id": "op_executive_dashboard",
+          "schema_revision_pin": "ontology.executive_dashboard.v1",
+          "manifest_ref": "registry/capability-tiers/executive-dashboard/projection.json"
+        }
+      ],
+      "workflow_template_libraries": [],
+      "ux_shell_manifests": [
+        {
+          "ux_shell_manifest_id": "uxs_executive_dashboard",
+          "manifest_ref": "microservices/analytics/ux/executive-dashboard.shell.json",
+          "a11y_review_ref": "evidence/capability-tiers/executive-dashboard-a11y.json"
+        }
+      ],
+      "api_only_posture": false,
+      "workflow_only_reason": null,
+      "read_only_reason": "This tier intentionally exposes read-only analytics and therefore does not register mutation workflow templates.",
+      "compliance_pack_overlays": [
+        {
+          "overlay_id": "po_executive_dashboard_general",
+          "pack_ids": [
+            "SOC2-T2"
+          ],
+          "manifest_ref": "registry/capability-tiers/executive-dashboard/compliance-overlay.json"
+        }
+      ],
+      "observability_profile": {
+        "profile_id": "obs_executive_dashboard",
+        "metric_dimensions": [
+          "tenant_id",
+          "capability_tier_id",
+          "pack_id",
+          "dashboard_id"
+        ],
+        "trace_attributes": [
+          "tenant_id",
+          "capability_tier_id",
+          "query_id",
+          "projection_id"
+        ],
+        "log_fields": [
+          "tenant_id",
+          "capability_tier_id",
+          "principal_id",
+          "audit_id"
+        ],
+        "audit_event_classes": [
+          "CapabilityTierProjectionRead"
+        ]
+      },
+      "cost_profile": {
+        "cost_profile_id": "cost_executive_dashboard",
+        "dimensions": [
+          "analytics_queries",
+          "ontology_reads"
+        ],
+        "default_budget_policy": "meter_only"
+      },
+      "activation_prerequisites": [
+        {
+          "prerequisite_id": "pre_projection_pin",
+          "description": "Ontology projection pin must resolve before preview activation.",
+          "validator_lane": "oya-governance-capability-tier-ontology-projection-pin",
+          "required_for": [
+            "preview",
+            "active"
+          ]
+        }
+      ],
+      "promotion_requirements": [
+        {
+          "from_state": "draft",
+          "to_state": "preview",
+          "evidence_refs": [
+            "evidence/capability-tiers/executive-dashboard-preview.json"
+          ],
+          "approver_roles": [
+            "axis-analytics"
+          ]
+        }
+      ],
+      "sunset_policy": {
+        "replacement_tier_id": null,
+        "tenant_notice_period": "P30D",
+        "export_path_required": true,
+        "write_permits_disabled_in_sunset": true,
+        "audit_retention_after_sunset": "P7Y"
+      },
+      "evidence": {
+        "binding_adr": "ADR-0316",
+        "review_evidence_refs": [
+          "evidence/capability-tiers/executive-dashboard-review.json"
+        ],
+        "validator_lanes": [
+          "oya-governance-capability-tier-registry-shape"
+        ],
+        "runbook_refs": [
+          "docs/runbooks/capability-tier-grant-rollback.md"
+        ],
+        "test_refs": [
+          "crates/oya-shared-capability-tier-registry/tests/no_product_fragmentation.rs"
+        ]
+      }
+    },
+    {
+      "example_name": "content classification api only tier",
+      "capability_tier_id": "content-classification-core",
+      "version": "1.0.0",
+      "display_name": "Content Classification",
+      "description": "Activates API-only content classification over drive, retention, ontology, audit-chain, and Cedar policy surfaces. The tier classifies files, applies retention labels, and supports eDiscovery exports without introducing a content-management service.",
+      "lifecycle_state": "draft",
+      "owning_microservices": [
+        "drive",
+        "ontology",
+        "policy-engine",
+        "audit-chain"
+      ],
+      "tenant_grant_contract": {
+        "grant_scope": "tenant_sub_scope",
+        "default_grant_posture": "deny_by_default",
+        "supported_audience_types": [
+          "B2B_TENANT",
+          "INTERNAL_AUDITOR_3PAO"
+        ],
+        "home_cell_required": true,
+        "jurisdiction_pack_required": true,
+        "revocable": true,
+        "audit_event_classes": [
+          "CapabilityTierGrantCreated",
+          "CapabilityTierGrantRevoked"
+        ]
+      },
+      "permit_sets": [
+        {
+          "permit_set_id": "content-classification-core.permit-set",
+          "cedar_fragment_refs": [
+            "microservices/drive/policy/content-classification-core.cedar"
+          ],
+          "default_deny_ref": "microservices/policy-engine/policy/default-deny.cedar",
+          "schema_ref": "specs/cedar-policy-schema.json"
+        }
+      ],
+      "ontology_projections": [
+        {
+          "projection_id": "op_content_classification",
+          "schema_revision_pin": "ontology.content_classification.v1",
+          "manifest_ref": "registry/capability-tiers/content-classification/projection.json"
+        }
+      ],
+      "workflow_template_libraries": [
+        {
+          "library_id": "wtl_content_classification",
+          "version": "1.0.0",
+          "template_refs": [
+            "microservices/workflow-engine/templates/classification-review.yaml"
+          ]
+        }
+      ],
+      "ux_shell_manifests": [],
+      "api_only_posture": true,
+      "workflow_only_reason": null,
+      "read_only_reason": null,
+      "compliance_pack_overlays": [
+        {
+          "overlay_id": "po_content_classification_regulated",
+          "pack_ids": [
+            "EU-GDPR-2018-baseline",
+            "KR-PIPA-2023-amendment"
+          ],
+          "manifest_ref": "registry/capability-tiers/content-classification/compliance-overlay.json"
+        }
+      ],
+      "observability_profile": {
+        "profile_id": "obs_content_classification",
+        "metric_dimensions": [
+          "tenant_id",
+          "capability_tier_id",
+          "pack_id",
+          "data_class"
+        ],
+        "trace_attributes": [
+          "tenant_id",
+          "capability_tier_id",
+          "file_id",
+          "classification_label"
+        ],
+        "log_fields": [
+          "tenant_id",
+          "capability_tier_id",
+          "audit_id",
+          "classification_label"
+        ],
+        "audit_event_classes": [
+          "CapabilityTierGrantCreated"
+        ]
+      },
+      "cost_profile": {
+        "cost_profile_id": "cost_content_classification",
+        "dimensions": [
+          "file_classifications",
+          "ontology_writes",
+          "audit_seals"
+        ],
+        "default_budget_policy": "tenant_configured"
+      },
+      "activation_prerequisites": [
+        {
+          "prerequisite_id": "pre_pack_overlay",
+          "description": "Regulated file attributes must map to pack overlays before tenant preview.",
+          "validator_lane": "oya-governance-capability-tier-compliance-overlay-coverage",
+          "required_for": [
+            "preview",
+            "active"
+          ]
+        }
+      ],
+      "promotion_requirements": [
+        {
+          "from_state": "draft",
+          "to_state": "preview",
+          "evidence_refs": [
+            "evidence/capability-tiers/content-classification-preview.json"
+          ],
+          "approver_roles": [
+            "ops-compliance",
+            "axis-drive"
+          ]
+        }
+      ],
+      "sunset_policy": {
+        "replacement_tier_id": null,
+        "tenant_notice_period": "P90D",
+        "export_path_required": true,
+        "write_permits_disabled_in_sunset": true,
+        "audit_retention_after_sunset": "P7Y"
+      },
+      "evidence": {
+        "binding_adr": "ADR-0316",
+        "review_evidence_refs": [
+          "evidence/capability-tiers/content-classification-review.json"
+        ],
+        "validator_lanes": [
+          "oya-governance-capability-tier-registry-shape",
+          "oya-governance-capability-tier-compliance-overlay-coverage"
+        ],
+        "runbook_refs": [
+          "docs/runbooks/capability-tier-grant-rollback.md"
+        ],
+        "test_refs": [
+          "crates/oya-shared-capability-tier-registry/tests/grant_lifecycle.rs"
+        ]
+      }
+    }
+  ]
+}

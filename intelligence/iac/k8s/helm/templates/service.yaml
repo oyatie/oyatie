@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.microservice.id | quote }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+    app.kubernetes.io/part-of: oyatie-microservices
+    oyatie.com/adr-0349: argocd-managed
+    oyatie.com/adr-0384: cloud-intelligence-path-b
+    oya.io/tenant-id: {{ .Values.workloadLabels.tenantId | quote }}
+    oya.io/cost-center: {{ .Values.workloadLabels.costCenter | quote }}
+spec:
+  type: {{ .Values.service.type | quote }}
+  selector:
+    app.kubernetes.io/name: {{ .Values.microservice.id | quote }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP

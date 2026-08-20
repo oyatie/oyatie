@@ -1,0 +1,69 @@
+# #1504 telemetry guardrails. These rules require kube-state-metrics, kubelet /
+# cAdvisor metrics, and ARC listener metrics. Alert presence is not rollout
+# evidence; dashboards and notification delivery require live readback.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: oya-ci-workspace-capacity
+  namespace: observability
+  labels:
+    app.kubernetes.io/part-of: oya-cloud-ci
+spec:
+  groups:
+    - name: oya-ci-workspace-capacity
+      rules:
+        - alert: OyaCiWorkspaceNodeDiskPressure
+          expr: kube_node_status_condition{node=~"oya-talos-worker-(1|2)",condition="DiskPressure",status="true"} == 1
+          for: 2m
+          labels: { severity: critical }
+          annotations:
+            summary: Dedicated ARC workspace node reports DiskPressure
+        - alert: OyaCiWorkspaceVolumeLow
+          expr: |
+            (
+              kubelet_volume_stats_available_bytes{namespace="arc-runners"}
+              /
+              kubelet_volume_stats_capacity_bytes{namespace="arc-runners"}
+            )
+            * on(namespace, persistentvolumeclaim) group_left(storageclass)
+              kube_persistentvolumeclaim_info{storageclass=~"oya-ci-workspace-(general|live-postgres)"}
+            < 0.15
+          for: 2m
+          labels: { severity: critical }
+          annotations:
+            summary: ARC workspace volume has less than 15 percent free
+        - alert: OyaCiRunnerWritableLayerHigh
+          expr: container_fs_usage_bytes{namespace="arc-runners",container="runner"} > 6 * 1024 * 1024 * 1024
+          labels: { severity: warning }
+          annotations:
+            summary: ARC runner writable layer exceeds the 6 GiB root-filesystem budget
+        - alert: OyaCiRunnerEvicted
+          expr: increase(kube_pod_status_reason{namespace="arc-runners",reason="Evicted"}[15m]) > 0
+          labels: { severity: critical }
+          annotations:
+            summary: An ARC runner pod was evicted
+        - alert: OyaCiWorkspaceCleanupStalled
+          # Generic-ephemeral owner teardown sets the PVC deletion timestamp.
+          # Measuring from that timestamp avoids paging on a healthy long job.
+          expr: |
+            (
+              (time() - kube_persistentvolumeclaim_deletion_timestamp{namespace="arc-runners"} > 900)
+              and
+              kube_persistentvolumeclaim_deletion_timestamp{namespace="arc-runners"} > 0
+            )
+            * on(namespace, persistentvolumeclaim) group_left(storageclass)
+              kube_persistentvolumeclaim_info{storageclass=~"oya-ci-workspace-(general|live-postgres)"}
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: A disposable ARC workspace PVC remains fifteen minutes after deletion began
+        - alert: OyaCiRunnerQueueP95High
+          expr: |
+            histogram_quantile(
+              0.95,
+              sum by (le) (rate(gha_job_startup_duration_seconds_bucket[15m]))
+            ) > 600
+          for: 15m
+          labels: { severity: warning }
+          annotations:
+            summary: ARC job startup p95 exceeds ten minutes

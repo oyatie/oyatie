@@ -1,0 +1,99 @@
+{
+  "pr": 1561,
+  "head": "3e781bb36b2dd733ff7865f51adfab7e484fa1a9",
+  "prior_reviewed_head": "25dce58c0106d0f49f9133e708cd5c863d21018a",
+  "title": "feat(k8s): admit deterministic Go-to-Rust port W0-A",
+  "is_draft": false,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "red_team"
+      ],
+      "path": ".grok/programs/k8s-port/evidence/pr-1561-critic-a.json"
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "lenses": [
+        "contrarian",
+        "systems_thinking"
+      ],
+      "path": ".grok/programs/k8s-port/evidence/pr-1561-critic-b.json"
+    }
+  ],
+  "summary": "Dual-critic APPROVE re-head after rebase onto origin/dev post-#1563: union reachability (W0-A prefixes + storage/adapters/nativelink) + ADR-0546 canonical UTF-8. Substance unchanged; conflict resolution only.",
+  "blockers": [],
+  "important_non_blocking": [
+    "Exact-head oya-ci-required must re-green on 25dce58c0 after this push; prior SUCCESS on 1e33500 / failure on c744a2f45 do not transfer",
+    "Shallow baseline-header token check residual (W0-B+ follow-through)",
+    "Handoff journal process facts lag live rebase/CI state"
+  ],
+  "suggestions": [
+    "A-S1: later bind baseline headers to pin/receipt digests",
+    "A-S2/B-S3: append-only handoff status; prefer additive reachability prefixes over rewrites",
+    "A-S3/B-S4: re-confirm oya-ci-required SUCCESS on 25dce58c0 before squash",
+    "B-S1: W0-B entry keep rule/canary liveness non-vacuous",
+    "B-S2: keep parallel fan-out capacity-gated",
+    "After reachability-registry union-merges, always run buck2 run //ci/facade/canonical-json:oya-cloud-ci-canonical-json-bin -- --fix before push"
+  ],
+  "whats_done_well": [
+    "Honest W0-only authority and non-claims",
+    "Verified fail-closed R-DOC retained across rebase",
+    "Correct shared-nothing reachability union with #1558 CAS prefixes",
+    "No W0-B scope creep; no hand-edited generated faces",
+    "CI red fixed with minimal ADR-0546 fixer pass only"
+  ],
+  "ci": {
+    "prior_head": "1e33500d6584e164df59cd9f1f58234bbf945504",
+    "prior_oya_ci_required": "SUCCESS",
+    "prior_run": "https://github.com/jason931225/oyatie/actions/runs/30993375926",
+    "failed_head": "c744a2f458400016dcf35f18d246d03ef2b0046f",
+    "failed_run": "https://github.com/jason931225/oyatie/actions/runs/31000488083",
+    "failed_job": "92287884876",
+    "failed_gate": "root//ci/facade/canonical-json:ci-canonical-json-gate",
+    "failed_test": "live_governed_corpus_is_canonical_at_zero_baseline",
+    "failed_finding": "json_not_canonical specs/reachability-registry.json",
+    "current_head": "25dce58c0106d0f49f9133e708cd5c863d21018a",
+    "current_oya_ci_required": "pending_after_push",
+    "local_gate_check": "buck2 test //ci/facade/canonical-json:ci-canonical-json-gate \u2192 Pass 1 (4/4)",
+    "head_match_required_before_merge": true,
+    "note": "Re-confirm `gh pr checks 1561` / oya-ci-required SUCCESS on exact head 25dce58c0106d0f49f9133e708cd5c863d21018a before squash merge"
+  },
+  "rebase_delta": {
+    "onto": "a1bd1f14af0f4f5fdf766928e25d6503a0f3ac02",
+    "tip_commit_subject": "fix(ci): canonicalize reachability-registry.json (literal UTF-8)",
+    "reachability_union": {
+      "w0a": [
+        "ci/facade/k8s-program-docs/",
+        "docs/programs/k8s-port/",
+        "specs/k8s-port/"
+      ],
+      "cas_1558_sample": [
+        "infra/nativelink/",
+        "infra/talos/BUCK"
+      ],
+      "assessment": "correct additive union; no prefix family dropped; post-union bytes now ADR-0546 canonical (literal UTF-8)"
+    }
+  },
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "merge_notes": [
+    "Agent dual-critic APPROVE substance retained on re-head (mechanical canonical-json only)",
+    "Do not merge while oya-ci-required is missing/pending/failed on exact head 25dce58c0",
+    "Author/agent must not self-merge if still blocked by other hard_stops in PROGRAM.json beyond dual-critic",
+    "After squash: fill G001 post-merge packet; do not start W0-B until G001 packet complete"
+  ],
+  "not_claiming": [
+    "G001 ultragoal complete until post-merge packet",
+    "W0-B",
+    "oya-ci-required SUCCESS on 25dce58c0 until cloud run reports green"
+  ],
+  "reviewed_at": "2026-08-05T13:30Z",
+  "reviewer": "dual-critic-synthesizer+A+B-rehead-25dce58c0-ci-fix",
+  "harness": "cross_model_dual_critic_CRITIC_DIFF",
+  "mode": "THOROUGH",
+  "escalation": "not_required_no_critical_or_three_major"
+}

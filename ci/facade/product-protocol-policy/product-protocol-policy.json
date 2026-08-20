@@ -1,0 +1,854 @@
+{
+  "gate_id": "cloud-ci-product-protocol-policy",
+  "schema_version": "1.0.0",
+  "artifacts": {
+    "product_contract": "specs/product-protocol-contract.json",
+    "api_contract_ssot": "specs/api-contract-ssot-canonical.json",
+    "transport_profile": "network/ports/transport-profile/endpoint-transport-profile.contract.json",
+    "root_hub": "specs/root-hub-pointers.json",
+    "manifest_schema": "specs/microservices/manifest-schema.json",
+    "master_plan_sequencing": "specs/master-plan-sequencing.json"
+  },
+  "authority_reconciliation": {
+    "accepted_adrs": [
+      {
+        "id": "ADR-0051"
+      },
+      {
+        "id": "ADR-0056"
+      },
+      {
+        "id": "ADR-0105"
+      },
+      {
+        "id": "ADR-0157"
+      },
+      {
+        "id": "ADR-0159"
+      },
+      {
+        "id": "ADR-0167"
+      },
+      {
+        "id": "ADR-0169"
+      },
+      {
+        "id": "ADR-0176"
+      },
+      {
+        "id": "ADR-0182"
+      },
+      {
+        "id": "ADR-0185"
+      },
+      {
+        "id": "ADR-0258"
+      },
+      {
+        "id": "ADR-0478"
+      },
+      {
+        "id": "ADR-0479"
+      },
+      {
+        "id": "ADR-0480"
+      },
+      {
+        "id": "ADR-0481"
+      },
+      {
+        "id": "ADR-0565"
+      }
+    ],
+    "proposed_adrs": [
+      {
+        "id": "ADR-0246",
+        "artifact": "adr_0246"
+      }
+    ],
+    "zero_graphql_layer_adrs": [
+      "ADR-0056",
+      "ADR-0105"
+    ],
+    "section_heading": "## ADR-0632 product-protocol reconciliation",
+    "proposed_section_heading": "## ADR-0632 product-protocol clarification (proposal only)",
+    "accepted_statuses": [
+      "accepted",
+      "accepted (amendment)",
+      "superseded",
+      "Superseded"
+    ]
+  },
+  "manifest_inventory": {
+    "governed_roots": [
+      "audit",
+      "billing",
+      "cell",
+      "comms",
+      "compliance",
+      "console",
+      "data",
+      "flags",
+      "gateway",
+      "iac",
+      "iam",
+      "intelligence",
+      "k8s",
+      "marketplace",
+      "network",
+      "observability",
+      "oya",
+      "secrets",
+      "storage",
+      "tenancy",
+      "workflow"
+    ],
+    "expected_total": 94,
+    "expected_live_v1_total": 58,
+    "canonical_schema_version": "1.0",
+    "reviewed_legacy_service_manifests": [
+      "comms/comms-email/manifest.json",
+      "comms/contact-center/manifest.json",
+      "comms/emergency/manifest.json",
+      "compliance/manifest.json",
+      "data/analytics/manifest.json",
+      "data/data-pipeline/manifest.json",
+      "data/data-warehouse/manifest.json",
+      "observability/diagnostics/manifest.json",
+      "oya/ci-webhook-gateway/manifest.json",
+      "oya/contract-lifecycle-management/manifest.json",
+      "oya/crm/manifest.json",
+      "oya/design-collaboration/manifest.json",
+      "oya/financial-planning/manifest.json",
+      "oya/global-trade/manifest.json",
+      "oya/incident-management/manifest.json",
+      "oya/itsm/manifest.json",
+      "oya/learning-management/manifest.json",
+      "oya/marketing-automation/manifest.json",
+      "oya/performance-management/manifest.json",
+      "oya/plant-maintenance/manifest.json",
+      "oya/production-planning/manifest.json",
+      "oya/quality-management/manifest.json",
+      "oya/real-estate/manifest.json",
+      "oya/supply-chain-planning/manifest.json",
+      "oya/treasury/manifest.json",
+      "oya/warehouse/manifest.json",
+      "oya/whiteboard/manifest.json",
+      "storage/imaging/manifest.json"
+    ],
+    "reviewed_overlay_manifests": [
+      "marketplace/developer-sdk/packs/eu/manifest.json",
+      "marketplace/developer-sdk/packs/kr/manifest.json",
+      "marketplace/developer-sdk/packs/us-financial/manifest.json",
+      "marketplace/developer-sdk/packs/us-healthcare/manifest.json",
+      "marketplace/developer-sdk/packs/us-public-sector/manifest.json",
+      "marketplace/plugin-app-store/packs/eu/manifest.json",
+      "marketplace/plugin-app-store/packs/kr/manifest.json",
+      "marketplace/plugin-app-store/packs/us-financial/manifest.json",
+      "marketplace/plugin-app-store/packs/us-healthcare/manifest.json",
+      "marketplace/plugin-app-store/packs/us-public-sector/manifest.json"
+    ],
+    "legacy_review_rule": "Named legacy manifests remain migration inventory only. They receive no protocol exemption: shape-independent checks still reject internal gRPC outside HTTP/2 and FlatBuffers without the benchmark-gated derived-adapter posture.",
+    "public_proto_posture": "No public_surface_files.proto carrier is permitted, including in legacy manifests. Every Buck-corpus Proto is internal-only and marker-classified; live Proto service contracts must also be declared through contracts.internal_grpc. Named reviewed-legacy service contracts remain migration inventory, receive no content exemption, and do not imply runtime readiness.",
+    "_comment": "2026-08-17 retirement reconciliation: cloud/cloud-kernel/manifest.json and cloud/cloud-os/manifest.json left the governed corpus when the cloud/ source root was deleted, so expected_total moves exactly 96 -> 94 and the dead //cloud Buck corpus resources are removed in the same change. HOLD for destination capability-root PRs (#1651–#1655 / cell|comms|data|iam|workflow): expected_live_v1_total stays 58 until those five `<root>/manifest.json` files land on the merge base. PRIOR ENTRY retained below in spirit — 2026-08-08 (PR #1620): 97 -> 96 via tests/ skip."
+  },
+  "rules": [
+    {
+      "code": "PP-CONTRACT-ID",
+      "artifact": "product_contract",
+      "pointer": "/spec_id",
+      "mode": "equals",
+      "expected": "EXE-PRODUCT-PROTOCOL-CONTRACT"
+    },
+    {
+      "code": "PP-CONTRACT-STATUS",
+      "artifact": "product_contract",
+      "pointer": "/status",
+      "mode": "equals",
+      "expected": "Accepted"
+    },
+    {
+      "code": "PP-CONTRACT-AUTHORITY",
+      "artifact": "product_contract",
+      "pointer": "/authority/adr",
+      "mode": "equals",
+      "expected": "ADR-0632"
+    },
+    {
+      "code": "PP-PUBLIC-ALLOWED",
+      "artifact": "product_contract",
+      "pointer": "/public_api/allowed_protocols",
+      "mode": "unordered_equals",
+      "expected": [
+        "https-rest",
+        "versioned-webhooks",
+        "sse",
+        "websocket"
+      ]
+    },
+    {
+      "code": "PP-PUBLIC-FORBIDDEN",
+      "artifact": "product_contract",
+      "pointer": "/public_api/forbidden_protocols",
+      "mode": "unordered_equals",
+      "expected": [
+        "graphql",
+        "grpc",
+        "grpc-web",
+        "connect"
+      ]
+    },
+    {
+      "code": "PP-OPENAPI-VERSION",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/openapi",
+      "mode": "equals",
+      "expected": "3.2.0"
+    },
+    {
+      "code": "PP-ASYNCAPI-VERSION",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/asyncapi",
+      "mode": "equals",
+      "expected": "3.1.0"
+    },
+    {
+      "code": "PP-CLOUDEVENTS-VERSION",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/cloudevents",
+      "mode": "equals",
+      "expected": "1.0.2"
+    },
+    {
+      "code": "PP-CLOUDEVENTS-WEBSOCKET-NONCLAIM",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/cloudevents_websocket_binding",
+      "mode": "equals",
+      "expected": "not-claimed"
+    },
+    {
+      "code": "PP-PUBLIC-EDGE-PREFERENCE",
+      "artifact": "product_contract",
+      "pointer": "/public_api/transport/edge_preference",
+      "mode": "equals",
+      "expected": "http3"
+    },
+    {
+      "code": "PP-PUBLIC-EDGE-FALLBACK",
+      "artifact": "product_contract",
+      "pointer": "/public_api/transport/fallback",
+      "mode": "equals",
+      "expected": "http2"
+    },
+    {
+      "code": "PP-PUBLIC-TLS",
+      "artifact": "product_contract",
+      "pointer": "/public_api/transport/tls_minimum",
+      "mode": "equals",
+      "expected": "1.3"
+    },
+    {
+      "code": "PP-INTERNAL-EXPOSURE",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/exposure",
+      "mode": "equals",
+      "expected": "internal-only"
+    },
+    {
+      "code": "PP-INTERNAL-GRPC",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/protocol",
+      "mode": "equals",
+      "expected": "grpc"
+    },
+    {
+      "code": "PP-INTERNAL-H2",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/http_transport",
+      "mode": "equals",
+      "expected": "http2"
+    },
+    {
+      "code": "PP-INTERNAL-PROTOBUF",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/schema_system",
+      "mode": "equals",
+      "expected": "protobuf"
+    },
+    {
+      "code": "PP-INTERNAL-PROTO3",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/language_profile",
+      "mode": "equals",
+      "expected": "proto3"
+    },
+    {
+      "code": "PP-INTERNAL-MTLS",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/identity_transport",
+      "mode": "equals",
+      "expected": "spiffe-mtls-tls13"
+    },
+    {
+      "code": "PP-FLATBUFFERS-DERIVED",
+      "artifact": "product_contract",
+      "pointer": "/serialization/flatbuffers/status",
+      "mode": "equals",
+      "expected": "benchmark-gated-derived-adapter"
+    },
+    {
+      "code": "PP-FLATBUFFERS-NONCANONICAL",
+      "artifact": "product_contract",
+      "pointer": "/serialization/flatbuffers/canonical",
+      "mode": "equals",
+      "expected": false
+    },
+    {
+      "code": "PP-TELEMETRY-BASELINE",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/baseline",
+      "mode": "unordered_equals",
+      "expected": [
+        "opentelemetry",
+        "cilium",
+        "hubble"
+      ]
+    },
+    {
+      "code": "PP-CUSTOM-EBPF-GATE",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/custom_ebpf",
+      "mode": "equals",
+      "expected": "measured-gap-and-security-review-only"
+    },
+    {
+      "code": "PP-FABRIC-PROVIDER-OWNED",
+      "artifact": "product_contract",
+      "pointer": "/fabric/provider_owned",
+      "mode": "unordered_equals",
+      "expected": [
+        "bgp-clos",
+        "evpn-vxlan",
+        "physical-switching",
+        "asic-programming"
+      ]
+    },
+    {
+      "code": "PP-FABRIC-DEFERRED",
+      "artifact": "product_contract",
+      "pointer": "/fabric/deferred_owned_profiles",
+      "mode": "unordered_equals",
+      "expected": [
+        "sonic",
+        "sai",
+        "gnmi-mutating",
+        "gnoi-mutating",
+        "uec",
+        "rocev2",
+        "nvme-rdma",
+        "fibre-channel"
+      ]
+    },
+    {
+      "code": "PP-NVME-TCP-FIRST",
+      "artifact": "product_contract",
+      "pointer": "/fabric/disaggregated_storage_first_profile",
+      "mode": "equals",
+      "expected": "nvme-tcp"
+    },
+    {
+      "code": "PP-API-SSOT-PROTOCOL-REF",
+      "artifact": "api_contract_ssot",
+      "pointer": "/product_protocol_contract",
+      "mode": "equals",
+      "expected": "specs/product-protocol-contract.json"
+    },
+    {
+      "code": "PP-API-SSOT-PUBLIC",
+      "artifact": "api_contract_ssot",
+      "pointer": "/exposure_policy/public",
+      "mode": "unordered_equals",
+      "expected": [
+        "rest",
+        "versioned-webhooks",
+        "asyncapi-events",
+        "sse",
+        "websocket"
+      ]
+    },
+    {
+      "code": "PP-API-SSOT-INTERNAL",
+      "artifact": "api_contract_ssot",
+      "pointer": "/exposure_policy/internal_only",
+      "mode": "unordered_equals",
+      "expected": [
+        "grpc",
+        "grpc-streaming",
+        "proto3"
+      ]
+    },
+    {
+      "code": "PP-API-SSOT-FORBIDDEN",
+      "artifact": "api_contract_ssot",
+      "pointer": "/exposure_policy/forbidden_public",
+      "mode": "unordered_equals",
+      "expected": [
+        "graphql",
+        "grpc",
+        "grpc-web",
+        "connect"
+      ]
+    },
+    {
+      "code": "PP-TRANSPORT-PROTOCOL-REF",
+      "artifact": "transport_profile",
+      "pointer": "/product_protocol_contract",
+      "mode": "equals",
+      "expected": "specs/product-protocol-contract.json"
+    },
+    {
+      "code": "PP-WEBHOOK-SECURITY",
+      "artifact": "product_contract",
+      "pointer": "/public_api/selection_rules/webhooks",
+      "mode": "unordered_equals",
+      "expected": [
+        "versioned",
+        "authenticated",
+        "signed",
+        "idempotent",
+        "replay-protected"
+      ]
+    },
+    {
+      "code": "PP-CENTRAL-TLS13",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/minimum_version",
+      "mode": "equals",
+      "expected": "1.3"
+    },
+    {
+      "code": "PP-CENTRAL-INTERNAL-MTLS",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/internal_workload_mtls",
+      "mode": "equals",
+      "expected": "required"
+    },
+    {
+      "code": "PP-CENTRAL-IDENTITY-LIFECYCLE",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/identity_lifecycle",
+      "mode": "unordered_equals",
+      "expected": [
+        "issuance",
+        "rotation",
+        "revocation",
+        "authorization"
+      ]
+    },
+    {
+      "code": "PP-MANAGED-STORAGE-FIRST",
+      "artifact": "product_contract",
+      "pointer": "/fabric/managed_storage_first",
+      "mode": "equals",
+      "expected": true
+    },
+    {
+      "code": "PP-ROCEV2-NONREQUIREMENT",
+      "artifact": "product_contract",
+      "pointer": "/fabric/rocev2_product_requirement",
+      "mode": "equals",
+      "expected": false
+    },
+    {
+      "code": "PP-TRANSPORT-EXTERNAL-H3",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes",
+      "mode": "named_member_equals",
+      "selector_field": "name",
+      "selector_value": "external",
+      "member_pointer": "/default_protocol",
+      "expected": "http3"
+    },
+    {
+      "code": "PP-TRANSPORT-EXTERNAL-H2-FALLBACK",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes",
+      "mode": "named_member_equals",
+      "selector_field": "name",
+      "selector_value": "external",
+      "member_pointer": "/fallback_protocol",
+      "expected": "http2"
+    },
+    {
+      "code": "PP-TRANSPORT-EXTERNAL-TLS",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes",
+      "mode": "named_member_equals",
+      "selector_field": "name",
+      "selector_value": "external",
+      "member_pointer": "/tls_profile",
+      "expected": "strict_tls13"
+    },
+    {
+      "code": "PP-TRANSPORT-INTERCELL-GRPC-H2",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes",
+      "mode": "named_member_equals",
+      "selector_field": "name",
+      "selector_value": "inter_cell",
+      "member_pointer": "/default_protocol",
+      "expected": "grpc_http2"
+    },
+    {
+      "code": "PP-TRANSPORT-INTERCELL-MTLS",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes",
+      "mode": "named_member_equals",
+      "selector_field": "name",
+      "selector_value": "inter_cell",
+      "member_pointer": "/tls_profile",
+      "expected": "spiffe_mtls_tls13"
+    },
+    {
+      "code": "PP-TRANSPORT-INTERNAL-GRPC-H2",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes",
+      "mode": "named_member_equals",
+      "selector_field": "name",
+      "selector_value": "internal",
+      "member_pointer": "/default_protocol",
+      "expected": "grpc_http2"
+    },
+    {
+      "code": "PP-TRANSPORT-INTERNAL-MTLS",
+      "artifact": "transport_profile",
+      "pointer": "/capability_classes",
+      "mode": "named_member_equals",
+      "selector_field": "name",
+      "selector_value": "internal",
+      "member_pointer": "/tls_profile",
+      "expected": "spiffe_mtls_tls13"
+    },
+    {
+      "code": "PP-STRICT-TLS-PROFILE-MINIMUM",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/strict_tls13/minimum_version",
+      "mode": "equals",
+      "expected": "1.3"
+    },
+    {
+      "code": "PP-STRICT-TLS-PROFILE-AUTH",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/strict_tls13/peer_authentication",
+      "mode": "equals",
+      "expected": "server-authenticated"
+    },
+    {
+      "code": "PP-SPIFFE-MTLS-PROFILE-MINIMUM",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/spiffe_mtls_tls13/minimum_version",
+      "mode": "equals",
+      "expected": "1.3"
+    },
+    {
+      "code": "PP-SPIFFE-MTLS-PROFILE-AUTH",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/spiffe_mtls_tls13/peer_authentication",
+      "mode": "equals",
+      "expected": "mutual"
+    },
+    {
+      "code": "PP-SPIFFE-MTLS-PROFILE-IDENTITY",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/spiffe_mtls_tls13/workload_identity",
+      "mode": "equals",
+      "expected": "spiffe"
+    },
+    {
+      "code": "PP-SPIFFE-MTLS-PROFILE-LIFECYCLE",
+      "artifact": "transport_profile",
+      "pointer": "/tls_profiles/spiffe_mtls_tls13/identity_lifecycle",
+      "mode": "unordered_equals",
+      "expected": [
+        "issuance",
+        "rotation",
+        "revocation",
+        "authorization"
+      ]
+    },
+    {
+      "code": "PP-CANONICAL-ENDPOINT-ID",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/endpoint_id",
+      "mode": "equals",
+      "expected": "api-gateway-public"
+    },
+    {
+      "code": "PP-CANONICAL-ENDPOINT-CLASS",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/capability_class",
+      "mode": "equals",
+      "expected": "external"
+    },
+    {
+      "code": "PP-CANONICAL-ENDPOINT-PROTOCOL",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/protocol",
+      "mode": "equals",
+      "expected": "http3"
+    },
+    {
+      "code": "PP-CANONICAL-ENDPOINT-FALLBACK",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/fallback_protocol",
+      "mode": "equals",
+      "expected": "http2"
+    },
+    {
+      "code": "PP-CANONICAL-ENDPOINT-TLS",
+      "artifact": "transport_profile",
+      "pointer": "/canonical_external_endpoint/tls_profile",
+      "mode": "equals",
+      "expected": "strict_tls13"
+    },
+    {
+      "code": "PP-CONTRACT-VERSION",
+      "artifact": "product_contract",
+      "pointer": "/contract_version",
+      "mode": "equals",
+      "expected": "1.0.0"
+    },
+    {
+      "code": "PP-CONTRACT-FOUNDER-DECISION",
+      "artifact": "product_contract",
+      "pointer": "/authority/founder_decision",
+      "mode": "equals",
+      "expected": "capability-first-reorg-protocol-posture"
+    },
+    {
+      "code": "PP-CONTRACT-ENFORCEMENT-GATE",
+      "artifact": "product_contract",
+      "pointer": "/authority/enforcement_gate",
+      "mode": "equals",
+      "expected": "cloud-ci-product-protocol-policy"
+    },
+    {
+      "code": "PP-CLOUDEVENTS-HTTP-BINDING",
+      "artifact": "product_contract",
+      "pointer": "/public_api/contracts/cloudevents_http_binding",
+      "mode": "equals",
+      "expected": "stable-required-for-cloudevents-webhooks"
+    },
+    {
+      "code": "PP-HTTP3-NONDEPENDENCY",
+      "artifact": "product_contract",
+      "pointer": "/public_api/transport/correctness_may_depend_on_http3",
+      "mode": "equals",
+      "expected": false
+    },
+    {
+      "code": "PP-SSE-SELECTION",
+      "artifact": "product_contract",
+      "pointer": "/public_api/selection_rules/sse",
+      "mode": "equals",
+      "expected": "server-to-client streams where browser-native reconnect and event ids are sufficient"
+    },
+    {
+      "code": "PP-WEBSOCKET-SELECTION",
+      "artifact": "product_contract",
+      "pointer": "/public_api/selection_rules/websocket",
+      "mode": "equals",
+      "expected": "bidirectional sessions only; AsyncAPI describes messages without claiming a stable CloudEvents WebSocket binding"
+    },
+    {
+      "code": "PP-INTERNAL-COMPATIBILITY",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/compatibility",
+      "mode": "unordered_equals",
+      "expected": [
+        "reserve removed field names and numbers",
+        "never reuse field numbers",
+        "run wire-compatibility checks independently from semantic compatibility checks"
+      ]
+    },
+    {
+      "code": "PP-EDITIONS-PROFILE-NAME",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/future_profile/name",
+      "mode": "equals",
+      "expected": "protobuf-editions-2024"
+    },
+    {
+      "code": "PP-EDITIONS-DEFERRED",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/future_profile/status",
+      "mode": "equals",
+      "expected": "deferred-toolchain-qualification"
+    },
+    {
+      "code": "PP-EDITIONS-ACTIVATION",
+      "artifact": "product_contract",
+      "pointer": "/internal_rpc/future_profile/activation",
+      "mode": "equals",
+      "expected": "separate Accepted compatibility profile after prost/tonic and cross-language generator qualification"
+    },
+    {
+      "code": "PP-TLS-NORMATIVE-TERM",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/normative_term",
+      "mode": "equals",
+      "expected": "TLS"
+    },
+    {
+      "code": "PP-SSL-DEPRECATED-TERM",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/deprecated_term",
+      "mode": "equals",
+      "expected": "SSL"
+    },
+    {
+      "code": "PP-PUBLIC-SERVER-AUTH",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/public_server_authentication",
+      "mode": "equals",
+      "expected": "required"
+    },
+    {
+      "code": "PP-PUBLIC-CLIENT-MTLS-GATED",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/public_client_mtls",
+      "mode": "equals",
+      "expected": "profile-gated-not-default"
+    },
+    {
+      "code": "PP-TLS-EXCEPTIONS-REVIEWED",
+      "artifact": "product_contract",
+      "pointer": "/transport_security/exceptions",
+      "mode": "equals",
+      "expected": "loopback, Unix sockets, or provider-owned equivalent protection require an explicit reviewed profile; no silent downgrade"
+    },
+    {
+      "code": "PP-EXTERNAL-SERIALIZATION",
+      "artifact": "product_contract",
+      "pointer": "/serialization/external_default",
+      "mode": "equals",
+      "expected": "json"
+    },
+    {
+      "code": "PP-INTERNAL-SERIALIZATION",
+      "artifact": "product_contract",
+      "pointer": "/serialization/internal_canonical",
+      "mode": "equals",
+      "expected": "protobuf"
+    },
+    {
+      "code": "PP-FLATBUFFERS-ACTIVATION",
+      "artifact": "product_contract",
+      "pointer": "/serialization/flatbuffers/activation_requires",
+      "mode": "unordered_equals",
+      "expected": [
+        "isolated hot path",
+        "reproducible latency or zero-copy benchmark",
+        "schema-evolution review",
+        "no second independently authored source of truth"
+      ]
+    },
+    {
+      "code": "PP-OTEL-APPLICATION-SEMANTICS",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/application_semantics",
+      "mode": "equals",
+      "expected": "OpenTelemetry instrumentation remains mandatory for tenant, workflow, authorization, and business semantics"
+    },
+    {
+      "code": "PP-OTEL-EBPF-PILOT",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/otel_ebpf",
+      "mode": "equals",
+      "expected": "pilot-only-while-pre-1.0"
+    },
+    {
+      "code": "PP-GNMI-DEFERRED",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/network_device_interfaces/gnmi",
+      "mode": "equals",
+      "expected": "deferred-until-owned-device-profile"
+    },
+    {
+      "code": "PP-GNOI-DEFERRED",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/network_device_interfaces/gnoi",
+      "mode": "equals",
+      "expected": "deferred-until-owned-device-profile"
+    },
+    {
+      "code": "PP-NETWORK-MUTATION-PROFILE",
+      "artifact": "product_contract",
+      "pointer": "/telemetry/network_device_interfaces/mutating_operations",
+      "mode": "equals",
+      "expected": "separate-Accepted-profile-required"
+    },
+    {
+      "code": "PP-FABRIC-ACTIVATION-BOUNDARY",
+      "artifact": "product_contract",
+      "pointer": "/fabric/activation_boundary",
+      "mode": "equals",
+      "expected": "a separate Accepted profile must prove Oyatie owns the relevant device or bare-metal fabric and has interoperability, congestion, loss, telemetry, rollback, and operator evidence"
+    },
+    {
+      "code": "PP-NONCLAIMS",
+      "artifact": "product_contract",
+      "pointer": "/non_claims",
+      "mode": "unordered_equals",
+      "expected": [
+        "This contract does not claim every allowed protocol is implemented by every capability.",
+        "This contract does not claim public gRPC, gRPC-Web, Connect, or GraphQL compatibility.",
+        "This contract does not claim an owned physical Clos/EVPN fabric, switch NOS, SAI integration, gNMI/gNOI actuation, UEC, RoCEv2, or NVMe/RDMA deployment.",
+        "This contract does not make HTTP/3 availability a correctness dependency.",
+        "This contract does not claim that eBPF can replace application-level telemetry."
+      ]
+    },
+    {
+      "code": "PP-ROOT-HUB",
+      "artifact": "root_hub",
+      "pointer": "/entry_points/product_protocol_contract/current_path",
+      "mode": "equals",
+      "expected": "/specs/product-protocol-contract.json"
+    },
+    {
+      "code": "PP-MANIFEST-CONTRACTS-CLOSED",
+      "artifact": "manifest_schema",
+      "pointer": "/properties/contracts/additionalProperties",
+      "mode": "equals",
+      "expected": false
+    },
+    {
+      "code": "PP-MANIFEST-INTERNAL-GRPC-H2",
+      "artifact": "manifest_schema",
+      "pointer": "/properties/contracts/properties/internal_grpc/properties/transport/const",
+      "mode": "equals",
+      "expected": "http2"
+    },
+    {
+      "code": "PP-MANIFEST-INTERNAL-PROTO3",
+      "artifact": "manifest_schema",
+      "pointer": "/properties/contracts/properties/internal_grpc/properties/language_profile/const",
+      "mode": "equals",
+      "expected": "proto3"
+    },
+    {
+      "code": "PP-MANIFEST-PUBLIC-VERSION-FILES-CLOSED",
+      "artifact": "manifest_schema",
+      "pointer": "/properties/tenant_version_pinning/properties/public_surface_files/additionalProperties",
+      "mode": "equals",
+      "expected": false
+    },
+    {
+      "code": "PP-MASTERPLAN-15V-QUEUED",
+      "artifact": "master_plan_sequencing",
+      "pointer": "/realignment_wave_sequence/waves_15_plus/sub_wave_landings/15V-API-Versioning-Adoption/status",
+      "mode": "equals",
+      "expected": "queued"
+    }
+  ]
+}

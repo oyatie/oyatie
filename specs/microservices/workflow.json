@@ -1,0 +1,1155 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/products/workflow.schema.json",
+  "title": "ProductPrd:Workflow",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "PRD-WORKFLOW",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture + axis-foundry",
+    "created_at": "2026-05-16T13:00:00Z",
+    "purpose": "Workflow product PRD — machine-optimized canonical form. Pointers to ADRs, specs, contracts, crates, lanes. Companion to /specs/microservices/workflow-studio.json (visual-editor half) + /specs/microservices/ontology.json (typed-entity backbone)."
+  },
+  "identity": {
+    "product_id": "workflow",
+    "owning_axis": "ecosystem-infrastructure-backbone",
+    "backbone_of": "ecosystem-as-a-product (with $ref:specs/microservices/ontology.json)",
+    "crate_refs": [
+      "$ref:registry/catalog/oya-saas-workflow-kernel.yaml",
+      "$ref:registry/catalog/oya-saas-workflow-domain.yaml",
+      "$ref:registry/catalog/oya-saas-workflow-app.yaml"
+    ],
+    "user_facing_surface": true
+  },
+  "inherits": {
+    "bominal_adrs": [
+      "$ref:bominal/decisions/ADR-0103",
+      "$ref:bominal/decisions/ADR-0106",
+      "$ref:bominal/decisions/ADR-0148",
+      "$ref:bominal/decisions/ADR-0149",
+      "$ref:bominal/decisions/ADR-0164",
+      "$ref:bominal/decisions/ADR-0192"
+    ],
+    "oyatie_specs": [
+      "$ref:specs/agent-durable-goal.json",
+      "$ref:specs/oyatie-doctrine.json",
+      "$ref:specs/multispectrum-review.json"
+    ],
+    "memory_pointers": [
+      "feedback_workflow_studio_scope",
+      "feedback_workflow_objectgraph_adapter_layer",
+      "feedback_bominal_inheritance_precedence"
+    ]
+  },
+  "north_star_ref": "$ref:bominal/decisions/ADR-0148#north-star (state-machine+DAG hybrid orchestration substrate; not BPMN; multi-domain)",
+  "target_users": [
+    {
+      "persona": "oyatie_product_team",
+      "interface": "internal API",
+      "billing": "internal cost-allocation per execution"
+    },
+    {
+      "persona": "enterprise_it_admin",
+      "interface": "visual editor ($ref:specs/microservices/workflow-studio.json)",
+      "billing": "enterprise per-tenant cell + SLA"
+    },
+    {
+      "persona": "vertical_specialist",
+      "interface": "jurisdiction-overlay editor",
+      "billing": "vertical-pack subscription"
+    },
+    {
+      "persona": "agentic_developer_role",
+      "interface_ref": "$ref:specs/agent-durable-goal.json#autonomous_foundry.roles",
+      "billing": "internal Foundry-scheduled"
+    },
+    {
+      "persona": "external_developer",
+      "interface": "REST + gRPC + SDK (Rust/TS/Python)",
+      "billing": "per-execution + per-active-definition",
+      "wave_available": "GA"
+    }
+  ],
+  "acceptance_criteria": [
+    {
+      "id": "AC-01",
+      "given": "valid workflow-spec.v1.json with state-machine + DAG",
+      "when": "WorkflowEngine::deploy()",
+      "then": "returns WorkflowDefinitionId; queryable",
+      "test_ref": "crates/oya-saas-workflow-kernel/tests/deploy.rs::test_deploy_state_dag_hybrid"
+    },
+    {
+      "id": "AC-02",
+      "given": "executing workflow instance",
+      "when": "step transition fires",
+      "then": "audit-chain row emitted with distinct timestamp + session_id per row",
+      "test_ref": "crates/oya-saas-workflow-domain/tests/audit_chain.rs::test_per_step_distinct_session",
+      "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"
+    },
+    {
+      "id": "AC-03",
+      "given": "two workflow definitions same id different versions",
+      "when": "caller resolves by definition_id@version",
+      "then": "correct version executes; no implicit version-bump",
+      "test_ref": "crates/oya-saas-workflow-domain/tests/versioning.rs::test_pinned_version_resolution"
+    },
+    {
+      "id": "AC-04",
+      "given": "definition with jurisdiction overlay",
+      "when": "executed in matching cell",
+      "then": "overlay rules override base; base elsewhere",
+      "test_ref": "crates/oya-saas-workflow-domain/tests/overlay.rs::test_jurisdiction_overlay_resolution"
+    },
+    {
+      "id": "AC-05",
+      "given": "instance executing >1 hour",
+      "when": "engine restart mid-execution",
+      "then": "resumes from last persisted step; zero duplicate side-effects (idempotency)",
+      "test_ref": "crates/oya-saas-workflow-app/tests/durability.rs::test_resume_after_restart_idempotent"
+    },
+    {
+      "id": "AC-06",
+      "given": "instance touching tenant data",
+      "when": "any data access",
+      "then": "per-tenant cell routing + Cedar policy gate fires; no cross-tenant leak",
+      "test_ref": "crates/oya-saas-workflow-domain/tests/tenancy.rs::test_no_cross_tenant_leak",
+      "doctrine_ref": "$ref:memory/feedback_workflow_objectgraph_adapter_layer"
+    },
+    {
+      "id": "AC-07",
+      "given": "agentic role calling invoke_capability()",
+      "when": "capability registered in Foundry registry",
+      "then": "Cedar policy enforces autonomy_tier; emits audit row",
+      "test_ref": "crates/oya-saas-workflow-app/tests/capability.rs::test_cedar_autonomy_gate",
+      "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-07"
+    },
+    {
+      "id": "AC-08",
+      "given": "new definition deployed",
+      "when": "schema migration policy invoked",
+      "then": "reversible migration; dry-run gate green before commit",
+      "test_ref": "crates/oya-saas-workflow-kernel/tests/migration.rs::test_dry_run_reversible"
+    },
+    {
+      "id": "AC-09",
+      "given": "a workflow-engine state-machine transition event from the AsyncAPI lifecycle contract with tenant, run, spec/version, sequence, and evidence metadata plus an optional current checkpoint",
+      "when": "the preview state-machine kernel evaluates the next checkpoint for later durable execution integration",
+      "then": "it deterministically maps OpenAPI/proto run and step statuses, enforces monotonic checkpoint sequencing, tenant/run/spec binding, terminal-state, pause/resume, cancel policy-context, and step completion/retry invariants, rejects raw prompt/output/secret-shaped metadata without echo, and performs no storage, network, wall-clock, random, signing, queue, Postgres, Valkey, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-state-machine-kernel/src/lib.rs::tests::transition_eval_replays_identically"
+    },
+    {
+      "id": "AC-10",
+      "given": "a workflow-engine state-machine domain request with a typed transition event, optional current checkpoint, expected tenant/spec/version binding, and policy/spec-integrity/replay evidence refs",
+      "when": "the preview state-machine domain evaluates the request before later usecase/checkpoint-store integration",
+      "then": "it validates tenant/spec/version scope and evidence refs before kernel delegation, rejects raw prompt/output/secret-shaped domain metadata without echo, preserves kernel transition denials with domain audit refs, returns sorted/deduplicated metadata-only audit refs, and performs no storage, network, wall-clock, random, signing, queue, Postgres, Valkey, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-state-machine-domain/src/lib.rs::tests::domain_evaluation_delegates_to_kernel_and_attaches_policy_spec_replay_refs"
+    },
+    {
+      "id": "AC-11",
+      "given": "a workflow-engine state-machine usecase input with request/idempotency/trace metadata, a typed transition event, expected tenant/spec/version binding, and policy/spec-integrity/replay evidence refs plus a checkpoint-store port",
+      "when": "the preview state-machine usecase applies the transition before concrete API/adapter/checkpoint repository integration",
+      "then": "it rejects unsafe request/idempotency/trace metadata before store side effects, loads the current checkpoint, delegates policy-bound evaluation to the domain, appends accepted checkpoints with the expected sequence through the port, maps domain denials and store conflicts/unavailability to metadata-only receipts and audit events, and performs no concrete storage, network, wall-clock, random, signing, queue, Postgres, Valkey, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-state-machine-usecase/src/lib.rs::tests::valid_transition_loads_current_delegates_domain_and_appends_expected_sequence"
+    },
+    {
+      "id": "AC-12",
+      "given": "a workflow-engine state-machine API request carrying version, tenant, idempotency, trace, principal, authorization, expected spec/version, policy/spec-integrity/replay evidence, and an API transition event body",
+      "when": "the preview state-machine API boundary handles the request before concrete REST/gRPC/server integration",
+      "then": "it validates version, tenant/principal/authorization binding, and safe metadata before store side effects; maps API event types to typed AsyncAPI lifecycle events; delegates accepted requests to the state-machine usecase; preserves in-memory idempotent replay/conflict semantics; maps usecase outcomes to stable HTTP-shaped statuses; projects checkpoints to OpenAPI/proto run and step status DTOs; rejects unknown event types and raw prompt/output/secret-shaped metadata without echo; and performs no HTTP serving, serialization-framework, concrete storage, network, queue, signing, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-state-machine-api/src/lib.rs::tests::accepts_authorized_transition_and_returns_openapi_proto_statuses"
+    },
+    {
+      "id": "AC-13",
+      "given": "a workflow-engine state-machine checkpoint and the adapter-postgres preview foundation for later concrete checkpoint persistence",
+      "when": "the preview adapter builds current-load or optimistic append plans and maps future Postgres affected-row counts",
+      "then": "it defines tenant-predicated current-checkpoint SQL, unique (tenant_id, run_id, checkpoint_seq) DDL, one-insert optimistic append SQL with expected previous sequence, redaction-safe checkpoint row mapping, affected-row conflict/unavailable mapping, and rejects unsafe prompt/output/secret-shaped metadata before SQL plan construction while performing no database connection, SQL execution, network, filesystem, queue, signing, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-state-machine-adapter-postgres/src/lib.rs::tests::sql_templates_include_tenant_predicate_and_unique_checkpoint_key"
+    },
+    {
+      "id": "AC-14",
+      "given": "a workflow-engine state-machine usecase and the generic adapter preview foundation for source-level checkpoint-store integration",
+      "when": "the preview adapter loads and appends checkpoints during state-machine transitions before durable storage adapters are connected",
+      "then": "it implements the checkpoint-store port with tenant-scoped in-memory current-checkpoint lookup, monotonic expected-sequence append semantics, store-conflict mapping without mutation, metadata-only adapter action recording, unsafe prompt/output/secret-shaped metadata rejection before mutation, and no durable persistence, database connection, filesystem, network, queue, signing, wall-clock, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-state-machine-adapter/src/lib.rs::tests::usecase_applies_transitions_through_memory_adapter_without_durable_claims"
+    },
+    {
+      "id": "AC-15",
+      "given": "a workflow-engine execution-engine kernel preview foundation for later durable run dispatch, step execution, retry, and SLA timer integration",
+      "when": "the source-level kernel constructs execution runs, step executions, retry attempts, SLA timers, and port contracts before domain/usecase/adapters are connected",
+      "then": "it exposes closed wire statuses with terminal predicates, validates tenant/run/spec/cell/step/retry/timer metadata refs, sorts and deduplicates evidence refs, rejects raw prompt/output/secret-shaped metadata without echo, provides protocol-neutral run-store, step-dispatcher, retry-policy, SLA-timer, and ephemeral-state port traits, and performs no database, filesystem, network, wall-clock, random, queue, signing, Valkey, Postgres, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-kernel/src/lib.rs::tests::port_traits_are_source_level_contracts_for_future_adapters"
+    },
+    {
+      "id": "AC-16",
+      "given": "a workflow-engine execution-engine domain request with run, optional step/retry/SLA-timer metadata, expected tenant/spec/version/cell binding, and policy/spec-integrity/replay/scheduler evidence refs",
+      "when": "the preview execution-engine domain evaluates start, dispatch, retry, and SLA-timer commands before usecase/store/worker/adapters are connected",
+      "then": "it validates evidence refs, tenant/spec/version/cell scope, command shape, terminal-run and retry-attempt state before later side effects, returns sorted/deduplicated metadata-only audit refs, rejects raw prompt/output/secret-shaped metadata without echo, and performs no storage, network, wall-clock, random, queue, signing, Valkey, Postgres, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-domain/src/lib.rs::tests::execution_domain_accepts_dispatch_and_attaches_evidence_refs"
+    },
+    {
+      "id": "AC-17",
+      "given": "a workflow-engine execution-engine usecase input with request/idempotency/trace metadata, expected run version, a policy-bound execution-domain request, and abstract run-store, step-dispatcher, retry-policy, and SLA-timer ports",
+      "when": "the preview execution-engine usecase applies start, dispatch, retry, or SLA-timer commands before concrete API/adapters/workers are connected",
+      "then": "it rejects unsafe request/domain metadata before store/cache/dispatch/timer side effects, preserves idempotent replay and conflict semantics, loads current runs through the port, delegates accepted requests to the execution-engine domain, updates run/step metadata through abstract store ports, invokes dispatcher/retry-policy/timer ports only after domain acceptance, maps store conflict/unavailability and dispatch/timer/retry failures to redaction-safe metadata-only receipts and audit events, and performs no concrete storage, network, wall-clock, random, queue, signing, Valkey, Postgres, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-usecase/src/lib.rs::tests::dispatch_usecase_loads_run_delegates_domain_updates_store_and_dispatches"
+    },
+    {
+      "id": "AC-18",
+      "given": "a workflow-engine execution-engine usecase and the generic adapter preview foundation for source-level run-store, dispatcher, retry-policy, and SLA-timer integration",
+      "when": "the preview adapter loads/creates/updates runs, saves steps, dispatches steps, evaluates retry delays, and arms/cancels/fires SLA timers before durable adapters are connected",
+      "then": "it implements the abstract execution ports with tenant-scoped in-memory maps, optimistic run-version conflict mapping without mutation, deterministic retry delay calculation, injected-epoch timer firing, metadata-only adapter action recording, unsafe prompt/output/secret-shaped metadata rejection before mutation or dispatch, and no durable persistence, database connection, filesystem, network, queue, signing, wall-clock, Valkey, Postgres, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-adapter/src/lib.rs::tests::usecase_dispatches_through_memory_adapter_bundle_without_durable_claims"
+    },
+    {
+      "id": "AC-19",
+      "given": "a workflow-engine execution-engine usecase and the adapter-postgres preview foundation for later concrete run, step, dispatcher-outbox, and SLA-timer persistence",
+      "when": "the preview adapter builds run load/create/update, step upsert, dispatcher outbox enqueue, timer upsert/cancel/expired-scan plans and maps future Postgres affected-row counts",
+      "then": "it defines tenant-scoped DDL with primary/unique keys, parameterized SQL with ON CONFLICT for idempotent create/upsert plans, expected-version run-status updates, FOR UPDATE SKIP LOCKED expired-timer scan plans, redaction-safe run/step/timer row mapping, affected-row conflict/unavailable mapping, unsafe prompt/output/secret-shaped metadata rejection before SQL plan construction, and performs no database connection, SQL execution, network, filesystem, queue, signing, wall-clock, Valkey, or cloud-runtime side effect",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-adapter-postgres/src/lib.rs::tests::sql_templates_include_tenant_predicates_and_unique_run_step_timer_keys"
+    },
+    {
+      "id": "AC-20",
+      "given": "a workflow-engine execution-engine usecase and the source-level execution-engine API boundary preview foundation for later REST/gRPC serving",
+      "when": "an API command requests StartRun, DispatchStep, ScheduleRetry, or ArmSlaTimer through tenant/principal/authorization/version-bound metadata",
+      "then": "it validates request, tenant, principal, authorization surface, version, path/body, and command metadata before usecase or port side effects; maps OpenAPI-facing command bodies to typed execution-engine usecase inputs; preserves idempotent response replay/conflict semantics; maps usecase outcomes to stable HTTP-shaped statuses and RFC 9457-style problem DTOs; projects run/step execution statuses into OpenAPI/proto DTOs; rejects raw prompt/output/payload/secret-shaped metadata without echo; and performs no HTTP serving, serialization-framework work, concrete storage, network, durable idempotency, queue, signing, wall-clock, or cloud-runtime side effects",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-api/src/lib.rs::tests::accepts_authorized_start_and_returns_openapi_run_dto"
+    },
+    {
+      "id": "AC-21",
+      "given": "the workflow-engine execution-engine API boundary preview foundation and the OpenAPI execution-engine route contract for later REST serving",
+      "when": "a source-level REST request targets start-run, dispatch-step, schedule-retry, or arm-SLA-timer execution command routes",
+      "then": "it checks HTTP method and path before API or port side effects, extracts run and step route parameters into the API request, rejects command/route mismatches explicitly, delegates valid requests through the execution-engine API boundary, returns JSON success bodies or application/problem+json problem bodies with safe status/code/detail refs, redacts raw prompt/output/payload/secret-shaped metadata, and performs no HTTP serving, socket binding, serialization framework work, concrete storage, network, durable idempotency, queue, signing, wall-clock, or cloud-runtime side effects",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-rest/src/lib.rs::tests::post_runs_maps_to_api_created_response_without_http_runtime"
+    },
+    {
+      "id": "AC-22",
+      "given": "the workflow-engine execution-engine usecase ports and source-level adapter foundation for later durable worker runtime integration",
+      "when": "a preview worker receives leased execution jobs or cold-start resume candidates",
+      "then": "it validates job, lease, worker, attempt, request, and domain metadata before usecase or port side effects; defers not-before jobs; denies expired leases; delegates accepted jobs through abstract store/dispatcher/retry/timer ports; maps applied dispatch, retry, and SLA timer receipts to metadata-only worker receipts/events; schedules capped retry for retryable port unavailability and exhausts at max attempts; caps and orders cold-start resume candidates deterministically; rejects raw prompt/output/payload/secret-shaped metadata without echo; and performs no durable queue polling, Valkey lease I/O, Postgres I/O, activity execution, network, filesystem, wall-clock, event-bus publishing, signing, or cloud-runtime scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-worker/src/lib.rs::tests::dispatch_job_invokes_usecase_and_records_metadata_only_events"
+    },
+    {
+      "id": "AC-23",
+      "given": "the workflow-engine execution-engine REST/API preview boundary and a source-level SDK facade for later generated client libraries",
+      "when": "a caller plans StartRun, DispatchStep, ScheduleRetry, or ArmSlaTimer through the SDK, or executes a planned command through the in-process preview seam",
+      "then": "it validates SDK config, request, run, step, retry, and timer metadata before REST/API/usecase/port side effects; binds caller-supplied request id, idempotency key, trace ref, tenant, principal, authorization evidence, Oyatie version, route path, operation id, and contract refs into typed REST/API requests; requires explicit first-step metadata for StartRun; maps dispatch/retry/timer routes deterministically; preserves stable idempotent replay through the API boundary; keeps automatic retries disabled for state-changing commands; rejects raw prompt/output/payload/secret-shaped metadata without echo; and performs no HTTP client, DNS, socket, serialization-framework, credential-loading, random/UUID generation, wall-clock, durable idempotency, queueing, signing, filesystem, cloud-runtime, or external network side effects",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-sdk/src/lib.rs::tests::in_process_preview_execute_delegates_through_rest_api_and_adapter_without_network"
+    },
+    {
+      "id": "AC-24",
+      "given": "the workflow-engine execution-engine REST, SDK, worker, and preview adapter seams plus the future Oyatie Cloud dogfood tenant-workload target",
+      "when": "the execution-engine app composition root is constructed, probed, asked for a dogfood workload plan, or used for in-process preview command execution and cold-start resume planning",
+      "then": "it validates tenant, cell, service instance, deployment environment, Oyatie Cloud substrate, Cedar bundle, Postgres run-store, Valkey lease, event-bus publisher, OpenBao credential, audit-chain, and SDK metadata refs before composition; rejects tenant/cell drift and raw prompt/output/payload/secret-shaped refs without echo; exposes source-level Kubernetes-shaped startup/liveness/readiness probe decisions with readiness distinct from liveness and drain-aware not-ready behavior; emits OpenTelemetry-shaped service identity attributes and a dogfood tenant workload plan with explicit no-hyperscaler non-claim refs; composes SDK, REST/API, worker, and in-memory adapter seams for local preview start/dispatch/timer and resume-throttle tests; and performs no binary startup, environment loading, HTTP serving, socket/DNS I/O, database connection, Valkey lease coordination, Cedar evaluation, OpenBao secret materialization, event-bus publishing, audit-chain sealing, filesystem access, random/UUID generation, wall-clock reads, Kubernetes API calls, container orchestration, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-execution-engine-app/src/lib.rs::tests::app_composes_sdk_rest_api_and_memory_adapters_for_in_process_preview"
+    },
+    {
+      "id": "AC-25",
+      "given": "the workflow-engine trigger-orchestrator preview kernel and PRD trigger surface for cron, webhook, event-bus, manual, API, workflow-spawn, and ontology trigger admission",
+      "when": "a trigger admission request is evaluated for schedule due/catchup/pause behavior, webhook authentication metadata, event-bus CloudEvents envelope metadata, policy-bound manual/API/spawn/ontology requests, or replay mode",
+      "then": "it validates tenant, trigger, workflow spec, version, cell, principal, policy decision, policy evidence, replay epoch, idempotency, lineage, and trigger-kind-specific metadata before any dispatch plan; rejects raw prompt/output/payload/secret-shaped refs without echo; accepts due cron schedules inside catchup windows with explicit overlap policy while deferring paused/not-due schedules and denying stale catchup windows; requires webhook HMAC key, signature, nonce, endpoint, received/expires refs before webhook dispatch; requires CloudEvents-shaped event id, source, type, specversion, correlation, and idempotency metadata for event-bus dispatch; requires policy-bound context for manual, API, workflow-spawn, and ontology triggers; suppresses replay-mode dispatch; emits deterministic evidence/non-claim refs; and performs no scheduler runtime, webhook server, HMAC verification, event-bus consumption, run creation, network I/O, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-trigger-orchestrator-kernel/src/lib.rs::tests::cron_schedule_accepts_due_window_and_preserves_overlap_policy_without_clock_reads"
+    },
+    {
+      "id": "AC-26",
+      "given": "the workflow-engine trigger-orchestrator domain preview layer above the source-level trigger-orchestrator kernel",
+      "when": "a policy-bound trigger domain request is evaluated for scheduler, Studio webhook, sibling event-bus, manual UI, API command, workflow-spawn, or ontology-projection source surfaces",
+      "then": "it validates tenant, trigger, workflow spec, version, active cell, principal, allowed trigger kind, policy decision, policy evidence, policy bundle, authorization surface, source evidence, replay epoch, audit-chain, trace, correlation, idempotency scope, and source-specific scheduler/webhook/event evidence before kernel delegation; rejects source-surface mismatch, scope drift, missing source evidence, and raw prompt/output/payload/secret-shaped refs without echo; delegates only validated requests to the kernel; maps accepted, deferred, denied, and replay-suppressed kernel outcomes into deterministic domain statuses with sorted audit/non-claim refs; and performs no Cedar evaluation, policy-store I/O, scheduler execution, cron parsing, timezone database integration, webhook serving, HMAC verification, nonce persistence, event-bus consumption, run creation, durable trigger storage, network I/O, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-trigger-orchestrator-domain/src/lib.rs::tests::cron_domain_accepts_policy_bound_due_schedule_with_scheduler_evidence"
+    },
+    {
+      "id": "AC-27",
+      "given": "the workflow-engine trigger-orchestrator usecase preview layer above the source-level trigger-orchestrator domain",
+      "when": "a trigger usecase request is applied for scheduler, Studio webhook, sibling event-bus, manual UI, API command, workflow-spawn, or ontology-projection source surfaces",
+      "then": "it validates request id, idempotency key, trace ref, and safe metadata before domain delegation; applies deterministic idempotency replay and conflict handling by idempotency key and request fingerprint; delegates validated requests to the trigger-orchestrator domain; maps accepted, deferred, denied, and replay-suppressed domain outcomes into typed metadata-only usecase receipts and audit events; preserves tenant, trigger, workflow spec, dispatch plan refs, schedule next-check refs, sorted evidence refs, and explicit non-claim refs; rejects invalid request metadata and raw prompt/output/payload/secret-shaped refs without echo; and performs no concrete idempotency store, trigger registry store, policy-store I/O, Cedar evaluation, scheduler execution, cron parsing, timezone database integration, webhook serving, HMAC verification, nonce persistence, event-bus consumption, run creation, durable trigger storage, network I/O, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-trigger-orchestrator-usecase/src/lib.rs::tests::scheduler_due_trigger_returns_metadata_only_accepted_receipt_and_idempotent_replay"
+    },
+    {
+      "id": "AC-28",
+      "given": "the workflow-engine trigger-orchestrator API preview boundary above the source-level trigger-orchestrator usecase",
+      "when": "a trigger API request is applied for scheduler, Studio webhook, sibling event-bus, manual UI, API command, workflow-spawn, or ontology-projection source surfaces",
+      "then": "it validates HTTP-shaped method, route, contract version, tenant, principal, authorization evidence, allowed surface, idempotency key, trace context, trigger source, trigger kind, source/kind pairing, and safe body metadata before usecase delegation; maps API DTOs into trigger-orchestrator domain/usecase inputs; applies deterministic in-memory API idempotency replay and conflict handling by tenant and idempotency key; returns accepted, deferred, and replay-suppressed usecase receipts as stable metadata-only 202 response DTOs; maps domain denial, invalid trigger metadata, and idempotency conflicts to typed RFC 9457-shaped problem details with stable error codes and safe evidence refs; rejects raw prompt/output/payload/secret-shaped refs without echo; and performs no HTTP serving, serialization-framework work, concrete idempotency store, trigger registry store, policy-store I/O, Cedar evaluation, scheduler execution, cron parsing, timezone database integration, webhook serving, HMAC verification, nonce persistence, event-bus consumption, run creation, durable trigger storage, network I/O, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-trigger-orchestrator-api/src/lib.rs::tests::accepts_authorized_scheduler_trigger_and_returns_metadata_only_response"
+    },
+    {
+      "id": "AC-29",
+      "given": "the workflow-engine trigger-orchestrator REST preview boundary above the source-level trigger-orchestrator API",
+      "when": "a REST-shaped trigger request is handled for scheduler, Studio webhook, sibling event-bus, manual UI, API command, workflow-spawn, or ontology-projection source surfaces",
+      "then": "it validates REST method and path, rejects unsafe request ids and route/body route drift before API delegation, maps the supported trigger route into the trigger-orchestrator API request, delegates accepted POST requests to the in-process API, returns metadata-only application/json success DTOs for accepted/deferred/replay-suppressed API responses, returns application/problem+json problem DTOs for route mismatch, method mismatch, API boundary denials, domain denials, invalid trigger metadata, and idempotency conflicts, preserves API idempotent replay/conflict behavior without a durable idempotency store, rejects raw prompt/output/payload/secret-shaped refs without echo, and performs no HTTP serving, socket binding, serialization-framework work, concrete idempotency store, trigger registry store, policy-store I/O, Cedar evaluation, scheduler execution, cron parsing, timezone database integration, webhook serving, HMAC verification, nonce persistence, event-bus consumption, run creation, durable trigger storage, network I/O, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-trigger-orchestrator-rest/src/lib.rs::tests::post_handler_maps_api_accepted_to_202_json_response_without_http_runtime"
+    },
+    {
+      "id": "AC-30",
+      "given": "the workflow-engine trigger-orchestrator worker preview seam above the source-level trigger-orchestrator API",
+      "when": "a leased trigger-orchestrator job is processed for scheduler, Studio webhook, sibling event-bus, manual UI, API command, workflow-spawn, or ontology-projection trigger surfaces",
+      "then": "it validates worker job id, lease id, worker ref, attempt id, attempt bounds, not-before and lease-expiry metadata before API delegation; rejects unsafe raw prompt/output/payload/secret-shaped job metadata without echo; defers not-before jobs and denies expired leases without API calls; delegates valid jobs to the in-process trigger-orchestrator API; maps accepted, deferred, and replay-suppressed API responses to metadata-only worker receipts and audit-shaped worker events; preserves API idempotent replay and conflict behavior; maps API boundary/domain/idempotency denials to worker denials with safe evidence refs; models capped deterministic retry scheduling for retryable API unavailability without random reads; plans cold-start resume throttling deterministically; and performs no durable queue polling, Valkey lease I/O, concrete idempotency store, trigger registry store, policy-store I/O, Cedar evaluation, scheduler execution, cron parsing, timezone database integration, webhook serving, HMAC verification, nonce persistence, event-bus consumption, run creation, durable trigger storage, network I/O, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-trigger-orchestrator-worker/src/lib.rs::tests::accepted_scheduler_trigger_invokes_api_and_records_dispatch_plan_metadata_only"
+    },
+    {
+      "id": "AC-31",
+      "given": "the workflow-engine trigger-orchestrator SDK preview facade above the source-level trigger-orchestrator REST/API boundary",
+      "when": "a caller builds scheduler, Studio webhook, sibling event-bus, manual UI, API command, workflow-spawn, or ontology-projection trigger evaluation requests",
+      "then": "it validates SDK config, request context, trigger descriptors, and source-specific metadata before REST/API delegation; binds route, method, contract version, tenant, principal, authorization, trace, idempotency, trigger source/kind, scheduler evidence, webhook HMAC/nonce refs, CloudEvents-shaped event refs, replay epoch, audit chain, and safe evidence refs into typed REST/API requests; rejects source/metadata mismatches and raw prompt/output/payload/secret-shaped refs without echo; disables automatic retries by default; supports in-process preview execution through the REST/API boundary while preserving API idempotent replay/conflict behavior; and performs no generated SDK publication, HTTP client work, DNS, sockets, serialization-framework work, credential loading, random/UUID generation, wall-clock reads, automatic retry runtime, durable idempotency store, queueing, signing, filesystem access, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-trigger-orchestrator-sdk/src/lib.rs::tests::in_process_preview_execute_delegates_through_rest_api_without_http_client"
+    },
+    {
+      "id": "AC-32",
+      "given": "the workflow-engine trigger-orchestrator app preview composition root above the source-level SDK, REST/API, and worker seams",
+      "when": "the service is configured for later Oyatie Cloud dogfood tenant workload deployment and asked to expose probes, plan/evaluate triggers in-process, or plan worker resume batches",
+      "then": "it validates app config and SDK config drift before composition; requires Oyatie Cloud-shaped dogfood substrate metadata refs without claiming a live cloud runtime; binds service namespace/name/instance/cell/deployment refs into OpenTelemetry-shaped attributes; models startup, liveness, and drain-aware readiness probes with distinct component checks; delegates scheduler/webhook/event/manual/API/workflow/ontology trigger evaluation through the SDK and REST/API boundary; delegates leased worker jobs and bounded resume planning through the worker seam; rejects raw prompt/output/payload/secret-shaped refs without echo; preserves REST/API and worker idempotent replay/conflict semantics; and performs no binary startup, environment loading, HTTP serving, socket/DNS I/O, database connection, Valkey lease coordination, Cedar evaluation, OpenBao secret materialization, scheduler execution, webhook serving, HMAC verification, event-bus consumption, run creation, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-trigger-orchestrator-app/src/lib.rs::tests::app_composes_sdk_rest_api_for_in_process_scheduler_preview"
+    },
+    {
+      "id": "AC-33",
+      "given": "the workflow-engine event-bus kernel preview foundation for later Oyatie Cloud tenant workload integration",
+      "when": "workflow runtime components need to plan publish delivery or evaluate subscription delivery for workflow, trigger, intelligence, or ontology projection events",
+      "then": "it validates CloudEvents specversion/content-type/id/source/type/subject/time/schema refs; maps supported event types to AsyncAPI-shaped channel and message refs; binds tenant, cell, residency, policy, trace, audit, causation, correlation, partition, and idempotency metadata into deterministic publish plans; evaluates subscription delivery with tenant/cell/channel/event-type/batch guards; rejects raw prompt/output/payload/secret-shaped refs without echo; preserves source-level non-claims; and performs no broker connection, topic creation, network I/O, serialization-framework work, durable outbox/inbox writes, consumer group coordination, offset commits, payload materialization, signing, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-kernel/src/lib.rs::tests::publish_plan_binds_cloudevents_asyncapi_tenant_cell_and_idempotency_metadata"
+    },
+    {
+      "id": "AC-34",
+      "given": "the workflow-engine event-bus domain preview foundation above the source-level event-bus kernel",
+      "when": "workflow runtime producers or consumers need to authorize publish or delivery decisions for workflow, trigger, intelligence, or ontology projection events before later Oyatie Cloud tenant workload hosting",
+      "then": "it validates tenant, cell, principal, authorization decision, authorization evidence, policy bundle, residency, trace, audit, producer, consumer, partition, idempotency, causation, correlation, CloudEvents, AsyncAPI, payload-reference, and evidence metadata before kernel delegation; enforces channel and event-type allowlists; maps authorized publish plans and delivery decisions into redaction-safe domain receipts; rejects policy drift, scope drift, and raw prompt/output/payload/secret-shaped refs without echo; preserves source-level non-claims; and performs no policy-engine execution, broker connection, topic creation, network I/O, serialization-framework work, durable outbox/inbox writes, consumer group coordination, offset commits, payload materialization, signing, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-domain/src/lib.rs::tests::domain_authorizes_publish_and_binds_policy_residency_audit_before_kernel_plan"
+    },
+    {
+      "id": "AC-35",
+      "given": "the workflow-engine event-bus usecase preview foundation above the source-level event-bus domain",
+      "when": "workflow runtime producers or consumers need idempotent publish or delivery orchestration before later Oyatie Cloud tenant workload hosting",
+      "then": "it validates request, idempotency, trace, tenant, cell, principal, authorization, policy bundle, residency, audit, publish intent, subscription intent, and delivery candidate metadata before domain delegation; applies deterministic in-memory idempotent replay/conflict semantics for publish and delivery commands; maps accepted publish, accepted delivery, denied delivery, and domain-denied outcomes into redaction-safe metadata-only receipts and audit events; rejects raw prompt/output/payload/secret-shaped refs without echo; preserves source-level non-claims; and performs no concrete idempotency store, broker connection, topic creation, network I/O, serialization-framework work, durable outbox/inbox writes, consumer group coordination, offset commits, payload materialization, signing, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-usecase/src/lib.rs::tests::publish_authorizes_domain_and_replays_same_idempotency_key_without_broker_claims"
+    },
+    {
+      "id": "AC-36",
+      "given": "the workflow-engine event-bus API preview foundation above the source-level event-bus usecase",
+      "when": "workflow runtime producers or consumers need HTTP/API-shaped publish or delivery-evaluation commands before later Oyatie Cloud tenant workload hosting",
+      "then": "it validates method, route, contract version, tenant, principal, authorization, idempotency, policy bundle, residency, audit, CloudEvents-shaped event metadata, AsyncAPI-shaped channel metadata, publish bodies, and delivery-evaluation bodies before usecase delegation; preserves in-memory API idempotent replay/conflict semantics; maps accepted publish, accepted delivery, delivery-denied, invalid, domain-denied, and conflicting outcomes into redaction-safe OpenAPI/RFC-9457-shaped success/problem DTOs; rejects raw prompt/output/payload/secret-shaped refs without echo; preserves source-level non-claims; and performs no HTTP serving, serialization-framework work, concrete storage, broker connection, topic creation, network I/O, durable idempotency storage, durable outbox/inbox writes, consumer group coordination, offset commits, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-api/src/lib.rs::tests::publish_event_accepts_authorized_request_and_returns_openapi_shaped_metadata"
+    },
+    {
+      "id": "AC-37",
+      "given": "the workflow-engine event-bus REST preview boundary above the source-level event-bus API",
+      "when": "workflow runtime producers or consumers need REST-shaped publish or delivery-evaluation commands before later Oyatie Cloud tenant workload hosting",
+      "then": "it validates REST method, path, safe request ids, body kind, body method, and body route before API delegation; routes publish and delivery-evaluation requests to the in-process event-bus API; returns application/json success DTOs and application/problem+json problem DTOs for REST route/method/body mismatches, API boundary denials, domain denials, invalid event metadata, delivery-denied outcomes, and idempotency conflicts; preserves API idempotent replay/conflict behavior without a durable idempotency store; rejects raw prompt/output/payload/secret-shaped refs without echo; preserves source-level non-claims; and performs no HTTP serving, socket binding, serialization-framework work, concrete storage, broker connection, topic creation, network I/O, durable idempotency storage, durable outbox/inbox writes, consumer group coordination, offset commits, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-rest/src/lib.rs::tests::post_publish_handler_maps_api_accepted_to_202_json_without_http_runtime"
+    },
+    {
+      "id": "AC-38",
+      "given": "the workflow-engine event-bus worker preview seam above the source-level event-bus API",
+      "when": "a leased event-bus publish or delivery-evaluation job is processed before later Oyatie Cloud tenant workload hosting",
+      "then": "it validates job id, lease id, worker ref, attempt id, attempt bounds, not-before, and lease-expiry metadata before API delegation; rejects unsafe raw prompt/output/payload/secret-shaped job metadata without echo; defers not-before jobs and denies expired or over-attempt jobs without API calls; delegates valid publish and delivery-evaluation jobs to the in-process event-bus API; maps published, delivery-accepted, delivery-denied, domain-denied, invalid, and idempotency-conflict outcomes into metadata-only worker receipts and audit-shaped worker events; preserves API idempotent replay/conflict behavior; models capped deterministic retry scheduling and cold-start resume throttling without random reads; preserves source-level non-claims; and performs no durable queue polling, Valkey lease I/O, broker connection, topic creation, network I/O, serialization-framework work, durable idempotency storage, durable outbox/inbox writes, consumer group coordination, offset commits, payload materialization, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-worker/src/lib.rs::tests::publish_job_invokes_api_and_records_metadata_only_receipt"
+    },
+    {
+      "id": "AC-39",
+      "given": "the workflow-engine event-bus SDK preview facade above the source-level event-bus REST/API boundary",
+      "when": "workflow runtime producers or consumers need typed publish or delivery-evaluation command plans before later Oyatie Cloud tenant workload hosting",
+      "then": "it validates SDK config, request context, publish descriptors, delivery descriptors, allowed event types, allowed channels, REST route/body metadata, and safe evidence refs before REST/API delegation; binds contract version, tenant, principal, authorization, trace, idempotency, CloudEvents-shaped event refs, AsyncAPI-shaped channel refs, subscription/candidate metadata, policy bundle, residency, audit-chain, and no-offset-commit non-claim refs into typed REST/API requests; rejects metadata mismatches and raw prompt/output/payload/secret-shaped refs without echo; disables automatic retries by default for state-changing publish and delivery-evaluation plans; supports in-process preview execution through the REST/API boundary while preserving API idempotent replay/conflict behavior; and performs no generated SDK publication, HTTP client work, DNS, sockets, serialization-framework work, credential loading, random/UUID generation, wall-clock reads, automatic retry runtime, durable idempotency store, queueing, signing, filesystem access, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-sdk/src/lib.rs::tests::in_process_preview_execute_delegates_through_rest_api_without_http_client"
+    },
+    {
+      "id": "AC-40",
+      "given": "the workflow-engine event-bus app preview composition root above the source-level SDK, REST/API, and worker seams",
+      "when": "the service is configured for later Oyatie Cloud dogfood tenant workload deployment and asked to expose probes, publish/evaluate delivery in-process, or plan worker resume batches",
+      "then": "it validates app config and SDK config drift before composition; requires Oyatie Cloud-shaped dogfood substrate metadata refs without claiming a live cloud runtime; binds service namespace/name/instance/cell/deployment refs into OpenTelemetry-shaped attributes including Kubernetes namespace identity; models startup, liveness, and drain-aware readiness probes with distinct component checks; delegates publish and delivery-evaluation through the SDK and REST/API boundary; delegates leased worker jobs and bounded resume planning through the worker seam; rejects raw prompt/output/payload/secret-shaped refs without echo; preserves REST/API and worker idempotent replay/conflict semantics; preserves delivery no-offset-commit non-claims; and performs no binary startup, environment loading, HTTP serving, socket/DNS I/O, broker connection, topic creation, database connection, Valkey lease coordination, consumer-group coordination, offset commit, payload serialization/materialization, Cedar evaluation, OpenBao secret materialization, audit-chain sealing, filesystem access, random/UUID generation, wall-clock reads, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-app/src/lib.rs::tests::app_composes_sdk_rest_api_for_in_process_publish_preview"
+    },
+    {
+      "id": "AC-41",
+      "given": "the workflow-engine event-bus generic adapter preview foundation around the source-level event-bus API boundary",
+      "when": "workflow runtime producers or consumers need metadata-only publish and delivery adapter seams before later Oyatie Cloud tenant workload hosting",
+      "then": "it validates CloudEvents-shaped publish envelopes, AsyncAPI-shaped channel refs, API success DTO binding, tenant/cell/channel/event/idempotency/trace/audit/payload metadata, and delivery consumer/offset metadata before recording; records in-memory publish-envelope, outbox-insert, broker-publish, inbox-delivery, consumer-offset, and offset-commit-planned-false actions; preserves idempotent replay/conflict semantics; keeps delivery offset_commit_planned false with explicit no-offset-commit non-claims; rejects raw prompt/output/payload/secret-shaped refs without echo; and performs no broker connection, topic creation, network I/O, consumer-group coordination, durable outbox/inbox write, serialization-framework work, database access, Valkey access, offset commit, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-adapter/src/lib.rs::tests::publish_success_records_cloudevents_asyncapi_outbox_and_broker_plan_metadata"
+    },
+    {
+      "id": "AC-42",
+      "given": "the workflow-engine event-bus Postgres adapter preview foundation around the source-level generic event-bus adapter",
+      "when": "workflow runtime producers and consumers need future Postgres-backed outbox, inbox, and offset-observation seams before later Oyatie Cloud tenant workload hosting",
+      "then": "it defines tenant-scoped plan-only Postgres DDL and parameterized SQL for outbox publish envelopes, inbox delivery receipts, offset observations, pending-outbox claims, and guarded status updates; uses primary/unique tenant keys, Row-Level Security policy posture, idempotency-key ON CONFLICT guards, and FOR UPDATE SKIP LOCKED queue-claim SQL; validates CloudEvents/AsyncAPI envelope refs, tenant/cell/channel/event/idempotency/trace/audit/payload metadata, delivery status, batch bounds, and safe evidence refs before producing plans; records offset_commit_planned=false and commit_planned=false with explicit no-offset-commit non-claims; rejects raw prompt/output/payload/secret-shaped refs without echo; and performs no database connection, SQL execution, broker connection, topic creation, network I/O, consumer-group coordination, payload materialization, offset commit, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-adapter-postgres/src/lib.rs::tests::ddl_uses_tenant_keys_rls_idempotency_and_skip_locked_claims"
+    },
+    {
+      "id": "AC-43",
+      "given": "the workflow-engine event-bus Valkey adapter preview foundation around the source-level generic event-bus adapter",
+      "when": "workflow runtime producers and consumers need future Valkey-backed lease, idempotency, stream, offset-observation, and rate-limit seams before later Oyatie Cloud tenant workload hosting",
+      "then": "it defines plan-only Valkey command shapes for SET NX PX leases/idempotency, EVALSHA owner-guarded lease renew/release scripts, XADD stream publish entries, XREADGROUP consumer-group reads, XACK acknowledgements, SET offset observations, and INCR plus PEXPIRE rate-limit counters; validates tenant/cell/channel/event/idempotency/lease/stream/consumer/offset/TTL/batch/evidence metadata before producing plans; records executes_runtime=false, offset_commit_planned=false where applicable, and explicit no-Valkey/no-command/no-script/no-stream/no-consumer-group/no-offset-commit/non-cloud/non-hyperscaler non-claims; rejects raw prompt/output/payload/secret-shaped refs without echo; and performs no Valkey connection, command or script execution, stream runtime coordination, consumer-group runtime, payload materialization, offset commit, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-adapter-valkey/src/lib.rs::tests::lease_plans_use_set_nx_px_and_owner_guarded_evalsha"
+    },
+    {
+      "id": "AC-44",
+      "given": "the workflow-engine event-bus Kafka adapter preview foundation around the source-level generic event-bus adapter",
+      "when": "workflow runtime producers and consumers need future Kafka/KRaft-backed topic, producer, consumer, offset-observation, and dead-letter seams before later Oyatie Cloud tenant workload hosting",
+      "then": "it defines plan-only Kafka-shaped topic declarations, producer config plans with acks=all and idempotence enabled, CloudEvents/AsyncAPI producer-record plans with payload refs only, consumer subscription/poll plans with auto-commit disabled and read-committed isolation, offset observation plans with commit_planned=false, and dead-letter record plans; validates tenant/topic/producer/consumer/group/partition/offset/replication/min-ISR/batch/retention/evidence metadata before producing plans; records executes_runtime=false, auto_commit_enabled=false, offset_commit_planned=false where applicable, and explicit no-broker/no-admin/no-topic-creation/no-producer/no-consumer-group/no-offset-commit/non-cloud/non-hyperscaler non-claims; rejects raw prompt/output/payload/secret-shaped refs without echo; and performs no broker connection, admin-client runtime, topic creation, producer send, consumer poll, consumer-group runtime, payload materialization, offset commit, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-adapter-kafka/src/lib.rs::tests::producer_config_plan_sets_idempotent_durable_defaults"
+    },
+    {
+      "id": "AC-45",
+      "given": "the workflow-engine event-bus NATS JetStream adapter preview foundation around the source-level generic event-bus adapter",
+      "when": "workflow runtime producers and consumers need future NATS JetStream-backed stream, durable pull-consumer, publish-message, ack, offset-observation, and dead-letter seams before later Oyatie Cloud tenant workload hosting",
+      "then": "it defines plan-only NATS JetStream-shaped stream declarations with file/memory storage, limits/interest/workqueue retention, discard policy, replicas, max-age, and duplicate-window metadata; durable pull-consumer config plans with explicit ack policy, deliver/replay policy, max-ack-pending, max-deliver, ack-wait, and replica metadata; CloudEvents/AsyncAPI publish-message plans with Nats-Msg-Id de-duplication and Nats-Expected-Stream headers while carrying payload refs only; bounded pull request plans; ack plans with ack_runtime_planned=false; offset observation plans with offset_commit_planned=false; and dead-letter message plans; validates tenant/stream/subject/consumer/sequence/replica/batch/ack/evidence metadata before producing plans; records explicit no-broker/no-JetStream-API/no-stream-creation/no-consumer-creation/no-publish/no-pull/no-ack/no-offset-commit/non-cloud/non-hyperscaler non-claims; rejects raw prompt/output/payload/secret-shaped refs without echo; and performs no NATS broker connection, JetStream API request, stream or consumer creation, publish, pull, ack, payload materialization, offset commit, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-adapter-nats/src/lib.rs::tests::consumer_config_plan_is_durable_pull_ack_explicit_and_flow_controlled"
+    },
+    {
+      "id": "AC-46",
+      "given": "the workflow-engine event-bus Apache Pulsar adapter preview foundation around the source-level generic event-bus adapter",
+      "when": "workflow runtime producers and consumers need future Pulsar-backed tenant/namespace/topic, producer, message, consumer subscription, receive, ack, offset-observation, and dead-letter seams before later Oyatie Cloud tenant workload hosting",
+      "then": "it defines plan-only Pulsar tenant/namespace declaration metadata with retention, TTL, cluster, and deduplication posture; partitioned persistent topic declarations with schema, compaction, partition, and deduplication metadata; producer config plans that require a named producer, send_timeout_ms=0 for server-side deduplication safety, key-based batching, and bounded pending messages; CloudEvents/AsyncAPI producer-message plans with payload refs only and sequence_id_ref bound to idempotency metadata; consumer subscription plans for durable exclusive/shared/failover/key_shared subscriptions with initial position, receiver queue, ack timeout, negative-ack delay, batch-index-ack, and dead-letter metadata; receive batch plans; ack plans with ack_runtime_planned=false; offset observation plans with message_id_commit_planned=false; and dead-letter topic plans; validates tenant/topic/namespace/producer/consumer/subscription/message-id/batch/retention/evidence metadata before producing plans; records explicit no-broker/no-admin/no-namespace-or-topic-creation/no-producer/no-consumer/no-receive/no-ack/no-message-id-commit/non-cloud/non-hyperscaler non-claims; rejects raw prompt/output/payload/secret-shaped refs without echo; and performs no Pulsar broker connection, Admin API call, namespace or topic creation, producer send, consumer receive, ack, message-id commit, payload materialization, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-adapter-pulsar/src/lib.rs::tests::producer_config_requires_named_dedup_safe_producer_and_no_send_timeout"
+    },
+    {
+      "id": "AC-47",
+      "given": "the workflow-engine event-bus Redpanda adapter preview foundation around the source-level generic event-bus adapter",
+      "when": "workflow runtime producers and consumers need future Redpanda-backed Kafka-API topic, producer, consumer, offset, Schema Registry, and dead-letter seams before later Oyatie Cloud tenant workload hosting",
+      "then": "it defines plan-only Redpanda Kafka-API compatibility metadata; topic declaration plans with partitions, odd replication factor, min.insync.replicas, cleanup policy, retention.ms, retention.bytes, max.message.bytes, redpanda.storage.mode, and schema-subject refs; idempotent producer config plans requiring enable.idempotence=true, acks=all, bounded max.in.flight.requests.per.connection, delivery timeout, linger, and optional transactional.id refs; CloudEvents/AsyncAPI producer-record plans with payload refs only; consumer assignment and poll plans with enable.auto.commit=false, read_committed isolation, unique-consumer-group guidance, bounded poll records, and commit_runtime_planned=false; offset-observation plans that keep offset commits external and disabled; Schema Registry subject plans with compatibility/format refs and register_runtime_planned=false; dead-letter record plans; validates tenant/topic/producer/consumer/schema/offset/evidence metadata before producing plans; records explicit no-broker/no-admin/no-topic-creation/no-schema-registry/no-producer/no-consumer/no-offset-commit/non-cloud/non-tenant-scheduler/non-hyperscaler non-claims; rejects raw prompt/output/payload/secret-shaped refs without echo; and performs no Redpanda broker connection, Admin API call, topic creation, Schema Registry call, producer send, consumer poll, offset commit, payload materialization, signing, Kubernetes calls, cloud deployment, or tenant workload scheduling side effects",
+      "test_ref": "crates/oya-workflow-engine-event-bus-adapter-redpanda/src/lib.rs::tests::producer_config_requires_idempotence_acks_all_and_bounded_in_flight"
+    }
+  ],
+  "scope": {
+    "in_scope_per_wave": {
+      "preview": [
+        "state-machine+DAG execution",
+        "spec deploy/load/execute",
+        "per-tenant isolation",
+        "audit-chain emission",
+        "jurisdiction overlay"
+      ],
+      "stable": [
+        "visual-editor backend hooks",
+        "workflow debugger replay",
+        "hot-reload without instance loss",
+        "per-step cost metering"
+      ],
+      "GA": [
+        "external SDK (Rust/TS/Python)",
+        "definition marketplace",
+        "LLM tool-call binding via Foundry capability registry",
+        "cross-region federation"
+      ]
+    },
+    "out_of_scope": [
+      {
+        "item": "BPMN compatibility",
+        "why": "$ref:bominal/decisions/ADR-0148 — too sequential for parallel DAGs"
+      },
+      {
+        "item": "general-purpose FaaS",
+        "why": "use Foundry capabilities; this is workflows-of-capabilities"
+      },
+      {
+        "item": "cron-only scheduler",
+        "why": "use oya-saas-scheduler; this is durable orchestration"
+      },
+      {
+        "item": "visual editor IN this product",
+        "why": "sibling $ref:specs/microservices/workflow-studio.json"
+      },
+      {
+        "item": "embedded execution in client browsers",
+        "why": "audit-chain integrity requires server-side"
+      }
+    ]
+  },
+  "contracts": {
+    "produces": [
+      {
+        "name": "workflow_spec.v1.json",
+        "ref": "$ref:contracts/workflow_spec.v1.json",
+        "consumers": [
+          "all_products",
+          "$ref:specs/microservices/workflow-studio.json"
+        ]
+      },
+      {
+        "name": "audit_chain_event.v1.json",
+        "ref": "$ref:contracts/audit_chain_event.v1.json",
+        "consumers": [
+          "audit-chain kernel"
+        ]
+      }
+    ],
+    "consumes": [
+      {
+        "name": "capability_invocation.v1.proto",
+        "ref": "$ref:contracts/capability_invocation.v1.proto",
+        "producer": "Foundry capability registry"
+      },
+      {
+        "name": "tenant_context.v1.proto",
+        "ref": "$ref:contracts/tenant_context.v1.proto",
+        "producer": "tenant identity kernel"
+      },
+      {
+        "name": "ontology_action-v1.proto",
+        "ref": "$ref:contracts/ontology_action-v1.proto",
+        "producer": "$ref:specs/microservices/ontology.json",
+        "bidirectional": true
+      }
+    ]
+  },
+  "data_model": {
+    "entities_ref": "$ref:crates/oya-saas-workflow-kernel/src/lib.rs (WorkflowDefinition, WorkflowInstance, InstanceState enum)",
+    "persistence": {
+      "store": "postgres",
+      "isolation": "per-tenant RLS",
+      "sharding": "tenant_id within region",
+      "replication_ref": "$ref:docs/adr-archive/ADR-0043-secrets-management-openbao-and-hsm-per-cell.md"
+    },
+    "events_emitted": [
+      "workflow_deployed",
+      "workflow_instance_started",
+      "workflow_step_transition",
+      "workflow_step_failed",
+      "workflow_instance_completed",
+      "workflow_instance_failed"
+    ],
+    "audit_chain_emission_rule_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"
+  },
+  "optimization_practices_ref": "$ref:docs/products/_TEMPLATE.md#6 (slice-level optimization patterns; this product adopts: per-tenant cell pinning + Redis cache for definitions + 100ms step-batch window + perf-budget lane)",
+  "regional_packs": [
+    {
+      "seam": "WorkflowJurisdictionOverlayResolver",
+      "per_pack_impl": true,
+      "tested_packs": [
+        "kr@preview",
+        "us@stable",
+        "eu@GA"
+      ]
+    },
+    {
+      "seam": "WorkflowAuditChainSink",
+      "per_pack_impl": false,
+      "rationale": "canonical sink"
+    },
+    {
+      "seam": "WorkflowCapabilityInvoker",
+      "per_pack_impl": true,
+      "rationale": "per-pack capability-set"
+    }
+  ],
+  "deps": {
+    "external_adopted": [
+      {
+        "crate": "serde / serde_json",
+        "tier": "kernel-grade",
+        "license": "MIT/Apache-2"
+      },
+      {
+        "crate": "tokio",
+        "tier": "kernel-grade",
+        "license": "MIT"
+      },
+      {
+        "crate": "uuid",
+        "tier": "kernel-grade",
+        "license": "Apache-2"
+      },
+      {
+        "crate": "tokio-postgres",
+        "tier": "kernel-grade",
+        "license": "MIT/Apache-2"
+      }
+    ],
+    "external_rejected": [
+      {
+        "crate": "temporal-rs",
+        "why": "build engine in-house per $ref:bominal/decisions/ADR-0148"
+      },
+      {
+        "crate": "camunda",
+        "why": "BPMN-based; rejected"
+      },
+      {
+        "crate": "airflow / argo / n8n",
+        "why": "build in-house engine; ship n8n-class editor as separate product"
+      }
+    ]
+  },
+  "metrics": [
+    {
+      "name": "deploy_p99_latency_ms",
+      "targets": {
+        "preview": 200,
+        "stable": 100,
+        "GA": 50
+      },
+      "verification_ref": "cargo bench -p oya-saas-workflow-kernel -- deploy_p99",
+      "lane_ref": "oya-governance-perf-budget"
+    },
+    {
+      "name": "step_transition_p99_latency_ms",
+      "targets": {
+        "preview": 100,
+        "stable": 50,
+        "GA": 20
+      },
+      "verification_ref": "cargo bench -p oya-saas-workflow-kernel -- step_transition_p99",
+      "lane_ref": "oya-governance-perf-budget"
+    },
+    {
+      "name": "engine_availability_slo_pct",
+      "targets": {
+        "preview": 99.5,
+        "stable": 99.9,
+        "GA": 99.95
+      },
+      "verification_ref": "oya gate validate workflow-availability --window 30d",
+      "lane_ref": "oya-governance-canary-observability"
+    },
+    {
+      "name": "concurrent_instances_per_cell",
+      "targets": {
+        "preview": 10000,
+        "stable": 100000,
+        "GA": 1000000
+      },
+      "verification_ref": "canary load-test",
+      "lane_ref": "perf-budget"
+    },
+    {
+      "name": "cross_tenant_leak_count",
+      "targets": {
+        "preview": 0,
+        "stable": 0,
+        "GA": 0
+      },
+      "verification_ref": "cargo nextest -p oya-saas-workflow-domain -- test_no_cross_tenant_leak",
+      "lane_ref": "cargo-nextest"
+    },
+    {
+      "name": "audit_chain_emission_completeness_pct",
+      "targets": {
+        "preview": 100,
+        "stable": 100,
+        "GA": 100
+      },
+      "verification_ref": "jq cross-check audit-chain vs instance count",
+      "lane_ref": "oya-governance-audit-chain-emission"
+    },
+    {
+      "name": "mttr_rollback_seconds",
+      "targets": {
+        "preview": 300,
+        "stable": 120,
+        "GA": 30
+      },
+      "verification_ref": "oya gate validate canary-observability-rollback --window 7d",
+      "lane_ref": "canary-observability-rollback"
+    }
+  ],
+  "risks": [
+    {
+      "id": "R-01",
+      "severity": "high",
+      "risk": "state-machine + DAG hybrid is novel; engine bugs corrupt long-running state",
+      "mitigation_ref": "$ref:specs/agent-durable-goal.json#tdd_contract + chaos test set + per-step audit forensic replay"
+    },
+    {
+      "id": "R-02",
+      "severity": "medium",
+      "risk": "jurisdiction overlay resolution grows N×M complexity",
+      "mitigation": "closed enum on overlay scope; explicit precedence per $ref:bominal/decisions/ADR-0149; lane oya-governance-overlay-resolution-determinism"
+    },
+    {
+      "id": "R-03",
+      "severity": "high",
+      "risk": "LLM tool-call binding (GA) opens injection surface",
+      "mitigation_ref": "$ref:specs/agent-durable-goal.json#source_driven_contract + AC-07"
+    },
+    {
+      "id": "R-04",
+      "severity": "medium",
+      "risk": "visual editor and engine drift",
+      "mitigation": "both bind to $ref:contracts/workflow_spec.v1.json; lane oya-governance-workflow-spec-roundtrip"
+    }
+  ],
+  "competitive_research_ref": "$ref:evidence/autoresearch/workflow-competitive-map.json",
+  "competitive": [
+    {
+      "competitor": "n8n",
+      "source_evidence_refs": [
+        "n8n_docs_overview_1453_1489",
+        "n8n_queue_mode_1488_1607",
+        "n8n_benchmark_1462_1502",
+        "n8n_memory_errors_1465_1509",
+        "n8n_evals_1479_1510"
+      ],
+      "observed_strengths": [
+        "large app/API connector surface",
+        "self-host/cloud paths",
+        "Redis-backed queue-mode worker split",
+        "published benchmark shape",
+        "AI workflow evaluation guidance"
+      ],
+      "we_beat_on": [
+        "multi-tenant isolation",
+        "audit-chain per step",
+        "jurisdiction overlay",
+        "LLM tool-call Cedar gate"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "connector catalog breadth target",
+        "large-payload/artifact-offload rule",
+        "AI workflow regression dataset gate"
+      ],
+      "measurable_patches": [
+        "connector_catalog_min=100 GA connectors with auth/quota/retry/data_class metadata",
+        "workflow_spec.v1 rejects large payload classes without max_payload_bytes or artifact_ref",
+        "AI-enabled workflow production enablement requires eval_dataset_ref + regression_run_id"
+      ],
+      "measurable": "source-backed patch backlog must pass before GA; internal targets stay in goals.* and require bench proof"
+    },
+    {
+      "competitor": "Temporal",
+      "source_evidence_refs": [
+        "temporal_overview_67_107",
+        "temporal_workflows_82_128",
+        "temporal_activities_69_80",
+        "temporal_workers_107_157",
+        "temporal_task_queues_76_157"
+      ],
+      "observed_strengths": [
+        "durable execution via Event History",
+        "deterministic replay",
+        "idempotent Activities with checkpointing",
+        "task queues with worker polling/routing/throttling",
+        "worker identity tied to logs/context"
+      ],
+      "we_beat_on": [
+        "canonical JSON spec (no SDK code required)",
+        "visual editor in same product family"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "replay_safety_class per step",
+        "event_history as explicit source of truth",
+        "worker identity/routing/capacity metrics"
+      ],
+      "measurable_patches": [
+        "schema rejects external I/O in deterministic step class",
+        "side-effect steps require idempotency_key + retry_policy + checkpoint_policy",
+        "worker pollers export worker_id, queue_id, registered_step_types, capacity, throttle_state, log_stream_ref"
+      ],
+      "measurable": "durability claims require crash/restart tests proving zero lost progress and zero duplicate side effects"
+    },
+    {
+      "competitor": "Apache Airflow",
+      "we_beat_on": [
+        "state-machine + DAG hybrid",
+        "per-tenant cell isolation"
+      ],
+      "measurable": "1M concurrent instances per cell (Airflow ~10K)"
+    },
+    {
+      "competitor": "Camunda",
+      "source_evidence_refs": [
+        "camunda_bpmn_modeler_92_112",
+        "camunda_job_workers_91_121",
+        "camunda_incidents_96_165",
+        "camunda_data_flow_94_123",
+        "camunda_operate_90_107"
+      ],
+      "observed_strengths": [
+        "business-readable BPMN Modeler",
+        "Zeebe job queue with retries/backoff/incidents",
+        "Operate incident remediation",
+        "variable-scope guidance for parallel paths"
+      ],
+      "we_beat_on": [
+        "not BPMN-canonical per $ref:bominal/decisions/ADR-0148",
+        "workflow_spec.v1 as machine authority"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "incident lifecycle for stuck executions",
+        "parallel variable write conflict policy",
+        "business-readable projection guardrail"
+      ],
+      "measurable_patches": [
+        "stuck execution emits incident_id, root_error_class, remediation_policy, retry_budget, audit_chain row",
+        "parallel steps writing overlapping variables require merge_policy",
+        "visual projection roundtrip preserves workflow_spec.v1 semantics"
+      ],
+      "measurable": "BPMN remains projection/competitive lesson only; canonical workflow_spec.v1 authority is unchanged"
+    },
+    {
+      "competitor": "Argo Workflows",
+      "source_evidence_refs": [
+        "argo_home_13_30",
+        "argo_templates_gitops",
+        "argo_cron_2_40",
+        "argo_retries",
+        "argo_artifacts",
+        "argo_sync"
+      ],
+      "observed_strengths": [
+        "Kubernetes CRD workflow model",
+        "container-native DAG/steps",
+        "WorkflowTemplates and GitOps management",
+        "CronWorkflows/backfill",
+        "retryStrategy, artifacts, mutex/semaphore/parallelism"
+      ],
+      "we_beat_on": [
+        "multi-domain runtime-agnostic core",
+        "persistent state without Kubernetes as product authority"
+      ],
+      "where_oyatie_lacks_or_is_underspecified": [
+        "container-job adapter boundary",
+        "artifact_ref lifecycle",
+        "schedule/backfill concurrency policies",
+        "shared-resource synchronization limits"
+      ],
+      "measurable_patches": [
+        "Kubernetes executor is optional adapter; core spec validates without Kubernetes fields",
+        "large payload steps require artifact_ref with repository_class, retention_policy, digest, data_class",
+        "scheduled/backfill steps require concurrency_policy; shared-resource steps require mutex/semaphore/parallelism cap"
+      ],
+      "measurable": "Argo/Kubernetes is an adapter projection only; infra deployment authority remains OpenTofu/ops"
+    },
+    {
+      "competitor": "Zapier_Make",
+      "we_beat_on": [
+        "production-grade durability + audit + SLA",
+        "per-tenant isolation"
+      ],
+      "measurable": "tenant data leak = 0; SLA target"
+    }
+  ],
+  "best_practices": [
+    {
+      "id": "BP-01",
+      "rule": "canonical JSON spec is single source of truth; visual is projection",
+      "planned_enforcement_ref": "oya-governance-workflow-spec-roundtrip"
+    },
+    {
+      "id": "BP-02",
+      "rule": "per-step audit-chain emission with distinct session_id + timestamp",
+      "planned_enforcement_ref": "oya-governance-audit-chain-session-distinctness",
+      "doctrine_ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-08"
+    },
+    {
+      "id": "BP-03",
+      "rule": "state-machine + DAG hybrid; spec schema requires exactly one state-machine + zero-or-more DAG blocks",
+      "enforced_by_schema_ref": "$ref:contracts/workflow_spec.v1.json"
+    },
+    {
+      "id": "BP-04",
+      "rule": "jurisdiction overlay precedence explicit; 3x re-run identity check",
+      "planned_enforcement_ref": "oya-governance-overlay-resolution-determinism"
+    },
+    {
+      "id": "BP-05",
+      "rule": "idempotent step execution via idempotency_key; at-most-once side effect",
+      "enforced_by_test_ref": "crates/oya-saas-workflow-domain/tests/idempotency.rs"
+    },
+    {
+      "id": "BP-06",
+      "rule": "TDD per $ref:specs/agent-durable-goal.json#tdd_contract; 100% public API coverage + prove-it for every bug"
+    },
+    {
+      "id": "BP-07",
+      "rule": "competitive claims require official-source evidence_refs plus concrete patch/verification; unsourced benchmark deltas are forbidden",
+      "enforced_by_ref": "$ref:evidence/autoresearch/workflow-competitive-map.json#source_policy"
+    },
+    {
+      "id": "BP-08",
+      "rule": "every side-effecting step declares replay_safety_class, side_effect_boundary, idempotency_key, retry_policy, and checkpoint_policy",
+      "source_evidence_refs": [
+        "temporal_workflows_82_128",
+        "temporal_activities_69_80",
+        "camunda_job_workers_91_121"
+      ]
+    },
+    {
+      "id": "BP-09",
+      "rule": "large payload steps use max_payload_bytes plus artifact_ref with digest, repository_class, retention_policy, and data_class",
+      "source_evidence_refs": [
+        "n8n_memory_errors_1465_1509",
+        "argo_artifacts"
+      ]
+    }
+  ],
+  "patterns": [
+    {
+      "pattern": "saga_compensation",
+      "when": "step has irreversible external effect",
+      "ref": "crates/oya-saas-workflow-kernel/src/saga.rs"
+    },
+    {
+      "pattern": "per_tenant_cell_pinning",
+      "when": "default for all instances",
+      "ref": "$ref:crates/oya-cloud-tenancy-kernel"
+    },
+    {
+      "pattern": "capability_invocation_via_foundry",
+      "when": "workflow calls LLM/tool",
+      "ref": "Foundry capability registry + Cedar gate"
+    },
+    {
+      "pattern": "spec_versioned_pinning",
+      "when": "always pin definition_id@version on invocation",
+      "ref": "engine refuses unversioned"
+    },
+    {
+      "pattern": "cross_cell_via_ontology_adapter",
+      "when": "workflow touches entities in another cell",
+      "ref": "$ref:memory/feedback_workflow_objectgraph_adapter_layer"
+    },
+    {
+      "pattern": "event_history_source_of_truth",
+      "when": "workflow instance must resume after crash/restart",
+      "source_evidence_refs": [
+        "temporal_overview_67_107",
+        "temporal_workflows_82_128"
+      ]
+    },
+    {
+      "pattern": "activity_side_effect_boundary",
+      "when": "step performs API/database/LLM/file I/O",
+      "source_evidence_refs": [
+        "temporal_workflows_82_128",
+        "temporal_activities_69_80"
+      ]
+    },
+    {
+      "pattern": "incident_resolution_state_machine",
+      "when": "execution is stuck after retries or invalid data",
+      "source_evidence_refs": [
+        "camunda_incidents_96_165",
+        "camunda_operate_90_107"
+      ]
+    },
+    {
+      "pattern": "artifact_backed_large_payload",
+      "when": "payload exceeds inline max_payload_bytes or carries binary data",
+      "source_evidence_refs": [
+        "n8n_memory_errors_1465_1509",
+        "argo_artifacts"
+      ]
+    },
+    {
+      "pattern": "schedule_backfill_with_concurrency_policy",
+      "when": "workflow is scheduled or historically backfilled",
+      "source_evidence_refs": [
+        "argo_cron_2_40"
+      ]
+    },
+    {
+      "pattern": "mutex_semaphore_parallelism_limits",
+      "when": "parallel steps share external resource quota",
+      "source_evidence_refs": [
+        "argo_sync",
+        "n8n_concurrency_1463_1483"
+      ]
+    },
+    {
+      "pattern": "worker_queue_identity_capacity",
+      "when": "workers poll queues for executable steps",
+      "source_evidence_refs": [
+        "temporal_workers_107_157",
+        "temporal_task_queues_76_157",
+        "n8n_queue_mode_1488_1607"
+      ]
+    }
+  ],
+  "anti_patterns": [
+    {
+      "name": "bpmn_compatibility",
+      "why_forbidden": "$ref:bominal/decisions/ADR-0148; rigid + sequential",
+      "detection_lane": "spec schema lacks BPMN-XML import"
+    },
+    {
+      "name": "cross_tenant_raw_sql_bypass",
+      "why_forbidden": "bypasses RLS + audit",
+      "detection_lane": "oya-governance-no-raw-sql-cross-tenant"
+    },
+    {
+      "name": "step_side_effect_without_idempotency_key",
+      "why_forbidden": "duplicate effects on retry",
+      "detection_lane": "test_idempotency_key_required"
+    },
+    {
+      "name": "implicit_version_bump_on_update",
+      "why_forbidden": "breaks pinned callers (no_silent_regression)",
+      "detection_lane": "oya-governance-api-semver"
+    },
+    {
+      "name": "bypass_cedar_policy_gate",
+      "why_forbidden": "violates autonomy_tier ceiling",
+      "detection_lane": "oya-governance-cedar-coverage"
+    },
+    {
+      "name": "single_session_audit_chain_across_steps",
+      "why_forbidden": "PR17 anti-pattern; $ref:specs/agent-durable-goal.json#operating_principles/OP-08",
+      "detection_lane": "oya-governance-audit-chain-session-distinctness"
+    },
+    {
+      "name": "unsourced_competitor_benchmark_claim",
+      "why_forbidden": "competitive deltas must cite official source evidence and distinguish internal targets from measured external facts",
+      "detection_lane": "future oya-governance-source-backed-competitive-claims"
+    },
+    {
+      "name": "unbounded_in_memory_payload",
+      "why_forbidden": "large JSON/binary payloads cause memory instability; use chunking or artifact_ref",
+      "detection_lane": "workflow_spec max_payload_bytes/artifact_ref validator"
+    },
+    {
+      "name": "bpmn_xml_as_canonical_authority",
+      "why_forbidden": "business-readable projections are allowed, but workflow_spec.v1 remains source of truth",
+      "detection_lane": "workflow-studio roundtrip projection gate"
+    },
+    {
+      "name": "kubernetes_crd_as_core_workflow_authority",
+      "why_forbidden": "Argo/Kubernetes is an executor adapter only; core workflow semantics must be runtime-agnostic",
+      "detection_lane": "workflow executor adapter boundary validator"
+    },
+    {
+      "name": "manual_incident_ssh_troubleshooting",
+      "why_forbidden": "incident remediation must be ops/API/audit-chain managed; deployment/ops directive forbids manual SSH troubleshooting",
+      "detection_lane": "deployment_ops_contract + workflow incident remediation gate"
+    }
+  ],
+  "goals": {
+    "scalability": {
+      "target": "10K tenants per cluster + 1M concurrent instances per cell + 1B step transitions per day per region",
+      "verification_ref": "bench + canary load-test pre-GA"
+    },
+    "security": {
+      "target": "per-tenant RLS + Cedar at every entry + signed audit-chain (post-$ref:docs/adr-archive/ADR-0083-rust-error-handling-tier-decision.md cryptographic chain) + LLM input as data",
+      "verification_lane_ref": "oya-governance-tenancy-isolation + oya-governance-cedar-coverage"
+    },
+    "performance": {
+      "target": "p99 step transition <20ms (GA) + p99 deploy <50ms + availability 99.95%",
+      "verification_lane_ref": "oya-governance-perf-budget + canary-observability"
+    },
+    "efficiency": {
+      "target": "<$0.0001 per step transition (GA) + <$0.50 per tenant per month overhead",
+      "verification_ref": "$ref:crates/oya-cloud-finops-kernel"
+    },
+    "reliability": {
+      "target": "MTTR 30s (auto-rollback) + error budget 0.05%/quarter + durable state survives restart with zero duplicate side-effects",
+      "verification_lane_ref": "canary-observability-rollback per $ref:docs/adr-archive/ADR-0114-canary-observability-rollback.md"
+    }
+  },
+  "user_experience": {
+    "ux_personas_ref": "$ref:specs/microservices/workflow.json#target_users",
+    "accessibility_coverage": "WCAG 2.2 AA minimum for debugger/replay, developer console, CLI help, and generated SDK documentation; keyboard navigation 100% for replay and diff surfaces",
+    "responsive_breakpoints": [
+      "tablet",
+      "desktop",
+      "wide-desktop"
+    ],
+    "internationalization_scope": "locale-aware-dynamic for operator-visible errors and SDK docs; ko-KR and en-US launch gates",
+    "design_system_components_used": "$ref:specs/microservices/workflow.json#frontend_components",
+    "journey_critical_paths": [
+      {
+        "persona": "external_developer",
+        "journeys": [
+          "deploy workflow spec",
+          "inspect validation failure",
+          "compare definition diff"
+        ],
+        "time_to_success_target": "< 3 minutes from schema error to corrected spec"
+      },
+      {
+        "persona": "enterprise_it_admin",
+        "journeys": [
+          "find failed instance",
+          "inspect replay timeline",
+          "trigger policy-safe retry or rollback"
+        ],
+        "time_to_success_target": "< 5 minutes for failed-instance triage"
+      },
+      {
+        "persona": "vertical_specialist",
+        "journeys": [
+          "select jurisdiction overlay",
+          "verify affected steps",
+          "export audit evidence"
+        ],
+        "time_to_success_target": "< 10 minutes for overlay impact review"
+      }
+    ],
+    "error_state_coverage": {
+      "schema_validation_error": "inline hunk-level error with code, JSON pointer, remediation, and docs link",
+      "policy_denied": "policy disclosure banner plus disabled retry/deploy action until Cedar permits",
+      "execution_failure": "timeline row with failing step, idempotency state, audit row id, and rollback/retry eligibility",
+      "stale_telemetry": "blocking stale-state banner; no silent replay-derived decisions"
+    },
+    "offline_behavior": "engine APIs do not execute offline; UI surfaces cache read-only replay/spec data and Workflow Studio owns offline edit buffering",
+    "keyboard_navigation_coverage_pct": 100,
+    "loading_state_coverage": "progressive replay rendering and skeleton diff/timeline states; spinner-only loading is forbidden"
+  },
+  "frontend_components": [
+    {
+      "component": "WorkflowReplayTimeline",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/workflow-replay-timeline.json",
+      "variants": [
+        "live-run",
+        "historical-replay",
+        "failure-debug",
+        "audit-export"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "SpecDiffViewer",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/spec-diff-viewer.json",
+      "variants": [
+        "json-patch",
+        "workflow-round-trip",
+        "read-only-pr-review"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop",
+        "wide-desktop"
+      ]
+    },
+    {
+      "component": "PolicyDisclosureBanner",
+      "source": "design-system primitive",
+      "design_system_ref": "$ref:specs/design-system/policy-disclosure-banner.json",
+      "variants": [
+        "audit-access",
+        "consent-required",
+        "requires-second-approver"
+      ],
+      "tested_at_breakpoints": [
+        "tablet",
+        "desktop"
+      ]
+    }
+  ],
+  "decision_log": [
+    {
+      "date": "2026-05-16",
+      "decision": "adopt Bominal-ADR-0148/0149/0164/0192/0103/0106 verbatim per OP-10",
+      "ref": "$ref:specs/agent-durable-goal.json#operating_principles/OP-10"
+    }
+  ],
+  "sources_scanned": [
+    "$ref:bominal/decisions/ADR-0148-workflow-engine-state-machine-plus-dag.md",
+    "$ref:bominal/decisions/ADR-0149-workflow-definition-versioning.md",
+    "$ref:bominal/decisions/ADR-0164-workflow-canonical-spec-format.md",
+    "$ref:bominal/decisions/ADR-0192-workflow-object-graph-operating-kernel.md",
+    "$ref:bominal/decisions/ADR-0103-workflow-hexagonal-migration.md",
+    "$ref:bominal/decisions/ADR-0106-object-graph-architecture.md",
+    "$ref:crates/oya-saas-workflow-kernel",
+    "$ref:crates/oya-saas-workflow-domain",
+    "$ref:crates/oya-saas-workflow-app",
+    "$ref:specs/agent-durable-goal.json",
+    "$ref:evidence/autoresearch/workflow-competitive-map.json",
+    "official:n8n-docs",
+    "official:temporal-docs",
+    "official:camunda-docs",
+    "official:argo-workflows-docs",
+    "$ref:docs/products/_TEMPLATE.md#11f-user-experience",
+    "$ref:docs/products/_TEMPLATE.md#11g-frontend-components",
+    "$ref:specs/design-system/catalog.json"
+  ]
+}

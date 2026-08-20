@@ -1,0 +1,34 @@
+asyncapi: 3.1.0
+info:
+  title: Detection Events
+  version: 0.1.0
+channels:
+  detection.signal.emitted:
+    address: detection.signal.emitted
+    messages:
+      DetectionSignalEmitted:
+        $ref: "#/components/messages/DetectionSignalEmitted"
+operations:
+  publishDetectionSignal:
+    action: send
+    channel:
+      $ref: "#/channels/detection.signal.emitted"
+components:
+  messages:
+    DetectionSignalEmitted:
+      payload:
+        type: object
+        required:
+          - tenant_id
+          - audit_id
+          - family
+          - score
+        properties:
+          tenant_id:
+            type: string
+          audit_id:
+            type: string
+          family:
+            type: string
+          score:
+            type: number

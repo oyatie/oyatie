@@ -1,0 +1,65 @@
+ADAPTER_ROOT = "intelligence/adapters/authz-cedar-adapter"
+ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"])
+ADAPTER_MAPPED_SRCS = {src: ADAPTER_ROOT + "/" + src for src in ADAPTER_SRCS}
+# Place the shared cedar policy at the path src/lib.rs
+# include_str!("../../../../intelligence/policy/...") resolves to inside
+# the hermetic sandbox (intelligence/policy/...) — the SAME include-relative
+# path cargo resolves from the real repo tree, so one literal satisfies both build
+# systems (the oya-ci-webhook-gateway-authz-cedar-adapter sibling uses this same
+# pattern). Without this mapping, the export_file source is present in the repo but
+# unmapped to the include-relative location, so rustc cannot read it under buck2
+# (hermetic-build defect), or cargo cannot read it (missing file, since ADAPTER_ROOT's
+# crate-relative "../policy/..." only existed via a buck2-only mapping).
+ADAPTER_MAPPED_SRCS["//intelligence/policy:cloud-intelligence.cedar"] = "intelligence/policy/cloud-intelligence.cedar"
+
+rust_library(
+    name = "intelligence-authz-cedar-adapter",
+    srcs = [],
+    crate = "intelligence_authz_cedar_adapter",
+    crate_root = ADAPTER_ROOT + "/src/lib.rs",
+    visibility = ["PUBLIC"],
+    mapped_srcs = ADAPTER_MAPPED_SRCS,
+    deps = [
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:cedar-policy",
+    ],
+)
+
+rust_test(
+    name = "intelligence-authz-cedar-adapter-cross-tenant-forbid",
+    srcs = ["tests/cross_tenant_forbid.rs"],
+    crate = "intelligence_authz_cedar_adapter_cross_tenant_forbid",
+    crate_root = "tests/cross_tenant_forbid.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-authz-cedar-adapter",
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:cedar-policy",
+    ],
+)
+
+rust_test(
+    name = "intelligence-authz-cedar-adapter-default-deny-and-load",
+    srcs = ["tests/default_deny_and_load.rs"],
+    crate = "intelligence_authz_cedar_adapter_default_deny_and_load",
+    crate_root = "tests/default_deny_and_load.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-authz-cedar-adapter",
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:cedar-policy",
+    ],
+)
+
+rust_test(
+    name = "intelligence-authz-cedar-adapter-permits-same-tenant",
+    srcs = ["tests/permits_same_tenant.rs"],
+    crate = "intelligence_authz_cedar_adapter_permits_same_tenant",
+    crate_root = "tests/permits_same_tenant.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":intelligence-authz-cedar-adapter",
+        "//intelligence/core/kernel:intelligence-kernel",
+        "third-party//:cedar-policy",
+    ],
+)

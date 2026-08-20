@@ -1,0 +1,53 @@
+rust_library(
+    name = "oya-lane-supervisor-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_lane_supervisor_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:chrono",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-lane-supervisor",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-lane-supervisor-app",
+        "third-party//:anyhow",
+        "third-party//:chrono",
+        "third-party//:clap",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-lane-supervisor-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "oya_lane_supervisor_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:chrono",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-lane-supervisor-bin-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-lane-supervisor-app",
+        "third-party//:anyhow",
+        "third-party//:chrono",
+        "third-party//:clap",
+        "third-party//:serde_json",
+    ],
+)

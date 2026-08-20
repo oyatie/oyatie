@@ -1,0 +1,1615 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/agent-durable-goal.schema.json",
+  "title": "AgentDurableGoal",
+  "description": "Cross-session durable goal driving every oyatie agent action across the hyperscaler product/service lifecycle (planning, development, CI/CD, deployment). Companion to agent_operating_contract (per-session checklist) — this is the persistent ambition + non-negotiable guardrails. Read at session start; verified against on every state-changing action.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-AGENT-DURABLE-GOAL",
+    "version": "1.5.0",
+    "status": "Accepted",
+    "owner_team": "council-architecture + axis-foundry",
+    "created_at": "2026-05-16T11:30:00Z",
+    "updated_at": "2026-05-16T13:45:00Z",
+    "successor_of": null,
+    "changelog": [
+      {
+        "version": "1.0.0",
+        "date": "2026-05-16T11:30:00Z",
+        "change": "initial draft — identity + persistent_goal + lifecycle (4 phases) + 10 operating_principles + confusion_management + verification_before_completion + scope_discipline + pattern_to_follow + stop_conditions + memory_pointers"
+      },
+      {
+        "version": "1.1.0",
+        "date": "2026-05-16T11:45:00Z",
+        "change": "sharpened: lifecycle phases now carry entry_gate + exit_gate + back_edges; added iteration_loops; added spec_contract; added tdd_contract; added pipeline"
+      },
+      {
+        "version": "1.2.0",
+        "date": "2026-05-16T12:00:00Z",
+        "change": "100% AUTONOMOUS FOUNDRY: added autonomous_foundry; REMOVED human-escalation paths. Per user directive 2026-05-16: target autonomy = 100%, quorum = 2 distinct vendors CC-1/CC-2 + 1 CC-3, lane promotion drift → ≥3 prevented incidents → BLOCKER."
+      },
+      {
+        "version": "1.3.0",
+        "date": "2026-05-16T12:30:00Z",
+        "change": "TIERED REVIEW: added review_tiering + score_cards + source_driven_contract + doubt_driven_contract; rewrote OP-07; updated autonomous_foundry.quorum_rules. Per user 2026-05-16: multispectrum-on-every-PR is inefficient; tier deterministic; no LLM judgment in pass/fail."
+      },
+      {
+        "version": "1.4.0",
+        "date": "2026-05-16T12:45:00Z",
+        "change": "OP-11 NO-STUBS / NO-DEFER / 100-PRODUCTION-QUALITY: added per user directive 2026-05-16: 'Prevent drifts, prevent /documentation-and-adrs contradictions and drifts, make sure agents surface any tangent issues. Don't do stubs, placeholders, or defer issues for later. Address them there and then to 100% production quality. We are not building MVP, demo, or sample. We are building full hyperscaler production platform and ecosystem.' This SUPERSEDES the prior scope_discipline 'a bug fix doesn't need surrounding cleanup' rule when the cleanup is doctrinal drift — drift gets fixed in-PR, never deferred to FixupTask. FixupTasks remain valid ONLY for findings genuinely out of the PR's reachable scope (e.g., upstream-vendor change). Plus comprehensive sweep applied to this PR: 23 missing DOC-CATALOG rows for specs/*.json + 5 missing root-hub-pointers entry_points filled in-PR, not deferred."
+      },
+      {
+        "version": "1.5.0",
+        "date": "2026-05-16T13:45:00Z",
+        "change": "SHIPPING / LAUNCH MATURITY: added pipeline.slo_breach_playbooks, per-class rollback/triage/learn-loop actions, first-hour canary decision tree, and incident evidence contract. ADR-0114 emergency rewind is constrained by autonomous_foundry + deployment-ops authority: Argo/canonical rollback and OpenTofu/ops convergence are normal paths; pre-authorized autonomous break-glass is the only rewind exception."
+      }
+    ],
+    "purpose": "Persistent across-session goal + load-bearing operating principles + lifecycle phase contract + iteration loop semantics + spec contract + TDD contract + CI/CD pipeline contract + confusion-management protocol + verification-before-completion checklist + scope-discipline rule. Single canonical source so every agent — Claude, codex, gemini, future — operates from the same durable contract.",
+    "originating_directive": "User invocation 2026-05-16 of /agent-skills:context-engineering with argument 'Prompt for durable goal for entire lifecycle of hyperscaler product/service planning, development, ci/cd, and deployment.' Distilled from session-resident memory + multispectrum-review v2.3.0 doctrine + codex consultation 2026-05-16T10-38."
+  },
+  "identity": {
+    "product": "oyatie",
+    "product_class": "single product with seven axes",
+    "axes": [
+      "SaaS",
+      "Workspace",
+      "Vertical",
+      "Foundry",
+      "Cloud",
+      "Search",
+      "Ads"
+    ],
+    "joined_at": [
+      "tenancy",
+      "identity",
+      "capability_registry",
+      "audit_chain",
+      "agent_runtime"
+    ],
+    "quality_bar": "Stripe + Palantir + Linear",
+    "performance_bar": "hyperscaler-grade",
+    "scalability_requirement": "horizontal mandatory"
+  },
+  "persistent_goal": {
+    "statement": "Move the master plan forward without user intervention while honoring every guardrail. End state: agents can claim → work → verify → land any planned ChangeSet via the Foundry pipeline (M01-P18), with evidence in the audit chain, zero silent regressions, zero exception clauses, CI-enforced quality on every lane.",
+    "termination_criterion": "Master plan reaches Complete state per masterplan.json with all stop_conditions clear and all axes' production readiness gates green.",
+    "horizon": "indefinite"
+  },
+  "lifecycle": {
+    "unit": "ChangeSet",
+    "scope_rule": "per-ChangeSet not per-session",
+    "phases": [
+      {
+        "id": "plan",
+        "canonical_artifacts": [
+          ".omc/plans/milestones/<M>/phases/<P>/<IP-NNN>.md",
+          ".omc/plans/milestones/<M>/INDEX.md",
+          "specs/masterplan.json#milestones[].phases[].implementation_plans[]",
+          "specs/<basename>.json (per ADR-0119 flat-root) — machine-readable spec for the concern when one is required",
+          "acceptance_criteria[] inside the IP file — each criterion testable + referenced by a stable AC-ID"
+        ],
+        "entry_gate": "Request received; no code touched yet",
+        "exit_gate": "Phase-spec + IP file present + acceptance_criteria array complete + every AC-ID has a planned test_id + multispectrum-review pre-mortem r1 evidence written (CC-1/CC-2/CC-3) + masterplan.json row added",
+        "hierarchy_rule": "strict 3-level Milestone > Phase > ImplementationPlan; no flat plans; no 4-deep",
+        "spec_driven_required": true,
+        "spec_missing_action": "STOP. Per spec_contract: if no spec exists and one is required, write spec FIRST (or ask human to). NEVER invent requirements from code.",
+        "references": [
+          "feedback_milestone_phase_hierarchy",
+          "feedback_doc_coverage_enforced"
+        ]
+      },
+      {
+        "id": "dev",
+        "canonical_artifacts": [
+          "git worktree add -b <branch> /tmp/<work> origin/dev",
+          "ChangeSet = one PR with atomic-per-concern commits",
+          "evidence/debate/<change_id>-<facet>-r1.json (one per facet, written BEFORE implementation for CC-1/CC-2/CC-3)",
+          "evidence/audit-chain.jsonl row at every state-changing operation"
+        ],
+        "entry_gate": "Plan phase complete: phase-spec + IP + masterplan.json row + pre-mortem r1 evidence present",
+        "exit_gate": "All V-01..V-08 verifications pass + PR opened with body citing every fix back to its r1 source",
+        "atomic_commit_rule": "One concern per commit (codex 2026-05-16 recommendation); revert-granularity > commit-count; commits ordered so earlier ones unblock later ones (e.g., gitignore fix BEFORE files-that-would-trigger-it land)",
+        "max_inner_iterations": 3,
+        "stuck_detection": "If implement→verify→correct cycle repeats >3 times without progress on the same failure mode, HALT and apply confusion_management protocol",
+        "loop": "iteration_loops.dev_inner",
+        "references": [
+          "feedback_clean_architecture_requirements",
+          "feedback_no_silent_regression"
+        ]
+      },
+      {
+        "id": "ci_cd",
+        "canonical_artifacts": [
+          "PR vs dev",
+          "branch-pipeline: dev → staging → production",
+          "registry/release/* + oya-governance-* lanes",
+          ".github/workflows/promote-dev-to-staging.yml + promote-staging-to-production.yml"
+        ],
+        "entry_gate": "PR opened from dev phase; first CI lane run started",
+        "exit_gate": "All declared lanes in PR statusCheckRollup conclusion=SUCCESS (SKIPPED allowed for non-applicable lanes); release-supply-chain signed (cosign keyless + rekor); review threads resolved",
+        "auto_promotion": {
+          "dev_to_staging_after_merge": "30 min cadence",
+          "staging_to_production_after_promotion": "hourly cadence"
+        },
+        "back_edge_review_reject": "If reviewer requests changes OR codex/human comment unresolved → return to dev phase, push fix commits, await re-review. Same branch; same PR; no new PR unless force-push required (which it isn't on dev branch).",
+        "back_edge_ci_fail": "If any lane FAIL → diagnose root cause (NOT 'rerun and hope'); push fix in same PR; wait for re-run.",
+        "back_edge_staging_gate_fail": "If staging promotion gate fails post-merge → file F-STAGING-PROMOTION-FAIL FixupTask; open hotfix PR vs dev; do NOT revert the dev merge (per ADR-0019); root-cause documented in audit-chain.",
+        "loop": "iteration_loops.ci_cd_feedback",
+        "references": [
+          "project_branch_pipeline_implemented"
+        ]
+      },
+      {
+        "id": "deploy",
+        "canonical_artifacts": [
+          "specs/deployment-ops-contract.json (OpenTofu + Makefile + ops-only deployment contract)",
+          "Makefile (minimal bootstrap/install/plan/apply/ops entrypoint)",
+          "infra/kyverno/<svc>/application.json (Argo Application)",
+          "infra/talos/installation-media/ (per ADR-0375 — Talos USB zero-touch installer)",
+          "infra/capi/ (per ADR-0375 — Cluster API: clusterctl pins + ClusterResourceSet + spoke Cluster CRs)",
+          "infra/gitops/ (per ADR-0375 — per-cell Argo CD app-of-apps, pull model)",
+          "infra/cloudflare/ (tunnel + DNS; OpenTofu owns only the edge per ADR-0375)"
+        ],
+        "entry_gate": "Staging-to-production promotion successful + canary observability rollback gate green (per ADR-0114)",
+        "exit_gate": "Live workload serving traffic with mTLS strict (per ADR-0044) + telemetry healthy + no production incident open",
+        "argo_required_settings": [
+          "automated.prune=true",
+          "automated.selfHeal=true",
+          "ServerSideApply=true",
+          "CreateNamespace=true"
+        ],
+        "admission_policy": "Kyverno ClusterPolicy: cosign keyless + rekor for ghcr.io/oyatie/*",
+        "cell_topology": {
+          "primary_onprem": "KR primary cell — bare-metal Talos via Cluster API + Metal3 (per ADR-0375)",
+          "cloud_cells": "OCI/AWS spoke cells via Cluster API (CAPOCI/CAPA); future regions per ADR-0009/ADR-0375"
+        },
+        "back_edge_production_incident": "If production health degrades OR canary rollback fires → Argo auto-rollback to previous revision (FIRST, before anything else) + file incident in registry/incidents/<id>.json + emit EVT-PRODUCTION-INCIDENT-OPEN audit-chain row. THEN: dispatch autonomous incident-response quorum per autonomous_foundry.roles.incident_responder. Quorum identifies root cause: if code, open autonomous hotfix PR through full pipeline with hotfix-priority lane budget; if infra/config, converge desired state through specs/deployment-ops-contract.json via OpenTofu/ops surfaces; if unknown / first-of-kind, hold service in rolled-back state + open F-INCIDENT-UNKNOWN-ROOT-CAUSE for compounding investigation. NO human page and NO manual SSH troubleshooting.",
+        "back_edge_drift_detected": "If live cluster state drifts from infra/ git (Argo selfHeal would diverge) → emit EVT-GITOPS-DRIFT row; investigate before forcing reconcile.",
+        "loop": "iteration_loops.deploy_observability",
+        "references": [
+          "ADR-0375",
+          "ADR-0044",
+          "ADR-0114",
+          "ADR-0148",
+          "deployment_ops_contract"
+        ]
+      }
+    ]
+  },
+  "iteration_loops": {
+    "description": "Explicit iteration semantics per lifecycle phase. Every loop has max-iterations + stuck-detection + escalation criterion. Loops are nested: ci_cd_feedback contains dev_inner re-entries; deploy_observability can trigger ci_cd_feedback re-entries via hotfix PR.",
+    "dev_inner": {
+      "name": "TDD implementation inner loop (per acceptance criterion or per bug)",
+      "iteration_unit": "single red-green-refactor cycle per AC-ID or bug-id",
+      "mode_feature": {
+        "trigger": "Implementing a new feature with one or more AC-IDs from the spec",
+        "steps": [
+          {
+            "id": "I-1",
+            "step": "read",
+            "verb": "Read spec (specs/<basename>.json + IP.md acceptance_criteria) + related ADRs + one example of similar pattern in codebase",
+            "exit_when": "mental model includes the contract + the change shape + the AC-ID being targeted"
+          },
+          {
+            "id": "I-2",
+            "step": "red",
+            "verb": "Write a failing test that encodes the AC-ID. Run it. Verify it FAILS for the right reason (not a syntax error).",
+            "exit_when": "test fails with the expected assertion failure (not compile error, not import error)"
+          },
+          {
+            "id": "I-3",
+            "step": "green",
+            "verb": "Write the minimum code to make the test pass. Resist any scope beyond what the test demands.",
+            "exit_when": "the new test passes"
+          },
+          {
+            "id": "I-4",
+            "step": "fast_check",
+            "verb": "cargo check -p <crate> — fastest feedback that the green-step code still type-checks",
+            "exit_when": "exit 0",
+            "on_fail": "fix; return to I-3"
+          },
+          {
+            "id": "I-5",
+            "step": "focused_test",
+            "verb": "cargo nextest -p <crate> -- <test_filter> — narrowest run including the new test + any neighbour tests",
+            "exit_when": "0 failures",
+            "on_fail": "diagnose; return to I-3"
+          },
+          {
+            "id": "I-6",
+            "step": "refactor",
+            "verb": "Now that tests are green, refactor for clarity/simplicity (per scope_discipline). All tests must still pass.",
+            "exit_when": "code reads cleanly + tests still 0 failures"
+          },
+          {
+            "id": "I-7",
+            "step": "broad_test",
+            "verb": "cargo nextest --workspace — full platform (regression check)",
+            "exit_when": "0 failures",
+            "on_fail": "regression introduced; return to I-3 or I-6"
+          },
+          {
+            "id": "I-8",
+            "step": "commit",
+            "verb": "git add <specific files> && git commit -m '<class>(<scope>): <one-line> [AC-<id>]' (atomic per AC-ID)",
+            "exit_when": "commit lands cleanly"
+          }
+        ]
+      },
+      "mode_bugfix": {
+        "trigger": "Fixing a reproducible bug (incident, failing test, codex/human review finding)",
+        "pattern_name": "Prove-It pattern (per superpowers:test-driven-development)",
+        "steps": [
+          {
+            "id": "B-1",
+            "step": "reproduce_locally",
+            "verb": "Run the failing command/test and confirm the same failure mode on your machine",
+            "exit_when": "failure is reproducible deterministically"
+          },
+          {
+            "id": "B-2",
+            "step": "prove_it",
+            "verb": "Write a NEW test that captures the bug as a failing assertion. Run it. Verify it fails for THE bug (not a side effect).",
+            "exit_when": "test fails with the exact assertion describing the bug"
+          },
+          {
+            "id": "B-3",
+            "step": "fix",
+            "verb": "Change the production code to make the prove-it test pass. Keep the change minimal.",
+            "exit_when": "prove-it test passes"
+          },
+          {
+            "id": "B-4",
+            "step": "regression",
+            "verb": "Full workspace test — ensure no other test broke",
+            "exit_when": "0 failures across workspace"
+          },
+          {
+            "id": "B-5",
+            "step": "commit",
+            "verb": "git add <files including the new test> && git commit -m 'fix(<scope>): <one-line> [prove-it]' — the test stays in the platform forever as a regression guard",
+            "exit_when": "commit lands cleanly"
+          }
+        ],
+        "anti_pattern": "fix-without-test — fixing the symptom without adding a test that would have caught it. Forbidden under tdd_contract."
+      },
+      "max_iterations_same_failure": 3,
+      "escalation_on_stuck": "If same failure mode repeats 3+ times: STOP; document the loop trace; apply autonomous_foundry.stuck_loop_recovery (spawn fresh-context agent of a different vendor with the loop trace as input). If fresh-context agent also fails, apply autonomous_foundry.conservative_default_rule (do not merge; file F-STUCK-LOOP-<id>). Do not 'try harder'."
+    },
+    "dev_outer": {
+      "name": "ChangeSet outer loop (per PR)",
+      "iteration_unit": "complete pass from worktree-creation to PR-opened",
+      "steps": [
+        {
+          "id": "O-1",
+          "step": "claim",
+          "verb": "git worktree add -b <branch> /tmp/<work> origin/dev — fetch latest first"
+        },
+        {
+          "id": "O-2",
+          "step": "understand",
+          "verb": "Read all entry-gate artifacts; load relevant memory pointers per memory_pointers section"
+        },
+        {
+          "id": "O-3",
+          "step": "design",
+          "verb": "For CC-1/CC-2/CC-3: write multispectrum r1 evidence per required facet BEFORE implementing"
+        },
+        {
+          "id": "O-4",
+          "step": "implement",
+          "verb": "Run dev_inner loop N times (one per file/concern); produce atomic commits"
+        },
+        {
+          "id": "O-5",
+          "step": "synthesize",
+          "verb": "Write evidence/debate/<change_id>-synthesis.json with termination_reason"
+        },
+        {
+          "id": "O-6",
+          "step": "verify_pr_ready",
+          "verb": "Run V-01..V-08 verification_before_completion checks"
+        },
+        {
+          "id": "O-7",
+          "step": "push",
+          "verb": "git push -u origin <branch>"
+        },
+        {
+          "id": "O-8",
+          "step": "open_pr",
+          "verb": "gh pr create --base dev --title '<class>(<scope>): <one-line>' --body '<cites evidence + verification + test plan>'"
+        }
+      ],
+      "back_edge_to_ci_cd_feedback": "On PR open, control transfers to ci_cd_feedback loop"
+    },
+    "ci_cd_feedback": {
+      "name": "CI + review feedback loop (per PR)",
+      "iteration_unit": "single push → CI rerun → review-comment-resolved cycle",
+      "steps": [
+        {
+          "id": "C-1",
+          "step": "wait_ci",
+          "verb": "Poll PR statusCheckRollup; do NOT touch the PR while CI is running unless cancelling"
+        },
+        {
+          "id": "C-2",
+          "step": "triage_failures",
+          "verb": "If any lane FAIL: read its log; identify root cause; do NOT 'rerun and hope'"
+        },
+        {
+          "id": "C-3",
+          "step": "fix_in_place",
+          "verb": "Push fix commits to the SAME branch — no force-push on dev-target branches"
+        },
+        {
+          "id": "C-4",
+          "step": "review_threads",
+          "verb": "Process each review thread (human + codex bot); reply per-thread with action taken or rationale; resolve via GraphQL resolveReviewThread when fixed"
+        },
+        {
+          "id": "C-5",
+          "step": "ready_to_land",
+          "verb": "All checks SUCCESS (or SKIPPED for non-applicable) + all threads resolved + mergeStateStatus=CLEAN + mergeable=MERGEABLE"
+        },
+        {
+          "id": "C-6",
+          "step": "land",
+          "verb": "gh pr merge <N> --squash --delete-branch (merge commits forbidden on dev per branch protection)"
+        }
+      ],
+      "max_iterations_same_failure": 5,
+      "escalation_on_stuck": "If same lane fails 5+ times after distinct fix attempts: STOP. The lane itself may be wrong. Apply autonomous_foundry.stuck_loop_recovery (fresh-context cross-vendor review of the lane definition AND the candidate fix). If quorum determines the lane is wrong, emit a lane amendment PR through the normal pipeline (no human). If quorum determines the code is wrong but the fix path is unclear, apply conservative_default (do not merge; file F-LANE-FALSE-POSITIVE OR F-CANDIDATE-FIX-UNCERTAIN as planning input).",
+      "back_edge_to_dev_outer": "If review requires fundamentally new scope (not in original ChangeSet): close PR; start new dev_outer loop with revised scope"
+    },
+    "deploy_observability": {
+      "name": "Post-deploy observability loop (continuous)",
+      "iteration_unit": "ongoing telemetry watch",
+      "steps": [
+        {
+          "id": "D-1",
+          "step": "canary_observe",
+          "verb": "Per ADR-0114: canary observability gate watches error rate + latency + saturation for first N minutes post-promotion"
+        },
+        {
+          "id": "D-2",
+          "step": "classify_slo_breach",
+          "verb": "Classify any breach through pipeline.slo_breach_playbooks.error_classes before promotion can continue"
+        },
+        {
+          "id": "D-3",
+          "step": "auto_rollback",
+          "verb": "If canary fires or any security/data-integrity/audit-chain invariant breaches: Argo rollback to previous revision or quarantine; emit EVT-ROLLBACK-EXECUTED audit-chain row"
+        },
+        {
+          "id": "D-4",
+          "step": "steady_state",
+          "verb": "Once canary clears: shift to steady-state telemetry (OTel; Istio access logs)"
+        },
+        {
+          "id": "D-5",
+          "step": "incident_response",
+          "verb": "If incident: auto-rollback first; file in registry/incidents/ using pipeline.slo_breach_playbooks.evidence_contract; route code fixes to ci_cd_feedback via hotfix PR; route infra/config/capacity fixes through specs/deployment-ops-contract.json OpenTofu/ops surfaces; do not manually SSH-troubleshoot"
+        }
+      ],
+      "back_edge_to_dev_outer": "Production incident with code root-cause → new dev_outer loop with hotfix-priority claim"
+    }
+  },
+  "operating_principles": [
+    {
+      "id": "OP-01",
+      "name": "no_silent_regression",
+      "rule": "Public contracts protected. Any breaking change requires ADR + version bump + sunset clause + BREAKING marker in CHANGELOG. Internal callers swept in same PR.",
+      "planned_enforcement_refs": [
+        "oya-governance-lean-a10"
+      ],
+      "enforced_by": [
+        "oya-governance-api-semver"
+      ],
+      "references": [
+        "feedback_no_silent_regression"
+      ]
+    },
+    {
+      "id": "OP-02",
+      "name": "no_exceptions_canonical",
+      "rule": "When canonical coverage is incomplete, EXTEND canonical. No `#[allow]` for production, no 'implicit' clauses, no 'covered without suffix', no exception carve-outs. Predictable shape is paramount.",
+      "directive_date": "2026-05-15",
+      "references": [
+        "feedback_no_exceptions_canonical"
+      ]
+    },
+    {
+      "id": "OP-03",
+      "name": "automate_everything",
+      "rule": "Mechanical work is scripted (oya doc *, oya gate validate *, oya vcs *). Never hand-iterate deterministic work. New repeating pattern → kernel + fitness lane + CI binding.",
+      "references": [
+        "feedback_automate_everything",
+        "feedback_lifecycle_automation_universal"
+      ]
+    },
+    {
+      "id": "OP-04",
+      "name": "clean_architecture",
+      "rule": "12-layer enum (ADR-0056/0105/0106). Inward flow: kernel ← domain ← usecase ← {api, worker, adapter}. Ports in kernel. Cross-product calls only via Workflow + Ontology adapter layer.",
+      "references": [
+        "feedback_clean_architecture_requirements",
+        "feedback_workflow_objectgraph_adapter_layer"
+      ]
+    },
+    {
+      "id": "OP-05",
+      "name": "naming_justification",
+      "rule": "Every new name carries one-line BNF + 12-layer-enum justification at scaffold time.",
+      "references": [
+        "feedback_naming_justification"
+      ]
+    },
+    {
+      "id": "OP-06",
+      "name": "doc_coverage_enforced",
+      "rule": "µservice introduction triggers PRD + BoundedContext + Phase-Spec + ImplementationPlan + ADR refs. CI-enforced via oya-governance-doc-catalog. Phase not Complete until lane green.",
+      "references": [
+        "feedback_doc_coverage_enforced"
+      ]
+    },
+    {
+      "id": "OP-07",
+      "name": "tiered_review_with_deterministic_scorecard",
+      "rule": "Every PR runs the deterministic score_cards floor; subagent dispatch scales with review_tiering tier (T0-T3) based on blast_radius_score computed from diff signals. T0=checklist only; T1=+1 critic; T2=+4 facets; T3=full 20-facet multispectrum (the v2.3.0 doctrine). 'Always 20 facets per PR' is SUPERSEDED by this — trivial PRs cost <30s, risky PRs unchanged. Synthesis with termination_reason ∈ {consensus_reached, conservative_default_applied, rounds_>=_max_rounds}.",
+      "spec_path": "specs/multispectrum-review.json (full-detail doctrine retained for T3) + this spec review_tiering + score_cards blocks",
+      "supersedes_directive": "feedback_multispectrum_review_v22 'every CC-1/2/3 PR gets all 20 facets' — replaced with tier-based dispatch per user 2026-05-16",
+      "references": [
+        "feedback_multispectrum_review_v22",
+        "feedback_multispectrum_adherence_facets",
+        "feedback_consensus_debate_spectrum_lens_subagents",
+        "agent-skills:idea-refine"
+      ]
+    },
+    {
+      "id": "OP-08",
+      "name": "audit_chain_emission",
+      "rule": "Every state-changing operation emits a row to evidence/audit-chain.jsonl. Per-event distinct timestamp + session_id. NEVER share a single session_id across N events (PR17 anti-pattern).",
+      "anti_pattern_reference": "evidence/debate/pr-17-M2-r1.json — 9 events shared identical timestamp_unix + session_id"
+    },
+    {
+      "id": "OP-09",
+      "name": "plain_primitives_only",
+      "rule": "External agent-coordination tooling (grit, rtk, icm, vox) is RETIRED per ADR-0116 (2026-05-16). Use plain git, gh, cargo, jq, sed only. Foundry pipeline (M01-P18) is the canonical agentic workflow substrate.",
+      "supersedes_directives": [
+        "AGENTIC PIPELINE HARDENING RULE 2026-05-12 (grit-only)",
+        "grit-claim-state-on-stop hook"
+      ],
+      "references": [
+        "feedback_deprecate_external_agent_coord_tooling",
+        "feedback_governance_pipeline_canonical"
+      ]
+    },
+    {
+      "id": "OP-10",
+      "name": "bominal_inheritance",
+      "rule": "Bominal ADRs apply 1:1 unless an oyatie ADR explicitly overrides. When citing inherited ADRs, qualify as 'Bominal-ADR-####' to disambiguate from oyatie ADRs with the same number.",
+      "registry_path": "registry/adr/inherited-bominal-adrs.yaml",
+      "references": [
+        "feedback_bominal_inheritance_precedence"
+      ]
+    },
+    {
+      "id": "OP-11",
+      "name": "no_stubs_no_defer_100_production_quality",
+      "rule": "Address every drift, contradiction, stub, placeholder, or tangent issue IN THE SAME PR that surfaces it. No 'defer to FixupTask' for findings inside the PR's reachable scope. No 'good enough for MVP/demo/sample' framing — every ChangeSet ships to full hyperscaler-production-quality (scalable, secure, performant, efficient). Agents MUST surface tangent issues they notice while working, then fix them — not file as follow-up.",
+      "directive_date": "2026-05-16",
+      "supersedes_when_conflict": "scope_discipline.rule 'a bug fix doesn't need surrounding cleanup' — narrowed: surrounding doctrinal/structural drift IS in scope; surrounding orthogonal-feature cleanup is NOT",
+      "fixuptask_legitimacy": "FixupTasks remain valid ONLY for findings genuinely out of the PR's reachable scope: upstream-vendor changes, follow-up architectural waves explicitly out-of-charter, multi-week migrations that can't atomically land. Drift/contradictions/missing-catalog-rows/stale-references ARE in scope and MUST be fixed in-PR.",
+      "anti_patterns_forbidden": [
+        "TODO comments in production code (use a tracked spec instead)",
+        "stub functions that panic or return placeholder values",
+        "'good enough for MVP' framing",
+        "'we'll fix this later' in PR body or commit message",
+        "filing F-* fixuptask for in-scope drift instead of fixing it",
+        "deferring catalog/index/registry registration to a separate PR"
+      ],
+      "verification_check": "PR body must NOT contain the canonical deferral-vocabulary enumerated in registry/banned-deferral-vocabulary.txt (the policy authority file; reference-only — this verification_check intentionally does NOT inline the banned words to keep this spec free of self-referential matches). The PR-body scanner reads that file at lane-run time and applies it as a regex denylist. Exception: explicit-out-of-scope tracking lists where every entry has a stable F-* ID matching a row in registry/fixuptasks.jsonl with status=open.",
+      "user_directive_verbatim": "Prevent drifts, prevent /documentation-and-adrs contradictions and drifts, make sure agents surface any tangent issues. Don't do stubs, placeholders, or defer issues for later. Address them there and then to 100% production quality. Don't say this is good enough for MVP scope. we are not building MVP, demo, or sample. we are building full hyperscaler production platform and ecosystem. that is scalable, secure, performant, and efficient.",
+      "references": [
+        "feedback_no_silent_regression",
+        "feedback_quality_performance_scalability_bar",
+        "feedback_autonomous_implementation_artifacts",
+        "agent-skills:documentation-and-adrs"
+      ]
+    }
+  ],
+  "review_tiering": {
+    "description": "Match review intensity to change risk. Trivial PRs <30s; risky PRs unchanged. Tier decided by deterministic blast_radius_score computed from diff signals — not LLM judgment. Per user 2026-05-16: 'multispectrum on every single PR is highly inefficient.'",
+    "blast_radius_score": {
+      "rule": "Computed mechanically from git diff + change_class. No LLM judgment. Same diff → same score.",
+      "computation_runner": "oya gate validate blast-radius-score (output: integer 0-200; emitted to .omc/state/pr-<N>-blast-radius.json)",
+      "signals": [
+        {
+          "id": "S1",
+          "name": "public_api_touched",
+          "type": "boolean",
+          "weight_if_true": 30,
+          "detection": "diff hits any pub fn / pub struct / pub trait / pub mod under crates/*/src/lib.rs OR contracts/*.yaml"
+        },
+        {
+          "id": "S2",
+          "name": "kernel_layer_touched",
+          "type": "boolean",
+          "weight_if_true": 20,
+          "detection": "diff hits any crates/*-kernel/src/"
+        },
+        {
+          "id": "S3",
+          "name": "secret_or_admission_touched",
+          "type": "boolean",
+          "weight_if_true": 30,
+          "detection": "diff hits OpenBao SecretReference path OR infra/kyverno/ OR registry/secrets/"
+        },
+        {
+          "id": "S4",
+          "name": "audit_chain_schema_touched",
+          "type": "boolean",
+          "weight_if_true": 20,
+          "detection": "diff hits evidence/audit-chain.jsonl schema OR oya-intelligence-audit-chain-* crates"
+        },
+        {
+          "id": "S5",
+          "name": "ADR_introduced_or_amended_count",
+          "type": "integer",
+          "weight_per_unit": 10,
+          "weight_cap": 30,
+          "detection": "count of docs/decisions/ADR-*.md files in diff"
+        },
+        {
+          "id": "S6",
+          "name": "cargo_deps_changed_count",
+          "type": "integer",
+          "weight_per_unit": 5,
+          "weight_cap": 25,
+          "detection": "count of [dependencies] table changes across all Cargo.toml in diff"
+        },
+        {
+          "id": "S7",
+          "name": "lines_touched",
+          "type": "integer",
+          "weight_formula": "min(lines_touched / 100, 30)",
+          "detection": "git diff --shortstat additions+deletions"
+        },
+        {
+          "id": "S8",
+          "name": "new_files_count",
+          "type": "integer",
+          "weight_per_unit": 2,
+          "weight_cap": 20,
+          "detection": "count of A-status files in git diff --name-status"
+        },
+        {
+          "id": "S9",
+          "name": "new_crates_count",
+          "type": "integer",
+          "weight_per_unit": 15,
+          "weight_cap": 30,
+          "detection": "count of new crates/* or tools/* dirs with Cargo.toml"
+        },
+        {
+          "id": "S10",
+          "name": "breaking_change_marker",
+          "type": "boolean",
+          "weight_if_true": 200,
+          "detection": "PR body contains 'BREAKING:' OR Cargo.toml major version bump OR ADR with breaking_change: true frontmatter — auto-forces T3"
+        },
+        {
+          "id": "S11",
+          "name": "meta_review_triggered",
+          "type": "boolean",
+          "weight_if_true": 200,
+          "detection": "new ADR OR new standard OR new microservice OR new spec — auto-forces T3"
+        }
+      ],
+      "anti_gaming": "If author splits one logical change into N PRs to dodge tiering, meta_watcher aggregates by author + crate over rolling 7-day window; if N PRs touching the same crate sum to T2+ score, retroactively dispatches the missing tier's review on the combined diff"
+    },
+    "tiers": [
+      {
+        "id": "T0",
+        "name": "checklist_only",
+        "trigger": "blast_radius_score < 20",
+        "subagents": 0,
+        "wall_clock_target": "<30s",
+        "what_runs": "score_cards deterministic checks only; if all PASS, merge-ready",
+        "applies_to_change_classes": [
+          "CC-4 (small)",
+          "CC-5",
+          "CC-6",
+          "CC-7",
+          "CC-3 (small)"
+        ]
+      },
+      {
+        "id": "T1",
+        "name": "checklist_plus_critic",
+        "trigger": "20 <= blast_radius_score < 50",
+        "subagents": 1,
+        "wall_clock_target": "<2min",
+        "what_runs": "score_cards + 1 cross-vendor critic subagent with doubt_driven_contract.fresh_context_required=true",
+        "applies_to_change_classes": [
+          "CC-3 (medium)",
+          "CC-4 (medium)",
+          "CC-2 (small)"
+        ]
+      },
+      {
+        "id": "T2",
+        "name": "checklist_plus_4_facets",
+        "trigger": "50 <= blast_radius_score < 80",
+        "subagents": 4,
+        "wall_clock_target": "<5min",
+        "what_runs": "score_cards + facet subagents: F1_linus + F5_quality + F7_security + 1 A-facet covering touched policy domain",
+        "applies_to_change_classes": [
+          "CC-2 (large)",
+          "CC-3 (large)",
+          "CC-1 (small)"
+        ]
+      },
+      {
+        "id": "T3",
+        "name": "full_multispectrum",
+        "trigger": "blast_radius_score >= 80 OR S10 OR S11",
+        "subagents": 20,
+        "wall_clock_target": "<15min",
+        "what_runs": "Full v2.3.0 multispectrum doctrine: F1-F9 + F10/F11/F13 + M1/M2 + A1-A7. One subagent per facet, distinct reviewer_id.",
+        "applies_to_change_classes": [
+          "CC-1 (large)",
+          "any change with S10 or S11"
+        ]
+      }
+    ],
+    "outcome_based_upgrade": {
+      "trigger": "An incident OR finding caught downstream (staging gate, production observability, post-merge review) traces to an area that PASSED at lower tier than would have caught it",
+      "action": "meta_watcher emits F-TIER-UPGRADE-RECOMMENDED for the affected area (crate / file pattern); next 5 PRs touching that area auto-bumped one tier higher; if no further misses in 30 days, revert; if misses recur, calibrate threshold permanently"
+    }
+  },
+  "score_cards": {
+    "description": "Deterministic checks computed mechanically (jq / regex / cargo lane / git command). LLM has NO role in pass/fail — only in triage WHY a failure occurred and proposing a fix. Same input → same output. No prompt drift = no false signals from scoring.",
+    "design_principle": "LLM-judgment forbidden in pass/fail decision. If a check's pass/fail is subjective, it's not in the score card — it lives in a subagent facet (T1+).",
+    "check_schema": {
+      "id": "string — globally unique, stable",
+      "facet": "string — F1..F13 / M1..M2 / A1..A7 OR 'pipeline'",
+      "query": "deterministic command — jq filter / regex / cargo nextest -p ... / oya gate validate ...",
+      "pass_criterion": "string — e.g. 'exit 0', 'count==0', 'jq returns true'",
+      "score": "integer 0-10 — how much weight this check carries in the facet aggregate",
+      "severity_tier": "enum {INFO, MINOR, MAJOR, CRITICAL, BLOCKER}",
+      "empirical_evidence_path": "registry/check-empirical-evidence/<check_id>.json — must list ≥1 prevented incident or caught regression for the check to be promoted to BLOCKER"
+    },
+    "aggregation": {
+      "per_facet_score": "min(blocking_check_scores) — single critical blocking failure = facet fail",
+      "per_pr_score": "weighted aggregate; weights from change_class table",
+      "merge_threshold_by_change_class": {
+        "CC-1": "all BLOCKERs PASS + per-PR score >= 90",
+        "CC-2": "all BLOCKERs PASS + per-PR score >= 80",
+        "CC-3": "all BLOCKERs PASS + per-PR score >= 70",
+        "CC-4-7": "all BLOCKERs PASS"
+      }
+    },
+    "no_false_signals_discipline": [
+      "Every check must have ≥1 prevented incident OR caught regression in registry/check-empirical-evidence/<check_id>.json BEFORE promotion to BLOCKER severity",
+      "Checks with 0 matches over 30 days → meta_watcher auto-demotes to candidate stage",
+      "Checks with false-positive rate >10% → meta_watcher files F-CHECK-FALSE-POSITIVE-RATE-HIGH; auto-throttle to ADVISORY severity",
+      "Blind-spot detection: if a check passes 100% of PRs but downstream incidents occur in that area → meta_watcher files F-CHECK-BLIND-SPOT; promotion of a sharper check via lane_promotion_protocol",
+      "Determinism audit lane: oya-governance-scorecard-determinism re-runs each check 3× on the same PR; any non-deterministic output = lane failure + automatic check removal"
+    ],
+    "llm_triage_protocol": "When a deterministic check FAILS, an LLM may be invoked to (a) explain WHY in human-readable form, (b) propose a candidate fix patch. The LLM's output is INPUT to the agent loop, NOT a re-judgment of pass/fail.",
+    "spec_path": "specs/score-cards.json — full check inventory + per-check empirical evidence pointers (separate spec file, candidate for next planning round)"
+  },
+  "source_driven_contract": {
+    "rule": "Every public API change MUST cite the authoritative documentation source (URL + commit hash or version tag + accessed-date) in the PR body OR in an ADR referenced from the PR body. Implementing against memory or assumption is forbidden.",
+    "enforcement": {
+      "lane": "oya-governance-source-citation",
+      "lane_category": "pre_merge_critical (BLOCKER)",
+      "trigger_when": "blast_radius_score.S1 (public_api_touched) == true",
+      "deterministic_check": "regex match for /Source:\\s+https?:\\/\\/[^\\s]+ \\(commit:[a-f0-9]+|version:[\\w.-]+, accessed:\\d{4}-\\d{2}-\\d{2}\\)/ in PR body OR linked ADR; followed by URL HEAD-check (status 200)",
+      "lane_failure_action": "PR cannot merge; ci_fixer role adds the citation block or escalates to author for source-finding"
+    },
+    "exceptions": "None. Per OP-02 no_exceptions_canonical. Even 'internal' APIs that expose to other crates count as public for this contract.",
+    "rationale": "Pure source-driven-development per skill — prevents agents from coding-by-hallucination on framework/library APIs. Crystallizes 'what the docs actually say' as a permanent ChangeSet artifact.",
+    "references": [
+      "agent-skills:source-driven-development"
+    ]
+  },
+  "doubt_driven_contract": {
+    "rule": "Every non-trivial decision (T1+ PR per review_tiering) subjects its load-bearing assumption to a fresh-context cross-vendor adversarial review BEFORE the merge. 'Looked right when I wrote it' is insufficient — verification must be cheaper than later debugging.",
+    "non_trivial_definition": "Any PR with blast_radius_score >= 20 (i.e., T1+); also any PR with security_implication == true OR irreversibility_class >= MEDIUM OR working in unfamiliar code (per author-vendor's commit-history coverage for that crate)",
+    "enforcement": {
+      "trigger": "T1+ dispatch (per review_tiering.tiers)",
+      "mechanism": "autonomous_foundry.roles.critic must run with fresh_context: true — no prior conversation context; loaded with the diff + the load-bearing assumption identified by the author + the spec_contract acceptance_criteria",
+      "deterministic_check": "evidence/debate/<change_id>-critic-r1.json must declare {load_bearing_assumption: '...', adversarial_findings: [...], severity_assessment: '...', cross_vendor_confirmation: true}; lane oya-governance-doubt-driven-trace asserts presence + cross-vendor distinctness",
+      "lane_failure_action": "PR cannot merge until critic evidence file present + cross-vendor distinct from author"
+    },
+    "anti_pattern_caught": "author-marks-own-work-as-good. Critic must be different vendor; critic prompted explicitly as 'find what's wrong'; critic gets token-budget credit ONLY on findings filed (per autonomous_foundry.anti_collusion_rules)",
+    "rationale": "Doubt-driven-development per skill — high-stakes / unfamiliar code is where overconfidence costs most. Cheap upfront skepticism prevents expensive downstream debugging.",
+    "references": [
+      "agent-skills:doubt-driven-development",
+      "autonomous_foundry.roles.critic",
+      "autonomous_foundry.anti_collusion_rules"
+    ]
+  },
+  "spec_contract": {
+    "rule": "Spec BEFORE code. Spec is the source-of-truth for WHAT to build; code implements the spec. If no spec exists and one is required for the concern, STOP and write spec FIRST (or ask human). NEVER invent requirements from observed behavior.",
+    "required_when": [
+      "Introducing a new µservice or capability",
+      "Changing public API surface or canonical contract",
+      "Adding new admission gate or fitness lane",
+      "Modifying audit-chain event shape",
+      "Establishing new directory topology or naming convention"
+    ],
+    "spec_shape_required_fields": [
+      "$schema",
+      "$id",
+      "_meta.spec_id",
+      "_meta.version",
+      "_meta.status",
+      "_meta.owner_team"
+    ],
+    "acceptance_criteria_rule": "Every spec carries acceptance_criteria[] where each entry has {id: AC-NNN, given, when, then, test_id (reference to the test that proves it)}.",
+    "test_id_back_link_rule": "Each AC-ID is back-linked from the test that proves it (e.g., `// AC-007` comment in the test file). CI lane oya-governance-ac-coverage verifies bidirectional linkage.",
+    "missing_spec_action": "STOP. Apply confusion_management. Do NOT begin implementation.",
+    "references": [
+      "agent-skills:spec-driven-development",
+      "feedback_quality_performance_scalability_bar"
+    ]
+  },
+  "tdd_contract": {
+    "rule": "Tests come BEFORE implementation. Red → Green → Refactor. For bugs: prove-it pattern (failing test that reproduces; then fix). The test that would have caught the bug stays in the platform as a regression guard.",
+    "modes": {
+      "feature": "dev_inner.mode_feature — write test from acceptance_criterion, then implementation",
+      "bugfix": "dev_inner.mode_bugfix — write prove-it test that fails, then fix",
+      "exploratory_spike": "Allowed WITHOUT tests for ≤ 1 hour to prove a hypothesis; spike code MUST be deleted (not merged) and re-implemented test-first if the hypothesis pans out"
+    },
+    "test_first_anti_patterns_forbidden": [
+      "fix-without-test (bug fix with no new regression test)",
+      "test-after (implementation first, test bolted on)",
+      "skipped-red (writing test that never failed — proves the test doesn't actually exercise the change)",
+      "mock-the-thing-under-test (mocking the production code instead of exercising it)"
+    ],
+    "test_classes": {
+      "unit": "kernel layer — pure functions, no IO; runs in <100ms per test",
+      "integration": "domain + usecase layer — exercises adapters with real fixtures; runs in <2s per test",
+      "contract": "api/worker boundary — pinned against contracts/*.yaml schemas",
+      "e2e": "full pipeline — branch-pipeline rehearsal under cargo nextest e2e profile",
+      "fitness": "oya-governance-* lanes — CI-only structural checks"
+    },
+    "coverage_floor": "Per crate: 100% of new public API + 80% of internal branches. No floor on auto-generated code.",
+    "references": [
+      "agent-skills:test-driven-development",
+      "superpowers:test-driven-development",
+      "feedback_no_silent_regression"
+    ]
+  },
+  "pipeline": {
+    "description": "CI/CD pipeline as code; idempotent lanes; fast feedback via parallelism + criticality tiers; staged promotion (dev → staging → production) with safety + rollback first-class.",
+    "as_code_rule": "Every lane defined in .github/workflows/*.yml + registry/release/*. Hand-clicking the GitHub Actions UI to retry/skip a lane is forbidden — fix the underlying issue or amend the lane definition via PR.",
+    "secret_handling": "Per user directive 2026-05-12: SecretReference path via local OpenBao for now. Raw secrets MUST NOT enter repo, chat, checkpoints, audit-chain payloads, or evidence files. Detected via gitleaks + repo+history scan; CI lane release-supply-chain-secrets fails the PR.",
+    "lane_categories": {
+      "pre_merge_critical": {
+        "criticality": "BLOCKER — PR cannot merge if any fails",
+        "fail_policy": "fail-fast (cancel sibling lanes once one fails — no point spending compute)",
+        "parallelism": "all in parallel",
+        "lanes": [
+          "cargo-check",
+          "cargo-fmt",
+          "cargo-clippy",
+          "cargo-nextest",
+          "oya-vcs-admission",
+          "oya-governance-supply-chain",
+          "oya-governance-api-semver",
+          "oya-governance-cohesion"
+        ]
+      },
+      "pre_merge_advisory": {
+        "criticality": "WARN — PR may merge with reviewer override",
+        "fail_policy": "report-only",
+        "parallelism": "all in parallel",
+        "lanes": [
+          "oya-governance-doc-catalog",
+          "oya-governance-protection-context-match",
+          "oya-governance-changeset-state-monotonicity"
+        ]
+      },
+      "post_merge_promotion_gate": {
+        "criticality": "BLOCKER for promotion to next stage",
+        "fail_policy": "halt promotion; file F-PROMOTION-GATE-FAIL; do NOT revert merge",
+        "lanes_per_stage": {
+          "dev_to_staging": [
+            "release-supply-chain (cosign + rekor)",
+            "release-evidence-pack",
+            "branch-pipeline-promote-dev-to-staging"
+          ],
+          "staging_to_production": [
+            "canary-observability-rollback (per ADR-0114)",
+            "release-supply-chain (re-verify on staging digest)",
+            "branch-pipeline-promote-staging-to-production"
+          ]
+        }
+      },
+      "post_deploy_observability": {
+        "criticality": "BLOCKER if breached",
+        "fail_policy": "auto-rollback via Argo revision history + autonomous incident-response quorum + ops/OpenTofu convergence; no human page",
+        "lanes": [
+          "canary error-rate",
+          "canary latency p99",
+          "canary saturation",
+          "mTLS posture (Istio strict)",
+          "audit-chain row freshness",
+          "data-integrity sentinel",
+          "dependency-regression sentinel",
+          "config-drift desired-state check",
+          "per-product KPI regression"
+        ]
+      }
+    },
+    "parallelism_rule": "Independent lanes run in parallel. Sequential dependencies declared via workflow `needs:` field. Total wall-clock pre-merge ≤ 10 min on dev branch.",
+    "reproducibility_rule": "Every lane runs from a pinned commit hash. Cache keys derived from Cargo.lock + lane definition hash. No 'latest' tags. Rerun on same SHA must produce identical result (per ADR-0083 deterministic-build rule).",
+    "rollback_first_class": {
+      "rule": "Rollback is a sanctioned operation, not an emergency hack.",
+      "mechanisms": [
+        "git: revert the offending merge on dev → auto-propagates through staging on next cadence",
+        "Argo: rollback to previous revision (per ADR-0114 canary-observability-rollback)",
+        "infra: kyverno admission policy can quarantine a bad image tag pending investigation",
+        "infra/config/capacity: converge only through specs/deployment-ops-contract.json OpenTofu roots and ops entrypoints",
+        "emergency rewind: allowed only when a pre-authorized autonomous break-glass key policy exists and emits rewind evidence; otherwise ADR-0114 human-signed force-rewind is replaced by canonical rollback PR or Argo rollback"
+      ],
+      "evidence_requirement": "Every rollback emits EVT-ROLLBACK-EXECUTED audit-chain row with root-cause + reverted-sha + decision-maker."
+    },
+    "auto_promotion_cadence": {
+      "dev_to_staging": "30 min (per project_branch_pipeline_implemented)",
+      "staging_to_production": "hourly (per project_branch_pipeline_implemented)",
+      "manual_override": "Promotion can be paused via .omc/state/promotion-pause.json with reason + owner; never edit GitHub branch protection directly to pause"
+    },
+    "incident_response": {
+      "trigger": "Production health degraded, canary fires, audit-chain emission halts, or external SLO breach",
+      "responder": "autonomous_foundry.roles.incident_responder (agent quorum). NO human page.",
+      "file_path": "registry/incidents/<incident-id>.json (per evidence-taxonomy.json Incident class)",
+      "auto_rollback_first": "Argo revision rollback fires BEFORE any analysis; service health is preserved while root-cause is investigated",
+      "root_cause_protocol": "incident_responder quorum dispatches per autonomous_foundry.vendor_disagreement_protocol; result must converge to one of {code-bug, config-drift, dependency-regression, capacity, first-of-kind-unknown}",
+      "post_incident": "Per root-cause: code-bug → autonomous hotfix PR + regression test via tdd_contract.mode_bugfix; config-drift → Argo selfHeal will reconcile + audit; dependency-regression → pin or replace dep via autonomous PR; capacity → emit capacity-event for cloud-capacity-kernel; first-of-kind-unknown → service held in rolled-back state + F-INCIDENT-UNKNOWN-ROOT-CAUSE filed + compounding investigation across subsequent planning rounds. One F-INCIDENT-PREVENTION-NN FixupTask per causative gap regardless of root cause."
+    },
+    "slo_breach_playbooks": {
+      "evidence_path": "evidence/shipping-launch/autonomous-foundry-slo-playbooks.json",
+      "source_inputs": [
+        "agent-skills:shipping-and-launch",
+        "ADR-0114",
+        "specs/deployment-ops-contract.json"
+      ],
+      "autonomy_constraints": {
+        "human_escalation_paths": 0,
+        "normal_recovery_surfaces": [
+          "Argo rollback",
+          "canonical rollback PR",
+          "Kyverno quarantine",
+          "OpenTofu/ops convergence",
+          "autonomous hotfix PR"
+        ],
+        "forbidden_recovery_surfaces": [
+          "interactive host login as troubleshooting path",
+          "hand-clicked promotion retry/skip",
+          "provider console mutation outside audited break-glass"
+        ]
+      },
+      "thresholds": {
+        "grace_period_seconds": 60,
+        "controller_tick_seconds": 30,
+        "promote_clean_window_seconds": 900,
+        "extend_observation_max_seconds": 3600,
+        "latency_canary_to_control_ratio_rollback": 1.2,
+        "error_rate_canary_to_control_ratio_rollback": 1.5,
+        "p95_latency_baseline_ratio_rollback": 1.5,
+        "critical_path_error_baseline_ratio_rollback": 2.0,
+        "slo_breach_count_rollback": 1
+      },
+      "decision_tree": [
+        {
+          "when": "security_or_data_integrity_or_audit_freshness_breached",
+          "verdict": "ROLLBACK_QUARANTINE",
+          "action": "rollback exposed cells immediately, quarantine bad image/digest, freeze unsafe writes via ops policy when needed, open incident JSON"
+        },
+        {
+          "when": "canary_threshold_breach_inside_60s_grace",
+          "verdict": "EXTEND_OBSERVATION_ONCE",
+          "action": "emit EVT-CANARY-VERDICT, retain current exposure, re-evaluate at next controller tick"
+        },
+        {
+          "when": "canary_threshold_breach_after_grace",
+          "verdict": "ROLLBACK",
+          "action": "Argo rollback exposed cells, classify root cause, route code to hotfix PR or infra/config/capacity to OpenTofu/ops convergence"
+        },
+        {
+          "when": "yellow_threshold_only_before_max_window",
+          "verdict": "HOLD_EXTEND",
+          "action": "hold promotion and extend observation up to max window"
+        },
+        {
+          "when": "max_window_exhausted_without_known_class",
+          "verdict": "FIRST_OF_KIND_QUORUM",
+          "action": "hold safe state, dispatch autonomous first-of-kind quorum, do not page humans"
+        },
+        {
+          "when": "clean_window_elapsed",
+          "verdict": "PROMOTE",
+          "action": "advance to next canary stage and retain evidence bundle"
+        }
+      ],
+      "error_classes": [
+        {
+          "id": "SLO-LATENCY",
+          "root_causes": [
+            "code-bug",
+            "capacity",
+            "dependency-regression",
+            "config-drift"
+          ],
+          "signals": [
+            "canary/control p99 ratio > 1.20",
+            "p95 > 50% above baseline",
+            "queue/dependency latency spike"
+          ],
+          "rollback": "after grace if threshold persists or launch rollback threshold crossed",
+          "triage": [
+            "compare canary vs control traces",
+            "inspect queue depth/saturation",
+            "check dependency/cache spans"
+          ],
+          "recovery": [
+            "Argo rollback first if user impact",
+            "OpenTofu/ops capacity convergence for capacity",
+            "hotfix PR with performance regression test for code"
+          ]
+        },
+        {
+          "id": "SLO-ERROR-RATE",
+          "root_causes": [
+            "code-bug",
+            "dependency-regression",
+            "config-drift"
+          ],
+          "signals": [
+            "canary/control error-rate ratio > 1.50",
+            "5xx > 2x baseline",
+            "Rust panic events",
+            "audit-chain Err returns"
+          ],
+          "rollback": "after grace or immediately on critical path hard failure",
+          "triage": [
+            "bucket by route/cell/version",
+            "read panic signatures",
+            "compare dependency errors"
+          ],
+          "recovery": [
+            "Argo rollback",
+            "canonical rollback PR",
+            "prove-it hotfix regression"
+          ]
+        },
+        {
+          "id": "SLO-SATURATION-CAPACITY",
+          "root_causes": [
+            "capacity",
+            "config-drift"
+          ],
+          "signals": [
+            "CPU/memory saturation",
+            "DB pool exhaustion",
+            "queue lag",
+            "pod pending/throttling"
+          ],
+          "rollback": "when saturation creates user-impacting latency/error",
+          "triage": [
+            "separate workload regression from capacity ceiling",
+            "compare requested/actual resources",
+            "check autoscaler/pool limits"
+          ],
+          "recovery": [
+            "rollback code-induced demand",
+            "OpenTofu/ops capacity convergence",
+            "capacity-event for cloud-capacity-kernel"
+          ]
+        },
+        {
+          "id": "SLO-MTLS-SECURITY",
+          "root_causes": [
+            "config-drift",
+            "security"
+          ],
+          "signals": [
+            "Istio mTLS strict disabled",
+            "certificate failures",
+            "authorization denial spike",
+            "security vulnerability signal"
+          ],
+          "rollback": "immediate; no hold-only mode",
+          "triage": [
+            "verify desired policy from git",
+            "check cert rotation",
+            "map denied identities to release delta"
+          ],
+          "recovery": [
+            "quarantine digest",
+            "rollback exposed cells",
+            "policy convergence through gitops/OpenTofu"
+          ]
+        },
+        {
+          "id": "SLO-AUDIT-CHAIN-FRESHNESS",
+          "root_causes": [
+            "code-bug",
+            "config-drift",
+            "dependency-regression"
+          ],
+          "signals": [
+            "audit-chain emission halt",
+            "row freshness breach",
+            "event schema rejection",
+            "missing decision-maker/session_id"
+          ],
+          "rollback": "immediate on governance/provenance loss",
+          "triage": [
+            "check emitter health",
+            "validate schema errors",
+            "compare event sink availability"
+          ],
+          "recovery": [
+            "rollback/quarantine before analysis",
+            "hotfix emitter",
+            "backfill only from signed evidence bundles"
+          ]
+        },
+        {
+          "id": "SLO-DATA-INTEGRITY",
+          "root_causes": [
+            "code-bug",
+            "config-drift",
+            "first-of-kind-unknown"
+          ],
+          "signals": [
+            "migration checksum mismatch",
+            "cross-tenant access",
+            "data corruption sentinel",
+            "idempotency violation"
+          ],
+          "rollback": "immediate on integrity or tenant isolation breach",
+          "triage": [
+            "preserve forensic evidence",
+            "identify affected tenant/cell range",
+            "verify write idempotency/migration ordering"
+          ],
+          "recovery": [
+            "rollback/quarantine",
+            "freeze unsafe writes via ops policy",
+            "canonical repair PR with reversible migration proof"
+          ]
+        },
+        {
+          "id": "SLO-DEPENDENCY-REGRESSION",
+          "root_causes": [
+            "dependency-regression"
+          ],
+          "signals": [
+            "upstream API failures",
+            "SDK behavior change",
+            "CVE/advisory trigger",
+            "dependency latency/error shift"
+          ],
+          "rollback": "when dependency change causes latency/error/security/integrity breach",
+          "triage": [
+            "map failing version/digest",
+            "compare lockfile delta",
+            "read source-citation evidence"
+          ],
+          "recovery": [
+            "rollback image first",
+            "pin/replace dependency by autonomous PR",
+            "amend source-driven evidence"
+          ]
+        },
+        {
+          "id": "SLO-CONFIG-DRIFT",
+          "root_causes": [
+            "config-drift"
+          ],
+          "signals": [
+            "desired/actual infra mismatch",
+            "Argo OutOfSync/Synced mismatch",
+            "OpenTofu plan drift",
+            "policy or SecretReference drift"
+          ],
+          "rollback": "when drift causes service impact or policy breach",
+          "triage": [
+            "diff desired git state against live state",
+            "verify Argo selfHeal",
+            "verify OpenTofu plan convergence"
+          ],
+          "recovery": [
+            "Argo selfHeal for gitops",
+            "OpenTofu/ops convergence for infra",
+            "rollback only when current changeset introduced drift"
+          ]
+        },
+        {
+          "id": "SLO-FIRST-OF-KIND-UNKNOWN",
+          "root_causes": [
+            "first-of-kind-unknown"
+          ],
+          "signals": [
+            "no known incident signature",
+            "quorum cannot classify",
+            "conflicting telemetry across cells"
+          ],
+          "rollback": "on user impact, safety risk, or governance uncertainty",
+          "triage": [
+            "hold rolled-back/null state",
+            "preserve full evidence bundle",
+            "dispatch 3-vendor investigation quorum"
+          ],
+          "recovery": [
+            "no promotion until spec amendment + regression gate + root-cause class exist",
+            "conservative default if quorum does not converge"
+          ]
+        }
+      ],
+      "evidence_contract": {
+        "audit_events": [
+          "EVT-CANARY-VERDICT",
+          "EVT-ROLLBACK-EXECUTED",
+          "EVT-INCIDENT-CLASSIFIED",
+          "EVT-LEARN-LOOP-CLOSED"
+        ],
+        "incident_json_required_keys": [
+          "incident_id",
+          "opened_at",
+          "product",
+          "cell",
+          "release_sha",
+          "slo_class",
+          "signals",
+          "verdict",
+          "rollback_action",
+          "root_cause_class",
+          "evidence_paths",
+          "learn_loop_actions",
+          "closed_at"
+        ],
+        "promotion_resume_requires": [
+          "incident closed or service held in conservative safe state",
+          "root_cause_class assigned",
+          "rollback evidence emitted",
+          "regression or lane candidate recorded",
+          "OpenTofu/ops convergence evidence for infra/config/capacity fixes"
+        ]
+      }
+    },
+    "references": [
+      "agent-skills:ci-cd-and-automation",
+      "agent-skills:shipping-and-launch",
+      "project_branch_pipeline_implemented",
+      "ADR-0083",
+      "ADR-0114",
+      "deployment_ops_contract",
+      "evidence/shipping-launch/autonomous-foundry-slo-playbooks.json"
+    ]
+  },
+  "autonomous_foundry": {
+    "description": "End-state: 100% of decisions made by agent quorum without human escalation path. Per user directive 2026-05-16. Quality preserved through anti-collusion + conservative-default + spec-contract enforcement + meta-agent anomaly watch + rate limits.",
+    "target_autonomy_pct": 100,
+    "human_escalation_paths_removed": [
+      "confusion_management.wait_for_human_resolution → algorithmic vendor_disagreement_protocol + conservative_default",
+      "iteration_loops.dev_inner.escalation_on_stuck.human → stuck_loop_recovery (fresh-context cross-vendor)",
+      "iteration_loops.ci_cd_feedback.escalation_on_stuck.bring_human_in → cross-vendor lane-definition review + conservative_default",
+      "lifecycle.phases.deploy.back_edge_production_incident.page_oncall → autonomous incident_responder quorum",
+      "pipeline.incident_response.page_oncall → autonomous incident_responder quorum",
+      "pipeline.lane_categories.pre_merge_advisory.reviewer_override → ALL ADVISORY LANES PROMOTED TO BLOCKER (autonomous reviewers cannot override; if a lane is wrong, fix the lane definition via PR)"
+    ],
+    "roles": [
+      {
+        "id": "author",
+        "responsibility": "Open the PR via dev_outer loop",
+        "vendor_assignment": "round-robin from {claude, codex, gemini}",
+        "max_concurrent_per_vendor": 3,
+        "budget_tokens": 500000
+      },
+      {
+        "id": "critic",
+        "responsibility": "Adversarial review — find what's wrong",
+        "vendor_assignment": "MUST be different vendor than author (anti_collusion_rules)",
+        "prompted_mindset": "find_what_is_wrong_not_what_is_right",
+        "credit_only_on": "findings_filed_to_registry/fixuptasks.jsonl",
+        "budget_tokens": 200000
+      },
+      {
+        "id": "tiebreaker",
+        "responsibility": "Resolve author/critic disagreement",
+        "vendor_assignment": "3rd vendor (whichever wasn't author or critic)",
+        "budget_tokens": 100000
+      },
+      {
+        "id": "merger",
+        "responsibility": "Execute the merge once quorum + gates clear",
+        "vendor_assignment": "any; deterministic logic only — no creative judgment",
+        "merge_command": "gh pr merge <N> --squash --delete-branch",
+        "preconditions": [
+          "all pre_merge_critical lanes SUCCESS",
+          "all pre_merge_advisory lanes SUCCESS (no override under 100% autonomy)",
+          "quorum_rules satisfied",
+          "mergeStateStatus=CLEAN",
+          "mergeable=MERGEABLE",
+          "all review threads resolved"
+        ]
+      },
+      {
+        "id": "ci_fixer",
+        "responsibility": "Diagnose + push fix when CI lane fails",
+        "vendor_assignment": "any (typically same as author)",
+        "max_attempts_per_lane": 5,
+        "budget_tokens": 300000,
+        "stuck_action": "trigger stuck_loop_recovery"
+      },
+      {
+        "id": "lane_emitter",
+        "responsibility": "Propose new fitness lane when drift pattern detected",
+        "vendor_assignment": "any",
+        "output": "registry/fitness-lane-candidates/<candidate-id>.json (report-only until promoted)",
+        "budget_tokens": 150000
+      },
+      {
+        "id": "incident_responder",
+        "responsibility": "Drive autonomous incident response per pipeline.incident_response.root_cause_protocol",
+        "vendor_assignment": "quorum of 2 distinct vendors",
+        "stop_loss_minutes": 30,
+        "after_stop_loss": "hold service in rolled-back state; file F-INCIDENT-COMPOUNDING-INVESTIGATION; do not page"
+      },
+      {
+        "id": "meta_watcher",
+        "responsibility": "Watch all agent activity for anomalies; rate-limit offenders",
+        "vendor_assignment": "different vendor from any per-PR role to avoid blind-spot inheritance",
+        "always_on": true,
+        "outputs": [
+          "registry/anomaly-watch/<window>.json"
+        ]
+      }
+    ],
+    "quorum_rules": [
+      {
+        "change_class": "CC-1 kernel_public_api",
+        "min_tier": "T3",
+        "min_approvals": 2,
+        "vendor_distinctness_required": true,
+        "fresh_context_required": true,
+        "rule_source": "review_tiering.tier_T3 + doubt_driven_contract"
+      },
+      {
+        "change_class": "CC-2 adapter_or_infrastructure",
+        "min_tier": "T2_or_T3",
+        "tier_decided_by": "blast_radius_score",
+        "min_approvals": 2,
+        "vendor_distinctness_required": true,
+        "fresh_context_required": true
+      },
+      {
+        "change_class": "CC-3 application_or_domain",
+        "min_tier": "T1_or_T2",
+        "tier_decided_by": "blast_radius_score",
+        "min_approvals": "tier-dependent (T0=0 critic, T1=1, T2=2)",
+        "vendor_distinctness_required": "T1+: true",
+        "fresh_context_required": "T1+: true"
+      },
+      {
+        "change_class": "CC-4 refactor_pure",
+        "min_tier": "T0_or_T1",
+        "tier_decided_by": "blast_radius_score",
+        "min_approvals": "T0=0 critic, T1=1",
+        "vendor_distinctness_required": "T1+: true"
+      },
+      {
+        "change_class": "CC-5 doc_only",
+        "min_tier": "T0",
+        "min_approvals": 0,
+        "vendor_distinctness_required": false,
+        "score_card_only": true
+      },
+      {
+        "change_class": "CC-6 generated_or_vendored",
+        "min_tier": "T0",
+        "min_approvals": 0,
+        "vendor_distinctness_required": false,
+        "score_card_only": true
+      },
+      {
+        "change_class": "CC-7 test_or_fixture",
+        "min_tier": "T0",
+        "min_approvals": 0,
+        "vendor_distinctness_required": false,
+        "score_card_only": true
+      }
+    ],
+    "vendor_disagreement_protocol": {
+      "trigger": "Two approvers from distinct vendors disagree on +1 vs -1 OR on a finding's severity OR on a recommended action",
+      "tiebreaker_step_1": "Spawn 3rd vendor as tiebreaker per roles.tiebreaker; majority of 3 wins",
+      "tiebreaker_step_2_if_3_way_split": "spec_contract lookup — which option is mandated by an existing spec? If any option literally satisfies a spec acceptance_criterion that the others violate, that option wins",
+      "tiebreaker_step_3_if_still_split": "Apply conservative_default_rule (block merge, file F-DISAGREEMENT-TIEBREAK as planning input); next planning round picks it up",
+      "rate_limit": "If 3-way split rate > 5% over a rolling 7-day window, meta_watcher emits F-QUORUM-CALIBRATION-DRIFT (suggests vendor-prompting bias or under-specified domain)"
+    },
+    "stuck_loop_recovery": {
+      "trigger": "Any loop iteration exceeds its max_iterations_same_failure",
+      "step_1": "Capture loop trace (last N attempts + their error signatures) as evidence/debate/<change_id>-stuck-trace.json",
+      "step_2": "Dispatch fresh-context agent of a DIFFERENT vendor with the loop trace as input + the original goal — no prior conversation context",
+      "step_3_if_resolves": "Fresh-context agent's fix proceeds through normal pipeline; record the recovery pattern in registry/loop-recovery-patterns/<pattern-id>.json for future learning",
+      "step_4_if_still_stuck": "Apply conservative_default_rule (do not merge; file F-STUCK-LOOP-<id>); rate-limit future attempts on the same loop key to 1 per 24h to prevent compute waste"
+    },
+    "conservative_default_rule": {
+      "principle": "When in doubt, do NOTHING. Don't merge, don't push, don't auto-create artifacts.",
+      "rationale": "In a 100% autonomous system, confidently-wrong actions have no human override. The cheapest safe action is null action — the planning round picks it up as input.",
+      "applies_when": [
+        "Quorum disagreement unresolved after vendor_disagreement_protocol",
+        "Stuck loop unresolved after stuck_loop_recovery",
+        "Spec missing for a concern requiring one per spec_contract.required_when",
+        "First-of-kind production incident with unknown root cause",
+        "Anomaly watcher rate-limits the agent mid-action"
+      ],
+      "null_action_outputs": "F-* FixupTask filed in registry/fixuptasks.jsonl as planning input; no merge; no push; service state preserved as-is"
+    },
+    "lane_promotion_protocol": {
+      "description": "Self-replicating quality: agents propose new fitness lanes when drift patterns recur. Lanes start report-only and earn BLOCKER status only after empirical proof.",
+      "stages": [
+        {
+          "stage": "S1_drift_detected",
+          "trigger": "Same failure mode hits ≥3 PRs in a rolling 30-day window",
+          "action": "lane_emitter role files registry/fitness-lane-candidates/<id>.json with drift signature + suggested rule + suggested CI invocation"
+        },
+        {
+          "stage": "S2_candidate_lane",
+          "trigger": "Candidate created",
+          "action": "Lane is implemented as oya-governance-<id> with criticality: REPORT_ONLY. Runs on every PR for ≥30 days. Records every match without blocking."
+        },
+        {
+          "stage": "S3_empirical_evidence",
+          "trigger": "Lane records ≥3 distinct PRs where its rule would have prevented a finding caught by another lane / facet / incident",
+          "action": "Auto-emit promotion ADR + PR amending registry/governance-lanes/INDEX.md + lane definition; promotion through full pipeline"
+        },
+        {
+          "stage": "S4_BLOCKER",
+          "trigger": "Promotion PR merged",
+          "action": "Lane becomes BLOCKER under pre_merge_critical category"
+        },
+        {
+          "stage": "S5_retire",
+          "trigger": "Lane has zero matches over 180-day window AND the originating drift pattern is no longer possible (e.g., code structure changed)",
+          "action": "Auto-emit retirement ADR through full pipeline; lane removed via tombstone per ADR-0118 retirement pattern"
+        }
+      ],
+      "anti_pattern_prevented": "Lane sprawl — every lane must earn its keep with prevented-incident evidence"
+    },
+    "economic_budget": {
+      "per_task_token_cap": "Per role; per autonomous_foundry.roles[].budget_tokens",
+      "per_pr_total_cap": "5x author budget — covers author + critic + tiebreaker + ci_fixer + lane_emitter",
+      "stop_loss_trigger": "PR consumes >2× per_pr_total_cap without converging on merge or null-action",
+      "stop_loss_action": "meta_watcher emits F-PR-COST-OVERRUN; apply conservative_default_rule; investigate spec_contract gap that's driving cost"
+    },
+    "anti_collusion_rules": [
+      "Author and critic MUST be different vendors",
+      "A single vendor cannot hold both author and merger role on the same PR",
+      "Tiebreaker MUST be a 3rd vendor not involved in author or critic for that PR",
+      "Critic gets token budget credit ONLY for findings filed; no credit for blanket-approval (deters sycophancy)",
+      "No reviewer_id may appear across multiple facets within a single change_id (multispectrum doctrine — already in OP-07)",
+      "Meta-watcher MUST be a different vendor from the per-PR roles for that change_id (prevents shared blind-spot inheritance)"
+    ],
+    "rate_limits": [
+      {
+        "scope": "PRs opened per vendor per hour",
+        "cap": 6,
+        "burst": 12,
+        "rationale": "Prevent runaway agent floods"
+      },
+      {
+        "scope": "Merges per repository per hour",
+        "cap": 12,
+        "rationale": "Pipeline + branch-pipeline capacity"
+      },
+      {
+        "scope": "CI lane retries per PR per hour",
+        "cap": 5,
+        "rationale": "Force diagnosis over rerun-and-hope"
+      },
+      {
+        "scope": "stuck_loop_recovery attempts per same loop key per 24h",
+        "cap": 1,
+        "rationale": "Compounding wait when truly stuck"
+      },
+      {
+        "scope": "Production hotfix PRs per 24h",
+        "cap": 6,
+        "rationale": "If exceeded, signals systemic problem; meta_watcher escalates to compounding-investigation queue"
+      }
+    ],
+    "meta_agent_anomaly_watch": {
+      "description": "Always-on cross-vendor watcher that detects unusual rates / patterns and rate-limits offenders before they cause damage.",
+      "watched_signals": [
+        "Per-vendor PR-open rate vs 7-day baseline (>3σ → throttle that vendor)",
+        "Per-vendor merge-success rate vs 7-day baseline (<2σ → throttle + re-evaluate prompting)",
+        "Per-lane false-positive rate (>10% → file F-LANE-FALSE-POSITIVE-RATE-HIGH)",
+        "Repeated rollbacks of same image digest (>2 in 7 days → halt promotion of that digest line)",
+        "Token spend per PR vs baseline (>2× → file F-PR-COST-OVERRUN per economic_budget)",
+        "Vendor-disagreement rate (>5% rolling 7-day → file F-QUORUM-CALIBRATION-DRIFT)"
+      ],
+      "actions": "throttle (token-budget reduction); pause (refuse new PRs from offender); file F-* FixupTasks. NEVER kill agent mid-PR — let it finish or hit conservative_default."
+    },
+    "first_of_kind_protocol": {
+      "rationale": "100% autonomy is most vulnerable on novel cases (no historical pattern to compare against). This protocol handles those without falling back to humans.",
+      "detection": "incident or finding signature has no match in registry/loop-recovery-patterns/ AND no match in registry/incidents/ history",
+      "protocol_step_1": "Hold service state (rolled-back if production-incident; null-action if pre-merge)",
+      "protocol_step_2": "Dispatch a 3-vendor wide-context investigation quorum with full repo + history + memory access (above per_pr_total_cap budget — chronic problem warrants chronic spend)",
+      "protocol_step_3": "Output: candidate root-cause + candidate spec amendment + candidate test that captures the case",
+      "protocol_step_4": "If quorum converges on root-cause: emit ADR + lane + regression test through normal pipeline",
+      "protocol_step_5": "If quorum cannot converge after 48h wall-clock: leave the case OPEN in registry/incidents/open/; file F-OPEN-INCIDENT-COMPOUNDING for the next planning round to weight as priority input"
+    },
+    "audit_chain_requirement": "Every autonomous_foundry decision emits one or more audit-chain rows with per-decision distinct session_id + timestamp + role attribution. PR17 anti-pattern (shared session_id) is forbidden per OP-08.",
+    "references": [
+      "agent-skills:idea-refine (user invocation 2026-05-16)",
+      "feedback_consensus_debate_spectrum_lens_subagents",
+      "feedback_multispectrum_review_v22",
+      "feedback_no_silent_regression",
+      "feedback_automate_everything",
+      "feedback_quality_performance_scalability_bar"
+    ]
+  },
+  "confusion_management": {
+    "rule": "When ambiguity, inconsistency, or missing requirement is encountered: STOP, name the confusion, run autonomous_foundry.vendor_disagreement_protocol. If unresolved after that protocol, apply conservative_default_rule (do nothing; file as open question for next planning round). NEVER guess.",
+    "blocking": true,
+    "resolution_authority": "agent_quorum_then_conservative_default",
+    "resolution_flow": [
+      "Step 1: Author-agent surfaces the confusion via evidence/debate/<change_id>-confusion-<id>.json with options + tradeoffs.",
+      "Step 2: Dispatch tiebreaker quorum per autonomous_foundry.vendor_disagreement_protocol.",
+      "Step 3: If quorum lands consensus: apply that option; record the resolution in audit-chain.",
+      "Step 4: If quorum splits with no majority: apply autonomous_foundry.conservative_default_rule (block the in-flight ChangeSet; do not merge; file F-CONFUSION-OPEN as candidate planning input)."
+    ],
+    "example": {
+      "scenario": "ADR-0019 says X but ADR-0107 says Y for the same surface.",
+      "options": [
+        {
+          "id": "A",
+          "action": "ADR-0019 wins (older)",
+          "tradeoff": "Locks in legacy interpretation"
+        },
+        {
+          "id": "B",
+          "action": "ADR-0107 wins (newer)",
+          "tradeoff": "Implicitly supersedes 0019 without ADR ratification"
+        },
+        {
+          "id": "C",
+          "action": "Amend with explicit precedence note",
+          "tradeoff": "One more ADR but durable resolution"
+        }
+      ],
+      "autonomous_resolution": "Quorum of {claude, codex} reviews; spec_contract lookup for any literal precedence rule in specs/decision-rights.json; if quorum picks C, emit the precedence-note ADR via standard pipeline; if quorum splits, apply conservative_default and block merge."
+    }
+  },
+  "verification_before_completion": {
+    "rule": "Evidence before assertion. 'Looks right' is never sufficient.",
+    "checks": [
+      {
+        "id": "V-01",
+        "check": "cargo check --workspace --locked",
+        "must_satisfy": "exit 0",
+        "skip_if": "no rust source touched"
+      },
+      {
+        "id": "V-02",
+        "check": "cargo nextest run --workspace --locked --no-fail-fast",
+        "must_satisfy": "0 failures",
+        "skip_if": "no rust source touched"
+      },
+      {
+        "id": "V-03",
+        "check": "jq empty <file>",
+        "must_satisfy": "exit 0 for every new/edited JSON file"
+      },
+      {
+        "id": "V-04",
+        "check": "per-lane validators for affected domain",
+        "must_satisfy": "all SUCCESS",
+        "examples": [
+          "oya doc adr-index --write",
+          "oya gate validate <lane>"
+        ]
+      },
+      {
+        "id": "V-05",
+        "check": "multispectrum r1 evidence written for every required facet",
+        "must_satisfy": "evidence/debate/<change_id>-<facet>-r1.json present with doctrine-required keys"
+      },
+      {
+        "id": "V-06",
+        "check": "audit-chain row emitted with distinct timestamp + session_id",
+        "must_satisfy": "row appended to evidence/audit-chain.jsonl"
+      },
+      {
+        "id": "V-07",
+        "check": "FixupTasks for deferred findings filed",
+        "must_satisfy": "rows in registry/fixuptasks.jsonl with stable F-* IDs"
+      },
+      {
+        "id": "V-08",
+        "check": "PR body cites every fix back to its evidence/debate r1 source",
+        "must_satisfy": "PR body human-traceable to findings"
+      },
+      {
+        "id": "V-09",
+        "check": "mutation receipt coverage for every claimed changed file",
+        "must_satisfy": "claimed paths are covered by git diff paths and deterministic mutation receipts for the ChangeSet",
+        "skip_if": "no file mutation occurred in the session"
+      }
+    ]
+  },
+  "scope_discipline": {
+    "rule": "A bug fix doesn't need surrounding cleanup. A one-shot doesn't need a helper. Three similar lines is better than a premature abstraction. When you discover unrelated drift, FILE a FixupTask — don't fix it in the current PR.",
+    "guidance_source": "codex consultation 2026-05-16T10-38 (control-plane-only scope cap for PRs-12-18 fix-PR)"
+  },
+  "pattern_to_follow": {
+    "title": "Typical CC-2 ChangeSet flow",
+    "steps": [
+      "git worktree add -b <branch> /tmp/<work> origin/dev",
+      "Edit; ensure ADR (if new doctrine), evidence file, audit-chain row",
+      "cargo check && cargo nextest run (verify locally if toolchain present)",
+      "git push -u origin <branch>",
+      "gh pr create --base dev --title '<class>(<scope>): <one-line>' --body '<cites evidence + verification + test plan>'",
+      "Address review comments; resolve threads via GraphQL resolveReviewThread mutation once fixed",
+      "gh pr merge <N> --squash --delete-branch",
+      "Verify dev tip; clean up worktree"
+    ],
+    "merge_method_constraint": "dev branch protection forbids merge commits — use --squash or --rebase. PRs since #11 used --squash."
+  },
+  "stop_conditions": {
+    "spec_path": "specs/stop-conditions.json",
+    "rule": "If any SC-01..SC-09 fires, HALT and escalate to the human.",
+    "examples": [
+      "Conflicting ADRs on the same surface with no precedence rule",
+      "Test set regression > 0 after a 'non-functional' change",
+      "Branch-protection violation (force-push attempted on protected branch)",
+      "ChangeSet exceeds 500 files without a planning artifact",
+      "Secret detected entering repo/chat/checkpoint (per OpenBao SecretReference rule)"
+    ]
+  },
+  "memory_pointers": {
+    "rule": "Load on session start if relevant to current task; do not load all blindly.",
+    "high_leverage_for_lifecycle": [
+      "feedback_quality_performance_scalability_bar",
+      "feedback_clean_architecture_requirements",
+      "feedback_no_silent_regression",
+      "feedback_no_exceptions_canonical",
+      "feedback_automate_everything",
+      "feedback_multispectrum_review_v22",
+      "feedback_multispectrum_adherence_facets",
+      "feedback_milestone_phase_hierarchy",
+      "feedback_naming_justification",
+      "feedback_doc_coverage_enforced",
+      "feedback_canonical_base_localization",
+      "feedback_governance_pipeline_canonical",
+      "feedback_workflow_objectgraph_adapter_layer",
+      "feedback_bominal_inheritance_precedence",
+      "feedback_deprecate_external_agent_coord_tooling",
+      "project_branch_pipeline_implemented"
+    ]
+  },
+  "related_specs": [
+    "specs/decision-principles.json",
+    "specs/forbidden-operations.json",
+    "specs/decision-rights.json",
+    "specs/governance-amendment.json",
+    "specs/multispectrum-review.json",
+    "specs/masterplan.json",
+    "specs/master-plan-sequencing.json",
+    "specs/stop-conditions.json",
+    "specs/hyperscaler-gates.json",
+    "specs/evidence-taxonomy.json",
+    "specs/artifact-profile-defaults.json"
+  ]
+}

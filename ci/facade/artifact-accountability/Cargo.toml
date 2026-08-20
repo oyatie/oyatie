@@ -1,0 +1,28 @@
+[package]
+name = "ci-artifact-accountability"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# GATE-2 cloud-ci-total-accounting (PHASE-0-FIREWALL-PLAN §5.2; D-DOCTRINE total-accounting).
+# Owns + produces accounting-registry.generated.json (via accounting-registry-producer).
+# Emits {verdict, violations} over accounting rows; the integration test globs
+# specs/fixtures/total-accounting/tc-*.json and asserts report.violations against each
+# fixture's expected_violations. G-INTEGRITY track: no buck2 build-graph dep.
+
+[lib]
+name = "ci_artifact_accountability"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json = { workspace = true }
+
+[dev-dependencies]
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

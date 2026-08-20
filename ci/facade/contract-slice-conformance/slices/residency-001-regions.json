@@ -1,0 +1,84 @@
+{
+  "slice_id": "residency-001-regions",
+  "spec_path": "specs/regions/registry.json",
+  "required_fields": [
+    "registry_id",
+    "region_id_pattern",
+    "claim_boundary",
+    "regions"
+  ],
+  "required_true_fields": [
+    "claim_boundary.no_live_cell_inventory_claim"
+  ],
+  "enum_constraints": [
+    {
+      "field": "registry_id",
+      "allowed": [
+        "residency-region-registry"
+      ]
+    },
+    {
+      "field": "region_id_pattern",
+      "allowed": [
+        "^[a-z]{2}(_[a-z0-9]+)+$|^global_multi$"
+      ]
+    }
+  ],
+  "array_cardinality": [
+    {
+      "field": "regions",
+      "min": 14,
+      "unique_by": "region_id"
+    }
+  ],
+  "forbidden_markers": [
+    "live cell inventory is enforced"
+  ],
+  "required_object_array_members": [
+    {
+      "field": "regions",
+      "member_key": "region_id",
+      "members": [
+        "global_multi",
+        "us_east",
+        "us_west",
+        "eu_west",
+        "eu_central",
+        "kr_central",
+        "in_south",
+        "br_south",
+        "sa_central",
+        "ae_north",
+        "au_southeast",
+        "cn_north",
+        "jp_east",
+        "ca_central"
+      ],
+      "exact_members": true,
+      "member_required_fields": [
+        "region_id",
+        "supported_tiers",
+        "cell_group_patterns",
+        "data_boundary"
+      ],
+      "conditional_assertions": [
+        {
+          "field": "supported_tiers",
+          "must_subset_of": [
+            "multi_region",
+            "single_region",
+            "sovereign_cell",
+            "airgapped_cell"
+          ]
+        },
+        {
+          "when_member": "kr_central",
+          "field": "supported_tiers",
+          "must_contain": [
+            "airgapped_cell"
+          ]
+        }
+      ]
+    }
+  ]
+}

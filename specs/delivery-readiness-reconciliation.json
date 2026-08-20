@@ -1,0 +1,2260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/delivery-readiness-reconciliation.json",
+  "title": "DeliveryReadinessReconciliation",
+  "description": "Shape-neutral reconciliation contract for full Oyatie Cloud, product, and toolchain completion. It turns Ouroboros interview closure into tracked manual-curation extracts, universe rows, clearance gates, promotion packets, fixuptask links, and audit artifacts without treating current oya-* or cloud-* path shapes as readiness authority.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-DELIVERY-READINESS-RECONCILIATION",
+    "version": "0.4.0",
+    "status": "accepted-for-ralplan-execution",
+    "owner_team": "council-architecture + platform-governance + platform-sre + product-leads",
+    "created_at": "2026-06-29T12:44:53Z",
+    "source_interview_id": "interview_20260629_033441",
+    "source_seed_id": "seed_f2f2be6d7c0f",
+    "source_interview_rounds": [
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50
+    ],
+    "supersedes": [],
+    "companion_authority": [
+      "/specs/hyperscaler-production-readiness-claim-contract.json",
+      "/specs/root-hub-pointers.json",
+      "docs/AGENTS.md",
+      "/registry/fixuptasks.jsonl"
+    ],
+    "shape_neutrality": {
+      "rule": "Readiness predicates MUST NOT depend on current oya-* or cloud-* path/name shapes. Those shapes may appear only as migration observations or current_path evidence.",
+      "reason": "Current oya-* and cloud-* shapes are deprecation-sensitive migration anchors, not destination readiness semantics."
+    }
+  },
+  "manual_curation_extract_contract": {
+    "purpose": "Tracked staging contract for handoff-derived, non-blocking backlog rows before any claim reaches the full-delivery universe or promotion packet surfaces.",
+    "tracked_extract_glob": "evidence/ralplan/manual-curation/*.extract.json",
+    "canonical_example_path": "evidence/ralplan/manual-curation/session-handoff-2026-06-29.extract.json",
+    "source_trust_policy": {
+      "gitignored_local_handoff": "discovery_and_provenance_only",
+      "full_delivery_universe_direct_citation": "forbidden",
+      "required_tracked_intermediate": "manual-curation extract row with stable id, source hash, excerpt hash, lifecycle fields, and JSON-pointer citation target"
+    },
+    "full_delivery_universe_citation_rule": {
+      "allowed_kind": "json_pointer",
+      "allowed_path_glob": "evidence/ralplan/manual-curation/*.extract.json",
+      "forbidden_source_path_prefixes": [
+        ".omc/",
+        ".omx/"
+      ],
+      "authority_status_before_reconciliation": "historical_only",
+      "promotion_role_before_reconciliation": "not_promotion_candidate"
+    },
+    "tracked_backlog_semantics": [
+      "tracked_inventory means a stable tracked backlog row exists; it is not approval to claim delivery readiness.",
+      "Handoff-only rows may remain inventory-only from the extract, but promotion relevance requires reconciliation to tracked authority or a real fixuptask link.",
+      "owner/accountable fields are always present; owner_tbd/accountable_tbd are permitted only for unreconciled or tracked_inventory rows that are not promotion-relevant and remain advisory until promotion is requested.",
+      "Current oya-* and cloud-* names are aliases or migration observations only; canonical ids stay shape-neutral."
+    ],
+    "lifecycle_states": {
+      "nonterminal": [
+        "unreconciled",
+        "tracked_inventory",
+        "needs_review",
+        "fixuptask_required"
+      ],
+      "reconciled_nonterminal": [
+        "reconciled_to_spec",
+        "reconciled_to_registry",
+        "reconciled_to_fixuptask",
+        "reconciled_to_universe_only"
+      ],
+      "terminal_do_not_revisit_unless_source_changes": [
+        "closed_reconciled_to_universe_only",
+        "closed_reconciled_to_candidate_fitness",
+        "closed_reconciled_to_promotion_packet",
+        "closed_duplicate_of",
+        "closed_superseded_by",
+        "closed_out_of_scope",
+        "closed_handed_to_fixuptask",
+        "rejected",
+        "superseded"
+      ],
+      "terminal_ref_required_for": [
+        "closed_duplicate_of",
+        "closed_superseded_by",
+        "closed_handed_to_fixuptask",
+        "superseded"
+      ]
+    },
+    "allowed_transitions": [
+      {
+        "from": [
+          "unreconciled"
+        ],
+        "to": "tracked_inventory",
+        "requires": [
+          "stable extract_row_id",
+          "source excerpt hash",
+          "owner/accountable or explicit non-promotion owner policy",
+          "priority/severity",
+          "target_home",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_required_fields_missing"
+      },
+      {
+        "from": [
+          "unreconciled",
+          "tracked_inventory"
+        ],
+        "to": "needs_review",
+        "requires": [
+          "review cadence due, source changed, owner missing, or classification uncertain",
+          "decision_log append"
+        ],
+        "ci_disposition": "advisory_for_inventory_only"
+      },
+      {
+        "from": [
+          "tracked_inventory",
+          "needs_review"
+        ],
+        "to": "fixuptask_required",
+        "requires": [
+          "promotion blocker, source contradiction, unsafe dependency direction, stale overdue review, or missing owner/RACI for promotion-relevant row",
+          "registry/fixuptasks.jsonl id before closed_handed_to_fixuptask"
+        ],
+        "ci_disposition": "fail_if_fixuptask_required_without_real_fixuptask"
+      },
+      {
+        "from": [
+          "tracked_inventory",
+          "needs_review"
+        ],
+        "to": "reconciled_to_spec",
+        "requires": [
+          "tracked spec/masterplan/sequencing reference",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_reconciliation_ref_missing"
+      },
+      {
+        "from": [
+          "tracked_inventory",
+          "needs_review"
+        ],
+        "to": "reconciled_to_registry",
+        "requires": [
+          "tracked registry/capability reference",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_reconciliation_ref_missing"
+      },
+      {
+        "from": [
+          "tracked_inventory",
+          "needs_review"
+        ],
+        "to": "reconciled_to_universe_only",
+        "requires": [
+          "non-blocking inventory-only universe citation",
+          "JSON pointer to extract row",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_universe_cites_local_handoff_directly"
+      },
+      {
+        "from": [
+          "fixuptask_required"
+        ],
+        "to": "reconciled_to_fixuptask",
+        "requires": [
+          "real registry/fixuptasks.jsonl id",
+          "reconciliation_ref kind=fixuptask_id",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_fixuptask_id_missing_or_unresolvable"
+      },
+      {
+        "from": [
+          "fixuptask_required"
+        ],
+        "to": "closed_handed_to_fixuptask",
+        "requires": [
+          "real registry/fixuptasks.jsonl id",
+          "terminal_ref",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_fixuptask_id_missing_or_unresolvable"
+      },
+      {
+        "from": [
+          "reconciled_to_universe_only"
+        ],
+        "to": "closed_reconciled_to_universe_only",
+        "requires": [
+          "non-blocking inventory-only universe row exists",
+          "reconciliation_ref kind=universe_entry_id or json_pointer",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_reconciliation_ref_missing"
+      },
+      {
+        "from": [
+          "tracked_inventory",
+          "needs_review",
+          "reconciled_to_universe_only"
+        ],
+        "to": "closed_reconciled_to_candidate_fitness",
+        "requires": [
+          "candidate_fitness id or JSON pointer exists",
+          "promotion trigger is not none",
+          "owner/accountable present",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_reconciliation_ref_missing"
+      },
+      {
+        "from": [
+          "tracked_inventory",
+          "needs_review",
+          "reconciled_to_universe_only"
+        ],
+        "to": "closed_reconciled_to_promotion_packet",
+        "requires": [
+          "promotion packet id or JSON pointer exists",
+          "tracked spec/registry authority or real fixuptask link exists for promotion-relevant claims",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_reconciliation_ref_missing"
+      },
+      {
+        "from": [
+          "any_nonterminal"
+        ],
+        "to": "closed_duplicate_of",
+        "requires": [
+          "duplicate tracked row or universe id",
+          "terminal_ref",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_terminal_ref_missing"
+      },
+      {
+        "from": [
+          "any_nonterminal"
+        ],
+        "to": "closed_superseded_by",
+        "requires": [
+          "superseding tracked row or universe id",
+          "terminal_ref",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_terminal_ref_missing"
+      },
+      {
+        "from": [
+          "any_nonterminal"
+        ],
+        "to": "closed_out_of_scope",
+        "requires": [
+          "review determines the handoff item is out of scope",
+          "terminal_reason",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_terminal_reason_missing"
+      },
+      {
+        "from": [
+          "any_nonterminal"
+        ],
+        "to": "rejected",
+        "requires": [
+          "review determines the handoff item is stale, duplicate, or out of scope without a stronger tracked replacement",
+          "terminal_reason",
+          "decision_log append"
+        ],
+        "ci_disposition": "fail_if_terminal_reason_missing"
+      }
+    ],
+    "ci_fail_invariants": [
+      "JSON schema, enum, required-field, or duplicate-id violation",
+      "source excerpt path missing from declared source bundle, line range invalid, or excerpt_sha256 mismatch",
+      "illegal lifecycle transition, missing decision_log entry, or terminal mutation without new transition event",
+      "fixuptask_required, reconciled_to_fixuptask, or closed_handed_to_fixuptask without a real registry/fixuptasks.jsonl id",
+      "promotion-trigger/action mismatch such as blocks_promotion remaining tracked_inventory",
+      "full-delivery universe directly cites .omc/.omx handoff content instead of the tracked extract",
+      "coverage summary counts disagree with row counts or source hash is absent",
+      "pipeline/admission/gate/runner rows lack toolchain_product classification or product_line mapping when promotion-relevant"
+    ],
+    "advisory_invariants": [
+      "incomplete low-priority handoff coverage for inventory-only rows",
+      "owner/accountable missing while row is unreconciled or tracked_inventory and not promotion-relevant",
+      "review cadence overdue for non-blocking inventory-only rows",
+      "target wave or target milestone missing for future inventory-only rows",
+      "polished UX/docs gaps before promotion is requested"
+    ],
+    "promotion_boundary": [
+      "No manual-curation row may become candidate_fitness-required, Product-ready, or Hyperscaler-ready until reconciled to tracked spec/registry authority or linked to a real fixuptask.",
+      "Local oya CLI, .omc/.omx, or bridge-only evidence is provenance only and cannot satisfy promotion proof.",
+      "Pipeline productization is first-class; governance authority remains explicit even when enforced by CI/pipeline."
+    ]
+  },
+  "full_delivery_universe_contract": {
+    "purpose": "Canonical row lifecycle and source-precedence contract for evidence/ralplan/full-delivery-universe.json. It records the whole Oyatie Cloud + Oyatie product + first-class toolchain universe without promoting every inventory item into Wave 0/1 candidate_fitness.",
+    "stable_contract_ids": {
+      "row_shape": "FDU-ROW-SHAPE-001",
+      "source_precedence": "FDU-SOURCE-PRECEDENCE-001",
+      "row_lifecycle": "FDU-ROW-LIFECYCLE-001"
+    },
+    "canonical_instance_path": "evidence/ralplan/full-delivery-universe.json",
+    "wave_clearance_matrix_role": "references_full_delivery_universe_without_expanding_every_later_inventory_item_into_wave0_blockers",
+    "rolling_promotion_candidate_role": "candidate_fitness contains only active promotion candidates, near-term blockers, or later-wave items that create boundary ambiguity, dependency risk, or contradiction",
+    "row_identity_rule": {
+      "canonical_id_field": "universe_entry_id",
+      "canonical_id_semantics": "Shape-neutral namespace id such as cloud.authz, product.office, journey.<job>, toolchain.pipeline-orchestration, governance.<surface>, environment.<target>, or migration.<target>.",
+      "current_or_deprecated_labels_home": "current_shape_aliases/current_path_observations/migration dependency links only",
+      "silent_rename_policy": "forbidden; renames require supersedes/superseded_by dependency links and a decision trail"
+    },
+    "source_precedence_flow": [
+      {
+        "rank": 1,
+        "source_class": "operating_contract",
+        "examples": [
+          "docs/AGENTS.md",
+          "/specs/root-hub-pointers.json"
+        ],
+        "role": "Defines agent authority, root-hub reachability, and supersession boundaries before any local handoff or generated plan is considered."
+      },
+      {
+        "rank": 2,
+        "source_class": "accepted_adr_or_ratified_spec",
+        "examples": [
+          "docs/decisions/*.md",
+          "specs/*.json"
+        ],
+        "role": "Owns architecture, readiness, retirement, and substrate decisions."
+      },
+      {
+        "rank": 3,
+        "source_class": "tracked_registry_or_masterplan",
+        "examples": [
+          "specs/masterplan.json",
+          "specs/master-plan-sequencing.json",
+          "specs/planning-closure-contract.json",
+          "governance/capability-registry.json",
+          "registry/fixuptasks.jsonl"
+        ],
+        "role": "Owns discoverable product/capability/work/backlog facts at the same git commit as the universe snapshot."
+      },
+      {
+        "rank": 4,
+        "source_class": "tracked_manual_curation_extract",
+        "examples": [
+          "evidence/ralplan/manual-curation/*.extract.json"
+        ],
+        "role": "Permits handoff-derived non-blocking backlog inventory after stable extract ids, source hashes, lifecycle fields, and JSON-pointer citations are materialized."
+      },
+      {
+        "rank": 5,
+        "source_class": "local_handoff_or_bridge_output",
+        "examples": [
+          ".omc/**",
+          ".omx/**",
+          "local oya CLI output",
+          "bridge-only session output"
+        ],
+        "role": "Discovery/provenance only; the universe must not cite these directly as canonical scope, blocker, Product-ready, or Hyperscaler-ready authority."
+      }
+    ],
+    "row_lifecycle": {
+      "nonterminal_states": [
+        "discovered",
+        "tracked_inventory",
+        "reconciled_to_authority",
+        "candidate_fitness_required",
+        "promotion_packet_required",
+        "promotion_pending",
+        "blocked_by_fixuptask",
+        "migration_safe"
+      ],
+      "terminal_do_not_revisit_unless_source_changes": [
+        "approved_product_ready",
+        "approved_hyperscaler_ready",
+        "denied_with_fixuptask",
+        "closed_out_of_scope",
+        "closed_duplicate_of",
+        "closed_superseded_by",
+        "retired_superseded"
+      ],
+      "allowed_transitions": [
+        {
+          "from": [
+            "discovered"
+          ],
+          "to": "tracked_inventory",
+          "requires": [
+            "universe_entry_id",
+            "entry_class",
+            "source_provenance",
+            "source_precedence",
+            "delivery_status",
+            "promotion_role",
+            "dependency_links"
+          ]
+        },
+        {
+          "from": [
+            "tracked_inventory"
+          ],
+          "to": "reconciled_to_authority",
+          "requires": [
+            "rank 1-3 tracked source or rank 4 tracked extract citation",
+            "authority_status not historical_only"
+          ]
+        },
+        {
+          "from": [
+            "tracked_inventory",
+            "reconciled_to_authority",
+            "migration_safe"
+          ],
+          "to": "candidate_fitness_required",
+          "requires": [
+            "promotion_role is candidate_fitness_required/product_ready_candidate/hyperscaler_ready_candidate/retire_supersede_candidate",
+            "owner_raci present",
+            "blocking dependencies resolved or linked to fixuptask"
+          ]
+        },
+        {
+          "from": [
+            "candidate_fitness_required"
+          ],
+          "to": "promotion_packet_required",
+          "requires": [
+            "candidate_fitness_id",
+            "target tier",
+            "fresh required-context evidence plan"
+          ]
+        },
+        {
+          "from": [
+            "promotion_packet_required"
+          ],
+          "to": "promotion_pending",
+          "requires": [
+            "promotion packet ref",
+            "required evidence-domain status map"
+          ]
+        },
+        {
+          "from": [
+            "tracked_inventory",
+            "reconciled_to_authority",
+            "candidate_fitness_required",
+            "promotion_packet_required",
+            "promotion_pending"
+          ],
+          "to": "blocked_by_fixuptask",
+          "requires": [
+            "real registry/fixuptasks.jsonl id for contradiction, missing owner, stale/local-only evidence, unsafe dependency, missing universe row, or requested promotion blocker"
+          ]
+        }
+      ]
+    },
+    "promotion_boundary": [
+      "Missing from the full-delivery universe is a defect and requires tracked reconciliation or a fixuptask.",
+      "Missing from candidate_fitness is allowed when the row is deliberately inventory_only/later-wave and not promotion-relevant.",
+      "Promoting Product-ready or Hyperscaler-ready without candidate_fitness and a promotion packet is forbidden.",
+      "Wave 0 green does not mean product delivered; Wave 1 green does not mean full program delivered.",
+      "Toolchain and pipeline rows are first-class product rows when they touch CI, gates, runners, admission, merge automation, release orchestration, policy packs, developer workflow, or required-context status publishing."
+    ],
+    "ci_fail_invariants": [
+      "full-delivery universe row missing universe_entry_id, source_provenance, entry_class, delivery_status, dependency_links, row_lifecycle, or promotion_role",
+      "canonical universe_entry_id depends on current oya-* or cloud-* implementation naming instead of shape-neutral namespace",
+      "source_precedence selects local .omc/.omx, local oya CLI, or bridge-only evidence as canonical authority",
+      "promotion_role requests candidate_fitness/Product-ready/Hyperscaler-ready while source authority is historical_only or owner/RACI is missing",
+      "dependency edge or blocking cycle is unresolved without a real fixuptask",
+      "pipeline/admission/gate/runner row lacks toolchain_product classification and product_line mapping when promotion-relevant",
+      "promotion packet omits evidence_bundle, freshness_window, dogfood_signal, approval_authority, rollback_dr_proof, or blockers for its universe row"
+    ],
+    "advisory_invariants": [
+      "inventory-only future product row has owner/accountable TBD",
+      "later-wave target milestone missing while no promotion is requested",
+      "polished UX/docs gaps before candidate_fitness or promotion is requested"
+    ]
+  },
+  "type": "object",
+  "required": [
+    "_meta",
+    "$defs"
+  ],
+  "additionalProperties": true,
+  "$defs": {
+    "UniverseEntryClass": {
+      "type": "string",
+      "enum": [
+        "cloud_substrate",
+        "cloud_control_plane",
+        "oyatie_product",
+        "productized_vertical",
+        "cross_product_capability",
+        "user_journey",
+        "environment",
+        "toolchain_product",
+        "shared_governance_tooling",
+        "generated_artifact",
+        "migration_exception",
+        "external_adapter"
+      ]
+    },
+    "UniverseAuthorityStatus": {
+      "type": "string",
+      "enum": [
+        "accepted_authority",
+        "tracked_registry_authority",
+        "tracked_manual_extract",
+        "historical_only",
+        "fixuptask_required",
+        "superseded"
+      ]
+    },
+    "UniverseDeliveryStatus": {
+      "type": "string",
+      "enum": [
+        "planned",
+        "tracked_inventory",
+        "evidence_only",
+        "migration_safe",
+        "blocked",
+        "product_ready",
+        "hyperscaler_ready",
+        "retired_superseded"
+      ]
+    },
+    "UniverseWaveRole": {
+      "type": "string",
+      "enum": [
+        "inventory_only",
+        "wave0_clearance",
+        "wave1_promotion",
+        "later_wave",
+        "promotion_blocker",
+        "not_applicable"
+      ]
+    },
+    "UniversePromotionRole": {
+      "type": "string",
+      "enum": [
+        "not_promotion_candidate",
+        "candidate_fitness_required",
+        "product_ready_candidate",
+        "hyperscaler_ready_candidate",
+        "retire_supersede_candidate",
+        "blocked_until_fixuptask",
+        "approved_product_ready",
+        "approved_hyperscaler_ready",
+        "retired_superseded"
+      ]
+    },
+    "UniverseSourceProvenanceRef": {
+      "type": "object",
+      "required": [
+        "kind",
+        "path",
+        "authority_rank"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "operating_contract",
+            "root_hub",
+            "adr",
+            "spec_path",
+            "registry_path",
+            "fixuptask_id",
+            "tracked_manual_curation_extract",
+            "evidence_artifact",
+            "json_pointer"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "json_pointer": {
+          "type": "string"
+        },
+        "source_hash_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "authority_rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "UniverseSourcePrecedenceResult": {
+      "type": "object",
+      "required": [
+        "selected_authority",
+        "authority_status",
+        "highest_rank_considered",
+        "direct_local_handoff_citation",
+        "decision_reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "selected_authority": {
+          "type": "string"
+        },
+        "authority_status": {
+          "$ref": "#/$defs/UniverseAuthorityStatus"
+        },
+        "highest_rank_considered": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "direct_local_handoff_citation": {
+          "type": "boolean"
+        },
+        "decision_reason": {
+          "type": "string"
+        }
+      }
+    },
+    "UniverseDependencyLink": {
+      "type": "object",
+      "required": [
+        "kind",
+        "target",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "depends_on",
+            "blocks",
+            "blocked_by",
+            "supersedes",
+            "superseded_by",
+            "consumes_contract",
+            "exposes_contract",
+            "migration_from",
+            "migration_to",
+            "fixuptask"
+          ]
+        },
+        "target": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "unresolved",
+            "resolved",
+            "blocked",
+            "advisory",
+            "superseded"
+          ]
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "UniverseRowLifecycle": {
+      "type": "object",
+      "required": [
+        "lifecycle_state",
+        "opened_at",
+        "updated_at",
+        "terminal"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "lifecycle_state": {
+          "type": "string",
+          "enum": [
+            "discovered",
+            "tracked_inventory",
+            "reconciled_to_authority",
+            "candidate_fitness_required",
+            "promotion_packet_required",
+            "promotion_pending",
+            "blocked_by_fixuptask",
+            "migration_safe",
+            "approved_product_ready",
+            "approved_hyperscaler_ready",
+            "denied_with_fixuptask",
+            "closed_out_of_scope",
+            "closed_duplicate_of",
+            "closed_superseded_by",
+            "retired_superseded"
+          ]
+        },
+        "opened_at": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "terminal": {
+          "type": "boolean"
+        },
+        "terminal_ref": {
+          "type": "string"
+        },
+        "decision_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "SurfaceKind": {
+      "type": "string",
+      "enum": [
+        "platform_substrate",
+        "dogfood_product",
+        "toolchain_product",
+        "governance_surface",
+        "evidence_surface",
+        "migration_target",
+        "user_journey",
+        "platform_contract",
+        "product_contract"
+      ]
+    },
+    "ReconciliationState": {
+      "type": "string",
+      "enum": [
+        "closed_merged_verified",
+        "closed_out_of_scope",
+        "closed_handed_to_fixuptask",
+        "approved_product_ready",
+        "approved_hyperscaler_ready",
+        "denied_with_fixuptask",
+        "rejected_out_of_scope",
+        "superseded_by",
+        "unreconciled",
+        "needs_review",
+        "tracked_inventory",
+        "fixuptask_required",
+        "blocked",
+        "migration_safe",
+        "promotion_pending",
+        "source_changed_reopen_required"
+      ]
+    },
+    "PromotionState": {
+      "type": "string",
+      "enum": [
+        "approved_product_ready",
+        "approved_hyperscaler_ready",
+        "denied_with_fixuptask",
+        "rejected_out_of_scope",
+        "superseded_by",
+        "promotion_pending",
+        "source_changed_reopen_required"
+      ]
+    },
+    "ClaimTierCeiling": {
+      "type": "string",
+      "enum": [
+        "no_claim",
+        "evidence_only",
+        "target_non_claim",
+        "spec_ready",
+        "mechanically_enforced",
+        "product_ready",
+        "hyperscaler_ready",
+        "retire_supersede"
+      ]
+    },
+    "ManualCurationClassification": {
+      "type": "string",
+      "enum": [
+        "cloud_substrate",
+        "cloud_control_plane",
+        "oyatie_product",
+        "productized_vertical",
+        "cross_product_capability",
+        "user_journey",
+        "environment",
+        "toolchain_product",
+        "shared_governance_tooling",
+        "generated_artifact",
+        "migration_exception",
+        "external_adapter"
+      ]
+    },
+    "ManualCurationBacklogStatus": {
+      "type": "string",
+      "enum": [
+        "unreconciled",
+        "tracked_inventory",
+        "needs_review",
+        "fixuptask_required",
+        "reconciled_to_spec",
+        "reconciled_to_registry",
+        "reconciled_to_fixuptask",
+        "reconciled_to_universe_only",
+        "closed_reconciled_to_universe_only",
+        "closed_reconciled_to_candidate_fitness",
+        "closed_reconciled_to_promotion_packet",
+        "closed_duplicate_of",
+        "closed_superseded_by",
+        "closed_out_of_scope",
+        "closed_handed_to_fixuptask",
+        "superseded",
+        "rejected"
+      ]
+    },
+    "SourceExcerptRef": {
+      "type": "object",
+      "required": [
+        "path",
+        "line_start",
+        "line_end",
+        "excerpt_sha256"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string"
+        },
+        "line_start": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "line_end": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "excerpt_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      }
+    },
+    "ManualCurationReviewCadence": {
+      "type": "object",
+      "required": [
+        "cadence",
+        "next_review_due",
+        "last_reviewed_at"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "cadence": {
+          "type": "string",
+          "enum": [
+            "per_wave",
+            "weekly",
+            "monthly",
+            "on_promotion_attempt",
+            "on_source_change"
+          ]
+        },
+        "next_review_due": {
+          "type": "string"
+        },
+        "last_reviewed_at": {
+          "type": [
+            "string",
+            "null"
+          ]
+        }
+      }
+    },
+    "ManualCurationPromotionTrigger": {
+      "type": "object",
+      "required": [
+        "trigger",
+        "required_action"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "trigger": {
+          "type": "string",
+          "enum": [
+            "none",
+            "candidate_fitness_requested",
+            "blocks_dependency",
+            "blocks_promotion",
+            "source_contradiction",
+            "owner_escalation"
+          ]
+        },
+        "required_action": {
+          "type": "string",
+          "enum": [
+            "keep_inventory_only",
+            "promote_to_candidate_fitness",
+            "append_fixuptask",
+            "reconcile_to_spec",
+            "supersede"
+          ]
+        }
+      }
+    },
+    "ManualCurationFixupTaskPolicy": {
+      "type": "object",
+      "required": [
+        "fixuptask_required",
+        "fixuptask_id",
+        "required_if"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fixuptask_required": {
+          "type": "boolean"
+        },
+        "fixuptask_id": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "required_if": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "source_contradiction",
+              "blocks_current_promotion",
+              "missing_owner",
+              "unsafe_dependency_direction",
+              "stale_unreviewed_past_due",
+              "deprecated_shape_without_target_mapping",
+              "promotion_requested_without_candidate_fitness",
+              "local_only_or_bridge_only_evidence"
+            ]
+          }
+        }
+      }
+    },
+    "ManualCurationReconciliationRef": {
+      "type": "object",
+      "required": [
+        "kind",
+        "path"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "type": "string",
+          "enum": [
+            "json_pointer",
+            "spec_path",
+            "registry_path",
+            "fixuptask_id",
+            "universe_entry_id",
+            "candidate_fitness_id",
+            "promotion_packet_id"
+          ]
+        },
+        "path": {
+          "type": "string"
+        },
+        "json_pointer": {
+          "type": "string"
+        },
+        "terminal_ref": {
+          "type": "string"
+        }
+      }
+    },
+    "ManualCurationDecisionLogEntry": {
+      "type": "object",
+      "required": [
+        "at",
+        "actor",
+        "from",
+        "to",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "at": {
+          "type": "string"
+        },
+        "actor": {
+          "type": "string"
+        },
+        "from": {
+          "$ref": "#/$defs/ManualCurationBacklogStatus"
+        },
+        "to": {
+          "$ref": "#/$defs/ManualCurationBacklogStatus"
+        },
+        "reason": {
+          "type": "string"
+        }
+      }
+    },
+    "ManualCurationRow": {
+      "type": "object",
+      "required": [
+        "extract_row_id",
+        "target_universe_id",
+        "title",
+        "summary",
+        "classification",
+        "source_excerpt_ref",
+        "backlog_status",
+        "reconciliation_status",
+        "priority",
+        "severity",
+        "owner",
+        "accountable",
+        "target_wave",
+        "target_home",
+        "review_cadence",
+        "promotion_trigger",
+        "fixuptask_policy",
+        "created_at",
+        "updated_at",
+        "decision_log"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "backlog_status": {
+                "enum": [
+                  "reconciled_to_spec",
+                  "reconciled_to_registry",
+                  "reconciled_to_fixuptask",
+                  "reconciled_to_universe_only",
+                  "closed_reconciled_to_universe_only",
+                  "closed_reconciled_to_candidate_fitness",
+                  "closed_reconciled_to_promotion_packet"
+                ]
+              }
+            },
+            "required": [
+              "backlog_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "reconciliation_ref"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "backlog_status": {
+                "enum": [
+                  "closed_duplicate_of",
+                  "closed_superseded_by",
+                  "closed_handed_to_fixuptask",
+                  "superseded"
+                ]
+              }
+            },
+            "required": [
+              "backlog_status"
+            ]
+          },
+          "then": {
+            "required": [
+              "terminal_ref",
+              "terminal_reason"
+            ]
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "backlog_status": {
+                "enum": [
+                  "fixuptask_required",
+                  "reconciled_to_fixuptask",
+                  "closed_handed_to_fixuptask"
+                ]
+              }
+            },
+            "required": [
+              "backlog_status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "fixuptask_policy": {
+                "required": [
+                  "fixuptask_required",
+                  "fixuptask_id"
+                ],
+                "properties": {
+                  "fixuptask_required": {
+                    "const": true
+                  },
+                  "fixuptask_id": {
+                    "type": "string",
+                    "minLength": 1
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "classification": {
+                "const": "toolchain_product"
+              }
+            },
+            "required": [
+              "classification"
+            ]
+          },
+          "then": {
+            "required": [
+              "product_line"
+            ],
+            "properties": {
+              "product_line": {
+                "not": {
+                  "const": "not_applicable"
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "product_line": {
+                "enum": [
+                  "toolchain.build",
+                  "toolchain.ci-floor",
+                  "toolchain.checks-sdk",
+                  "toolchain.pipeline-orchestration",
+                  "toolchain.cd-progressive-delivery",
+                  "toolchain.dev-onramp",
+                  "toolchain.govbot"
+                ]
+              }
+            },
+            "required": [
+              "product_line"
+            ]
+          },
+          "then": {
+            "properties": {
+              "classification": {
+                "const": "toolchain_product"
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "extract_row_id": {
+          "type": "string",
+          "pattern": "^extract\\.session-handoff-[0-9]{4}-[0-9]{2}-[0-9]{2}\\.[a-z0-9][a-z0-9-]*$"
+        },
+        "target_universe_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*(\\.[a-z0-9][a-z0-9-]*)+$"
+        },
+        "current_shape_aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "title": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "classification": {
+          "$ref": "#/$defs/ManualCurationClassification"
+        },
+        "product_line": {
+          "type": "string",
+          "enum": [
+            "not_applicable",
+            "toolchain.build",
+            "toolchain.ci-floor",
+            "toolchain.checks-sdk",
+            "toolchain.pipeline-orchestration",
+            "toolchain.cd-progressive-delivery",
+            "toolchain.dev-onramp",
+            "toolchain.govbot"
+          ]
+        },
+        "source_excerpt_ref": {
+          "$ref": "#/$defs/SourceExcerptRef"
+        },
+        "backlog_status": {
+          "$ref": "#/$defs/ManualCurationBacklogStatus"
+        },
+        "reconciliation_status": {
+          "$ref": "#/$defs/ManualCurationBacklogStatus"
+        },
+        "priority": {
+          "type": "string",
+          "enum": [
+            "p0",
+            "p1",
+            "p2",
+            "p3"
+          ]
+        },
+        "severity": {
+          "type": "string",
+          "enum": [
+            "critical",
+            "high",
+            "medium",
+            "low",
+            "info"
+          ]
+        },
+        "owner": {
+          "type": "string"
+        },
+        "accountable": {
+          "type": "string"
+        },
+        "target_wave": {
+          "type": "string",
+          "enum": [
+            "wave0",
+            "wave1",
+            "wave2",
+            "wave3",
+            "later",
+            "unassigned"
+          ]
+        },
+        "target_milestone": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "target_home": {
+          "type": "string",
+          "enum": [
+            "specs/masterplan.json",
+            "specs/master-plan-sequencing.json",
+            "specs/planning-closure-status-closure-ledger.json",
+            "governance/capability-registry.json",
+            "registry/fixuptasks.jsonl",
+            "evidence/ralplan/full-delivery-universe.json",
+            "tracked_milestone_or_evidence_ledger"
+          ]
+        },
+        "review_cadence": {
+          "$ref": "#/$defs/ManualCurationReviewCadence"
+        },
+        "promotion_trigger": {
+          "$ref": "#/$defs/ManualCurationPromotionTrigger"
+        },
+        "fixuptask_policy": {
+          "$ref": "#/$defs/ManualCurationFixupTaskPolicy"
+        },
+        "reconciliation_ref": {
+          "$ref": "#/$defs/ManualCurationReconciliationRef"
+        },
+        "terminal_ref": {
+          "type": "string"
+        },
+        "terminal_reason": {
+          "type": "string"
+        },
+        "created_at": {
+          "type": "string"
+        },
+        "updated_at": {
+          "type": "string"
+        },
+        "decision_log": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/ManualCurationDecisionLogEntry"
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "ManualCurationExtract": {
+      "type": "object",
+      "required": [
+        "_schema_ref",
+        "schema_version",
+        "extract_id",
+        "source_kind",
+        "source_local_path",
+        "captured_at",
+        "source_content_sha256",
+        "trust_level",
+        "declared_source_bundle",
+        "coverage_summary",
+        "lifecycle_contract_ref",
+        "rows"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "_schema_ref": {
+          "type": "string"
+        },
+        "schema_version": {
+          "type": "string",
+          "const": "1.0.0"
+        },
+        "extract_id": {
+          "type": "string",
+          "pattern": "^session-handoff-[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+        },
+        "source_kind": {
+          "type": "string",
+          "enum": [
+            "gitignored_local_handoff"
+          ]
+        },
+        "source_local_path": {
+          "type": "string",
+          "pattern": "^\\.(omc|omx)/"
+        },
+        "captured_at": {
+          "type": "string"
+        },
+        "source_content_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "trust_level": {
+          "type": "string",
+          "enum": [
+            "provenance_only_until_reconciled"
+          ]
+        },
+        "declared_source_bundle": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "required": [
+              "path",
+              "sha256"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "path": {
+                "type": "string"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        },
+        "coverage_summary": {
+          "type": "object",
+          "required": [
+            "source_line_count",
+            "rows_imported",
+            "rows_by_status",
+            "coverage_disposition"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "source_line_count": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "rows_imported": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rows_by_status": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "integer",
+                "minimum": 0
+              }
+            },
+            "coverage_disposition": {
+              "type": "string",
+              "enum": [
+                "complete",
+                "partial_advisory",
+                "blocked_on_source_access",
+                "source_changed_reopen_required"
+              ]
+            }
+          }
+        },
+        "lifecycle_contract_ref": {
+          "type": "string",
+          "const": "/specs/delivery-readiness-reconciliation.json#/manual_curation_extract_contract"
+        },
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ManualCurationRow"
+          }
+        }
+      }
+    },
+    "EvidenceType": {
+      "type": "string",
+      "enum": [
+        "ci_status",
+        "command_output",
+        "pull_request",
+        "issue",
+        "spec",
+        "adr",
+        "registry",
+        "audit_chain_event",
+        "slo",
+        "sbom",
+        "dr_drill",
+        "user_pain_validation",
+        "contract_check",
+        "security",
+        "cost",
+        "tenant_isolation",
+        "rollback",
+        "ownership",
+        "fixuptask",
+        "runbook",
+        "exception"
+      ]
+    },
+    "Freshness": {
+      "type": "object",
+      "required": [
+        "as_of",
+        "expires_at",
+        "refresh_cadence",
+        "source_changed_reopen_required"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "as_of": {
+          "type": "string"
+        },
+        "expires_at": {
+          "type": "string"
+        },
+        "refresh_cadence": {
+          "type": "string"
+        },
+        "source_changed_reopen_required": {
+          "type": "boolean"
+        }
+      }
+    },
+    "EvidenceRef": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "uri",
+        "observed_at",
+        "trust_level",
+        "current_for_claim"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "type": {
+          "$ref": "#/$defs/EvidenceType"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "observed_at": {
+          "type": "string"
+        },
+        "freshness_expires_at": {
+          "type": "string"
+        },
+        "trust_level": {
+          "type": "string",
+          "enum": [
+            "required_context",
+            "reviewer_verified",
+            "repository_tracked",
+            "external_issue",
+            "local_only",
+            "historical"
+          ]
+        },
+        "current_for_claim": {
+          "type": "boolean"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "OwnerRaci": {
+      "type": "object",
+      "required": [
+        "accountable",
+        "responsible",
+        "approvers",
+        "reviewers",
+        "runtime_owner"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "accountable": {
+          "type": "string"
+        },
+        "responsible": {
+          "type": "string"
+        },
+        "approvers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reviewers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "consulted": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "runtime_owner": {
+          "type": "string"
+        }
+      }
+    },
+    "UniverseRow": {
+      "type": "object",
+      "required": [
+        "row_id",
+        "universe_entry_id",
+        "entry_class",
+        "source_provenance",
+        "source_precedence",
+        "delivery_status",
+        "wave_role",
+        "promotion_role",
+        "dependency_links",
+        "row_lifecycle",
+        "surface_name",
+        "surface_kind",
+        "reconciliation_state",
+        "claim_tier_ceiling",
+        "freshness",
+        "owner_raci",
+        "evidence_refs",
+        "blockers",
+        "next_action"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "row_id": {
+          "type": "string",
+          "pattern": "^DRU-[A-Z0-9-]+$"
+        },
+        "universe_entry_id": {
+          "type": "string",
+          "pattern": "^(cloud|product|vertical|capability|journey|environment|toolchain|governance|artifact|migration|contract|evidence)\\.[a-z0-9][a-z0-9.-]*$"
+        },
+        "entry_class": {
+          "$ref": "#/$defs/UniverseEntryClass"
+        },
+        "target_shape_id": {
+          "type": "string"
+        },
+        "current_shape_aliases": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "source_provenance": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/UniverseSourceProvenanceRef"
+          }
+        },
+        "source_precedence": {
+          "$ref": "#/$defs/UniverseSourcePrecedenceResult"
+        },
+        "delivery_status": {
+          "$ref": "#/$defs/UniverseDeliveryStatus"
+        },
+        "wave_role": {
+          "$ref": "#/$defs/UniverseWaveRole"
+        },
+        "promotion_role": {
+          "$ref": "#/$defs/UniversePromotionRole"
+        },
+        "candidate_fitness_id": {
+          "type": "string"
+        },
+        "promotion_packet_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "dependency_links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UniverseDependencyLink"
+          }
+        },
+        "row_lifecycle": {
+          "$ref": "#/$defs/UniverseRowLifecycle"
+        },
+        "surface_name": {
+          "type": "string"
+        },
+        "surface_kind": {
+          "$ref": "#/$defs/SurfaceKind"
+        },
+        "current_path_observations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "shape_deprecation_sensitive": {
+          "type": "boolean"
+        },
+        "readiness_contract_refs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reconciliation_state": {
+          "$ref": "#/$defs/ReconciliationState"
+        },
+        "terminal_state_ref": {
+          "type": "string"
+        },
+        "claim_tier_ceiling": {
+          "$ref": "#/$defs/ClaimTierCeiling"
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "owner_raci": {
+          "$ref": "#/$defs/OwnerRaci"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          }
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "next_action": {
+          "type": "string"
+        }
+      }
+    },
+    "ClearanceRow": {
+      "type": "object",
+      "required": [
+        "clearance_id",
+        "row_id",
+        "gate_axis",
+        "required_for",
+        "status",
+        "freshness",
+        "evidence_refs"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "clearance_id": {
+          "type": "string",
+          "pattern": "^DRC-[A-Z0-9-]+$"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "gate_axis": {
+          "type": "string"
+        },
+        "required_for": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ClaimTierCeiling"
+          }
+        },
+        "status": {
+          "type": "string",
+          "enum": [
+            "pass",
+            "fail",
+            "unknown",
+            "not_applicable"
+          ]
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          }
+        },
+        "fixuptask_id": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "PromotionPacket": {
+      "type": "object",
+      "description": "Per-universe-row promotion packet for Product-ready, Hyperscaler-ready, or retirement/supersession decisions. The packet is the only place a row may aggregate freshness-bound evidence, dogfood/user-story signal, approval authority, rollback/DR proof, and blocking reasons for a readiness claim.",
+      "required": [
+        "packet_id",
+        "row_id",
+        "target_claim_tier",
+        "promotion_state",
+        "required_domains",
+        "evidence_bundle",
+        "freshness_window",
+        "dogfood_signal",
+        "approval_authority",
+        "rollback_dr_proof",
+        "evidence_refs",
+        "blockers",
+        "verdict_basis"
+      ],
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "target_claim_tier": {
+                "const": "hyperscaler_ready"
+              }
+            },
+            "required": [
+              "target_claim_tier"
+            ]
+          },
+          "then": {
+            "properties": {
+              "required_domains": {
+                "required": [
+                  "audit",
+                  "ci",
+                  "cost",
+                  "rollback_dr",
+                  "sbom",
+                  "security",
+                  "slo",
+                  "tenant_isolation"
+                ]
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "target_claim_tier": {
+                "const": "product_ready"
+              }
+            },
+            "required": [
+              "target_claim_tier"
+            ]
+          },
+          "then": {
+            "properties": {
+              "required_domains": {
+                "required": [
+                  "ci",
+                  "platform_contract_consumption",
+                  "rollback_dr",
+                  "security",
+                  "slo",
+                  "user_pain_validation"
+                ]
+              },
+              "dogfood_signal": {
+                "properties": {
+                  "required_for_product_ready": {
+                    "const": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "properties": {
+        "packet_id": {
+          "type": "string",
+          "pattern": "^DRP-[A-Z0-9-]+$"
+        },
+        "row_id": {
+          "type": "string"
+        },
+        "target_claim_tier": {
+          "$ref": "#/$defs/ClaimTierCeiling"
+        },
+        "promotion_state": {
+          "$ref": "#/$defs/PromotionState"
+        },
+        "state_ref": {
+          "type": "string"
+        },
+        "required_domains": {
+          "type": "object",
+          "description": "Shape-neutral evidence-domain status map. Hyperscaler-ready packets MUST carry ci, tenant_isolation, audit, cost, slo, security, sbom, and rollback_dr keys; Product-ready packets MUST carry user_pain_validation, platform_contract_consumption, ci, slo, rollback_dr, and security keys; product and migration packets MAY carry the same map plus their tier-specific domains.",
+          "propertyNames": {
+            "enum": [
+              "audit",
+              "boundary_contract",
+              "ci",
+              "ci_no_regression",
+              "cost",
+              "dependency_direction",
+              "gate_self_conformance",
+              "owner_raci",
+              "platform_contract_consumption",
+              "rollback",
+              "rollback_dr",
+              "sbom",
+              "security",
+              "slo",
+              "target_classification",
+              "tenant_isolation",
+              "user_pain_validation"
+            ]
+          },
+          "additionalProperties": {
+            "type": "string",
+            "enum": [
+              "present",
+              "missing",
+              "expired",
+              "not_applicable"
+            ]
+          }
+        },
+        "evidence_bundle": {
+          "type": "object",
+          "required": [
+            "bundle_id",
+            "row_id",
+            "source_packet_id",
+            "domain_status",
+            "evidence_ref_ids",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "bundle_id": {
+              "type": "string",
+              "pattern": "^DRB-[A-Z0-9-]+$"
+            },
+            "row_id": {
+              "type": "string"
+            },
+            "source_packet_id": {
+              "type": "string",
+              "pattern": "^DRP-[A-Z0-9-]+$"
+            },
+            "domain_status": {
+              "type": "object",
+              "propertyNames": {
+                "enum": [
+                  "audit",
+                  "boundary_contract",
+                  "ci",
+                  "ci_no_regression",
+                  "cost",
+                  "dependency_direction",
+                  "gate_self_conformance",
+                  "owner_raci",
+                  "platform_contract_consumption",
+                  "rollback",
+                  "rollback_dr",
+                  "sbom",
+                  "security",
+                  "slo",
+                  "target_classification",
+                  "tenant_isolation",
+                  "user_pain_validation"
+                ]
+              },
+              "additionalProperties": {
+                "type": "string",
+                "enum": [
+                  "present",
+                  "missing",
+                  "expired",
+                  "not_applicable"
+                ]
+              }
+            },
+            "evidence_ref_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "freshness_window": {
+          "$ref": "#/$defs/Freshness"
+        },
+        "dogfood_signal": {
+          "type": "object",
+          "required": [
+            "status",
+            "required_for_product_ready",
+            "journey_ref",
+            "evidence_ref_ids",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "present",
+                "missing",
+                "expired",
+                "not_applicable"
+              ]
+            },
+            "required_for_product_ready": {
+              "type": "boolean"
+            },
+            "journey_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "evidence_ref_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "approval_authority": {
+          "type": "object",
+          "required": [
+            "accountable",
+            "required_approvers",
+            "decision_state",
+            "decision_ref",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "accountable": {
+              "type": "string"
+            },
+            "required_approvers": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "type": "string"
+              }
+            },
+            "decision_state": {
+              "$ref": "#/$defs/PromotionState"
+            },
+            "decision_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "rollback_dr_proof": {
+          "type": "object",
+          "required": [
+            "status",
+            "rollback_ref",
+            "dr_ref",
+            "evidence_ref_ids",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": [
+                "present",
+                "missing",
+                "expired",
+                "not_applicable"
+              ]
+            },
+            "rollback_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "dr_ref": {
+              "type": [
+                "string",
+                "null"
+              ]
+            },
+            "evidence_ref_ids": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "notes": {
+              "type": "string"
+            }
+          }
+        },
+        "evidence_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EvidenceRef"
+          }
+        },
+        "blockers": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "verdict_basis": {
+          "type": "string"
+        }
+      }
+    },
+    "FixupTaskLink": {
+      "type": "object",
+      "required": [
+        "fixuptask_id",
+        "status",
+        "row_ids",
+        "reason",
+        "registry_path"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "fixuptask_id": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "row_ids": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "reason": {
+          "type": "string"
+        },
+        "registry_path": {
+          "type": "string"
+        }
+      }
+    },
+    "AuditArtifact": {
+      "type": "object",
+      "required": [
+        "artifact_id",
+        "path",
+        "schema_ref",
+        "produced_by",
+        "freshness"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "artifact_id": {
+          "type": "string"
+        },
+        "path": {
+          "type": "string"
+        },
+        "schema_ref": {
+          "type": "string"
+        },
+        "produced_by": {
+          "type": "string"
+        },
+        "freshness": {
+          "$ref": "#/$defs/Freshness"
+        }
+      }
+    },
+    "DeliveryReadinessCurrentState": {
+      "type": "object",
+      "required": [
+        "_schema_ref",
+        "snapshot_id",
+        "generated_at",
+        "source_authority",
+        "authority_order",
+        "scope_decisions",
+        "universe_rows",
+        "clearance_matrix",
+        "promotion_packets",
+        "fixuptask_links",
+        "audit_artifacts",
+        "reconciliation_summary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "_schema_ref": {
+          "type": "string"
+        },
+        "snapshot_id": {
+          "type": "string"
+        },
+        "generated_at": {
+          "type": "string"
+        },
+        "source_authority": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "authority_order": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "scope_decisions": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "universe_rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/UniverseRow"
+          }
+        },
+        "clearance_matrix": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/ClearanceRow"
+          }
+        },
+        "promotion_packets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PromotionPacket"
+          }
+        },
+        "fixuptask_links": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/FixupTaskLink"
+          }
+        },
+        "audit_artifacts": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/AuditArtifact"
+          }
+        },
+        "reconciliation_summary": {
+          "type": "object",
+          "required": [
+            "terminal_rows",
+            "nonterminal_rows",
+            "approved_packets",
+            "denied_packets",
+            "freshness_expiring_rows",
+            "notes"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "terminal_rows": {
+              "type": "integer"
+            },
+            "nonterminal_rows": {
+              "type": "integer"
+            },
+            "approved_packets": {
+              "type": "integer"
+            },
+            "denied_packets": {
+              "type": "integer"
+            },
+            "freshness_expiring_rows": {
+              "type": "integer"
+            },
+            "notes": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

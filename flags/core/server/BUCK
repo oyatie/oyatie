@@ -1,0 +1,35 @@
+rust_library(
+    name = "flags-server",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "flags_server",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//flags/core/evaluation-domain:flags-evaluation-domain",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "flags-server-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "flags_server",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//flags/core/evaluation-domain:flags-evaluation-domain",
+        "third-party//:tokio",
+    ],
+)
+
+rust_binary(
+    name = "oya-flags-bin",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//flags/core/evaluation-domain:flags-evaluation-domain",
+        "//flags/core/server:flags-server",
+        "third-party//:tokio",
+    ],
+)

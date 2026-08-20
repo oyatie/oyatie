@@ -1,0 +1,105 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_id": "EXE-API-CONTRACT-SSOT-CANONICAL",
+  "spec_kind": "target-architecture-canonical",
+  "changeset": "CS-LAUNCH-API-CONTRACT-SSOT-001",
+  "authoring_adr": "ADR-0358",
+  "roadmap_phase": "P-TARGET (masterplan.ideal_production_roadmap)",
+  "related_adrs": [
+    "ADR-0342 (API versioning hybrid date/semver)",
+    "ADR-0094 (contract-first)",
+    "ADR-0515 (cloud-ci required-context merge authority)",
+    "ADR-0358 (ideal roadmap)",
+    "ADR-0565 (zero GraphQL in the owned API surface)",
+    "ADR-0632 (public product protocol and internal RPC posture)"
+  ],
+  "related_specs": [
+    "specs/schema-registry-canonical.json",
+    "specs/cloud-control-plane-canonical.json",
+    "specs/api-surface-separation.json",
+    "specs/product-protocol-contract.json"
+  ],
+  "product_protocol_contract": "specs/product-protocol-contract.json",
+  "status": "Proposed-target",
+  "date": "2026-05-25",
+  "title": "API contract single-source-of-truth — public REST, events, and realtime plus internal gRPC (ZERO GraphQL per ADR-0565)",
+  "zero_graphql": {
+    "decision": "ADR-0565 — the owned API surface carries NO GraphQL (no REST-named husk, no generated BFF). Public surfaces are REST/OpenAPI, versioned webhooks, AsyncAPI events, SSE, and WebSocket; gRPC/proto3 and gRPC streaming are internal-only per ADR-0632.",
+    "reintroduction_rule": "GraphQL is admissible ONLY via a future ADR that explicitly reverses ADR-0565. Absent that ADR, any GraphQL library, .graphql/SDL artifact, or resolver is forbidden in the owned stack and enforced by the cloud-ci-no-graphql-without-adr gate."
+  },
+  "purpose": "Target spec for the shared Rust-native contract SSOT and drift gate. Public REST/OpenAPI 3.2.0, versioned webhooks, AsyncAPI 3.1.0 events, SSE, and WebSocket plus internal-only gRPC/proto3 and gRPC streaming are GENERATED or VALIDATED from one shared Rust-native source of truth so the surfaces cannot drift. GraphQL, public gRPC, gRPC-Web, and Connect are not part of the owned public surface set. Honest non-claim: this records the canonical contract-SSOT model and launch directives; it does not implement generators, brokers, adapters, or the runtime drift gate.",
+  "exposure_policy": {
+    "public": [
+      "rest",
+      "versioned-webhooks",
+      "asyncapi-events",
+      "sse",
+      "websocket"
+    ],
+    "internal_only": [
+      "grpc",
+      "grpc-streaming",
+      "proto3"
+    ],
+    "forbidden_public": [
+      "graphql",
+      "grpc",
+      "grpc-web",
+      "connect"
+    ]
+  },
+  "single_source_of_truth": {
+    "form": "Rust-native typed contract definitions are canonical; public OpenAPI 3.2.0 and AsyncAPI 3.1.0 plus internal proto3 are projections generated or validated from them",
+    "principle": "one source mastered in exactly one place; public and internal wire surfaces are derived projections, never independently hand-edited (SSOT single-master).",
+    "surfaces": [
+      {
+        "surface": "rest",
+        "artifact": "OpenAPI 3.2.0 (.yaml under contracts/openapi/<domain>/<name>-vN.yaml + .meta.yaml)",
+        "exposure": "public",
+        "derivation": "generated from the Rust source; api-semver gate enforces -vN suffix + metadata (ADR-0342)"
+      },
+      {
+        "surface": "grpc",
+        "artifact": "proto3 (.proto under contracts/proto/<domain>/vN/<name>-vN.proto + .meta.yaml)",
+        "exposure": "internal-only",
+        "transport": "gRPC over HTTP/2 with SPIFFE-shaped mTLS and TLS 1.3",
+        "derivation": "generated from the Rust source; tonic/prost adapters consume the generated bindings"
+      },
+      {
+        "surface": "async",
+        "artifact": "AsyncAPI 3.1.0 (.yaml under contracts/asyncapi/<domain>/<name>-vN.yaml + .meta.yaml)",
+        "exposure": "public-event-contract",
+        "derivation": "generated/validated from the Rust source where events are typed; versioned webhooks use the stable CloudEvents HTTP binding where CloudEvents envelopes are selected"
+      },
+      {
+        "surface": "realtime",
+        "artifact": "public SSE (one-way server push), public WebSocket (bidirectional), and internal-only gRPC-streaming bindings",
+        "exposure": "split-public-and-internal",
+        "derivation": "the realtime transports project the same Rust-native typed payloads; no separate hand-maintained schema and no stable CloudEvents WebSocket binding is claimed"
+      }
+    ]
+  },
+  "drift_gate": {
+    "name": "api-contract-ssot-drift (planned)",
+    "rule": "regenerate the projections from the Rust source and diff against the committed contracts; any divergence (REST/gRPC/async out of sync with the source) fails the gate (lockfile-style, like cargo's Cargo.lock check).",
+    "ci": "runs as a Buck2/Rust cloud-ci gate behind the single protected oya-ci-required context (ADR-0515)"
+  },
+  "messaging_directives": {
+    "launch_primary": "Apache Pulsar (eventing/messaging)",
+    "first_class_adapters": [
+      "Apache Kafka",
+      "Redpanda",
+      "RabbitMQ"
+    ],
+    "async_contracts": "AsyncAPI 3.1.0 for event contracts, also derived from the shared source where events are typed"
+  },
+  "admission_directives": {
+    "default": "Kubewarden (Kubernetes admission/policy substrate)",
+    "first_class_adapter": "Kyverno"
+  },
+  "non_claims": [
+    "Records the canonical contract-SSOT model + launch directives only.",
+    "Does NOT implement the Rust-native generators, the OpenAPI/proto/AsyncAPI emitters, the realtime (SSE/WebSocket/gRPC-streaming) bindings, the drift gate runtime, message brokers, adapters, or admission controllers.",
+    "No runtime, no production readiness; claims stay blocked_until_required_evidence_is_green."
+  ]
+}

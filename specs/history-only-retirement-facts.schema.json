@@ -1,0 +1,1177 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/history-only-retirement-facts.schema.json",
+  "title": "History-only retirement facts",
+  "description": "Closed schema for the ignored, controller-produced history-only retirement facts face. It records Git object, ancestry, lifecycle, control-plane identity, preparation linkage, and exact per-input snapshots. It is not a closure receipt or an E4 closure projection.",
+  "type": "object",
+  "required": [
+    "receipts",
+    "scm_facts"
+  ],
+  "properties": {
+    "receipts": {
+      "type": "array",
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/receipt_record"
+      }
+    },
+    "scm_facts": {
+      "type": "object",
+      "required": [
+        "retirement_receipt_coverage",
+        "retirement_receipt_object_facts",
+        "protected_scm_context",
+        "retirement_control_plane_context"
+      ],
+      "properties": {
+        "retirement_receipt_coverage": {
+          "$ref": "#/$defs/coverage"
+        },
+        "retirement_receipt_object_facts": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/object_fact"
+          }
+        },
+        "protected_scm_context": {
+          "$ref": "#/$defs/protected_scm_context"
+        },
+        "retirement_control_plane_context": {
+          "$ref": "#/$defs/control_plane_context"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "receipts": {
+            "maxItems": 0
+          }
+        },
+        "required": [
+          "receipts"
+        ]
+      },
+      "then": {
+        "properties": {
+          "receipts": {
+            "maxItems": 0
+          },
+          "scm_facts": {
+            "properties": {
+              "retirement_receipt_coverage": {
+                "properties": {
+                  "protected_receipt_paths": {
+                    "maxItems": 0
+                  },
+                  "candidate_receipt_paths": {
+                    "maxItems": 0
+                  },
+                  "carried_receipt_paths": {
+                    "maxItems": 0
+                  },
+                  "new_receipt_paths": {
+                    "maxItems": 0
+                  },
+                  "scopes": {
+                    "maxItems": 0
+                  },
+                  "required_retired_paths": {
+                    "maxItems": 0
+                  }
+                }
+              },
+              "retirement_receipt_object_facts": {
+                "maxItems": 0
+              },
+              "retirement_control_plane_context": {
+                "oneOf": [
+                  {
+                    "properties": {
+                      "bootstrap": {
+                        "const": true
+                      },
+                      "protected_control_plane_blob_oid": {
+                        "type": "null"
+                      },
+                      "protected_control_plane_sha256": {
+                        "type": "null"
+                      },
+                      "protected_control_plane_byte_count": {
+                        "type": "null"
+                      }
+                    }
+                  },
+                  {
+                    "properties": {
+                      "bootstrap": {
+                        "const": false
+                      },
+                      "protected_control_plane_blob_oid": {
+                        "$ref": "#/$defs/oid"
+                      },
+                      "protected_control_plane_sha256": {
+                        "$ref": "#/$defs/sha256"
+                      },
+                      "protected_control_plane_byte_count": {
+                        "$ref": "#/$defs/byte_count"
+                      }
+                    }
+                  }
+                ]
+              }
+            }
+          }
+        }
+      },
+      "else": {
+        "properties": {
+          "receipts": {
+            "minItems": 3
+          },
+          "scm_facts": {
+            "properties": {
+              "retirement_receipt_coverage": {
+                "properties": {
+                  "scopes": {
+                    "minItems": 3
+                  },
+                  "required_retired_paths": {
+                    "minItems": 8,
+                    "maxItems": 8
+                  }
+                }
+              },
+              "retirement_receipt_object_facts": {
+                "minItems": 3
+              },
+              "retirement_control_plane_context": {
+                "properties": {
+                  "bootstrap": {
+                    "const": false
+                  },
+                  "protected_control_plane_blob_oid": {
+                    "$ref": "#/$defs/oid"
+                  },
+                  "protected_control_plane_sha256": {
+                    "$ref": "#/$defs/sha256"
+                  },
+                  "protected_control_plane_byte_count": {
+                    "$ref": "#/$defs/byte_count"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "oid": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "nullable_oid": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "sha256": {
+      "type": "string",
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "nullable_sha256": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "pattern": "^sha256:[0-9a-f]{64}$"
+    },
+    "byte_count": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "nullable_byte_count": {
+      "type": [
+        "integer",
+        "null"
+      ],
+      "minimum": 0
+    },
+    "repo_path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[^/\\u0000][^\\u0000]*$",
+      "not": {
+        "anyOf": [
+          {
+            "pattern": "^\\./"
+          },
+          {
+            "pattern": "(^|/)\\.\\.(/|$)"
+          },
+          {
+            "pattern": "//"
+          }
+        ]
+      }
+    },
+    "repo_paths": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/repo_path"
+      }
+    },
+    "receipt_record": {
+      "description": "Closed Git/object identity projection for one candidate receipt. The raw receipt JSON, retired body, verdicts, and authority-shaped extension fields are never copied into controller facts.",
+      "type": "object",
+      "required": [
+        "receipt_path",
+        "artifact_id",
+        "scope_ref",
+        "receipt_state",
+        "candidate_receipt_blob_oid",
+        "candidate_receipt_sha256",
+        "baseline_commit_oid",
+        "baseline_tree_oid"
+      ],
+      "properties": {
+        "receipt_path": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope_ref": {
+          "type": "string",
+          "minLength": 1
+        },
+        "receipt_state": {
+          "enum": [
+            "prepared-new",
+            "closure-new",
+            "closed-carried"
+          ]
+        },
+        "candidate_receipt_blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "candidate_receipt_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "baseline_commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "baseline_tree_oid": {
+          "$ref": "#/$defs/oid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverage": {
+      "type": "object",
+      "required": [
+        "protected_base_ref",
+        "protected_receipt_paths",
+        "candidate_receipt_paths",
+        "carried_receipt_paths",
+        "new_receipt_paths",
+        "scopes",
+        "required_retired_paths"
+      ],
+      "properties": {
+        "protected_base_ref": {
+          "const": "origin/dev"
+        },
+        "protected_receipt_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "candidate_receipt_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "carried_receipt_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "new_receipt_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "scopes": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/coverage_scope"
+          }
+        },
+        "required_retired_paths": {
+          "$ref": "#/$defs/repo_paths"
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverage_scope": {
+      "type": "object",
+      "required": [
+        "scope_ref",
+        "scope_type",
+        "selectors",
+        "required_retired_paths"
+      ],
+      "properties": {
+        "scope_ref": {
+          "enum": [
+            "artifact:masterplan",
+            "ADR-0363",
+            "ADR-0388"
+          ]
+        },
+        "scope_type": {
+          "enum": [
+            "masterplan-retired-surfaces",
+            "amended-agentic-vcs-retirement",
+            "transient-ideas"
+          ]
+        },
+        "selectors": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/coverage_selector"
+          }
+        },
+        "required_retired_paths": {
+          "$ref": "#/$defs/repo_paths"
+        }
+      },
+      "additionalProperties": false
+    },
+    "coverage_selector": {
+      "type": "object",
+      "required": [
+        "selector_type",
+        "selector",
+        "protected_paths",
+        "predecessor_paths",
+        "candidate_paths",
+        "removed_paths",
+        "surviving_paths",
+        "candidate_only_paths",
+        "external_assertion"
+      ],
+      "properties": {
+        "selector_type": {
+          "enum": [
+            "exact",
+            "glob"
+          ]
+        },
+        "selector": {
+          "type": "string",
+          "minLength": 1
+        },
+        "protected_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "predecessor_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "candidate_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "removed_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "surviving_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "candidate_only_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "external_assertion": {
+          "const": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "object_fact": {
+      "type": "object",
+      "required": [
+        "artifact_id",
+        "receipt_path",
+        "protected_base_ref",
+        "receipt_state",
+        "scope_ref",
+        "scope_type",
+        "baseline_commit_oid",
+        "baseline_tree_oid",
+        "protected_receipt_blob_oid",
+        "candidate_receipt_blob_oid",
+        "protected_registry_row_sha256",
+        "candidate_registry_row_sha256",
+        "retired_inputs",
+        "preparation_receipt_path",
+        "protected_preparation_receipt_blob_oid",
+        "predecessor_context",
+        "control_plane_entry",
+        "control_plane_entry_sha256"
+      ],
+      "properties": {
+        "artifact_id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[a-z0-9-]+$"
+        },
+        "receipt_path": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "protected_base_ref": {
+          "const": "origin/dev"
+        },
+        "receipt_state": {
+          "enum": [
+            "prepared-new",
+            "closure-new",
+            "closed-carried"
+          ]
+        },
+        "scope_ref": {
+          "enum": [
+            "artifact:masterplan",
+            "ADR-0363",
+            "ADR-0388"
+          ]
+        },
+        "scope_type": {
+          "enum": [
+            "masterplan-retired-surfaces",
+            "amended-agentic-vcs-retirement",
+            "transient-ideas"
+          ]
+        },
+        "baseline_commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "baseline_tree_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "protected_receipt_blob_oid": {
+          "$ref": "#/$defs/nullable_oid"
+        },
+        "candidate_receipt_blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "protected_registry_row_sha256": {
+          "$ref": "#/$defs/nullable_sha256"
+        },
+        "candidate_registry_row_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "retired_inputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 256,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/input_fact"
+          }
+        },
+        "preparation_receipt_path": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/repo_path"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "protected_preparation_receipt_blob_oid": {
+          "$ref": "#/$defs/nullable_oid"
+        },
+        "predecessor_context": {
+          "$ref": "#/$defs/predecessor_context"
+        },
+        "control_plane_entry": {
+          "$ref": "#/$defs/control_plane_entry"
+        },
+        "control_plane_entry_sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "additionalProperties": false
+    },
+    "input_fact": {
+      "type": "object",
+      "required": [
+        "path",
+        "mode",
+        "predecessor_blob_oid",
+        "sha256",
+        "byte_count",
+        "predecessor_path_exists",
+        "predecessor_path_kind",
+        "predecessor_sha256",
+        "predecessor_byte_count",
+        "predecessor_mode",
+        "protected_path_exists",
+        "protected_path_kind",
+        "protected_blob_oid",
+        "protected_sha256",
+        "protected_byte_count",
+        "protected_mode",
+        "candidate_path_exists",
+        "candidate_path_kind",
+        "candidate_blob_oid",
+        "candidate_sha256",
+        "candidate_byte_count",
+        "candidate_mode",
+        "candidate_new_equivalent_paths",
+        "candidate_equivalent_paths"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "mode": {
+          "const": "100644"
+        },
+        "predecessor_blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "byte_count": {
+          "$ref": "#/$defs/byte_count"
+        },
+        "predecessor_path_exists": {
+          "const": true
+        },
+        "predecessor_path_kind": {
+          "const": "regular"
+        },
+        "predecessor_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "predecessor_byte_count": {
+          "$ref": "#/$defs/byte_count"
+        },
+        "predecessor_mode": {
+          "const": "100644"
+        },
+        "protected_path_exists": {
+          "type": "boolean"
+        },
+        "protected_path_kind": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "regular",
+            null
+          ]
+        },
+        "protected_blob_oid": {
+          "$ref": "#/$defs/nullable_oid"
+        },
+        "protected_sha256": {
+          "$ref": "#/$defs/nullable_sha256"
+        },
+        "protected_byte_count": {
+          "$ref": "#/$defs/nullable_byte_count"
+        },
+        "protected_mode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "100644",
+            null
+          ]
+        },
+        "candidate_path_exists": {
+          "type": "boolean"
+        },
+        "candidate_path_kind": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "regular",
+            null
+          ]
+        },
+        "candidate_blob_oid": {
+          "$ref": "#/$defs/nullable_oid"
+        },
+        "candidate_sha256": {
+          "$ref": "#/$defs/nullable_sha256"
+        },
+        "candidate_byte_count": {
+          "$ref": "#/$defs/nullable_byte_count"
+        },
+        "candidate_mode": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "enum": [
+            "100644",
+            null
+          ]
+        },
+        "candidate_new_equivalent_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "candidate_equivalent_paths": {
+          "$ref": "#/$defs/repo_paths"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "protected_path_exists": {
+                "const": false
+              }
+            },
+            "required": [
+              "protected_path_exists"
+            ]
+          },
+          "then": {
+            "properties": {
+              "protected_path_kind": {
+                "type": "null"
+              },
+              "protected_blob_oid": {
+                "type": "null"
+              },
+              "protected_sha256": {
+                "type": "null"
+              },
+              "protected_byte_count": {
+                "type": "null"
+              },
+              "protected_mode": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "protected_path_kind": {
+                "const": "regular"
+              },
+              "protected_blob_oid": {
+                "$ref": "#/$defs/oid"
+              },
+              "protected_sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "protected_byte_count": {
+                "$ref": "#/$defs/byte_count"
+              },
+              "protected_mode": {
+                "const": "100644"
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "candidate_path_exists": {
+                "const": false
+              }
+            },
+            "required": [
+              "candidate_path_exists"
+            ]
+          },
+          "then": {
+            "properties": {
+              "candidate_path_kind": {
+                "type": "null"
+              },
+              "candidate_blob_oid": {
+                "type": "null"
+              },
+              "candidate_sha256": {
+                "type": "null"
+              },
+              "candidate_byte_count": {
+                "type": "null"
+              },
+              "candidate_mode": {
+                "type": "null"
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "candidate_path_kind": {
+                "const": "regular"
+              },
+              "candidate_blob_oid": {
+                "$ref": "#/$defs/oid"
+              },
+              "candidate_sha256": {
+                "$ref": "#/$defs/sha256"
+              },
+              "candidate_byte_count": {
+                "$ref": "#/$defs/byte_count"
+              },
+              "candidate_mode": {
+                "const": "100644"
+              }
+            }
+          }
+        }
+      ],
+      "additionalProperties": false
+    },
+    "predecessor_context": {
+      "type": "object",
+      "required": [
+        "source",
+        "commit_oid",
+        "tree_oid",
+        "receipt_path",
+        "receipt_blob_oid"
+      ],
+      "properties": {
+        "source": {
+          "enum": [
+            "control-plane-predecessor",
+            "protected-preparation-receipt",
+            "linked-preparation-history"
+          ]
+        },
+        "commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "tree_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "receipt_path": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/repo_path"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "receipt_blob_oid": {
+          "$ref": "#/$defs/nullable_oid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "control_plane_entry": {
+      "type": "object",
+      "required": [
+        "evidence_set_id",
+        "scope_ref",
+        "scope_type",
+        "selectors",
+        "preparation_artifact_id",
+        "preparation_receipt_path",
+        "closure_artifact_id",
+        "closure_receipt_path"
+      ],
+      "properties": {
+        "evidence_set_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "scope_ref": {
+          "enum": [
+            "artifact:masterplan",
+            "ADR-0363",
+            "ADR-0388"
+          ]
+        },
+        "scope_type": {
+          "enum": [
+            "masterplan-retired-surfaces",
+            "amended-agentic-vcs-retirement",
+            "transient-ideas"
+          ]
+        },
+        "selectors": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 4,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/control_selector"
+          }
+        },
+        "preparation_artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "preparation_receipt_path": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "closure_artifact_id": {
+          "type": "string",
+          "minLength": 1
+        },
+        "closure_receipt_path": {
+          "$ref": "#/$defs/repo_path"
+        }
+      },
+      "additionalProperties": false
+    },
+    "control_selector": {
+      "type": "object",
+      "required": [
+        "selector_type",
+        "selector",
+        "expected_inputs"
+      ],
+      "properties": {
+        "selector_type": {
+          "enum": [
+            "exact",
+            "glob"
+          ]
+        },
+        "selector": {
+          "type": "string",
+          "minLength": 1
+        },
+        "expected_inputs": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/expected_input"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "expected_input": {
+      "type": "object",
+      "required": [
+        "path",
+        "mode",
+        "predecessor_blob_oid",
+        "sha256",
+        "byte_count"
+      ],
+      "properties": {
+        "path": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "mode": {
+          "const": "100644"
+        },
+        "predecessor_blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "byte_count": {
+          "$ref": "#/$defs/byte_count"
+        }
+      },
+      "additionalProperties": false
+    },
+    "protected_scm_context": {
+      "type": "object",
+      "required": [
+        "protected_base_ref",
+        "protected_base_commit_oid",
+        "protected_base_tree_oid",
+        "evaluated_commit_oid",
+        "evaluated_tree_oid",
+        "subject_commit_oid",
+        "subject_tree_oid",
+        "scm_event_name",
+        "subject_relationship",
+        "protected_base_is_ancestor_of_evaluated",
+        "protected_base_is_evaluated_first_parent",
+        "subject_is_evaluated_second_parent",
+        "predecessor_commit_oid",
+        "predecessor_tree_oid",
+        "predecessor_commit_exists",
+        "predecessor_tree_exists",
+        "predecessor_commit_tree_bound",
+        "predecessor_is_ancestor_of_protected_base",
+        "protected_preparation_receipts"
+      ],
+      "properties": {
+        "protected_base_ref": {
+          "const": "origin/dev"
+        },
+        "protected_base_commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "protected_base_tree_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "evaluated_commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "evaluated_tree_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "subject_commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "subject_tree_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "scm_event_name": {
+          "enum": [
+            "pull_request",
+            "push",
+            "merge_group"
+          ]
+        },
+        "subject_relationship": {
+          "enum": [
+            "pull-request-head",
+            "evaluated-self"
+          ]
+        },
+        "protected_base_is_ancestor_of_evaluated": {
+          "const": true
+        },
+        "protected_base_is_evaluated_first_parent": {
+          "const": true
+        },
+        "subject_is_evaluated_second_parent": {
+          "type": "boolean"
+        },
+        "predecessor_commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "predecessor_tree_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "predecessor_commit_exists": {
+          "const": true
+        },
+        "predecessor_tree_exists": {
+          "const": true
+        },
+        "predecessor_commit_tree_bound": {
+          "const": true
+        },
+        "predecessor_is_ancestor_of_protected_base": {
+          "const": true
+        },
+        "protected_preparation_receipts": {
+          "type": "array",
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/protected_preparation_receipt"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "protected_preparation_receipt": {
+      "type": "object",
+      "required": [
+        "receipt_path",
+        "receipt_blob_oid",
+        "baseline_commit_oid",
+        "baseline_tree_oid"
+      ],
+      "properties": {
+        "receipt_path": {
+          "$ref": "#/$defs/repo_path"
+        },
+        "receipt_blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "baseline_commit_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "baseline_tree_oid": {
+          "$ref": "#/$defs/oid"
+        }
+      },
+      "additionalProperties": false
+    },
+    "exact_three_control_plane_entries": {
+      "type": "array",
+      "minItems": 3,
+      "maxItems": 3,
+      "uniqueItems": true,
+      "items": {
+        "$ref": "#/$defs/control_plane_entry"
+      },
+      "allOf": [
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "scope_ref": {
+                "const": "artifact:masterplan"
+              }
+            },
+            "required": [
+              "scope_ref"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "scope_ref": {
+                "const": "ADR-0363"
+              }
+            },
+            "required": [
+              "scope_ref"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        },
+        {
+          "contains": {
+            "type": "object",
+            "properties": {
+              "scope_ref": {
+                "const": "ADR-0388"
+              }
+            },
+            "required": [
+              "scope_ref"
+            ]
+          },
+          "minContains": 1,
+          "maxContains": 1
+        }
+      ]
+    },
+    "control_plane_entry_hash": {
+      "type": "object",
+      "required": [
+        "scope_ref",
+        "sha256"
+      ],
+      "properties": {
+        "scope_ref": {
+          "enum": [
+            "artifact:masterplan",
+            "ADR-0363",
+            "ADR-0388"
+          ]
+        },
+        "sha256": {
+          "$ref": "#/$defs/sha256"
+        }
+      },
+      "additionalProperties": false
+    },
+    "control_plane_context": {
+      "type": "object",
+      "required": [
+        "control_plane_path",
+        "receipt_root",
+        "bootstrap",
+        "protected_control_plane_blob_oid",
+        "protected_control_plane_sha256",
+        "protected_control_plane_byte_count",
+        "candidate_control_plane_blob_oid",
+        "candidate_control_plane_sha256",
+        "candidate_control_plane_byte_count",
+        "control_plane_entries",
+        "control_plane_entry_hashes",
+        "protected_receipt_root_paths",
+        "candidate_receipt_root_paths",
+        "unexpected_protected_receipt_paths",
+        "unexpected_candidate_receipt_paths"
+      ],
+      "properties": {
+        "control_plane_path": {
+          "const": "registry/history-only-retirement/control-plane.json"
+        },
+        "receipt_root": {
+          "const": "evidence/history-only-retirement"
+        },
+        "bootstrap": {
+          "type": "boolean"
+        },
+        "protected_control_plane_blob_oid": {
+          "$ref": "#/$defs/nullable_oid"
+        },
+        "protected_control_plane_sha256": {
+          "$ref": "#/$defs/nullable_sha256"
+        },
+        "protected_control_plane_byte_count": {
+          "$ref": "#/$defs/nullable_byte_count"
+        },
+        "candidate_control_plane_blob_oid": {
+          "$ref": "#/$defs/oid"
+        },
+        "candidate_control_plane_sha256": {
+          "$ref": "#/$defs/sha256"
+        },
+        "candidate_control_plane_byte_count": {
+          "$ref": "#/$defs/byte_count"
+        },
+        "control_plane_entries": {
+          "$ref": "#/$defs/exact_three_control_plane_entries"
+        },
+        "control_plane_entry_hashes": {
+          "type": "array",
+          "minItems": 3,
+          "maxItems": 3,
+          "uniqueItems": true,
+          "items": {
+            "$ref": "#/$defs/control_plane_entry_hash"
+          }
+        },
+        "protected_receipt_root_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "candidate_receipt_root_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "unexpected_protected_receipt_paths": {
+          "$ref": "#/$defs/repo_paths"
+        },
+        "unexpected_candidate_receipt_paths": {
+          "$ref": "#/$defs/repo_paths"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

@@ -1,0 +1,869 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/ralplan.schema.json",
+  "title": "RalplanConsensusPlan",
+  "description": "Machine-readable canonical form of a ralplan-consensus plan. The Markdown plan at .omc/plans/ralplan-*.md is a generated projection of this JSON. Per ADR-0069 + user directive 'json/toml/yaml/whatever — what can be automated must be automated'. Per autonomous-prompt 'target 0 hand-authored Markdown; canonical knowledge in machine-optimized artifacts'. Generator: crates/oya-gen-ralplan-markdown.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Schema",
+    "schema_id": "EXE-PLAN-SCHEMA",
+    "version": "1.1.0",
+    "status": "draft-sidecar",
+    "owner_team": "council-architecture + axis-foundry",
+    "created_at": "2026-05-13T00:00:00Z",
+    "updated_at": "2026-05-17T18:36:54Z",
+    "related_implementation_plan_changeset_contract": {
+      "adr": "ADR-0129",
+      "identity_field": "id",
+      "required_frontmatter_fields": [
+        "doc_class",
+        "id",
+        "execution_unit",
+        "changeset_contract"
+      ],
+      "measured_frontmatter_fields": [
+        "changeset_split_rule"
+      ],
+      "optional_graph_fields": [
+        "depends_on_changesets",
+        "serializes_with_changesets",
+        "writes_global_artifacts"
+      ],
+      "validator": "oya gate validate honest-claims"
+    },
+    "user_directive": "Phase 1 of accumulated-requirements roadmap: kill Markdown-as-source-of-truth gap",
+    "related": [
+      "/specs/active-machine-readable-artifact-contract.json",
+      "/specs/knowledge-graph-schema.json",
+      "/specs/artifact-profile-defaults.json",
+      ".omc/plans/ralplan-ops-portal-2026-05-13.md (Markdown projection precedent)",
+      ".omc/plans/ralplan-ops-wave-5-2026-05-13.md (Markdown projection v18 Accepted)"
+    ],
+    "purpose": "Machine-readable canonical form of a ralplan-consensus plan. The Markdown plan at .omc/plans/ralplan-*.md is a generated projection of this JSON."
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "frontmatter",
+    "principles",
+    "decision_drivers",
+    "bc_inventory",
+    "pre_mortem",
+    "test_plan",
+    "implementation_order",
+    "done_stop_conditions",
+    "follow_ups",
+    "verification_status",
+    "verification_matrix",
+    "hyperscaler_maturity_audit",
+    "linus_anticipation",
+    "honest_introspection"
+  ],
+  "properties": {
+    "frontmatter": {
+      "$ref": "#/$defs/frontmatter"
+    },
+    "principles": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "$ref": "#/$defs/principle"
+      }
+    },
+    "decision_drivers": {
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 5,
+      "items": {
+        "$ref": "#/$defs/decision_driver"
+      }
+    },
+    "viable_options": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "$ref": "#/$defs/viable_option"
+      }
+    },
+    "bc_inventory": {
+      "$ref": "#/$defs/bc_inventory"
+    },
+    "route_contract_table": {
+      "$ref": "#/$defs/route_contract_table"
+    },
+    "pre_mortem": {
+      "$ref": "#/$defs/pre_mortem"
+    },
+    "test_plan": {
+      "$ref": "#/$defs/test_plan"
+    },
+    "implementation_order": {
+      "$ref": "#/$defs/implementation_order"
+    },
+    "done_stop_conditions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/stop_condition"
+      }
+    },
+    "follow_ups": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/follow_up"
+      }
+    },
+    "verification_status": {
+      "$ref": "#/$defs/verification_status"
+    },
+    "verification_matrix": {
+      "$ref": "#/$defs/verification_matrix"
+    },
+    "hyperscaler_maturity_audit": {
+      "$ref": "#/$defs/hyperscaler_maturity_audit"
+    },
+    "linus_anticipation": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/linus_objection"
+      }
+    },
+    "honest_introspection": {
+      "$ref": "#/$defs/honest_introspection"
+    }
+  },
+  "$defs": {
+    "frontmatter": {
+      "type": "object",
+      "required": [
+        "doc_class",
+        "status",
+        "version",
+        "date",
+        "canonical_authority",
+        "authority_chain",
+        "artifact_id"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "doc_class": {
+          "const": "RalplanConsensusPlan"
+        },
+        "shape": {
+          "enum": [
+            "anchor",
+            "supplement",
+            "addendum"
+          ]
+        },
+        "status": {
+          "enum": [
+            "pending approval",
+            "Accepted",
+            "Superseded",
+            "Rejected"
+          ]
+        },
+        "version": {
+          "type": "string",
+          "pattern": "^v[0-9]+\\.[0-9]+\\.[0-9]+$"
+        },
+        "date": {
+          "type": "string",
+          "format": "date"
+        },
+        "created_by": {
+          "type": "string"
+        },
+        "canonical_authority": {
+          "type": "string"
+        },
+        "authority_chain": {
+          "type": "string"
+        },
+        "parent_plan": {
+          "type": "string"
+        },
+        "companion_plans": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "codex_model": {
+          "type": "string"
+        },
+        "predecessor_dispatch": {
+          "type": "string"
+        },
+        "verification_round": {
+          "type": "string"
+        },
+        "artifact_id": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]*$"
+        }
+      }
+    },
+    "principle": {
+      "type": "object",
+      "required": [
+        "number",
+        "name",
+        "statement"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "statement": {
+          "type": "string"
+        },
+        "rationale": {
+          "type": "string"
+        }
+      }
+    },
+    "decision_driver": {
+      "type": "object",
+      "required": [
+        "rank",
+        "statement"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rank": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "statement": {
+          "type": "string"
+        }
+      }
+    },
+    "viable_option": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "strengths",
+        "costs",
+        "risks",
+        "principles_satisfied",
+        "decision"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "enum": [
+            "α",
+            "β",
+            "γ",
+            "δ",
+            "ε",
+            "ζ"
+          ]
+        },
+        "label": {
+          "type": "string"
+        },
+        "strengths": {
+          "type": "string"
+        },
+        "costs": {
+          "type": "string"
+        },
+        "risks": {
+          "type": "string"
+        },
+        "principles_satisfied": {
+          "type": "string"
+        },
+        "decision": {
+          "enum": [
+            "adopted",
+            "rejected",
+            "deferred"
+          ]
+        },
+        "rejection_rationale": {
+          "type": "string"
+        }
+      }
+    },
+    "bc_inventory": {
+      "type": "object",
+      "required": [
+        "rows",
+        "subtotal_summary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/bc_row"
+          }
+        },
+        "subtotal_summary": {
+          "type": "string"
+        }
+      }
+    },
+    "bc_row": {
+      "type": "object",
+      "required": [
+        "number",
+        "bc_id",
+        "surface_route",
+        "visibility_tier",
+        "phase_ip_slot",
+        "estimated_crates"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "bc_id": {
+          "type": "string"
+        },
+        "surface_route": {
+          "type": "string"
+        },
+        "visibility_tier": {
+          "type": "string"
+        },
+        "phase_ip_slot": {
+          "type": "string"
+        },
+        "estimated_crates": {
+          "type": "string"
+        }
+      }
+    },
+    "route_contract_table": {
+      "type": "object",
+      "required": [
+        "rows"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/route_row"
+          }
+        }
+      }
+    },
+    "route_row": {
+      "type": "object",
+      "required": [
+        "route",
+        "owner_bc",
+        "visibility_tier",
+        "cedar_fragment",
+        "behavior",
+        "openapi_contract"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "route": {
+          "type": "string"
+        },
+        "owner_bc": {
+          "type": "string"
+        },
+        "visibility_tier": {
+          "type": "string"
+        },
+        "cedar_fragment": {
+          "type": "string"
+        },
+        "behavior": {
+          "type": "string"
+        },
+        "openapi_contract": {
+          "type": "string"
+        }
+      }
+    },
+    "pre_mortem": {
+      "type": "object",
+      "required": [
+        "scenarios"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "scenarios": {
+          "type": "array",
+          "minItems": 3,
+          "items": {
+            "$ref": "#/$defs/pre_mortem_scenario"
+          }
+        }
+      }
+    },
+    "pre_mortem_scenario": {
+      "type": "object",
+      "required": [
+        "number",
+        "name",
+        "failure_mode",
+        "prevention",
+        "recovery"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "name": {
+          "type": "string"
+        },
+        "failure_mode": {
+          "type": "string"
+        },
+        "prevention": {
+          "type": "string"
+        },
+        "recovery": {
+          "type": "string"
+        }
+      }
+    },
+    "test_plan": {
+      "type": "object",
+      "required": [
+        "categories"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/test_category"
+          }
+        }
+      }
+    },
+    "test_category": {
+      "type": "object",
+      "required": [
+        "category",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "implementation_order": {
+      "type": "object",
+      "required": [
+        "steps"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "steps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/impl_step"
+          }
+        }
+      }
+    },
+    "impl_step": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "depends_on": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "stop_condition": {
+      "type": "object",
+      "required": [
+        "id",
+        "label",
+        "condition"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^S[0-9](a|b)?$"
+        },
+        "label": {
+          "type": "string"
+        },
+        "condition": {
+          "type": "string"
+        },
+        "current_status": {
+          "enum": [
+            "achieved",
+            "not-yet-achieved",
+            "achievable-now",
+            "blocked"
+          ]
+        }
+      }
+    },
+    "follow_up": {
+      "type": "object",
+      "required": [
+        "number",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "description": {
+          "type": "string"
+        }
+      }
+    },
+    "verification_status": {
+      "type": "object",
+      "required": [
+        "rounds"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rounds": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/verification_round_row"
+          }
+        }
+      }
+    },
+    "verification_round_row": {
+      "type": "object",
+      "required": [
+        "round",
+        "verdict"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "round": {
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "pending",
+            "pending approval",
+            "APPROVE",
+            "ITERATE",
+            "REJECT"
+          ]
+        },
+        "codex_session": {
+          "type": "string"
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "verification_matrix": {
+      "type": "object",
+      "required": [
+        "rows",
+        "baseline_summary"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "rows": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/v_row"
+          }
+        },
+        "baseline_summary": {
+          "type": "string"
+        }
+      }
+    },
+    "v_row": {
+      "type": "object",
+      "required": [
+        "v_id",
+        "capability",
+        "source_path",
+        "pass_criteria",
+        "status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "v_id": {
+          "type": "string",
+          "pattern": "^V[0-9]+$"
+        },
+        "capability": {
+          "type": "string"
+        },
+        "source_path": {
+          "type": "string"
+        },
+        "pass_criteria": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "verified-by-existing-CI",
+            "verified-by-existing-file",
+            "verified-by-Wave-N-prerequisite",
+            "committed-future-CI",
+            "unverified",
+            "blocked-by-foundation"
+          ]
+        }
+      }
+    },
+    "hyperscaler_maturity_audit": {
+      "type": "object",
+      "required": [
+        "premise",
+        "categories",
+        "summary_counts"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "premise": {
+          "type": "string"
+        },
+        "categories": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/maturity_category"
+          }
+        },
+        "summary_counts": {
+          "$ref": "#/$defs/maturity_summary_counts"
+        },
+        "successor_wave_commitments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/successor_commitment"
+          }
+        }
+      }
+    },
+    "maturity_category": {
+      "type": "object",
+      "required": [
+        "name",
+        "capabilities"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "capabilities": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/maturity_capability_row"
+          }
+        }
+      }
+    },
+    "maturity_capability_row": {
+      "type": "object",
+      "required": [
+        "capability",
+        "status",
+        "evidence_or_deferral"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "🟢 PLANNED-prerequisite-gated",
+            "🟡 PARTIAL",
+            "🔴 NOT-DELIVERED"
+          ]
+        },
+        "evidence_or_deferral": {
+          "type": "string"
+        }
+      }
+    },
+    "maturity_summary_counts": {
+      "type": "object",
+      "required": [
+        "planned_count",
+        "partial_count",
+        "not_delivered_count"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "planned_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "partial_count": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "not_delivered_count": {
+          "type": "integer",
+          "minimum": 0
+        }
+      }
+    },
+    "successor_commitment": {
+      "type": "object",
+      "required": [
+        "wave",
+        "phase",
+        "deadline_absolute_date",
+        "owner",
+        "artifact_estimate",
+        "scope"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "wave": {
+          "type": "string"
+        },
+        "phase": {
+          "type": "string"
+        },
+        "plan_file_path": {
+          "type": "string"
+        },
+        "deadline_absolute_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "owner": {
+          "type": "string"
+        },
+        "reviewer_approver": {
+          "type": "string"
+        },
+        "masterplan_amendment": {
+          "type": "string"
+        },
+        "artifact_estimate": {
+          "type": "string"
+        },
+        "scope": {
+          "type": "string"
+        }
+      }
+    },
+    "linus_objection": {
+      "type": "object",
+      "required": [
+        "id",
+        "objection",
+        "concrete_answer"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^L[0-9]+$"
+        },
+        "objection": {
+          "type": "string"
+        },
+        "concrete_answer": {
+          "type": "string"
+        }
+      }
+    },
+    "honest_introspection": {
+      "type": "object",
+      "required": [
+        "live_gaps",
+        "stop_conditions",
+        "meta_claim"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "live_gaps": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/live_gap"
+          }
+        },
+        "stop_conditions": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/stop_condition"
+          }
+        },
+        "meta_claim": {
+          "type": "string"
+        }
+      }
+    },
+    "live_gap": {
+      "type": "object",
+      "required": [
+        "number",
+        "description"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "number": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "description": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "live",
+            "resolved",
+            "tracked"
+          ]
+        },
+        "remediation_anchor": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

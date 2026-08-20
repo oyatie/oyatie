@@ -1,0 +1,40 @@
+id: "cap:detection:sandbox-replay:v1"
+name: sandbox-replay
+namespace: detection
+display_name: Sandbox Replay
+description: Historical audit-stream replay before rule or model activation bound to ADR-0307 and ADR-0263.
+owner_team: axis-detection
+maturity: proposed
+related_adrs:
+  - ADR-0307
+  - ADR-0308
+  - ADR-0309
+  - ADR-0310
+  - ADR-0263
+autonomy_tier: T2
+inputs:
+  -
+    name: tenant_id
+    type: string
+    required: true
+outputs:
+  -
+    name: audit_id
+    type: string
+data_classes_touched:
+  - AUDIT
+  - BEHAVIORAL_TENANT_PRODUCT
+regulatory_packs_consumed:
+  - pack-us
+  - pack-eu-ai-act
+  - pack-kr
+  - pack-jp
+  - pack-cn-pipl
+  - pack-us-healthcare
+  - pack-br
+  - pack-sg
+  - pack-au
+  - pack-ae
+  - pack-ksa
+cedar_policy_fragments:
+  - microservices/detection/policy/sandbox-scope.cedar

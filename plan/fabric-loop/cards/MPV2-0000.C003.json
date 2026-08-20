@@ -1,0 +1,13 @@
+{
+  "card_id": "MPV2-0000.C003",
+  "title": "Harvested (round-2 review nit): FsFlowMetricsStore pass_seqs accepts non-canonical pass-N.json names that pass()/passes() cannot read back; require canonical 20-digit filenames fail-closed plus regression test",
+  "program_id": "P-FABRIC",
+  "depends_on": [],
+  "status": "done-verified",
+  "evidence_refs": [
+    "git:060eca825f3ea3f8f61cb8f736d82cc210950989",
+    "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json#stage_disjointness",
+    "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json#stage_review",
+    "evidence/goals/fabric-loop-parallel-lanes-proof-run-20260702.json#stage_post_merge_verification"
+  ]
+}

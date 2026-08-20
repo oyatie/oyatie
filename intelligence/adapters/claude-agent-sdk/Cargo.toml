@@ -1,0 +1,34 @@
+[package]
+name = "intelligence-claude-agent-sdk"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "MIT"
+description = "Anthropic Claude Agent SDK adapter — subprocess transport and typed message interface (consolidated from consolidate/claude-snapshot-2026-06-08)"
+
+[lib]
+name = "intelligence_claude_agent_sdk"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+futures = "0.3"
+serde = { workspace = true }
+serde_json = { workspace = true }
+thiserror = "2"
+tokio = { version = "1", features = ["io-util", "macros", "process", "rt", "rt-multi-thread", "sync", "time"] }
+uuid = { version = "1", features = ["v4"] }
+http = { version = "1", optional = true }
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls", "stream"], optional = true }
+tokio-tungstenite = { version = "0.27", default-features = false, features = ["connect", "rustls-tls-webpki-roots"], optional = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[features]
+default = []
+network = ["dep:http", "dep:reqwest", "dep:tokio-tungstenite"]
+
+[lints]
+workspace = true

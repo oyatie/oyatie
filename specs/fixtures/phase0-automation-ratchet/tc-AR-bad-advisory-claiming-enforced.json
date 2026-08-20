@@ -1,0 +1,26 @@
+{
+  "description": "A row that CLAIMS to enforce a Phase-0 invariant but has no wired buck2 gate target backing it. claims_enforced:true while has_wired_buck2_target:false is the advisory-claiming-enforced defect the ratchet polices (a gate that says 'enforced' without a wired target is the false-green facade). All required fields are present so ONLY advisory_claiming_enforced fires.",
+  "expected_verdict": "RED",
+  "expected_violations": [
+    "advisory_claiming_enforced"
+  ],
+  "fixture_id": "TC-AR-BAD-advisory-claiming-enforced",
+  "rows": [
+    {
+      "id": "BAD-advisory-claiming-enforced",
+      "source_artifact": "docs/governance-lanes/diataxis-doc-class.md",
+      "requirement": "Every doc must carry an enforced Diataxis doc-class; the lane claims to gate non-conforming docs.",
+      "classification": "automated_blocking_now",
+      "enforceable_or_automatable": true,
+      "owner": "platform-governance",
+      "target_gate_or_controller": "diataxis-doc-class governance lane (advisory markdown, no buck2 gate target)",
+      "blocking_fixture": "specs/fixtures/phase0-automation-ratchet/tc-AR-bad-advisory-claiming-enforced.json",
+      "retirement_phase": "P0.16",
+      "evidence_path": "docs/governance-lanes/diataxis-doc-class.md",
+      "no_new_oya_cli_surface": true,
+      "claims_enforced": true,
+      "has_wired_buck2_target": false
+    }
+  ],
+  "source_test": "cloud/cloud-ci/gates/oya-cloud-ci-automation-ratchet-app/tests/automation_ratchet.rs"
+}

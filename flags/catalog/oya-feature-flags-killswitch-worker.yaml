@@ -1,0 +1,28 @@
+# Canonical-base: specs/catalog/canonical-crate-record-schema.json (ADR-0064)
+name: oya-feature-flags-killswitch-worker
+role: worker
+context: feature-flags
+plane: control
+slo: killswitch-fire-latency
+contracts_consumed:
+  - microservices/feature-flags/contracts/asyncapi-v1.yaml
+contracts_exposed: []
+regulatory_packs_consumed: [oya-pack-kr, oya-pack-eu, oya-pack-us, oya-pack-us-healthcare, oya-pack-fedramp, oya-pack-eu-ai-act]
+lifecycle: {state: incubating, preview_since: 2026-05-20}
+traceability:
+  github_issue: "oya-governance-pipeline://feature-flags-buildout-2026-05-20"
+  source_adrs: [ADR-0105, ADR-0131, ADR-0159, ADR-0243, ADR-0248, ADR-0252, ADR-0263, ADR-0295, ADR-0298]
+allowed_dependency_edges:
+  - oya-feature-flags-killswitch-kernel
+  - oya-shared-kafka-consumer
+  - oya-shared-hlc
+  - oya-shared-audit-emitter
+  - oya-shared-otel
+data_classes_owned: []
+operational_classes_owned: [KILLSWITCH_BROADCAST_LAG_MS, CELL_ACK_LATENCY_MS, SLO_BREACH_COUNTER]
+autonomy_tier_required: T1
+life_safety: true
+kafka_consumer_group: feature-flags-killswitch-workers
+kafka_topic_consumed: oya.feature-flags.killswitch-engaged
+fail_closed: true
+naming_justification: "oya-feature-flags-killswitch-worker — BC=killswitch + layer=worker per ADR-0105 13-layer BNF v4.1; Kafka consumer for cell-broadcast fan-out; fail-closed invariant"

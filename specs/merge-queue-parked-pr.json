@@ -1,0 +1,170 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/merge-queue-parked-pr.json",
+  "title": "MergeQueueParkedPrStateMachine",
+  "description": "State-machine spec for the merge-queue parked-PR + fix-loop integration shipped by M01-P17-IP-006. Companion to the kernel modules parked_state, pr_retry_budget, speculative_rebase, fairness, scheduler in crates/oya-vcs-review-mergequeue-kernel.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-MERGE-QUEUE-PARKED-PR",
+    "version": "1.0.0",
+    "status": "Scaffolded",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-15T00:00:00Z",
+    "ip_refs": [
+      "M01-P17-IP-006"
+    ],
+    "related_specs": [
+      "/specs/iterative-fix-loop.json",
+      "/specs/ci-fix-loop-context-bundle.json"
+    ],
+    "purpose": "Canonical state-machine spec for parked-PR semantics + bounded retry + fairness + speculative rebase. Companion to the kernel scheduler in oya-vcs-review-mergequeue-kernel."
+  },
+  "state_machine": {
+    "states": [
+      "admitted",
+      "parked",
+      "revalidating",
+      "merged",
+      "evicted"
+    ],
+    "transitions": [
+      {
+        "from": "admitted",
+        "trigger": "pr-review-approved",
+        "to": "admitted",
+        "note": "Initial admission via IP-004 pr-review-approved event."
+      },
+      {
+        "from": "admitted",
+        "trigger": "ci-failure-or-review-changes-requested",
+        "to": "parked",
+        "note": "Queue position preserved; other admissible PRs continue processing."
+      },
+      {
+        "from": "parked",
+        "trigger": "fix-loop-converged (new head sha on PR branch)",
+        "to": "revalidating",
+        "note": "Triggers speculative rebase against CURRENT queue head (which may have advanced)."
+      },
+      {
+        "from": "revalidating",
+        "trigger": "speculative-rebase-ok + budget-not-exhausted",
+        "to": "admitted",
+        "note": "Per-PR retry counter increments by 1 (one cycle = one increment regardless of how many failed jobs)."
+      },
+      {
+        "from": "revalidating",
+        "trigger": "speculative-rebase-conflict",
+        "to": "parked",
+        "note": "Stays parked; fix-loop must produce a fresh tip that resolves the conflict."
+      },
+      {
+        "from": "revalidating",
+        "trigger": "budget-exhausted (5th attempt)",
+        "to": "evicted",
+        "note": "Open stuck-PR issue with `agent-remediation-required` and `fix-loop-exhausted` labels; no human handoff label is part of the automated pipeline."
+      },
+      {
+        "from": "admitted",
+        "trigger": "scheduler-tick + first admissible position",
+        "to": "merged",
+        "note": "Head advances; per-PR retry counter cleared."
+      }
+    ]
+  },
+  "invariants": {
+    "projected_merge_state_validation": "Every admitted or revalidated PR is checked against projected-merge-state before it can advance to merged.",
+    "ordered_projection_forecast_required": "Every scheduler tick computes the queue in admission_position order from the current queue head plus all earlier projected clean entries before any PR is merged or auto-merge is enabled.",
+    "forecast_before_conflict": "Foreseeable conflicts are classified before the PR reaches the head of queue; the fix-loop receives conflict_paths, projected_base_sha, head_sha, and predecessor_prs instead of discovering the conflict at merge time.",
+    "safe_auto_merge": "Auto-merge may only be enabled for the current head PR after ordered_projection_forecast marks all earlier entries merged/clean and the current entry has no unresolved review threads, no pending required checks, and no stale evidence_sha_resolution_state.",
+    "queue_position_preservation": "A parked PR retains its admission_position; it is skipped on each tick but not removed.",
+    "fairness": "While one PR is parked, other admissible PRs continue processing. Parked PRs do NOT block head.",
+    "shared_retry_budget": "Per-PR retry budget is N=5 attempts; mirrors the shared-pool budget in IP-005 (the integration crate deduplicates the escalation issue by PR number, so a PR can never receive two stuck-PR issues for the same exhaustion).",
+    "convergence_proof": "Every scheduler tick appends a TickEntry to registry/merge-queue-tick-log.json so an external observer can verify forward progress and detect deadlock/livelock.",
+    "no_agent_owned_rebase": "Inherits ADR-0083 / kernel invariant: agents NEVER own rebase/merge operations; the scheduler is controller-owned."
+  },
+  "ordered_projection_forecast": {
+    "triggered_by": [
+      "queue-enrollment",
+      "post-merge-head-advance",
+      "fix-loop-converged",
+      "scheduler-tick"
+    ],
+    "projection_base": "current protected-branch head plus earlier clean queue entries in admission_position order",
+    "simulation_engine": "git merge-tree --write-tree or equivalent in-repository tree simulation; no agent working tree mutation and no provider-side merge button is used for forecasting",
+    "per_entry_required_fields": [
+      "pr_number",
+      "admission_position",
+      "head_ref",
+      "head_sha",
+      "projected_base_sha",
+      "predecessor_prs",
+      "forecast_verdict",
+      "conflict_paths",
+      "review_thread_state",
+      "required_check_state",
+      "evidence_sha_resolution_state",
+      "auto_merge_state",
+      "next_action"
+    ],
+    "forecast_verdicts": [
+      "clean",
+      "content-conflict",
+      "semantic-conflict",
+      "stale-evidence-sha",
+      "unresolved-review-thread",
+      "ci-pending",
+      "ci-failed",
+      "missing-ref"
+    ],
+    "blocking_verdicts": [
+      "content-conflict",
+      "semantic-conflict",
+      "stale-evidence-sha",
+      "unresolved-review-thread",
+      "ci-failed",
+      "missing-ref"
+    ],
+    "artifact_path": "registry/merge-queue-projection-forecast.json",
+    "artifact_schema": {
+      "type": "object",
+      "required": [
+        "queue_head_sha",
+        "generated_at_unix",
+        "entries"
+      ],
+      "properties": {
+        "queue_head_sha": {
+          "type": "string"
+        },
+        "generated_at_unix": {
+          "type": "integer"
+        },
+        "entries": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "pr_number",
+              "forecast_verdict",
+              "conflict_paths",
+              "next_action"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "kernel_module_map": {
+    "parked_state": "crates/oya-vcs-review-mergequeue-kernel/src/parked_state.rs",
+    "pr_retry_budget": "crates/oya-vcs-review-mergequeue-kernel/src/pr_retry_budget.rs",
+    "speculative_rebase": "crates/oya-vcs-review-mergequeue-kernel/src/speculative_rebase.rs",
+    "fairness": "crates/oya-vcs-review-mergequeue-kernel/src/fairness.rs",
+    "scheduler": "crates/oya-vcs-review-mergequeue-kernel/src/scheduler.rs"
+  },
+  "integration_crate": "tools/oya-vcs-merge-queue-fix-loop-app",
+  "concurrent_fix_loops": {
+    "allowed": true,
+    "convergence": "Multiple parked PRs may have fix-loop agents running in parallel. The scheduler serializes ONLY the final landing (one PR merges per tick); other parked PRs stay parked. Concurrent fix-loops do NOT deadlock — proof: see test `concurrent_fix_loops_converge_one_merges_other_re_parks` in scheduler.rs."
+  }
+}

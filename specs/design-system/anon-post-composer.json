@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/design-system/anon-post-composer.schema.json",
+  "title": "DesignSystem:Anon Post Composer",
+  "doc_class": "Machine-Readable-Spec",
+  "component_id": "anon-post-composer",
+  "owner_team": "communications-service-council",
+  "product_ref": "$ref:specs/microservices/anonymous.json",
+  "component_name": "AnonPostComposer",
+  "status": "planned-contract",
+  "variants": [
+    "text-post",
+    "salary-share",
+    "poll",
+    "ama-question"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": true,
+    "screen_reader": true,
+    "reduced_motion": true
+  },
+  "responsive_breakpoints": [
+    "mobile-portrait",
+    "tablet",
+    "desktop"
+  ],
+  "contract": {
+    "purpose": "AnonPostComposer is a declared Anonymous UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
+    "state_model_ref": "$ref:specs/microservices/anonymous.json#frontend_components"
+  }
+}

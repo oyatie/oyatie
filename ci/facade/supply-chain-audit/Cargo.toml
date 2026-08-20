@@ -1,0 +1,39 @@
+[package]
+name = "ci-supply-chain-audit"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate ENFORCING supply-chain advisory hygiene: proves the policy-declared workspace lockfile corpus exactly against the materialized SCM tracked-path boundary, then matches every strict non-empty lock package row against a VENDORED, content-addressed RustSec snapshot and blocks any un-ignored security (SCA-VULN) or unmaintained (SCA-UNMAINTAINED) advisory. Owned pure-Rust replacement for reverted #974 — hermetic (serde_json+toml+semver only; no recursive walk/rustsec/git2/libgit2/shell/network/clock), born-blocking, and fail-closed against corpus omission, malformed rows, narrowed inputs, and vacuously-green mirrors."
+
+# cloud-ci-supply-chain-audit: self-contained, policy-driven gate. A pure evaluate_keyed(policy,
+# observed) matches configured Cargo.lock versions against the vendored advisory mirror via semver.
+# The observed signal reads policy.lockfile_corpus, policy.scm_facts_path, and
+# advisory-mirror/{advisories.json,mirror-manifest.json}; no filesystem walk/shell/network/clock.
+# R1 pack-shaped: corpus, SCM facts boundary, min_lockfiles, mirror_dir, unmaintained policy,
+# advisory floor, and ignores all live in supply-chain-audit-policy.json. Legacy lockfile_path
+# remains supported without the multi-workspace totality projection.
+
+[lib]
+name = "ci_supply_chain_audit"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-advisory-mirror-kernel = { path = "../../../libs/oya-advisory-mirror-kernel" }
+semver = { workspace = true }
+serde_json = { workspace = true }
+toml = { workspace = true }
+
+[dev-dependencies]
+ci-scm-facts-snapshot = { path = "../scm-facts-snapshot" }
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

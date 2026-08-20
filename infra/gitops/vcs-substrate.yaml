@@ -1,0 +1,101 @@
+# VCS substrate (GitHub interim) — the change-coordination substrate per ADR-0363.
+# GitHub is GPLv3+ (OSI-clean; not BSL/SSPL). Single-replica + SQLite is
+# sufficient for the dogfood farm; the PVC holds repos + db. This is the
+# T1 substrate-realization standup: native PRs, branch protection with
+# required status checks (GitHub Actions -> GitHub Commit Status API), webhooks,
+# and auto-merge — which together retire the enforce_admins-toggle seam.
+# Relocated from infra/forge per ADR-0515 D3 (declarative gitops; no shell).
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: oya-forge
+  labels:
+    app.kubernetes.io/part-of: oya-substrate
+    oya.io/adr: ADR-0363
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: github-data
+  namespace: oya-forge
+spec:
+  accessModes: ["ReadWriteOnce"]
+  resources:
+    requests:
+      storage: 5Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: github
+  namespace: oya-forge
+  labels:
+    app.kubernetes.io/name: github
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate          # single RWO PVC — never two writers
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: github
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: github
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: github
+          image: codeberg.org/github/github:11-rootless
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GITHUB__security__INSTALL_LOCK
+              value: "true"
+            - name: GITHUB__database__DB_TYPE
+              value: sqlite3
+            - name: GITHUB__server__ROOT_URL
+              value: https://api.github.com/
+            - name: GITHUB__server__DISABLE_SSH
+              value: "true"
+            - name: GITHUB__service__DISABLE_REGISTRATION
+              value: "true"
+            - name: GITHUB__webhook__ALLOWED_HOST_LIST
+              value: "*.cluster.local,oya-ci"
+          ports:
+            - { name: http, containerPort: 3000 }
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities: { drop: ["ALL"] }
+          resources:
+            requests: { cpu: 100m, memory: 256Mi }
+            limits: { cpu: "1", memory: 1Gi }
+          volumeMounts:
+            - { name: data, mountPath: /var/lib/gitea }
+            - { name: tmp, mountPath: /tmp }
+          readinessProbe:
+            httpGet: { path: /api/healthz, port: http }
+            initialDelaySeconds: 10
+            periodSeconds: 10
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: github-data
+        - name: tmp
+          emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: github
+  namespace: oya-forge
+spec:
+  selector:
+    app.kubernetes.io/name: github
+  ports:
+    - { name: http, port: 3000, targetPort: http }

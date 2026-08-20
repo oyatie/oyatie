@@ -1,0 +1,27 @@
+[package]
+name = "tenancy-tenant-lifecycle-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "tenancy_tenant_lifecycle_usecase"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
+oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
+tenancy-tenant-lifecycle-domain = { path = "../tenant-lifecycle-domain" }
+tenancy-tenant-lifecycle-kernel = { path = "../tenant-lifecycle-kernel" }
+serde_json = { workspace = true }
+
+# The provider/store ports are async (bare Pin<Box<dyn Future>>); the
+# conformance + reconcile integration tests `.await` them under #[tokio::test].
+[dev-dependencies]
+tokio = { workspace = true, features = ["macros", "rt"] }
+
+[lints]
+workspace = true

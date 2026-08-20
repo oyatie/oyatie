@@ -1,0 +1,38 @@
+{
+  "$id": "red_test_report.v1",
+  "type": "object",
+  "required": ["schema", "suite_commands", "proof_failed", "tests_added", "product_code_changed"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "const": "red_test_report.v1" },
+    "suite_commands": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["cmd", "exit_code", "expect_nonzero"],
+        "properties": {
+          "cmd": { "type": "string" },
+          "exit_code": { "type": "integer" },
+          "expect_nonzero": { "const": true },
+          "stderr_excerpt": { "type": "string" }
+        }
+      }
+    },
+    "proof_failed": {
+      "type": "boolean",
+      "description": "Must be true: suite failed before implementation"
+    },
+    "tests_added": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string" },
+      "description": "Paths of new/changed test files"
+    },
+    "product_code_changed": {
+      "type": "boolean",
+      "description": "Must be false at RED stage (tests only)"
+    },
+    "behavior_under_test": { "type": "string" }
+  }
+}

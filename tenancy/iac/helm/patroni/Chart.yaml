@@ -1,0 +1,13 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: v2
+name: oya-tenancy-patroni
+description: Patroni HA manager for Postgres + Citus coordinator per multi-region.md
+type: application
+version: 0.1.0
+appVersion: "3.3.0"  # Patroni LTS line
+maintainers:
+  - name: ops-sre-reliability
+dependencies:
+  - name: postgres-operator
+    version: "^1.10.1"
+    repository: https://opensource.zalando.com/postgres-operator/charts/postgres-operator/

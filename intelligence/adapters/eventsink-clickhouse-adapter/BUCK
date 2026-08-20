@@ -1,0 +1,31 @@
+rust_library(
+    name = "intelligence-eventsink-clickhouse-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_eventsink_clickhouse_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/kernel:intelligence-kernel",
+        "//libs/oya-shared-olap-clickhouse-adapter:oya-shared-olap-clickhouse-adapter",
+        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "third-party//:serde",
+        "third-party//:tokio",
+        "third-party//:tracing",
+    ],
+)
+
+rust_test(
+    name = "intelligence-eventsink-clickhouse-adapter-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_eventsink_clickhouse_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/kernel:intelligence-kernel",
+        "//libs/oya-shared-olap-clickhouse-adapter:oya-shared-olap-clickhouse-adapter",
+        "//libs/oya-shared-olap-client-kernel:oya-shared-olap-client-kernel",
+        "third-party//:serde",
+        "third-party//:tokio",
+        "third-party//:tracing",
+    ],
+)

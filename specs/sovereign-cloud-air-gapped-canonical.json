@@ -1,0 +1,138 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "spec_id": "sovereign-cloud-air-gapped-canonical",
+  "spec_kind": "canonical-decision",
+  "authoring_adr": "ADR-0164",
+  "related_adrs": [
+    "ADR-0009",
+    "ADR-0043",
+    "ADR-0049",
+    "ADR-0121",
+    "ADR-0143",
+    "ADR-0145",
+    "ADR-0158",
+    "ADR-0161",
+    "ADR-0162"
+  ],
+  "status": "Accepted",
+  "date": "2026-05-18",
+  "title": "Sovereign Cloud / Air-Gapped Deployment Canonical Spec",
+  "purpose": "Operationalizes ADR-0164. Declares the per-pack air_gap overlay, on-prem dependency substitution matrix, regulator binding, and CI enforcement.",
+  "pack_air_gap_field": {
+    "path": "microservices/<ms>/iac/kustomize/components/pack-{name}/values.yaml#air_gap",
+    "type": "boolean",
+    "default": false
+  },
+  "air_gap_overlay_substitutions": {
+    "container_registry": {
+      "external": "ghcr.io / gcr.io / hub.docker.com",
+      "in_cell": "Harbor 2.x at registry.{cell}.svc.cluster.local",
+      "image_pull_policy": "IfNotPresent",
+      "image_reference_rewrite": "registry.{cell}.svc.cluster.local/oya/<ms>:<tag>",
+      "preflight_mirror_job": "microservices/cloud-iac/iac/helm/harbor-mirror/",
+      "signature_verification": "Sigstore Cosign + Kyverno admission controller (per ADR-0146 / SLSA L3)"
+    },
+    "secret_store": {
+      "external": "AWS KMS / GCP KMS / Azure Key Vault",
+      "in_cell": "OpenBao (BSL-free Vault fork) + HSM-backed seal (per ADR-0043)",
+      "no_external_kms": true
+    },
+    "audit_chain_shard": {
+      "rule": "per ADR-0162, sovereign tenants get dedicated shards with in-cell storage + sealing keys",
+      "fleet_wide_root_publication": "in-region only (no external trust-portal anchor); quarterly offline-media publication acceptable per regulator"
+    },
+    "external_api_egress": {
+      "policy": "DENY by default; Istio ServiceEntry absent for external hosts; Cilium L7 egress policy denies",
+      "llm_providers_external_forbidden": [
+        "Anthropic",
+        "OpenAI",
+        "Google Gemini"
+      ],
+      "llm_providers_on_prem": {
+        "vllm_models": [
+          "Llama 3.x",
+          "DeepSeek",
+          "Qwen",
+          "Mistral OSS"
+        ],
+        "ollama_dev_tier": true,
+        "per_pack_model_selection": "microservices/intelligence/iac/kustomize/components/pack-{name}/values.yaml"
+      },
+      "dns_in_cell": "CoreDNS",
+      "ntp_in_cell": "chrony",
+      "ocsp_crl_in_cell": "in-cell PKI"
+    },
+    "observability_telemetry": {
+      "external_saas_forbidden": [
+        "Datadog",
+        "Honeycomb SaaS",
+        "New Relic"
+      ],
+      "in_cell_backend": "Prometheus/Mimir + Tempo + Loki (observability µservice)"
+    },
+    "ci_runner_option": {
+      "rule": "sovereign tenants may require in-region CI runners",
+      "implementation": "per-pack overlay points deploy pipeline at in-region self-hosted runners in separate build cell"
+    }
+  },
+  "per_pack_air_gap_matrix": {
+    "pack-us-shared": {
+      "air_gap": false,
+      "regulator": null,
+      "llm": "external Anthropic / OpenAI"
+    },
+    "pack-eu": {
+      "air_gap": false,
+      "regulator": "GDPR + EHDS",
+      "llm": "external EU-region only"
+    },
+    "pack-eu-sovereign-airgap": {
+      "air_gap": true,
+      "regulator": "BSI C5 / SecNumCloud / ACN",
+      "llm": "vLLM Llama 3 + Mistral"
+    },
+    "pack-kr": {
+      "air_gap": false,
+      "regulator": "PIPA",
+      "llm": "external KR-region only"
+    },
+    "pack-kr-fsc": {
+      "air_gap": true,
+      "regulator": "KR FSC 전자금융감독규정",
+      "llm": "vLLM HyperCLOVA-X (Naver) + Llama 3"
+    },
+    "pack-kr-public": {
+      "air_gap": true,
+      "regulator": "전자정부법",
+      "llm": "vLLM Llama 3"
+    },
+    "pack-jp": {
+      "air_gap": false,
+      "regulator": "APPI",
+      "llm": "external JP-region only"
+    },
+    "pack-ksa": {
+      "air_gap": true,
+      "regulator": "NCA ECC-1",
+      "llm": "vLLM Falcon (G42) + Llama 3"
+    },
+    "pack-uae": {
+      "air_gap": true,
+      "regulator": "NESA / TDRA",
+      "llm": "vLLM Falcon + Llama 3"
+    },
+    "pack-us-gov": {
+      "air_gap": true,
+      "regulator": "FedRAMP High / ITAR",
+      "llm": "vLLM Llama 3"
+    }
+  },
+  "ci_lane": "air-gap-overlay (oya gate validate air-gap-overlay)",
+  "ci_assertions": [
+    "air-gap packs reference no external host in ServiceEntry / NetworkPolicy egress",
+    "image references in air-gap pack manifests rewritten to in-cell Harbor",
+    "foundry-providers external LLM client code is absent from air-gap pack image build",
+    "OpenBao Helm chart present + HSM-backed seal configured",
+    "per-pack compliance attestation document present at microservices/governance/catalog/pack-{name}-air-gap-attestation.md"
+  ]
+}

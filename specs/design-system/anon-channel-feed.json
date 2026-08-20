@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/design-system/anon-channel-feed.schema.json",
+  "title": "DesignSystem:Anon Channel Feed",
+  "doc_class": "Machine-Readable-Spec",
+  "component_id": "anon-channel-feed",
+  "owner_team": "communications-service-council",
+  "product_ref": "$ref:specs/microservices/anonymous.json",
+  "component_name": "AnonChannelFeed",
+  "status": "planned-contract",
+  "variants": [
+    "company-channel",
+    "public-board",
+    "topic-board"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": true,
+    "screen_reader": true,
+    "reduced_motion": true
+  },
+  "responsive_breakpoints": [
+    "mobile-portrait",
+    "tablet",
+    "desktop"
+  ],
+  "contract": {
+    "purpose": "AnonChannelFeed is a declared Anonymous UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
+    "state_model_ref": "$ref:specs/microservices/anonymous.json#frontend_components"
+  }
+}

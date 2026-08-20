@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/api-surface-separation.schema.json",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-API-SURFACE-SEPARATION",
+    "version": "1.0.0",
+    "status": "Accepted",
+    "enforcement_status": "advisory-until-gateway-tier-deployed",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-18T00:00:00Z",
+    "binding_adr": "ADR-0177",
+    "purpose": "Two-tier gateway split — public vs internal — with per-tier policy."
+  },
+  "title": "Internal vs external API surface separation",
+  "type": "object",
+  "required": [
+    "surfaces"
+  ],
+  "properties": {
+    "surfaces": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "surface_id",
+          "hostname",
+          "stability_tier",
+          "auth",
+          "rate_limit_tier",
+          "semver_discipline",
+          "deprecation_window_days"
+        ],
+        "properties": {
+          "surface_id": {
+            "type": "string",
+            "enum": [
+              "public",
+              "internal"
+            ]
+          },
+          "hostname": {
+            "type": "string"
+          },
+          "stability_tier": {
+            "type": "string",
+            "enum": [
+              "Public-Stable",
+              "Public-Preview",
+              "Internal",
+              "Experimental"
+            ]
+          },
+          "auth": {
+            "type": "string",
+            "enum": [
+              "oauth2-plus-key-signature",
+              "mesh-mtls-spiffe-only"
+            ]
+          },
+          "rate_limit_tier": {
+            "type": "string",
+            "enum": [
+              "per-public-key-per-ip",
+              "per-microservice-internal"
+            ]
+          },
+          "semver_discipline": {
+            "type": "string",
+            "enum": [
+              "mandatory",
+              "optional"
+            ]
+          },
+          "deprecation_window_days": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      },
+      "default": [
+        {
+          "surface_id": "public",
+          "hostname": "api.oyatie.com",
+          "stability_tier": "Public-Stable",
+          "auth": "oauth2-plus-key-signature",
+          "rate_limit_tier": "per-public-key-per-ip",
+          "semver_discipline": "mandatory",
+          "deprecation_window_days": 90
+        },
+        {
+          "surface_id": "internal",
+          "hostname": "internal-api.oyatie.com",
+          "stability_tier": "Internal",
+          "auth": "mesh-mtls-spiffe-only",
+          "rate_limit_tier": "per-microservice-internal",
+          "semver_discipline": "optional",
+          "deprecation_window_days": 7
+        }
+      ]
+    },
+    "route_classification_field": {
+      "const": "api_surface"
+    },
+    "internal_rate_limit_budget_multiplier_over_public": {
+      "const": 10
+    },
+    "promotion_rule": {
+      "const": "internal-to-public requires ADR amendment + full ADR-0037 surface"
+    }
+  }
+}

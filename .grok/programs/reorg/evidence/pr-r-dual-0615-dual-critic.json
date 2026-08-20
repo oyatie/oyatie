@@ -1,0 +1,54 @@
+{
+  "pr": 1568,
+  "head": "648398895655f75c71527aaf0089f4e579d2a631",
+  "title": "docs(reorg): R-DUAL-0615 dual-home oya/* disposition inventory (ADR-0615)",
+  "is_draft": true,
+  "verdict": "APPROVE",
+  "critics": [
+    {
+      "id": "A",
+      "verdict": "APPROVE",
+      "lenses": [
+        "cartesian_doubt",
+        "red_team",
+        "essentialism"
+      ],
+      "path": ".grok/programs/reorg/evidence/pr-r-dual-0615-critic-a.json"
+    },
+    {
+      "id": "B",
+      "verdict": "APPROVE",
+      "lenses": [
+        "contrarian",
+        "systems_thinking",
+        "blast_radius",
+        "chesterton_fence"
+      ],
+      "path": ".grok/programs/reorg/evidence/pr-r-dual-0615-critic-b.json"
+    }
+  ],
+  "summary": "Dual-critic APPROVE: inventory-only R-DUAL-0615 with ADR-0615 re-query; all five trees park; zero path moves; follow-on move cards explicit.",
+  "blockers": [],
+  "merge_recommendation": "squash_merge_when_ci_green",
+  "not_claiming": [
+    "Batch-5 path moves for emergency/imaging/diagnostics",
+    "storage/facade domain crate relocation",
+    "app/healthcare or app/health-diagnostics product creation",
+    "delete of oya/* scaffolds",
+    "new move-plan"
+  ],
+  "dispositions_summary": {
+    "oya/drive": "park (dual-home with storage/facade/drive)",
+    "oya/recordings": "park (dual-home with storage/facade/recordings)",
+    "oya/emergency": "park \u2192 future move app/healthcare",
+    "oya/imaging": "park \u2192 future move app/healthcare",
+    "oya/diagnostics": "park \u2192 future move app/health-diagnostics"
+  },
+  "evidence": [
+    "evidence/reorg/r-dual-0615-oya-disposition-inventory-20260805.json",
+    "evidence/reorg/r-dual-0615-oya-disposition-inventory-20260805.md"
+  ],
+  "reviewed_at": "2026-08-05T12:20:00Z",
+  "reviewer": "orchestrator-dual-critic",
+  "bead": "oyatie-oso.20"
+}

@@ -1,0 +1,730 @@
+{
+  "fixture_id": "TC-CRATEADR-002A-GOOD-governance-check-gates-owner-batch",
+  "expected_verdict": "GREEN",
+  "expected_violations": [],
+  "description": "Executable row-level fixture for the CRATEADR-002A governance-check-gates owner batch. It proves the selected missing-association batch is classified crate-by-crate without expanding CRATEADR-002 into a 377-crate implementation epic.",
+  "source_test": "CRATEADR-002A local invariant check: parse this JSON, assert row/action counts, assert manifest and authority paths resolve, and assert each row has a minimum_gate_rule for its classification.",
+  "traceability": {
+    "kanban_task": "t_884e9371",
+    "kanban_title": "CRATEADR-002A: missing-crate owner-batch ADR/design-doc gate fixture",
+    "parent_task": "t_c5f4c49a",
+    "parent_title": "CRATEADR-002: missing crate ADR/design-doc triage backlog",
+    "parent_body": "Sources: /tmp/oyatie-crate-adr-coverage.md; /tmp/oyatie-crate-adr-coverage-all.json\nLane: governance/crate-design-docs\nBlast radius: docs/metadata triage only; no crate implementation changes\nAtomic exit: 370 root workspace missing-association crates plus 7 cloud-kernel crates are grouped into owner batches with required ADR/design-doc action: cite existing ADR, author ADR, reorg target, or retire/defer\nNotes: Derived from crate→ADR coverage audit; must obey PARALLEL-001 before repo edits.",
+    "coverage_artifacts": [
+      {
+        "path": "/tmp/oyatie-crate-adr-coverage.md",
+        "sha256": "b5da17b73542933d399e5880227a176768988189fbcb9a44924323f45900ca17"
+      },
+      {
+        "path": "/tmp/oyatie-crate-adr-coverage-all.json",
+        "sha256": "fc746a25feefee983b69d3b5f36f788d0b5e3fe45933198db875fd4138e8ebc7"
+      },
+      {
+        "path": "/tmp/oyatie-crate-adr-owner-batches-20260630T121234Z.json",
+        "sha256": "3cfe6fbdd10e8ab90be2caa7c54e22ba860d5bcf4fab00b2b568490e44c7101a"
+      },
+      {
+        "path": "/tmp/oyatie-crate-adr-owner-batches-20260630T121234Z.md",
+        "sha256": "b7cfa3790525766188d132cfae7c2445ed41c5d2f40e672269353e1a27a9985a"
+      }
+    ],
+    "owner_batch_artifact": "/tmp/oyatie-crate-adr-owner-batches-20260630T121234Z.json#batches[batch_id=governance-check-gates]"
+  },
+  "selected_owner_batch": {
+    "batch_id": "governance-check-gates",
+    "crate_count": 25,
+    "root_workspace_crate_count": 25,
+    "cloud_kernel_workspace_crate_count": 0,
+    "owner_units": [
+      "governance-check-crates"
+    ],
+    "owner_unit_counts": {
+      "governance-check-crates": 25
+    },
+    "primary_action": "cite_existing_adr",
+    "action_counts": {
+      "cite_existing_adr": 24,
+      "reorg_target": 1
+    },
+    "conflict_class": "cloud-ci-buck2-generated",
+    "allowed_path_prefixes": [
+      "libs/"
+    ],
+    "forbidden_shared_files": [
+      "Cargo.lock",
+      "Cargo.toml",
+      "BUCK",
+      "specs/root-hub-pointers.json",
+      "specs/masterplan.json",
+      "specs/master-plan-sequencing.json",
+      "registry/artifact-capabilities-registry.json",
+      "generated faces"
+    ],
+    "candidate_authority": [
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+      "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+    ],
+    "rationale": "Gate/tooling crates should carry direct lifecycle/authority metadata rather than relying on corpus mentions; one crate is also reorg-sensitive."
+  },
+  "gate_contract": {
+    "gate_id": "crate-adr-design-doc-coverage",
+    "status": "fixture-contract; no crate implementation change in CRATEADR-002A",
+    "input_shape": "{\"rows\":[{\"crate_name\",\"crate_manifest\",\"owner_batch\",\"owner_unit\",\"required_action\",\"coverage_expectation\"}]}",
+    "allowed_required_actions": [
+      "cite_existing_adr",
+      "author_adr",
+      "reorg_target",
+      "retire",
+      "defer",
+      "retire_defer"
+    ],
+    "selected_batch_invariants": {
+      "row_count": 25,
+      "action_counts": {
+        "cite_existing_adr": 24,
+        "reorg_target": 1
+      },
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates"
+    },
+    "row_invariants": [
+      "every row names an existing Cargo.toml manifest under the selected owner batch",
+      "required_action is exactly one of cite_existing_adr, author_adr, reorg_target, retire, defer, retire_defer",
+      "cite_existing_adr rows carry at least one resolving authority_ref and a non-empty minimum_gate_rule",
+      "reorg_target rows carry follow_up_required=true and a non-empty reorg_reason instead of unconditional ADR citation",
+      "the fixture itself cites CRATEADR-002 parent body plus the coverage and owner-batch source artifacts"
+    ]
+  },
+  "rows": [
+    {
+      "crate_name": "oya-check-adr-citation",
+      "crate_manifest": "libs/oya-check-adr-citation/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-adr-placeholders",
+      "crate_manifest": "libs/oya-check-adr-placeholders/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-cedar-fragment-coverage",
+      "crate_manifest": "libs/oya-check-cedar-fragment-coverage/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-claim-ceiling",
+      "crate_manifest": "libs/oya-check-claim-ceiling/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-codeowners-mirror",
+      "crate_manifest": "libs/oya-check-codeowners-mirror/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-cost-budget",
+      "crate_manifest": "libs/oya-check-cost-budget/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-doc-catalog",
+      "crate_manifest": "libs/oya-check-doc-catalog/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-documentation-system",
+      "crate_manifest": "libs/oya-check-documentation-system/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-glossary-coverage",
+      "crate_manifest": "libs/oya-check-glossary-coverage/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-glossary-vocabulary",
+      "crate_manifest": "libs/oya-check-glossary-vocabulary/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-mobile-native",
+      "crate_manifest": "libs/oya-check-mobile-native/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-placeholder-debt",
+      "crate_manifest": "libs/oya-check-placeholder-debt/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-pr-traceability",
+      "crate_manifest": "libs/oya-check-pr-traceability/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-pre-push",
+      "crate_manifest": "libs/oya-check-pre-push/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-protection-context-match",
+      "crate_manifest": "libs/oya-check-protection-context-match/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-quality-lane",
+      "crate_manifest": "libs/oya-check-quality-lane/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-raci-coverage",
+      "crate_manifest": "libs/oya-check-raci-coverage/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-readme-coverage",
+      "crate_manifest": "libs/oya-check-readme-coverage/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-release-pack",
+      "crate_manifest": "libs/oya-check-release-pack/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-retired-vocabulary",
+      "crate_manifest": "libs/oya-check-retired-vocabulary/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-runbook-freshness",
+      "crate_manifest": "libs/oya-check-runbook-freshness/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-runbook-index",
+      "crate_manifest": "libs/oya-check-runbook-index/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-slo-coverage",
+      "crate_manifest": "libs/oya-check-slo-coverage/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-supply-chain",
+      "crate_manifest": "libs/oya-check-supply-chain/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "cite_existing_adr",
+      "allowed_action_label": "cite-existing-adr",
+      "needs_design_doc_triage": true,
+      "reorg_target": false,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "cite-existing-ADR",
+        "minimum_gate_rule": "row is green only when the crate metadata, catalog/design-doc row, or successor coverage registry cites at least one resolving ADR/design-doc authority for this crate path",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "existing-authority-citation"
+      }
+    },
+    {
+      "crate_name": "oya-check-typescript-workspace",
+      "crate_manifest": "libs/oya-check-typescript-workspace/Cargo.toml",
+      "owner_batch": "governance-check-gates",
+      "owner_unit": "governance-check-crates",
+      "required_action": "reorg_target",
+      "allowed_action_label": "reorg-target",
+      "needs_design_doc_triage": true,
+      "reorg_target": true,
+      "source_reasons": [
+        "no ADR in Cargo.toml, ADR corpus mention, or workspace microservice registry",
+        "name/path likely intersects de-brand/retirement/reorg-sensitive surface",
+        "gate/tooling crate: should cite governing ADR/status lifecycle"
+      ],
+      "coverage_expectation": {
+        "kind": "reorg-target",
+        "minimum_gate_rule": "row is green only when the crate is explicitly carried as reorg-target debt with a follow-up move/retire/cite decision instead of receiving an unconditional authority citation",
+        "authority_refs": [
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0700-ci-admission-live-apex.md",
+          "docs/decisions/ADR-0701-monorepo-capability-live-apex.md"
+        ],
+        "resolution_mode": "follow-up-required",
+        "follow_up_required": true,
+        "reorg_reason": "name/path is reorg-sensitive in the CRATEADR-002 source artifact; do not convert to cite-existing-ADR until a focused reorg/retirement decision owns the TypeScript workspace checker surface"
+      }
+    }
+  ]
+}

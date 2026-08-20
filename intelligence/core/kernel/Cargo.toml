@@ -1,0 +1,29 @@
+[package]
+name = "intelligence-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# OAuth subscription-pool kernel (ADR-0384 Path B). Parallels the legacy
+# static-API-key kernel at crates/oya-cloud-intelligence-kernel/ until the OAuth pool
+# reaches parity; a follow-up cleanup PR retires the legacy crates and
+# promotes this crate to the canonical name.
+
+[lib]
+name = "intelligence_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true }
+sha2 = { workspace = true }
+
+[dev-dependencies]
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "time"] }
+proptest = "1.5"
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

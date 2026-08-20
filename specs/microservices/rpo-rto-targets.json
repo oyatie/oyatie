@@ -1,0 +1,261 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://oyatie.com/specs/microservices/rpo-rto-targets.json",
+  "title": "Per-microservice RPO/RTO targets (ADR-0152)",
+  "description": "Aggregated RPO (Recovery Point Objective) and RTO (Recovery Time Objective) targets for every microservice. Per ADR-0152 five-tier model. Source-of-truth is each µservice's backfill-replay.md; this file is the cross-microservice index for DR planning and capacity-model evaluation.",
+  "version": "1.0",
+  "authority_adr": "ADR-0152-rpo-rto-canonical",
+  "tier_definitions": {
+    "realtime": {
+      "rto_max_seconds": 300,
+      "rpo_max_seconds": 0,
+      "description": "< 5 min recovery, zero data loss"
+    },
+    "hot": {
+      "rto_max_seconds": 3600,
+      "rpo_max_seconds": 300,
+      "description": "< 1 h recovery, ≤ 5 min data loss"
+    },
+    "warm": {
+      "rto_max_seconds": 14400,
+      "rpo_max_seconds": 900,
+      "description": "< 4 h recovery, ≤ 15 min data loss"
+    },
+    "cold": {
+      "rto_max_seconds": 86400,
+      "rpo_max_seconds": 3600,
+      "description": "< 24 h recovery, ≤ 1 h data loss"
+    },
+    "best-effort": {
+      "rto_max_seconds": null,
+      "rpo_max_seconds": 86400,
+      "description": "best-effort recovery, ≤ 24 h data loss"
+    }
+  },
+  "targets": [
+    {
+      "microservice": "messenger",
+      "rto_tier": "hot",
+      "rto_target_seconds": 600,
+      "rpo_target_seconds": 60,
+      "rationale": "Real-time chat; users tolerate brief outage but not message loss."
+    },
+    {
+      "microservice": "mail",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "Inbox MUST be durable; deliverability uninterruptible."
+    },
+    {
+      "microservice": "social",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 300,
+      "rationale": "Posts + interactions; brief outage tolerable."
+    },
+    {
+      "microservice": "tasks",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "Task state changes are work-of-record."
+    },
+    {
+      "microservice": "calendar",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "Meetings are time-sensitive; missed-meeting risk."
+    },
+    {
+      "microservice": "drive",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "User documents MUST be durable."
+    },
+    {
+      "microservice": "docs",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "Realtime collaborative editing."
+    },
+    {
+      "microservice": "notes",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "User notes are durable knowledge."
+    },
+    {
+      "microservice": "meet",
+      "rto_tier": "hot",
+      "rto_target_seconds": 600,
+      "rpo_target_seconds": 0,
+      "rationale": "Live conferences; session loss = customer impact."
+    },
+    {
+      "microservice": "recordings",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 60,
+      "rationale": "Post-call asset; durable but tolerable downtime."
+    },
+    {
+      "microservice": "translate",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 900,
+      "rationale": "Cacheable; re-translation tolerable."
+    },
+    {
+      "microservice": "sheets",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "Collaborative spreadsheets."
+    },
+    {
+      "microservice": "slides",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "Collaborative slides."
+    },
+    {
+      "microservice": "forms",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 300,
+      "rationale": "Form submissions; durable but not real-time critical."
+    },
+    {
+      "microservice": "sites",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 300,
+      "rationale": "Static-site equivalent; readers tolerate brief outage."
+    },
+    {
+      "microservice": "shorts",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 300,
+      "rationale": "Video sharing; durable assets."
+    },
+    {
+      "microservice": "community",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 300,
+      "rationale": "Community forums."
+    },
+    {
+      "microservice": "network",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "Identity graph; auth-critical."
+    },
+    {
+      "microservice": "anonymous",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 300,
+      "rationale": "Anonymous-tier traffic; bounded."
+    },
+    {
+      "microservice": "workflow-engine",
+      "rto_tier": "realtime",
+      "rto_target_seconds": 300,
+      "rpo_target_seconds": 0,
+      "rationale": "Workflow orchestrator; durable execution mandatory."
+    },
+    {
+      "microservice": "workflow-studio",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 300,
+      "rationale": "Visual canvas; design-time."
+    },
+    {
+      "microservice": "ontology",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "Canonical entity store; every µservice projects here."
+    },
+    {
+      "microservice": "tenancy",
+      "rto_tier": "realtime",
+      "rto_target_seconds": 300,
+      "rpo_target_seconds": 0,
+      "rationale": "Tenant isolation enforcement; auth-critical."
+    },
+    {
+      "microservice": "audit-chain",
+      "rto_tier": "realtime",
+      "rto_target_seconds": 300,
+      "rpo_target_seconds": 0,
+      "rationale": "Auditable record-of-truth; cannot lose seals."
+    },
+    {
+      "microservice": "governance",
+      "rto_tier": "warm",
+      "rto_target_seconds": 14400,
+      "rpo_target_seconds": 900,
+      "rationale": "Policy authoring substrate; brief outage tolerable."
+    },
+    {
+      "microservice": "observability",
+      "rto_tier": "hot",
+      "rto_target_seconds": 1800,
+      "rpo_target_seconds": 60,
+      "rationale": "SLO/alerting substrate; cannot lose monitoring."
+    },
+    {
+      "microservice": "foundry",
+      "rto_tier": "hot",
+      "rto_target_seconds": 3600,
+      "rpo_target_seconds": 300,
+      "rationale": "Agentic execution platform."
+    },
+    {
+      "microservice": "cell",
+      "rto_tier": "realtime",
+      "rto_target_seconds": 300,
+      "rpo_target_seconds": 0,
+      "rationale": "Per-cell isolation substrate."
+    },
+    {
+      "microservice": "cloud-iac",
+      "rto_tier": "warm",
+      "rto_target_seconds": 14400,
+      "rpo_target_seconds": 900,
+      "rationale": "Provisioning substrate; tolerates brief outage."
+    },
+    {
+      "microservice": "cloud-k8s",
+      "rto_tier": "warm",
+      "rto_target_seconds": 14400,
+      "rpo_target_seconds": 900,
+      "rationale": "K8s adapter; tolerates brief outage."
+    },
+    {
+      "microservice": "cloud-secrets",
+      "rto_tier": "realtime",
+      "rto_target_seconds": 300,
+      "rpo_target_seconds": 0,
+      "rationale": "Secrets substrate (OpenBao); auth-critical."
+    },
+    {
+      "microservice": "application",
+      "rto_tier": "warm",
+      "rto_target_seconds": 7200,
+      "rpo_target_seconds": 300,
+      "rationale": "Shell app; static-tier."
+    }
+  ]
+}

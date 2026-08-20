@@ -1,0 +1,184 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: feature-flags-evaluator
+  namespace: feature-flags
+  labels:
+    app: feature-flags-evaluator
+    microservice: feature-flags
+    bc: flag
+    tier: "2"
+    binding-adr: ADR-0159
+  annotations:
+    oyatie.io/cell-tier: "2"
+    oyatie.io/substrate: "true"
+    oyatie.io/pqc-enabled: "true"
+    oyatie.io/ech-enabled: "true"
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: feature-flags-evaluator
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  template:
+    metadata:
+      labels:
+        app: feature-flags-evaluator
+        microservice: feature-flags
+      annotations:
+        # SPIFFE workload identity per ADR-0295
+        spiffe.io/inject: "true"
+        spiffe.io/service-name: "feature-flags-evaluator"
+        # Kata pod isolation per ADR-0254 (flag definitions contain tenant predicates)
+        io.katacontainers.config.hypervisor.enable_annotations: "true"
+        kata.io/runtime-class: kata-clh
+    spec:
+      runtimeClassName: kata-clh   # Cloud Hypervisor + Kata per ADR-0254
+      serviceAccountName: feature-flags-evaluator
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: evaluator
+          image: oyatie.io/feature-flags-evaluator:latest
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 9090
+              name: grpc
+              protocol: TCP
+            - containerPort: 9091
+              name: metrics
+              protocol: TCP
+          env:
+            - name: CELL_ID
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.annotations['topology.kubernetes.io/cell']
+            - name: RUST_LOG
+              value: "warn"
+            - name: OYA_POLICY_EVAL_MODE
+              value: "library-first"
+            - name: OYA_ONTOLOGY_READ_MODE
+              value: "library-first"
+            - name: OYA_KILLSWITCH_KAFKA_TOPIC
+              value: "oya.feature-flags.killswitch-engaged"
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "256Mi"
+            limits:
+              cpu: "2000m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
+            initialDelaySeconds: 3
+            periodSeconds: 5
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            - name: openbao-secrets
+              mountPath: /var/secrets
+              readOnly: true
+            - name: spiffe-svid
+              mountPath: /var/run/spiffe
+              readOnly: true
+
+        # OpenBao credential sidecar per ADR-0296 (≤60s TTL)
+        - name: openbao-agent
+          image: openbao/openbao-agent:latest
+          args:
+            - agent
+            - -config=/etc/openbao/config.hcl
+          env:
+            - name: OPENBAO_ADDR
+              value: "https://openbao.internal:8200"
+          resources:
+            requests:
+              cpu: "50m"
+              memory: "64Mi"
+            limits:
+              cpu: "100m"
+              memory: "128Mi"
+          volumeMounts:
+            - name: openbao-config
+              mountPath: /etc/openbao
+            - name: openbao-secrets
+              mountPath: /var/secrets
+
+      volumes:
+        - name: openbao-config
+          configMap:
+            name: feature-flags-openbao-config
+        - name: openbao-secrets
+          emptyDir:
+            medium: Memory
+        - name: spiffe-svid
+          csi:
+            driver: spiffe.csi.cert-manager.io
+            readOnly: true
+
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: DoNotSchedule
+          labelSelector:
+            matchLabels:
+              app: feature-flags-evaluator
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: feature-flags-evaluator-pdb
+  namespace: feature-flags
+spec:
+  maxUnavailable: 1
+  selector:
+    matchLabels:
+      app: feature-flags-evaluator
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: feature-flags-evaluator-hpa
+  namespace: feature-flags
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: feature-flags-evaluator
+  minReplicas: 4
+  maxReplicas: 50
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+    - type: Pods
+      pods:
+        metric:
+          name: oya_feature_flag_eval_queue_depth
+        target:
+          type: AverageValue
+          averageValue: "1000"

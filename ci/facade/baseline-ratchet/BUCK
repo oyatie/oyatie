@@ -1,0 +1,174 @@
+# Frozen-reference ratchet policy (ADR-0551), exported so downstream gates can read the
+# authoritative frozen_reference.face_path set as a declared input. The control-plane gate
+# consumes this to forbid de-committing any firewall frozen-reference artifact (the #828 guard).
+export_file(
+    name = "ratchet-policy.json",
+    visibility = ["PUBLIC"],
+)
+
+rust_library(
+    name = "ci-baseline-ratchet",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_baseline_ratchet",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+rust_test(
+    name = "ci-baseline-ratchet-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_baseline_ratchet",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:sha2",
+    ],
+)
+
+# Automation-default surface (founder directive 2026-06-12: red-gating alone is not enough):
+# --fix derives + applies the mechanical retirement of INERT sign-off door entries (key
+# absent from the merge-base frozen face AND from current AND from proposed —
+# FRIC-1781280001), with reparse-and-refuse self-validation; without --fix it reports and
+# exits non-zero. The blocking firewall gate below is the enforcement backstop whose
+# failure detail prints exactly this command.
+rust_binary(
+    name = "oya-cloud-ci-firewall-signoff-fixer",
+    srcs = ["src/main.rs"],
+    crate = "oya_cloud_ci_firewall_signoff_fixer",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-baseline-ratchet",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-firewall-signoff-fixer-unittest",
+    srcs = ["src/main.rs"],
+    crate = "oya_cloud_ci_firewall_signoff_fixer",
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-baseline-ratchet",
+        "third-party//:serde_json",
+    ],
+)
+
+# Typed terminal-state ADAPTER. Fetches the run/jobs/annotations JSON from the Actions REST API
+# and hands it to the pure kernel; it holds no classification logic of its own. It talks to the API
+# directly rather than through `gh`, because `gh` is absent from the owned arm64 runner image (the
+# reason the sibling trusted-baseline fast path is silently dead there). Wired as an additive step
+# in the `oya-ci-required` fan-in: it never decides admission and always exits 0.
+rust_binary(
+    name = "oya-cloud-ci-run-terminal-state-bin",
+    srcs = ["src/bin/oya-cloud-ci-run-terminal-state.rs"],
+    crate = "oya_cloud_ci_run_terminal_state",
+    crate_root = "src/bin/oya-cloud-ci-run-terminal-state.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-baseline-ratchet",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-run-terminal-state-unittest",
+    srcs = ["src/bin/oya-cloud-ci-run-terminal-state.rs"],
+    crate = "oya_cloud_ci_run_terminal_state_unittest",
+    crate_root = "src/bin/oya-cloud-ci-run-terminal-state.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-baseline-ratchet",
+        "third-party//:reqwest",
+        "third-party//:serde_json",
+    ],
+)
+
+# cloud-ci-firewall :oya-cloud-ci-firewall-app-gate — the single required GO-LIVE status check.
+# Regenerates the gate-baseline over the live tree, byte-diffs nothing (registry-drift owns
+# that), and runs the compare-mode + ratchet-invariant predicates: GREEN on today's frozen
+# corpus, RED on any NEW finite violation. The four gate rust_tests remain the unit-level
+# RED/GREEN proofs. (Named -gate to avoid an in-package collision with the rust_library.)
+rust_test(
+    name = "ci-baseline-ratchet-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_baseline_ratchet_corpus",
+    crate_root = "tests/firewall.rs",
+    # HERMETIC: the test regenerates the gate-baseline by execing the buck2-BUILT producer binary
+    # (no `env!("CARGO")`, no `cargo run`). `$(exe ...)` makes buck2 build the producer and
+    # substitute its sandbox path; the producer reads the materialized scm-facts face from the
+    # repo root (ADR-0604 de-commit class: not tracked in git; the CI/local materialize boundary
+    # regenerates it on the candidate tree before gates run) — no action calls git.
+    env = {
+        "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //.claude:settings-json)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //.codex:hooks-json)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR": "$(location //tools/hooks:top-level-hook-scripts)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-baseline-ratchet",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
+        "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
+        "//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness",
+        "third-party//:serde_json",
+    ],
+)
+
+# gate-registration completeness meta-test (R6; ADR-0515 D2). A buck2 rust_test with its OWN
+# crate_root (the firewall-app-gate target's crate_root is tests/firewall.rs, so this second
+# test file needs its own target to run under buck2). It is a pure filesystem+text gate (reads
+# the gates dir + greps the workflow yaml via the test's repo-root walk — no git, no producer),
+# so it needs no env. Hermetic: reads only committed tracked files.
+rust_test(
+    name = "ci-baseline-ratchet-gate-registration",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_baseline_ratchet_gate_registration",
+    crate_root = "tests/gate_registration.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-baseline-ratchet",
+        "third-party//:serde_json",
+    ],
+)
+
+# GH #1003 required-context status API contract: prove failed gate diagnosis comes from the
+# canonical run-observability packet, serialized status projection, and typed artifacts — not raw
+# GitHub Actions log scraping. Legacy path note: this target stays under ci/facade only
+# while oya-ci-required is the live bridge; the stable contracts live under top-level specs/.
+rust_test(
+    name = "ci-baseline-ratchet-run-observability-packet",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_baseline_ratchet_run_observability_packet",
+    crate_root = "tests/run_observability_packet.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-baseline-ratchet",
+        "third-party//:serde_json",
+    ],
+)
+
+# Typed terminal-state acceptance proof. Unlike the packet contract above (which validates
+# hand-written fixtures), this target classifies CAPTURED REAL RUNS: run 30677213867 (a runner that
+# died mid-step and produced no verdict) and run 30692655896 (a producer-regen wedge carrying both
+# a skipped lane and a genuine gate failure). It pins the three-way separation an operator cannot
+# make today, and includes the RED exhibit — today's fan-in predicate collapsing all three into one
+# undifferentiated red.
+rust_test(
+    name = "ci-baseline-ratchet-run-terminal-state",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_baseline_ratchet_run_terminal_state",
+    crate_root = "tests/run_terminal_state.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-baseline-ratchet",
+        "third-party//:serde_json",
+    ],
+)

@@ -1,0 +1,802 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "spec_id": "EXE-PLATFORM-DELIVERY-FABRIC-PRODUCTIZATION",
+  "spec_kind": "target-architecture-and-parity-plan",
+  "version": "0.1.0",
+  "status": "proposed-for-governance-reconciliation",
+  "created_at": "2026-06-29T00:00:00Z",
+  "owner_team": "council-architecture + platform-delivery-fabric",
+  "title": "Universal platform delivery fabric productization plan",
+  "purpose": "Define the owned Rust, cloud-native, API-driven, productized pipeline/control-plane direction that supersedes CLI-shaped, shell-shaped, vendor-authority, and oya-/cloud-prefixed destination assumptions while preserving existing bridge evidence as migration input only.",
+  "source_authority": {
+    "founder_directives_recorded": [
+      "The pipeline is universal and productized, not Oyatie-specific glue.",
+      "Do not add CLI, shell, or local bridge authority; canonical surfaces are cloud-native APIs, controllers, webhooks, services, and console/API operations.",
+      "GitHub Actions is an adapter and benchmark, not the north star.",
+      "Existing oya-* and cloud-* shapes are likely reorg targets and must not be extended as destination debt.",
+      "Benchmark best-in-class systems; take strengths, improve structural weaknesses, and track source repos as parity targets.",
+      "Rust is the first-party implementation language for owned control planes, reconcilers, policy evaluators, kernels, schedulers, and adapters.",
+      "Kubernetes and Linux userspace ABI compatibility are parity targets; internal kernel APIs are not stable contracts.",
+      "Contradictions become fixuptasks, not taste-based resolution."
+    ],
+    "repo_authority_refs": [
+      "AGENTS.md#Engineering principles & review lenses",
+      "AGENTS.md#agent-instructions",
+      "specs/root-hub-pointers.json#bespoke_cloud_toolchain_services",
+      "specs/bespoke-cloud-toolchain-services.json",
+      "governance/capability-registry.json#capabilities.ci",
+      "governance/capability-registry.json#capabilities.workflow",
+      "governance/capability-registry.json#capabilities.iac",
+      "governance/capability-registry.json#capabilities.k8s",
+      "registry/fixuptasks.jsonl"
+    ],
+    "research_artifacts": [
+      {
+        "agent": "69-SnykTrivyMatrix",
+        "sha256": "50e770090f2bbbfe01030172b317b7bc40f25985980783dc6410fa1effd58b4f",
+        "covers": "Snyk CLI, Snyk scanning agent, Snyk Broker Container Registry Agent, driftctl, Trivy"
+      },
+      {
+        "agent": "70-ActionsEcosystemMatrix",
+        "sha256": "18fbf3fbc0c156d68aa8cd56f495948c0bc1758e1e47ca62c46caa3a79e5c880",
+        "covers": "GitHub Actions runner, ARC, toolkit, cache, checkout, runner-images, starter workflows"
+      },
+      {
+        "agent": "71-GitlabLegacyControllerMatrix",
+        "sha256": "5cbd075b2d72e507cb893fa998ef7759c129d023f8ebde23f9e0afa9bb23795f",
+        "covers": "GitLab CI/CD and legacy plugin-controller CI"
+      },
+      {
+        "agent": "72-OyatieFitMatrix",
+        "sha256": "07220f6fbbd3b4c1d9f2893d7b13a3c2555ddf0206215334a063c86732582544",
+        "covers": "Neutral capability homes and current repo fit"
+      },
+      {
+        "agent": "73-ArgoProductMatrix",
+        "sha256": "45e47c1494ae93f7cc8e245316033bc6b21a6ad9bfd03bae3d3d43a4ff2c2caf",
+        "covers": "Argo Workflows, CD, Rollouts, Events, Notifications, Image Updater"
+      },
+      {
+        "agent": "74-KubernetesParityMatrix",
+        "sha256": "768d129453335200e2155e519e706d3045b62ea27c0cf17759966a81b7581e67",
+        "covers": "Kubernetes API machinery, controllers, watch/cache, admission, SSA, RBAC, scheduler, kubelet, conformance, Prow/SIG Release"
+      },
+      {
+        "agent": "75-RustParityHarnessPlan",
+        "sha256": "8c5c905c1b96836ab04a1aca92fb28f7e7a4565adc75af52c2c2312ccfe457ce",
+        "covers": "Source tracking registry, golden fixtures, differential parity, replacement scoring"
+      },
+      {
+        "agent": "76-LinuxAbiMatrix",
+        "sha256": "7cb5d39f491e4c8e41f79144356eafa02ea0f57edf63915027cd7903a2c6f025",
+        "covers": "Linux userspace ABI, syscall/ioctl/procfs/sysfs/netlink/cgroup/eBPF/namespaces/seccomp/OCI/CRI"
+      },
+      {
+        "agent": "77-KernelOsReferenceStack",
+        "sha256": "a9ce4bd7fde8e53ae3a0cfc32a08fdacf0580efea5a65b4b6706eae2d33369b2",
+        "covers": "Kernel, OS, runtime reference stack and high-yield Rust replacement lanes"
+      },
+      {
+        "agent": "78-OsParityHarnessPlan",
+        "sha256": "13798d2e860a1807f57e6a7ec6fdeb99c13daca91276eb609ffa250b5ee6cdc5",
+        "covers": "OS/runtime parity harness, conformance, differential testing, promotion gates"
+      }
+    ]
+  },
+  "destination_naming_policy": {
+    "canonical_destination_term": "platform delivery fabric",
+    "deprecated_destination_terms": [
+      "oya-* component names as product-destination identifiers",
+      "cloud-* component names as product-destination identifiers",
+      "legacy plugin-controller CI as sole authority",
+      "GitHub Actions as authority",
+      "local oya/CLI verification authority",
+      "shell workflow as canonical control plane"
+    ],
+    "allowed_legacy_use": "Legacy oya-/cloud-prefixed paths may be referenced only as current-state inventory, bridge adapters, migration aliases, or evidence sources. New destination contracts, capability matrices, and promotion packets use shape-neutral names.",
+    "adapter_rule": "GitHub Actions, GitLab, legacy plugin-controller CI, Argo, Snyk, Trivy, driftctl, Prow, Kubernetes, OCI/runc/containerd, and Linux are benchmark/parity/adapter targets. None becomes the permanent product authority unless separately promoted by explicit governance."
+  },
+  "capability_home_map": [
+    {
+      "home": "ci",
+      "repo_authority": "governance/capability-registry.json#capabilities.ci",
+      "owns": [
+        "change admission",
+        "pipeline admission",
+        "merge queue and projected-state validation",
+        "run orchestration",
+        "worker leases",
+        "artifact/evidence gate production",
+        "status fanout to adapters"
+      ],
+      "does_not_own": [
+        "workflow DSL engine beyond pipeline DAG execution",
+        "generic desired-state infrastructure reconciliation",
+        "identity/PDP implementation",
+        "console shell"
+      ]
+    },
+    {
+      "home": "workflow",
+      "repo_authority": "governance/capability-registry.json#capabilities.workflow",
+      "owns": [
+        "general DAG/spec engine",
+        "event-driven composition",
+        "long-running workflow state machine",
+        "manual approval/suspend/resume primitives reused by CI/CD"
+      ],
+      "does_not_own": [
+        "merge authority",
+        "delivery fabric required status context",
+        "tenant runner pools"
+      ]
+    },
+    {
+      "home": "iac",
+      "repo_authority": "governance/capability-registry.json#capabilities.iac",
+      "owns": [
+        "desired/live drift observations",
+        "declarative infrastructure state",
+        "GitOps/adapter reconciliation contracts",
+        "driftctl-inspired parity fixtures"
+      ],
+      "does_not_own": [
+        "pipeline run authority",
+        "security scanner data model"
+      ]
+    },
+    {
+      "home": "k8s",
+      "repo_authority": "governance/capability-registry.json#capabilities.k8s",
+      "owns": [
+        "Kubernetes API/controller parity",
+        "managed control-plane facade",
+        "CRD/operator compatibility where cloud-native APIs need Kubernetes projection",
+        "conformance tracking against upstream Kubernetes behavior"
+      ],
+      "does_not_own": [
+        "GitHub/GitLab/legacy-controller adapters",
+        "tenant-facing pipeline product semantics"
+      ]
+    },
+    {
+      "home": "iam",
+      "repo_authority": "governance/capability-registry.json#capabilities.iam",
+      "owns": [
+        "principal resolution",
+        "tenant-scoped workload identity",
+        "Cedar/PDP policy decisions",
+        "secret lease authorization"
+      ],
+      "does_not_own": [
+        "pipeline DAG execution",
+        "artifact storage"
+      ]
+    },
+    {
+      "home": "compliance",
+      "repo_authority": "governance/capability-registry.json#capabilities.compliance",
+      "owns": [
+        "audit-pack generation",
+        "regulatory evidence packs",
+        "promotion packet retention rules"
+      ],
+      "does_not_own": [
+        "scanner execution scheduling",
+        "merge queue admission"
+      ]
+    },
+    {
+      "home": "console",
+      "repo_authority": "governance/capability-registry.json#capabilities.console",
+      "owns": [
+        "tenant/operator UI shell",
+        "API-first operational UX replacing local CLIs"
+      ],
+      "does_not_own": [
+        "pipeline control-plane state machine"
+      ]
+    },
+    {
+      "home": "kernel/os",
+      "repo_authority": "AGENTS.md engineering bars + future kernel/os registry row",
+      "owns": [
+        "Linux userspace ABI compatibility harness",
+        "OCI/CRI runtime parity",
+        "sandbox and worker isolation substrate",
+        "OS rollout/rollback primitives"
+      ],
+      "does_not_own": [
+        "delivery fabric business semantics"
+      ],
+      "fixuptask_required": "F-PDF-CAPABILITY-REGISTRY-KERNEL-OS-20260629"
+    }
+  ],
+  "reference_capability_matrix": [
+    {
+      "reference": "Kubernetes",
+      "source_repos": [
+        "https://github.com/kubernetes/kubernetes",
+        "https://github.com/kubernetes-sigs/controller-runtime",
+        "https://github.com/kubernetes/test-infra"
+      ],
+      "strengths_to_adopt": [
+        "declarative versioned API resources with status/conditions",
+        "watch/cache/informer reconciliation with idempotent controllers",
+        "admission chain, RBAC, leases, finalizers, owner references, server-side apply",
+        "conformance suites and skew/version compatibility discipline",
+        "Prow/Tide-style merge automation and required context separation"
+      ],
+      "weaknesses_to_improve": [
+        "Go-centric implementation and large operational surface",
+        "YAML/CLI-heavy user workflows when not wrapped by product APIs",
+        "CRD sprawl without strong product boundaries",
+        "in-cluster control-plane assumptions that should be abstracted behind Rust APIs"
+      ],
+      "native_shape": "Rust API machinery and reconciler kernels with Kubernetes projection/adapters where useful; upstream behavior tracked by golden/differential tests."
+    },
+    {
+      "reference": "Argo ecosystem",
+      "source_repos": [
+        "https://github.com/argoproj/argo-workflows",
+        "https://github.com/argoproj/argo-cd",
+        "https://github.com/argoproj/argo-rollouts",
+        "https://github.com/argoproj/argo-events"
+      ],
+      "strengths_to_adopt": [
+        "workflow DAGs, templates, artifact passing, retries, suspend/resume, archive/offload",
+        "desired/live GitOps reconciliation and health/drift status",
+        "canary, blue-green, ring rollout, metric analysis, automatic rollback",
+        "event sources/triggers and notification ergonomics"
+      ],
+      "weaknesses_to_improve": [
+        "Kubernetes CRD/YAML is too often the user-facing contract",
+        "script steps can encode shell authority and non-hermetic behavior",
+        "multi-product Argo suite creates fragmented policy/audit boundaries",
+        "bridge-specific objects leak into product claims"
+      ],
+      "native_shape": "Typed Rust WorkflowSpec/ReleaseIntent/AnalysisRun/EventBinding APIs with Argo as adapter/reference until parity and deletion criteria are green."
+    },
+    {
+      "reference": "GitHub Actions ecosystem",
+      "source_repos": [
+        "https://github.com/actions/runner",
+        "https://github.com/actions/actions-runner-controller",
+        "https://github.com/actions/cache",
+        "https://github.com/actions/toolkit",
+        "https://github.com/actions/runner-images",
+        "https://github.com/actions/checkout",
+        "https://github.com/actions/starter-workflows"
+      ],
+      "strengths_to_adopt": [
+        "low-friction event-to-run ergonomics",
+        "ephemeral self-hosted runner scale sets via ARC",
+        "separate cache restore/save semantics and scoped cache keys",
+        "checkout hardening lessons for untrusted forks and credential persistence",
+        "runner image lifecycle, SBOM, update/deprecation policy"
+      ],
+      "weaknesses_to_improve": [
+        "workflow YAML and action execution invite shell/Node/plugin authority",
+        "GitHub status/context and runner protocol are vendor-coupled",
+        "hosted runner images are opaque authority unless mirrored and attested",
+        "cache and token scopes require stronger tenant-aware server-side policy"
+      ],
+      "native_shape": "GitHub adapter converts webhooks/statuses/artifacts/caches to neutral ChangeSet, Run, EvidenceBundle, CacheNamespace, and AdapterStatus objects."
+    },
+    {
+      "reference": "GitLab CI/CD",
+      "source_repos": [
+        "https://github.com/gitlabhq/gitlabhq"
+      ],
+      "strengths_to_adopt": [
+        "integrated merge/pipeline/deployment/security product flow",
+        "components/catalog and reusable pipeline abstractions",
+        "protected variables, environments, approvals, and deployment history",
+        "graph/stage/DAG execution model"
+      ],
+      "weaknesses_to_improve": [
+        "monolith coupling of SCM/CI/security/product state",
+        "YAML/shell remains too authoritative",
+        "runner and variable semantics can drift across installations"
+      ],
+      "native_shape": "API-native pipeline components and evidence packs with SCM adapters isolated from authority."
+    },
+    {
+      "reference": "legacy plugin-controller CI",
+      "source_repos": [
+        "legacy-plugin-controller-upstream"
+      ],
+      "strengths_to_adopt": [
+        "extreme extensibility and ecosystem breadth",
+        "durable queue/executor/controller mental model",
+        "mature operational knowledge around agents and credentials"
+      ],
+      "weaknesses_to_improve": [
+        "plugin sprawl and mutable UI/controller drift",
+        "Groovy/imperative job authority and long-lived controller blast radius",
+        "hard-to-standardize multi-tenant security posture"
+      ],
+      "native_shape": "Signed extension points and adapter ports, not arbitrary plugins; controller state in typed Rust services with tenant boundaries."
+    },
+    {
+      "reference": "Snyk + Trivy + driftctl",
+      "source_repos": [
+        "https://github.com/snyk/cli",
+        "https://github.com/snyk/agent-scan",
+        "https://github.com/aquasecurity/trivy",
+        "https://github.com/snyk/driftctl"
+      ],
+      "strengths_to_adopt": [
+        "broad vulnerability, misconfiguration, secret, license, SBOM, VEX, Kubernetes, filesystem, image, repo, VM, and IaC/drift coverage",
+        "private collector/agent patterns for customer environments",
+        "policy/evidence outputs suitable for gates",
+        "airgap/self-host DB lessons"
+      ],
+      "weaknesses_to_improve": [
+        "CLI-first UX and local execution as authority",
+        "Snyk CLI may execute package/build tools on scanned code, unsafe for untrusted content",
+        "plugin/module sprawl and external database freshness dependencies",
+        "driftctl is archived and IaC-source-specific rather than a durable product control plane"
+      ],
+      "native_shape": "Rust ScannerAdapter, PrivateCollector, Finding, DriftObservation, SBOM, VEX, and EvidenceBundle APIs; no implicit code execution by default; all scan engines sandboxed and policy-declared."
+    },
+    {
+      "reference": "Linux + OCI/CRI/container runtime stack",
+      "source_repos": [
+        "https://github.com/torvalds/linux",
+        "https://github.com/firecracker-microvm/firecracker",
+        "https://github.com/opencontainers/runc",
+        "https://github.com/containerd/containerd",
+        "https://github.com/sunfishcode/c-ward"
+      ],
+      "strengths_to_adopt": [
+        "stable userspace syscall ABI discipline",
+        "namespaces, cgroups, capabilities, seccomp, LSM, eBPF, procfs/sysfs/netlink compatibility",
+        "OCI/CRI interoperability and conformance",
+        "Firecracker-style Rust API, jailer/seccomp/cgroup hardening, minimal device model",
+        "c-ward-style split between a small libc ABI wrapper and Rust-idiomatic implementation crates, including explicit no_std/std layering and coexist-vs-take-charge modes"
+      ],
+      "weaknesses_to_improve": [
+        "Linux internal kernel APIs are intentionally not stable and cannot be product contracts",
+        "runtime ecosystems often lean on shell/bootstrap glue",
+        "node/worker isolation is frequently configured out-of-band",
+        "c-ward is experimental, incomplete, nightly-dependent, Linux GNU ABI-only today, and shells out to getent for user/DNS resolution, so it is a cautionary parity input rather than a production authority"
+      ],
+      "native_shape": "Rust runtime and sandbox control plane that preserves Linux userspace ABI, tests OCI/CRI/Kubernetes node compatibility, keeps libc/ABI compatibility behind explicit parity harnesses, and treats kernel-internal APIs plus experimental libc-replacement projects as implementation details until fresh conformance evidence exists."
+    }
+  ],
+  "owned_api_resource_model": {
+    "all_resources_must_include": [
+      "resource_id",
+      "tenant_id",
+      "cell_id",
+      "region",
+      "data_class",
+      "policy_domain",
+      "owner_ref",
+      "generation",
+      "observed_generation",
+      "status_conditions",
+      "audit_chain_ref",
+      "created_at",
+      "updated_at"
+    ],
+    "resources": [
+      {
+        "kind": "ChangeSet",
+        "purpose": "Neutral source-change object from Git, GitHub, GitLab, or future owned SCM adapters.",
+        "authority_boundary": "Candidate bytes are data; trusted policy and gate definitions come from trunk/controller state."
+      },
+      {
+        "kind": "PipelineSpec",
+        "purpose": "Typed pipeline graph, templates, inputs, policies, expected evidence, and hermetic execution contract.",
+        "authority_boundary": "API object accepted only after schema, policy, tenant, and allowed-capability checks; shell snippets are not canonical steps."
+      },
+      {
+        "kind": "RunPlan",
+        "purpose": "Immutable resolved execution plan for a ChangeSet/PipelineSpec at a revision.",
+        "authority_boundary": "Produced by the control plane from trusted definitions; cannot be rewritten by candidate PR bytes."
+      },
+      {
+        "kind": "WorkerLease",
+        "purpose": "Short-lived tenant/cell-scoped execution lease with workload identity, quota, namespace, cache/artifact permissions, and deadline.",
+        "authority_boundary": "All credentials are scoped, time-bound, and bound to tenant/run identities."
+      },
+      {
+        "kind": "EvidenceBundle",
+        "purpose": "Signed, immutable evidence linking commands, tests, scans, artifacts, logs, traces, SLOs, SBOM/VEX, policy decisions, and promotion claims.",
+        "authority_boundary": "No self-attested pass booleans; each entry references an independently verifiable artifact or controller decision."
+      },
+      {
+        "kind": "ScannerRun",
+        "purpose": "Hermetic scanner execution over images, filesystems, repos, Kubernetes state, IaC state, SBOMs, and live resource inventories.",
+        "authority_boundary": "No implicit code execution; package manager/build tool execution requires explicit sandbox policy and evidence."
+      },
+      {
+        "kind": "DriftObservation",
+        "purpose": "Typed desired/live divergence row across Kubernetes, IaC, cloud resources, deployments, policy, and runtime configuration.",
+        "authority_boundary": "Observation is data until reconciler/policy converts it into a decision or fixuptask."
+      },
+      {
+        "kind": "ReleaseIntent",
+        "purpose": "Desired deployment, promotion, canary/ring/cell rollout, rollback, freeze, or breakglass request.",
+        "authority_boundary": "Promotion requires SLO/error-budget, tenant, audit, security, SBOM, rollback/DR, cost, and fresh CI evidence."
+      },
+      {
+        "kind": "AdapterStatus",
+        "purpose": "Read-only projection of vendor/bridge state from GitHub Actions, GitLab, legacy plugin-controller CI, Argo, Snyk, Trivy, driftctl, Kubernetes, OCI, or Linux harnesses.",
+        "authority_boundary": "Adapter status can inform but never replace first-party policy decisions."
+      },
+      {
+        "kind": "ParityTarget",
+        "purpose": "Versioned upstream/source reference with feature rows, fixtures, differential tests, known gaps, and replacement score.",
+        "authority_boundary": "Parity claims are non-terminal until fixture, conformance, and freshness evidence are current."
+      },
+      {
+        "kind": "PromotionPacket",
+        "purpose": "Terminal-or-reopenable readiness claim for product-ready or hyperscaler-ready scope.",
+        "authority_boundary": "Approved packets are reconciliation-terminal but evidence freshness still expires."
+      },
+      {
+        "kind": "FixupTask",
+        "purpose": "Contradiction, gap, or blocked evidence row produced when current state does not satisfy the target contract.",
+        "authority_boundary": "Taste-based resolution is forbidden; contradictions become fixuptasks."
+      }
+    ]
+  },
+  "parity_target_source_tracking_contract": {
+    "purpose": "Make reference/source tracking executable without making external projects, adapters, or bridge CI systems authoritative.",
+    "validator": "governance/check/honest-claims/src/lib.rs#validate_parity_target_source_tracking",
+    "fixture_refs": [
+      "specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-good.json",
+      "specs/fixtures/platform-delivery-fabric/parity-target-source-tracking-bad-authority.json"
+    ],
+    "required_fields": [
+      "target_id",
+      "reference_kind",
+      "source_refs[].url",
+      "source_refs[].pinned_ref",
+      "source_refs[].retrieved_at",
+      "source_refs[].external_authority=false",
+      "source_tracking_state",
+      "freshness_state",
+      "parity_posture",
+      "authority_boundary",
+      "validation_refs",
+      "stop_conditions"
+    ],
+    "authority_rejections": [
+      "external source marked authoritative",
+      "merge authority claim",
+      "promotion authority claim",
+      "product-ready or hyperscaler-ready claim",
+      "missing pinned source reference",
+      "duplicate target_id"
+    ],
+    "c_ward_linux_libc_abi_rule": {
+      "reference_kind": "linux_libc_abi_pessimistic_input",
+      "userspace_abi_preserved": true,
+      "internal_kernel_api_stable": false,
+      "required_caveats": [
+        "getent runtime dependency",
+        "nightly dependency",
+        "incomplete implementation",
+        "linux-gnu-only ABI coverage"
+      ],
+      "authority_boundary": "c-ward is a pessimistic parity input for libc ABI experiments, never readiness or merge authority."
+    }
+  },
+  "state_model": {
+    "terminal_inventory_states": [
+      "closed_out_of_scope",
+      "closed_handed_to_fixuptask:<fixuptask_id>"
+    ],
+    "terminal_promotion_packet_states": [
+      "approved_product_ready",
+      "approved_hyperscaler_ready",
+      "denied_with_fixuptask:<fixuptask_id>",
+      "rejected_out_of_scope",
+      "superseded_by:<promotion_packet_id>"
+    ],
+    "non_terminal_states": [
+      "unreconciled",
+      "needs_review",
+      "tracked_inventory",
+      "fixuptask_required",
+      "blocked",
+      "migration_safe",
+      "promotion_pending",
+      "source_changed_reopen_required"
+    ],
+    "freshness_rule": "Approved packets are terminal for reconciliation but CI, SLO, SBOM, rollback/DR, security, tenant, audit, and cost evidence expires on cadence and must refresh without reopening interviews unless authority/source changes."
+  },
+  "execution_plan": {
+    "principles": [
+      "Map authoritative backlog first, then execute approved slices in isolated worktrees.",
+      "Maximize parallel evidence gathering and migration-safe prep; serialize promotion gates.",
+      "Prefer thin adapters and parity harnesses before deep replacement; replace highest-yield authority-bearing surfaces first.",
+      "Every slice defines success, failure, SLO objective, named failure modes, and a failure-injection test."
+    ],
+    "phases": [
+      {
+        "id": "P0",
+        "name": "Contradiction and authority reconciliation",
+        "goal": "Stop false product claims and stale naming debt from guiding implementation.",
+        "deliverables": [
+          "Root pointer for this shape-neutral target exists.",
+          "Outdated legacy-plugin-controller-sole, GitHub-authority, oya-CLI, oya-*, and cloud-* destination assumptions are recorded as fixuptasks or superseded aliases.",
+          "Current-state rows classify each major productized-pipeline capability as tracked_inventory/fixuptask_required/promotion_pending, never product-ready by assertion."
+        ],
+        "verification": [
+          "JSON parse validation for new/changed spec and current-state artifacts.",
+          "Fixuptask JSONL remains parseable and has no duplicate IDs for appended rows."
+        ]
+      },
+      {
+        "id": "P1",
+        "name": "API contract and resource-model slice",
+        "goal": "Create the neutral API/control-plane contract without new CLI or shell authority.",
+        "deliverables": [
+          "OpenAPI/AsyncAPI/proto contracts for ChangeSet, PipelineSpec, RunPlan, WorkerLease, EvidenceBundle, ScannerRun, DriftObservation, ReleaseIntent, AdapterStatus, ParityTarget, PromotionPacket, and FixupTask.",
+          "Tenant isolation, audit-chain, policy-domain, status-condition, and freshness fields are required across resources.",
+          "Known-bad fixtures prove candidate bytes cannot rewrite gates, runners, status producers, or promotion policies."
+        ],
+        "verification": [
+          "Contract schema validation.",
+          "Known-bad fixture suite for candidate-code-as-data, tenant isolation, and adapter non-authority."
+        ]
+      },
+      {
+        "id": "P2",
+        "name": "Parity registry and source-tracking harness",
+        "goal": "Religiously track reference repos/features without making them authority.",
+        "deliverables": [
+          "ParityTarget rows for Kubernetes, Argo, GitHub Actions, GitLab, legacy plugin-controller CI, Snyk, Trivy, driftctl, Linux ABI, OCI/CRI, Firecracker, and c-ward-style Rust libc ABI experiments.",
+          "Feature rows include upstream version/ref, adopted behavior, rejected weakness, fixture path, differential test path, gap owner, and replacement score.",
+          "Freshness reaper marks source_changed_reopen_required when upstream sources change beyond accepted skew."
+        ],
+        "verification": [
+          "Golden fixture parse tests.",
+          "I/O-free honest-claims validator rejects external authority, duplicate target IDs, missing pinned sources, and optimistic c-ward/kernel ABI claims.",
+          "Differential test scaffold proves at least one behavior per reference family is executable."
+        ]
+      },
+      {
+        "id": "P3",
+        "name": "Rust core kernels",
+        "goal": "Implement first-party kernels before adapters can claim authority.",
+        "deliverables": [
+          "Pipeline graph resolver, admission evaluator, worker lease scheduler, evidence bundle builder, scanner finding model, drift observation model, release analysis model, parity scoring model.",
+          "No shell execution, local CLI, or vendor action is required for core state transitions.",
+          "All kernels are tenant-aware and policy-port driven."
+        ],
+        "verification": [
+          "Unit/property tests for graph determinism, fail-closed policy, tenant partitioning, cache/artifact namespace separation, idempotency, and evidence immutability.",
+          "Failure-injection tests for stale evidence, missing tenant, adapter outage, scanner DB stale, worker lease expiry, and status producer spoofing."
+        ]
+      },
+      {
+        "id": "P4",
+        "name": "Adapter plane",
+        "goal": "Connect bridge systems without delegating product authority to them.",
+        "deliverables": [
+          "GitHub adapter for webhook/status/artifact/cache translation.",
+          "GitLab/legacy-controller adapters for migration inventory only.",
+          "Argo adapters for workflow/CD/rollout parity where still used.",
+          "Snyk/Trivy/driftctl-compatible scanner/drift importers as data-plane collectors.",
+          "Kubernetes/OCI/Linux parity adapters for conformance and runtime proof."
+        ],
+        "verification": [
+          "Adapter status cannot approve a PromotionPacket without first-party PolicyDecision and EvidenceBundle.",
+          "Tenant A cannot read/use tenant B repos, artifacts, caches, logs, secrets, statuses, deployments, rollback handles, or scanner results."
+        ]
+      },
+      {
+        "id": "P5",
+        "name": "Owned worker/runtime lanes",
+        "goal": "Incrementally replace bridge execution/runtime components by highest authority and risk yield.",
+        "deliverables": [
+          "Hermetic worker lease executor behind API, initially using existing build/test substrates only as sandboxed execution engines.",
+          "Rust scanner collector, artifact/cache/evidence services, and sandbox controls.",
+          "Linux userspace ABI, OCI/CRI, and Kubernetes node parity harnesses before replacing runtime components."
+        ],
+        "verification": [
+          "Conformance tests: Kubernetes API/controller subset, OCI/CRI, Linux ABI smoke/LTP subset, scanner fixtures, and Argo/GitHub/GitLab/legacy-controller import fixtures.",
+          "SLO/cost metrics: queue latency, run duration, cache hit ratio, scanner DB freshness, worker isolation denial, rollback RTO/RPO."
+        ]
+      },
+      {
+        "id": "P6",
+        "name": "Product readiness and hyperscaler promotion",
+        "goal": "Promote only evidence-backed, user-pain-reducing product slices.",
+        "deliverables": [
+          "Dogfood journeys show real user pain reduction through the same public APIs tenants use.",
+          "Product-ready packets include user validation, API contracts, tenant isolation, audit, docs/console UX, supportability, and fresh CI evidence.",
+          "Hyperscaler-ready packets include tenant, audit, cost, SLO, security, SBOM, rollback/DR, and fresh CI proof."
+        ],
+        "verification": [
+          "Promotion packet state machine enforcement.",
+          "Freshness expiry and revalidation cadence tests."
+        ]
+      }
+    ]
+  },
+  "parallel_lanes": [
+    {
+      "lane": "A",
+      "name": "Reference parity matrices",
+      "can_run_parallel": true,
+      "owners": [
+        "planner",
+        "architect"
+      ],
+      "outputs": [
+        "ParityTarget rows",
+        "source/ref freshness",
+        "feature/gap matrix"
+      ]
+    },
+    {
+      "lane": "B",
+      "name": "Neutral API contracts",
+      "can_run_parallel": true,
+      "owners": [
+        "executor"
+      ],
+      "outputs": [
+        "OpenAPI/AsyncAPI/proto contracts",
+        "schema fixtures"
+      ]
+    },
+    {
+      "lane": "C",
+      "name": "Rust core kernels",
+      "can_run_parallel": true,
+      "owners": [
+        "executor"
+      ],
+      "outputs": [
+        "domain/usecase crates",
+        "unit/property tests"
+      ]
+    },
+    {
+      "lane": "D",
+      "name": "Adapter importers",
+      "can_run_parallel": true,
+      "owners": [
+        "executor"
+      ],
+      "outputs": [
+        "GitHub/GitLab/legacy-controller/Argo/Snyk/Trivy/drift/Kubernetes adapter ports"
+      ]
+    },
+    {
+      "lane": "E",
+      "name": "OS/runtime parity",
+      "can_run_parallel": true,
+      "owners": [
+        "executor",
+        "architect"
+      ],
+      "outputs": [
+        "Linux ABI/OCI/CRI/K8s node harness",
+        "runtime replacement score"
+      ]
+    },
+    {
+      "lane": "F",
+      "name": "Promotion and evidence governance",
+      "can_run_parallel": true,
+      "owners": [
+        "executor",
+        "architect"
+      ],
+      "outputs": [
+        "PromotionPacket/FixupTask state machine",
+        "freshness reaper",
+        "honest current-state rows"
+      ]
+    },
+    {
+      "lane": "Gate",
+      "name": "Serialized promotion gates",
+      "can_run_parallel": false,
+      "owners": [
+        "architect",
+        "reviewer"
+      ],
+      "outputs": [
+        "approved_product_ready or approved_hyperscaler_ready only when all evidence is current"
+      ]
+    }
+  ],
+  "success_failure_contract": {
+    "success": [
+      "No new destination artifact extends oya-* or cloud-* as canonical product shape.",
+      "No new local CLI/shell surface is used as authority.",
+      "Every pipeline decision is API/control-plane state backed by tenant, policy, evidence, audit, and freshness fields.",
+      "Adapters are explicitly non-authoritative and deletion/parity criteria exist.",
+      "Reference parity rows track upstream source versions/refs and executable fixtures.",
+      "Promotion packets cannot be approved without current tenant, audit, cost, SLO, security, SBOM, rollback/DR, and CI evidence."
+    ],
+    "failure_modes": [
+      "Vendor status, GitHub action, legacy plugin-controller CI job, Argo CRD, Snyk/Trivy CLI, driftctl output, or local shell becomes direct promotion authority.",
+      "Candidate PR bytes can modify their own gate definitions/status producer/runner isolation.",
+      "Tenant pipelines share credentials, cache namespace, artifact namespace, logs/evidence, release ledger, or rollback handles.",
+      "Scan engines execute untrusted package/build tools without explicit sandbox policy.",
+      "Linux internal kernel API is treated as stable product ABI.",
+      "Kubernetes/Argo/GitHub/GitLab/legacy-controller feature parity is asserted without source/ref-tracked tests.",
+      "Approved promotion evidence expires but packet remains presented as fresh."
+    ],
+    "slo_objectives": [
+      {
+        "name": "admission_decision_latency",
+        "target": "p95 <= 1s for policy + graph admission on normal PR-sized ChangeSet; overload returns explicit backpressure not silent pass"
+      },
+      {
+        "name": "runner_isolation_denial",
+        "target": "100% denial for cross-tenant repo/cache/artifact/log/secret/deploy/rollback access fixtures"
+      },
+      {
+        "name": "evidence_freshness",
+        "target": "0 approved promotions with expired CI/SLO/SBOM/DR/security/cost/tenant/audit evidence"
+      },
+      {
+        "name": "adapter_non_authority",
+        "target": "0 paths where adapter status alone can produce approved_product_ready or approved_hyperscaler_ready"
+      }
+    ],
+    "failure_injection_tests": [
+      "Candidate PR edits gate definition to skip tests: admission rejects from trusted trunk/controller diff.",
+      "Tenant A reuses tenant B cache key/artifact/log path: policy denies and evidence records violation.",
+      "GitHub status green but first-party EvidenceBundle missing SBOM: promotion remains fixuptask_required.",
+      "Scanner input package requests install/build script: sandbox blocks by default unless explicit policy permits.",
+      "Upstream Kubernetes fixture behavior changes: ParityTarget becomes source_changed_reopen_required.",
+      "Linux ABI differential test mismatch: runtime replacement lane blocks promotion."
+    ]
+  },
+  "first_implementation_slices_after_plan": [
+    {
+      "id": "PDF-S1",
+      "issue_candidate": "#901 replacement",
+      "description": "Replace the closed long-step telemetry CLI-shaped attempt with an API/control-plane observability slice: typed RunStep/LongStepObservation/EvidenceBundle resources, status-condition transitions, and adapter-neutral persistence tests.",
+      "must_not_do": [
+        "no new CLI",
+        "no shell workflow step",
+        "no cloud/oya destination path debt",
+        "no product-ready claim"
+      ],
+      "verification": [
+        "unit tests for observation classification",
+        "JSON/OpenAPI schema validation",
+        "known-bad stale evidence fixture"
+      ]
+    },
+    {
+      "id": "PDF-S2",
+      "issue_candidate": "#777 / gate self-conformance",
+      "description": "Shape-neutral meta-gate proving every delivery-fabric gate has an executed runner, bite fixture, trusted source, and non-authority adapter boundary.",
+      "verification": [
+        "known-bad ghost lane fails",
+        "known-bad adapter-only pass fails",
+        "fixuptask rows created for contradictions"
+      ]
+    },
+    {
+      "id": "PDF-S3",
+      "issue_candidate": "new parity registry slice",
+      "description": "ParityTarget schema and initial rows for Kubernetes, Argo, GitHub Actions, GitLab/legacy-controller, Snyk/Trivy/driftctl, Linux ABI, OCI/CRI, and c-ward-style Rust libc ABI experiments.",
+      "verification": [
+        "schema parse",
+        "duplicate target ID rejection",
+        "freshness state transition tests"
+      ]
+    }
+  ],
+  "open_fixuptasks_to_append": [
+    "F-PDF-CLOUD-TOOLCHAIN-SUPERSESSION-20260629",
+    "F-PDF-CAPABILITY-REGISTRY-KERNEL-OS-20260629",
+    "F-PDF-REFERENCE-PARITY-HARNESS-20260629"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "fixture_id": "CELL-002-ROLLBACK-AUDIT-ROW-001",
+  "fixture_kind": "rollback_audit_row",
+  "contract": "specs/cell-002-promotion-automation-contract.json",
+  "source_adrs": [
+    "ADR-0341",
+    "ADR-0348",
+    "ADR-0351"
+  ],
+  "audit_row": {
+    "event_type": "cell.rebalance.rollback_audit_fixture",
+    "tenant_id": "ten_fixture_cell002_kr_paid_001",
+    "source_cell_id": "cell-kr-seoul-a-t2-hot",
+    "target_cell_id": "cell-kr-seoul-b-t2-cooler",
+    "cell_id": "cell-kr-seoul-a-t2-hot",
+    "pre_state": "TargetActivate",
+    "post_state": "RolledBack",
+    "residency_check_result": "honored",
+    "compliance_pack_check_result": "honored",
+    "cedar_permit_id": "cedar-permit-cell002-fixture-001",
+    "initiated_by": "control_plane:cell-orchestrator",
+    "audit_chain_id": "audit-chain-cell002-fixture-001",
+    "rollback_pointer": "rollback://cell-rebalancer/job-cell002-fixture-001/source-epoch-42",
+    "evidence_pack_id": "evidence-pack-cell002-rollback-fixture-001"
+  },
+  "replay_expectation": {
+    "operator_action": "verify row shape and rollback pointer before any later implementation claims terminal recovery",
+    "source_epoch_restoration": "source-epoch-42",
+    "target_activation_posture": "freeze_or_reverse_before_success_claim"
+  },
+  "non_claims": [
+    "Fixture row only; not emitted to audit-chain storage.",
+    "No tenant migration, source epoch restoration, target activation, routing cutover, or rollback execution occurs in this fixture.",
+    "No Cedar runtime evaluation, audit-chain seal, database transaction, provider API, Kubernetes API, or external evidence-store call is performed."
+  ]
+}

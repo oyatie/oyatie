@@ -1,0 +1,15 @@
+[package]
+name = "tenancy-isolation-policy"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "tenancy_isolation_policy"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

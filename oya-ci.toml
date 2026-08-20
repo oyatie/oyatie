@@ -1,0 +1,308 @@
+# oya-ci.toml — oyatie's EXPLICIT oya-ci CONFORMANCE-FLOOR config (OYA-CI-CONFORMANCE-FLOOR-PLAN Stage 2).
+#
+# This file reproduces oyatie's CURRENT policy byte-for-byte: the producer
+# (oya-cloud-ci-accounting-registry-app) loads it via oya-ci-config-kernel's CLOSED-schema
+# loader (unknown keys are an error), falling back to the compiled-in bundled default when
+# the file is absent. Authoring it here makes the policy DATA (doc-as-data doctrine): a repo
+# adopts oya-ci by dropping its own oya-ci.toml. The schema reference + every default lives in
+# docs/oya-ci/ (Stage D).
+#
+# The ttl + unit_class + gate-disposition tables stay as the crate's bundled JSON DATA (the
+# `[ttl]` / `[unit_class]` sections below are intentionally empty = "use the bundled table");
+# author an inline_json override only to diverge from the bundled tables.
+#
+# DE-BRAND PROFILE (ADR-0532 amends ADR-0017; ADR-0533; ADR-0562 §9): `profile` selects the
+# bundled section defaults. `oyatie` is the first-party self-host profile — today's values
+# VERBATIM, ZERO behaviour change (the safety property). A neutral adopter sets `profile =
+# 'neutral'` (policy-free, zero oyatie literals) and authors only their own policy. `oyatie` is
+# the default, so this key is byte-identical to omitting it (it is skipped from the canonical
+# serialization that feeds the provenance digest).
+profile = 'oyatie'
+
+[repo]
+root_markers = ["specs/root-hub-pointers.json"]
+path_excludes = ["third-party/"]
+
+[naming]
+required_prefix = "oya-"
+allowed_roles = ["kernel", "domain", "usecase", "app", "adapter", "infrastructure", "cli", "rest", "grpc", "worker", "sdk", "api"]
+check_family_prefix = "oya-check-"
+backend_suffixes = ["fake", "inmemory", "aws", "oci", "gcp", "azure", "postgres", "redis", "sqlite"]
+doctrinal_carve_outs = ["oya-tooling-agent-read", "oya-ci-gate-contract"]
+
+[[vocab.forbidden_stems]]
+stem = "foundry"
+code = "forbidden_foundry"
+
+[[vocab.forbidden_stems]]
+stem = "forgejo"
+code = "forbidden_forgejo"
+
+[[vocab.forbidden_stems]]
+stem = "jenkins"
+code = "forbidden_jenkins"
+
+[[vocab.forbidden_stems]]
+stem = "oya-vcs"
+code = "forbidden_oya-vcs"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "ci/facade/cloud-name-ratchet/cloud-name-baseline.json"
+reason = "the frozen cloud-/oya- rename baseline ENUMERATES the identifiers still to be renamed, and some of those identifiers contain a forbidden stem. Listing the debt is the census, not the debt — the same rationale that carves out oya-check-brand-residue's own source and this file."
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "libs/oya-check-brand-residue/"
+reason = "the deny-list patterns themselves are not residue"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "libs/oya-ci-config/"
+reason = "the config-era deny-list SSOT (forbidden-stem table + bundled disposition) — naming a stem here is the deny-list, not residue (same rationale as oya-check-brand-residue)"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "oya-ci.toml"
+reason = "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "registry/catalog/oya-check-brand-residue.yaml"
+reason = "the catalog deny-list spec is not residue"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "oya/intelligence/_legacy-foundry/"
+reason = "intentional historical archive of the dropped work"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "marketplace/facade/dev-cli/tests/"
+reason = "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — structural references to real contract paths, not brand residue; moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "/../../../contracts/openapi/foundry/capability-v1.yaml"
+exempt_stems = ["foundry"]
+reason = "the moved OpenAPI domain's one relocation-adjusted include path is exempt line-by-line; unchanged historical occurrences remain governed by the rename-aware shrink-only baseline"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "//contracts/openapi/foundry:capability-v1.yaml"
+exempt_stems = ["foundry"]
+reason = "the one newly wired canonical Buck source label is exempt line-by-line; the containing BUCK file remains scanned for unrelated forbidden vocabulary"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "contracts/openapi/foundry/buck"
+exempt_stems = ["foundry"]
+reason = "the exact canonical Buck package marker must be named by its ADR-0562 justification and exact-path reachability registration; only lines containing that full structural path are exempt"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "evidence/audit-chain.jsonl"
+reason = "append-only audit chain — NEVER rewritten"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "ci/facade/action-item-accounting/friction-ledger.jsonl"
+reason = "append-only local lane friction ledger (retargeted from deleted .omc/ultragoal/) — records historical defect text and is not a product/governance vocabulary source"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "specs/integ-branch-envelopes.json"
+reason = "faithful judgment map that must name real filesystem paths under delete targets including retired-pipeline-brand directories (docs/foundry/, templates/foundry-supervisor/); embeds path strings as data, not live product vocabulary — same carve class as specs/microservice-tier-classification.json"
+
+[[vocab.carve_outs]]
+kind = "path_suffix"
+value = ".generated.json"
+reason = "producer-generated faces record the tokens the gates track; a hand-edit is its own registry_drift RED"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "specs/microservice-tier-classification.json"
+reason = "faithful projection of ALL manifest paths in the live tree, including oya/intelligence/_legacy-foundry/manifest.json whose directory is already carved out; the projection embeds the path as a JSON key, not brand residue — the underlying _legacy-foundry de-brand is a separate tracked concern (ADR-0562/Phase-0)"
+
+[[vocab.carve_outs]]
+kind = "line_contains_ci"
+value = "palantir"
+exempt_stems = ["foundry"]
+reason = "Palantir-Foundry is a competitor proper noun, not brand residue"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "evidence/audits/ci-011-shell-cli-retirement-inventory-2026-06-30.json"
+reason = "CI-011 faithful point-in-time inventory of retiring CLI subcommands; forbidden stems occur only as quoted legacy command names targeted for retirement, not live product/governance vocabulary."
+
+# mm-kit program evidence snapshots (PR #1575): historical disposition/census/ledger
+# text that quotes retired brand stems and path tokens as provenance, not live product
+# vocabulary. Core kit surfaces under .grok/{bin,harness,hooks,workflows} remain scanned.
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/cas-fabric/evidence/ultragoal-ledger.snapshot.jsonl"
+reason = "append-only historical ultragoal ledger snapshot embedded in mm-kit program evidence; quotes retired path/package tokens (foundry, oya-vcs) as provenance only"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/hyperscaler-delivery-lanes/evidence/ADR-FULL-DISPOSITION-AUDIT.md"
+reason = "historical ADR disposition audit markdown; forbidden stems appear only inside historical ADR titles/slugs, not live product vocabulary"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/hyperscaler-delivery-lanes/evidence/adr-full-disposition-audit.json"
+reason = "machine-readable historical ADR disposition census; titles/slugs faithfully quote retired brand stems as provenance"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/hyperscaler-delivery-lanes/evidence/adr-lt-600-census.json"
+reason = "historical ADR <600 census snapshot; titles/slugs/file paths quote retired brand stems as provenance only"
+
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = ".grok/programs/hyperscaler-delivery-lanes/evidence/adr-decade-bands.json"
+reason = "historical ADR decade-band inventory; file/title strings quote retired brand stems as provenance only"
+
+# mm-kit delivery-fabric dual-critic / process evidence (PR #1575): gate code names
+# (forbidden_foundry/jenkins/oya-vcs) and quoted remediation before/after strings are
+# provenance for the brand-residue fix, not live product vocabulary. Core kit under
+# .grok/{bin,harness,hooks,workflows} and non-evidence program surfaces remain scanned.
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = ".grok/programs/delivery-fabric/evidence/"
+reason = "process dual-critic evidence pins quote remediated brand stems and gate code names as provenance only; not live product vocabulary"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "docs/adr-archive/"
+reason = "historical ADR archive (non-authority) — provenance-only; forbidden-vocab terms are historical quotations retained for audit, not live product/governance vocabulary (ADR-0700..0709 are the live apex)"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "docs/decisions/_disposition/"
+reason = "ADR disposition audit receipts and redirect maps for PR #1574 — provenance-only working papers; forbidden stems appear only as quoted historical ADR text and path citations, not live brand vocabulary"
+
+[[vocab.carve_outs]]
+kind = "path_prefix"
+value = "docs/decisions/ADR-07"
+reason = "live apex ADRs ADR-0700..ADR-0709 restate archived member gists; forbidden stems appear only as historical quotations of retired brand/substrate names, not product vocabulary (same class as docs/audit/ and _legacy-foundry/ carve-outs)"
+
+[manifest]
+required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
+
+[reachability]
+masterplan = "specs/masterplan.json"
+root_hub = "specs/root-hub-pointers.json"
+doc_catalog = "docs/DOC-CATALOG.md"
+registry = "specs/reachability-registry.json"
+
+[justification]
+adr_dir = "docs/decisions"
+roadmap = "specs/master-plan-sequencing.json"
+
+[owners]
+file_name = "OWNERS"
+# ADR-0555 hardening (FRIC-1781400000): max tracked paths one OWNERS file may cover via
+# nearest-ancestor resolution (the file itself counts). Excess coverage stays UNOWNED with
+# the split-the-registration remediation, so a single bulk OWNERS cannot neuter a tree's
+# unowned accounting. Measured live corpus 2026-06-12: max legitimate coverage 886
+# (registry/catalog/OWNERS) of 18,400 tracked paths; 2000 gives >2x growth headroom.
+max_paths_per_owners_file = 2000
+
+[enforcement]
+governance_crate_substr = "oya-governance"
+governance_lanes = ["docs/governance-lanes/diataxis-doc-class.md", "docs/governance-lanes/prd-axis-coverage.md"]
+
+# Gate input contracts are DATA so public oya-ci adopters can point gates at their own repo
+# shapes without forking the engine. This default mirrors Oyatie's catalog row source.
+[slo_coverage]
+catalog_record_globs = ["registry/catalog/*.yaml"]
+
+# cloud-ci-catalog-liveness (PR-C3): the founder live-OR-explicitly-marked policy. Same portable
+# catalog input contract as [slo_coverage] (born pack-shaped, policy-as-data — no hardcoded oyatie
+# paths in the gate logic). The producer expands these globs, resolves the LIVE workspace crate-id
+# universe IN-PROCESS (no shell-out), and parses the explicit non-live marker per record.
+[catalog_liveness]
+catalog_record_globs = ["registry/catalog/*.yaml"]
+
+[ttl]
+
+[unit_class]
+
+# This list is the accounting-registry/firewall baseline gate set, not the full
+# `.github/workflows/oya-ci-required.yml` job matrix. Standalone workflow gates
+# keep their own policy files. The gate-registration meta-test asserts convergence:
+# every ID here has bundled disposition DATA, and every configured gate has required
+# workflow authority via the homogeneous matrix, freshness job, or firewall producer path.
+[[gates.enabled]]
+id = "cloud-ci-total-accounting"
+input_kind = "producer-face"
+face = "total_accounting"
+
+[[gates.enabled]]
+id = "cloud-ci-cross-artifact-agreement"
+input_kind = "producer-face"
+face = "cross_artifact"
+
+[[gates.enabled]]
+id = "cloud-ci-automation-ratchet"
+input_kind = "producer-face"
+face = "automation_ratchet"
+
+[[gates.enabled]]
+id = "cloud-ci-staleness-reaper"
+input_kind = "producer-face"
+face = "staleness"
+
+[[gates.enabled]]
+id = "cloud-ci-bnf-layer-suffix"
+input_kind = "producer-face"
+face = "bnf_layer_suffix"
+
+[[gates.enabled]]
+id = "cloud-ci-manifest-hygiene"
+input_kind = "producer-face"
+face = "manifest_hygiene"
+
+[[gates.enabled]]
+id = "cloud-ci-cargo-prefix"
+input_kind = "producer-face"
+face = "cargo_prefix"
+
+[[gates.enabled]]
+id = "cloud-ci-slo-coverage"
+input_kind = "producer-face"
+face = "slo_coverage"
+
+[[gates.enabled]]
+id = "cloud-ci-license-policy"
+input_kind = "producer-face"
+face = "license_policy"
+
+[[gates.enabled]]
+id = "cloud-ci-catalog-liveness"
+input_kind = "producer-face"
+face = "catalog_liveness"
+
+[[gates.enabled]]
+id = "cloud-ci-workspace-glob-coverage"
+input_kind = "producer-face"
+face = "workspace_glob_coverage"
+
+[[gates.enabled]]
+id = "cloud-ci-target-parity"
+input_kind = "producer-face"
+face = "target_parity"
+
+[[gates.enabled]]
+id = "cloud-ci-enforcement-liveness"
+input_kind = "producer-face"
+face = "enforcement_liveness"
+
+[[gates.enabled]]
+id = "cloud-ci-freshness"
+input_kind = "frozen-empty-meta"
+
+[[gates.enabled]]
+id = "cloud-ci-brand-residue"
+input_kind = "raw-corpus-collector"

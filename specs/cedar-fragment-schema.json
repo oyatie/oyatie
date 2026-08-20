@@ -1,0 +1,801 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/cedar-fragment-schema.schema.json",
+  "title": "Cedar Fragment Frontmatter Schema",
+  "version": "1.0.0",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-CEDAR-FRAGMENT-SCHEMA",
+    "status": "Proposed",
+    "enforcement_status": "advisory-until-policy-engine-substrate-lands",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-20T00:00:00Z",
+    "binding_adr": "ADR-0243",
+    "keystone_bundle": "2026-05-20-foundational-doctrine",
+    "keystone_position": "2-of-14",
+    "related_adrs": [
+      "ADR-0028",
+      "ADR-0099",
+      "ADR-0105",
+      "ADR-0140",
+      "ADR-0144",
+      "ADR-0145",
+      "ADR-0150",
+      "ADR-0176",
+      "ADR-0183",
+      "ADR-0240",
+      "ADR-0241",
+      "ADR-0242",
+      "ADR-0243",
+      "ADR-0244",
+      "ADR-0246",
+      "ADR-0247",
+      "ADR-0248",
+      "ADR-0251"
+    ],
+    "purpose": "Canonical machine-readable schema for the YAML/JSON envelope (frontmatter) wrapping every Cedar policy fragment in the oyatie policy engine. Defines fragment identity, scope, signing/cosign chain of trust, multispectrum review verdict capture, coverage role declaration, and lifecycle status. Consumed by the fragment registry's admission validator, the hot-reload subscriber's signature verifier, and the oya-check-cedar-fragment-signature + oya-check-cedar-coverage CI lanes.",
+    "industry_citations": [
+      {
+        "vendor": "AWS",
+        "source": "AWS Verified Permissions policy store + Cedar v4.2 LTS",
+        "convention": "policy bundles signed by AWS account/role with attestation"
+      },
+      {
+        "vendor": "Sigstore",
+        "source": "Sigstore Rekor transparency log + cosign attestations",
+        "convention": "Ed25519 signatures + attestation reference in registry"
+      },
+      {
+        "vendor": "Google",
+        "source": "Binary Authorization + attestor-based policy admission",
+        "convention": "signing-key chain with named attestors"
+      },
+      {
+        "vendor": "Cedar (AWS OOPSLA 2024)",
+        "source": "Cedar specification v4.2 + cedar-policy-analyzer",
+        "convention": "formal-verification-ready policy modules"
+      }
+    ]
+  },
+  "type": "object",
+  "required": [
+    "fragment_id",
+    "version",
+    "scope",
+    "effective_at",
+    "applies_to_actions",
+    "applies_to_resources",
+    "signed_by",
+    "signature",
+    "signing_key_id",
+    "cosign_attestation_ref",
+    "coverage_role",
+    "body_hash",
+    "created_by",
+    "created_at",
+    "activation_status"
+  ],
+  "properties": {
+    "fragment_id": {
+      "type": "string",
+      "description": "Canonical fragment identifier following BNF v4.1 convention `<scope>-<microservice>-<action-family>`. The scope token mirrors the `scope` field (baseline/pack/overlay/reserved/tenant). The microservice token names the µservice whose actions this fragment gates. The action-family token names the family of Cedar Actions (verb-resource form).",
+      "pattern": "^(baseline|pack|overlay|reserved|tenant)-[a-z0-9]([a-z0-9-]*[a-z0-9])?-[a-z0-9]([a-z0-9-]*[a-z0-9])?(-[a-z0-9]([a-z0-9-]*[a-z0-9])?)*$",
+      "minLength": 8,
+      "maxLength": 200,
+      "examples": [
+        "baseline-tenancy-register-tenant",
+        "baseline-messenger-write-message",
+        "pack-hipaa-2024-intelligence-llm-chat",
+        "overlay-kr-csap-data-residency-egress",
+        "reserved-tenancy-reserved-namespace",
+        "tenant-acme-corp-workflow-engine-execute"
+      ]
+    },
+    "version": {
+      "type": "string",
+      "description": "Semantic version per semver 2.0. Major bumps when permit/forbid semantics change; minor when conditions extend; patch for editorial/comment fixes only.",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
+      "examples": [
+        "1.0.0",
+        "2.4.1",
+        "3.0.0-rc.1",
+        "1.0.0+build.2026-05-20"
+      ]
+    },
+    "scope": {
+      "type": "string",
+      "description": "Fragment scope namespace per ADR-0243 §D-2. baseline = platform-wide permits/forbids. pack/<pack-id> = compliance pack fragment. overlay/<jurisdiction> = jurisdictional overlay. reserved = reserved-namespace protection fragment. tenant/<tenant-id> = tenant-authored restricted fragment.",
+      "pattern": "^(baseline|pack/[A-Z0-9][A-Z0-9-]*[A-Z0-9]|overlay/[A-Z]{2}(-[A-Z0-9]{1,8})?|reserved|tenant/[a-z0-9]([a-z0-9-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9-]*[a-z0-9])?){0,5})$",
+      "x-enum-values": [
+        "baseline",
+        "pack/<pack-id>",
+        "overlay/<jurisdiction>",
+        "reserved",
+        "tenant/<tenant-id>"
+      ],
+      "examples": [
+        "baseline",
+        "pack/HIPAA-2024",
+        "pack/PCI-DSS-L1-v4",
+        "overlay/KR-CSAP",
+        "overlay/EU",
+        "reserved",
+        "tenant/oyatie",
+        "tenant/tenant-acme-corp"
+      ]
+    },
+    "effective_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 / RFC 3339 timestamp at which this fragment version becomes effective. Per-cell evaluators hot-reload within 5s of this time (cell-local clock; HLC tolerance ±2s)."
+    },
+    "sunset_at": {
+      "type": [
+        "string",
+        "null"
+      ],
+      "format": "date-time",
+      "description": "Optional ISO 8601 / RFC 3339 timestamp at which the fragment automatically transitions to inactive. NULL means no scheduled sunset; explicit sunset requires a deprecation ADR or pack-renewal. Emergency-permit fragments per ADR-0243 Appendix B always carry a sunset_at."
+    },
+    "applies_to_actions": {
+      "type": "array",
+      "description": "Cedar action names this fragment governs. Format: `<EntityType>::Action::\"<ActionName>\"`. The coverage CI lane verifies every declared action in the µservice's OpenAPI/AsyncAPI/capabilities surface has at least one permit fragment plus a corresponding default-deny.",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Za-z0-9_]*::Action::\"[A-Z][A-Za-z0-9_]*\"$"
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "examples": [
+        [
+          "Tenancy::Action::\"RegisterTenant\""
+        ],
+        [
+          "Messenger::Action::\"Write\"",
+          "Messenger::Action::\"Read\""
+        ],
+        [
+          "Intelligence::Action::\"LlmChat\"",
+          "Intelligence::Action::\"LlmEmbed\""
+        ]
+      ]
+    },
+    "applies_to_resources": {
+      "type": "array",
+      "description": "Cedar resource types this fragment governs. Format: bare entity type name (matching Ontology Object Type per ADR-0028 + IP-002).",
+      "items": {
+        "type": "string",
+        "pattern": "^[A-Z][A-Za-z0-9_]*$"
+      },
+      "uniqueItems": true,
+      "minItems": 1,
+      "examples": [
+        [
+          "Tenant"
+        ],
+        [
+          "MessengerMessage",
+          "MessengerThread"
+        ],
+        [
+          "LlmRequest",
+          "LlmResponse"
+        ]
+      ]
+    },
+    "signed_by": {
+      "type": "string",
+      "description": "Principal identifier of the signer. For baseline fragments: `org-baseline-key`. For pack fragments: `pack-owner:<pack-id>`. For overlay fragments: `overlay-owner:<jurisdiction>`. For tenant fragments: `tenant-admin:<tenant-id>`. For bootstrap genesis: `org-root-key`.",
+      "examples": [
+        "org-root-key",
+        "org-baseline-key",
+        "pack-owner:HIPAA-2024",
+        "pack-owner:PCI-DSS-L1-v4",
+        "overlay-owner:KR-CSAP",
+        "tenant-admin:tenant-acme-corp",
+        "incident-response-emergency-key"
+      ]
+    },
+    "signature": {
+      "type": "string",
+      "description": "Ed25519 signature over the canonical CBOR-encoded fragment body + frontmatter (excluding the `signature` field itself). Encoded as lowercase hex; exactly 128 hex chars = 64 bytes.",
+      "pattern": "^[0-9a-f]+$",
+      "minLength": 128,
+      "maxLength": 128
+    },
+    "signing_key_id": {
+      "type": "string",
+      "description": "Identifier of the signing key used (resolves to the public key in OpenBao + the cosign attestation chain). Format: `<key-class>:<key-name>:<key-version>`.",
+      "pattern": "^[a-z0-9][a-z0-9-]*:[a-z0-9][a-z0-9.-]*:v[0-9]+$",
+      "examples": [
+        "org-root:offline-hsm:v1",
+        "org-baseline:online-kms:v3",
+        "pack-owner:hipaa-2024:v2",
+        "overlay-owner:kr-csap:v1",
+        "tenant-admin:tenant-acme-corp:v4",
+        "incident-response:emergency-quorum:v1"
+      ]
+    },
+    "cosign_attestation_ref": {
+      "type": "string",
+      "description": "Artifact reference to the cosign attestation in the Sigstore Rekor transparency log + the SeaweedFS-backed immutable blob store. Format: `rekor://<log-uuid>@<sha256-digest>` or `seaweed://<bucket>/<key>@<sha256-digest>`. Enables independent reproducibility of the signature chain.",
+      "pattern": "^(rekor|seaweed)://[A-Za-z0-9._/-]+@[0-9a-f]{64}$",
+      "examples": [
+        "rekor://abc123def456@0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "seaweed://policy-engine-attestations/fragment-baseline-tenancy-register-tenant-v1.0.0.json@fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210"
+      ]
+    },
+    "multispectrum_review_verdict": {
+      "type": "object",
+      "description": "Per-facet review verdict captured from the multispectrum review v2.4.0 pipeline. Required for non-emergency fragments. Emergency-permit fragments per ADR-0243 §D-11 may omit verdicts for non-essential facets (F5 security + A4 architecture remain mandatory even in emergency mode).",
+      "additionalProperties": {
+        "type": "object",
+        "required": [
+          "verdict",
+          "reviewer_principal",
+          "verdict_at"
+        ],
+        "properties": {
+          "verdict": {
+            "type": "string",
+            "enum": [
+              "pass",
+              "fail",
+              "waived",
+              "deferred",
+              "n/a"
+            ],
+            "description": "Per-facet outcome. `waived` requires a recorded waiver reason."
+          },
+          "reviewer_principal": {
+            "type": "string",
+            "description": "Principal that issued the verdict. Reviewer-agent or human reviewer slug."
+          },
+          "verdict_at": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "notes": {
+            "type": "string",
+            "description": "Free-form notes (optional). Required when verdict is `fail` or `waived`."
+          },
+          "evidence_ref": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Optional reference to an active review or quality-gate evidence artifact; retired evidence/multispectrum files are historical provenance only."
+          }
+        }
+      },
+      "x-required-facets": [
+        "F1-correctness",
+        "F2-hyperscaler-fitness",
+        "F5-security",
+        "F6-performance",
+        "F7-supply-chain",
+        "A1-naming-adherence",
+        "A4-architecture-adherence",
+        "A6-schema-adherence"
+      ],
+      "examples": [
+        {
+          "F1-correctness": {
+            "verdict": "pass",
+            "reviewer_principal": "reviewer-agent.f1",
+            "verdict_at": "2026-05-20T10:01:00Z"
+          },
+          "F2-hyperscaler-fitness": {
+            "verdict": "pass",
+            "reviewer_principal": "reviewer-agent.f2",
+            "verdict_at": "2026-05-20T10:02:00Z"
+          },
+          "F5-security": {
+            "verdict": "pass",
+            "reviewer_principal": "reviewer-agent.f5",
+            "verdict_at": "2026-05-20T10:03:00Z"
+          },
+          "F6-performance": {
+            "verdict": "pass",
+            "reviewer_principal": "reviewer-agent.f6",
+            "verdict_at": "2026-05-20T10:04:00Z"
+          },
+          "F7-supply-chain": {
+            "verdict": "pass",
+            "reviewer_principal": "reviewer-agent.f7",
+            "verdict_at": "2026-05-20T10:05:00Z"
+          },
+          "A1-naming-adherence": {
+            "verdict": "pass",
+            "reviewer_principal": "reviewer-agent.a1",
+            "verdict_at": "2026-05-20T10:06:00Z"
+          },
+          "A4-architecture-adherence": {
+            "verdict": "pass",
+            "reviewer_principal": "reviewer-agent.a4",
+            "verdict_at": "2026-05-20T10:07:00Z"
+          },
+          "A6-schema-adherence": {
+            "verdict": "pass",
+            "reviewer_principal": "reviewer-agent.a6",
+            "verdict_at": "2026-05-20T10:08:00Z"
+          }
+        }
+      ]
+    },
+    "coverage_role": {
+      "type": "string",
+      "description": "Coverage classification consumed by oya-check-cedar-coverage and oya-check-cedar-default-deny-coverage CI lanes. Each permit must have a complementary default-deny in coverage analysis. Overlays compose with permits + default-denies.",
+      "enum": [
+        "permit",
+        "default-deny",
+        "overlay"
+      ],
+      "x-enum-descriptions": {
+        "permit": "Fragment grants action(s) under stated conditions. Coverage lane requires a matching default-deny.",
+        "default-deny": "Fragment denies action(s) when no permit applies. Provides the deny-wins baseline.",
+        "overlay": "Fragment modifies (restricts or refines) conditions of permits/denies from baseline. Used for jurisdiction overlays, pack overlays, and tenant restrictions."
+      }
+    },
+    "conditions": {
+      "type": "array",
+      "description": "Human-readable summaries of the Cedar `when {}` predicates carried in the fragment body. These mirror the `when` clauses for offline review without parsing the .cedar source. The body_hash is the authoritative source; this field is informational.",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024
+      },
+      "examples": [
+        [],
+        [
+          "principal.tenant_id == resource.tenant_id"
+        ],
+        [
+          "resource.data_class in [\"PHI\"]",
+          "principal.compliance_packs.contains(\"HIPAA-2024\")"
+        ],
+        [
+          "context.request_origin_cell.region in resource.tenant.jurisdiction.data_residency_allowed"
+        ]
+      ]
+    },
+    "body_hash": {
+      "type": "string",
+      "description": "SHA-256 hex digest of the raw .cedar file body (UTF-8 bytes, line-ending normalized to LF, no trailing whitespace). Authoritative content reference. The hot-reload subscriber refuses to load a fragment whose computed body hash diverges from this field.",
+      "pattern": "^[0-9a-f]{64}$"
+    },
+    "created_by": {
+      "type": "string",
+      "description": "Principal identifier that authored the fragment. May be a human (e.g., `oyatie.platform-ops.policy-author#user-1`) or an agent workflow (e.g., `oyatie.foundry.adr-drafter`).",
+      "examples": [
+        "oyatie.platform-ops.policy-author#user-1",
+        "oyatie.foundry.adr-drafter",
+        "council-security#user-3",
+        "system:bootstrap-migration",
+        "tenant-acme-corp.admin#user-1"
+      ]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Authoring timestamp."
+    },
+    "activation_status": {
+      "type": "string",
+      "description": "Lifecycle state per ADR-0243 §D-2.",
+      "enum": [
+        "pending",
+        "active",
+        "sunset",
+        "tombstoned"
+      ],
+      "x-enum-descriptions": {
+        "pending": "Authored + reviewed + signed but not yet effective. Effective_at is in the future.",
+        "active": "Effective and in-force. Evaluators load it; evaluations may apply it.",
+        "sunset": "Past sunset_at; archived for regulator retrieval. Evaluators no longer load it.",
+        "tombstoned": "Removed via explicit deprecation ADR. Historical record retained for audit trail."
+      }
+    },
+    "annotations": {
+      "type": "object",
+      "description": "Free-form string-valued annotations for human review (rationale, ADR backreferences, regulator citations, runbook links, sustainability impact notes, etc.). Not interpreted by the evaluator.",
+      "additionalProperties": {
+        "type": "string"
+      },
+      "examples": [
+        {},
+        {
+          "rationale": "Restricts messenger writes during incident 2026-05-20",
+          "incident_id": "INC-2026-05-20-001",
+          "runbook": "docs/runbooks/cedar-fragment-incident-response.md"
+        },
+        {
+          "adr_backref": "ADR-0243",
+          "regulator_citation": "GDPR Article 22",
+          "sustainability_note": "Adds 0.2ms p99 latency; negligible carbon impact"
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "description": "Tenant-scoped fragments must specify a tenant in scope and must not declare coverage_role=permit unless baseline already permits the action.",
+      "if": {
+        "properties": {
+          "scope": {
+            "pattern": "^tenant/"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "signed_by": {
+            "pattern": "^tenant-admin:"
+          }
+        }
+      }
+    },
+    {
+      "description": "Reserved-namespace fragments must be coverage_role=default-deny and applies_to_actions includes Tenancy::Action::RegisterTenant.",
+      "if": {
+        "properties": {
+          "scope": {
+            "const": "reserved"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "coverage_role": {
+            "const": "default-deny"
+          },
+          "applies_to_actions": {
+            "contains": {
+              "const": "Tenancy::Action::\"RegisterTenant\""
+            }
+          }
+        }
+      }
+    },
+    {
+      "description": "Pack-scoped fragments must have signed_by matching pack-owner:<pack-id>.",
+      "if": {
+        "properties": {
+          "scope": {
+            "pattern": "^pack/"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "signed_by": {
+            "pattern": "^pack-owner:"
+          }
+        }
+      }
+    },
+    {
+      "description": "Overlay-scoped fragments must be coverage_role=overlay and signed_by overlay-owner:<jurisdiction>.",
+      "if": {
+        "properties": {
+          "scope": {
+            "pattern": "^overlay/"
+          }
+        }
+      },
+      "then": {
+        "properties": {
+          "coverage_role": {
+            "const": "overlay"
+          },
+          "signed_by": {
+            "pattern": "^overlay-owner:"
+          }
+        }
+      }
+    },
+    {
+      "description": "Emergency-permit fragments (signing_key_id starts with `incident-response:`) must carry a sunset_at within 24 hours of effective_at.",
+      "if": {
+        "properties": {
+          "signing_key_id": {
+            "pattern": "^incident-response:"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "sunset_at"
+        ],
+        "properties": {
+          "sunset_at": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    }
+  ],
+  "examples": [
+    {
+      "fragment_id": "baseline-tenancy-register-tenant",
+      "version": "1.0.0",
+      "scope": "baseline",
+      "effective_at": "2026-05-20T00:00:00Z",
+      "sunset_at": null,
+      "applies_to_actions": [
+        "Tenancy::Action::\"RegisterTenant\""
+      ],
+      "applies_to_resources": [
+        "Tenant"
+      ],
+      "signed_by": "org-baseline-key",
+      "signature": "a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90",
+      "signing_key_id": "org-baseline:online-kms:v3",
+      "cosign_attestation_ref": "rekor://abc123def456@0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "multispectrum_review_verdict": {
+        "F1-correctness": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.f1",
+          "verdict_at": "2026-05-20T10:01:00Z"
+        },
+        "F5-security": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.f5",
+          "verdict_at": "2026-05-20T10:03:00Z"
+        },
+        "A4-architecture-adherence": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.a4",
+          "verdict_at": "2026-05-20T10:07:00Z"
+        }
+      },
+      "coverage_role": "permit",
+      "conditions": [
+        "principal in TenancyAdmin",
+        "!resource.id matches reserved-namespace pattern"
+      ],
+      "body_hash": "fedcba9876543210fedcba9876543210fedcba9876543210fedcba9876543210",
+      "created_by": "oyatie.platform-ops.policy-author#user-1",
+      "created_at": "2026-05-20T09:00:00Z",
+      "activation_status": "active",
+      "annotations": {
+        "adr_backref": "ADR-0242"
+      }
+    },
+    {
+      "fragment_id": "reserved-tenancy-reserved-namespace",
+      "version": "1.0.0",
+      "scope": "reserved",
+      "effective_at": "2026-05-20T00:00:00Z",
+      "sunset_at": null,
+      "applies_to_actions": [
+        "Tenancy::Action::\"RegisterTenant\""
+      ],
+      "applies_to_resources": [
+        "Tenant"
+      ],
+      "signed_by": "org-root-key",
+      "signature": "b1c2d3e4f50617283940a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e500",
+      "signing_key_id": "org-root:offline-hsm:v1",
+      "cosign_attestation_ref": "rekor://genesis-001@1111111111111111111111111111111111111111111111111111111111111111",
+      "multispectrum_review_verdict": {
+        "F1-correctness": {
+          "verdict": "pass",
+          "reviewer_principal": "council-architecture#bootstrap",
+          "verdict_at": "2026-05-20T00:00:00Z"
+        },
+        "F5-security": {
+          "verdict": "pass",
+          "reviewer_principal": "council-security#bootstrap",
+          "verdict_at": "2026-05-20T00:00:00Z"
+        },
+        "A1-naming-adherence": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.a1",
+          "verdict_at": "2026-05-20T00:00:00Z"
+        },
+        "A4-architecture-adherence": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.a4",
+          "verdict_at": "2026-05-20T00:00:00Z"
+        }
+      },
+      "coverage_role": "default-deny",
+      "conditions": [
+        "resource.id matches /^oyatie[-_.]/i || resource.normalized_id == \"oyatie\""
+      ],
+      "body_hash": "1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+      "created_by": "system:bootstrap-migration",
+      "created_at": "2026-05-20T00:00:00Z",
+      "activation_status": "active",
+      "annotations": {
+        "adr_backref": "ADR-0242",
+        "regulator_citation": "Unicode TR#36 + UTS #39"
+      }
+    },
+    {
+      "fragment_id": "pack-hipaa-2024-intelligence-llm-chat",
+      "version": "2.1.0",
+      "scope": "pack/HIPAA-2024",
+      "effective_at": "2026-05-20T00:00:00Z",
+      "sunset_at": null,
+      "applies_to_actions": [
+        "Intelligence::Action::\"LlmChat\"",
+        "Intelligence::Action::\"LlmEmbed\""
+      ],
+      "applies_to_resources": [
+        "LlmRequest"
+      ],
+      "signed_by": "pack-owner:HIPAA-2024",
+      "signature": "c2d3e4f50617283940a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f607",
+      "signing_key_id": "pack-owner:hipaa-2024:v2",
+      "cosign_attestation_ref": "rekor://hipaa-pack-v2@2222222222222222222222222222222222222222222222222222222222222222",
+      "multispectrum_review_verdict": {
+        "F1-correctness": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.f1",
+          "verdict_at": "2026-05-19T14:00:00Z"
+        },
+        "F5-security": {
+          "verdict": "pass",
+          "reviewer_principal": "council-security#user-3",
+          "verdict_at": "2026-05-19T14:30:00Z",
+          "notes": "PHI must not egress to non-HIPAA-eligible providers"
+        },
+        "F7-supply-chain": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.f7",
+          "verdict_at": "2026-05-19T14:45:00Z"
+        },
+        "A6-schema-adherence": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.a6",
+          "verdict_at": "2026-05-19T15:00:00Z"
+        }
+      },
+      "coverage_role": "overlay",
+      "conditions": [
+        "resource.data_class == \"PHI\"",
+        "principal.tenant_compliance_packs.contains(\"HIPAA-2024\")",
+        "resource.target_provider in [\"hipaa-eligible-openai\", \"hipaa-eligible-anthropic\", \"hipaa-eligible-bedrock\"]"
+      ],
+      "body_hash": "2345678901abcdef2345678901abcdef2345678901abcdef2345678901abcdef",
+      "created_by": "oyatie.security.compliance-author#user-1",
+      "created_at": "2026-05-19T13:00:00Z",
+      "activation_status": "active",
+      "annotations": {
+        "regulator_citation": "HIPAA 45 CFR §164.312",
+        "pack_id": "HIPAA-2024"
+      }
+    },
+    {
+      "fragment_id": "overlay-kr-csap-data-residency-egress",
+      "version": "1.2.0",
+      "scope": "overlay/KR-CSAP",
+      "effective_at": "2026-05-20T00:00:00Z",
+      "sunset_at": null,
+      "applies_to_actions": [
+        "Cell::Action::\"EgressDataCrossRegion\""
+      ],
+      "applies_to_resources": [
+        "DataPayload"
+      ],
+      "signed_by": "overlay-owner:KR-CSAP",
+      "signature": "d3e4f50617283940a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718",
+      "signing_key_id": "overlay-owner:kr-csap:v1",
+      "cosign_attestation_ref": "rekor://kr-csap-v1@3333333333333333333333333333333333333333333333333333333333333333",
+      "multispectrum_review_verdict": {
+        "F1-correctness": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.f1",
+          "verdict_at": "2026-05-15T10:00:00Z"
+        },
+        "F5-security": {
+          "verdict": "pass",
+          "reviewer_principal": "council-security#user-2",
+          "verdict_at": "2026-05-15T10:30:00Z"
+        },
+        "A4-architecture-adherence": {
+          "verdict": "pass",
+          "reviewer_principal": "reviewer-agent.a4",
+          "verdict_at": "2026-05-15T11:00:00Z"
+        }
+      },
+      "coverage_role": "overlay",
+      "conditions": [
+        "resource.tenant.jurisdiction.primary == \"KR\"",
+        "context.target_region != \"KR\""
+      ],
+      "body_hash": "3456789012abcdef3456789012abcdef3456789012abcdef3456789012abcdef",
+      "created_by": "oyatie.platform-ops.regional-pack-author#kr-1",
+      "created_at": "2026-05-15T09:00:00Z",
+      "activation_status": "active",
+      "annotations": {
+        "regulator_citation": "KR-CSAP v3.1 §5.2 data-residency",
+        "pack_id": "KR-CSAP-v3.1"
+      }
+    },
+    {
+      "fragment_id": "tenant-acme-corp-workflow-engine-execute",
+      "version": "1.0.0",
+      "scope": "tenant/tenant-acme-corp",
+      "effective_at": "2026-05-20T00:00:00Z",
+      "sunset_at": null,
+      "applies_to_actions": [
+        "WorkflowEngine::Action::\"Execute\""
+      ],
+      "applies_to_resources": [
+        "Workflow"
+      ],
+      "signed_by": "tenant-admin:tenant-acme-corp",
+      "signature": "e4f50617283940a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f6071829",
+      "signing_key_id": "tenant-admin:tenant-acme-corp:v4",
+      "cosign_attestation_ref": "seaweed://tenant-attestations/acme-corp-workflow-engine-execute-v1.0.0.json@4444444444444444444444444444444444444444444444444444444444444444",
+      "multispectrum_review_verdict": {
+        "A4-architecture-adherence": {
+          "verdict": "pass",
+          "reviewer_principal": "tenant-acme-corp.policy-reviewer",
+          "verdict_at": "2026-05-18T15:00:00Z",
+          "notes": "Tenant-scoped fragment only restricts; does not extend beyond baseline."
+        }
+      },
+      "coverage_role": "overlay",
+      "conditions": [
+        "principal.tenant_id == \"tenant-acme-corp\"",
+        "principal.role in [\"workflow-admin\", \"workflow-operator\"]",
+        "context.approval_flag == true"
+      ],
+      "body_hash": "4567890123abcdef4567890123abcdef4567890123abcdef4567890123abcdef",
+      "created_by": "tenant-acme-corp.admin#user-1",
+      "created_at": "2026-05-18T14:00:00Z",
+      "activation_status": "active",
+      "annotations": {
+        "tenant_intent": "Require explicit approval flag on all workflow executions"
+      }
+    },
+    {
+      "fragment_id": "baseline-incident-response-2026-05-20-messenger-narrow",
+      "version": "1.0.0",
+      "scope": "baseline",
+      "effective_at": "2026-05-20T14:34:00Z",
+      "sunset_at": "2026-05-20T18:00:00Z",
+      "applies_to_actions": [
+        "Messenger::Action::\"Write\""
+      ],
+      "applies_to_resources": [
+        "MessengerMessage"
+      ],
+      "signed_by": "incident-response-emergency-key",
+      "signature": "f50617283940a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f60718293a4b5c6d7e8f90a1b2c3d4e5f607182930",
+      "signing_key_id": "incident-response:emergency-quorum:v1",
+      "cosign_attestation_ref": "rekor://incident-2026-05-20-001@5555555555555555555555555555555555555555555555555555555555555555",
+      "multispectrum_review_verdict": {
+        "F5-security": {
+          "verdict": "pass",
+          "reviewer_principal": "council-security.incident-commander",
+          "verdict_at": "2026-05-20T14:33:00Z",
+          "notes": "Emergency-mode review per ADR-0243 §D-11 + Appendix B"
+        },
+        "A4-architecture-adherence": {
+          "verdict": "pass",
+          "reviewer_principal": "council-architecture.incident-delegate",
+          "verdict_at": "2026-05-20T14:33:30Z"
+        }
+      },
+      "coverage_role": "overlay",
+      "conditions": [
+        "!(principal in Tenant::\"oyatie\".sub_scopes(\"security\", \"platform-ops\", \"engineering-lead\"))"
+      ],
+      "body_hash": "5678901234abcdef5678901234abcdef5678901234abcdef5678901234abcdef",
+      "created_by": "oyatie.security.incident-response#oncall",
+      "created_at": "2026-05-20T14:32:00Z",
+      "activation_status": "active",
+      "annotations": {
+        "incident_id": "INC-2026-05-20-001",
+        "rationale": "Malicious dependency exfiltrating data via messenger; narrow permits to oyatie internal principals",
+        "runbook": "docs/runbooks/cedar-fragment-incident-response.md"
+      }
+    }
+  ]
+}

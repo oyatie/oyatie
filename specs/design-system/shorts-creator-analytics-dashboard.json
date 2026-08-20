@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/schemas/design-system/shorts-creator-analytics-dashboard.schema.json",
+  "title": "DesignSystem:Shorts Creator Analytics Dashboard",
+  "doc_class": "Machine-Readable-Spec",
+  "component_id": "shorts-creator-analytics-dashboard",
+  "owner_team": "communications-service-council",
+  "product_ref": "$ref:microservices/community/PRD.md",
+  "component_name": "ShortsCreatorAnalyticsDashboard",
+  "status": "planned-contract",
+  "variants": [
+    "personal-creator",
+    "professional-creator"
+  ],
+  "accessibility": {
+    "wcag": "2.2 AA",
+    "keyboard": true,
+    "screen_reader": true,
+    "reduced_motion": true
+  },
+  "responsive_breakpoints": [
+    "tablet",
+    "desktop"
+  ],
+  "contract": {
+    "purpose": "ShortsCreatorAnalyticsDashboard is a declared Shorts UI primitive and must preserve the product context, consent, and policy boundaries described by the product PRD.",
+    "state_model_ref": "$ref:microservices/community/PRD.md#frontend_components"
+  }
+}

@@ -1,0 +1,1121 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/policy-ir-benchmark-fixture-suite.json",
+  "artifact_kind": "contract-document",
+  "json_schema_metadata_note": "`$schema` and `$id` identify this JSON contract document for tooling; this file is the FixtureSuite singleton for the owned Policy IR benchmark phase. The embedded `verdict_schema` is an executable JSON Schema; the surrounding document is the fixture-stage contract.",
+  "title": "PolicyIrBenchmarkFixtureSuite",
+  "description": "FixtureSuite singleton produced by the blocking single-lane fixture stage of the owned Policy IR benchmark. Stage 1 (this version) defines the engine-neutral verdict schema — including typed-obligation and reverse-query result shapes — and the per-engine adapter contracts for Fixture 1 across the Core-6 reference slate (Cedar, SpiceDB, OpenFGA, OPA/Rego, CEL, Biscuit). Engine-neutral conformance vectors land in a later single-lane stage; this document ships with ZERO vectors by construction and its validation test passes before any vectors exist. Owned Rust IR is the doctrine-fixed destination per ADR-0211.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "POL-IR-BENCH-FIXTURES",
+    "version": "0.1.0",
+    "status": "Draft-Single-Lane-Stage-1",
+    "stage": "verdict-schema-and-adapter-contracts",
+    "owner_team": "council-architecture + axis-platform",
+    "created_at": "2026-07-02T00:00:00Z",
+    "updated_at": "2026-07-02T00:00:00Z",
+    "rubric_ref": "specs/policy-ir-benchmark-rubric.json",
+    "doctrine_refs": [
+      "docs/decisions/ADR-0709-general-live-apex.md"
+    ],
+    "ground_truth_refs": [
+      "billing/core/accounting-journal (hardcoded Jurisdiction enum + KR statutory ground truth — source of Fixture 1 real rules)",
+      "iam/core/policy-cedar-domain (owned decision model: typed obligations/advice, empty-on-deny invariant, policy_version zookies, ReBAC tuples)"
+    ],
+    "downstream_consumers": [
+      "six spike lanes (encode fixtures against the adapter contracts; never write grades)",
+      "verifier lane (validates spike outputs against verdict_schema; sole grade author)",
+      "billing statutory-rulepack wedge (conformance vectors, once landed, double as wedge acceptance tests)",
+      "owned Policy IR conformance corpus (vectors, once landed, seed the permanent corpus)"
+    ],
+    "purpose": "Fix the engine-neutral verdict record shapes and the per-engine adapter bindings BEFORE any vectors are authored and BEFORE any spike runs, so that fixture encodings across all six engines normalize to one comparable verdict surface and the verifier lane grades one shape, not six."
+  },
+  "stage_contract": {
+    "single_lane_rule": "This FixtureSuite singleton is owned by the blocking single-lane fixture stage. Fixture definitions, the verdict schema, adapter contracts, and conformance vectors are authored and corrected ONLY through this lane — never by per-spike improvisation. Spike lanes and the verifier lane consume this document read-only.",
+    "stage_1_scope": "Engine-neutral verdict schema (typed-obligation result shape, reverse-query result shapes, provenance and emulation-disclosure shapes), the engine-neutral Fixture-1 request shape, and per-engine adapter contracts for the full Core-6 slate.",
+    "stage_2_scope": "Fixture 1 (KR + synthetic US federal/state/city statutory workload) and Fixture 2 (>=3-hop cross-company ReBAC) definitions plus engine-neutral conformance vectors, appended under `conformance_vectors` with a new content-hash. Vectors double as the owned-IR conformance-corpus seed and as billing-wedge acceptance tests.",
+    "vectors_present": false,
+    "pre_vector_invariant": "While `vectors_present` is false, `conformance_vectors` MUST be the empty array. The schema/contract validation of this vector-free state is owed by the fixture-contract gate app (the interim Python checker was deliberately dropped per rust-first doctrine; the owned Rust gate-app reauthor is tracked at issue #1192); vector authoring is a later single-lane stage and spike fan-out is blocked until vectors land under a frozen fixture content-hash.",
+    "authoring_acknowledgement": "Authoring these shapes and (later) vectors is an owned-IR design act — the verdict schema mirrors the owned decision model (typed obligations, decision_id provenance, policy_version zookies) by intent. It is pre-registered here, engine-neutrally, before any spike runs so it cannot be retro-fitted toward a preferred engine; it is not passed off as neutral measurement.",
+    "grade_pinning": "Every verifier-lane grade pins both the rubric content-hash and this document's fixture content-hash. A correction to this document triggers the rubric's amendment/invalidation/re-queue protocol keyed on fixture content-hash (specs/policy-ir-benchmark-rubric.json#amendment_protocol)."
+  },
+  "fixture_1_workload_contract": {
+    "fixture_id": "fixture-1",
+    "name": "statutory-billing-workload",
+    "summary": "Statutory billing decisions over legal entities and ledgers: KR rules drawn from the real accounting-journal ground truth (VAT deadlines, statutory adjustments) plus a synthetic US federal/state/city layered statutory workload exercising rule precedence across jurisdiction tiers. Engines select typed obligation keys (e.g. apply_vat{schedule}); dated-rate computation resolves in pack data per the selection/computation split — no engine is graded on computing dated values.",
+    "jurisdiction_taxonomy": {
+      "kr": "Real ground truth: billing/core/accounting-journal Jurisdiction::Korea statutory rules.",
+      "us-federal-syn": "Synthetic US federal statutory tier.",
+      "us-state-syn": "Synthetic US state statutory tier.",
+      "us-city-syn": "Synthetic US city statutory tier."
+    },
+    "temporal_exclusion_note": "Temporal/effective-dating is data-plane and harvest-only per the frozen rubric: request context MAY carry accounting_period/effective_date as data, but no gate or vector requires temporal emulation by any engine; engines are graded on obligation-key selection only.",
+    "query_kinds": [
+      "forward_authorization",
+      "reverse_principals",
+      "reverse_resources"
+    ],
+    "request_shape_ref": "verdict_schema#/$defs/FixtureRequest"
+  },
+  "verdict_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "$id": "https://docs.oyatie.com/specs/policy-ir-benchmark-fixture-suite.json#verdict",
+    "title": "PolicyIrBenchmarkVerdict",
+    "description": "Engine-neutral verdict record emitted by every per-engine adapter. One record per fixture request. Exactly one of: forward allow, forward deny (obligations forcibly empty — forbid-wins invariant mirrored from the owned decision model's empty-on-deny contract), reverse-principals result, reverse-resources result.",
+    "oneOf": [
+      {
+        "$ref": "#/$defs/ForwardAllowVerdict"
+      },
+      {
+        "$ref": "#/$defs/ForwardDenyVerdict"
+      },
+      {
+        "$ref": "#/$defs/ReversePrincipalsVerdict"
+      },
+      {
+        "$ref": "#/$defs/ReverseResourcesVerdict"
+      }
+    ],
+    "$defs": {
+      "RequestId": {
+        "type": "string",
+        "pattern": "^f[12]-[a-z0-9][a-z0-9-]*$",
+        "description": "Fixture request identifier; prefix binds the request to Fixture 1 (f1-) or Fixture 2 (f2-)."
+      },
+      "EntityRef": {
+        "type": "object",
+        "description": "Engine-neutral entity reference (principal or resource).",
+        "required": [
+          "entity_type",
+          "entity_id"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "entity_type": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_/-]*$"
+          },
+          "entity_id": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]*$"
+          }
+        }
+      },
+      "TypedScalar": {
+        "description": "Typed obligation/context parameter value. String identifiers (e.g. schedule names) are values, never encodings of nested structure; decimals ride as tagged strings to avoid float drift.",
+        "oneOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "integer"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "object",
+            "required": [
+              "decimal"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "decimal": {
+                "type": "string",
+                "pattern": "^-?[0-9]+(\\.[0-9]+)?$"
+              }
+            }
+          }
+        ]
+      },
+      "TypedObligation": {
+        "type": "object",
+        "description": "Typed obligation/advice result shape. Mirrors the owned decision model's (kind, key, value) annotations, upgraded to structured params: the caller consumes `params` as a typed map and never parses strings. Selection/computation split: `key` + `params` SELECT an obligation (e.g. apply_vat{schedule}); dated-rate COMPUTATION resolves in pack data outside the engine.",
+        "required": [
+          "kind",
+          "key",
+          "params"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "obligation",
+              "advice"
+            ],
+            "description": "obligation = PEP must execute; advice = PEP may use (Cedar semantics, per iam/core/policy-cedar-domain::obligations)."
+          },
+          "key": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$",
+            "description": "Obligation key, e.g. apply_vat, withhold_local_tax."
+          },
+          "params": {
+            "type": "object",
+            "description": "Typed parameter map, e.g. {\"schedule\": \"kr-vat-standard-2026\"}. Values are TypedScalar only — string-blob payloads requiring caller-side parsing are schema-invalid.",
+            "additionalProperties": {
+              "$ref": "#/$defs/TypedScalar"
+            }
+          }
+        }
+      },
+      "EmulationDisclosure": {
+        "description": "Mandatory disclosure feeding the rubric's NATIVE/EMULATED boundary: if any adapter/harness logic outside the engine's own policy/schema language contributed to this verdict, `emulated` is true and `adapter_shape` records the shape. An emulated verdict without a recorded adapter shape is invalid, mirroring the rubric's invalid-EMULATED-grade rule.",
+        "oneOf": [
+          {
+            "type": "object",
+            "required": [
+              "emulated"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "emulated": {
+                "const": false
+              }
+            }
+          },
+          {
+            "type": "object",
+            "required": [
+              "emulated",
+              "adapter_shape"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "emulated": {
+                "const": true
+              },
+              "adapter_shape": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        ]
+      },
+      "DecisionProvenance": {
+        "type": "object",
+        "description": "Provenance mirrored from the owned decision model: decision_id, policy_version (semver of the evaluated policy bundle), optional policy_version_token (zookie/snapshot/consistency token where the engine has one), the producing adapter, the fixture content-hash the verdict was produced against, and the emulation disclosure.",
+        "required": [
+          "decision_id",
+          "engine_adapter",
+          "policy_version",
+          "fixture_content_hash",
+          "emulation"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "decision_id": {
+            "type": "string",
+            "pattern": "^dec_[a-z0-9][a-z0-9-]{7,63}$"
+          },
+          "engine_adapter": {
+            "enum": [
+              "cedar",
+              "spicedb",
+              "openfga",
+              "opa_rego",
+              "cel",
+              "biscuit"
+            ]
+          },
+          "policy_version": {
+            "type": "string",
+            "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$"
+          },
+          "policy_version_token": {
+            "type": "string",
+            "minLength": 1,
+            "description": "Engine consistency token normalized to a string: SpiceDB ZedToken, OpenFGA authorization-model id, Cedar/OPA bundle activation marker, Biscuit revocation-id set digest. Optional — engines without a token surface omit it."
+          },
+          "fixture_content_hash": {
+            "type": "string",
+            "pattern": "^fixture-suite-v[0-9]+:sha256:[0-9a-f]{64}$"
+          },
+          "emulation": {
+            "$ref": "#/$defs/EmulationDisclosure"
+          }
+        }
+      },
+      "ForwardAllowVerdict": {
+        "type": "object",
+        "required": [
+          "verdict_kind",
+          "request_id",
+          "decision",
+          "obligations",
+          "provenance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "verdict_kind": {
+            "const": "forward_authorization"
+          },
+          "request_id": {
+            "$ref": "#/$defs/RequestId"
+          },
+          "decision": {
+            "const": "allow"
+          },
+          "obligations": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/TypedObligation"
+            },
+            "description": "Typed obligations selected by the engine for this allow decision. May be empty."
+          },
+          "provenance": {
+            "$ref": "#/$defs/DecisionProvenance"
+          }
+        }
+      },
+      "ForwardDenyVerdict": {
+        "type": "object",
+        "description": "Forbid-wins invariant: a deny verdict carries NO obligations, ever. Mirrors the owned decision model's empty-on-deny contract (iam/core/policy-cedar-domain: annotations always empty when allowed == false). Adapters MUST NOT coerce engine output to satisfy this — see adapter_contract_common.no_silent_coercion.",
+        "required": [
+          "verdict_kind",
+          "request_id",
+          "decision",
+          "obligations",
+          "provenance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "verdict_kind": {
+            "const": "forward_authorization"
+          },
+          "request_id": {
+            "$ref": "#/$defs/RequestId"
+          },
+          "decision": {
+            "const": "deny"
+          },
+          "obligations": {
+            "const": []
+          },
+          "provenance": {
+            "$ref": "#/$defs/DecisionProvenance"
+          }
+        }
+      },
+      "ReversePrincipalsVerdict": {
+        "type": "object",
+        "description": "Reverse-query result shape, direction 1: which principals can perform `action` on `resource`. Result set is canonically ordered (lexicographic by entity_type then entity_id, no duplicates — adapter normalization rule N1).",
+        "required": [
+          "verdict_kind",
+          "request_id",
+          "action",
+          "resource",
+          "principals",
+          "completeness",
+          "provenance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "verdict_kind": {
+            "const": "reverse_principals"
+          },
+          "request_id": {
+            "$ref": "#/$defs/RequestId"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "resource": {
+            "$ref": "#/$defs/EntityRef"
+          },
+          "principals": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/EntityRef"
+            },
+            "uniqueItems": true
+          },
+          "completeness": {
+            "enum": [
+              "complete",
+              "truncated"
+            ],
+            "description": "complete = the full result set over the fixture entity universe; truncated = engine/adapter returned a bounded page. Vector comparison (later stage) requires `complete`."
+          },
+          "provenance": {
+            "$ref": "#/$defs/DecisionProvenance"
+          }
+        }
+      },
+      "ReverseResourcesVerdict": {
+        "type": "object",
+        "description": "Reverse-query result shape, direction 2: which resources can `principal` perform `action` on. Same canonical ordering and completeness semantics as ReversePrincipalsVerdict.",
+        "required": [
+          "verdict_kind",
+          "request_id",
+          "action",
+          "principal",
+          "resources",
+          "completeness",
+          "provenance"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "verdict_kind": {
+            "const": "reverse_resources"
+          },
+          "request_id": {
+            "$ref": "#/$defs/RequestId"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "principal": {
+            "$ref": "#/$defs/EntityRef"
+          },
+          "resources": {
+            "type": "array",
+            "items": {
+              "$ref": "#/$defs/EntityRef"
+            },
+            "uniqueItems": true
+          },
+          "completeness": {
+            "enum": [
+              "complete",
+              "truncated"
+            ]
+          },
+          "provenance": {
+            "$ref": "#/$defs/DecisionProvenance"
+          }
+        }
+      },
+      "RequestContext": {
+        "type": "object",
+        "description": "Engine-neutral Fixture-1 request context. effective_date/accounting_period are data-plane context per the rubric's temporal exclusion — carried as data, never a graded temporal capability.",
+        "required": [
+          "jurisdiction"
+        ],
+        "additionalProperties": {
+          "$ref": "#/$defs/TypedScalar"
+        },
+        "properties": {
+          "jurisdiction": {
+            "enum": [
+              "kr",
+              "us-federal-syn",
+              "us-state-syn",
+              "us-city-syn"
+            ]
+          },
+          "accounting_period": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}$"
+          },
+          "effective_date": {
+            "type": "string",
+            "pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
+          }
+        }
+      },
+      "ForwardRequest": {
+        "type": "object",
+        "required": [
+          "request_id",
+          "query_kind",
+          "principal",
+          "action",
+          "resource",
+          "context"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "$ref": "#/$defs/RequestId"
+          },
+          "query_kind": {
+            "const": "forward_authorization"
+          },
+          "principal": {
+            "$ref": "#/$defs/EntityRef"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "resource": {
+            "$ref": "#/$defs/EntityRef"
+          },
+          "context": {
+            "$ref": "#/$defs/RequestContext"
+          }
+        }
+      },
+      "ReversePrincipalsRequest": {
+        "type": "object",
+        "required": [
+          "request_id",
+          "query_kind",
+          "action",
+          "resource",
+          "context"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "$ref": "#/$defs/RequestId"
+          },
+          "query_kind": {
+            "const": "reverse_principals"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "resource": {
+            "$ref": "#/$defs/EntityRef"
+          },
+          "context": {
+            "$ref": "#/$defs/RequestContext"
+          }
+        }
+      },
+      "ReverseResourcesRequest": {
+        "type": "object",
+        "required": [
+          "request_id",
+          "query_kind",
+          "principal",
+          "action",
+          "context"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "request_id": {
+            "$ref": "#/$defs/RequestId"
+          },
+          "query_kind": {
+            "const": "reverse_resources"
+          },
+          "principal": {
+            "$ref": "#/$defs/EntityRef"
+          },
+          "action": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9_]*$"
+          },
+          "context": {
+            "$ref": "#/$defs/RequestContext"
+          }
+        }
+      },
+      "FixtureRequest": {
+        "description": "Engine-neutral fixture request: exactly one of the three query kinds.",
+        "oneOf": [
+          {
+            "$ref": "#/$defs/ForwardRequest"
+          },
+          {
+            "$ref": "#/$defs/ReversePrincipalsRequest"
+          },
+          {
+            "$ref": "#/$defs/ReverseResourcesRequest"
+          }
+        ]
+      }
+    }
+  },
+  "adapter_contract_common": {
+    "description": "Rules binding on every per-engine adapter. Adapters are spike-lane deliverables; these rules are what the verifier lane validates spike outputs against.",
+    "rules": [
+      {
+        "rule_id": "N1",
+        "name": "canonical_result_ordering",
+        "rule": "Reverse-query result sets are sorted lexicographically by (entity_type, entity_id) and deduplicated before emission. Ordering is adapter normalization plumbing, not engine capability — applying N1 alone never forces an EMULATED disclosure."
+      },
+      {
+        "rule_id": "N2",
+        "name": "no_silent_coercion",
+        "rule": "Adapters MUST NOT coerce engine output to satisfy the verdict schema (e.g. dropping obligations from a deny, truncating result sets to fake completeness, inventing decision_ids for correlation the engine cannot provide). A schema-violating engine behavior is recorded verbatim as deviation evidence in harvest_notes; the adapter emits no verdict record for that request."
+      },
+      {
+        "rule_id": "N3",
+        "name": "emulation_disclosure",
+        "rule": "Any adapter/harness logic beyond N1 ordering and lossless field renaming that contributes to a verdict (candidate enumeration, multi-call orchestration, result-document parsing conventions, external indexes, harness-side joins) sets emulation.emulated=true with a recorded adapter_shape. Disclosure is per-verdict; the verifier lane maps disclosures onto NATIVE/EMULATED boundaries under the frozen rubric."
+      },
+      {
+        "rule_id": "N4",
+        "name": "provenance_completeness",
+        "rule": "Every verdict carries decision_id (adapter-generated, unique per verdict, `dec_` prefixed), the semver of the policy bundle evaluated, the engine consistency token where one exists, and the fixture content-hash of this document's version the encoding ran against."
+      },
+      {
+        "rule_id": "N5",
+        "name": "selection_computation_split",
+        "rule": "Obligations SELECT keys and typed params (e.g. apply_vat{schedule}); dated-rate computation resolves in pack data outside every engine. No adapter emulates value computation, and no vector (later stage) may require it."
+      }
+    ]
+  },
+  "adapter_contracts": {
+    "cedar": {
+      "reference_system": "cedar",
+      "fixture_scope": "full",
+      "fixture_1_encoding_required": true,
+      "authoring_surface": "Cedar policy language + Cedar schema (cedar-policy crate; incumbent shape — the owned Cedar-shaped engine in iam/core/policy-cedar-domain is the migration baseline, and cedar-policy additionally serves as the transition-phase differential-test oracle with a declared retirement bar).",
+      "request_mapping": {
+        "forward_authorization": "FixtureRequest.principal/action/resource map to Cedar principal/action/resource entity UIDs; RequestContext maps to the Cedar context record (jurisdiction, accounting_period, effective_date as context attributes).",
+        "reverse_principals": "No shipped reverse-query API: adapter enumerates the closed fixture principal universe and issues one forward is_authorized per candidate.",
+        "reverse_resources": "Symmetric enumeration over the fixture resource universe."
+      },
+      "typed_obligation_binding": {
+        "native_surface": "Cedar policy annotations (obligation/advice kinds per the owned decision model's (kind, key, value) triples), collected onto allow decisions; empty-on-deny is engine-enforced in the incumbent implementation.",
+        "result_shape_binding": "annotation kind -> TypedObligation.kind; annotation key -> TypedObligation.key; annotation value carries the params map as canonical JSON, schema-decoded by the adapter into TypedObligation.params.",
+        "adapter_convention": "The params JSON-decode is declared adapter plumbing; whether flat string annotation values qualify a params-bearing fixture as NATIVE is a verifier-lane judgment under the frozen rubric's G2 boundary, evidenced by the disclosure on each verdict.",
+        "disclosure_rule": "params decode beyond a flat string value => emulation.emulated=true with adapter_shape 'annotation-value-json-decode'."
+      },
+      "reverse_query_binding": {
+        "native_surface": "none-documented (cedar-policy ships forward is_authorized only; policy-level analysis exists but not entity-set reverse lookup).",
+        "principals_api": "adapter enumeration + forward checks",
+        "resources_api": "adapter enumeration + forward checks",
+        "result_shape_binding": "Enumeration hits normalize to ReversePrincipalsVerdict.principals / ReverseResourcesVerdict.resources under N1; completeness=complete only when the full fixture universe was enumerated.",
+        "disclosure_rule": "Always emulated for reverse kinds: adapter_shape 'closed-universe-enumeration+forward-checks'."
+      },
+      "consistency_binding": {
+        "mechanism": "PolicyBundle semver activation (author->validate->sign->semver->distribute->compose->audit); no per-decision token.",
+        "verdict_fields": "policy_version = active bundle semver; policy_version_token omitted."
+      },
+      "verdict_normalization_rules": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ]
+    },
+    "spicedb": {
+      "reference_system": "spicedb",
+      "fixture_scope": "full",
+      "fixture_1_encoding_required": true,
+      "authoring_surface": "SpiceDB schema language (relations + permissions) with CEL-based caveats for jurisdiction/period context.",
+      "request_mapping": {
+        "forward_authorization": "FixtureRequest maps to CheckPermission(resource, permission=action, subject=principal) with RequestContext passed as caveat context.",
+        "reverse_principals": "LookupSubjects(resource, permission=action) with caveat context.",
+        "reverse_resources": "LookupResources(resource_type, permission=action, subject=principal) with caveat context."
+      },
+      "typed_obligation_binding": {
+        "native_surface": "none-documented (check responses carry permissionship + optional caveat partial-eval info, no obligation payload).",
+        "result_shape_binding": "Adapter convention: each obligation key is modeled as a dedicated permission (obligation__<key>) over the same relation graph; params resolve from caveat context + pack data. One CheckPermission per candidate obligation key on an allowed decision; hits normalize to TypedObligation records.",
+        "adapter_convention": "obligation-permission fan-out",
+        "disclosure_rule": "Always emulated for obligation-bearing fixtures: adapter_shape 'obligation-permission-fanout+pack-data-params'."
+      },
+      "reverse_query_binding": {
+        "native_surface": "LookupSubjects / LookupResources (shipped, vendor-documented).",
+        "principals_api": "LookupSubjects",
+        "resources_api": "LookupResources",
+        "result_shape_binding": "Streamed results collected, mapped to EntityRef, normalized under N1; completeness=complete when the stream terminated without server-side limit, else truncated.",
+        "disclosure_rule": "N1 collection/ordering alone does not trigger disclosure; any caveat-context post-filtering in the harness does."
+      },
+      "consistency_binding": {
+        "mechanism": "ZedTokens (zookies) with consistency modes (minimize_latency/at_least_as_fresh/fully_consistent) — maps directly onto the owned model's policy_version zookies.",
+        "verdict_fields": "policy_version = adapter-pinned schema bundle semver; policy_version_token = ZedToken string."
+      },
+      "verdict_normalization_rules": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ]
+    },
+    "openfga": {
+      "reference_system": "openfga",
+      "fixture_scope": "full",
+      "fixture_1_encoding_required": true,
+      "authoring_surface": "OpenFGA authorization model DSL (type definitions + relations) with conditions for jurisdiction/period context and contextual tuples.",
+      "request_mapping": {
+        "forward_authorization": "FixtureRequest maps to Check(user=principal, relation=action, object=resource) with RequestContext as condition context / contextual tuples.",
+        "reverse_principals": "ListUsers(object=resource, relation=action, user_filters=fixture principal types).",
+        "reverse_resources": "ListObjects(user=principal, relation=action, type=fixture resource type)."
+      },
+      "typed_obligation_binding": {
+        "native_surface": "none-documented (Check returns allowed boolean + resolution metadata, no obligation payload).",
+        "result_shape_binding": "Adapter convention: obligation keys modeled as dedicated relations (obligation__<key>); one Check per candidate obligation key on an allowed decision; params resolve from condition context + pack data; hits normalize to TypedObligation records.",
+        "adapter_convention": "obligation-relation fan-out",
+        "disclosure_rule": "Always emulated for obligation-bearing fixtures: adapter_shape 'obligation-relation-fanout+pack-data-params'."
+      },
+      "reverse_query_binding": {
+        "native_surface": "ListObjects / ListUsers (shipped, vendor-documented).",
+        "principals_api": "ListUsers",
+        "resources_api": "ListObjects",
+        "result_shape_binding": "Responses map to EntityRef, normalized under N1; completeness=truncated when server pagination/limits clipped the set, else complete.",
+        "disclosure_rule": "N1 alone does not trigger disclosure; harness-side condition post-filtering does."
+      },
+      "consistency_binding": {
+        "mechanism": "Authorization-model id pinning + per-request consistency preference (HIGHER_CONSISTENCY); no per-decision zookie.",
+        "verdict_fields": "policy_version = adapter-pinned model bundle semver; policy_version_token = authorization_model_id."
+      },
+      "verdict_normalization_rules": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ]
+    },
+    "opa_rego": {
+      "reference_system": "opa_rego",
+      "fixture_scope": "full",
+      "fixture_1_encoding_required": true,
+      "authoring_surface": "Rego modules + JSON data documents (bundle-shaped: policy + fixture entity data in one signed bundle).",
+      "request_mapping": {
+        "forward_authorization": "FixtureRequest serializes as OPA `input`; the decision document rule (data.fixture1.decision) returns the full structured verdict.",
+        "reverse_principals": "In-policy set-comprehension rule (data.fixture1.principals_for) computes the principal set over the bundled entity data.",
+        "reverse_resources": "In-policy set-comprehension rule (data.fixture1.resources_for) computes the resource set over the bundled entity data."
+      },
+      "typed_obligation_binding": {
+        "native_surface": "Rego result documents are arbitrary structured JSON: the decision rule emits {decision, obligations: [{kind, key, params}]} directly in the engine's own language.",
+        "result_shape_binding": "Decision-document fields map 1:1 onto ForwardAllowVerdict/ForwardDenyVerdict; adapter adds provenance only.",
+        "adapter_convention": "none required for obligations",
+        "disclosure_rule": "Direct 1:1 mapping triggers no disclosure; any harness-side reshaping of the result document does."
+      },
+      "reverse_query_binding": {
+        "native_surface": "General-purpose rule evaluation: reverse sets computed by Rego comprehensions inside the policy language (no dedicated reverse API, but no harness logic either).",
+        "principals_api": "in-policy comprehension rule",
+        "resources_api": "in-policy comprehension rule",
+        "result_shape_binding": "Rule output array maps to EntityRef list, normalized under N1; completeness=complete (comprehension is exhaustive over bundled data by construction).",
+        "disclosure_rule": "In-policy comprehension triggers no disclosure; whether it meets G3 NATIVE ('shipped reverse-query API') vs EMULATED is a verifier-lane judgment under the frozen rubric — the adapter only discloses mechanism."
+      },
+      "consistency_binding": {
+        "mechanism": "Bundle revision + activation (signed bundle distribution).",
+        "verdict_fields": "policy_version = bundle semver; policy_version_token = bundle revision string."
+      },
+      "verdict_normalization_rules": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ]
+    },
+    "cel": {
+      "reference_system": "cel",
+      "fixture_scope": "statutory_only",
+      "fixture_1_encoding_required": true,
+      "scope_note": "CEL is bounded by declaration to Fixture 1 (billing statutory) only — this bound is a declared property of the benchmark, not an amendment. Fixture 1 is exactly CEL's declared subset, so this contract is fully exercised.",
+      "authoring_surface": "CEL expressions + declared type environment (cel-rust / cel-go semantics parity noted in harvest); one expression set per statutory rule family, composed by an adapter-owned dispatch table.",
+      "request_mapping": {
+        "forward_authorization": "FixtureRequest binds as CEL activation variables (principal, action, resource, context); the expression returns a structured map {decision, obligations} in CEL's own value space.",
+        "reverse_principals": "No evaluation universe inside CEL: adapter enumerates fixture principals and evaluates the forward expression per candidate.",
+        "reverse_resources": "Symmetric enumeration over fixture resources."
+      },
+      "typed_obligation_binding": {
+        "native_surface": "CEL expressions return structured maps/lists natively: {decision: 'allow', obligations: [{kind: 'obligation', key: 'apply_vat', params: {schedule: '...'}}]} is a plain CEL value.",
+        "result_shape_binding": "Returned CEL map converts losslessly to ForwardAllowVerdict/ForwardDenyVerdict fields; adapter adds provenance only.",
+        "adapter_convention": "expression-composition dispatch table (which expression set answers which rule family) is adapter-owned.",
+        "disclosure_rule": "Lossless value conversion triggers no disclosure; the dispatch table and any multi-expression orchestration do (adapter_shape 'expression-dispatch-table')."
+      },
+      "reverse_query_binding": {
+        "native_surface": "none-documented (CEL is a single-expression evaluator; no entity store, no lookup API).",
+        "principals_api": "adapter enumeration + per-candidate evaluation",
+        "resources_api": "adapter enumeration + per-candidate evaluation",
+        "result_shape_binding": "Enumeration hits normalize under N1; completeness=complete only on full-universe enumeration.",
+        "disclosure_rule": "Always emulated for reverse kinds: adapter_shape 'closed-universe-enumeration+per-candidate-eval'."
+      },
+      "consistency_binding": {
+        "mechanism": "Expression-set bundle pinned by the adapter (compile-time distribution of checked/compiled expressions).",
+        "verdict_fields": "policy_version = expression-set bundle semver; policy_version_token omitted."
+      },
+      "verdict_normalization_rules": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ]
+    },
+    "biscuit": {
+      "reference_system": "biscuit",
+      "fixture_scope": "delegation_only",
+      "fixture_1_encoding_required": false,
+      "scope_note": "Biscuit is bounded by declaration to the Fixture 2 cross-company delegation subset only — no Fixture-1 statutory encodings are authored or graded for Biscuit, and this bound is a declared property of the benchmark, not an amendment. Its adapter contract is still defined here so the single engine-neutral verdict schema and normalization rules cover its Fixture-2 delegation outputs, and so schema/contract validation is uniform across the whole Core-6 slate.",
+      "authoring_surface": "Biscuit datalog blocks (facts, rules, checks) with attenuation/third-party blocks for cross-company delegation chains.",
+      "request_mapping": {
+        "forward_authorization": "Request facts (principal, action, resource, context) load into the authorizer world; authorize() with allow/deny policies yields the decision.",
+        "reverse_principals": "No lookup API: adapter enumerates the fixture principal universe and runs authorize() per candidate over the delegation subset.",
+        "reverse_resources": "Symmetric enumeration over the fixture resource universe."
+      },
+      "typed_obligation_binding": {
+        "native_surface": "none-documented as a decision payload; datalog facts are queryable from the authorizer world after authorization.",
+        "result_shape_binding": "Adapter convention: obligation facts obligation(key, params_json) derived by datalog rules are queried post-authorize and decoded into TypedObligation records.",
+        "adapter_convention": "authorizer-world fact query + params decode",
+        "disclosure_rule": "Always emulated for obligation-bearing outputs: adapter_shape 'authorizer-fact-query+json-params-decode'."
+      },
+      "reverse_query_binding": {
+        "native_surface": "none-documented (token-centric authorizer; no entity-set lookup API).",
+        "principals_api": "adapter enumeration + per-candidate authorize()",
+        "resources_api": "adapter enumeration + per-candidate authorize()",
+        "result_shape_binding": "Enumeration hits normalize under N1; completeness=complete only on full-universe enumeration.",
+        "disclosure_rule": "Always emulated for reverse kinds: adapter_shape 'closed-universe-enumeration+per-candidate-authorize'."
+      },
+      "consistency_binding": {
+        "mechanism": "Token revocation-id sets + block versioning (offline attenuation model).",
+        "verdict_fields": "policy_version = authorizer policy bundle semver; policy_version_token = sha256 digest over the sorted revocation-id set."
+      },
+      "verdict_normalization_rules": [
+        "N1",
+        "N2",
+        "N3",
+        "N4",
+        "N5"
+      ]
+    }
+  },
+  "contract_validation_examples": {
+    "description": "Shape probes for the schema/contract validation test ONLY. These are NOT conformance vectors: they carry no expected-decision semantics against Fixture-1 ground truth, they are never consumed by spike lanes or the verifier lane as fixtures, and they do not seed the conformance corpus. They exist so the validation test exercises the verdict schema with both accepting and rejecting instances before any vectors exist.",
+    "examples": [
+      {
+        "example_id": "ex-v-001",
+        "purpose": "Forward allow with a typed apply_vat{schedule} obligation (selection/computation split: schedule selected, rate resolves in pack data).",
+        "target": "verdict",
+        "expect_valid": true,
+        "instance": {
+          "verdict_kind": "forward_authorization",
+          "request_id": "f1-probe-kr-vat-allow",
+          "decision": "allow",
+          "obligations": [
+            {
+              "kind": "obligation",
+              "key": "apply_vat",
+              "params": {
+                "schedule": "kr-vat-standard-2026",
+                "jurisdiction": "kr",
+                "rate_basis_points": 1000
+              }
+            },
+            {
+              "kind": "advice",
+              "key": "audit_statutory_basis",
+              "params": {
+                "basis": "kr-vat-act-art-48",
+                "materiality": {
+                  "decimal": "0.00"
+                }
+              }
+            }
+          ],
+          "provenance": {
+            "decision_id": "dec_probe0001-kr-vat",
+            "engine_adapter": "cedar",
+            "policy_version": "1.0.0",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": false
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-v-002",
+        "purpose": "Forward deny with forcibly empty obligations and a disclosed emulation shape.",
+        "target": "verdict",
+        "expect_valid": true,
+        "instance": {
+          "verdict_kind": "forward_authorization",
+          "request_id": "f1-probe-us-city-deny",
+          "decision": "deny",
+          "obligations": [],
+          "provenance": {
+            "decision_id": "dec_probe0002-us-city",
+            "engine_adapter": "spicedb",
+            "policy_version": "1.2.0",
+            "policy_version_token": "zed-token-probe-aaaa",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": true,
+              "adapter_shape": "obligation-permission-fanout+pack-data-params"
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-v-003",
+        "purpose": "Reverse-principals result with canonically ordered, deduplicated principal set.",
+        "target": "verdict",
+        "expect_valid": true,
+        "instance": {
+          "verdict_kind": "reverse_principals",
+          "request_id": "f1-probe-rev-principals",
+          "action": "post_statutory_adjustment",
+          "resource": {
+            "entity_type": "billing/ledger",
+            "entity_id": "ledger-kr-001"
+          },
+          "principals": [
+            {
+              "entity_type": "iam/legal_entity",
+              "entity_id": "acme-kr"
+            },
+            {
+              "entity_type": "iam/legal_entity",
+              "entity_id": "globex-kr"
+            },
+            {
+              "entity_type": "iam/service_account",
+              "entity_id": "journal-bot"
+            }
+          ],
+          "completeness": "complete",
+          "provenance": {
+            "decision_id": "dec_probe0003-rev-p",
+            "engine_adapter": "openfga",
+            "policy_version": "2.0.0",
+            "policy_version_token": "authz-model-probe-bbbb",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": false
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-v-004",
+        "purpose": "Reverse-resources result with an empty (but complete) result set.",
+        "target": "verdict",
+        "expect_valid": true,
+        "instance": {
+          "verdict_kind": "reverse_resources",
+          "request_id": "f1-probe-rev-resources",
+          "action": "close_accounting_period",
+          "principal": {
+            "entity_type": "iam/legal_entity",
+            "entity_id": "initech-us"
+          },
+          "resources": [],
+          "completeness": "complete",
+          "provenance": {
+            "decision_id": "dec_probe0004-rev-r",
+            "engine_adapter": "opa_rego",
+            "policy_version": "1.0.0",
+            "policy_version_token": "bundle-rev-probe-cccc",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": false
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-v-005",
+        "purpose": "Engine-neutral forward fixture request with Fixture-1 jurisdiction/period context.",
+        "target": "fixture_request",
+        "expect_valid": true,
+        "instance": {
+          "request_id": "f1-probe-req-kr-vat",
+          "query_kind": "forward_authorization",
+          "principal": {
+            "entity_type": "iam/legal_entity",
+            "entity_id": "acme-kr"
+          },
+          "action": "post_statutory_adjustment",
+          "resource": {
+            "entity_type": "billing/ledger",
+            "entity_id": "ledger-kr-001"
+          },
+          "context": {
+            "jurisdiction": "kr",
+            "accounting_period": "2026-06",
+            "effective_date": "2026-06-30"
+          }
+        }
+      },
+      {
+        "example_id": "ex-i-001",
+        "purpose": "REJECT: deny verdict carrying obligations violates the forbid-wins/empty-on-deny invariant.",
+        "target": "verdict",
+        "expect_valid": false,
+        "instance": {
+          "verdict_kind": "forward_authorization",
+          "request_id": "f1-probe-bad-deny",
+          "decision": "deny",
+          "obligations": [
+            {
+              "kind": "obligation",
+              "key": "apply_vat",
+              "params": {
+                "schedule": "kr-vat-standard-2026"
+              }
+            }
+          ],
+          "provenance": {
+            "decision_id": "dec_probebad001-deny",
+            "engine_adapter": "cedar",
+            "policy_version": "1.0.0",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": false
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-i-002",
+        "purpose": "REJECT: obligation params as a string blob requiring caller-side parsing (untyped output).",
+        "target": "verdict",
+        "expect_valid": false,
+        "instance": {
+          "verdict_kind": "forward_authorization",
+          "request_id": "f1-probe-bad-params",
+          "decision": "allow",
+          "obligations": [
+            {
+              "kind": "obligation",
+              "key": "apply_vat",
+              "params": "schedule=kr-vat-standard-2026;rate=10%"
+            }
+          ],
+          "provenance": {
+            "decision_id": "dec_probebad002-blob",
+            "engine_adapter": "cel",
+            "policy_version": "1.0.0",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": false
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-i-003",
+        "purpose": "REJECT: emulated verdict without a recorded adapter shape (mirrors the rubric's invalid-EMULATED-grade rule).",
+        "target": "verdict",
+        "expect_valid": false,
+        "instance": {
+          "verdict_kind": "forward_authorization",
+          "request_id": "f1-probe-bad-emulation",
+          "decision": "allow",
+          "obligations": [],
+          "provenance": {
+            "decision_id": "dec_probebad003-emul",
+            "engine_adapter": "openfga",
+            "policy_version": "1.0.0",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": true
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-i-004",
+        "purpose": "REJECT: verdict from an engine outside the Core-6 slate.",
+        "target": "verdict",
+        "expect_valid": false,
+        "instance": {
+          "verdict_kind": "forward_authorization",
+          "request_id": "f1-probe-bad-engine",
+          "decision": "allow",
+          "obligations": [],
+          "provenance": {
+            "decision_id": "dec_probebad004-engn",
+            "engine_adapter": "casbin",
+            "policy_version": "1.0.0",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": false
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-i-005",
+        "purpose": "REJECT: reverse result with a completeness value outside the enum.",
+        "target": "verdict",
+        "expect_valid": false,
+        "instance": {
+          "verdict_kind": "reverse_principals",
+          "request_id": "f1-probe-bad-completeness",
+          "action": "post_statutory_adjustment",
+          "resource": {
+            "entity_type": "billing/ledger",
+            "entity_id": "ledger-kr-001"
+          },
+          "principals": [],
+          "completeness": "partial",
+          "provenance": {
+            "decision_id": "dec_probebad005-comp",
+            "engine_adapter": "spicedb",
+            "policy_version": "1.0.0",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": false
+            }
+          }
+        }
+      },
+      {
+        "example_id": "ex-i-006",
+        "purpose": "REJECT: fixture request with a jurisdiction outside the Fixture-1 taxonomy.",
+        "target": "fixture_request",
+        "expect_valid": false,
+        "instance": {
+          "request_id": "f1-probe-bad-jurisdiction",
+          "query_kind": "forward_authorization",
+          "principal": {
+            "entity_type": "iam/legal_entity",
+            "entity_id": "acme-kr"
+          },
+          "action": "post_statutory_adjustment",
+          "resource": {
+            "entity_type": "billing/ledger",
+            "entity_id": "ledger-kr-001"
+          },
+          "context": {
+            "jurisdiction": "eu"
+          }
+        }
+      },
+      {
+        "example_id": "ex-i-007",
+        "purpose": "REJECT: obligation key violating the lower_snake_case key grammar.",
+        "target": "verdict",
+        "expect_valid": false,
+        "instance": {
+          "verdict_kind": "forward_authorization",
+          "request_id": "f1-probe-bad-key",
+          "decision": "allow",
+          "obligations": [
+            {
+              "kind": "obligation",
+              "key": "Apply-VAT",
+              "params": {
+                "schedule": "kr-vat-standard-2026"
+              }
+            }
+          ],
+          "provenance": {
+            "decision_id": "dec_probebad007-key0",
+            "engine_adapter": "biscuit",
+            "policy_version": "1.0.0",
+            "fixture_content_hash": "fixture-suite-v1:sha256:0000000000000000000000000000000000000000000000000000000000000000",
+            "emulation": {
+              "emulated": true,
+              "adapter_shape": "authorizer-fact-query+json-params-decode"
+            }
+          }
+        }
+      }
+    ]
+  },
+  "conformance_vectors": [],
+  "content_hash": {
+    "id": "policy-ir-benchmark-fixture-suite-hash-v1",
+    "wire_format": "fixture-suite-v1:sha256:<64-lower-hex>",
+    "digest_algorithm": "sha256",
+    "canonicalization": "JSON canonical form: parse this document, set content_hash.value to the empty string, then serialize with sorted keys, separators (',', ':'), UTF-8, no ASCII escaping (python3: json.dumps(doc, sort_keys=True, separators=(',',':'), ensure_ascii=False).encode('utf-8')). The digest is sha256 over those bytes. Identical to the rubric's canonicalization.",
+    "scope": "Hashes the entire FixtureSuite document including conformance_vectors; landing vectors or correcting fixtures therefore yields a new content-hash by construction, giving immutable-per-version semantics for grade pinning.",
+    "pinning_rule": "Verifier-lane grades and adapter verdict provenance pin this value. A grade pinned to a stale fixture hash after a fixture correction is invalid until re-queued and re-graded per the rubric amendment protocol.",
+    "value": "fixture-suite-v1:sha256:30b840be333c930a29607e71163db6a33838d113538e551e84fb561decec9e78"
+  },
+  "verification_commands": [
+    "python3 -m json.tool specs/policy-ir-benchmark-fixture-suite.json >/dev/null",
+    "PENDING(#1192): owned Rust fixture-contract gate app — validates fixture_definitions, verdict_schema, adapter_contracts, and the pre-vector invariant (replaces the deliberately dropped scripts/tests/policy_ir_benchmark_fixture_contract_check.py)"
+  ]
+}

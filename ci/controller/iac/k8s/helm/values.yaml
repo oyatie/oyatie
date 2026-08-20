@@ -1,0 +1,101 @@
+microservice:
+  id: oya-ci-controller
+  cargoPackage: oya-ci-controller-app
+  tenantClass: contributor
+
+workloadLabels:
+  tenantId: oyatie-dogfood
+  costCenter: fd001-backbone
+  workloadClass: app
+  regulatoryPack: generic
+  dogfoodSubstrate: oyatie-cloud
+  productGoal: fd-001
+
+replicaCount: 1
+
+podRuntime:
+  runtimeClassName: kata-cloud-hypervisor
+
+# Controller ServiceAccount — automountToken: TRUE (controller needs SA token
+# to call the K8s API server). This diverges from the gateway (which has
+# automountToken: false / no-live-cluster-rbac).
+serviceAccount:
+  name: oya-ci-controller
+  automountToken: true
+  nonClaim: static-serviceaccount-template-only-no-live-cluster-rbac-proof
+
+# Separate low-privilege ServiceAccount for the gate runner Pods.
+# Gate runner Pods (untrusted PR code) must NOT be able to touch the cluster.
+gateRunnerServiceAccount:
+  name: oya-ci-gate-runner
+  automountToken: false
+  nonClaim: static-serviceaccount-template-only-gate-runner-no-k8s-api-access
+
+networkPolicy:
+  enabled: true
+  nonClaim: static-networkpolicy-template-only-no-live-cni-admission-traffic-flow-or-network-isolation-proof
+  ingress:
+    monitoringNamespaceName: observability
+  egress:
+    dnsNamespaceName: kube-system
+    # kube-apiserver egress (Job/Pod watch + create)
+    apiserverPort: 6443
+    # GitHub in-cluster (status post + clone)
+    githubNamespaceName: oya-forge
+    githubPort: 3000
+    # OpenBao (ESO token sync)
+    openbaoNamespaceName: oya-secrets
+    openbaoPort: 8200
+    # OTel collector
+    otelNamespaceName: observability
+    otelPort: 4317
+
+image:
+  registry: registry.oya-registry.svc.cluster.local:5000
+  repository: oya-ci-controller
+  tag: "0.1.0"
+  digest: ""
+  pullPolicy: IfNotPresent
+  cosign:
+    required: false
+    policy: ADR-0181
+
+# rust-ci image used for gate Job Pods
+gateJobImage:
+  registry: registry.oya-registry.svc.cluster.local:5000
+  repository: rust-ci
+  tag: "dev"
+
+service:
+  type: ClusterIP
+  port: 8081
+  targetPort: 8081
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 500m
+    memory: 256Mi
+
+otel:
+  endpoint: "http://otel-collector.observability.svc.cluster.local:4317"
+
+externalSecret:
+  enabled: true
+  secretName: github-ci-token
+  # OpenBao KV path: secret/oya/ci/github-ci-token, field "token"
+  openbaoPath: "secret/oya/ci/github-ci-token"
+  refreshInterval: "1h"
+  nonClaim: static-externalsecret-template-only-no-live-eso-or-openbao-sync-evidence
+
+config:
+  namespace: oya-ci
+  githubBase: "https://api.github.com"
+  githubRepoOwner: oya-admin
+  githubRepoName: oyatie
+  forgeCloneUrl: "https://github.com/jason931225/oyatie.git"
+  gateActiveDeadlineSecs: 3600
+  gateTtlAfterFinishedSecs: 86400
+  graceCycles: 12

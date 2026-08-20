@@ -1,0 +1,168 @@
+{
+  "slice_id": "cell-002-promotion-automation",
+  "spec_path": "specs/cell-002-promotion-automation-contract.json",
+  "required_fields": [
+    "spec_id",
+    "title",
+    "status",
+    "authoring_task",
+    "source_adrs",
+    "authority.accepted_boundary_adr",
+    "authority.runtime_mutation_authority",
+    "promotion_gate.gate_id",
+    "cell_lifecycle_service_plan.service",
+    "cell_lifecycle_service_plan.owns",
+    "cell_rebalancer_service_plan.service",
+    "cell_rebalancer_service_plan.owns",
+    "cell_rebalancer_service_plan.residency_honoring_rebalance.refusal_behavior",
+    "sharding_automation_manifest_contract.canonical_autosharding_mode",
+    "rollback_audit_fixture.path",
+    "nonclaims"
+  ],
+  "required_true_fields": [
+    "claim_controls.metadata_only",
+    "claim_controls.service_plan_only",
+    "claim_controls.fixture_only",
+    "claim_controls.no_runtime_mutation",
+    "claim_controls.no_live_migration",
+    "claim_controls.no_audit_chain_writer",
+    "claim_controls.strict_separation"
+  ],
+  "enum_constraints": [
+    {
+      "field": "spec_id",
+      "allowed": [
+        "CELL-002-PROMOTION-AUTOMATION-CONTRACT"
+      ]
+    },
+    {
+      "field": "status",
+      "allowed": [
+        "Proposed-target"
+      ]
+    },
+    {
+      "field": "authoring_task",
+      "allowed": [
+        "CELL-002"
+      ]
+    },
+    {
+      "field": "authority.accepted_boundary_adr",
+      "allowed": [
+        "ADR-0351"
+      ]
+    },
+    {
+      "field": "authority.runtime_mutation_authority",
+      "allowed": [
+        "none"
+      ]
+    },
+    {
+      "field": "promotion_gate.gate_id",
+      "allowed": [
+        "cell_promotion_six_input_gate"
+      ]
+    },
+    {
+      "field": "sharding_automation_manifest_contract.canonical_autosharding_mode",
+      "allowed": [
+        "control_plane_driven"
+      ]
+    },
+    {
+      "field": "cell_rebalancer_service_plan.residency_honoring_rebalance.refusal_behavior",
+      "allowed": [
+        "fail_closed_operator_escalation"
+      ]
+    }
+  ],
+  "required_array_members": [
+    {
+      "field": "source_adrs",
+      "members": [
+        "ADR-0341",
+        "ADR-0348",
+        "ADR-0351"
+      ]
+    },
+    {
+      "field": "claim_controls.blocked_claim_families",
+      "members": [
+        "no_runtime_cell_orchestrator",
+        "no_live_tenant_migration",
+        "no_audit_chain_writer",
+        "no_provider_or_kubernetes_mutation",
+        "no_production_readiness_claim",
+        "no_measured_slo_claim"
+      ]
+    },
+    {
+      "field": "cell_rebalancer_service_plan.residency_honoring_rebalance.candidate_filters",
+      "members": [
+        "residency_domain",
+        "compliance_packs",
+        "cell_placement_class",
+        "capacity_headroom",
+        "cedar_permit"
+      ]
+    },
+    {
+      "field": "sharding_automation_manifest_contract.required_subblocks",
+      "members": [
+        "autosharding",
+        "auto_rebalance",
+        "dynamic_sharding"
+      ]
+    }
+  ],
+  "required_object_array_members": [
+    {
+      "field": "promotion_gate.six_inputs",
+      "member_key": "id",
+      "members": [
+        "G1_error_budget",
+        "G2_warm_soak",
+        "G3_canary_cohort",
+        "G4_cross_cell_mesh",
+        "G5_tenant_class_coverage",
+        "G6_compliance_pack_coverage"
+      ],
+      "member_required_fields": [
+        "id",
+        "name",
+        "source_adr",
+        "evidence_authority",
+        "required_evidence_fields",
+        "refusal_behavior"
+      ],
+      "member_enum_constraints": [
+        {
+          "field": "source_adr",
+          "allowed": [
+            "ADR-0341"
+          ]
+        },
+        {
+          "field": "refusal_behavior",
+          "allowed": [
+            "fail_closed_no_promotion"
+          ]
+        }
+      ]
+    }
+  ],
+  "forbidden_markers": [
+    "is production ready",
+    "runtime auto-rebalance is implemented",
+    "live tenant migration is implemented"
+  ],
+  "source_migration_slice": [
+    {
+      "legacy_path": "scripts/tests/cell_002_promotion_automation_check.py",
+      "replacement_target": "//ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
+      "disposition": "retired_primary_path"
+    }
+  ]
+}

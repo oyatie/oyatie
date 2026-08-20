@@ -1,0 +1,260 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/ci-fix-loop-context-bundle.json",
+  "title": "CiFixLoopContextBundle",
+  "description": "Agent-task payload posted by oya-vcs-ci-fix-loop-dispatcher-app whenever a PR enters the fix-loop. The dispatcher serves two sources (CI failure + review fix-request); both produce a bundle of this shape so the downstream agent runtime has one parse path.",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-CI-FIX-LOOP-CONTEXT-BUNDLE",
+    "version": "1.0.0",
+    "status": "Scaffolded",
+    "owner_team": "council-architecture",
+    "created_at": "2026-05-15T00:00:00Z",
+    "ip_refs": [
+      "M01-P17-IP-005",
+      "M01-P17-IP-006"
+    ],
+    "related_specs": [
+      "/specs/iterative-fix-loop.json",
+      "/specs/merge-queue-parked-pr.json"
+    ],
+    "purpose": "Canonical payload for fix-loop agent dispatch. Shared between CI-source (workflow_run failure) and review-source (pr-review-fix-requested) so retry-budget accounting can be unified across BOTH surfaces per IP-005 §Shared-pool retry budget."
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "source",
+    "pr_number",
+    "head_sha",
+    "base_sha",
+    "attempt",
+    "retry_budget",
+    "failure_surface",
+    "diff_summary",
+    "commit_history",
+    "ledger_candidates",
+    "emitted_at_epoch"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "integer",
+      "const": 1
+    },
+    "source": {
+      "type": "string",
+      "enum": [
+        "ci-failure",
+        "pr-review-fix-requested"
+      ],
+      "description": "Which dual-source path produced this bundle. Retry-budget accounting is unified across both."
+    },
+    "pr_number": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "head_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "base_sha": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{40}$"
+    },
+    "attempt": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 5,
+      "description": "1-indexed attempt counter; bundles with attempt > max_attempts must NOT be emitted (dispatcher must escalate instead)."
+    },
+    "retry_budget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "max_attempts",
+        "attempts_used",
+        "attempts_remaining"
+      ],
+      "properties": {
+        "max_attempts": {
+          "type": "integer",
+          "const": 5,
+          "description": "Shared pool of N=5 across BOTH CI and review sources per PR. Sixth occurrence escalates to human."
+        },
+        "attempts_used": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        },
+        "attempts_remaining": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 5
+        }
+      }
+    },
+    "failure_surface": {
+      "type": "object",
+      "description": "Surface-all-failures: when CI fails, the fix-loop must receive the ENTIRE failure surface (all failed jobs, all failed gates), not one-at-a-time. The dispatcher concatenates ALL failed jobs from the workflow_run.",
+      "additionalProperties": false,
+      "required": [
+        "failed_jobs"
+      ],
+      "properties": {
+        "failed_jobs": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "job_name",
+              "conclusion",
+              "log_excerpt_sha256",
+              "log_uri"
+            ],
+            "properties": {
+              "job_name": {
+                "type": "string",
+                "minLength": 1
+              },
+              "conclusion": {
+                "type": "string",
+                "enum": [
+                  "failure",
+                  "cancelled",
+                  "timed_out"
+                ]
+              },
+              "log_excerpt_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              },
+              "log_uri": {
+                "type": "string",
+                "format": "uri"
+              }
+            }
+          }
+        },
+        "review_findings": {
+          "type": "array",
+          "description": "Populated when source = pr-review-fix-requested. Each entry is a per-facet REJECT/CHANGES_REQUESTED finding.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "facet_id",
+              "verdict",
+              "body_sha256"
+            ],
+            "properties": {
+              "facet_id": {
+                "type": "string"
+              },
+              "verdict": {
+                "type": "string",
+                "enum": [
+                  "REJECT",
+                  "CHANGES_REQUESTED"
+                ]
+              },
+              "body_sha256": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{64}$"
+              }
+            }
+          }
+        }
+      }
+    },
+    "diff_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "files_changed",
+        "additions",
+        "deletions",
+        "patch_sha256"
+      ],
+      "properties": {
+        "files_changed": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "additions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "deletions": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "patch_sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "sha256 of the full PR diff vs base; agent fetches via oya-tooling-agent-read diff --base <base> --head <head>."
+        }
+      }
+    },
+    "commit_history": {
+      "type": "array",
+      "minItems": 0,
+      "maxItems": 5,
+      "description": "Last N=5 commits on the PR branch (most recent first).",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "sha",
+          "subject",
+          "author_epoch"
+        ],
+        "properties": {
+          "sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          },
+          "subject": {
+            "type": "string",
+            "minLength": 1
+          },
+          "author_epoch": {
+            "type": "integer",
+            "minimum": 0
+          }
+        }
+      }
+    },
+    "ledger_candidates": {
+      "type": "array",
+      "description": "Mistakes-ledger rows (from IP-003) that resemble this failure class. Schema coordinates with IP-003 mistakes-ledger row template.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "row_id",
+          "mistake_class",
+          "first_occurrence_sha"
+        ],
+        "properties": {
+          "row_id": {
+            "type": "string",
+            "pattern": "^mistakes-ledger:[0-9a-z-]+$"
+          },
+          "mistake_class": {
+            "type": "string"
+          },
+          "first_occurrence_sha": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{40}$"
+          }
+        }
+      }
+    },
+    "emitted_at_epoch": {
+      "type": "integer",
+      "minimum": 1
+    }
+  }
+}

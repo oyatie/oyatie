@@ -1,0 +1,20 @@
+{
+  "slice_id": "contract-slice-conformance-exemplar",
+  "spec_path": "ci/facade/contract-slice-conformance/fixtures/exemplar-slice.json",
+  "required_fields": [
+    "slice_id",
+    "spec_kind",
+    "cloud_ci_gate",
+    "required_contract_fields",
+    "non_claims"
+  ],
+  "enum_constraints": [
+    {
+      "field": "spec_kind",
+      "allowed": [
+        "contract-slice"
+      ]
+    }
+  ],
+  "forbidden_markers": []
+}

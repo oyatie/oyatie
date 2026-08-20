@@ -1,0 +1,13 @@
+{
+  "_comment": "FROZEN born-advisory baseline for the three gate-coverage-gap checks in the cloud-ci-cross-artifact-agreement gate — adr_prose_status_contradiction (check 1/3), registry_derived_policy_desync (check 2/3), adr_index_projection_stale (check 3/3). Mirrors the tier-dependency-acyclicity-baseline.json convention. Born EMPTY (born-advisory-green): the live corpus reproduces zero of these advisory findings after #1327. Each check enforces NO-REGRESSION vs this baseline — the live-corpus gate test asserts the live advisory finding set equals `violations` EXACTLY (zero NEW regressions AND zero stale burned-down rows, forcing a re-freeze when a documented divergence is fixed). A row is `{code, key}`; keyed `code|key`. Only a reviewed, documented pre-existing divergence ever lives here; a NEW divergence blocks. Regenerate by re-running the live-corpus gate test and recording any reported regression here with a one-line justification.",
+  "gate_id": "cloud-ci-cross-artifact-agreement",
+  "checks": [
+    "adr_prose_status_contradiction",
+    "registry_derived_policy_desync",
+    "adr_index_projection_stale"
+  ],
+  "frozen_at_ref": "gate/xagree-coverage-gap @ origin/dev c2bd8c607",
+  "tracking_issue": "#1334 gate-coverage program",
+  "burn_down_target": 0,
+  "violations": []
+}

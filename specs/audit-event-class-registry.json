@@ -1,0 +1,980 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://docs.oyatie.com/specs/audit-event-class-registry.schema.json",
+  "title": "Oyatie Audit Event Class Registry Schema",
+  "description": "Canonical JSON Schema 2020-12 contract and known-class registry for audit-event classes governed by ADR-0263. The registry binds emitted event classes from ADR-0297 abuse defence, ADR-0313 conglomerate tenant hierarchy, ADR-0319 front/middle/back-office information barrier, and ADR-0326 residency attestation/placement/cross-border events into one machine-readable surface. Every new doctrine ADR that introduces audit events must extend this registry and keep ADR-0263 reverse references current.",
+  "version": "1.1.0",
+  "_meta": {
+    "doc_class": "Machine-Readable-Spec",
+    "spec_id": "EXE-AUDIT-EVENT-CLASS-REGISTRY",
+    "status": "Proposed",
+    "enforcement_status": "advisory-until-audit-event-class-registered-gate-lands",
+    "owner_team": "axis-audit-chain + axis-observability + council-security",
+    "created_at": "2026-05-20T00:00:00Z",
+    "binding_adr": "ADR-0263",
+    "related_adrs": [
+      "ADR-0003",
+      "ADR-0243",
+      "ADR-0244",
+      "ADR-0263",
+      "ADR-0297",
+      "ADR-0313",
+      "ADR-0319",
+      "ADR-0326"
+    ],
+    "purpose": "Define the registry row shape for every approved audit-event class and expose the current known class set from ADR-0263. The validator refuses OpenAPI, AsyncAPI, proto, Cedar, workflow, and observability contracts that emit free-form or unregistered classes."
+  },
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "registry_id",
+    "version",
+    "mandatory_envelope_fields",
+    "cedar_decision_fields",
+    "classes",
+    "update_policy"
+  ],
+  "properties": {
+    "example_name": {
+      "type": "string",
+      "description": "Optional example label used by named examples.",
+      "minLength": 3,
+      "maxLength": 120
+    },
+    "registry_id": {
+      "type": "string",
+      "const": "audit-event-class-registry",
+      "description": "Stable registry id for the ADR-0263 audit-event-class catalog."
+    },
+    "version": {
+      "$ref": "#/definitions/semver",
+      "description": "Semantic version of the registry contract and class list."
+    },
+    "mandatory_envelope_fields": {
+      "type": "array",
+      "description": "ADR-0263 mandatory event envelope fields inherited by every registered class.",
+      "items": {
+        "$ref": "#/definitions/fieldName"
+      },
+      "contains": {
+        "const": "tenant_id"
+      },
+      "minItems": 10,
+      "uniqueItems": true
+    },
+    "cedar_decision_fields": {
+      "type": "array",
+      "description": "Additional fields required when an event class is produced by a Cedar decision.",
+      "items": {
+        "$ref": "#/definitions/fieldName"
+      },
+      "minItems": 6,
+      "uniqueItems": true
+    },
+    "classes": {
+      "type": "array",
+      "description": "Registered audit-event classes. Every emitted class must appear here with origin, severity, payload, cardinality, and retention metadata.",
+      "items": {
+        "$ref": "#/definitions/eventClassEntry"
+      },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "update_policy": {
+      "type": "object",
+      "description": "Rules for extending the registry when a downstream ADR introduces new emitted classes.",
+      "additionalProperties": false,
+      "required": [
+        "requires_originating_adr",
+        "requires_reverse_reference_to_adr_0263",
+        "requires_payload_schema",
+        "requires_cardinality_budget",
+        "requires_retention_class",
+        "requires_validator_lane"
+      ],
+      "properties": {
+        "requires_originating_adr": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_reverse_reference_to_adr_0263": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_payload_schema": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_cardinality_budget": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_retention_class": {
+          "type": "boolean",
+          "const": true
+        },
+        "requires_validator_lane": {
+          "type": "string",
+          "const": "oya gate validate audit-event-class-registered"
+        }
+      }
+    }
+  },
+  "definitions": {
+    "semver": {
+      "type": "string",
+      "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?(\\+[0-9A-Za-z.-]+)?$",
+      "examples": [
+        "1.0.0",
+        "1.1.0",
+        "2.0.0-rc.1"
+      ]
+    },
+    "fieldName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9_]*$",
+      "minLength": 2,
+      "maxLength": 80,
+      "examples": [
+        "tenant_id",
+        "audit_id",
+        "schema_version",
+        "jurisdiction_code"
+      ]
+    },
+    "adrId": {
+      "type": "string",
+      "pattern": "^ADR-[0-9]{4}$",
+      "examples": [
+        "ADR-0263",
+        "ADR-0297",
+        "ADR-0313",
+        "ADR-0319"
+      ]
+    },
+    "eventClassName": {
+      "type": "string",
+      "enum": [
+        "AbuseDefenceBotBlocked",
+        "AbuseDefenceSpoofDetected",
+        "AbuseDefenceScrapeBlocked",
+        "AbuseDefenceChallengeIssued",
+        "AbuseDefenceChallengeSolved",
+        "AbuseDefenceChallengeFailed",
+        "AbuseDefenceRateLimitHit",
+        "AbuseDefenceRateLimitFallback",
+        "AbuseDefenceHoneypotHit",
+        "AbuseDefenceCanaryRecovered",
+        "AbuseDefenceQuotaExceeded",
+        "AbuseDefenceCredentialPwned",
+        "AbuseDefenceCredentialStuffing",
+        "AbuseDefenceAttestationFailed",
+        "AbuseDefenceVendorOutage",
+        "AbuseDefenceFragmentActivated",
+        "AbuseDefenceWatermarkRecovered",
+        "AbuseDefenceSPIREOutage",
+        "ConglomerateGrantCreated",
+        "ConglomerateGrantRevoked",
+        "ConglomerateParentReadAction",
+        "ConglomerateCrossJurisdictionResidencyEnforced",
+        "ConglomerateInformationBarrierCrossingRefused",
+        "ConglomeratePersonalTenantBoundaryRefused",
+        "OfficeScopeAssignmentCreated",
+        "OfficeScopeAssignmentChanged",
+        "OfficeScopeAssignmentRevoked",
+        "OfficeBoundaryClearanceRequested",
+        "OfficeBoundaryClearanceApproved",
+        "OfficeBoundaryClearanceDenied",
+        "OfficeBoundaryClearanceRevoked",
+        "OfficeBoundaryAttemptEvaluated",
+        "OfficeBoundaryAttemptDenied",
+        "OfficeBoundaryAttemptAllowed",
+        "InformationBarrierTaintAttached",
+        "InformationBarrierTaintDerived",
+        "InformationBarrierTaintReleased",
+        "RestrictedDealCreated",
+        "RestrictedDealParticipantAdded",
+        "RestrictedDealParticipantRemoved",
+        "RestrictedDealReleased",
+        "AdvisorRelationshipBarrierCreated",
+        "AdvisorRelationshipBarrierAttemptEvaluated",
+        "OfficePackOverlayActivated",
+        "OfficePackOverlayChanged",
+        "OfficePackOverlayRetired",
+        "TenancyResidencyAttestationCreated",
+        "TenancyResidencyAttestationRefreshed",
+        "TenancyResidencyAttestationExpired",
+        "TenancyResidencyAttestationSignatureInvalid",
+        "TenancyResidencyAttestationMissing",
+        "TenancyResidencyPlacementDecided",
+        "TenancyResidencyPlacementRefused",
+        "TenancyResidencyCrossBorderRefused",
+        "TenancyResidencyCrossBorderPermitted",
+        "TenancyResidencyTierUpgraded",
+        "TenancyResidencyTierDowngraded",
+        "TenancyResidencyPackBindingChanged",
+        "TenancyResidencyRegulatoryAttestorEngaged"
+      ]
+    },
+    "severity": {
+      "type": "string",
+      "enum": [
+        "DEBUG",
+        "INFO",
+        "WARN",
+        "ERROR",
+        "CRITICAL"
+      ],
+      "examples": [
+        "INFO",
+        "WARN",
+        "CRITICAL"
+      ]
+    },
+    "retentionClass": {
+      "type": "string",
+      "enum": [
+        "standard",
+        "security",
+        "regulated",
+        "legal_hold_capable",
+        "financial_control",
+        "information_barrier"
+      ],
+      "examples": [
+        "standard",
+        "security",
+        "information_barrier"
+      ]
+    },
+    "emissionTarget": {
+      "type": "string",
+      "enum": [
+        "audit-chain",
+        "loki-log",
+        "otel-trace",
+        "prometheus-metric",
+        "security-alert",
+        "compliance-evidence-bundle"
+      ],
+      "examples": [
+        "audit-chain",
+        "otel-trace",
+        "security-alert"
+      ]
+    },
+    "cardinalityBudget": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "dimension_keys",
+        "max_distinct_per_cell_per_day",
+        "high_cardinality_allowed"
+      ],
+      "properties": {
+        "dimension_keys": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/fieldName"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "max_distinct_per_cell_per_day": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100000000
+        },
+        "high_cardinality_allowed": {
+          "type": "boolean",
+          "description": "True only when ADR text names the class as expected high-cardinality and the observability budget accounts for it."
+        }
+      }
+    },
+    "payloadField": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "type",
+        "required",
+        "pii_handling"
+      ],
+      "properties": {
+        "name": {
+          "$ref": "#/definitions/fieldName"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "string",
+            "integer",
+            "number",
+            "boolean",
+            "array",
+            "object",
+            "uuid",
+            "date-time",
+            "enum"
+          ]
+        },
+        "required": {
+          "type": "boolean"
+        },
+        "pii_handling": {
+          "type": "string",
+          "enum": [
+            "none",
+            "hashed",
+            "redacted",
+            "stable_identifier_only",
+            "forbidden"
+          ]
+        },
+        "description": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 600
+        }
+      }
+    },
+    "eventClassEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_class",
+        "originating_adr",
+        "description",
+        "severity",
+        "retention_class",
+        "emission_targets",
+        "payload_fields",
+        "cardinality_budget",
+        "cedar_decision_event",
+        "schema_version"
+      ],
+      "properties": {
+        "event_class": {
+          "$ref": "#/definitions/eventClassName"
+        },
+        "originating_adr": {
+          "$ref": "#/definitions/adrId"
+        },
+        "description": {
+          "type": "string",
+          "minLength": 40,
+          "maxLength": 1200
+        },
+        "severity": {
+          "$ref": "#/definitions/severity"
+        },
+        "retention_class": {
+          "$ref": "#/definitions/retentionClass"
+        },
+        "emission_targets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/emissionTarget"
+          },
+          "minItems": 1,
+          "uniqueItems": true
+        },
+        "payload_fields": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/payloadField"
+          },
+          "minItems": 1
+        },
+        "cardinality_budget": {
+          "$ref": "#/definitions/cardinalityBudget"
+        },
+        "cedar_decision_event": {
+          "type": "boolean"
+        },
+        "schema_version": {
+          "$ref": "#/definitions/semver"
+        }
+      }
+    }
+  },
+  "x-registered_classes": [
+    {
+      "event_class": "AbuseDefenceBotBlocked",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Tier-0 edge or service Cedar gate blocks request on bot score."
+    },
+    {
+      "event_class": "AbuseDefenceSpoofDetected",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Anti-spoof control detects identity, webhook, SVID, session, or source mismatch."
+    },
+    {
+      "event_class": "AbuseDefenceScrapeBlocked",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Scrape-rate or pattern-anomaly control blocks automated collection."
+    },
+    {
+      "event_class": "AbuseDefenceChallengeIssued",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Challenge such as CAPTCHA or proof-of-work is issued."
+    },
+    {
+      "event_class": "AbuseDefenceChallengeSolved",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Challenge succeeds and permits the request path to continue."
+    },
+    {
+      "event_class": "AbuseDefenceChallengeFailed",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Challenge fails or exceeds attempts."
+    },
+    {
+      "event_class": "AbuseDefenceRateLimitHit",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Rate-limit bucket is exceeded."
+    },
+    {
+      "event_class": "AbuseDefenceRateLimitFallback",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Edge fallback moves to in-process counters or tighter local limits."
+    },
+    {
+      "event_class": "AbuseDefenceHoneypotHit",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Honeypot route or resource is accessed."
+    },
+    {
+      "event_class": "AbuseDefenceCanaryRecovered",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Canary token is recovered from leaked or scraped material."
+    },
+    {
+      "event_class": "AbuseDefenceQuotaExceeded",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Per-action or tenant quota is exceeded."
+    },
+    {
+      "event_class": "AbuseDefenceCredentialPwned",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Known-compromised credential is used."
+    },
+    {
+      "event_class": "AbuseDefenceCredentialStuffing",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Credential-stuffing pattern is detected."
+    },
+    {
+      "event_class": "AbuseDefenceAttestationFailed",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Device or workload attestation fails."
+    },
+    {
+      "event_class": "AbuseDefenceVendorOutage",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "External abuse-defence vendor is unavailable and fallback path is taken."
+    },
+    {
+      "event_class": "AbuseDefenceFragmentActivated",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Cedar abuse-defence fragment hot-reloads or activates."
+    },
+    {
+      "event_class": "AbuseDefenceWatermarkRecovered",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "Per-user watermark is identified in leak evidence."
+    },
+    {
+      "event_class": "AbuseDefenceSPIREOutage",
+      "originating_adr": "ADR-0297",
+      "category": "abuse-defence",
+      "summary": "SPIRE server is unreachable and SVID fallback is used."
+    },
+    {
+      "event_class": "ConglomerateGrantCreated",
+      "originating_adr": "ADR-0313",
+      "category": "tenant-hierarchy",
+      "summary": "Parent-to-child controlling-entity grant is created and dual-sealed."
+    },
+    {
+      "event_class": "ConglomerateGrantRevoked",
+      "originating_adr": "ADR-0313",
+      "category": "tenant-hierarchy",
+      "summary": "Controlling-entity grant is revoked."
+    },
+    {
+      "event_class": "ConglomerateParentReadAction",
+      "originating_adr": "ADR-0313",
+      "category": "tenant-hierarchy",
+      "summary": "Parent tenant reads child tenant data under a valid grant."
+    },
+    {
+      "event_class": "ConglomerateCrossJurisdictionResidencyEnforced",
+      "originating_adr": "ADR-0313",
+      "category": "tenant-hierarchy",
+      "summary": "Cross-jurisdiction grant action is constrained by residency policy."
+    },
+    {
+      "event_class": "ConglomerateInformationBarrierCrossingRefused",
+      "originating_adr": "ADR-0313",
+      "category": "tenant-hierarchy",
+      "summary": "Parent/child action is refused by information-barrier policy."
+    },
+    {
+      "event_class": "ConglomeratePersonalTenantBoundaryRefused",
+      "originating_adr": "ADR-0313",
+      "category": "tenant-hierarchy",
+      "summary": "Conglomerate grant attempts to cross into a personal tenant and is refused."
+    },
+    {
+      "event_class": "OfficeScopeAssignmentCreated",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Front, middle, or back office scope assignment is created."
+    },
+    {
+      "event_class": "OfficeScopeAssignmentChanged",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Office scope assignment is changed."
+    },
+    {
+      "event_class": "OfficeScopeAssignmentRevoked",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Office scope assignment is revoked."
+    },
+    {
+      "event_class": "OfficeBoundaryClearanceRequested",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "User or workflow requests clearance across an office boundary."
+    },
+    {
+      "event_class": "OfficeBoundaryClearanceApproved",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Office boundary clearance is approved."
+    },
+    {
+      "event_class": "OfficeBoundaryClearanceDenied",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Office boundary clearance is denied."
+    },
+    {
+      "event_class": "OfficeBoundaryClearanceRevoked",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Previously approved clearance is revoked."
+    },
+    {
+      "event_class": "OfficeBoundaryAttemptEvaluated",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Attempt to cross an office boundary is evaluated."
+    },
+    {
+      "event_class": "OfficeBoundaryAttemptDenied",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Attempt to cross an office boundary is denied."
+    },
+    {
+      "event_class": "OfficeBoundaryAttemptAllowed",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Attempt to cross an office boundary is allowed."
+    },
+    {
+      "event_class": "InformationBarrierTaintAttached",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Information barrier taint is attached to a record or derived artifact."
+    },
+    {
+      "event_class": "InformationBarrierTaintDerived",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Information barrier taint propagates to derived material."
+    },
+    {
+      "event_class": "InformationBarrierTaintReleased",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Information barrier taint is released by policy."
+    },
+    {
+      "event_class": "RestrictedDealCreated",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Restricted deal record is created."
+    },
+    {
+      "event_class": "RestrictedDealParticipantAdded",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Participant is added to restricted deal."
+    },
+    {
+      "event_class": "RestrictedDealParticipantRemoved",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Participant is removed from restricted deal."
+    },
+    {
+      "event_class": "RestrictedDealReleased",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Restricted deal exits restricted status."
+    },
+    {
+      "event_class": "AdvisorRelationshipBarrierCreated",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Advisor relationship barrier is created."
+    },
+    {
+      "event_class": "AdvisorRelationshipBarrierAttemptEvaluated",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Attempt involving advisor relationship barrier is evaluated."
+    },
+    {
+      "event_class": "OfficePackOverlayActivated",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Office pack overlay is activated."
+    },
+    {
+      "event_class": "OfficePackOverlayChanged",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Office pack overlay changes."
+    },
+    {
+      "event_class": "OfficePackOverlayRetired",
+      "originating_adr": "ADR-0319",
+      "category": "information-barrier",
+      "summary": "Office pack overlay is retired."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationCreated",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Signed per-tenant residency footprint is created and linked to its region/regime source hashes."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationRefreshed",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Residency attestation is refreshed with a new signature chain and previous attestation reference."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationExpired",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Residency attestation expiry or grace-window handling is recorded for compliance follow-up."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationSignatureInvalid",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Residency attestation signature verification fails and the dependent operation must fail closed."
+    },
+    {
+      "event_class": "TenancyResidencyAttestationMissing",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Placement or cross-border operation lacks a current tenant residency attestation."
+    },
+    {
+      "event_class": "TenancyResidencyPlacementDecided",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Cell placement candidates are filtered against the tenant's attested residency footprint."
+    },
+    {
+      "event_class": "TenancyResidencyPlacementRefused",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "No placement candidate satisfies the signed residency footprint, so placement is refused."
+    },
+    {
+      "event_class": "TenancyResidencyCrossBorderRefused",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "A requested cross-border operation is outside the tenant footprint and is refused."
+    },
+    {
+      "event_class": "TenancyResidencyCrossBorderPermitted",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "A cross-border operation is permitted because the footprint, consent, or Cedar permit allows it."
+    },
+    {
+      "event_class": "TenancyResidencyTierUpgraded",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Tenant residency tier is upgraded and the attestation chain records the stricter posture."
+    },
+    {
+      "event_class": "TenancyResidencyTierDowngraded",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Tenant residency tier is downgraded after explicit acknowledgement of reduced guarantees."
+    },
+    {
+      "event_class": "TenancyResidencyPackBindingChanged",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "Compliance-pack residency implications are evaluated and may allow or refuse pack activation."
+    },
+    {
+      "event_class": "TenancyResidencyRegulatoryAttestorEngaged",
+      "originating_adr": "ADR-0326",
+      "category": "residency",
+      "summary": "A regime-mandated regulatory attestor participates in the residency signature chain."
+    }
+  ],
+  "examples": [
+    {
+      "example_name": "abuse defence bot block class",
+      "registry_id": "audit-event-class-registry",
+      "version": "1.0.0",
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "sub_scope_path",
+        "event_id",
+        "trace_id",
+        "span_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
+      "classes": [
+        {
+          "event_class": "AbuseDefenceBotBlocked",
+          "originating_adr": "ADR-0297",
+          "description": "Tier-0 edge or service Cedar gate blocks a request because the bot score exceeds the tenant or route threshold.",
+          "severity": "INFO",
+          "retention_class": "security",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "prometheus-metric"
+          ],
+          "payload_fields": [
+            {
+              "name": "principal_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable principal identifier for the blocked actor."
+            },
+            {
+              "name": "bot_score",
+              "type": "number",
+              "required": true,
+              "pii_handling": "none",
+              "description": "Normalized bot score used by the decision."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice"
+            ],
+            "max_distinct_per_cell_per_day": 1000000,
+            "high_cardinality_allowed": true
+          },
+          "cedar_decision_event": true,
+          "schema_version": "1.0.0"
+        }
+      ],
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+      }
+    },
+    {
+      "example_name": "conglomerate parent read class",
+      "registry_id": "audit-event-class-registry",
+      "version": "1.0.0",
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "sub_scope_path",
+        "event_id",
+        "trace_id",
+        "span_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
+      "classes": [
+        {
+          "event_class": "ConglomerateParentReadAction",
+          "originating_adr": "ADR-0313",
+          "description": "Parent tenant reads child tenant data under a valid source-of-truth conglomerate grant and dual-seal audit path.",
+          "severity": "INFO",
+          "retention_class": "regulated",
+          "emission_targets": [
+            "audit-chain",
+            "otel-trace",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "parent_tenant_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Parent tenant exercising the grant."
+            },
+            {
+              "name": "child_tenant_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Child tenant whose data is read."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "child_tenant_id"
+            ],
+            "max_distinct_per_cell_per_day": 10000000,
+            "high_cardinality_allowed": true
+          },
+          "cedar_decision_event": true,
+          "schema_version": "1.0.0"
+        }
+      ],
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+      }
+    },
+    {
+      "example_name": "information barrier taint class",
+      "registry_id": "audit-event-class-registry",
+      "version": "1.0.0",
+      "mandatory_envelope_fields": [
+        "tenant_id",
+        "sub_scope_path",
+        "event_id",
+        "trace_id",
+        "span_id",
+        "audit_id",
+        "schema_version",
+        "source_microservice",
+        "cell_id",
+        "jurisdiction_code"
+      ],
+      "cedar_decision_fields": [
+        "cedar_policy_version",
+        "policy_fragment_id",
+        "evaluation_id",
+        "action",
+        "resource_ref",
+        "decision"
+      ],
+      "classes": [
+        {
+          "event_class": "InformationBarrierTaintAttached",
+          "originating_adr": "ADR-0319",
+          "description": "Information barrier taint is attached to a record, derived artifact, report, embedding, index, or workflow event and must propagate.",
+          "severity": "WARN",
+          "retention_class": "information_barrier",
+          "emission_targets": [
+            "audit-chain",
+            "security-alert",
+            "compliance-evidence-bundle"
+          ],
+          "payload_fields": [
+            {
+              "name": "taint_id",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Stable taint identifier."
+            },
+            {
+              "name": "resource_ref",
+              "type": "string",
+              "required": true,
+              "pii_handling": "stable_identifier_only",
+              "description": "Resource receiving the taint."
+            }
+          ],
+          "cardinality_budget": {
+            "dimension_keys": [
+              "tenant_id",
+              "source_microservice",
+              "taint_id"
+            ],
+            "max_distinct_per_cell_per_day": 5000000,
+            "high_cardinality_allowed": true
+          },
+          "cedar_decision_event": false,
+          "schema_version": "1.0.0"
+        }
+      ],
+      "update_policy": {
+        "requires_originating_adr": true,
+        "requires_reverse_reference_to_adr_0263": true,
+        "requires_payload_schema": true,
+        "requires_cardinality_budget": true,
+        "requires_retention_class": true,
+        "requires_validator_lane": "oya gate validate audit-event-class-registered"
+      }
+    }
+  ]
+}

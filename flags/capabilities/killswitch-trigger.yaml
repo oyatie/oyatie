@@ -1,0 +1,31 @@
+apiVersion: oyatie.io/v2
+kind: Capability
+metadata:
+  name: killswitch-trigger
+  microservice: feature-flags
+  binding-adr: ADR-0159
+spec:
+  displayName: Kill-Switch Trigger
+  description: |
+    Engage or disengage an emergency kill-switch for a feature flag.
+    Propagates to ALL cells within ≤1s via Kafka broadcast.
+    Requires step-up auth Class C (TOTP + passkey).
+    FORBIDDEN on life-safety flags: emergency-services-bypass-flag,
+    healthcare-break-glass-enable, emergency-dispatch-routing-override.
+    Emits KillSwitchEngaged audit event (sealed, non-repudiable).
+  tier: T1
+  risk_class: critical
+  audience_types:
+    - INTERNAL_AGENT
+  transport:
+    grpc: oyatie.feature_flags.v1.KillSwitchService/EngageKillSwitch
+    rest: POST /api/v1/flags/{flag_key}/kill-switch
+  slo_ref: slos/killswitch-fire-latency.openslo.yaml
+  cedar_permit: policy/safety-killswitch-authorization.cedar
+  step_up_required: true
+  step_up_class: C
+  audit_emitted: true
+  audit_event_classes:
+    - KillSwitchEngaged
+    - KillSwitchDisengaged
+  runbook: runbooks/killswitch-engaged.md
