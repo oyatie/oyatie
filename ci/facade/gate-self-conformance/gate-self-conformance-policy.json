@@ -11,7 +11,8 @@
       "inventory-registry-drift",
       "planning-projection",
       "rust-toolchain-bump-proposer",
-      "scm-facts-snapshot"
+      "scm-facts-snapshot",
+      "webhook-gateway-app"
     ],
     "bespoke_buck2_gate_crates": [
       "affected-target-set",

@@ -1,0 +1,25 @@
+[package]
+name = "ci-webhook-gateway-authz-cedar"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Cedar authorization adapter for the CI webhook gateway (ADR-0387 D6).
+# Implements the kernel WebhookAuthzGate trait via cedar-policy engine.
+# Loads policy from oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar.
+# Deny-by-default + forbid-wins semantics (ADR-0183 inheritance).
+# Stage-5 GREEN: Cedar engine wired; dogfood tenant on same path.
+
+[lib]
+name = "ci_webhook_gateway_authz_cedar"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+ci-webhook-gateway-kernel = { path = "../../core/webhook-gateway-kernel" }
+cedar-policy = { workspace = true }
+
+[lints]
+workspace = true

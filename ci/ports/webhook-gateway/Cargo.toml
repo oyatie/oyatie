@@ -1,0 +1,22 @@
+[package]
+name = "ci-webhook-gateway-ports"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# ci/ports: webhook-gateway contracts the facade consumes (ADR-0562). Re-exports
+# the kernel types/traits so ci/facade/webhook-gateway-app never depends on
+# ci/core directly.
+
+[lib]
+name = "ci_webhook_gateway_ports"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+ci-webhook-gateway-kernel = { path = "../../core/webhook-gateway-kernel" }
+
+[lints]
+workspace = true
