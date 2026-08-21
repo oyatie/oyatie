@@ -1,0 +1,37 @@
+rust_library(
+    name = "payroll-run-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "payroll_run_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//app/payroll/core/run-domain:payroll-run-domain",
+    ],
+)
+
+rust_test(
+    name = "payroll-run-app-app-envelopes",
+    srcs = ["tests/app_envelopes.rs"],
+    crate = "payroll_run_app_app_envelopes",
+    crate_root = "tests/app_envelopes.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":payroll-run-app",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//app/payroll/core/run-domain:payroll-run-domain",
+    ],
+)
+
+rust_test(
+    name = "payroll-run-app-hr-leave",
+    srcs = ["tests/hr_leave.rs"],
+    crate = "payroll_run_app_hr_leave",
+    crate_root = "tests/hr_leave.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":payroll-run-app",
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//app/payroll/core/run-domain:payroll-run-domain",
+    ],
+)

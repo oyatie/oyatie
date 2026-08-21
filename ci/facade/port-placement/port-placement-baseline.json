@@ -25,7 +25,7 @@
       "reason": "HR employment storage port defined in the in-memory adapter-named crate (caught by forbidden_crate_name_suffixes FIX 1); relocate to an oya/hr core/ports crate (separate follow-up)"
     },
     {
-      "member_path": "oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory",
+      "member_path": "app/payroll/adapters/run-storage-inmemory",
       "trait": "PayrollRunStoragePort",
       "reason": "payroll-run storage port defined in the in-memory adapter-named crate (caught by forbidden_crate_name_suffixes FIX 1); relocate to an oya/payroll core/ports crate (separate follow-up)"
     },

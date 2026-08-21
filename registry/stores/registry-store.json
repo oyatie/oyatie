@@ -7434,7 +7434,7 @@
       ]
     },
     {
-      "key": "oya-payroll-run-api",
+      "key": "payroll-run-api",
       "context": "payroll",
       "role": "api",
       "capability": "run",
@@ -7451,7 +7451,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-payroll-run-app",
+      "key": "payroll-run-app",
       "context": "payroll",
       "role": "app",
       "capability": "run",
@@ -7468,7 +7468,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-payroll-run-domain",
+      "key": "payroll-run-domain",
       "context": "payroll",
       "role": "domain",
       "capability": "run",
@@ -7502,7 +7502,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-payroll-run-storage-adapter-inmemory",
+      "key": "payroll-run-storage-inmemory",
       "context": "payroll",
       "role": "runtime",
       "capability": "payroll-run-storage-inmemory",
