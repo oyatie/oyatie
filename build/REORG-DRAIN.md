@@ -7223,3 +7223,66 @@ something else, which is the one direction this engine can take on trust. And `a
 WHICH of two different things is missing, where before both said "no translation yet": out of the
 failure type it is a downcast the target has and the source's comma-ok is its `Option` exactly; out
 of a bare interface it is waiting on a decision that has already been made the other way.
+
+## R4u — a `continue` that must not skip the step, and the case that was never a pattern
+
+Two findings, and the second only existed because the first landed.
+
+### The step block
+
+`for ; i < len(data); i++ { ... continue ... }` refused. The reason was right — the source's
+`continue` jumps to the POST clause and the target's jumps to the TEST, so a post-statement spelled
+at the end of the body is skipped on exactly those paths and the loop counts differently — and it
+was not the whole answer, because the target has the construct that says it exactly.
+
+A LABELLED BLOCK around one iteration turns `continue` into `break 'step`, which leaves the block
+and lands on the post-statement: the same place the source goes.
+
+    while i < data.len() as i64 {
+        'step: {
+            match data[i as usize] {
+                b' ' | b'\t' | b'\n' | b'\r' => break 'step,
+                ...
+            }
+        }
+        i += 1;
+    }
+
+A `break` written in the same body is relabelled too, because inside the block a bare one leaves
+the BLOCK — one iteration — rather than the loop. The loop is labelled only when that happens: an
+unused label is a warning, and the emitted crate is held to deny-warnings. The walk does not
+descend into a nested loop, whose jumps belong to it.
+
+gjson 19 → 22 translated.
+
+### The case that was never a pattern
+
+Which made `validcomma` translate, and it was wrong:
+
+    case ' ', '\t', '\n', '\r':  continue
+    case ',':                    return i, true
+    case end:                    return i, true      // `end` is a PARAMETER
+    default:                     return i, false
+
+became
+
+    end => { return (i, true); }
+
+`end =>` is not a comparison. It is an irrefutable BINDING that shadows the parameter and matches
+every byte, so the `default` arm is unreachable and the function returns success for everything it
+should have rejected. It compiles.
+
+A Go case is a value to compare against — the IR's own doc said so — and only some comparisons are
+patterns. A literal is one; a name the source declares `const` is one, because the target emits it
+as a `const`. Anything read at run time is not, and becomes a GUARD:
+
+    _ if data[i as usize] == end => { return (i, true); }
+
+The guard names the subject again, so the subject must be nameable twice without doing anything —
+the same predicate `copy` needed, reused rather than restated. `case a, b:` is an OR of the
+comparisons.
+
+THE COMPILE GATE CAUGHT THIS, unreachable-pattern under deny-warnings, before any of it was
+believed. That is the second time in this session a rule that raised coverage exposed a defect that
+had been sitting behind a refusal, and the first time the defect was one the engine would otherwise
+have shipped.

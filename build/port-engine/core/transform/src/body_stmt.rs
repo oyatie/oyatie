@@ -223,7 +223,7 @@ pub(crate) fn statement(
                 }),
             }
         }
-        "break" => Ok(RustStmt::Break),
+        "break" => Ok(RustStmt::Break(None)),
         // A `continue` is legal HERE unconditionally, because the loop that encloses it is what
         // decides: a source loop whose post-statement the target has to spell at the end of the
         // body refuses in [`crate::body_loops`] before ever translating a body that contains one.

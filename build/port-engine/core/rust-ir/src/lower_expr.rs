@@ -318,11 +318,17 @@ fn lower_each(exprs: &[RustExpr]) -> Result<Vec<TokenStream>, PortError> {
 /// An arm's patterns are ORs of literal values; an arm with none is the wildcard.
 fn lower_arm(arm: &MatchArm) -> Result<TokenStream, PortError> {
     let body = lower_block(&arm.body)?;
+    let guard = arm
+        .guard
+        .as_ref()
+        .map(lower_expr)
+        .transpose()?
+        .map(|guard| quote! { if #guard });
     if arm.patterns.is_empty() {
-        return Ok(quote! { _ => { #body } });
+        return Ok(quote! { _ #guard => { #body } });
     }
     let patterns = lower_each(&arm.patterns)?;
-    Ok(quote! { #(#patterns)|* => { #body } })
+    Ok(quote! { #(#patterns)|* #guard => { #body } })
 }
 
 /// A slice as a PLACE — `x[a..b]` — without the borrow that reading it as a value needs.
@@ -393,6 +399,7 @@ pub(crate) fn static_str_match(expr: &RustExpr) -> Option<RustExpr> {
         }
         borrowed.push(crate::expr::MatchArm {
             patterns: arm.patterns.clone(),
+            guard: arm.guard.clone(),
             body: vec![crate::stmt::RustStmt::Tail(RustExpr::Literal(text.clone()))],
         });
     }

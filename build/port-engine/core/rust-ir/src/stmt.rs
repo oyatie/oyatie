@@ -72,6 +72,8 @@ pub enum RustStmt {
         cond: RustExpr,
         /// The loop body.
         body: Vec<RustStmt>,
+        /// A label, when something inside must be able to leave THIS loop by name.
+        label: Option<String>, // data_class: INTERNAL_ONLY
     },
     /// `loop { .. }`
     Loop(Vec<RustStmt>),
@@ -84,8 +86,11 @@ pub enum RustStmt {
         /// The loop body.
         body: Vec<RustStmt>,
     },
-    /// `break;`
-    Break,
+    /// `break;`, or `break 'label;` when it must leave a labelled construct.
+    ///
+    /// The label is what makes a `break` written inside a labelled BLOCK still leave the LOOP: a
+    /// bare `break` there leaves the block, which is one iteration rather than the whole loop.
+    Break(Option<String>), // data_class: INTERNAL_ONLY
     /// `let _ = <expr>;` — evaluate the operand and keep nothing.
     ///
     /// Not a [`RustStmt::Let`] whose name happens to be `_`. The target's blank is a PATTERN and
@@ -106,6 +111,17 @@ pub enum RustStmt {
     /// sibling of the loop would widen that scope to the rest of the enclosing block, where it can
     /// shadow a name the source left visible — so the block is the scope, spelled.
     Block(Vec<RustStmt>),
+    /// `'label: { .. }` — a block that can be left early by name.
+    ///
+    /// This is how the source's `continue` survives a loop whose post-statement the target has to
+    /// spell in the body. `break 'label` leaves the block and lands on the post-statement, which is
+    /// exactly where the source's `continue` goes; a bare `continue` would jump past it.
+    Labelled {
+        /// The label, without its leading quote.
+        label: String, // data_class: INTERNAL_ONLY
+        /// The block's statements.
+        body: Vec<RustStmt>,
+    },
 }
 
 /// One name a destructuring bind introduces.
