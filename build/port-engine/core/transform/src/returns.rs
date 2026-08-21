@@ -20,7 +20,8 @@ use port_engine_api::Declaration;
 
 use crate::vocabulary::{
     ATTR_CALLEE, ATTR_OP, CHILD_BODY, KIND_CALL, KIND_COMPOSITE, KIND_RETURN, KIND_UNARY,
-    ATTR_VALUE, KIND_IDENT, KIND_LITERAL, OPERATOR_ADDRESS_OF, SOURCE_INT, TYPE_POINTER,
+    ATTR_REF, ATTR_VALUE, KIND_IDENT, KIND_LITERAL, OPERATOR_ADDRESS_OF, REF_CONST, SOURCE_INT,
+    TYPE_POINTER,
 };
 
 /// Whether this declaration is a THREE-WAY COMPARISON, and so returns the target's ordering.
@@ -436,4 +437,61 @@ pub(crate) fn never_fails(
                 .last()
                 .is_some_and(|operand| crate::failure::is_absent(operand, resolver.failure))
         })
+}
+
+/// Whether this declaration's `(T, bool)` results are the source spelling an OPTION.
+///
+/// Go has no sum type, so a function that may or may not produce a value returns both: the value,
+/// and a flag saying whether to look at it. `parse_uint(s string) (n uint64, ok bool)` answers
+/// `(0, false)` when it cannot parse, and the `0` is not an answer — it is what Go requires in a
+/// slot that has to hold something. The target says the same thing with `Option<T>`, and there the
+/// unusable value is not representable at all.
+///
+/// THE PROOF IS THAT THE FAILING VALUE CARRIES NOTHING, and it is what separates this from a
+/// function that returns two real results. `gjson`'s `validstring` also answers `(int, bool)`, and
+/// on failure its int is the OFFSET IT STOPPED AT — information a caller can use, which `None`
+/// would discard. So every failing return must hand back a literal, and a computed one disqualifies
+/// the whole declaration rather than just that return.
+///
+/// Every return must also decide the flag with a literal. A returned `(v, ok)` where `ok` was
+/// computed is a value the target cannot split into `Some` and `None` without evaluating it, and
+/// the source's own reader cannot tell which it is either.
+pub(crate) fn spells_an_option(declaration: &Declaration) -> bool {
+    let results = declaration.children_of_kind(crate::vocabulary::CHILD_RESULT);
+    let [_, flag] = results.as_slice() else {
+        return false;
+    };
+    if flag.type_ref.name != "bool" {
+        return false;
+    }
+    let Some(body) = declaration
+        .children
+        .iter()
+        .find(|child| child.kind == crate::vocabulary::CHILD_BODY)
+    else {
+        return false;
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    if returns.is_empty() {
+        return false;
+    }
+    returns.iter().all(|returned| {
+        let [value, decided] = returned.children.as_slice() else {
+            // A BARE return, which named results make legal and which says nothing about either
+            // slot. Nothing here can tell what it meant.
+            return false;
+        };
+        // `true` and `false` are PREDECLARED CONSTANTS in the source, not literals, so they arrive
+        // as identifiers. Testing for a literal here accepted nothing at all.
+        if decided.kind != KIND_IDENT || decided.attr(ATTR_REF) != Some(REF_CONST) {
+            return false;
+        }
+        match decided.name.as_str() {
+            // The success side may hand back anything; only the failing side has to carry nothing.
+            "true" => true,
+            "false" => value.kind == KIND_LITERAL,
+            _ => false,
+        }
+    })
 }

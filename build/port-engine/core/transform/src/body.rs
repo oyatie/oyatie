@@ -43,6 +43,12 @@ pub(crate) struct Body<'a> {
     /// A property of the signature that only the body can spend: the same `return x, y` is two
     /// different target constructions depending on it, and nothing inside a return says which.
     pub(crate) fallible: bool,
+    /// Whether the signature answered `Option<T>` where the source declared `(T, bool)`.
+    ///
+    /// The SAME answer `results` gave, carried rather than re-derived: the signature and every
+    /// return have to agree about whether a return is a pair or an option, and deriving it twice is
+    /// how they end up disagreeing.
+    pub(crate) returns_option: bool,
     /// Parameter names the signature BORROWS.
     ///
     /// The transform decided which ones those are when it built the signature, so this is the same
@@ -115,6 +121,7 @@ impl<'a> Body<'a> {
             owner,
             resolver,
             fallible,
+            returns_option: false,
             result_is_owned_string,
             result_is_owned_sequence,
             borrowed,
@@ -199,6 +206,7 @@ pub(crate) fn statements(
             crate::returns::ResultFacts::of(declaration, resolver, result),
         )
         .with_dropped_failure(cannot_fail)
+        .with_option_result(crate::returns::spells_an_option(declaration))
         .with_named_results(
             declaration
                 .children_of_kind(crate::vocabulary::CHILD_RESULT)

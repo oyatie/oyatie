@@ -87,13 +87,6 @@ func extract(
 		BuildConfig:   cfg.describe(),
 		Packages:      make([]pkgNode, 0, len(dirs)),
 	}
-	// Filled in AFTER the walk, because whether the weaker importer was needed is only known once
-	// every import has been resolved. See the note on `corpusImporter.source`.
-	defer func() {
-		if resolver.usedSource {
-			model.BuildConfig += " imports=source"
-		}
-	}()
 
 	facts := []satisfaction{}
 	qualifiers := map[string]types.Qualifier{}
@@ -123,6 +116,18 @@ func extract(
 	})
 
 	attributeSatisfactions(model, dedupeSatisfactions(facts), qualifiers)
+
+	// Recorded AFTER the walk, because whether the weaker importer was needed is only known once
+	// every import has been resolved -- and BEFORE the digest, because the digest covers it.
+	//
+	// This was a `defer`, which runs after the return value is set and therefore after the line
+	// below. The snapshot shipped a `build_config` the digest had never seen, so every corpus that
+	// needed the source importer failed admission with a mismatch it could not have caused:
+	// `errors`, `gocache` and `yaml`, three of thirteen. They emitted nothing, and the compile
+	// gate called that "compiles".
+	if resolver.usedSource {
+		model.BuildConfig += " imports=source"
+	}
 
 	model.SnapshotDigest = digest(preimage(model))
 	return model, nil

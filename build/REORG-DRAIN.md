@@ -7323,3 +7323,63 @@ that shape, and the pattern is now the finding rather than a disappointment: the
 unblocked call callees that refuse, so they refuse again one step later as CASCADE. Cascade is 134
 declarations across all ten packages — the largest single category — and none of it resolves until
 the roots do.
+
+## R4w — `(T, bool)` is an option, and the gate could not tell success from absence
+
+### The divergence that earns itself
+
+Go has no sum type, so a function that may or may not produce a value returns both — the value and
+a flag saying whether to look at it. The value it hands back when the flag is false is not an
+answer; it is what the source had to put in a slot that could not be empty.
+
+    fn safe_int(f: f64) -> Option<i64> {
+        if f < -9_007_199_254_740_991.0 || f > 9_007_199_254_740_991.0 {
+            return None;
+        }
+        Some(f as i64)
+    }
+
+THE PROOF IS THAT THE FAILING VALUE CARRIES NOTHING, and it is what separates this from a function
+returning two real results. `gjson`'s `validstring` also answers `(int, bool)`, and on failure its
+int is THE OFFSET IT STOPPED AT — information a caller can use and `None` would discard. So every
+failing return must hand back a literal, and one computed value disqualifies the declaration.
+
+The predicate accepts four of the corpus's twenty-six `(T, bool)` functions: `parseUint`,
+`parseInt`, `safeInt`, `keyFloat`. Those are exactly the three a reviewer named plus one, and it
+rejects `validstring` for exactly the reason the reviewer gave. Written before the emission was
+wired, and measured against the reviewer's own list, which is what made it trustworthy.
+
+First attempt accepted ZERO: `true` and `false` are PREDECLARED CONSTANTS in the source, not
+literals, so they arrive as identifiers. Measuring before wiring is what caught it.
+
+### The gate could not tell success from absence
+
+Then the compile gate said `yaml` compiles, and `yaml` had emitted nothing at all.
+
+A package whose port fails writes no modules, and AN EMPTY CRATE COMPILES PERFECTLY. Three of the
+thirteen — `errors`, `gocache`, `yaml` — were passing that way, and every "13/13 compile" in this
+session counted them. The real figure was 10. A gate that cannot tell success from absence measures
+nothing, and this is the third instrument defect this session after `-A dead_code` and the
+hand-assembled review bundle.
+
+### Why those three emitted nothing
+
+    snapshot admit digest mismatch: claimed `sha256:4158b9c2...`, computed `sha256:f958b64a...`
+
+The extractor appends ` imports=source` to `build_config` when a corpus needed the weaker importer.
+It did so in a `defer`, which runs after the return value is set — and therefore AFTER the line that
+computes the digest over it. The snapshot shipped a `build_config` its own digest had never seen, so
+every corpus needing the source importer failed admission with a mismatch it could not have caused.
+
+Recorded before the digest now. And the three came back:
+
+    errors    3 of 39 translated, compiles
+    gocache   0 of 23 translated, emits nothing
+    yaml      209 of 461 translated — 45.3%, the HIGHEST of any package in the corpus
+
+`yaml` was the engine's best result and nothing could see it. It also carries eight compile errors
+that had never been checked, and they are real: `nil` emitted as a bare identifier, a defined type
+compared against an integer literal — `self.kind.clone() == 0`, which the source permits because a
+defined type carries its underlying type's operations — and a conversion between two newtypes
+without reaching through either. Those are the next work, and they exist because a gate that was
+lying stopped lying.

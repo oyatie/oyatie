@@ -169,6 +169,7 @@ pub(crate) fn build_static(
                 owner: &declaration.name,
                 resolver,
                 fallible: false,
+                returns_option: false,
                 borrowed: std::collections::BTreeSet::new(),
                 result_is_owned_string: false,
             result_is_owned_sequence: std::collections::BTreeSet::new(),

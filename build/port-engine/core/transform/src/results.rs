@@ -75,6 +75,27 @@ pub(crate) fn results_in(
         results.pop();
     }
 
+    // `(T, bool)` IS AN OPTION, where the source proves it. Go has no sum type, so a function that
+    // may or may not produce a value returns both — the value and a flag saying whether to look at
+    // it — and the value it hands back when the flag is false is whatever the slot had to hold.
+    // The target says the same thing with `Option<T>`, where that unusable value cannot be
+    // spelled at all.
+    //
+    // A DIVERGENCE FROM THE SOURCE'S SHAPE, and it earns that by making an invalid state
+    // unrepresentable rather than by preference. `returns::spells_an_option` carries the proof; a
+    // function whose failing return hands back a real value keeps its tuple, because there the
+    // second result is information and `None` would drop it.
+    if idioms
+        && crate::returns::spells_an_option(declaration)
+        && let [value, _] = results.as_slice()
+    {
+        let inner = resolver.resolve(&value.type_ref, &declaration.name)?;
+        return Ok(Some(RustType::Generic {
+            path: "Option".to_owned(),
+            args: vec![inner],
+        }));
+    }
+
     let mut types = Vec::with_capacity(results.len());
     for result in results {
         // A failure type anywhere but last is not the convention. It is a legitimate program and it

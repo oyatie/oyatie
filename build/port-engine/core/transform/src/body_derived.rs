@@ -31,6 +31,12 @@ impl<'a> Body<'a> {
         self
     }
 
+    /// The same body, told the signature answered `Option<T>` for a source `(T, bool)`.
+    pub(crate) fn with_option_result(mut self, option: bool) -> Self {
+        self.returns_option = option;
+        self
+    }
+
     /// The same body, told the NAMED results a bare return hands back.
     pub(crate) fn with_named_results(mut self, names: Vec<String>) -> Self {
         self.named_results = names;
@@ -50,6 +56,7 @@ impl<'a> Body<'a> {
             newtype_parameters: self.newtype_parameters.clone(),
             resolver: self.resolver,
             fallible: self.fallible,
+            returns_option: self.returns_option,
             result_is_owned_string: self.result_is_owned_string,
             result_is_owned_sequence: self.result_is_owned_sequence.clone(),
             drops_absent_failure: self.drops_absent_failure,
@@ -78,6 +85,7 @@ impl<'a> Body<'a> {
             newtype_parameters: self.newtype_parameters.clone(),
             resolver: self.resolver,
             fallible: self.fallible,
+            returns_option: self.returns_option,
             result_is_owned_string: self.result_is_owned_string,
             result_is_owned_sequence: self.result_is_owned_sequence.clone(),
             drops_absent_failure: self.drops_absent_failure,
