@@ -280,20 +280,45 @@ kernel story.
   merge a permanent generated tree.
 - **`os/ports/kernel-abi` is deleted with `os/`.** A kernel-ABI seam is created when
   we own a kernel, not as a vacant port.
-- Consume Talos as **upstream** through `k8s/` / `iac/` **adapters**, not a parallel
-  `os/` engine.
-- **`k8s/` the capability stays.** It is the **managed-k8s product** (cluster
-  lifecycle, control-plane host, quota, SLO) with real `core/ports/adapters/facade`
-  crates and a CAPI adapter. That is not a generated twin of upstream Kubernetes
-  the way `os/` is a twin of Talos.
-- **`k8s/` the dump burns (D-8).** IPs, AUDIT-FINDINGS, dual ARCH, dashboards, DPIA,
-  `manifest.json`, scorecards, `PRD.md` on a capability, nested `managed-*` leftover
-  trees (faces already exist), `k8s/iac/{helm,kustomize,terraform}` as **source**,
-  cap-root `policy/` vs `cedar/`, root `slos/`. Git history keeps the prose.
-- **Generated apimachinery / kube API farm:** if port-engine emits one, **do not
-  keep it as the live `k8s/` tree** unless we *run* that as the apiserver. Same
-  rule as `os/`: regenerate when we own it. Today we run **upstream** k8s on Talos;
-  `k8s/` is the **sold control-plane product**, not a vendored kubernetes/kubernetes.
+- Consume Talos as **upstream** through **`k8s/adapters`** / **`iac/`**, not a
+  parallel `os/` engine.
+
+**`k8s/` is GKE/EKS/AKS, not kubernetes/kubernetes.** A successful Go→Rust **port**
+of kube-apiserver does **not** give multi-tenant CP hosting, upgrades, quota, SLA,
+CAPI, cell placement, or cluster billing. Google still has **GKE** after writing
+Kubernetes. AWS/Azure sell **EKS/AKS** without writing Kubernetes. Collapsing those
+into one “core = port, facade = managed” charter is the dual-stack we just killed
+for Talos.
+
+- **Do not add a second empty capability** for “the port.” Empty `k8s-port/` is a
+  magnet. `build/port-engine` **is** the port (build meta, ADR-0704). Generated
+  apiserver output is **not** checked in (same as `os/`). When we **run** an owned
+  apiserver, it plugs in as **`k8s/adapters`** (alongside CAPI / upstream), not as
+  a replacement for the product `core/`.
+- **`k8s/` capability = managed cluster product only.** Today’s 18 crates already
+  are that: cluster lifecycle, control-plane **hosting**, tenant quota, SLO, CAPI
+  adapter. Registry charter “owned CP core + managed facade” is **scoped-superseded**
+  by this paragraph. Nested leftover `k8s/managed-*` dirs **burn** — they duplicate
+  faces.
+- **`k8s/` dump burns (D-8).** IPs, AUDIT-FINDINGS, dual ARCH, dashboards, DPIA,
+  `manifest.json`, scorecards, capability `PRD.md`, Helm/Tofu/kustomize **source**,
+  cap-root `policy/` vs `cedar/`, extra `slos/`.
+- **Not this cap:** node OS (Talos upstream), mesh/DNS (**network**), public door
+  (**gateway**), cell topology (**cell**), SPIFFE issuance (**secrets**). GKE-class
+  **uses** those; it does not own them.
+
+**MUST (managed cluster ≠ k8s port)**
+
+- **achieves:** porting Kubernetes cannot be mistaken for finishing the cloud
+  product; no generated apiserver tree as `k8s/core`.
+- **origin:** 0704 port-engine + 0562 coarse “k8s = owned CP + managed facade”
+  mixed two jobs hyperscalers split (GKE vs kubernetes.git).
+- **rule:** `k8s/` is the managed-cluster product; the port lives in
+  `build/port-engine` and lands as an **adapter** only when we run it.
+- **ensure:** no in-tree generated kube API farm; no empty port capability dir;
+  nested `managed-*` deleted in favor of existing faces.
+- **overturn_when:** we cut over production to an owned apiserver **and** a
+  five-field ADR moves implementation from adapter to `core/` same-wave.
 
 **Destinations (so delete is not an orphan):** nothing in `infra/` **needs** `os/`.
 `infra/talos/` is **upstream Talos machine state** — it moves with the `infra/`
