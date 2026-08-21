@@ -277,7 +277,7 @@ jobs:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
           OYA_BACKBONE_POSTGRES_URL: ${{ env.OYA_PG_ADMIN_URL }}
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
-        run: RUST_TEST_THREADS=1 cargo test --locked -p oya-data-sql-adapter-sqlx -p oya-data-outbox-adapter-postgres -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
+        run: RUST_TEST_THREADS=1 cargo test --locked -p data-sql-adapter-sqlx -p data-outbox-adapter-postgres -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
 
   live-postgres-facades:
     name: live-postgres-facades (tenant lifecycle / SCIM)
