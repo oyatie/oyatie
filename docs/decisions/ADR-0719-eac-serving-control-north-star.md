@@ -678,6 +678,9 @@ coverage, `authz-tier-discipline` frozen leak **counts**, `event-schema-versioni
   network `cargo-audit` on presubmit; `cargo-dist` GitHub Release CLIs; whole-repo
   `cargo-mutants` nightly; a cron that runs `cargo update` into `Cargo.lock`; a
   local hook that runs clippy `--all-targets` and claims “<5 seconds.”
+- **mold** on GitHub presubmit. Rust 1.90+ already uses bundled `rust-lld` on
+  `x86_64-unknown-linux-gnu`; CI already has debuginfo off. Mold is a local Linux
+  optional, not a merge-path pin.
 
 ## Appendix — considerations (not implement authority)
 
