@@ -7034,3 +7034,64 @@ Also fixed here: a range's lower bound is now optional. `..copied` is what the t
 prefix; `0..copied` compiles to the same thing and reads as something a person did not write. The
 first version passed an empty literal instead, which the renderer refused — and that refusal was
 counted as a translation failure in `uuid` before it was traced back to here.
+
+## R4p — review round 8: the blind gate went BACKWARDS, and it was right to
+
+    round 7   blind MERGE_WITH_CHANGES (1 blocker)    go-aware MERGE_WITH_CHANGES (5 blockers)
+    round 8   blind DO_NOT_MERGE       (9 blockers)   go-aware MERGE_WITH_CHANGES (9 blockers)
+
+The blind verdict got WORSE while the engine got better, and the reason is the instrument rather
+than the output. This reviewer wrote its own `Cargo.toml` and ran `cargo build`. The corpus gate
+passes `-A dead_code`. Without that flag the bundle emits 121 dead-code warnings on 121 items:
+
+> This is the type-and-constant skeleton of four Go packages with the function bodies dropped —
+> not a library.
+
+That is the coverage number restated as a review finding, and it is the single most important thing
+either gate said. `uuid` translates 29 of 125 declarations; what emits is the types, the constants
+and a handful of leaf functions. A reviewer handed that does not see a partial port, it sees a crate
+whose public types cannot be constructed and whose modules export nothing that works. No amount of
+idiom work moves the blind gate while that holds. COVERAGE IS THE GATE NOW.
+
+`-A dead_code` is defensible for a library — a public API has no internal callers — and it hid the
+one fact that mattered. The gate should report the count rather than suppress it.
+
+Two harness defects, both mine, both already paid for once: the bundle ships no `Cargo.toml`, so
+the reviewer had to synthesize one; and it has no tests, which the reviewer counted against it.
+
+### Findings classified
+
+CONFIRMED ENGINE DEFECTS, not idiom:
+
+- Ownership inserts `.clone()` on a destination that is then WRITTEN. Found independently by R4o.
+  This is the same defect the blind reviewer's dead-code finding hides: the write is lost.
+- Go's `int` emitted as `i64` for every length, size and offset, then cast back with `as usize` at
+  every index — 54 cast lints under pedantic. `LABEL_MAX_SIZE: usize` sits five lines from
+  `META_MAX_SIZE: i64`, both byte counts, which is the tell that this is transliteration rather
+  than a decision. A value derived from a length and used only as an index is a `usize`, and the
+  engine already types loop cursors that way; the rule exists and does not reach these.
+- `pkcs7decode` computes a negative length in `i64` and indexes with `n as usize`, giving a slice
+  bound of ~1.8e19. Go panics here too, so the CLASS is preserved — but the engine introduced the
+  cast, and a wrapped bound is not the source's bound.
+
+DECLINED, with reasons:
+
+- `safe_int` admits NaN. Both reviewers found it; it is upstream's behaviour, faithfully carried.
+  Go's `int64(NaN)` is spec-undefined and the target saturates to 0, so the VALUE differs — worth
+  recording as exposure, not worth inventing a fix the source does not contain. Fixing it here
+  would be redesign, which §10 already rejects.
+- `Delegate: Send + Sync`. Raised in round 7 and again now. The source states it in prose and not
+  in its type, and the engine may not promote a comment to a bound.
+- `RouteParams` parallel arrays. The Go-aware reviewer checked this one and withdrew it: chi's
+  ordering is significant and duplicate keys are legal, so a map would change behaviour. Recorded
+  because a reviewer that argues itself OUT of a finding is the instrument working.
+
+ACCEPTED AS THE NEXT RULES, in the order the histogram supports them:
+
+- `iota` const blocks are CLOSED sets and become enums, not open newtypes. Five instances. The
+  reviewer separated the closed cases from the genuinely open ones — `MessageType` and `Version`
+  are decoded from wire bytes and must stay newtypes — which is exactly the distinction the pack's
+  sentinel reason already draws for error enums, and the same evidence test applies.
+- `(T, bool)` becomes `Option<T>` where the `T` is a zero-value throwaway. Three private functions
+  in gjson; no API-compatibility argument against it.
+- A trait method returning an owned `Vec`/`String` where the source returned a borrow.
