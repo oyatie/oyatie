@@ -57,6 +57,16 @@ for package in "${packages[@]}"; do
   # evaluated inside the redirect sees lib.rs and declares `pub mod lib;` -- a crate root that
   # declares itself.
   declarations='#![forbid(unsafe_code)]'
+  # EMITTED NOTHING IS NOT COMPILING, and this table said it was. A package whose port fails --
+  # a snapshot that will not admit, a pipeline error -- writes no modules, and an empty crate
+  # compiles perfectly. Three of thirteen packages were passing that way, and the headline
+  # "13/13 compile" counted them. A gate that cannot tell success from absence measures nothing.
+  if ! ls "$crate"/*.rs > /dev/null 2>&1; then
+    printf '%-14s %s\n' "$package" "emitted nothing"
+    failed=$((failed + 1))
+    continue
+  fi
+
   for module in "$crate"/*.rs; do
     [ -e "$module" ] || continue
     declarations+=$'\n'"pub mod $(basename "$module" .rs);"

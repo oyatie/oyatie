@@ -95,6 +95,19 @@ pub(crate) fn translated_return(
     cx: &Body<'_>,
     is_last: bool,
 ) -> Result<RustStmt, TransformError> {
+    // `(T, bool)` ANSWERED AS AN OPTION. The signature already decided this; the flag is carried
+    // rather than re-derived so the two cannot disagree about whether a return is a pair.
+    //
+    // `return v, true` is `Some(v)` and `return <literal>, false` is `None` — and the literal is
+    // DROPPED, which is the whole point: it was never an answer, only what the source had to put
+    // in a slot that could not be empty.
+    if cx.returns_option {
+        let built = option_return(node, cx)?;
+        return Ok(match is_last {
+            true => RustStmt::Tail(built),
+            false => RustStmt::Return(Some(built)),
+        });
+    }
     let value = if cx.fallible {
         Some(fallible_return(node, cx)?)
     } else {
@@ -351,4 +364,31 @@ fn forwards_the_same_failure<'a>(
         return None;
     };
     crate::failure::is_failure_type(answered, cx.resolver.failure).then_some(operand)
+}
+
+/// A return from a function whose `(T, bool)` results the signature answered as `Option<T>`.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] when the return does not have the shape the signature was
+/// promised — which `returns::spells_an_option` checks for the whole declaration before the
+/// signature commits, so reaching this is a disagreement between the two rather than a source the
+/// engine cannot handle.
+fn option_return(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
+    let disagreed = || TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: "this function's results were answered as an option, and this return is not one \
+                 of the two shapes that decides — a value with `true`, or a literal with `false`"
+            .to_owned(),
+    };
+    let [value, decided] = node.children.as_slice() else {
+        return Err(disagreed());
+    };
+    match decided.name.as_str() {
+        "true" => Ok(RustExpr::Call {
+            callee: Box::new(RustExpr::Path("Some".to_owned())),
+            args: vec![expression(value, cx)?],
+        }),
+        "false" => Ok(RustExpr::Path("None".to_owned())),
+        _ => Err(disagreed()),
+    }
 }
