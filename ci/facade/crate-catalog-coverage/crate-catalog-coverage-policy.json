@@ -8,7 +8,7 @@
     "pr1934_fix_forward": "Catalogued live ci-controller-* / port-engine W0-B / os-harness absorb crates. Kept oya-ci-controller-* in uncatalogued baseline (legacy dual-home under oya/ci-controller/crates).",
     "pr1646_absorb_complete": "Dropped oya-ci-controller-* from uncatalogued baseline after dual-home delete; live ci-controller-* are catalogued. Lock orphans pruned same change."
   },
-  "min_expected_crates": 800,
+  "min_expected_crates": 780,
   "uncatalogued": [
     "ci-action-item-accounting",
     "ci-affected-target-set",
@@ -141,7 +141,6 @@
     "oya-cargo-lock-transform-kernel",
     "oya-ci-config-kernel",
     "oya-ci-gate-contract",
-    "oya-ci-materializer-kernel",
     "oya-crate-registrar-app",
     "oya-crate-registrar-kernel",
     "oya-data-outbox-adapter-postgres",
@@ -150,7 +149,6 @@
     "oya-data-sql-kernel",
     "oya-fabric-loop-state-app",
     "oya-friction-ledger-merge-driver-app",
-    "oya-http-wide-event-middleware-infrastructure",
     "oya-shared-audit-digest-adapter-awslc",
     "oya-shared-audit-event-kernel",
     "oya-shared-pdp-kernel",

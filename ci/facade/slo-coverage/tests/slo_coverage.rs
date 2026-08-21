@@ -160,12 +160,18 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  gained exactly one; the enumeration did not widen.
 ///   2026-08-20  742 -> pin 743     ROW ADDED: registry/catalog/check-integ-envelope.yaml
 ///                                  for the new governance/check/integ-envelope crate.
-///   2026-08-20  743 -> pin 744     ROW ADDED: registry/catalog/ci-gitops-chart-license.yaml,
+///   2026-08-20  743 -> pin 700     ROWS DELETED: 43 registry/catalog rows whose crate was
+///                                  removed by the zero-importer libs/ deletion (45 libs/
+///                                  crates with zero reverse dependencies in `cargo metadata`
+///                                  and zero textual references outside their own directory;
+///                                  two of the 45 carried no catalog row to begin with). The
+///                                  row set shrinks with its subjects; nothing was retired to
+///                                  make room.
+///   2026-08-21  700 -> pin 701     ROW ADDED: registry/catalog/ci-gitops-chart-license.yaml,
 ///                                  the catalog row for the new ci/facade/gitops-chart-license
-///                                  crate (ADR-0706 D-5 enforcement, bead oyatie-f2fg). Corpus
-///                                  gained exactly one row, face gained exactly one; the
-///                                  enumeration did not widen.
-const SLO_CATALOG_CENSUS: usize = 744;
+///                                  crate (ADR-0706 D-5 enforcement). Corpus gained exactly
+///                                  one row, face gained exactly one.
+const SLO_CATALOG_CENSUS: usize = 701;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {

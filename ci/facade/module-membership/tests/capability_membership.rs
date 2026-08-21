@@ -72,8 +72,8 @@ fn live_crate_corpus_is_born_advisory_green() {
     );
     assert_eq!(report.verdict, Verdict::Green);
     assert!(
-        report.crates_checked >= 800,
-        "the live tree should carry at least ~869 crates; got {}",
+        report.crates_checked >= 780,
+        "the live tree should carry at least ~783 crates; got {}",
         report.crates_checked
     );
     eprintln!(

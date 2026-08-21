@@ -7195,75 +7195,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c87def4c32ab89d880effc9e097653c8da5d6ef28e6b539d313baaacfbafcbe"
 
 [[package]]
-name = "opentelemetry"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b0142c63252a9e054e68a4c61a5778f7b14f576274d593f8ce883d191a099682"
-dependencies = [
- "futures-core",
- "futures-sink",
- "js-sys",
- "pin-project-lite",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "opentelemetry-http"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5683015d09e2df236ef005b17f6f196f0d5f6313c4fa43a7b6a53b52776e4331"
-dependencies = [
- "async-trait",
- "bytes",
- "http",
- "opentelemetry",
- "reqwest 0.13.4",
-]
-
-[[package]]
-name = "opentelemetry-otlp"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9966929966d17620d7c316c643ba62631826e10021409357772d5eea84f62c35"
-dependencies = [
- "http",
- "opentelemetry",
- "opentelemetry-http",
- "opentelemetry-proto",
- "opentelemetry_sdk",
- "prost",
- "reqwest 0.13.4",
- "thiserror 2.0.20",
-]
-
-[[package]]
-name = "opentelemetry-proto"
-version = "0.32.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56d658ba1faf63f7b9c492cfbe6e0ec365440a16132d3270c1065f7b33f1b638"
-dependencies = [
- "opentelemetry",
- "opentelemetry_sdk",
- "prost",
-]
-
-[[package]]
-name = "opentelemetry_sdk"
-version = "0.32.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b59f80e1ac4d5ff7a2db8fb6c80badb7f0f3f858211fba08dd9aaec750894f9"
-dependencies = [
- "futures-channel",
- "futures-executor",
- "futures-util",
- "opentelemetry",
- "percent-encoding",
- "portable-atomic",
- "rand 0.9.5",
- "thiserror 2.0.20",
-]
-
-[[package]]
 name = "or_poisoned"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7741,10 +7672,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-check-adr-placeholders"
-version = "0.1.0"
-
-[[package]]
 name = "oya-check-backup-retention-discipline"
 version = "0.1.0"
 dependencies = [
@@ -7771,10 +7698,6 @@ version = "0.1.0"
 dependencies = [
  "oya-shared-compliance-evidence-kernel",
 ]
-
-[[package]]
-name = "oya-check-container-base-image"
-version = "0.1.0"
 
 [[package]]
 name = "oya-check-cost-budget"
@@ -7828,14 +7751,6 @@ name = "oya-check-slo-coverage"
 version = "0.1.0"
 
 [[package]]
-name = "oya-check-step-up-auth-coverage"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_yaml",
-]
-
-[[package]]
 name = "oya-checkout-guard-app"
 version = "0.1.0"
 dependencies = [
@@ -7853,14 +7768,6 @@ dependencies = [
 
 [[package]]
 name = "oya-ci-gate-contract"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-materializer-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",
@@ -8167,25 +8074,6 @@ name = "oya-governance-adr-shape-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-agentic-navigability-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-architecture-map-freshness-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-audit-event-emission"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "serde_yaml",
- "walkdir",
-]
-
-[[package]]
 name = "oya-governance-authoritative-tracked-app"
 version = "0.1.0"
 dependencies = [
@@ -8208,37 +8096,8 @@ name = "oya-governance-banned-primitives-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-byok-disambiguation"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "walkdir",
-]
-
-[[package]]
 name = "oya-governance-bypass-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-governance-capability-tier-coverage"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "walkdir",
-]
-
-[[package]]
-name = "oya-governance-cedar-coverage"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_yaml",
- "walkdir",
-]
 
 [[package]]
 name = "oya-governance-claim-ceiling-kernel"
@@ -8249,14 +8108,6 @@ name = "oya-governance-cohesion-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-doc-freshness-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-doc-style-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-governance-eval-domain"
 version = "0.1.0"
 dependencies = [
@@ -8264,58 +8115,12 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-governance-eval-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-governance-eval-domain",
-]
-
-[[package]]
 name = "oya-governance-gate-catalog-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-image-discipline-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-license-policy-kernel"
 version = "0.1.0"
 
 [[package]]
 name = "oya-governance-lifecycle-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-governance-mistakes-ledger-kernel"
-version = "0.1.0"
-dependencies = [
- "tempfile",
-]
-
-[[package]]
-name = "oya-governance-naming-justifications"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "serde_yaml",
- "toml 0.8.23",
- "walkdir",
-]
-
-[[package]]
-name = "oya-governance-orphan-detection-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-pack-overlay-completeness"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
-]
 
 [[package]]
 name = "oya-governance-portfolio-citation-app"
@@ -8326,10 +8131,6 @@ dependencies = [
 
 [[package]]
 name = "oya-governance-portfolio-citation-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-pr-merge-gate-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -8352,10 +8153,6 @@ name = "oya-governance-predictable-naming-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-provider-coupling-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-governance-purpose-audit-app"
 version = "0.1.0"
 dependencies = [
@@ -8375,16 +8172,6 @@ name = "oya-governance-quality-lane-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-governance-substance-bar"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "walkdir",
-]
-
-[[package]]
 name = "oya-governance-sunset-lifecycle-app"
 version = "0.1.0"
 dependencies = [
@@ -8395,25 +8182,6 @@ dependencies = [
 [[package]]
 name = "oya-governance-sunset-lifecycle-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-governance-supply-chain-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-tos-policy-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
- "intelligence-provider-pool-kernel",
-]
-
-[[package]]
-name = "oya-governance-upstream-api-drift-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
-]
 
 [[package]]
 name = "oya-hr-employment-api"
@@ -8463,14 +8231,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-http-latency-budget-middleware-infrastructure"
-version = "0.1.0"
-dependencies = [
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
-]
-
-[[package]]
 name = "oya-http-middleware-kernel"
 version = "0.1.0"
 dependencies = [
@@ -8517,22 +8277,6 @@ dependencies = [
  "oya-http-router-kernel",
  "tenancy-kernel",
 ]
-
-[[package]]
-name = "oya-http-wide-event-middleware-infrastructure"
-version = "0.1.0"
-dependencies = [
- "futures-util",
- "http",
- "oya-shared-hyperscaler-metrics-kernel",
- "serde",
- "serde_json",
- "tower 0.5.3",
-]
-
-[[package]]
-name = "oya-json-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-lane-supervisor-app"
@@ -8671,18 +8415,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-shared-backbone-grpc-transport-adapter"
-version = "0.1.0"
-dependencies = [
- "comms-mail-mailbox-api",
- "oya-community-post-store-domain",
- "oya-shared-backbone-grpc-generated-adapter",
- "oya-shared-postgres-command-kernel",
- "tokio",
- "tonic",
-]
-
-[[package]]
 name = "oya-shared-backbone-proto-contracts-kernel"
 version = "0.1.0"
 
@@ -8731,24 +8463,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-shared-cursor-pagination-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-email-comms-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-hyperscaler-metrics-adapter-otlp"
-version = "0.1.0"
-dependencies = [
- "opentelemetry",
- "opentelemetry-otlp",
- "opentelemetry_sdk",
- "oya-shared-hyperscaler-metrics-kernel",
-]
-
-[[package]]
 name = "oya-shared-hyperscaler-metrics-adapter-prometheus"
 version = "0.1.0"
 dependencies = [
@@ -8791,18 +8505,6 @@ name = "oya-shared-olap-client-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-shared-outbox-broker-http-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-shared-transactional-outbox-dispatch-app",
- "oya-shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "oya-shared-outbox-pattern-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-shared-pdp-kernel"
 version = "0.1.0"
 dependencies = [
@@ -8834,10 +8536,6 @@ name = "oya-shared-postgres-command-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-shared-presence-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-shared-protocol-parity-kernel"
 version = "0.1.0"
 
@@ -8846,14 +8544,6 @@ name = "oya-shared-protocol-transport-kernel"
 version = "0.1.0"
 dependencies = [
  "oya-shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "oya-shared-protocol-transport-retry-app"
-version = "0.1.0"
-dependencies = [
- "oya-shared-protocol-parity-kernel",
- "oya-shared-protocol-transport-kernel",
 ]
 
 [[package]]
@@ -8877,30 +8567,6 @@ dependencies = [
  "serde_json",
  "tokio",
 ]
-
-[[package]]
-name = "oya-shared-semver-check-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
-]
-
-[[package]]
-name = "oya-shared-supply-chain-check-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "clap",
-]
-
-[[package]]
-name = "oya-shared-tenant-quota-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-timeseries-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-shared-tracing-client-kernel"
@@ -8939,16 +8605,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-shared-transactional-outbox-runtime-tokio-app"
-version = "0.1.0"
-dependencies = [
- "oya-shared-transactional-outbox-kernel",
- "oya-shared-transactional-outbox-poller-app",
- "oya-shared-transactional-outbox-worker-app",
- "tokio",
-]
-
-[[package]]
 name = "oya-shared-transactional-outbox-worker-app"
 version = "0.1.0"
 dependencies = [
@@ -8962,23 +8618,7 @@ name = "oya-shared-ulid-id-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-shared-vector-store-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-shared-wasm-runtime-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-shared-webauthn-server-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-shared-webhook-delivery-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -9016,10 +8656,6 @@ version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
 ]
-
-[[package]]
-name = "oya-workflow-safe-metadata-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-workspace-chat-api"
