@@ -120,11 +120,22 @@ pub(crate) fn statement(
             // none. The operator is refused by name when the target has no form for it, which is
             // the same answer the binary expression gives for the same spelling.
             let place = in_position(target, cx, Position::Place)?;
+            // WHAT THE PLACE IS decides what a conversion in the value converts TO. A place the
+            // engine proved is the target's index type takes an index-typed value, and the source's
+            // `int(x)` in that position means "as wide as the place" rather than "as wide as the
+            // source's int". Emitting the source's width there made `n = n.wrapping_sub(last as
+            // i64)` where `n` is a `usize`, which is the two ends of one decision disagreeing.
+            let indexed_place =
+                target.kind == crate::vocabulary::KIND_IDENT && cx.usize_counters.contains(&target.name);
             let Some(spelling) = node.attr(ATTR_OP) else {
+                let mut built = expression(value, cx)?;
+                if indexed_place {
+                    retype_index_casts(&mut built);
+                }
                 return Ok(RustStmt::Assign {
                     target: place,
                     op: None,
-                    value: expression(value, cx)?,
+                    value: built,
                 });
             };
 
@@ -145,13 +156,17 @@ pub(crate) fn statement(
                         ),
                     });
                 }
+                let mut operand = expression(value, cx)?;
+                if indexed_place {
+                    retype_index_casts(&mut operand);
+                }
                 return Ok(RustStmt::Assign {
                     target: place.clone(),
                     op: None,
                     value: RustExpr::MethodCall {
                         receiver: Box::new(place),
                         method: method.to_owned(),
-                        args: vec![expression(value, cx)?],
+                        args: vec![operand],
                     },
                 });
             }
@@ -160,10 +175,14 @@ pub(crate) fn statement(
                 name: cx.owner.to_owned(),
                 detail: format!("assignment operator `{spelling}=` has no target form"),
             })?;
+            let mut operand = expression(value, cx)?;
+            if indexed_place {
+                retype_index_casts(&mut operand);
+            }
             Ok(RustStmt::Assign {
                 target: place,
                 op: Some(op),
-                value: expression(value, cx)?,
+                value: operand,
             })
         }
         "let_tuple" => {
@@ -356,4 +375,28 @@ fn increment(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, TransformErr
 /// blank", and each caller decides what to do about it.
 fn is_blank(node: &Declaration) -> bool {
     node.kind == "ident" && node.name == "_"
+}
+
+/// Re-aim the source's own integer width at the target's INDEX type.
+///
+/// Applied only where the destination is a place the engine proved is an index. A conversion
+/// written for the source's `int` lands in a `usize` and does not fit; the value it carries is the
+/// same either way, and only the width the target spells for it changes.
+fn retype_index_casts(expr: &mut RustExpr) {
+    match expr {
+        RustExpr::Cast { ty, .. } if *ty == port_engine_rust_ir::RustType::path("i64") => {
+            *ty = port_engine_rust_ir::RustType::path("usize");
+        }
+        RustExpr::Binary { lhs, rhs, .. } => {
+            retype_index_casts(lhs);
+            retype_index_casts(rhs);
+        }
+        RustExpr::MethodCall { receiver, args, .. } => {
+            retype_index_casts(receiver);
+            for arg in args {
+                retype_index_casts(arg);
+            }
+        }
+        _ => {}
+    }
 }

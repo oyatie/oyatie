@@ -24,6 +24,13 @@ use crate::body_expr::expression;
 use crate::error::TransformError;
 use crate::vocabulary::{ATTR_CALLEE, ATTR_OP, KIND_CALL, KIND_IDENT, KIND_INDEX};
 
+/// The source's slice expression, `s[lo:hi]`, whose bounds are index positions.
+const KIND_SLICE: &str = "slice";
+/// The source's assignment statement, whose first child is the place written.
+const KIND_ASSIGN: &str = "assign";
+/// The source's `x++` / `x--`.
+const KIND_INCDEC: &str = "incdec";
+
 /// Whether every read of `counter` inside this body is a sequence index.
 ///
 /// Walks the whole subtree rather than the top level, because a counter read inside a nested `if`
@@ -44,14 +51,39 @@ fn count_reads(node: &Declaration, counter: &str, reads: &mut usize, indexed: &m
     if node.kind == KIND_IDENT && node.name == counter {
         *reads += 1;
     }
-    // An INDEX node's second child is the index operand. A counter standing there is read as an
-    // index; a counter anywhere else in the same expression — inside the base, or inside a
-    // compound index expression — is not, and is counted by the ordinary walk below.
-    if node.kind == KIND_INDEX
-        && let Some(operand) = node.children.get(1)
-        && operand.kind == KIND_IDENT
-        && operand.name == counter
+    // EVERY POSITION THAT IS AN INDEX, not only a bare name standing directly in one.
+    //
+    // An index operand may be an expression — `buf[n-1]` reads `n` as an index just as `buf[n]`
+    // does — and a SLICE's bounds are index positions too: `buf[:n]` is where `pkcs7decode` reads
+    // its length, and counting only the bare form left that `n` an `i64` that the emit then cast at
+    // the bound. A reviewer traced a wrapped 19-digit slice index back to exactly that cast.
+    //
+    // The base is NOT an index position. `xs[i]` reads `xs` as a sequence, and a name used as both
+    // a sequence and an index is not proven by either.
+    let bounds: &[usize] = match node.kind.as_str() {
+        KIND_INDEX => &[1],
+        KIND_SLICE => &[1, 2],
+        _ => &[],
+    };
+    for position in bounds {
+        if let Some(operand) = node.children.get(*position) {
+            *indexed += occurrences(operand, counter);
+        }
+    }
+    // A NAME UPDATING ITSELF does not observe its own signed value. `n = n - x` and `i++` keep the
+    // name in whatever role it already had; they are the counter moving, not a reader looking at
+    // it. Counting them as ordinary reads is what kept `pkcs7decode`'s length an `i64` -- and the
+    // cast at its slice bound is what turned a small negative into a nineteen-digit index.
+    if matches!(node.kind.as_str(), KIND_ASSIGN | KIND_INCDEC)
+        && node
+            .children
+            .first()
+            .is_some_and(|place| place.kind == KIND_IDENT && place.name == counter)
     {
+        for value in node.children.iter().skip(1) {
+            *indexed += occurrences(value, counter);
+        }
+        // The place itself is a WRITE rather than a read, and the walk below counts it as one.
         *indexed += 1;
     }
     for child in &node.children {
@@ -264,12 +296,12 @@ fn count_cursor_reads(
         *total += 1;
     }
     // An INDEX operand, and a SLICE bound: both reach into a sequence and both are the target's
-    // index type.
-    if node.kind == KIND_INDEX || node.kind == "slice" {
+    // index type. Counted through the whole OPERAND, not only where it is a bare name — `buf[n-1]`
+    // reads `n` as an index exactly as `buf[n]` does, and requiring the bare form is what kept
+    // `pkcs7decode`'s length signed.
+    if node.kind == KIND_INDEX || node.kind == KIND_SLICE {
         for operand in node.children.iter().skip(1) {
-            if is_name(operand, name) {
-                *cursor += 1;
-            }
+            *cursor += occurrences(operand, name);
         }
     }
     // A COMPARISON against a length or a constant. The length side already renders as the target's
@@ -287,13 +319,18 @@ fn count_cursor_reads(
             }
         }
     }
-    // ITS OWN INCREMENT. `i++` and `i += 1` read the place to write it, and neither observes the
-    // value anywhere the sign could matter.
-    if (node.kind == "incdec" || node.kind == "assign")
+    // ITS OWN UPDATE. `i++`, `i += 1` and `n = n - x` read the place to write it, and none of them
+    // observes the value anywhere the sign could matter — the name is moving, not being looked at.
+    // The VALUE side counts too, for the same reason: `n = n - x` is `n` keeping whatever role it
+    // already had.
+    if (node.kind == KIND_INCDEC || node.kind == KIND_ASSIGN)
         && let Some(place) = node.children.first()
         && is_name(place, name)
     {
         *cursor += 1;
+        for value in node.children.iter().skip(1) {
+            *cursor += occurrences(value, name);
+        }
     }
     for child in &node.children {
         count_cursor_reads(child, name, lengths, total, cursor);
@@ -323,4 +360,14 @@ pub(crate) fn reads_name(body: &Declaration, name: &str) -> bool {
         return true;
     }
     body.children.iter().any(|child| reads_name(child, name))
+}
+
+/// How many times this name is read anywhere inside this subtree.
+fn occurrences(node: &Declaration, counter: &str) -> usize {
+    let here = usize::from(node.kind == KIND_IDENT && node.name == counter);
+    here + node
+        .children
+        .iter()
+        .map(|child| occurrences(child, counter))
+        .sum::<usize>()
 }

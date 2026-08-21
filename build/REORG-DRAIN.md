@@ -7526,3 +7526,47 @@ places, and only reading the uses tells them apart.
   and twenty-one on slice indices are not — "the signal that this wrap is deliberate has been
   destroyed by applying it everywhere".
 - Go's `int` as `i64` for offsets, then `as usize` at the index. Both gates, twice each now.
+
+## R5b — an index position is not only where a bare name stands
+
+Both gates named the same thing twice: Go's `int` emitted as `i64` for offsets and lengths, then
+cast back with `as usize` at every index. The blind reviewer traced a nineteen-digit slice index to
+exactly that cast.
+
+The engine already infers the target's index type — for loop counters, for parameters used only as
+indices, for length constants. It was asking the question too narrowly in three places:
+
+- an index OPERAND counted only where it was a bare name, so `buf[n-1]` read `n` as arithmetic
+  rather than as an index;
+- a SLICE BOUND was not an index position at all in one of the two counters, so `buf[:n]` did not
+  count;
+- a name UPDATING ITSELF counted as an ordinary read. `n = n - x` and `i++` do not observe a value's
+  sign; they are the name moving, not a reader looking at it.
+
+    fn pkcs7decode(buf: &[u8], _: usize) -> Vec<u8> {
+        let mut n: usize = buf.len();
+        let last = buf[n.wrapping_sub(1)];
+        n = n.wrapping_sub(last as usize);
+        buf[..n].to_vec()
+
+    memberlist   46 `as usize` -> 1,  26 `as i64` -> 1
+    yaml          all -> 0
+    chi           all -> 0
+
+Two ends had to be taught the same answer, which is the fourth time this session:
+
+- the INDEX SITE stopped casting only for a bare proven name, so the moment the operand became
+  `i + 1` it cast a `usize` to a `usize`. It now asks the same question of arithmetic over proven
+  operands, which is what the operand actually is.
+- an ASSIGNMENT's value carries conversions written for the SOURCE's integer width, and a place the
+  engine proved is an index takes an index-typed value. `n = n.wrapping_sub(last as i64)` where `n`
+  is a `usize` is those two ends disagreeing.
+
+TWO SEPARATE COUNTERS were asking this question — `count_reads` for parameters and
+`count_cursor_reads` for locals — and both had to be widened. That duplication is the smell it looks
+like; they answer the same question about the same thing and should be one.
+
+`gjson` is unmoved at 31 casts and that is understood rather than unexplained: its `valid*` family
+takes `i` as a parameter AND RETURNS IT, so `i` cannot be an index type until the RESULT is one too,
+and the result's type is part of a signature its callers read. That is the whole-program half of the
+same rule.
