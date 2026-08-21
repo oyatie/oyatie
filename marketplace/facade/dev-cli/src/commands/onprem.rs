@@ -1,8 +1,8 @@
 //! `oya onprem` — Rust-owned on-prem orchestration surface.
 //!
 //! This replaces the hand-written top-level `infra/onprem/*.sh`
-//! orchestration with a repo-native command that is safe to call from the
-//! root Makefile, ops controllers, or compatibility shims. Component-level
+//! orchestration with a repo-native command that is safe to call from
+//! ops controllers or compatibility shims. Component-level
 //! shell remains legacy inventory until the migration waves port it.
 
 use std::fs;
@@ -281,7 +281,7 @@ fn render_install(output_format: OutputFormat) {
     match output_format {
         OutputFormat::Text => {
             println!("onprem install request accepted by Rust orchestrator");
-            println!("normal deployment authority: make bootstrap/install -> OpenTofu");
+            println!("normal deployment authority: tofu -chdir=infra/cloudflare apply");
             println!("day-2 host/service changes: https://ops.oyatie.com");
             println!("legacy component shell is not invoked directly by this command");
             println!("run `oya onprem plan --format text` for the component migration order");
@@ -292,7 +292,7 @@ fn render_install(output_format: OutputFormat) {
                 json!({
                     "command": "oya onprem install",
                     "status": "accepted",
-                    "normal_deployment_authority": "make bootstrap/install -> OpenTofu",
+                    "normal_deployment_authority": "tofu -chdir=infra/cloudflare apply",
                     "day_2_surface": "https://ops.oyatie.com",
                     "legacy_component_shell_invoked": false
                 })

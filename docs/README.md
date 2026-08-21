@@ -21,7 +21,7 @@ Current. Short index. Do not restore a line-count dump here.
 - Session entry: [`HANDOFF.md`](../HANDOFF.md) (thin redirect, not a plan).
 - Agent entry: root [`AGENTS.md`](../AGENTS.md) / [`CLAUDE.md`](../CLAUDE.md) → this spine.
 - Ritual: [`templates/checklists/swarm-agent-ritual.md`](../templates/checklists/swarm-agent-ritual.md). `docs/checklists/swarm-agent-ritual.md` does not exist.
-- Merge path: `cargo fmt` / `clippy` / `cargo test --workspace` behind `oya-ci-required` (ADR-0716). `make verify-deploy` is edge/deploy only.
+- Merge path: `cargo fmt` / `clippy` / `cargo test --workspace` behind `oya-ci-required` (ADR-0716). Cloudflare edge is `tofu -chdir=infra/cloudflare` (see `iac/README.md`).
 
 ## Current vs historical
 
