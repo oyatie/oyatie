@@ -22,7 +22,7 @@
   "agent_quick_start_protocol": {
     "step_1_read_authority": "Read entry_points.decision_principles + .agent_operating_contract + .masterplan + .markdown_retirement_policy + .gitops_vcs_replacement; entry_points.master_plan_sequencing is provenance/compatibility only after masterplan v2 authority consolidation.",
     "step_2_context_recall": "Prefer intelligence-native context once available (replaces prior Foundry framing per ADR-0335 Wave 15I); legacy icm recall-context is compatibility/provenance only and is never promotion authority.",
-    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim \u2192 work \u2192 verify \u2192 done \u2192 promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
+    "step_3_oya_vcs_state_transition": "Canonical path is plain `git` + protected PR against dev. Merge readiness is reviewer APPROVE plus the single protected `oya-ci-required` context produced by the cloud-ci gate apps; legacy CI/`oya gate` output is bridge/local evidence only and never merge authority. The bespoke Oya VCS claim → work → verify → done → promote ratchet is RETIRED (provenance/historical only per ADR-0363); legacy grit/icm/rtk/vox/omx/omc surfaces are likewise read/provenance only.",
     "step_4_active_artifact_contract": "Every new artifact under applicable_paths_glob conforms to active-artifact-contract v3.0.0 + registers a row in artifact-capabilities-registry.",
     "step_5_independent_review": "Preserve multi-lens review discipline through independent reviewer-agent passes, PR Code Review evidence, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets. The standalone multispectrum evidence-file/spec convention is retired with the external coordination / Oya VCS / Jenkins-adapter admission path; do not emit new evidence/multispectrum files.",
     "step_6_gitops_vcs_replacement": "Before broad multi-agent fan-out, treat /specs/gitops-vcs-replacement.json as provenance/historical input only: the bespoke Oya VCS claim coverage, ChangeBundle closeout, controller rebase, and retired ratchet mechanisms are superseded by ADR-0363/ADR-0515. Live merge readiness is plain git + protected PR against dev + reviewer APPROVE + the single protected `oya-ci-required` context. Legacy CI/`oya gate` output is bridge evidence only. Tide/prow-shaped admission language is historical unless reintroduced by a new accepted authority; cloud-ci gate apps own the required context."
@@ -106,7 +106,7 @@
       "current_path": "docs/decisions/ADR-0700-ci-admission-live-apex.md",
       "kind": "decision",
       "migration_phase": "wave-15-zf-master-plan-propagated",
-      "purpose": "ADR-0348 authority for cellular autosharding, auto-rebalance, and dynamic sharding doctrine, including the per-\u00b5service `sharding_automation` manifest block and audit-chain emission requirements.",
+      "purpose": "ADR-0348 authority for cellular autosharding, auto-rebalance, and dynamic sharding doctrine, including the per-µservice `sharding_automation` manifest block and audit-chain emission requirements.",
       "sequencing_pointer": "/specs/master-plan-sequencing.json#realignment_wave_sequence.waves_15_plus.sub_wave_landings.15-ZD-autosharding-doctrine",
       "target_path_after_md_retirement": "same until ADR projection retirement"
     },
@@ -121,31 +121,31 @@
     "adr_0710_kubernetes_admission_substrate": {
       "current_path": "docs/decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md",
       "kind": "doc",
-      "purpose": "PROPOSED \u2014 NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. This entry exists so the proposal is discoverable, not so it can be acted on. Until ADR-0710 is Accepted the admission clauses of ADR-0183, ADR-0379 and ADR-0338 REMAIN IN FORCE and are NOT replaced; an agent implementing against this entry today is implementing unratified law. What it proposes: the Kubernetes admission substrate is the API SERVER rather than a policy webhook \u2014 ValidatingAdmissionPolicy + CEL for validation, Pod Security Admission for the pod-security baseline, MutatingAdmissionPolicy for mutation where the running version supports it, with Kyverno, Kubewarden and Gatekeeper/OPA as adapters only; resource generation as a controller concern, never admission; cross-resource data projected into a paramKind resource rather than fetched; image provenance moved to CI signing plus a CI-issued verified-digest allowlist that admission checks (digest pinning ALONE is explicitly not sufficient); and the owned Cedar-compatible + Zanzibar ReBAC PDP kept OUT of the admission path on shape and coupling grounds. It stays Proposed because clause D-8 (tenant isolation comes from topology, not policy) awaits WORKLOAD-boundary evidence \u2014 whether two tenants can share a node, hypervisor or physical host \u2014 which control-plane separation does not supply. ADR-0338's tier MODEL is unaffected under either outcome.",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. This entry exists so the proposal is discoverable, not so it can be acted on. Until ADR-0710 is Accepted the admission clauses of ADR-0183, ADR-0379 and ADR-0338 REMAIN IN FORCE and are NOT replaced; an agent implementing against this entry today is implementing unratified law. What it proposes: the Kubernetes admission substrate is the API SERVER rather than a policy webhook — ValidatingAdmissionPolicy + CEL for validation, Pod Security Admission for the pod-security baseline, MutatingAdmissionPolicy for mutation where the running version supports it, with Kyverno, Kubewarden and Gatekeeper/OPA as adapters only; resource generation as a controller concern, never admission; cross-resource data projected into a paramKind resource rather than fetched; image provenance moved to CI signing plus a CI-issued verified-digest allowlist that admission checks (digest pinning ALONE is explicitly not sufficient); and the owned Cedar-compatible + Zanzibar ReBAC PDP kept OUT of the admission path on shape and coupling grounds. It stays Proposed because clause D-8 (tenant isolation comes from topology, not policy) awaits WORKLOAD-boundary evidence — whether two tenants can share a node, hypervisor or physical host — which control-plane separation does not supply. ADR-0338's tier MODEL is unaffected under either outcome.",
       "target_path_after_md_retirement": "same"
     },
     "adr_0712_node_kernel_pool_matrix": {
       "current_path": "docs/decisions/ADR-0712-node-kernel-pool-matrix.md",
       "kind": "doc",
-      "purpose": "PROPOSED \u2014 NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1(a) founder pause-and-pair (MPV2-0053): Linux-pools primary; Asterinas soak until A1 green; co-SKU matrix gated on A1 4-surface ABI matrix evidence; attestation-capable pools required for private-kernel-attested; named fallback G5. Prior draft number vacated for PR #1644 Swarm Delivery Law. Not implement authority while Proposed.",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1(a) founder pause-and-pair (MPV2-0053): Linux-pools primary; Asterinas soak until A1 green; co-SKU matrix gated on A1 4-surface ABI matrix evidence; attestation-capable pools required for private-kernel-attested; named fallback G5. Prior draft number vacated for PR #1644 Swarm Delivery Law. Not implement authority while Proposed.",
       "target_path_after_md_retirement": "same"
     },
     "adr_0713_node_substrate_architecture": {
       "current_path": "docs/decisions/ADR-0713-node-substrate-architecture.md",
       "kind": "doc",
-      "purpose": "PROPOSED \u2014 NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1 Node Substrate Architecture (MPV2-0054): severable Accept (a) owned runtime \u2014 PID1 stub + restartable NON-PID1 supervisor child, CRI compatibility profile v1, recovery DoD + kill-9/upgrade tests \u2014 and Accept (b) os/-layer retirement encode after D-3 preconditions including machine-config harvest. Merges former owned-runtime + os-retirement packages. Not implement authority while Proposed.",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1 Node Substrate Architecture (MPV2-0054): severable Accept (a) owned runtime — PID1 stub + restartable NON-PID1 supervisor child, CRI compatibility profile v1, recovery DoD + kill-9/upgrade tests — and Accept (b) os/-layer retirement encode after D-3 preconditions including machine-config harvest. Merges former owned-runtime + os-retirement packages. Not implement authority while Proposed.",
       "target_path_after_md_retirement": "same"
     },
     "adr_0714_isolation_property_tier_names": {
       "current_path": "docs/decisions/ADR-0714-isolation-property-runtime-tier-names.md",
       "kind": "doc",
-      "purpose": "PROPOSED \u2014 NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1(c) founder pause-and-pair (MPV2-0055): rename RuntimeClass mechanism names to shared-kernel / private-kernel / private-kernel-attested; deterministic pod_runtime_tier\u2192axes migration table; one-wave alias for kata-cloud-hypervisor; Kyverno\u2192VAP re-home BEFORE rename; ADR-0338 archived \u2014 only ADR-0701 amendable. Not implement authority while Proposed.",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1(c) founder pause-and-pair (MPV2-0055): rename RuntimeClass mechanism names to shared-kernel / private-kernel / private-kernel-attested; deterministic pod_runtime_tier→axes migration table; one-wave alias for kata-cloud-hypervisor; Kyverno→VAP re-home BEFORE rename; ADR-0338 archived — only ADR-0701 amendable. Not implement authority while Proposed.",
       "target_path_after_md_retirement": "same"
     },
     "adr_0715_f1_admission_adr_0710_d8_gate": {
       "current_path": "docs/decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md",
       "kind": "doc",
-      "purpose": "PROPOSED \u2014 NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1 Admission package / F1(d) (MPV2-0056): ADR-0710 Accept/Reject blocked until D-8 evidence; MAY resolve as explicit Reject when hosted topology self-fails D-8 under a dated timebox; live admission law remains ADR-0701 carried gist until then. Does not Accept ADR-0710. Not implement authority while Proposed.",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1 Admission package / F1(d) (MPV2-0056): ADR-0710 Accept/Reject blocked until D-8 evidence; MAY resolve as explicit Reject when hosted topology self-fails D-8 under a dated timebox; live admission law remains ADR-0701 carried gist until then. Does not Accept ADR-0710. Not implement authority while Proposed.",
       "target_path_after_md_retirement": "same"
     },
     "adr_0716_cargo_merge_path": {
@@ -315,14 +315,14 @@
       "current_path": "/specs/decision-principles.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "10 normative do-rules every contributor and agent follows. Each principle declares enforcement mode (mechanical / cultural / mechanical-stub / deferred) and cites the lanes enforcing it. Successor to docs/CONSTITUTION.md \u00a7Decision-principles \u2014 Do.",
+      "purpose": "10 normative do-rules every contributor and agent follows. Each principle declares enforcement mode (mechanical / cultural / mechanical-stub / deferred) and cites the lanes enforcing it. Successor to docs/CONSTITUTION.md §Decision-principles — Do.",
       "target_path_after_md_retirement": "same (already machine-readable)"
     },
     "decision_rights": {
       "current_path": "/specs/decision-rights.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "12-class decision-rights table (owner + escalation per class). Successor to docs/CONSTITUTION.md \u00a7Decision-rights. Per-team RACI detail still in docs/RACI-OWNERSHIP.md.",
+      "purpose": "12-class decision-rights table (owner + escalation per class). Successor to docs/CONSTITUTION.md §Decision-rights. Per-team RACI detail still in docs/RACI-OWNERSHIP.md.",
       "target_path_after_md_retirement": "same"
     },
     "delivery_readiness_reconciliation": {
@@ -430,7 +430,7 @@
       "current_path": "/specs/design-system/catalog.json",
       "kind": "design-system-catalog",
       "migration_phase": "complete",
-      "purpose": "Machine-readable design-system catalog for PRD template v1.5 \u00a711f/\u00a711g UX/frontend-component coverage.",
+      "purpose": "Machine-readable design-system catalog for PRD template v1.5 §11f/§11g UX/frontend-component coverage.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "design_tenant_context_switcher": {
@@ -492,7 +492,7 @@
       "current_path": "/specs/forbidden-operations.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "10 prohibitions with severity (critical / high / medium) + enforcement mode + lane citations. Successor to docs/CONSTITUTION.md \u00a7Prohibitions \u2014 Avoid. Companion to master-plan-sequencing.json forbidden_primitives (lower-level: tooling vs. doctrine).",
+      "purpose": "10 prohibitions with severity (critical / high / medium) + enforcement mode + lane citations. Successor to docs/CONSTITUTION.md §Prohibitions — Avoid. Companion to master-plan-sequencing.json forbidden_primitives (lower-level: tooling vs. doctrine).",
       "target_path_after_md_retirement": "same"
     },
     "gitops_vcs_replacement": {
@@ -506,7 +506,7 @@
       "current_path": "/specs/governance-amendment.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "6-step amendment procedure for the 4-file doctrinal substrate. Declares EVT-DOCTRINE-AMENDED audit-chain event. Successor to docs/CONSTITUTION.md \u00a7Amendments.",
+      "purpose": "6-step amendment procedure for the 4-file doctrinal substrate. Declares EVT-DOCTRINE-AMENDED audit-chain event. Successor to docs/CONSTITUTION.md §Amendments.",
       "target_path_after_md_retirement": "same"
     },
     "hyperscaler_gates": {
@@ -535,7 +535,7 @@
       "current_path": "/specs/iterative-fix-loop.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "Loop state machine for find\u2192fix\u2192re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
+      "purpose": "Loop state machine for find→fix→re-review until all facets green. Bounded by iteration_budget. Escalates to human when budget exhausted."
     },
     "knowledge_graph_dynamic": {
       "current_path": "/registry/knowledge-graph-dynamic.json",
@@ -633,7 +633,7 @@
       "current_path": "/specs/merge-queue-parked-pr.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "Semantics for parked PRs in the vcs-orchestrator merge queue (per ADR-0111); admission criteria + unpark transitions. Originally framed as the Foundry merge queue; ownership relocated to vcs-orchestrator per ADR-0335 (Wave 15I) \u2014 see ADR-0335 Absorption Map row 'Merge queue projected state'.",
+      "purpose": "Semantics for parked PRs in the vcs-orchestrator merge queue (per ADR-0111); admission criteria + unpark transitions. Originally framed as the Foundry merge queue; ownership relocated to vcs-orchestrator per ADR-0335 (Wave 15I) — see ADR-0335 Absorption Map row 'Merge queue projected state'.",
       "target_path_after_md_retirement": "same"
     },
     "multispectrum_evidence_cloud_intelligence_xproxy": {
@@ -737,21 +737,21 @@
       "current_path": "/specs/microservices/accounting.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Accounting microservice PRD \u2014 double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, financial close workflow, and audit-ready controls.",
+      "purpose": "Accounting microservice PRD — double-entry ledger, Korean VAT/K-GAAP/K-IFRS evidence, AP/AR/procurement bridge, financial close workflow, and audit-ready controls.",
       "target_path_after_md_retirement": "same"
     },
     "prd_anonymous": {
       "current_path": "/specs/microservices/anonymous.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Anonymous \u00b5service PRD \u2014 Sidechat / YikYak / Blind-class pseudonymous platform with cryptographic blinding. Per ADR-0126/0135 dissolution.",
+      "purpose": "Anonymous µservice PRD — Sidechat / YikYak / Blind-class pseudonymous platform with cryptographic blinding. Per ADR-0126/0135 dissolution.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_calendar": {
       "current_path": "/specs/microservices/calendar.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Calendar microservice PRD \u2014 personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-context-safe availability projections without a product-group wrapper.",
+      "purpose": "Calendar microservice PRD — personal/work scheduling, action-card Workflow handoff, legal-hold overlays, and cross-context-safe availability projections without a product-group wrapper.",
       "target_path_after_md_retirement": "same"
     },
     "prd_community_anonymous": {
@@ -762,7 +762,7 @@
         "previous_path": "retired specs/products communications/anonymous JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       },
-      "purpose": "Community anonymous mode PRD \u2014 machine-readable community surface with context isolation, Workflow/Ontology/Intelligence contracts, regional packs, UX components, risks, goals, and deterministic validation hooks.",
+      "purpose": "Community anonymous mode PRD — machine-readable community surface with context isolation, Workflow/Ontology/Intelligence contracts, regional packs, UX components, risks, goals, and deterministic validation hooks.",
       "target_path_after_md_retirement": "same"
     },
     "prd_community_network_retired": {
@@ -792,7 +792,7 @@
       "retired_on": "2026-05-21",
       "retirement_correction_2026_05_21": {
         "previous_path": "/specs/microservices/shorts.json",
-        "reason": "Wave 15O retires shorts as a standalone \u00b5service and absorbs its short-form video capabilities into social per ADR-0334."
+        "reason": "Wave 15O retires shorts as a standalone µservice and absorbs its short-form video capabilities into social per ADR-0334."
       },
       "successor_path": "/app/community/manifest.json",
       "target_path_after_md_retirement": "/app/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
@@ -810,7 +810,7 @@
         "previous_path": "retired specs/products communications/social JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       },
-      "purpose": "Community social mode PRD \u2014 machine-readable community surface with context isolation, Workflow/Ontology/Intelligence contracts, regional packs, UX components, risks, goals, and deterministic validation hooks.",
+      "purpose": "Community social mode PRD — machine-readable community surface with context isolation, Workflow/Ontology/Intelligence contracts, regional packs, UX components, risks, goals, and deterministic validation hooks.",
       "target_path_after_md_retirement": "same"
     },
     "prd_crm": {
@@ -829,7 +829,7 @@
       "do_not_treat_as_live_authority": true,
       "kind": "prd",
       "migration_phase": "retired",
-      "purpose": "RETIRED \u2014 foundry \u00b5service was absorbed into the intelligence \u00b5service per ADR-0335 (Wave 15I) executing ADR-0255 KS#14 two-layer intelligence substrate. AI substrate concerns now live under intelligence; self-modification runs as oyatie.foundry.* Cedar principals per ADR-0247. Cite oya/intelligence/manifest.json for live AI substrate authority; cite ADR-0335 for the retirement decision; cite oya/intelligence/README.md for the redirect marker.",
+      "purpose": "RETIRED — foundry µservice was absorbed into the intelligence µservice per ADR-0335 (Wave 15I) executing ADR-0255 KS#14 two-layer intelligence substrate. AI substrate concerns now live under intelligence; self-modification runs as oyatie.foundry.* Cedar principals per ADR-0247. Cite oya/intelligence/manifest.json for live AI substrate authority; cite ADR-0335 for the retirement decision; cite oya/intelligence/README.md for the redirect marker.",
       "retired_at": "2026-05-21",
       "retired_by_adr": "ADR-0335",
       "retired_by_wave": "15I",
@@ -848,7 +848,7 @@
       "current_path": "/specs/microservices/hr.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "HR microservice PRD \u2014 employee lifecycle, org hierarchy, attendance, leave, recruiting/performance shells, sensitive-data policy, and KR/US/EU labor-compliance evidence.",
+      "purpose": "HR microservice PRD — employee lifecycle, org hierarchy, attendance, leave, recruiting/performance shells, sensitive-data policy, and KR/US/EU labor-compliance evidence.",
       "target_path_after_md_retirement": "same"
     },
     "prd_intelligence": {
@@ -856,35 +856,35 @@
       "current_path": "/specs/microservices/intelligence.json",
       "kind": "prd",
       "migration_phase": "foundry-absorbed-wave-15I",
-      "purpose": "Intelligence product PRD \u2014 AI substrate authority after Foundry retirement per ADR-0335; covers provider routing, guardrails, eval, attribution, credential resolution, audit tap, assist-draft, and context-aware retrieval for later cloud-service integration.",
+      "purpose": "Intelligence product PRD — AI substrate authority after Foundry retirement per ADR-0335; covers provider routing, guardrails, eval, attribution, credential resolution, audit tap, assist-draft, and context-aware retrieval for later cloud-service integration.",
       "target_path_after_md_retirement": "same"
     },
     "prd_mail": {
       "current_path": "/specs/microservices/mail.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Mail microservice PRD \u2014 personal and professional mail with strict tenant/PBAC separation (RBAC + ABAC), retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries.",
+      "purpose": "Mail microservice PRD — personal and professional mail with strict tenant/PBAC separation (RBAC + ABAC), retention, legal hold, eDiscovery, migration/coexistence, encrypted search, and Workflow handoff boundaries.",
       "target_path_after_md_retirement": "same"
     },
     "prd_manifest-schema": {
       "current_path": "/specs/microservices/manifest-schema.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "manifest-schema \u00b5service PRD \u2014 landed per session 2026-05-17/18.",
+      "purpose": "manifest-schema µservice PRD — landed per session 2026-05-17/18.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_manifests-index": {
       "current_path": "/specs/microservices/manifests-index.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "manifests-index \u00b5service PRD \u2014 landed per session 2026-05-17/18.",
+      "purpose": "manifests-index µservice PRD — landed per session 2026-05-17/18.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_messenger": {
       "current_path": "/specs/microservices/messenger.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Messenger microservice PRD \u2014 personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict personal/professional tenant/PBAC boundaries (RBAC + ABAC).",
+      "purpose": "Messenger microservice PRD — personal E2E messaging plus professional tenant-DEK/auditable messaging with realtime delivery and strict personal/professional tenant/PBAC boundaries (RBAC + ABAC).",
       "target_path_after_md_retirement": "same"
     },
     "prd_network": {
@@ -908,7 +908,7 @@
       "current_path": "/specs/microservices/payroll.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Payroll microservice PRD \u2014 KR-first payroll close, payee classes, statutory taxes/4\ub300\ubcf4\ud5d8, year-end settlement, payroll-to-accounting bridge, and group close evidence.",
+      "purpose": "Payroll microservice PRD — KR-first payroll close, payee classes, statutory taxes/4대보험, year-end settlement, payroll-to-accounting bridge, and group close evidence.",
       "target_path_after_md_retirement": "same"
     },
     "prd_plant_maintenance": {
@@ -965,7 +965,7 @@
       "current_path": "/specs/microservices/social.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Social \u00b5service PRD \u2014 Twitter / X / Bluesky-class general social platform. Per ADR-0126/0135 dissolution.",
+      "purpose": "Social µservice PRD — Twitter / X / Bluesky-class general social platform. Per ADR-0126/0135 dissolution.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_supply_chain_planning": {
@@ -1009,14 +1009,14 @@
       "current_path": "/specs/microservices/workflow.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Workflow product PRD \u2014 engine half of the ecosystem-backbone pair with prd_ontology. State-machine + DAG hybrid orchestration substrate per Bominal-ADR-0148. Canonical JSON spec via contracts/workflow_spec.v1.json.",
+      "purpose": "Workflow product PRD — engine half of the ecosystem-backbone pair with prd_ontology. State-machine + DAG hybrid orchestration substrate per Bominal-ADR-0148. Canonical JSON spec via contracts/workflow_spec.v1.json.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_workflow_studio": {
       "current_path": "/specs/microservices/workflow-studio.json",
       "kind": "prd",
       "migration_phase": "complete",
-      "purpose": "Workflow Studio product PRD \u2014 visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec.",
+      "purpose": "Workflow Studio product PRD — visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec.",
       "target_path_after_md_retirement": "same"
     },
     "product_protocol_contract": {
@@ -1119,7 +1119,7 @@
     "retired_pre_pr_multispectrum_checklist": {
       "current_path": null,
       "retired_path": "/templates/checklists/pre-pr-multispectrum.json",
-      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 \u2014 JSON template was previously treated as canonical)",
+      "human_companion_path_retired": "/templates/checklists/pre-pr-multispectrum.md (RETIRED 2026-05-14 — JSON template was previously treated as canonical)",
       "kind": "retired-template",
       "migration_phase": "retired",
       "purpose": "Historical pre-PR multispectrum evidence checklist pointer. The standalone evidence-file/spec convention is retired; use PR Code Review, independent reviewer-agent passes, typed quality-gate artifacts, and cloud-ci/oya-ci gate packets for current review evidence."
@@ -1138,7 +1138,7 @@
       "current_path": "/specs/root-hub-pointers.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "This file itself \u2014 canonical machine-readable pointer registry. Self-reference present so every spec has a discoverable entry_point row (per OP-11 no-stubs-no-defer).",
+      "purpose": "This file itself — canonical machine-readable pointer registry. Self-reference present so every spec has a discoverable entry_point row (per OP-11 no-stubs-no-defer).",
       "target_path_after_md_retirement": "same"
     },
     "score_cards": {
@@ -1221,7 +1221,7 @@
       "current_path": "/specs/chaos-engineering-substrate-canonical.json",
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Operationalizes ADR-0165. Declares Chaos Mesh 2.x adoption, per-\u00b5service catalog requirements, nightly drill cadence, SLO-gate semantics, and release-blocker rules."
+      "purpose": "Operationalizes ADR-0165. Declares Chaos Mesh 2.x adoption, per-µservice catalog requirements, nightly drill cadence, SLO-gate semantics, and release-blocker rules."
     },
     "spec_compliance_001_contract_slice": {
       "current_path": "/specs/compliance-001-contract-slice.json",
@@ -1240,7 +1240,7 @@
       "current_path": "/specs/csi-storage-class-canonical.json",
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Declares the canonical StorageClass naming scheme (oya-<kind>-<tier>), the per-pack CSI driver matrix, the CSI driver requirements, and the workload \u00b5service contract."
+      "purpose": "Declares the canonical StorageClass naming scheme (oya-<kind>-<tier>), the per-pack CSI driver matrix, the CSI driver requirements, and the workload µservice contract."
     },
     "spec_design_spec_maturity_claims": {
       "current_path": "/specs/design-spec-maturity-claims.json",
@@ -1295,7 +1295,7 @@
       "current_path": "/specs/multi-region-disposition-canonical.json",
       "kind": "spec",
       "migration_phase": "root-hub-covered-2026-05-20",
-      "purpose": "Declares the canonical per-\u00b5service multi-region disposition enum, the sovereign-tenant region-pin overlay contract, the global control-plane shape, and the per-pack default topology matrix. Operationalizes ADR-0158."
+      "purpose": "Declares the canonical per-µservice multi-region disposition enum, the sovereign-tenant region-pin overlay contract, the global control-plane shape, and the per-pack default topology matrix. Operationalizes ADR-0158."
     },
     "spec_ontology_projection_schema": {
       "current_path": "/specs/ontology-projection-schema.json",
