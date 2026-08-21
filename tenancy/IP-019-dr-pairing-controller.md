@@ -3,11 +3,19 @@ ip_id: IP-019
 microservice: tenancy
 bounded_context: dr-pairing
 layer: usecase
-status: planned
+status: in-progress
 related_adrs: [ADR-0244, ADR-0248, ADR-0252, ADR-0263]
 ---
 
 # IP-019 — DR-pairing controller
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/dr-pairing as `tenancy-dr-pairing`, collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: same-jurisdiction pairing, versioned promotion with optimistic concurrency, and auditable failover events. Deferred and named as a gap in the crate's `lib.rs` header:
+> cell composition from the sibling cell-assignment crate and Cedar residency evaluation — both modelled locally as ports because a cross-crate path dep rewrites the frozen lockfile. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 ## A. Problem
 

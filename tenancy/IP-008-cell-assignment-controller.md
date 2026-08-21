@@ -4,7 +4,7 @@ template_id: TPL-IMPL
 milestone: M01-foundation
 phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-008-cell-assignment-controller
-status: pending
+status: in-progress
 owner: axis-tenancy + ops-sre-reliability
 acceptance_lanes: [cargo-check, cargo-nextest, layer-correctness]
 ---
@@ -14,6 +14,14 @@ acceptance_lanes: [cargo-check, cargo-nextest, layer-correctness]
 # IP-008: Cell-assignment controller (Citus + Patroni-aware)
 
 ## Intent
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/cell-assignment as `tenancy-cell-assignment`, collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: shard-key derivation, least-loaded healthy-cell selection, drain planning and cell-aware integrity verification. Deferred and named as a gap in the crate's `lib.rs` header:
+> the Citus `pg_dist_shard` executor and the async 1s health-probe loop, which need sqlx and tokio. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 Build `oya-tenancy-cell-assignment-{kernel,domain,usecase,adapter,adapter-citus,worker,app}` crates: consistent-hash shard-key derivation; cell-health probe loop (1s cadence); least-loaded cell selection; Citus pg_dist_shard rebalance orchestrator; integrity checksum before/after.
 

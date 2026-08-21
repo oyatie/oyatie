@@ -3,11 +3,19 @@ ip_id: IP-016
 microservice: tenancy
 bounded_context: sub-scope-registry
 layer: kernel
-status: planned
+status: in-progress
 related_adrs: [ADR-0244, ADR-0083, ADR-0105, ADR-0131]
 ---
 
 # IP-016 — sub-scope-registry kernel
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/sub-scope-registry as `tenancy-sub-scope-registry`, collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: the scope hierarchy with every error variant reachable and every read path tenant-scoped. Deferred and named as a gap in the crate's `lib.rs` header:
+> the Postgres adapter, which is IP-023. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 ## A. Problem
 

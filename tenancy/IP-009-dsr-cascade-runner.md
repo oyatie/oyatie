@@ -4,7 +4,7 @@ template_id: TPL-IMPL
 milestone: M01-foundation
 phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-009-dsr-cascade-runner
-status: pending
+status: in-progress
 owner: axis-tenancy + council-privacy
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-dsr-handler-conformance]
 ---
@@ -14,6 +14,14 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-dsr-handler-confor
 # IP-009: DSR cascade runner + proof-of-erasure
 
 ## Intent
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/dsr-cascade as `tenancy-dsr-cascade`, collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: the cascade plan, idempotent fan-out, Merkle aggregation over an in-crate NIST-pinned SHA-256, and SLA tracking. Deferred and named as a gap in the crate's `lib.rs` header:
+> the REST surface, the SLA timer worker, Postgres persistence, and a signature over the proof. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 `oya-tenancy-dsr-cascade-{kernel,domain,usecase,adapter,rest,worker,app}` crates: DSR ingestion; cross-µservice Workflow fan-out (`TenantDeletionRequested`); per-µservice receipt aggregation; Merkle root computation; proof-of-erasure certificate generation; per-pack legal-SLA timer.
 

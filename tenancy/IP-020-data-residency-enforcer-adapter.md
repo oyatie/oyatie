@@ -3,11 +3,19 @@ ip_id: IP-020
 microservice: tenancy
 bounded_context: data-residency-enforcement
 layer: adapter
-status: planned
+status: in-progress
 related_adrs: [ADR-0244, ADR-0248, ADR-0251, ADR-0243]
 ---
 
 # IP-020 — data-residency enforcer adapter
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/adapters/data-residency-enforcer as `tenancy-data-residency-enforcer`, collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: the fail-closed cross-border decision cascade and the denial audit path. Deferred and named as a gap in the crate's `lib.rs` header:
+> Cedar evaluation itself — Cedar remains the policy AUTHORITY and this engine only mirrors it, with nothing automatically binding the two. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 ## A. Problem
 
