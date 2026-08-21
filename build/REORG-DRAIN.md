@@ -7095,3 +7095,48 @@ ACCEPTED AS THE NEXT RULES, in the order the histogram supports them:
 - `(T, bool)` becomes `Option<T>` where the `T` is a zero-value throwaway. Three private functions
   in gjson; no API-compatibility argument against it.
 - A trait method returning an owned `Vec`/`String` where the source returned a borrow.
+
+## R4q — a shift the engine can size is arithmetic, and a refusal without a reason is not a refusal
+
+Two findings, one of which the survey had been hiding for a long time.
+
+The corpus refuses `<<` and `>>`, and the reason written beside the operator table is good: the
+source defines a shift at or beyond the operand's width as ZERO and panics on a negative count,
+while the target panics on the first in a debug build and masks the count in a release one — three
+behaviours where the source has two. That reason NEVER REACHED THE READER. The refusal said:
+
+    binary operator `>>` has no direct translation
+
+which names the operator and nothing a reader can act on. Condition 4 of the standing goal calls a
+vague refusal illegitimate, and this is what one looks like: the analysis existed, and it existed
+where only somebody already reading that file would find it. The message now carries it, and `&^`
+carries its own.
+
+The disagreement also has a subset where there is nothing to disagree about. A count that is a
+LITERAL below the operand's width leaves neither language a case to handle differently, so the plain
+operator is exact. A literal is never negative here either — the source spells a negative count as a
+negation OF a literal, which is a different node. `usize` and `isize` are measured at 16, the
+smallest width the target permits, because their real width belongs to the machine and not to this
+snapshot.
+
+    const TIME_DELTA: i64 = 1 << 6;
+    (b1 << 4 | b2, b1 != 255 && b2 != 255)
+
+## R4r — the declaration shouted and the body whispered
+
+Letting `xtob` translate made `uuid` stop compiling:
+
+    error[E0425]: cannot find value `xvalues` in this scope
+       const XVALUES: [u8; 256] = [ ... ];
+
+A package-scope `var` is emitted as a value with the target's CONSTANT casing — that is what
+`items_static` spells, unconditionally — and a reference to one was cased as a local. Both ends of
+one decision reading different answers, which is the first failure mode the standing goal lists and
+the sixth time it has been paid for.
+
+It was invisible until now for a reason worth keeping: the only function that referred to `xvalues`
+refused for an unrelated reason, so the mismatch had nothing to compile. A rule that raises coverage
+does not only add code, it EXPOSES code that was already wrong.
+
+The front end classifies a package-scope variable distinctly from a local, so the fix reads that
+classification rather than guessing — and a local shadowing the name keeps its own casing.

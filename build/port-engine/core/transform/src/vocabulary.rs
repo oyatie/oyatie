@@ -188,6 +188,9 @@ pub const ATTR_REF: &str = "ref";
 pub const ATTR_PACKAGE_PATH: &str = "package_path";
 /// The [`ATTR_REF`] value for an identifier naming a constant.
 pub const REF_CONST: &str = "const";
+
+/// A reference to a PACKAGE-SCOPE variable, which the target emits with constant casing.
+pub const REF_PACKAGE_VAR: &str = "package_var";
 /// The [`ATTR_REF`] value for an identifier naming a PACKAGE, which is not a value at all.
 pub const REF_PACKAGE: &str = "package";
 /// Attribute key holding the package-qualified IDENTITY of what a call resolves to.

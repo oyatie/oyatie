@@ -10,7 +10,7 @@ use crate::body::Body;
 use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case};
 use crate::resolve::Resolver;
-use crate::vocabulary::{
+use crate::vocabulary::{REF_PACKAGE_VAR, 
     ATTR_OP, ATTR_REF, CHILD_RESULT, REF_CONST, REF_PACKAGE, SOURCE_STRING,
 };
 
@@ -29,6 +29,12 @@ pub(crate) fn reference(node: &Declaration, resolver: &Resolver<'_>) -> String {
             Some(spelling) => spelling.clone(),
             None => to_screaming_snake(&node.name),
         },
+        // A PACKAGE-SCOPE VARIABLE is emitted as a value of the target's constant casing — that is
+        // what `items_static` spells it — so a reference to one has to read the same answer. It
+        // did not: the declaration shouted `XVALUES` and the body said `xvalues`, and the two only
+        // met once a rule elsewhere let the referring function translate at all. The front end
+        // classifies this distinctly from a local, so a local shadowing the name is unaffected.
+        Some(REF_PACKAGE_VAR) => to_screaming_snake(&node.name),
         Some("type") => to_pascal_case(&node.name),
         _ => to_snake_case(&node.name),
     }
@@ -60,6 +66,53 @@ pub(crate) fn compares_lengths(node: &Declaration, cx: &Body<'_>) -> bool {
                 || cx.usize_counters.contains(&a.name))
             && b.kind == crate::vocabulary::KIND_CALL
     })
+}
+
+/// A SHIFT whose count is a constant the operand's width cannot be exceeded by.
+///
+/// `binary_operator` refuses `<<` and `>>` outright, and the reason it does is about the counts the
+/// two languages disagree on: the source defines a shift at or beyond the operand width as ZERO and
+/// panics on a negative count, while the target panics on the first in a debug build and masks the
+/// count in a release one. Three behaviours where the source has two.
+///
+/// None of that is reachable when the count is a literal BELOW the width. The source and the target
+/// then compute the same value by the same rule, with no case left over for them to disagree about
+/// — so the plain operator is exact, and refusing it refuses arithmetic neither language finds
+/// difficult. A literal is also never negative here: the source spells a negative count as a
+/// negation OF a literal, which is a different node.
+///
+/// `usize` and `isize` are measured at 16, the smallest width the target permits, because their
+/// real width is a property of the machine the port is built for and not of this snapshot.
+pub(crate) fn constant_shift(
+    spelling: &str,
+    lhs: &Declaration,
+    rhs: &Declaration,
+    cx: &Body<'_>,
+) -> Option<BinaryOp> {
+    let op = match spelling {
+        "<<" => BinaryOp::Shl,
+        ">>" => BinaryOp::Shr,
+        _ => return None,
+    };
+    if rhs.kind != crate::vocabulary::KIND_LITERAL {
+        return None;
+    }
+    let count: u32 = rhs.attr(crate::vocabulary::ATTR_VALUE)?.parse().ok()?;
+    let target = cx.resolver.resolve(&lhs.type_ref, cx.owner).ok()?.spelling();
+    let width = target_width(&target)?;
+    (count < width).then_some(op)
+}
+
+/// The bit width of a target integer type, or `None` when it is not one.
+fn target_width(target: &str) -> Option<u32> {
+    match target {
+        "i8" | "u8" => Some(8),
+        "i16" | "u16" | "usize" | "isize" => Some(16),
+        "i32" | "u32" => Some(32),
+        "i64" | "u64" => Some(64),
+        "i128" | "u128" => Some(128),
+        _ => None,
+    }
 }
 
 pub(crate) fn binary_operator(spelling: &str) -> Option<BinaryOp> {
