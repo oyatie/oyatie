@@ -32,6 +32,7 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 
 | File | Status |
 |------|--------|
+| `hr-move-plan.json` | **LIVE executable** — HR absorb #2192 (`oya/hr` → `app/hr`) |
 | `ci-keystone-rename-map.json` | **rename SSOT** (not a move-plan) — gate_registration + disposition |
 | `kernel-move-plan.BLOCKED.json` | **BLOCKED** — mechanical blockers |
 | `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
@@ -40,9 +41,9 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 
 > **Spent leaf (no live plan file):** R-DUAL-CI-TIDE-MOVE (`oya/ci-tide` → `ci/tide/`) is applied in-tree; evidence `evidence/reorg/rr-dual-ci-tide-move-20260806.json`. Plan not kept LIVE because #1581 already holds the singleton for intelligence-remainder.
 
-> **Spent leaf (2026-08-14):** REORG-INTEL-REMAINDER (G024) is applied in-tree: 78 crates `oya/intelligence/crates` → `intelligence/{core,adapters,facade}` + 78 catalog co-moves; evidence `evidence/reorg/rr-intel-remainder-execute-20260814.json`. The plan file was kept committed through the move PR for ADR-0563 relabel authentication and REMOVED by this follow-up cleanup PR after #1956 merged; the RR-MOVEPLAN-SINGLETON slot is now free.
+> **Spent leaf (2026-08-14):** REORG-INTEL-REMAINDER (G024) is applied in-tree: 78 crates `oya/intelligence/crates` → `intelligence/{core,adapters,facade}` + 78 catalog co-moves; evidence `evidence/reorg/rr-intel-remainder-execute-20260814.json`. The plan file was kept committed through the move PR for ADR-0563 relabel authentication and REMOVED by this follow-up cleanup PR after #1956 merged. The RR-MOVEPLAN-SINGLETON slot is now occupied by `hr-move-plan.json` (HR absorb #2192).
 >
-> **Wave25/26 closeout (2026-08-10):** PR #1620 (`1d3105277`) landed 29 residual rehomes; closeout evidence `evidence/reorg/rr-wave25-26-residual-consolidation-closeout-20260810.json`. Drafts #1580–#1608 superseded except **#1587** and **#1607** held on `oyatie-0s8` founder rulings — both resolved 2026-08-14 (see `evidence/reorg/rr-held-draft-dispositions-20260814.json`): #1587 superseded by #1620, #1607 superseded by integ/cloud PR #1938.
+> **Wave25/26 closeout (2026-08-10):** PR #1620 (`1d3105277`) landed 29 residual rehomes; closeout evidence `evidence/reorg/rr-wave25-26-residual-consolidation-closeout-20260810.json`. Drafts #1580–#1608 superseded except **#1587** and **#1607** held on `oyatie-0s8` founder rulings — both resolved 2026-08-14 (git history is the audit log; do not keep N+1 evidence catalogs): #1587 superseded by #1620 (`1d3105277`; flags README restore from `932f1e1e8`), #1607 superseded by integ/cloud PR #1938 (`79fdd53db`).
 
 ## North-star / anti-debt
 
