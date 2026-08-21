@@ -164,8 +164,8 @@
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
         "tools/hooks/*.sh",
-        ".claude/settings.json",
-        ".codex/hooks.json",
+        "tools/hooks/registration/claude-settings.json",
+        "tools/hooks/registration/codex-hooks.json",
         "oya-ci.toml"
       ],
       "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",

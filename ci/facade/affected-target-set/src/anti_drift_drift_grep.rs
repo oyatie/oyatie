@@ -404,7 +404,7 @@ Cite specs/integ-branch-envelopes.json#roots #hubs.paths reorg_debt_freeze.rows.
             &policy(),
             &fixture_prose_must_cite(),
             &[surface(
-                ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+                "governance/contracts/PORTABLE-SWARM-CONTRACT.md",
                 text,
             )],
         );
@@ -462,7 +462,7 @@ Authority: specs/integ-branch-envelopes.json#anti_drift.\n";
             &policy(),
             &fixture_prose_must_cite(),
             &[surface(
-                ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+                "governance/contracts/PORTABLE-SWARM-CONTRACT.md",
                 text,
             )],
         );

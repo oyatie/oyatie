@@ -44,8 +44,8 @@ OYA_CI_CODEMOD_BIN = "cargo-test-binary:oya-reorg-codemod"
 OYA_ADR_INDEX_PRODUCER_BIN = { value = "cargo-test-binary:oya", force = false }
 OYA_HISTORY_ONLY_RETIREMENT_FACTS = { value = "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json", force = false }
 OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER = { value = "cargo-test-binary:oya-cloud-ci-accounting-registry-app", force = false }
-OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS = { value = ".claude", relative = true }
-OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS = { value = ".codex", relative = true }
+OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS = { value = "tools/hooks/registration/claude-settings.json", relative = true }
+OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS = { value = "tools/hooks/registration/codex-hooks.json", relative = true }
 OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR = { value = "tools/hooks", relative = true }
 
 # Committed-file resources declared by the product-protocol Buck test. Cargo resolves each

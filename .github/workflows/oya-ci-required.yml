@@ -119,8 +119,8 @@ jobs:
       # (hook-wiring). Built once below; both names point at that binary.
       OYA_CI_PRODUCER_BIN: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
       OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
-      OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/.claude
-      OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/.codex
+      OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/tools/hooks/registration/claude-settings.json
+      OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/tools/hooks/registration/codex-hooks.json
       OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
       # swatinem/rust-cache caches registry dependencies, NOT workspace members, and this
       # workspace has 885 of them — a run logged a cache HIT with Cargo.lock untouched and still

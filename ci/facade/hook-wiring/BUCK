@@ -35,8 +35,8 @@ rust_test(
         "tests/enforcement_liveness.rs": "ci/facade/hook-wiring/tests/enforcement_liveness.rs",
     },
     run_env = {
-        "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //.claude:settings-json)",
-        "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //.codex:hooks-json)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //tools/hooks/registration:claude-settings-json)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //tools/hooks/registration:codex-hooks-json)",
         "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR": "$(location //tools/hooks:top-level-hook-scripts)",
         "OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER": "$(location //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
     },

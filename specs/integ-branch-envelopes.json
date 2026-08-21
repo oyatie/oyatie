@@ -12,7 +12,7 @@
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
-    "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
+    "primary_consumer": "governance/check/integ-envelope + templates/agent-delivery/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit forever ci/process-kit (Rust-first; no tools/swarm birth on #1644; BAN agent-dotdirs forever homes), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
     "prior_version": "1.16.24"
   },
@@ -607,8 +607,6 @@
       "branch": "integ/ci",
       "envelope_globs": [
         ".github/**",
-        ".claude/**",
-        ".cursor/**",
         "AGENTS.md",
         "CLAUDE.md",
         "README.md",
@@ -709,13 +707,13 @@
     ],
     "active": [
       {
-        "path_glob": ".claude/workflows/**",
+        "path_glob": "templates/agent-delivery/**",
         "claiming_branch": "integ/specs",
         "reason": "deliver.js Claim/Land harness is the primary consumer of envelopes; co-land with policy-as-data on integ/specs.",
         "expires_at_or_wave": "wave-after-integ-tools-first-land"
       },
       {
-        "path_glob": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+        "path_glob": "governance/contracts/PORTABLE-SWARM-CONTRACT.md",
         "claiming_branch": "integ/specs",
         "reason": "Portable Swarm Contract is per-program contract evidence for the delivery-fabric program and travels with the law bootstrap (not a concurrent-safe exemption — a shared mutable file stays contested; fix-1644-codex).",
         "expires_at_or_wave": "wave-after-integ-tools-first-land"
@@ -775,7 +773,7 @@
         "expires_at_or_wave": "wave-after-integ-envelope-gate"
       },
       {
-        "path_glob": ".grok/harness/model-routing.v1.json",
+        "path_glob": "ci/facade/harness/model-routing.v1.json",
         "claiming_branch": "integ/specs",
         "reason": "Bootstrap: model-routing harness pin co-lands with Swarm Delivery Law optional-channel doctrine (advisory channels ≠ merge authority).",
         "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
@@ -843,13 +841,13 @@
     "mechanical": {
       "rule": "Agent summary first token MUST be exactly CLAIM or REFUSE. Substring /^CLAIM/ is NOT sufficient (CLAIMED/not CLAIM = REFUSE). CLAIM requires docs_touched + docs_action; docs_action=n/a requires docs_action_why.",
       "parsers": [
-        ".claude/workflows/deliver.js#parseClaimPacket"
+        "templates/agent-delivery/deliver.js#parseClaimPacket"
       ],
       "push_check": "deferred: ci/process-kit claim-push (Rust-first); until then Land uses deliver.js merge-tree preflight only"
     },
     "encoded_in": [
-      ".claude/workflows/deliver.js#Claim",
-      ".claude/workflows/deliver.js"
+      "templates/agent-delivery/deliver.js#Claim",
+      "templates/agent-delivery/deliver.js"
     ]
   },
   "concurrent_safe_exemptions": {
@@ -905,7 +903,7 @@
   },
   "hyperscaler_monorepo_patterns": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#D-9",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Hyperscaler-monorepo-patterns-first-class",
+    "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md#Hyperscaler-monorepo-patterns-first-class",
     "note": "First-class hyperscaler / clean-architecture monorepo rules — not agent-swarm folklore alone. Envelopes, hubs, and worker discipline must stay consistent with these patterns.",
     "cites": [
       "ADR-0119 (flat cross-cutting specs/ hub; product colocation via ADR-0131 amendment)",
@@ -949,14 +947,14 @@
   "agentic_operating_patterns": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-C",
     "patterns_ref": "specs/agentic-operating-patterns.json",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-C",
+    "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md#Amendment-C",
     "note": "Clustered KEEP/BAN from 137 Amendment C archive entries; Amendment E requires achieves/origin/rule/ensure/overturn_when on each load-bearing entry. Forever merge-gate name is merge-admission-required — distill notes that said keep oya-ci-required are OVERRULED. adr-rename-overturn: ADR paths stay ADR-NNNN-<topic>.",
     "patterns_version": "1.1.0",
     "rule_shape_ref": "specs/agentic-operating-patterns.json#rule_shape"
   },
   "naming": {
     "taxonomy_ref": "specs/naming-taxonomy.json",
-    "lens_battery_ref": ".grok/harness/lenses.v1.json",
+    "lens_battery_ref": "ci/facade/harness/lenses.v1.json",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B-Pattern-First",
     "pattern_first": true,
     "judgment_template": {
@@ -1072,7 +1070,7 @@
   },
   "reorg_debt_freeze": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-B",
+    "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md#Amendment-B",
     "status": "binding",
     "urgency": "NOW",
     "greenfield_question": "If we were greenfield and wanted an ideal hyperscaler monorepo clean-architecture shape, where would this belong and in what shape? That answer IS placement law.",
@@ -1259,7 +1257,6 @@
       "tasks/": "reorg_now",
       "benchmarks/": "reorg_now",
       ".grok/": "keep_forever",
-      ".claude/": "keep_forever",
       ".codex/": "keep_forever",
       ".github/": "keep_forever",
       ".cargo/": "keep_forever",
@@ -4647,16 +4644,6 @@
         "destination": ".grok/"
       },
       {
-        "path": ".claude/",
-        "action": "keep_forever",
-        "greenfield_destination": ".claude/",
-        "shape": "PROCESS_KIT: deliver.js + settings",
-        "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `.claude/` → `.claude/` (PROCESS_KIT: deliver.js + settings). Full 7-point judgment still pending before structural change.",
-        "destination": ".claude/"
-      },
-      {
         "path": ".codex/",
         "action": "keep_forever",
         "greenfield_destination": ".codex/",
@@ -6178,7 +6165,7 @@
       ],
       "rule": "Path changes require judgment_status=done with rationale+redesign. Renames require name_now/name_forever + taxonomy kind. Root keep/replace requires lenses_applied=all-16 and non-empty challenges[]; leaf inherits (northstar-lens-scope). Taxonomy replaces indefensible naming; does not encode it. Birth gate is unit_root_birth only.",
       "lens_battery": {
-        "authority": ".grok/harness/lenses.v1.json",
+        "authority": "ci/facade/harness/lenses.v1.json",
         "required": "all-16",
         "fields": [
           "lenses_applied",
@@ -6457,7 +6444,7 @@
   "anti_drift": {
     "anti_drift_doctrine_version": "1.1.0",
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-D",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Amendment-D",
+    "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md#Amendment-D",
     "enumeration_ssot": "specs/integ-branch-envelopes.json#roots",
     "doc_packet_required_fields": [
       "docs_touched",
@@ -6510,18 +6497,18 @@
         "n/a"
       ],
       "docs_action_why_required_when": "n/a",
-      "parser": ".claude/workflows/deliver.js#parseClaimPacket",
-      "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket",
+      "parser": "templates/agent-delivery/deliver.js#parseClaimPacket",
+      "deliver_gate": "templates/agent-delivery/deliver.js#parseClaimPacket",
       "diff_bind": {
         "rule": "docs_touched paths (when docs_action != n/a) and optional paths inventory MUST appear in git diff --name-only BASE...HEAD",
-        "parser": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)",
-        "deliver_gate": ".claude/workflows/deliver.js#parseClaimPacket(bindDiff:true)"
+        "parser": "templates/agent-delivery/deliver.js#parseClaimPacket(bindDiff:true)",
+        "deliver_gate": "templates/agent-delivery/deliver.js#parseClaimPacket(bindDiff:true)"
       }
     }
   },
   "merge_windows": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-D",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#merge_windows",
+    "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md#merge_windows",
     "status": "binding",
     "hot_set_max": 4,
     "rule": "At most hot_set_max concurrent restackable integ tips. Parked integs MAY prep/judge but MUST NOT restack until admitted to the hot set. Plan-only window policy is dual-truth — this block is SSOT.",
@@ -6541,7 +6528,7 @@
   },
   "daemon_hotset": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
+    "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
     "status": "binding",
     "process_kit_mirror": "ci/facade/harness/daemon-hotset.v1.json",
     "process_kit_owner": "roots.ci → integ/ci (forever: ci/process-kit + ci/facade/harness; BAN agent-dotdirs as forever homes)",
@@ -6590,7 +6577,7 @@
   },
   "perimeter": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
-    "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
+    "portable_contract": "governance/contracts/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
     "status": "binding",
     "process_kit_mirror": "ci/facade/harness/perimeter.v1.json",
     "process_kit_owner": "roots.ci → integ/ci (forever: ci/process-kit + ci/facade/harness; BAN agent-dotdirs as forever homes)",

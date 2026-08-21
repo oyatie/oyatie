@@ -87,8 +87,8 @@ const FACES_DIR: &str = "ci/facade/artifact-inventory-registry";
 
 /// The committed scm-facts snapshot face name (the emitter's `--out`, the producer's `--scm-facts`).
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = "tools/hooks/registration/claude-settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = "tools/hooks/registration/codex-hooks.json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 
 /// The repo-relative move-manifest the codemod's `manifest` subcommand emits and the emitter
@@ -102,8 +102,9 @@ const EMITTER_TARGET: &str = "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapsh
 const PRODUCER_TARGET: &str =
     "//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin";
 const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str =
+    "//tools/hooks/registration:claude-settings-json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//tools/hooks/registration:codex-hooks-json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET: &str = "//tools/hooks:top-level-hook-scripts";
 
 /// The 6 producer faces the producer writes (and the byte-rediff re-renders), as
@@ -891,8 +892,8 @@ fn parse_enforcement_liveness_corpus_paths(
     let hooks_dir =
         parse_show_output_path(repo_root, output, ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)?;
     Ok(EnforcementLivenessCorpusPaths {
-        claude_settings: buck_filegroup_file(claude_settings_output, "settings.json"),
-        codex_hooks: buck_filegroup_file(codex_hooks_output, "hooks.json"),
+        claude_settings: buck_filegroup_file(claude_settings_output, "claude-settings.json"),
+        codex_hooks: buck_filegroup_file(codex_hooks_output, "codex-hooks.json"),
         hooks_dir,
     })
 }

@@ -26,7 +26,7 @@ use serde_json::Value;
 const POLICY_PATH: &str = "ci/facade/affected-target-set/anti-drift-drift-grep-policy.json";
 const ENVELOPES_PATH: &str = "specs/integ-branch-envelopes.json";
 const ADR_PATH: &str = "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md";
-const PORTABLE_PATH: &str = ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md";
+const PORTABLE_PATH: &str = "governance/contracts/PORTABLE-SWARM-CONTRACT.md";
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");

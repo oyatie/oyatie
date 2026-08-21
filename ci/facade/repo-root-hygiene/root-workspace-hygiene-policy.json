@@ -1,5 +1,5 @@
 {
-  "$comment": "ALLOWLIST-as-DATA for the root-workspace-hygiene gate (ADR-0600). The gate engine is UNIVERSAL: it reads this allowlist as DATA and runs on ANY repo. Oyatie's allowlist is just the pack below. POSTURE: default-DENY. Every TRACKED file at the repository ROOT (a tracked path that carries no '/' separator) MUST match an allowlist rule; ANY tracked root file that matches NO rule fails the gate (root_workspace_unallowlisted_file). This is the complement of the existing scratch DENYLIST (cloud-ci-total-accounting `scratch_artifact`, which catches KNOWN scratch shapes): the allowlist catches EVERY new root file, including scratch shapes nobody has named yet. The two layers compose — denylist = zero-tolerance on known scratch, allowlist = born-blocking on any unrecognized root file. Adding a NEW legitimate root file is a reviewed DATA edit here (never a scanner branch). Top-level DIRECTORIES are governed by `allowed_root_dirs` (a tracked path's first segment must be a permitted capability/meta dir). Rules are evaluated against the BASENAME of each tracked root file; the FIRST matching rule wins (order is significant only for diagnostics).",
+  "$comment": "ALLOWLIST-as-DATA for the root-workspace-hygiene gate. The gate engine is UNIVERSAL: it reads this allowlist as DATA and runs on ANY repo. AGENT DIRECTORIES ARE NOT ALLOWLISTED. .claude/.codex/.cursor/.grok/.agents/.beads/.omc/.omx must never be tracked. They remain present locally because agent tools read them from fixed paths, but they are gitignored and untracked. The hooks they wire live in tools/hooks, which IS tracked and reviewed. Previously this list allowlisted 16 agent-directory paths; that was the whole of allowed_tracked_paths. Its stated basis, ADR-0600, is Superseded and archived.",
   "gate_id": "cloud-ci-root-workspace-hygiene",
   "match_kinds": {
     "exact": "the tracked root file basename equals `value`",
@@ -143,13 +143,8 @@
   ],
   "allowed_root_dirs": [
     ".cargo",
-    ".claude",
-    ".codex",
     ".config",
-    ".cursor",
     ".github",
-    ".grok",
-    ".omc",
     "app",
     "audit",
     "base",
@@ -199,110 +194,8 @@
     "tools",
     "workflow"
   ],
-  "restricted_tracked_roots": [
-    ".claude",
-    ".codex",
-    ".omc",
-    ".omx"
-  ],
-  "allowed_tracked_paths": [
-    {
-      "id": "claude-project-settings",
-      "kind": "exact",
-      "value": ".claude/settings.json",
-      "reason": "tracked project hook/config mirror; local settings/worktrees remain ignored"
-    },
-    {
-      "id": "codex-hooks",
-      "kind": "exact",
-      "value": ".codex/hooks.json",
-      "reason": "tracked Codex hook config mirror"
-    },
-    {
-      "id": "claude-buck-package",
-      "kind": "exact",
-      "value": ".claude/BUCK",
-      "reason": "Buck package marker for reviewed .claude/settings.json hook-config corpus target; not runtime state"
-    },
-    {
-      "id": "claude-owners-marker",
-      "kind": "exact",
-      "value": ".claude/OWNERS",
-      "reason": "ownership marker for reviewed .claude hook-config corpus metadata; not runtime state"
-    },
-    {
-      "id": "codex-buck-package",
-      "kind": "exact",
-      "value": ".codex/BUCK",
-      "reason": "Buck package marker for reviewed .codex/hooks.json hook-config corpus target; not runtime state"
-    },
-    {
-      "id": "codex-owners-marker",
-      "kind": "exact",
-      "value": ".codex/OWNERS",
-      "reason": "ownership marker for reviewed .codex hook-config corpus metadata; not runtime state"
-    },
-    {
-      "id": "omc-ultragoal-owners",
-      "kind": "exact",
-      "value": ".omc/ultragoal/OWNERS",
-      "reason": "keep-with-sunset brand residue ownership marker (ADR-0709); do not expand .omc tracked set"
-    },
-    {
-      "id": "omc-ultragoal-preamble",
-      "kind": "exact",
-      "value": ".omc/ultragoal/TEAMMATE-PREAMBLE.md",
-      "reason": "keep-with-sunset tombstone only — not live agent authority (ADR-0709)"
-    },
-    {
-      "id": "omc-ultragoal-friction-ledger",
-      "kind": "exact",
-      "value": ".omc/ultragoal/friction-ledger.jsonl",
-      "reason": "CI load-bearing friction ledger path (ADR-0544 policy); path stable until future rehome"
-    },
-    {
-      "id": "claude-workflows-readme",
-      "kind": "exact",
-      "value": ".claude/workflows/README.md",
-      "reason": "reviewed agent-lane workflow harness README; not runtime state"
-    },
-    {
-      "id": "claude-workflows-auth-preflight",
-      "kind": "exact",
-      "value": ".claude/workflows/auth-preflight.mjs",
-      "reason": "reviewed gh auth preflight for agent deliver/restack harness"
-    },
-    {
-      "id": "claude-workflows-deliver",
-      "kind": "exact",
-      "value": ".claude/workflows/deliver.js",
-      "reason": "reviewed agent-lane deliver orchestration harness"
-    },
-    {
-      "id": "claude-workflows-merge-check",
-      "kind": "exact",
-      "value": ".claude/workflows/merge-check.mjs",
-      "reason": "reviewed merge-check helper for agent deliver harness"
-    },
-    {
-      "id": "claude-workflows-preflight",
-      "kind": "exact",
-      "value": ".claude/workflows/preflight.mjs",
-      "reason": "reviewed preflight helper for agent deliver harness"
-    },
-    {
-      "id": "claude-workflows-restack",
-      "kind": "exact",
-      "value": ".claude/workflows/restack.js",
-      "reason": "reviewed restack helper for agent deliver harness"
-    },
-    {
-      "id": "omc-ultragoal-premise",
-      "kind": "exact",
-      "value": ".omc/ultragoal/premise.txt",
-      "reason": "keep-with-sunset residual path slot; not live premise authority (ADR-0709)"
-    }
-  ],
+  "restricted_tracked_roots": [],
+  "allowed_tracked_paths": [],
   "product_contract": {
     "auto_fix": "Every finding carries a concrete remediation per offending path: relocate process scratch to `.omc/` (the gitignored scratch home) or `git rm` the file. A NEW legitimate root file is admitted by adding a reviewed allowlist rule here (a DATA edit), never a scanner change.",
     "portability": "The engine reads the allowlist + allowed-dir set as DATA. Another repository adopts the gate by replacing `allowed_root_files` / `allowed_root_dirs` with its own legitimate root surface; zero engine code changes.",

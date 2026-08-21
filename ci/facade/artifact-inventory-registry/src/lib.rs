@@ -1004,7 +1004,7 @@ pub struct GateInputs<'a> {
     /// `{"rows":[{"row_type":"hook","hook_path","wired_in_claude","wired_in_codex",
     /// "stub_marked"},{"row_type":"command_reference","wiring_file","command_path",
     /// "target_exists"}]}`. The producer enumerates tracked project hooks and hook-command
-    /// references from `.claude/settings.json` + `.codex/hooks.json`.
+    /// references from `tools/hooks/registration/claude-settings.json` + `tools/hooks/registration/codex-hooks.json`.
     pub enforcement_liveness: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
     /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`

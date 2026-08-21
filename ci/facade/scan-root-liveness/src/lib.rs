@@ -95,8 +95,8 @@ pub struct DeclaredRoot {
     pub key: String,
     /// The literal declared value (may contain glob metacharacters).
     pub value: String,
-    /// Whether the collector could resolve it: a path that exists, or a glob that
-    /// matches at least one path.
+    /// Whether the collector could resolve it: a tracked path, or a glob that
+    /// matches at least one tracked path. Working-tree existence is not enough.
     pub resolves: bool,
 }
 

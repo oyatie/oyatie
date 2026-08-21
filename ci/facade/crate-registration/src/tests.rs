@@ -1275,8 +1275,8 @@ fn buck2_regen_adapter_parses_declared_enforcement_liveness_corpus_targets() {
 root//ci/facade/scm-facts-snapshot:oya-cloud-ci-scm-facts-emitter-app buck-out/v2/gen/emitter\n\
 root//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin buck-out/v2/gen/producer\n\
 root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
-root//.claude:settings-json buck-out/v2/gen/.claude/__settings-json__/settings-json\n\
-root//.codex:hooks-json buck-out/v2/gen/.codex/__hooks-json__/hooks-json\n\
+root//tools/hooks/registration:claude-settings-json buck-out/v2/gen/tools/hooks/registration/__claude-settings-json__/claude-settings-json\n\
+root//tools/hooks/registration:codex-hooks-json buck-out/v2/gen/tools/hooks/registration/__codex-hooks-json__/codex-hooks-json\n\
 root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts\n\
 ";
 
@@ -1286,12 +1286,14 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
     assert_eq!(
         corpus.claude_settings,
         PathBuf::from(
-            "/repo/buck-out/v2/gen/.claude/__settings-json__/settings-json/settings.json"
+            "/repo/buck-out/v2/gen/tools/hooks/registration/__claude-settings-json__/claude-settings-json/claude-settings.json"
         )
     );
     assert_eq!(
         corpus.codex_hooks,
-        PathBuf::from("/repo/buck-out/v2/gen/.codex/__hooks-json__/hooks-json/hooks.json")
+        PathBuf::from(
+            "/repo/buck-out/v2/gen/tools/hooks/registration/__codex-hooks-json__/codex-hooks-json/codex-hooks.json"
+        )
     );
     assert_eq!(
         corpus.hooks_dir,
@@ -1310,8 +1312,8 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
     assert!(args.contains(&corpus.claude_settings.display().to_string()));
     assert!(args.contains(&corpus.codex_hooks.display().to_string()));
     assert!(args.contains(&corpus.hooks_dir.display().to_string()));
-    assert!(!args.contains(&"/repo/.claude/settings.json".to_owned()));
-    assert!(!args.contains(&"/repo/.codex/hooks.json".to_owned()));
+    assert!(!args.contains(&"/repo/tools/hooks/registration/claude-settings.json".to_owned()));
+    assert!(!args.contains(&"/repo/tools/hooks/registration/codex-hooks.json".to_owned()));
     assert!(!args.contains(&"/repo/tools/hooks".to_owned()));
 }
 

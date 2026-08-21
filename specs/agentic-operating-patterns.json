@@ -17,9 +17,9 @@
     "corpus_entries": "000-136",
     "prior_version": "1.1.0",
     "primary_consumers": [
-      ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
+      "governance/contracts/PORTABLE-SWARM-CONTRACT.md",
       "specs/integ-branch-envelopes.json",
-      ".claude/workflows/deliver.js Claim (advisory)"
+      "templates/agent-delivery/deliver.js Claim (advisory)"
     ],
     "accepted_at": "2026-08-11T00:00:00Z",
     "acceptance_note": "Promoted Accepted on #1644 so Claim rename/classifier refusal criteria match ADR-0711 Amendment B/C + END-STATE-POLICY (Proposed carries no implement authority)."

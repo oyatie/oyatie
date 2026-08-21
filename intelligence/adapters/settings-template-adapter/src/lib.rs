@@ -99,7 +99,7 @@ impl SettingsRenderer for ClaudeRenderer {
         account: &ProviderAccount,
         root: &Path,
     ) -> Result<RenderManifest, SettingsRendererError> {
-        let config_path = root.join(".claude/settings.json");
+        let config_path = root.join(".claude").join("settings.json");
         // Simplified JSON rendering for Wave 2h
         let content = format!(
             "{{\"account_id\":\"{}\",\"version\":{}}}",
@@ -119,7 +119,7 @@ impl SettingsRenderer for ClaudeRenderer {
         account: &ProviderAccount,
         root: &Path,
     ) -> Result<DriftReport, SettingsRendererError> {
-        let config_path = root.join(".claude/settings.json");
+        let config_path = root.join(".claude").join("settings.json");
         let mut entries = Vec::new();
 
         if !config_path.exists() {
