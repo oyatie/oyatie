@@ -7002,3 +7002,35 @@ The binding stopped being a `String`. A single name is an identifier and a pair 
 the renderer parses what it is handed — so `ForBinding` is `Blank`, `Name` or `Indexed`, and the
 blank is a variant rather than the name `_`. That is the third time the blank has been spelled as a
 name and reached `parse_ident`; modelling it closes the trap rather than avoiding it again.
+
+## R4o — `copy` writes, so its destination must be a PLACE, and the engine was handing it a clone
+
+The source's `copy(dst, src)` moves `min(len(dst), len(src))` elements and answers with that count.
+The target has no call that does it, so it becomes a length and a slice assignment — which is why
+this is a block rather than a call, and why it needs two proofs the call form would not.
+
+The first was expected. Each argument is named TWICE in the target, once for its length and once
+for the slice, where the source names it once — so an argument that DOES something when evaluated
+would do it twice. Stated as what it excludes rather than what it admits: a call, an assignment, an
+increment. An admitting list is the version that goes wrong, and it did — the first one forgot
+literals and refused four of `uuid`'s copies over a literal slice bound.
+
+The second was not expected and is the reason this entry exists. The rule emitted:
+
+    self.uuid.clone()[..][..copied].copy_from_slice(&data[..copied]);
+
+That compiles. It copies into a CLONE, drops it, and leaves `self.uuid` untouched — a copy that
+does nothing, which is precisely the class of failure this engine exists to prevent. The `.clone()`
+is not in the source and was never visible to a check on the source's shape: OWNERSHIP puts it
+there, downstream, after the argument is translated.
+
+So the destination is checked on the EMITTED form, and the property is that it names STORAGE: a
+path, a field of one, an index or slice of either. A call is not a place. Every `copy` in the
+corpus refuses on it today, which is the correct answer to what is currently emitted and not the
+end of the matter — the engine cloning a destination it is about to WRITE is a defect upstream of
+this rule, and this is the first thing to name it.
+
+Also fixed here: a range's lower bound is now optional. `..copied` is what the target spells for a
+prefix; `0..copied` compiles to the same thing and reads as something a person did not write. The
+first version passed an empty literal instead, which the renderer refused — and that refusal was
+counted as a translation failure in `uuid` before it was traced back to here.

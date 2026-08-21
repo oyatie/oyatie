@@ -72,6 +72,10 @@ pub(crate) fn call(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Transf
         return Ok(built);
     }
 
+    if let Some(built) = crate::body_copy::slice_copy(node, callee_id, cx)? {
+        return Ok(built);
+    }
+
     let args = node.children[1..]
         .iter()
         .enumerate()

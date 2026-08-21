@@ -235,7 +235,7 @@ fn counted_range(
             false => ForBinding::Blank,
         },
         iter: RustExpr::Range {
-            start: Box::new(expression(one_child(init, cx, "let")?, inner)?),
+            start: Some(Box::new(expression(one_child(init, cx, "let")?, inner)?)),
             end: Box::new(end),
             // EXCLUSIVE, because the loop this came from tests `<`.
             inclusive: false,
@@ -330,7 +330,7 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
         },
         // `0..xs.len()` — the positions, because nothing here names an item.
         (ForBinding::Name(_), false) => RustExpr::Range {
-            start: Box::new(RustExpr::Literal("0".to_owned())),
+            start: Some(Box::new(RustExpr::Literal("0".to_owned()))),
             end: Box::new(RustExpr::MethodCall {
                 receiver: Box::new(rendered_len),
                 method: "len".to_owned(),

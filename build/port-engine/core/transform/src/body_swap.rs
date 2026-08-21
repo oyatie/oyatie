@@ -250,7 +250,7 @@ pub(crate) fn bounded_range(rendered: &RustExpr) -> Option<RustExpr> {
             op: port_engine_rust_ir::UnaryOp::Not,
             operand: Box::new(RustExpr::MethodCall {
                 receiver: Box::new(RustExpr::Range {
-                    start: Box::new(low.clone()),
+                    start: Some(Box::new(low.clone())),
                     end: Box::new(high.clone()),
                     inclusive: true,
                 }),
@@ -288,7 +288,7 @@ pub(crate) fn bounded_range(rendered: &RustExpr) -> Option<RustExpr> {
     }
     Some(RustExpr::MethodCall {
         receiver: Box::new(RustExpr::Range {
-            start: Box::new(low.clone()),
+            start: Some(Box::new(low.clone())),
             end: Box::new(high.clone()),
             // INCLUSIVE. `<=` includes its bound and `..` does not, so the exclusive range would
             // reject the highest value the source accepts — off by one, on the boundary, which is
