@@ -10,6 +10,7 @@
   ],
   "governed_service_roots": [
     "app/community",
+    "app/sheets",
     "audit",
     "billing",
     "cell",

@@ -908,9 +908,9 @@
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
     },
-    "oya/sheets/manifest.json": {
-      "service": "oya/sheets",
-      "manifest": "oya/sheets/manifest.json",
+    "app/sheets/manifest.json": {
+      "service": "app/sheets",
+      "manifest": "app/sheets/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-sheets",
