@@ -48,6 +48,10 @@ deliverables:
     description: "Node is upstream Linux + Talos (Sidero). Delete in-tree kernel/ (Asterinas eval) and os/ (generated Talos port). Keep build/port-engine; regenerate a port only when we own the node. No empty kernel/os scaffolds. A higher Accepted ADR overrides an earlier one only with explicit amends or supersedes."
     exit_criteria: "kernel/ and os/ are absent from the tree and from the capability-registry meta_directories; AGENTS.md/CLAUDE.md no longer list them as production rungs; port-engine remains under build/."
     verified_by: "presubmit"
+  - id: ADR-0719-D14
+    description: "Per-capability is/is-not/burn: each registered engine named as the cloud product it is, not a port of upstream, not a census dump, not another cap's job. payments and ledger are capabilities (first crate+registry same change). Nested leftover service trees burn."
+    exit_criteria: "This table is the reading for reorg; no PR parks a second engine inside a cap or treats a k8s/Talos port as that cap's core."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -427,7 +431,46 @@ calls `policy/` in-process; it does not embed a second PDP.
 
 **Meta (not sold as a tenant API, still in-repo):** `kernel/` rung 0; `os/` node OS; `base/` (≥3 caps, below all); `build/` toolchains/images; `third-party/` vendored; `governance/` registry + check crates (off the runtime ladder).
 
-**`app/<product>/`:** composition only (hr, payroll, calendar, community, …). Wires 2+ of the table. **Does not** grow a 25th cloud engine. Interview `payments/` / `ledger/` become capabilities only via ADR-0562 §7 — they are **not** sneaked into `app/` or `billing/` as a junk drawer.
+**`app/<product>/`:** composition only (hr, payroll, calendar, community, …). Wires 2+ of the table. **Does not** grow a cloud engine.
+
+**`payments/` and `ledger/` are capabilities** (interview E17 / D15). First crate + registry row land **together** (no empty dir). `oya/payments` is not a parking lot: move into `payments/` or delete. Not a `billing/` drawer.
+
+### D-14 — Each capability: is / is not / burns
+
+Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs inside a cap **burn** (faces or `git rm`).
+
+| Cap | **Is** (engine) | **Is not** | **Burns / move** |
+|---|---|---|---|
+| **cell** | Topology, hard caps, router, rebalance. Borg/GCP-zone analog. | GKE product (`k8s/`). Tenant CRM. | Census, leftover lifecycle dirs once faces exist. |
+| **tenancy** | Tenant lifecycle, home-cell, org/account analog. | IdP (`iam`). PDP (`policy`). SKU catalog (`marketplace`). | Enablement side-effects; JSON tenant novels. |
+| **iam** | Principals, passkeys, SCIM, role **store**, workload identity **consume**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). | PDP crates **move to `policy/`**. trustd deps **move to `secrets/`** with `os/` delete. |
+| **policy** | Cedar + ReBAC PDP, G-face + C0 snapshots. | IdP. Empty dir forever. | **Extract crates from iam now.** Cap-root `<other>/policy/*.cedar` → `<other>/cedar/`. |
+| **secrets** | KMS, secret material, **SPIFFE issue**. | PDP. Cert spam as YAML. | Absorb `os-trustd-domain` consumers. |
+| **audit** | Tamper-evident log. Always on. | Compliance packs (`compliance`). Sync Merkle on every Check. | DPIA essays, scorecards. |
+| **observability** | Telemetry + SLO **controller**. | Per-cap hand OpenSLO. SIEM as a 25th cap. | Stamped OpenSLO; detection stays **intelligence** facade if sold. |
+| **storage** | Object/CAS. Drive/recordings **facade**. | Ontology DB (`data`). Block/file = **facades when sold**, no empty dirs. | Nested imaging leftover; census. |
+| **data** | Ontology, OLTP/OLAP, pipelines. | S3 (`storage`). Cache/search = facades **when sold**. | Nested ontology/analytics leftover trees; Postgres is **adapter**. |
+| **compute** | **One** engine: VM + k8s-on-compute + functions. | GKE product (`k8s/`). GPU = facade when sold. | Splitting into 3 caps. |
+| **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
+| **network** | VPC/DNS/mesh dataplane. | Public API door (`gateway`). Direct Connect/CDN = facade when sold. | Census. |
+| **gateway** | **One** public door, quota, proto/H3. | Mesh (`network`). Second REST API. | REST dual-stack; connector leftover if it’s a second door. |
+| **messaging** | Bus, outbox, ordering. | Workflow sagas (`workflow`). Kafka-as-source. | Kafka in IaC; `specs/proto` event novels. |
+| **intelligence** | Model/agent substrate. | Console. Workflow studio. AI Act essays as cap-root YAML. | `capabilities/*.yaml`; detection is a **facade** of this cap if sold. |
+| **workflow** | Saga **engine** + studio facade. | Deploy/GitOps (`iac`/`ci`). | Template-stamped graphs. |
+| **ci** | **presubmit** engines, controller, merge queue. | 60 census gates on `specs/`. Per-cap GitHub required checks. | Those gates **delete** with the specs. |
+| **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
+| **billing** | Meter, rate, invoice, tax, FinOps. | Ledger books (`ledger/`). Payments rails (`payments/`). | Nested accounting/tax leftover dirs. |
+| **marketplace** | Plugins, signed modules, SKU **engine**. | Generated sell-catalog (**`build/` view**). | Dev-cli as merge authority. |
+| **console** | Shell, token broker, nav. | Ops dashboards that compose 2+ (`app/`). | Extra product surfaces in `console/`. |
+| **compliance** | Pack evidence, data-class registry. | Merkle log (`audit`). Cloned `dpia.md`. | Those clones. |
+| **comms** | Mail/meet/messenger/notify **engines**. | Slack-superset **app** (2+ caps). Emergency clinical product. | Nested `mail/`/`meet/` leftover trees → faces or rm. |
+| **flags** | Flags, kill switches. | Census `catalog.yaml` / IPs. | Cap-root junk. |
+| **governance/** | Registry + check **crates** (off ladder). | Org JSON `specs/` corpus. | Specs catch-all. |
+| **build/** | Toolchains, images, **port-engine**, SKU **view**. | Capability engines. | — |
+| **third-party/** | Vendored pins when we need them. | Fake rungs (`kernel/`/`os/`). | Asterinas eval in `kernel/`. |
+| **app/** | 2+ cap products. | A cloud engine. | Absorbing D41 retirees; parking payments. |
+
+**Missed before, now closed:** GKE vs kube-port (`k8s/`); Talos vs `os/`; PDP vs iam; trustd vs secrets; payments/ledger not billing; no empty `base/`/`kernel/`/`os/`/`k8s-port/`; census `ci` gates are not the delivery fabric.
 
 **MUST (cloud lives in caps)**
 
