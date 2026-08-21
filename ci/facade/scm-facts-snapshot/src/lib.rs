@@ -137,9 +137,9 @@ const P3_PRODUCER_GATE_SOURCE_PATHS: &[&str] = &[
 ];
 const P3_TOOLCHAIN_INPUT_PATHS: &[&str] = &[
     ".buckconfig",
+    "build/toolchains/BUCK",
     "rust-toolchain.toml",
     "third-party/BUCK",
-    "toolchains/BUCK",
 ];
 
 #[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq)]

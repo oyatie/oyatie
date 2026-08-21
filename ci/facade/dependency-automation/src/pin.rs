@@ -54,7 +54,7 @@ pub(crate) fn validate_rust_pin_alignment(
         &format!("ARG RUST_VERSION={pin}"),
         findings,
     )?;
-    expect_file_contains(root, "toolchains/BUCK", pin, findings)?;
+    expect_file_contains(root, "build/toolchains/BUCK", pin, findings)?;
     Ok(())
 }
 
