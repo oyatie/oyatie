@@ -56,8 +56,9 @@ use ci_artifact_inventory_registry::{
 // REUSE the membership-lint gate's home resolution (NOT a reimplementation). `homes_for` over
 // `parse_mapping` is the SINGLE source of "which home(s) does this crate map to?" — the same logic
 // the `oya-cloud-ci-capability-membership-app` gate BLOCKS on. Sharing it makes the orchestrator's
-// "already capability-mapped?" check drift-proof: it sees ALL four home sources (capability dir-
-// prefixes, app_products → meta:app/, meta_directory_absorbs → meta:kernel//os/, and the
+// "already capability-mapped?" check drift-proof: it sees every home source (capability dir-
+// prefixes, app_products → meta:app/, retired_v1_products → retire-in-place,
+// meta_directory_absorbs → meta:kernel//os/, and the
 // `*`-suffix glob membership) exactly as the gate does, so it never emits a spurious mapping edit
 // that would DOUBLE-MAP a crate the gate then flags RED.
 use ci_module_membership::{Mapping, homes_for, parse_mapping};
@@ -1504,7 +1505,8 @@ fn load_mapping(repo_root: &Path) -> Result<Mapping, RegisterError> {
 /// True iff `crate_dir` already maps to at least one capability/meta home, computed by REUSING the
 /// membership-lint gate's `homes_for`/`parse_mapping` (NOT a divergent reimplementation). This sees
 /// every home source the gate enforces — `capabilities[].absorbs_current_dirs` dir-prefixes,
-/// `app_products.current_dirs` (→ `meta:app/`), `meta_directory_absorbs[].current_dirs`
+/// `app_products.current_dirs` (→ `meta:app/`), `retired_v1_products.current_dirs`
+/// (→ `retire-in-place`, never `meta:app/`), `meta_directory_absorbs[].current_dirs`
 /// (→ `meta:kernel/`/`meta:os/`), and the `*`-suffix `absorbs_current_crate_globs` membership — so
 /// `capability_already_mapped(dir) == (homes_for(dir).len() >= 1)`. Sharing the gate's logic is the
 /// drift fix: the orchestrator never emits a spurious `CapabilityMapping` edit for a crate the gate

@@ -150,6 +150,54 @@ fn frozen_baseline_crate_is_advisory_not_a_failure() {
 }
 
 #[test]
+fn retired_v1_products_map_in_place_not_to_app() {
+    let mut reg = registry();
+    reg["membership_lint_coverage"]["retired_v1_products"] = json!({
+        "disposition": "retire-in-place; do not absorb into app/; D41/D42",
+        "current_dirs": ["oya/notes"]
+    });
+    let mapping = parse_mapping(&reg).expect("retired_v1_products is a recognized coverage key");
+    let homes = homes_for(&mapping, "oya/notes/crates/oya-notes-domain");
+    assert_eq!(homes, vec![RETIRE_IN_PLACE_HOME.to_owned()]);
+    assert!(
+        !homes.iter().any(|home| home.contains("app")),
+        "D41/D42 retired dirs must not home under app/: {homes:?}"
+    );
+
+    let obs = json!({
+        "crate_count": 2,
+        "crates": [
+            "oya/notes/crates/oya-notes-domain",
+            "libs/oya-shared-idempotency-key-kernel"
+        ],
+        "top_level_dirs": ["cloud", "oya", "libs", "tools", "specs", "docs"],
+        "registry": reg,
+    });
+    let findings = evaluate_keyed(&policy(), &obs);
+    assert!(
+        findings.is_empty(),
+        "a crate under retired_v1_products must stay mapped (not MEM-NEW-UNMAPPED): {findings:#?}"
+    );
+}
+
+#[test]
+fn retired_v1_products_meta_dir_app_is_malformed() {
+    let mut reg = registry();
+    reg["membership_lint_coverage"]["retired_v1_products"] = json!({
+        "meta_dir": "app/",
+        "current_dirs": ["oya/notes"]
+    });
+    let err = match parse_mapping(&reg) {
+        Ok(_) => panic!("meta_dir: app/ must fail closed"),
+        Err(message) => message,
+    };
+    assert!(
+        err.contains("retired_v1_products.meta_dir"),
+        "malformed meta_dir must name the field: {err}"
+    );
+}
+
+#[test]
 fn stale_frozen_entry_now_mapped_fails() {
     // The frozen entry is now also matched by a glob → it must be removed from the baseline.
     let mut reg = registry();
