@@ -22,10 +22,10 @@ DEFAULT_MANIFEST = REPO_ROOT / "specs" / "fixtures" / "calendar-prd" / "red-fixt
 DEFAULT_REPLAY_ROOT = REPO_ROOT / "specs" / "fixtures" / "calendar-prd" / "replay"
 PRD_PATH = REPO_ROOT / "specs" / "microservices" / "calendar.json"
 MANIFEST_INDEX_PATH = REPO_ROOT / "specs" / "microservices" / "manifests-index.json"
-INVENTORY_MANIFEST_PATH = REPO_ROOT / "oya" / "calendar" / "manifest.json"
-OPENAPI_CONTRACT_PATH = REPO_ROOT / "oya" / "calendar" / "contracts" / "openapi" / "calendar.yaml"
-ASYNCAPI_CONTRACT_PATH = REPO_ROOT / "oya" / "calendar" / "contracts" / "asyncapi" / "calendar-events.yaml"
-PROTO_CONTRACT_PATH = REPO_ROOT / "oya" / "calendar" / "contracts" / "proto" / "calendar.proto"
+INVENTORY_MANIFEST_PATH = REPO_ROOT / "app" / "calendar" / "manifest.json"
+OPENAPI_CONTRACT_PATH = REPO_ROOT / "app" / "calendar" / "contracts" / "openapi" / "calendar.yaml"
+ASYNCAPI_CONTRACT_PATH = REPO_ROOT / "app" / "calendar" / "contracts" / "asyncapi" / "calendar-events.yaml"
+PROTO_CONTRACT_PATH = REPO_ROOT / "app" / "calendar" / "contracts" / "proto" / "calendar.proto"
 
 EXPECTED_FIXTURE_IDS = [
     "calendar_prd_authority_source_lock_fixture",
@@ -45,14 +45,14 @@ EXPECTED_FIXTURE_IDS = [
 REQUIRED_TOP_LEVEL_SOURCES = {
     "specs/microservices/calendar.json",
     "specs/microservices/manifests-index.json#microservices[name=calendar]",
-    "oya/calendar/manifest.json",
+    "app/calendar/manifest.json",
 }
 
 INVENTORY_NOT_AUTHORITY_MARKERS = {
-    "oya/calendar/manifest.json",
-    "oya/calendar/contracts/*",
-    "oya/calendar/catalog/*",
-    "oya/calendar/IPs/*",
+    "app/calendar/manifest.json",
+    "app/calendar/contracts/*",
+    "app/calendar/catalog/*",
+    "app/calendar/IPs/*",
     "microservices/calendar/manifest.json",
     "microservices/calendar/contracts/*",
 }
@@ -193,7 +193,7 @@ def validate_manifest_index_source_lock(index: dict[str, Any]) -> None:
     require(len(calendar_rows) == 1, f"manifests-index must contain exactly one calendar row; got {len(calendar_rows)}")
     row = calendar_rows[0]
     reconciled = (
-        row.get("manifest") == "oya/calendar/manifest.json"
+        row.get("manifest") == "app/calendar/manifest.json"
         and row.get("prd") == "specs/microservices/calendar.json"
         and row.get("authority_status") == "source-authority-reconciled-by-t_ff8bab02"
         and "inventory/provenance only" in str(row.get("authority_boundary", "")).lower()
@@ -229,9 +229,9 @@ def validate_manifest(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
     require(isinstance(replay, dict), "contract_replay_expectations must be an object")
     require(set(replay) == REQUIRED_CONTRACT_REPLAY_KEYS, f"contract_replay_expectations keys must be {sorted(REQUIRED_CONTRACT_REPLAY_KEYS)}")
     for key, expected_path in {
-        "openapi": "oya/calendar/contracts/openapi/calendar.yaml",
-        "asyncapi": "oya/calendar/contracts/asyncapi/calendar-events.yaml",
-        "proto": "oya/calendar/contracts/proto/calendar.proto",
+        "openapi": "app/calendar/contracts/openapi/calendar.yaml",
+        "asyncapi": "app/calendar/contracts/asyncapi/calendar-events.yaml",
+        "proto": "app/calendar/contracts/proto/calendar.proto",
     }.items():
         section = replay[key]
         require(isinstance(section, dict), f"contract_replay_expectations.{key} must be an object")
@@ -257,7 +257,7 @@ def validate_manifest(manifest: dict[str, Any]) -> dict[str, dict[str, Any]]:
     require_fixture_sources(by_id["calendar_prd_api_contract_replay_fixture"], ["openapi", "asyncapi", "proto"], "API contract replay fixture")
     require_fixture_terms(by_id["calendar_prd_personal_work_pillar_boundary_fixture"], "must_reject", ["silent_calendar_mining", "third-party calendar as source of truth"], "pillar boundary fixture")
     require_fixture_terms(by_id["calendar_prd_browser_accessibility_evidence_fixture"], "must_assert", ["WCAG 2.2 AA", "keyboard", "KR", "N/A"], "browser/accessibility fixture")
-    require_fixture_terms(by_id["calendar_prd_inventory_provenance_rejection_fixture"], "must_reject", ["oya/calendar/manifest.json", "microservices/calendar/manifest.json", "microservices/calendar/contracts"], "inventory rejection fixture")
+    require_fixture_terms(by_id["calendar_prd_inventory_provenance_rejection_fixture"], "must_reject", ["app/calendar/manifest.json", "microservices/calendar/manifest.json", "microservices/calendar/contracts"], "inventory rejection fixture")
     require_fixture_terms(by_id["calendar_prd_build_parentage_fixture"], "must_assert", ["t_9aca64a9", "t_46ab5900", "allowed path"], "build parentage fixture")
 
     lower_manifest = text(manifest)
@@ -379,10 +379,10 @@ def baseline_manifest() -> dict[str, Any]:
     by_id["calendar_prd_ac04_legal_hold_preservation_fixture"]["must_assert"] = ["event", "attendee history", "action cards", "audit chain"]
     by_id["calendar_prd_ac05_jurisdiction_retention_ux_fixture"]["must_assert"] = ["KR", "EU", "US", "admin UX"]
     by_id["calendar_prd_produced_contracts_fixture"]["must_assert"] = REQUIRED_PRODUCED_CONTRACTS[:]
-    by_id["calendar_prd_api_contract_replay_fixture"]["source_authority_refs"] = ["oya/calendar/contracts/openapi/calendar.yaml", "oya/calendar/contracts/asyncapi/calendar-events.yaml", "oya/calendar/contracts/proto/calendar.proto"]
+    by_id["calendar_prd_api_contract_replay_fixture"]["source_authority_refs"] = ["app/calendar/contracts/openapi/calendar.yaml", "app/calendar/contracts/asyncapi/calendar-events.yaml", "app/calendar/contracts/proto/calendar.proto"]
     by_id["calendar_prd_personal_work_pillar_boundary_fixture"]["must_reject"] = ["silent_calendar_mining", "third-party calendar as source of truth"]
     by_id["calendar_prd_browser_accessibility_evidence_fixture"]["must_assert"] = ["WCAG 2.2 AA", "keyboard", "KR", "N/A"]
-    by_id["calendar_prd_inventory_provenance_rejection_fixture"]["must_reject"] = ["oya/calendar/manifest.json", "microservices/calendar/manifest.json", "microservices/calendar/contracts"]
+    by_id["calendar_prd_inventory_provenance_rejection_fixture"]["must_reject"] = ["app/calendar/manifest.json", "microservices/calendar/manifest.json", "microservices/calendar/contracts"]
     by_id["calendar_prd_build_parentage_fixture"]["must_assert"] = ["t_9aca64a9", "t_46ab5900", "allowed path"]
     return {
         "fixture_plan_id": "CALENDAR-PRD-RED-FIXTURE-CONTRACT-PLAN-001",
@@ -394,9 +394,9 @@ def baseline_manifest() -> dict[str, Any]:
         "required_prd_acceptance_criteria": REQUIRED_AC_IDS[:],
         "required_produced_contracts": REQUIRED_PRODUCED_CONTRACTS[:],
         "contract_replay_expectations": {
-            "openapi": {"source_path": "oya/calendar/contracts/openapi/calendar.yaml", "legacy_manifest_pointer": "microservices/calendar/contracts/openapi/calendar.yaml", "must_assert": ["a", "b", "c", "d"]},
-            "asyncapi": {"source_path": "oya/calendar/contracts/asyncapi/calendar-events.yaml", "legacy_manifest_pointer": "microservices/calendar/contracts/asyncapi/calendar-events.yaml", "must_assert": ["a", "b", "c", "d"]},
-            "proto": {"source_path": "oya/calendar/contracts/proto/calendar.proto", "legacy_manifest_pointer": "microservices/calendar/contracts/proto/calendar.proto", "must_assert": ["a", "b", "c", "d"]},
+            "openapi": {"source_path": "app/calendar/contracts/openapi/calendar.yaml", "legacy_manifest_pointer": "microservices/calendar/contracts/openapi/calendar.yaml", "must_assert": ["a", "b", "c", "d"]},
+            "asyncapi": {"source_path": "app/calendar/contracts/asyncapi/calendar-events.yaml", "legacy_manifest_pointer": "microservices/calendar/contracts/asyncapi/calendar-events.yaml", "must_assert": ["a", "b", "c", "d"]},
+            "proto": {"source_path": "app/calendar/contracts/proto/calendar.proto", "legacy_manifest_pointer": "microservices/calendar/contracts/proto/calendar.proto", "must_assert": ["a", "b", "c", "d"]},
         },
         "future_replay_root": "specs/fixtures/calendar-prd/replay/",
         "global_non_claims": ["green CI alone is insufficient"],
@@ -426,10 +426,10 @@ def run_self_tests(live_manifest: dict[str, Any]) -> None:
     expect_rejected("missing fixture id", lambda data: data["fixtures"].pop())
     expect_rejected("missing AC id", lambda data: data.update({"required_prd_acceptance_criteria": ["AC-01"]}))
     expect_rejected("missing produced contract", lambda data: data.update({"required_produced_contracts": ["calendar.event.v1"]}))
-    expect_rejected("inventory live-authority marker missing", lambda data: data["inventory_context_not_live_authority"].remove("oya/calendar/manifest.json"))
+    expect_rejected("inventory live-authority marker missing", lambda data: data["inventory_context_not_live_authority"].remove("app/calendar/manifest.json"))
     expect_rejected("AC-02 personal detail leak rejection gap", lambda data: data["fixtures"][2].update({"must_reject": ["personal title"]}))
     expect_rejected("AC-03 workflow policy gap", lambda data: data["fixtures"][3].update({"must_reject": ["implicit Workflow inference"]}))
-    expect_rejected("API replay sources missing", lambda data: data["fixtures"][7].update({"source_authority_refs": ["oya/calendar/contracts/openapi/calendar.yaml"]}))
+    expect_rejected("API replay sources missing", lambda data: data["fixtures"][7].update({"source_authority_refs": ["app/calendar/contracts/openapi/calendar.yaml"]}))
     expect_rejected("generated future replay artifact", lambda data: data["fixtures"][0].update({"future_replay_artifacts": ["specs/fixtures/calendar-prd/replay/bad.generated.json"]}))
     expect_rejected("fabricated green status", lambda data: data["fixtures"][0].update({"expected_red_status": "GREEN"}))
     print("calendar PRD RED fixture contract self-tests passed")

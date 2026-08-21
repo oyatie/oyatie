@@ -1,7 +1,7 @@
 {
   "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
-  "count": 947,
+  "count": 946,
   "cloud_prefixed_names": [
     "dir:.github/workflows/oya-ci-required.yml",
     "dir:billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md",
@@ -818,7 +818,6 @@
     "name:oya/application/iac/helm/cdn-controller/Chart.yaml:oya-application-cdn-controller",
     "name:oya/application/iac/helm/postgres/Chart.yaml:oya-application-postgres",
     "name:oya/application/iac/helm/shell-app/Chart.yaml:oya-application-shell-app",
-    "name:oya/calendar/iac/helm/Chart.yaml:oya-calendar",
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/Cargo.toml:oya-ci-webhook-gateway-app",
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/Cargo.toml:oya_ci_webhook_gateway_app",
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter/Cargo.toml:oya-ci-webhook-gateway-authz-cedar-adapter",

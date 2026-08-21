@@ -1,27 +1,27 @@
 {
   "$schema": "https://docs.oyatie.com/schemas/calendar-prd-build-replay-fixture.schema.json",
   "assertions_passed": [
-    "oya/calendar/manifest.json is inventory/provenance only",
+    "app/calendar/manifest.json is inventory/provenance only",
     "microservices/calendar/manifest.json is absent and must not be restored",
     "declared legacy contract pointers require source mapping before readiness claims"
   ],
   "build_kanban_task": "t_7b437a23",
   "claim_boundary": "contract/fixture skeleton only; no handler, storage, deployment, live SLO, UI readiness, or availability-to-users claim",
   "contract_source_refs": [
-    "oya/calendar/contracts/openapi/calendar.yaml",
-    "oya/calendar/contracts/asyncapi/calendar-events.yaml",
-    "oya/calendar/contracts/proto/calendar.proto"
+    "app/calendar/contracts/openapi/calendar.yaml",
+    "app/calendar/contracts/asyncapi/calendar-events.yaml",
+    "app/calendar/contracts/proto/calendar.proto"
   ],
   "fixture_id": "calendar_prd_inventory_provenance_rejection_fixture",
   "negative_assertions_rejected": [
-    "oya/calendar/manifest.json as runtime readiness",
-    "oya/calendar/catalog as product readiness",
+    "app/calendar/manifest.json as runtime readiness",
+    "app/calendar/catalog as product readiness",
     "microservices/calendar/manifest.json as canonical",
     "microservices/calendar/contracts as canonical source"
   ],
   "red_fixture_task": "t_46ab5900",
   "source_authority_refs": [
-    "oya/calendar/manifest.json",
+    "app/calendar/manifest.json",
     "specs/microservices/manifests-index.json#microservices[name=calendar]",
     "kanban:t_9aca64a9"
   ],

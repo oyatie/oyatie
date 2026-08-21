@@ -46,7 +46,6 @@
     "gateway/policy/route-authorization.cedar::bot_score": 2,
     "governance/policy/ci-scope.cedar::source_ip": 2,
     "marketplace/plugin-app-store/policy/tenant-scope.cedar::rate_limit": 1,
-    "oya/calendar/policy/public-read.cedar::rate_limit": 1,
     "oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar::source_ip": 1,
     "oya/community/policy/anonymity-mode-fully-anonymous.cedar::ddos": 1,
     "oya/community/policy/anonymity-mode-fully-anonymous.cedar::rate_limit": 8,
