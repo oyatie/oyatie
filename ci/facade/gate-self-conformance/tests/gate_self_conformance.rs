@@ -159,7 +159,7 @@ fn freshness_shellout_exception_has_cutover_note() {
 
 /// `<test file>::<fn>` -> why the early return is a real tolerance rather than a silent skip.
 /// Every row was read and classified; none of them lets an ABSENT input read as success.
-const ADMITTED_EARLY_RETURN_TESTS: [(&str, &str); 7] = [
+const ADMITTED_EARLY_RETURN_TESTS: [(&str, &str); 6] = [
     (
         "ci/facade/automation-language-policy/tests/rust_first_automation_hygiene.rs::replacement_window_adr_must_exist_and_be_accepted",
         "Optional POLICY block, not a filesystem input: with no active replacement_window there \
@@ -187,12 +187,6 @@ const ADMITTED_EARLY_RETURN_TESTS: [(&str, &str); 7] = [
     (
         "ci/facade/inventory-registry-drift/tests/registry_drift.rs::move_manifest_regenerates_deterministically",
         "Same git-boundary gate as the scm-facts canary above, for the codemod move-manifest face.",
-    ),
-    (
-        "ci/facade/repo-root-hygiene/tests/root_workspace_hygiene.rs::corpus_budget_reductions_must_lower_the_frozen_ceiling",
-        "Merge-base availability, not corpus absence: with no origin/dev ref (shallow clone), or \
-         no protected corpus_budget block yet, there is nothing to compare against. The live-tree \
-         ceiling check runs through evaluate_keyed either way.",
     ),
     (
         "ci/facade/scm-facts-snapshot/tests/snapshot_integration.rs::status_only_command_probe_helper",
