@@ -3,7 +3,7 @@
   "gate_id": "cloud-ci-corpus-index-coverage",
   "schema_version": "1.0.0",
   "baseline_uncovered_packages": 17,
-  "baseline_unpackaged_yaml_files": 35,
+  "baseline_unpackaged_yaml_files": 33,
   "min_expected_yaml_packages": 20,
   "min_expected_yaml_files": 2450,
   "oya_corpus": {
@@ -16,9 +16,9 @@
     "last_measurement_note": "2026-08-19: deleting 51 unreferenced oya/ product crates and their 31 registry/catalog rows removed 2,177 YAML files from the walk's census (5682 -> 3505) and 48 from the unpackaged set (83 -> 35). min_expected_yaml_files moves 4000 -> 2450 to hold the same ~70% floor-to-census ratio the 4000/5682 freeze established; it is an anti-vacuity floor on the WALK, not a target for the corpus. oya_corpus.expected_yaml_files 2407 -> 1062.",
     "yaml_packages_total": 62,
     "yaml_packages_indexed": 44,
-    "yaml_files_total": 3505,
+    "yaml_files_total": 3503,
     "yaml_files_indexed": 3470,
-    "yaml_files_unpackaged": 35,
+    "yaml_files_unpackaged": 33,
     "package_coverage_bps": 7097,
     "file_coverage_bps": 9900
   },
