@@ -11,12 +11,20 @@ inbound_citations:
 
 # Runbook — stale policy snapshot in a cell
 
+> **Status: not yet operable.** This capability has no crate, no running PDP and no metric emitter —
+> `PROMOTION.md` §2 records why. The identifiers below (`policy_snapshot_age_seconds`,
+> `served_version`, `RouteToAuthoritative`) name the contract in `policy/CONTRACT.md`, not anything
+> that emits today. This is the procedure the design commits to, written before the code so it can be
+> reviewed against the design; it is not a description of a system in production.
+
 **Alert:** `policy_snapshot_age_seconds` above its objective for a cell/tenant, or a rise in
 `RouteToAuthoritative` verdicts.
 
-**What is NOT happening:** requests are not being authorized from stale state. The invariant
-(ADR-0280 §D-13.E) makes staleness deny-or-route, never silently authorize. A stale snapshot is an
-*availability* incident, not a *security* one. Treat it as such — do not reach for a bypass.
+**What the design guarantees:** requests are not authorized from stale state. ADR-0280 §D-13.D makes
+staleness deny-or-route, never silently authorize, and `policy/policy/static-stability.cedar` encodes
+the deny half. So a stale snapshot is designed to be an *availability* incident, not a *security*
+one — provided the implementation holds the seven invariants in `CONTRACT.md`. Until that
+implementation exists and is tested, treat this as the intended shape, not an assurance.
 
 ## Triage order
 

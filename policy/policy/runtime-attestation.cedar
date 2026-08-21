@@ -10,6 +10,7 @@
 
 // F13 — a PEP evaluates only its OWN cell's snapshot. Cell-distribution is not a real property
 // until something refuses the cross-cell case.
+@id("F13")
 forbid (
   principal,
   action == OyaPolicy::Action::"EvaluateAgainstSnapshot",
@@ -19,6 +20,7 @@ unless { principal in resource.cell };
 
 // F14 — the runtime and distribution paths require a well-formed attested workload identity.
 // v1.0.0 tested `spiffe_id != ""`, which a single space satisfied.
+@id("F14")
 forbid (
   principal,
   action in [

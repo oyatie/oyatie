@@ -16,7 +16,7 @@ Both were paid for by an adversarial review that broke the first version of thes
 
 ## 1. No fragment opens with a bare `forbid`
 
-Six of this repository's capabilities open Cedar fragments with
+Cedar fragments across this repository open with
 
 ```cedar
 forbid (principal, action, resource);
@@ -26,9 +26,13 @@ The intent is "default deny". Cedar is **already** default-deny — an absent pe
 line adds no denial. What it does add is a rule that, because **forbid unconditionally overrides
 permit**, denies *everything* in whatever `PolicySet` it ends up in.
 
-Harmless while each fragment is its own policy store. Not harmless the moment a loader concatenates
-a capability's fragments into one bundle — which is exactly what this capability's C0 face does when
-it distributes a snapshot. Measured against `cedar-policy` 4.12:
+An earlier draft of this page said that was "harmless while each fragment is evaluated as its own
+policy store". **That was wrong, and an audit caught it.** A bare forbid nullifies the permits in its
+OWN file, not merely in a bundle — and **176 of the 176 affected files also contain `permit`
+statements**, so every one of them, loaded standalone, grants nothing at all. Concatenation is not
+the precondition for the hazard; it only widens the blast radius from one file to a whole bundle.
+
+Measured against `cedar-policy` 4.12:
 
 ```
 permit alone                   -> Allow
@@ -41,15 +45,46 @@ against the concatenated bundle rather than the fragments.
 
 ### The same shape elsewhere in the tree
 
-64 of 448 tracked `.cedar` fragments carry a bare `forbid (principal, action, resource);`:
-`audit/policy/` (35), `oya/global-trade/policy/` (10), `gateway/connector/policy/` (6),
-`marketplace/**/policy/` (6), `oya/slides/policy/` (4), `iam/identity/policy/` (2), `flags/` (1).
+Measured at `origin/dev@7f8a5a075` over the 448 tracked files matching `*/policy/*.cedar` and
+`*/cedar/*.cedar`, with comments stripped:
 
-**This is a latent hazard, not a live defect.** No loader concatenates those fragments today, and
-each capability's hand-authored `<cap>/cedar/policies.cedar` is a separate document without the bare
-forbid — `audit/cedar/policies.cedar` holds 9 policies and zero. The hazard is realised by the first
-bundle-distribution path that concatenates. Fixing those files is outside this capability's envelope
-(`policy/**`, ADR-0711 D-9) and is not attempted here; it is recorded in `policy/PROMOTION.md` §5.
+| form matched | files |
+|---|---|
+| bare forbid written on ONE line | **63** |
+| bare forbid in ANY form, including the multi-line shape | **176** |
+| of those 176, files that ALSO contain a `permit` | **176** |
+
+The multi-line shape is the dominant one in this repo:
+
+```cedar
+forbid (
+  principal,
+  action,
+  resource
+);
+```
+
+so a single-line grep understates the finding by ~2.8x. **A first pass of this page reported "64 of
+448" across "six capabilities" and listed `flags/` as an owner. All three were wrong**: the count was
+line-anchored, `flags/` has zero, and the true spread is **19 capability roots** — `audit` 39,
+`oya/intelligence` 30, `comms` 15, `workflow` 12, `oya/global-trade` 10, `console` 9,
+`oya/community` 8, `gateway` 6, `marketplace` 6, `oya/payments` 6, `storage` 5, and 4 or fewer each
+in `data`, `observability`, `oya/application`, `oya/notes`, `oya/sheets`, `oya/slides`,
+`oya/translate`, `iam`.
+
+**This is a latent hazard, not a live defect — but not for the reason first given.** It is latent
+because *nothing loads these files*: no Rust `include_str!` of a `.cedar` targets one of the 176, and
+no code enumerates a capability's `policy/` directory into a `PolicySet`. That is a weaker and more
+fragile guarantee than "each file is fine standalone", which is false. All 68 hand-authored
+`<cap>/cedar/policies.cedar` bundles are clean — zero bare forbids — so the consolidated path is not
+affected today.
+
+Not checked: non-Rust loaders (a Buck rule, a container build step, a ConfigMap assembly). If one
+exists, the hazard is live rather than latent for whatever it loads.
+
+Fixing those files is outside this capability's envelope (`policy/**`; ADR-0711 §D-2 for the
+fail-closed adjunct rule, §D-9 for ownership = path = integ scope) and is not attempted here. It is
+recorded in `policy/PROMOTION.md` §5.
 
 ## 2. Every safety bound appears twice — and the forbid is `has`-guarded
 

@@ -9,6 +9,7 @@
 // forbid enforces. The repetition is not redundancy — see policy/cedar/README.md.
 
 // P2 — a tenant-policy-admin authors and publishes tenant-scoped policy in their own tenant.
+@id("P2")
 permit (
   principal,
   action in [
@@ -25,6 +26,7 @@ when {
 };
 
 // P2a — activation, carrying the soak bound F7 enforces.
+@id("P2a")
 permit (
   principal,
   action == OyaPolicy::Action::"ActivatePolicy",
@@ -40,6 +42,7 @@ when {
 };
 
 // P3 — a platform-policy-engineer at step-up C authors and publishes at any scope.
+@id("P3")
 permit (
   principal,
   action in [
@@ -56,6 +59,7 @@ when {
 };
 
 // P3a — the same, for activation, carrying the soak bound.
+@id("P3a")
 permit (
   principal,
   action == OyaPolicy::Action::"ActivatePolicy",
@@ -72,6 +76,7 @@ when {
 
 // P4 — a dedicated signer signs. F5 stops it signing its own authorship; F8 stops it signing
 // global scope without step-up C.
+@id("P4")
 permit (
   principal,
   action == OyaPolicy::Action::"SignPolicy",
@@ -84,6 +89,7 @@ when {
 };
 
 // P5 — a tenant-policy-admin writes ReBAC tuples in their own tenant, at step-up B or better.
+@id("P5")
 permit (
   principal,
   action == OyaPolicy::Action::"WriteRebacTuple",

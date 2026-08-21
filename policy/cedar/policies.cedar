@@ -1,10 +1,13 @@
 // Consolidated Cedar bundle — policy capability control surface
-// Binding ADRs: ADR-0615 §5, ADR-0280 §D-13.D/§D-13.E, ADR-0243, ADR-0294.
+// Binding ADRs: see each fragment header; live apexes ADR-0701 / ADR-0702 (archived provenance
+// ADR-0615 §5, ADR-0280 §D-13.D/E, ADR-0243, ADR-0294).
 // Cedar 4.12 (workspace lock). Bundle version 2.0.0.
 //
-// EXACT concatenation of policy/policy/*.cedar in lexical order. The fragment set is closed under
-// consolidation, so the C0 face can assemble a distributable bundle by concatenation without
-// changing any decision. Preserved only while no fragment carries a bare
+// This file is the concatenation of policy/policy/*.cedar in lexical order, PLUS this header and a
+// one-line separator naming each fragment. It is NOT byte-identical to `cat policy/policy/*.cedar`
+// — those comment lines are the difference. What IS asserted, and tested, is that it decides
+// identically: the whole conformance suite runs against THIS file. Comment-stripped, the two are
+// byte-identical. Fragments stay closed under concatenation only while none carries a bare
 // `forbid (principal, action, resource);` — see policy/cedar/README.md.
 
 // ─── policy/policy/auditor-scope.cedar ───
@@ -23,6 +26,7 @@
 // case, so the special case is gone rather than duplicated.
 
 // P1 — an auditor reads the decision log of their own tenant on a fresh token.
+@id("P1")
 permit (
   principal,
   action == OyaPolicy::Action::"ReadDecisionLog",
@@ -46,6 +50,7 @@ when {
 // forbid enforces. The repetition is not redundancy — see policy/cedar/README.md.
 
 // P2 — a tenant-policy-admin authors and publishes tenant-scoped policy in their own tenant.
+@id("P2")
 permit (
   principal,
   action in [
@@ -62,6 +67,7 @@ when {
 };
 
 // P2a — activation, carrying the soak bound F7 enforces.
+@id("P2a")
 permit (
   principal,
   action == OyaPolicy::Action::"ActivatePolicy",
@@ -77,6 +83,7 @@ when {
 };
 
 // P3 — a platform-policy-engineer at step-up C authors and publishes at any scope.
+@id("P3")
 permit (
   principal,
   action in [
@@ -93,6 +100,7 @@ when {
 };
 
 // P3a — the same, for activation, carrying the soak bound.
+@id("P3a")
 permit (
   principal,
   action == OyaPolicy::Action::"ActivatePolicy",
@@ -109,6 +117,7 @@ when {
 
 // P4 — a dedicated signer signs. F5 stops it signing its own authorship; F8 stops it signing
 // global scope without step-up C.
+@id("P4")
 permit (
   principal,
   action == OyaPolicy::Action::"SignPolicy",
@@ -121,6 +130,7 @@ when {
 };
 
 // P5 — a tenant-policy-admin writes ReBAC tuples in their own tenant, at step-up B or better.
+@id("P5")
 permit (
   principal,
   action == OyaPolicy::Action::"WriteRebacTuple",
@@ -149,6 +159,7 @@ when {
 // Entity equality, not a string compare. v1.0.0 compared `resource.author_principal_id ==
 // principal.principal_id`, which a second registered identifier for the same actor defeated: one
 // human with two id strings satisfied two-party control.
+@id("F5")
 forbid (
   principal,
   action == OyaPolicy::Action::"SignPolicy",
@@ -156,18 +167,27 @@ forbid (
 )
 when { resource.author == principal };
 
-// F5b — nor may a second Principal sharing the author's workload identity sign it. Entity equality
+// F5b — nor may a DIFFERENT Principal sharing the author's workload identity sign it.
+// Scoped with `resource.author != principal` so it is disjoint from F5: F5 owns the same-entity
+// case, F5b the distinct-entity-same-identity case. Before this scoping F5b subsumed F5 entirely
+// (a principal always shares its own spiffe_id), which made F5 untestable — no mutation could
+// reach it. Two rules that cannot be told apart by any test are one rule with a spare. Entity equality
 // alone does not stop one actor registering two Principal entities; the review demonstrated exactly
 // that, using two principals with the SAME spiffe_id. Two-party control has to be two parties, so
 // the attested identity must differ too.
+@id("F5b")
 forbid (
   principal,
   action == OyaPolicy::Action::"SignPolicy",
   resource
 )
-when { resource.author.spiffe_id == principal.spiffe_id };
+when {
+  resource.author != principal &&
+  resource.author.spiffe_id == principal.spiffe_id
+};
 
 // F6 — nothing unsigned is ever published or activated.
+@id("F6")
 forbid (
   principal,
   action in [
@@ -179,6 +199,7 @@ forbid (
 unless { resource.signed };
 
 // F7 — the ADR-0294 soak window is mandatory. No break-glass: the soak is what makes rollback cheap.
+@id("F7")
 forbid (
   principal,
   action == OyaPolicy::Action::"ActivatePolicy",
@@ -193,6 +214,7 @@ unless {
 // `SignPolicy` is in this list. v1.0.0 omitted it, so a signer with no step-up could sign a
 // global-scope policy — and the signature is exactly what F6 turns into the publish/activate
 // precondition, i.e. the ungated step was the one that confers trust.
+@id("F8")
 forbid (
   principal,
   action in [
@@ -211,6 +233,7 @@ unless {
 
 // F11 — scope is a closed set. An unrecognised value (including a case variant such as "GLOBAL")
 // is refused positively rather than relying on no permit happening to match it.
+@id("F11")
 forbid (
   principal,
   action in [
@@ -227,6 +250,7 @@ unless { resource.scope == "tenant" || resource.scope == "global" };
 // hang change control on, so they carry a step-up requirement instead. v1.0.0 omitted
 // `WriteRebacTuple` from every control above, leaving the path that grants relations directly as
 // the least-governed surface in the capability.
+@id("F12")
 forbid (
   principal,
   action == OyaPolicy::Action::"WriteRebacTuple",
@@ -257,6 +281,7 @@ unless {
 // and dropping a FORBID leaves the permit standing — the guard deletes itself exactly when it is
 // needed. That was finding S1 of the v1.0.0 review, and `has` is the structural fix; mirroring the
 // bound into every permit is only the second line.
+@id("F10")
 forbid (
   principal,
   action,
@@ -285,6 +310,7 @@ unless {
 //
 // Note it is `unless`, not `when`: a request whose principal is in NO tenant is forbidden, rather
 // than slipping through a `!=` that never becomes true.
+@id("F1")
 forbid (
   principal,
   action,
@@ -305,6 +331,7 @@ unless { principal in resource.owner_tenant };
 
 // F13 — a PEP evaluates only its OWN cell's snapshot. Cell-distribution is not a real property
 // until something refuses the cross-cell case.
+@id("F13")
 forbid (
   principal,
   action == OyaPolicy::Action::"EvaluateAgainstSnapshot",
@@ -314,6 +341,7 @@ unless { principal in resource.cell };
 
 // F14 — the runtime and distribution paths require a well-formed attested workload identity.
 // v1.0.0 tested `spiffe_id != ""`, which a single space satisfied.
+@id("F14")
 forbid (
   principal,
   action in [
@@ -342,6 +370,7 @@ unless { principal.spiffe_id like "spiffe://oyatie/*" };
 // `principal in resource.cell` is the cell binding. v1.0.0 declared `cell_id` on both Tenant and
 // Snapshot and then never referenced it in any policy, so the cell-distributed model (ADR-0280
 // §D-13.D) had no enforcement at all — a PEP in cell c1 could evaluate cell c99's snapshot.
+@id("P6")
 permit (
   principal,
   action == OyaPolicy::Action::"EvaluateAgainstSnapshot",
@@ -360,6 +389,7 @@ when {
 
 // P7 — an attested PEP workload reads ReBAC tuples for its own tenant, from a verified and
 // sufficiently fresh snapshot.
+@id("P7")
 permit (
   principal,
   action == OyaPolicy::Action::"ReadRebacTuple",
@@ -378,6 +408,7 @@ when {
 //
 // Attestation is required here too. v1.0.0 demanded a SPIFFE id for the local read paths but not
 // for distribution, which has the higher blast radius — the asymmetry was backwards.
+@id("P8")
 permit (
   principal,
   action == OyaPolicy::Action::"DistributeSnapshot",
@@ -415,6 +446,7 @@ when {
 // This reads the snapshot through `resource.served_from`. v1.0.0 asked the CALLER for
 // `context.snapshot_age_seconds`, i.e. it asked the party being constrained to report the fact that
 // constrains it — a request could always claim age 0.
+@id("F2")
 forbid (
   principal,
   action == OyaPolicy::Action::"ReadRebacTuple",
@@ -426,6 +458,7 @@ when {
 
 // F3 — evaluating a snapshot older than the caller's declared tolerance is refused. The caller may
 // only tighten below the ceiling, never loosen past it; F3b is what makes that true.
+@id("F3")
 forbid (
   principal,
   action == OyaPolicy::Action::"EvaluateAgainstSnapshot",
@@ -439,6 +472,7 @@ unless {
 // F3b — the absolute ceiling, independent of anything the caller asserts. Also covers distribution:
 // v1.0.0 gated distribution on signature only, so an ancient non-authoritative snapshot propagated
 // fleet-wide.
+@id("F3b")
 forbid (
   principal,
   action in [
@@ -451,6 +485,7 @@ when { resource.age_seconds > 300 && !resource.is_authoritative };
 
 // F4 — an unverified snapshot never serves and never propagates. Verification precedes use,
 // mirroring the load order in iam/adapters/cloud-pdp-bundle-file: verify, THEN parse.
+@id("F4")
 forbid (
   principal,
   action in [
@@ -462,6 +497,7 @@ forbid (
 unless { resource.signature_verified };
 
 // F4b — the same rule on the tuple read path, which reaches its snapshot indirectly.
+@id("F4b")
 forbid (
   principal,
   action == OyaPolicy::Action::"ReadRebacTuple",
