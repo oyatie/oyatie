@@ -8,6 +8,7 @@
 use port_engine_api::Declaration;
 use port_engine_rust_ir::{RustExpr, RustType};
 
+use crate::error::TransformError;
 use crate::resolve::Resolver;
 use crate::vocabulary::{ATTR_VALUE, SOURCE_STRING};
 
@@ -215,4 +216,63 @@ pub(crate) fn readable_literal(value: &str, resolver: &Resolver<'_>) -> Option<S
         .map(|chunk| String::from_utf8_lossy(chunk).into_owned())
         .collect();
     Some(grouped.join(&rule.separator))
+}
+
+/// A constant declared at a FOREIGN type, CONSTRUCTED at it rather than assigned to it.
+///
+/// The same law as a constant at a locally defined type, at a type the source did not define: the
+/// source writes an integer and lets the declaration's type name what it means, and the target's
+/// type is a distinct one that no integer inhabits. What differs is that the construction is not a
+/// tuple call the engine can spell from the type alone — only the pack knows how the target names
+/// the value — so a mapping without one refuses instead of guessing.
+///
+/// `None` where the type is not foreign or the value is not an integer. The refusal is by NAME and
+/// carries the pack's own reason, because the reader's next move is to decide whether the type
+/// should be mapped at all.
+///
+/// # Errors
+/// [`TransformError::UndecidedForm`] where the target type has no constant form for an integer, or
+/// where the integer is negative and the target's domain is not.
+pub(crate) fn foreign_constant(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Option<Result<String, TransformError>> {
+    let type_ref = &declaration.type_ref;
+    let mapped = resolver
+        .foreign_types
+        .get(&format!("{}.{}", type_ref.package, type_ref.name))?;
+    let value = declaration.attr(ATTR_VALUE)?;
+    let digits = value.strip_prefix('-').unwrap_or(value).replace('_', "");
+    if digits.is_empty() || !digits.bytes().all(|byte| byte.is_ascii_digit()) {
+        return None;
+    }
+    if mapped.from_integer.is_empty() {
+        return Some(Err(TransformError::UndecidedForm {
+            form: format!("{}.{}", type_ref.package, type_ref.name),
+            name: declaration.name.clone(),
+            reason: format!(
+                "the target type has no constant form for an integer at the source's representation. {}",
+                mapped.reason
+            ),
+        }));
+    }
+    // NEGATIVE IS NOT A SMALL NUMBER. Where the source's representation is signed and the target's
+    // is not, `-1` has no target value at all -- and the failure it would otherwise become is the
+    // silent one: an unsigned construction of the same bits is a value eighteen quintillion times
+    // larger, which typechecks, runs, and means something else.
+    if mapped.nonnegative && value.starts_with('-') {
+        return Some(Err(TransformError::UndecidedForm {
+            form: format!("{}.{}", type_ref.package, type_ref.name),
+            name: declaration.name.clone(),
+            reason: format!(
+                "the source's value `{value}` is negative and the target type has no negative value. {}",
+                mapped.reason
+            ),
+        }));
+    }
+    // GROUPED, by the same rule every other constant's digits go through. A nanosecond count is
+    // long by construction -- `10 * time.Millisecond` folds to eight digits -- and eight ungrouped
+    // digits is the magic number a reviewer counts on their fingers to check.
+    let spelled = readable_literal(value, resolver).unwrap_or_else(|| value.to_owned());
+    Some(Ok(mapped.from_integer.replace("{0}", &spelled)))
 }

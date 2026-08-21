@@ -19,7 +19,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Declaration, DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, TypeRef, UnitId};
+use port_engine_api::{Declaration, DeriveRule, DocConvention, FailureConvention, ForeignType, FunctionMapping, IdiomRule, IntegerArithmetic, TypeRef, UnitId};
 use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
@@ -62,6 +62,8 @@ pub(crate) struct Resolver<'a> {
     pub(crate) value_map: &'a BTreeMap<String, FunctionMapping>,
     /// How the source's channel, send, receive and  are spelled. Empty means undecided.
     pub(crate) channel: &'a port_engine_api::ChannelForms,
+    /// Foreign type identity to the target type that is it.
+    pub(crate) foreign_types: &'a BTreeMap<String, ForeignType>,
     /// How the pack answers for a call that FORMATS a template.
     pub(crate) format_calls: &'a port_engine_api::FormatCalls,
     /// Calls the pack refuses to map, and why each one cannot be mapped faithfully.

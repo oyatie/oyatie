@@ -3,7 +3,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{
+use port_engine_api::{ForeignType, 
     Declaration, DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
 };
 use port_engine_rust_ir::RustIr;
@@ -63,6 +63,7 @@ pub struct Pack {
     pub functions: BTreeMap<String, FunctionMapping>,
     pub values: BTreeMap<String, FunctionMapping>,
     pub channel: port_engine_api::ChannelForms,
+    pub foreign: BTreeMap<String, ForeignType>,
     /// Empty by default: these tests are not about overflow, and an empty table leaves the plain
     /// operator, which is what they assert on.
     pub arithmetic: IntegerArithmetic,
@@ -401,6 +402,12 @@ impl PackSemantics for Pack {
     /// be answering a question they do not ask.
     fn channel_forms(&self) -> &port_engine_api::ChannelForms {
         &self.channel
+    }
+
+    /// EMPTY: these fixtures name no foreign package, so a pack that answered for one would be
+    /// answering a question they do not ask.
+    fn foreign_types(&self) -> &BTreeMap<String, ForeignType> {
+        &self.foreign
     }
     fn failure_convention(&self) -> Option<&FailureConvention> {
         self.failure.as_ref()

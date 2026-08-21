@@ -185,3 +185,31 @@ pub struct FormatCalls {
     /// Why a literal brace in the template has to be doubled.
     pub brace_reason: String, // data_class: INTERNAL_ONLY
 }
+
+/// A type the source names but does not define, and the target form it becomes.
+///
+/// Distinct from a mapped CALL: this is a type that is CARRIED — stored in a field, passed to a
+/// parameter, named by a constant — and the reason to map it rather than to spell out the source's
+/// underlying representation is that the target's own libraries are written in terms of it.
+///
+/// A mapped type does NOT make its literals map. The source reaches such a type by writing an
+/// integer at it, and the target has no such spelling; `from_integer` is how the target names the
+/// same value, and a mapping without one refuses every constant at that type rather than emitting
+/// an integer where the type is expected.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ForeignType {
+    /// The target's spelling of the type.
+    pub form: String, // data_class: INTERNAL_ONLY
+    /// How an integer at the source's underlying representation is CONSTRUCTED at the target type,
+    /// with `{0}` for the integer. Empty where the target has no constant form for one.
+    pub from_integer: String, // data_class: INTERNAL_ONLY
+    /// Whether the target type's domain excludes the negative values the source's admits.
+    ///
+    /// The source's representation is signed for several of these and the target's is not. Set here
+    /// rather than inferred, because it is a fact about the TARGET type and nothing in the source
+    /// records it — and a negative constant that silently became a huge positive one is the exact
+    /// class of failure this engine exists to prevent.
+    pub nonnegative: bool, // data_class: INTERNAL_ONLY
+    /// Why the source's type becomes this one, and what the mapping costs.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}

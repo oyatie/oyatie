@@ -78,19 +78,50 @@ fn opens_with_a_pronoun(sentence: &str) -> bool {
 fn sentences(block: &str) -> Vec<&str> {
     let mut out = Vec::new();
     let mut start = 0;
+    let mut open = 0usize;
     let bytes = block.as_bytes();
-    for (at, byte) in bytes.iter().enumerate() {
-        let ends = *byte == b'.'
-            && bytes
-                .get(at + 1)
-                .is_none_or(|next| next.is_ascii_whitespace());
-        if ends {
-            let sentence = block[start..=at].trim();
-            if !sentence.is_empty() {
-                out.push(sentence);
-            }
-            start = at + 1;
+    let mut at = 0;
+    while at < bytes.len() {
+        match bytes[at] {
+            b'(' => open += 1,
+            b')' => open = open.saturating_sub(1),
+            _ => {}
         }
+        if bytes[at] == b'.' {
+            // THE TERMINATOR INCLUDES THE BRACKETS THAT CLOSE OVER IT. `(e.g. 5 minutes.)` ends at
+            // the bracket, not at the period, and a splitter that stops at the period splits inside
+            // the parenthesis -- which matters because the DROP above then keeps `5 minutes.)`, a
+            // fragment closing a bracket that was never opened. That exact string reached the
+            // output. Deciding it on the brackets rather than on a list of abbreviations makes it a
+            // fact about the text rather than a fact about English.
+            //
+            // THE COST: a parenthetical genuinely holding two sentences is now one unit, so a drop
+            // takes both. That is the safe direction -- less prose, never orphaned prose.
+            let mut after = at + 1;
+            let mut depth = open;
+            while let Some(byte) = bytes.get(after) {
+                match byte {
+                    b')' | b']' | b'"' | b'\'' => {
+                        if *byte == b')' || *byte == b']' {
+                            depth = depth.saturating_sub(1);
+                        }
+                        after += 1;
+                    }
+                    _ => break,
+                }
+            }
+            if depth == 0 && bytes.get(after).is_none_or(|next| next.is_ascii_whitespace()) {
+                let sentence = block[start..after].trim();
+                if !sentence.is_empty() {
+                    out.push(sentence);
+                }
+                start = after;
+                open = 0;
+                at = after;
+                continue;
+            }
+        }
+        at += 1;
     }
     let tail = block[start..].trim();
     if !tail.is_empty() {
@@ -176,4 +207,34 @@ fn qualified(word: &str) -> Option<(&str, &str)> {
 /// Rewrite source TYPE names inside text the emitted program itself carries.
 pub(crate) fn rename_types_in_text(text: &str, types: &BTreeMap<String, String>) -> String {
     crate::docs::rename_types_in_text(text, types)
+}
+
+#[cfg(test)]
+mod sentence_tests {
+    use super::sentences;
+
+    #[test]
+    fn a_period_inside_a_parenthesis_does_not_end_a_sentence() {
+        assert_eq!(
+            sentences("Equivalent to what New() gave (e.g. 5 minutes.) Use it."),
+            vec!["Equivalent to what New() gave (e.g. 5 minutes.)", "Use it."]
+        );
+    }
+
+    #[test]
+    fn ordinary_sentences_still_split() {
+        assert_eq!(
+            sentences("One thing. Another thing."),
+            vec!["One thing.", "Another thing."]
+        );
+    }
+
+    /// The NEAR MISS: an unbalanced closing bracket must not swallow the rest of the block.
+    #[test]
+    fn a_stray_closing_bracket_does_not_disable_splitting() {
+        assert_eq!(
+            sentences("A note) about it. And more."),
+            vec!["A note) about it.", "And more."]
+        );
+    }
 }

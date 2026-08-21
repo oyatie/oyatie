@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::value_rules::{ChannelForms, Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
+use crate::value_rules::{ForeignType, ChannelForms, Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
 use crate::failure::{
     DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };
@@ -146,6 +146,12 @@ pub trait PackSemantics {
     /// refusal it replaces is a different one. A real package reads its standard library's
     /// constants as surely as it calls its functions, and the constants do not come along either.
     fn value_map(&self) -> &BTreeMap<String, FunctionMapping>;
+    /// Source TYPE identity from a package that does not come along, to the target type that IS it.
+    ///
+    /// Separate from `type_map`, which answers for the source's own type vocabulary. This one
+    /// answers for a library's, and every entry is a claim that the two types mean the same thing —
+    /// which is why each carries the reason it is true and what it costs where it is not.
+    fn foreign_types(&self) -> &BTreeMap<String, ForeignType>;
     /// How the pack answers for a call that FORMATS a template.
     ///
     /// Its own seam rather than a corner of the function map, because the mechanism differs: this

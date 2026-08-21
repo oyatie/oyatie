@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use port_engine_api::{ChannelForms, 
     Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, DeriveRule, DocConvention, FailureConvention, ReadableLiterals,
-    FormatCalls, FormatFunction, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
+    ForeignType, FormatCalls, FormatFunction, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
     PointerConstruction, PointerDisposition, RuleId, SequenceAppend, UnitId,
 };
 use port_engine_hash::digest_bytes;
@@ -255,6 +255,21 @@ impl LoadedRulePack {
                         FunctionMapping {
                             form: rule.form,
                             requires_argument: rule.requires_argument,
+                            reason: rule.reason,
+                        },
+                    )
+                })
+                .collect(),
+            foreign_types: doc
+                .foreign_types
+                .into_iter()
+                .map(|(identity, rule)| {
+                    (
+                        identity,
+                        ForeignType {
+                            form: rule.form,
+                            from_integer: rule.from_integer,
+                            nonnegative: rule.nonnegative,
                             reason: rule.reason,
                         },
                     )

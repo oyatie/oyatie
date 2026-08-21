@@ -7978,3 +7978,55 @@ A send arm, and a bare receive arm: neither is answered yet and both say so.
 
 `prettyplease` does not format inside a macro, so a select arm with more than one statement wraps
 awkwardly. The code is correct and the shape is not the engine's to fix from here.
+
+## R5n — the type mapped and the constant did not
+
+`time.Duration` was the top refusal cause for gocache (5 declarations) and the third for memberlist
+(4) — the two Phase 3 repositories. It is now pack data: `foreign_types` maps it to
+`std::time::Duration`, which is the type `tokio::time` is itself written in, so a duration that
+mapped to anything else would be converted at every timer it reached.
+
+**gocache emitted nothing before this and now compiles.** That is 13 of 13 corpus packages emitting
+and compiling under `#![forbid(unsafe_code)]`, none of them vacuously.
+
+**The failure mode was the familiar one, for the seventh time.** Mapping the TYPE made the
+declarations well-typed and left their VALUES as bare integers:
+`pub const NO_EXPIRATION: std::time::Duration = -1;`. Three E0308s across two packages. The type
+side read the new table and the value side did not. A constant at a foreign type is CONSTRUCTED at
+it, exactly as a constant at a locally defined type already was — the difference being that only the
+pack knows the constructor, so `from_integer` is pack data and a mapping without one refuses every
+constant at that type rather than emitting an integer where the type is expected.
+
+**What it cost, which is the point of writing it down.** The source's duration is SIGNED and the
+target's is not. `NoExpiration time.Duration = -1` has no target value, so it REFUSES BY NAME, and
+gocache's coverage went 8.7% → 4.3% for it. That is the rule working: an unsigned construction of
+the same bits is a value eighteen quintillion times larger, which typechecks, runs, and means
+something else. `nonnegative` is a fact about the TARGET type that nothing in the source records, so
+it is stated in the entry rather than inferred.
+
+The entry says plainly that `i64` is the other answer and what would make it the right one. One
+entry to change.
+
+## R5o — a doc comment that said something the source did not
+
+`DEFAULT_EXPIRATION` came out documented `For use with functions that take an expiration time. 5
+minutes.)` — a fragment closing a bracket that was never opened.
+
+The sentence-dropping rule was right: the middle sentence named `New()` and `NewFrom()`, which the
+crate does not contain, so it went. The SPLITTER was wrong. It ended a sentence at any `.` followed
+by whitespace, which put a boundary inside `(e.g. 5 minutes.)` — so the drop took the first half and
+kept the second.
+
+Decided on the BRACKETS rather than on a list of abbreviations: a terminator includes the closers
+that close over it, and a period at nonzero paren depth is not one. That is a fact about the text
+rather than a fact about English, so it needs no vocabulary and cannot rot. The cost is stated in
+the code: a parenthetical genuinely holding two sentences is now one unit, so a drop takes both —
+less prose, never orphaned prose. Three tests including the near miss, a stray `)` that must not
+disable splitting for the rest of the block.
+
+Nanosecond counts are also grouped now (`10_000_000`, not `10000000`) by the rule every other
+constant's digits already went through — eight ungrouped digits is the magic number a reviewer
+counts on their fingers.
+
+**Still open on this seam:** `Duration::from_nanos(0)` where `Duration::ZERO` is what a Rust author
+writes. The template is value-independent and cannot say it; noted rather than special-cased.
