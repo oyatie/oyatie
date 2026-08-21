@@ -19,8 +19,8 @@ use std::collections::BTreeSet;
 use port_engine_api::Declaration;
 
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_OP, CHILD_BODY, KIND_CALL, KIND_COMPOSITE, KIND_RETURN, KIND_UNARY,
-    ATTR_REF, ATTR_VALUE, KIND_IDENT, KIND_LITERAL, OPERATOR_ADDRESS_OF, REF_CONST, SOURCE_INT,
+    ATTR_CALLEE, ATTR_OP, ATTR_REF, ATTR_VALUE, CHILD_BODY, KIND_CALL, KIND_COMPOSITE, KIND_IDENT,
+    KIND_LITERAL, KIND_RETURN, KIND_UNARY, OPERATOR_ADDRESS_OF, REF_CONST, SOURCE_INT,
     TYPE_POINTER,
 };
 
@@ -34,7 +34,10 @@ pub(crate) fn is_three_way_comparison(
     declaration: &Declaration,
     resolver: &crate::resolve::Resolver<'_>,
 ) -> bool {
-    if resolver.idiom_method(crate::vocabulary::IDIOM_ORDERING).is_none() {
+    if resolver
+        .idiom_method(crate::vocabulary::IDIOM_ORDERING)
+        .is_none()
+    {
         return false;
     }
     let results = declaration.children_of_kind(crate::vocabulary::CHILD_RESULT);
@@ -111,9 +114,9 @@ pub(crate) fn borrows_from_receiver(declaration: &Declaration) -> bool {
     let mut returns = Vec::new();
     collect_returns(body, &mut returns);
     !returns.is_empty()
-        && returns.iter().all(|node| {
-            matches!(node.children.as_slice(), [only] if is_receiver_field(only))
-        })
+        && returns
+            .iter()
+            .all(|node| matches!(node.children.as_slice(), [only] if is_receiver_field(only)))
 }
 
 /// Whether this operand reads a field of the enclosing method's receiver.
@@ -257,11 +260,9 @@ pub(crate) fn never_absent_pointer(declaration: &Declaration, result: &Declarati
     let mut returns = Vec::new();
     collect_returns(body, &mut returns);
     !returns.is_empty()
-        && returns.iter().all(|node| {
-            node.children
-                .get(position)
-                .is_some_and(is_fresh_address)
-        })
+        && returns
+            .iter()
+            .all(|node| node.children.get(position).is_some_and(is_fresh_address))
 }
 
 /// Which result this is, by position among the declaration's results.
@@ -354,7 +355,10 @@ pub(crate) fn sole_failure_role(
     if returns.is_empty() {
         return Some(SoleFailure::Channel);
     }
-    let operands: Vec<&Declaration> = returns.iter().filter_map(|node| node.children.first()).collect();
+    let operands: Vec<&Declaration> = returns
+        .iter()
+        .filter_map(|node| node.children.first())
+        .collect();
     if operands.len() != returns.len() {
         return Some(SoleFailure::Channel);
     }
@@ -423,7 +427,11 @@ pub(crate) fn never_fails(
     }
     // A SOLE failure result is a different question, answered by `sole_failure_role`: there is no
     // other value to hand back, so dropping the result would leave the function returning nothing.
-    if declaration.children_of_kind(crate::vocabulary::CHILD_RESULT).len() < 2 {
+    if declaration
+        .children_of_kind(crate::vocabulary::CHILD_RESULT)
+        .len()
+        < 2
+    {
         return false;
     }
     let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
@@ -531,9 +539,9 @@ pub(crate) fn borrows_from_parameter(
     let mut returns = Vec::new();
     collect_returns(body, &mut returns);
     !returns.is_empty()
-        && returns.iter().all(|node| {
-            matches!(node.children.as_slice(), [only] if is_slice_of(only, lender))
-        })
+        && returns
+            .iter()
+            .all(|node| matches!(node.children.as_slice(), [only] if is_slice_of(only, lender)))
 }
 
 /// Whether this operand is a slice expression over exactly the named parameter.

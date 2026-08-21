@@ -11,7 +11,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{PackSemantics, RulePack, RuleId, SourceModel};
+use port_engine_api::{PackSemantics, RuleId, RulePack, SourceModel};
 
 use crate::resolve::LocalScope;
 use crate::signature_table::SignatureTable;

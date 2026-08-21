@@ -14,8 +14,9 @@ use crate::rule::{
     IdiomWireRule, IntegerArithmeticRule, SelectingFixture, TraitReceiver, UndecidedForm,
 };
 use crate::rule_format::{
-    AllocationRule, BinaryStringRule, BitPatternConstantsRule, ByteOrderCallsRule, ReadableLiteralsRule, FormatCallsRule, FormatFunctionRule,
-    SequenceAppendRule, TargetImportsRule, UnmappableCallsRule, UnmappableTypesRule,
+    AllocationRule, BinaryStringRule, BitPatternConstantsRule, ByteOrderCallsRule, FormatCallsRule,
+    FormatFunctionRule, ReadableLiteralsRule, SequenceAppendRule, TargetImportsRule,
+    UnmappableCallsRule, UnmappableTypesRule,
 };
 
 fn default_conflict() -> String {

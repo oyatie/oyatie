@@ -254,7 +254,10 @@ impl Resolver<'_> {
                 // trait, so it does not claim it.
                 return true;
             };
-            if inputs.iter().any(|input| self.blocks(input, blocked, seen, derive)) {
+            if inputs
+                .iter()
+                .any(|input| self.blocks(input, blocked, seen, derive))
+            {
                 return true;
             }
         }
@@ -292,10 +295,7 @@ impl Resolver<'_> {
 fn mentions_kind(type_ref: &TypeRef, blockers: &std::collections::BTreeSet<String>) -> bool {
     blockers.contains(&type_ref.kind)
         || (type_ref.kind == "basic" && blockers.contains(&type_ref.name))
-        || type_ref
-            .args
-            .iter()
-            .any(|arg| mentions_kind(arg, blockers))
+        || type_ref.args.iter().any(|arg| mentions_kind(arg, blockers))
 }
 
 /// The length an array type carries, which the front end records in the type node's `name`.

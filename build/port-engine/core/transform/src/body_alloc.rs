@@ -105,7 +105,10 @@ pub(crate) fn allocation(
         // `make([]T, n, m)` with a non-zero length is BOTH shapes at once, and the target spells
         // them separately. Which of the two a call site wants is a decision about that call site.
         _ => Err(refuse(
-            &format!("is given {} sizes in a shape the pack does not answer", sizes.len()),
+            &format!(
+                "is given {} sizes in a shape the pack does not answer",
+                sizes.len()
+            ),
             &rule.empty_with_capacity_reason,
         )),
     }

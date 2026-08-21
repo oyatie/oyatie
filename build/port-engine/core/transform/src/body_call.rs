@@ -13,16 +13,17 @@
 use port_engine_api::{Declaration, FunctionMapping, PointerConstruction};
 use port_engine_rust_ir::RustExpr;
 
-use crate::body::{Body};
-use crate::body_parts::{one_child};
+use crate::body::Body;
 use crate::body_argument::argument;
 use crate::body_expr::{Position, expression, in_position};
 use crate::body_ops::{operator_of, own_string_for, reference};
+use crate::body_parts::one_child;
 use crate::error::TransformError;
 use crate::naming::{module_path, to_snake_case};
 use crate::vocabulary::{
-    ARGUMENT_INT_LITERAL_LAST, ARGUMENT_STRING_LITERAL, ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, CALLEE_KIND_METHOD,
-    KIND_LITERAL, KIND_UNARY, LIT_KIND_INT, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
+    ARGUMENT_INT_LITERAL_LAST, ARGUMENT_STRING_LITERAL, ATTR_CALLEE, ATTR_CALLEE_KIND,
+    ATTR_LIT_KIND, CALLEE_KIND_METHOD, KIND_LITERAL, KIND_UNARY, LIT_KIND_INT, LIT_KIND_STRING,
+    OPERATOR_ADDRESS_OF,
 };
 
 /// A call, which is a method call when its callee is a field access.
@@ -453,9 +454,7 @@ fn message_method_call(
     let Some(convention) = cx.resolver.failure else {
         return Ok(None);
     };
-    if convention.message_method.is_empty()
-        || method != convention.message_method_source
-    {
+    if convention.message_method.is_empty() || method != convention.message_method_source {
         return Ok(None);
     }
     if !receiver_type_ref(receiver, cx).is_some_and(|found| cx.resolver.is_failure_type(&found)) {
@@ -513,12 +512,7 @@ fn array_length(node: &Declaration, cx: &Body<'_>) -> Option<RustExpr> {
     let mut declared = argument.type_ref.clone();
     // A RECEIVER carries no type, so the newtype it belongs to is what the body knows instead.
     if declared.is_empty() && crate::body_ops::is_receiver(argument) {
-        declared = cx
-            .resolver
-            .scope
-            .newtypes
-            .get(cx.receiver_type?)
-            .cloned()?;
+        declared = cx.resolver.scope.newtypes.get(cx.receiver_type?).cloned()?;
     }
     if let Some(underlying) = cx.resolver.scope.newtypes.get(&declared.name) {
         declared = underlying.clone();

@@ -9,7 +9,7 @@ use port_engine_rust_ir::{RustField, RustItem, RustType, StructShape};
 
 use crate::docs::docs_of;
 use crate::error::TransformError;
-use crate::naming::{to_pascal_case, to_snake_case, visibility, type_visibility};
+use crate::naming::{to_pascal_case, to_snake_case, type_visibility, visibility};
 use crate::resolve::Resolver;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{CHILD_EMBEDS, CHILD_FIELD, POSITION_FIELD, POSITION_SUPERTRAIT};

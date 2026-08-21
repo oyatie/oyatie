@@ -128,12 +128,12 @@ pub(crate) fn constructed(construction: &PointerConstruction, operand: RustExpr)
             mutable: *mutable,
             inner: Box::new(operand),
         },
-        PointerConstruction::Wrap { paths, .. } => paths.iter().fold(operand, |inner, path| {
-            RustExpr::Call {
+        PointerConstruction::Wrap { paths, .. } => {
+            paths.iter().fold(operand, |inner, path| RustExpr::Call {
                 callee: Box::new(RustExpr::Path(path.clone())),
                 args: vec![inner],
-            }
-        }),
+            })
+        }
     }
 }
 

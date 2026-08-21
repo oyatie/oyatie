@@ -66,7 +66,16 @@ fn opens_with_a_pronoun(sentence: &str) -> bool {
     let word = first.trim_end_matches(|ch: char| !ch.is_ascii_alphanumeric());
     matches!(
         word.to_ascii_lowercase().as_str(),
-        "it" | "it's" | "its" | "this" | "that" | "they" | "them" | "these" | "those" | "he" | "she"
+        "it" | "it's"
+            | "its"
+            | "this"
+            | "that"
+            | "they"
+            | "them"
+            | "these"
+            | "those"
+            | "he"
+            | "she"
     )
 }
 
@@ -110,7 +119,11 @@ fn sentences(block: &str) -> Vec<&str> {
                     _ => break,
                 }
             }
-            if depth == 0 && bytes.get(after).is_none_or(|next| next.is_ascii_whitespace()) {
+            if depth == 0
+                && bytes
+                    .get(after)
+                    .is_none_or(|next| next.is_ascii_whitespace())
+            {
                 let sentence = block[start..after].trim();
                 if !sentence.is_empty() {
                     out.push(sentence);
@@ -131,11 +144,7 @@ fn sentences(block: &str) -> Vec<&str> {
 }
 
 /// Whether this sentence names something the emitted crate does not contain.
-fn names_something_absent(
-    sentence: &str,
-    subject: &str,
-    resolver: &Resolver<'_>,
-) -> bool {
+fn names_something_absent(sentence: &str, subject: &str, resolver: &Resolver<'_>) -> bool {
     for word in sentence.split(|ch: char| !(ch.is_alphanumeric() || ch == '_' || ch == '.')) {
         // A trailing period is the sentence's, not the identifier's. Absorbing it made
         // `hash.Hash64.` the member name, which is nobody's identifier.
@@ -174,11 +183,7 @@ fn names_the_source_language(word: &str, resolver: &Resolver<'_>) -> bool {
 /// reason: an unexported source name is lower-case and indistinguishable from English. A
 /// declaration's own name is never absent — the prose describes it, and it is the one being built.
 /// A MEMBER is emitted exactly when its owner is, so that is what is asked about it.
-fn names_an_unemitted_declaration(
-    word: &str,
-    subject: &str,
-    resolver: &Resolver<'_>,
-) -> bool {
+fn names_an_unemitted_declaration(word: &str, subject: &str, resolver: &Resolver<'_>) -> bool {
     let exported = word.chars().next().is_some_and(char::is_uppercase);
     if !exported || word == subject || !resolver.scope.renames.contains_key(word) {
         return false;

@@ -19,7 +19,6 @@ use crate::resolve_tables::table_key;
 use crate::vocabulary::{TYPE_INTERFACE, TYPE_NAMED_INTERFACE};
 
 impl Resolver<'_> {
-
     /// Refuse a type this unit declares and is not emitting.
     ///
     /// A declaration that REFUSED is not in the crate, so naming it produces a dangling reference —
@@ -245,5 +244,4 @@ impl Resolver<'_> {
             type_ref: type_ref.describe(),
         })
     }
-
 }

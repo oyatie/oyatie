@@ -34,7 +34,7 @@ fn a_failing_return_discards_its_companion() {
         "a failing return must carry the failure alone:\n{source}"
     );
     assert!(
-        !source.contains("Err((") ,
+        !source.contains("Err(("),
         "the companion must be gone, not tupled into the failure:\n{source}"
     );
 }
@@ -70,7 +70,13 @@ fn the_refusal_corpus_is_refused_by_name() {
     // reaches, so the fence asserts the PROPERTY every refusal must have rather than pinning one
     // message. Which one comes first is a function of declaration order, and a fence that depends
     // on that breaks every time a corpus package lands.
-    let named = ["ForStmt", "DeferStmt", "&^=", "the pack defers", "is variadic"];
+    let named = [
+        "ForStmt",
+        "DeferStmt",
+        "&^=",
+        "the pack defers",
+        "is variadic",
+    ];
     assert!(
         named.iter().any(|subject| message.contains(subject)),
         "the refusal must name the construct it refused, got: {message}"
@@ -168,7 +174,11 @@ fn comparing_against_a_sentinel_asks_what_the_failure_holds() {
         // the engine. The compile proof covers the same output from the embedded fixture.
         return;
     };
-    let source: String = ported.files.iter().map(|file| file.source.as_str()).collect();
+    let source: String = ported
+        .files
+        .iter()
+        .map(|file| file.source.as_str())
+        .collect();
     assert!(
         source.contains("downcast_ref::<Error>() == Some(&Error::Gone)"),
         "a sentinel comparison must ask the failure what it holds — the shared failure type, and \

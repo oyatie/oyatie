@@ -5,25 +5,28 @@
 //! reading a field is a copy in Go and a move in Rust, and a struct literal zero-fills in Go and
 //! must name every field in Rust.
 
-use port_engine_api::{Declaration, TypeRef};
 use port_engine_api::PointerConstruction;
+use port_engine_api::{Declaration, TypeRef};
 use port_engine_rust_ir::RustExpr;
 
-use crate::body::{Body};
-use crate::body_place::{
-    address_of_fresh, convert, refuse_sentinel_out_of_place, selector,
-};
-use crate::body_parts::{one_child, two_children, unsupported_source};
-use crate::body_index::slice;
+use crate::body::Body;
 use crate::body_argument::constructed;
 use crate::body_call::call;
-use crate::body_literal::{composite, zero_value};
 use crate::body_idiom::emptiness_test;
-use crate::body_ops::{binary_operator, compares_lengths, is_receiver, operator_of, own_string_for, reference, refuse_deferred_reference, unary_operator, unary_refusal};
+use crate::body_index::slice;
+use crate::body_literal::{composite, zero_value};
+use crate::body_ops::{
+    binary_operator, compares_lengths, is_receiver, operator_of, own_string_for, reference,
+    refuse_deferred_reference, unary_operator, unary_refusal,
+};
+use crate::body_parts::{one_child, two_children, unsupported_source};
+use crate::body_place::{address_of_fresh, convert, refuse_sentinel_out_of_place, selector};
 use crate::error::TransformError;
-use crate::naming::{to_snake_case, to_screaming_snake};
+use crate::naming::{to_screaming_snake, to_snake_case};
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD, DISPOSITION_OWNED_POINTER, FLAG_REREAD, IDIOM_EMPTY_STRING, KIND_COMPOSITE, KIND_IDENT, KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
+    ATTR_CALLEE, ATTR_CALLEE_KIND, ATTR_LIT_KIND, ATTR_VALUE, CALLEE_KIND_METHOD,
+    DISPOSITION_OWNED_POINTER, FLAG_REREAD, IDIOM_EMPTY_STRING, KIND_COMPOSITE, KIND_IDENT,
+    KIND_LITERAL, KIND_UNARY, LIT_KIND_STRING, OPERATOR_ADDRESS_OF,
 };
 
 /// Where an expression appears: a value is READ, a place is WRITTEN TO.
@@ -196,8 +199,8 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
     // A COMPARISON AGAINST THE SOURCE'S ABSENT VALUE. `n.Alias == nil` asks whether a pointer holds
     // anything, and the target asks the option that pointer became. Emitting the source's spelling
     // put a bare `nil` in the output, which names nothing at all.
-    if let Some(built) = absence_test(spelling, lhs, rhs, cx)?
-        .or(absence_test(spelling, rhs, lhs, cx)?)
+    if let Some(built) =
+        absence_test(spelling, lhs, rhs, cx)?.or(absence_test(spelling, rhs, lhs, cx)?)
     {
         return Ok(built);
     }
@@ -354,7 +357,10 @@ fn typed_receiver(receiver: RustExpr, node: &Declaration, cx: &Body<'_>) -> Rust
     let RustExpr::Literal(spelled) = &receiver else {
         return receiver;
     };
-    if !spelled.bytes().all(|byte| byte.is_ascii_digit() || byte == b'_') {
+    if !spelled
+        .bytes()
+        .all(|byte| byte.is_ascii_digit() || byte == b'_')
+    {
         return receiver;
     }
     let Ok(resolved) = cx.resolver.resolve(&node.type_ref, cx.owner) else {
@@ -363,7 +369,17 @@ fn typed_receiver(receiver: RustExpr, node: &Declaration, cx: &Body<'_>) -> Rust
     let suffix = resolved.spelling();
     match matches!(
         suffix.as_str(),
-        "i8" | "i16" | "i32" | "i64" | "i128" | "isize" | "u8" | "u16" | "u32" | "u64" | "u128" | "usize"
+        "i8" | "i16"
+            | "i32"
+            | "i64"
+            | "i128"
+            | "isize"
+            | "u8"
+            | "u16"
+            | "u32"
+            | "u64"
+            | "u128"
+            | "usize"
     ) {
         true => RustExpr::Literal(format!("{spelled}{suffix}")),
         false => receiver,

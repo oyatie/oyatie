@@ -12,8 +12,8 @@ use port_engine_api::Declaration;
 use port_engine_rust_ir::RustExpr;
 
 use crate::body::Body;
-use crate::resolve::Resolver;
 use crate::naming::to_screaming_snake;
+use crate::resolve::Resolver;
 use crate::vocabulary::{
     ATTR_CALLEE, ATTR_OP, KIND_CALL, KIND_COMPOSITE, KIND_IDENT, KIND_UNARY, OPERATOR_ADDRESS_OF,
 };

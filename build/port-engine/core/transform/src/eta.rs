@@ -26,7 +26,9 @@ use std::collections::BTreeSet;
 
 use port_engine_api::Declaration;
 
-use crate::vocabulary::{ATTR_CALLEE, CHILD_BODY, CHILD_PARAM, FLAG_EXPORTED, KIND_CALL, KIND_IDENT};
+use crate::vocabulary::{
+    ATTR_CALLEE, CHILD_BODY, CHILD_PARAM, FLAG_EXPORTED, KIND_CALL, KIND_IDENT,
+};
 
 /// A wrapper whose call sites can spell what it wraps directly.
 #[derive(Clone, Debug)]

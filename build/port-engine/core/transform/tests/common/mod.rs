@@ -3,8 +3,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{ForeignType, 
-    Declaration, DeriveRule, Digest, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PlanStep, PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef, UnitId,
+use port_engine_api::{
+    Declaration, DeriveRule, Digest, DocConvention, FailureConvention, ForeignType,
+    FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair, PackSemantics, PlanStep,
+    PointerConstruction, PointerDisposition, RuleId, SourceModel, TargetIr, TransformPlan, TypeRef,
+    UnitId,
 };
 use port_engine_rust_ir::RustIr;
 use port_engine_transform::*;
@@ -275,13 +278,11 @@ impl PackSemantics for Pack {
         &self.sequence_append
     }
 
-
     fn allocation(&self) -> &port_engine_api::Allocation {
         // EMPTY, so a fixture's allocation refuses. Which shapes are exact is a judgement about the
         // source language, exercised against real source.
         &self.allocation
     }
-
 
     fn binary_string(&self) -> &port_engine_api::BinaryString {
         // EMPTY, so a fixture's string constant stays a string. Which strings are binary is a
@@ -307,7 +308,6 @@ impl PackSemantics for Pack {
         &self.byte_order_calls
     }
 
-
     fn unmappable_types(&self) -> &BTreeMap<String, String> {
         // EMPTY, like the tables beside it: which types cannot be mapped is the real pack's
         // judgement about a real standard library.
@@ -320,13 +320,11 @@ impl PackSemantics for Pack {
         &self.unmappable_facts
     }
 
-
     fn length_argument_callees(&self) -> &BTreeSet<String> {
         // EMPTY, like the tables beside it: these tests assert on structure, and which callees take
         // a length is the real pack's judgement about a real standard library.
         &self.length_argument_callees
     }
-
 
     fn unmappable_calls(&self) -> &BTreeMap<String, String> {
         // EMPTY, so a fixture's foreign call refuses saying a mapping is owed. Which calls cannot
@@ -334,20 +332,17 @@ impl PackSemantics for Pack {
         &self.unmappable_calls
     }
 
-
     fn target_imports(&self) -> &BTreeMap<String, String> {
         // EMPTY, so a fixture spells every library path out and the rule is exercised against the
         // real pack over real source.
         &self.target_imports
     }
 
-
     fn format_calls(&self) -> &port_engine_api::FormatCalls {
         // EMPTY, so a fixture answers for no formatting call at all and the ones that want the rule
         // exercise it through the real pack over the corpus, where the template is real source.
         &self.format_calls
     }
-
 
     fn construction(&self, rule: &RuleId) -> Option<&str> {
         self.rules.get(rule.0.as_str()).map(|(c, _, _)| *c)

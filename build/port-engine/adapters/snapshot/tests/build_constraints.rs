@@ -27,7 +27,11 @@ use port_engine_snapshot::admit_embedded_fixture_buildtags_v1;
 fn declaration_names() -> Vec<String> {
     let admitted = admit_embedded_fixture_buildtags_v1().expect("build-tag fixture admits");
     let units = admitted.units();
-    assert_eq!(units.len(), 1, "the fixture corpus holds exactly one package");
+    assert_eq!(
+        units.len(),
+        1,
+        "the fixture corpus holds exactly one package"
+    );
     admitted
         .declarations(&units[0])
         .expect("the admitted unit has declarations")

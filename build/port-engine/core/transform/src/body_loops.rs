@@ -8,12 +8,12 @@ use port_engine_api::Declaration;
 use port_engine_rust_ir::{ForBinding, MatchArm, RustExpr, RustStmt};
 
 use crate::body::{Body, TailPosition, translate};
-use crate::body_parts::{branch, named_child, one_child, two_children};
 use crate::body_expr::expression;
+use crate::body_parts::{branch, named_child, one_child, two_children};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::vocabulary::{KIND_IDENT, 
-    ATTR_OP, IDIOM_INDEX_COUNTER, IDIOM_INDEX_LOOP, IDIOM_MATCHES,
+use crate::vocabulary::{
+    ATTR_OP, IDIOM_INDEX_COUNTER, IDIOM_INDEX_LOOP, IDIOM_MATCHES, KIND_IDENT,
 };
 
 /// A three-clause or condition-only `for`.
@@ -171,7 +171,9 @@ fn tail_skips_nothing(statement: &RustStmt) -> bool {
         RustStmt::Block(body) | RustStmt::Labelled { body, .. } => skips_nothing(body),
         RustStmt::Semi(expr) | RustStmt::Tail(expr) => match expr {
             RustExpr::Match { arms, .. } => arms.iter().all(|arm| skips_nothing(&arm.body)),
-            RustExpr::If { then, otherwise, .. } => {
+            RustExpr::If {
+                then, otherwise, ..
+            } => {
                 skips_nothing(then)
                     && otherwise
                         .as_deref()
@@ -205,10 +207,9 @@ fn mentions_step(statement: &RustStmt) -> bool {
 fn mentions_step_in(expr: &RustExpr) -> bool {
     match expr {
         RustExpr::Block(body) => body.iter().any(mentions_step),
-        RustExpr::If { then, otherwise, .. } => {
-            then.iter().any(mentions_step)
-                || otherwise.as_deref().is_some_and(mentions_step_in)
-        }
+        RustExpr::If {
+            then, otherwise, ..
+        } => then.iter().any(mentions_step) || otherwise.as_deref().is_some_and(mentions_step_in),
         RustExpr::Match { arms, .. } => arms.iter().any(|arm| arm.body.iter().any(mentions_step)),
         _ => false,
     }
@@ -216,7 +217,8 @@ fn mentions_step_in(expr: &RustExpr) -> bool {
 
 /// Remove every `break 'step`, which falling out of the block now does instead.
 fn drop_step_breaks(statements: &mut Vec<RustStmt>) {
-    statements.retain(|statement| !matches!(statement, RustStmt::Break(Some(label)) if label == STEP));
+    statements
+        .retain(|statement| !matches!(statement, RustStmt::Break(Some(label)) if label == STEP));
     for statement in statements {
         match statement {
             RustStmt::Block(body) | RustStmt::Labelled { body, .. } => drop_step_breaks(body),
@@ -230,7 +232,9 @@ fn drop_step_breaks(statements: &mut Vec<RustStmt>) {
 fn drop_step_breaks_in(expr: &mut RustExpr) {
     match expr {
         RustExpr::Block(body) => drop_step_breaks(body),
-        RustExpr::If { then, otherwise, .. } => {
+        RustExpr::If {
+            then, otherwise, ..
+        } => {
             drop_step_breaks(then);
             if let Some(other) = otherwise.as_deref_mut() {
                 drop_step_breaks_in(other);
@@ -464,9 +468,15 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
             // source never promised. That is a decision about which map the port uses, not a loop
             // shape, and it is the same decision in both places.
             let why = match sequence_kind.as_str() {
-                "map" => "ranging a map binds its KEYS in an order the source does not define, and                           the target's ordered map would make that order observable — the same                           decision its literal refuses, and it belongs with that one",
-                "basic" => "ranging the source's string binds BYTE OFFSETS with decoded runes for                             values, and the target's string iterators yield one or the other but                             not the pair",
-                _ => "binding the index needs to know what is ranged, and the type of this                       expression does not say — only a sequence has indices to bind",
+                "map" => {
+                    "ranging a map binds its KEYS in an order the source does not define, and                           the target's ordered map would make that order observable — the same                           decision its literal refuses, and it belongs with that one"
+                }
+                "basic" => {
+                    "ranging the source's string binds BYTE OFFSETS with decoded runes for                             values, and the target's string iterators yield one or the other but                             not the pair"
+                }
+                _ => {
+                    "binding the index needs to know what is ranged, and the type of this                       expression does not say — only a sequence has indices to bind"
+                }
             };
             return Err(TransformError::Unsupported {
                 name: cx.owner.to_owned(),

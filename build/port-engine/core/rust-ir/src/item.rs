@@ -7,8 +7,8 @@
 //! while the concrete path refused the same guess.
 
 use crate::expr::RustExpr;
-use crate::stmt::RustStmt;
 use crate::item_parts::{Receiver, RustField, RustFn, StructShape, Visibility};
+use crate::stmt::RustStmt;
 use crate::ty::RustType;
 
 /// Whether an item is part of the emitted crate's public surface.

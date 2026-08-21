@@ -10,9 +10,9 @@ mod seams;
 use std::process::ExitCode;
 
 use pipeline::{
-    cmd_canary_defect, cmd_delta, cmd_dispositions, cmd_emit_canary, cmd_materialize_canary,
-    cmd_pipeline, cmd_port_go, cmd_port_go_source, cmd_receipt, cmd_region_digests, cmd_render,
-    cmd_drift, cmd_port, cmd_survey, cmd_transform, cmd_verify_e2e,
+    cmd_canary_defect, cmd_delta, cmd_dispositions, cmd_drift, cmd_emit_canary,
+    cmd_materialize_canary, cmd_pipeline, cmd_port, cmd_port_go, cmd_port_go_source, cmd_receipt,
+    cmd_region_digests, cmd_render, cmd_survey, cmd_transform, cmd_verify_e2e,
 };
 use seams::{
     cmd_admit_snapshot, cmd_declarations, cmd_digest, cmd_emit_stub, cmd_emit_syn, cmd_engine,

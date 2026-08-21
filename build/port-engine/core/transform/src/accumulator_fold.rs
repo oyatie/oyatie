@@ -159,11 +159,17 @@ fn mentions_expr(expr: &RustExpr, name: &str) -> usize {
         RustExpr::Path(path) => usize::from(path == name),
         RustExpr::MethodCall { receiver, args, .. } => {
             mentions_expr(receiver, name)
-                + args.iter().map(|arg| mentions_expr(arg, name)).sum::<usize>()
+                + args
+                    .iter()
+                    .map(|arg| mentions_expr(arg, name))
+                    .sum::<usize>()
         }
         RustExpr::Call { callee, args } => {
             mentions_expr(callee, name)
-                + args.iter().map(|arg| mentions_expr(arg, name)).sum::<usize>()
+                + args
+                    .iter()
+                    .map(|arg| mentions_expr(arg, name))
+                    .sum::<usize>()
         }
         RustExpr::Binary { lhs, rhs, .. } => mentions_expr(lhs, name) + mentions_expr(rhs, name),
         RustExpr::Unary { operand, .. } => mentions_expr(operand, name),

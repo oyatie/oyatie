@@ -306,9 +306,8 @@ pub(crate) fn cmd_drift(args: &[String]) -> ExitCode {
         eprintln!("usage: drift <before.json> <before-pin> <after.json> <after-pin>");
         return ExitCode::from(2);
     };
-    let ported = |path: &String, pin: &String| {
-        driver::port_snapshot_pinned(std::path::Path::new(path), pin)
-    };
+    let ported =
+        |path: &String, pin: &String| driver::port_snapshot_pinned(std::path::Path::new(path), pin);
     let (previous, current) = match (ported(before, before_pin), ported(after, after_pin)) {
         (Ok(previous), Ok(current)) => (previous, current),
         (Err(err), _) | (_, Err(err)) => {

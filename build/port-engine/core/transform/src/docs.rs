@@ -39,11 +39,7 @@ pub(crate) fn docs_of(
 ///
 /// No refusal check here — the declaration this block came from is surveyed on its own, and that is
 /// where its dangling references are caught.
-pub(crate) fn docs_from_block(
-    block: &str,
-    name: &str,
-    resolver: &Resolver<'_>,
-) -> Vec<String> {
+pub(crate) fn docs_from_block(block: &str, name: &str, resolver: &Resolver<'_>) -> Vec<String> {
     let convention = resolver.doc_convention;
     // The DROP happens here, inside the one function every doc path goes through, rather than in
     // the caller that happened to think of it. It used to sit in `docs_of`, and the grouped failure
@@ -144,7 +140,10 @@ fn push_word(
     // A DECLARATION of this unit first, then a source TYPE the pack names. The two cannot collide:
     // the pack's set holds only the source's own primitive spellings, and a unit declaring one of
     // those is declaring a name the target could not use anyway.
-    match renames.get(word.as_str()).or_else(|| types.get(word.as_str())) {
+    match renames
+        .get(word.as_str())
+        .or_else(|| types.get(word.as_str()))
+    {
         Some(target) => out.push_str(target),
         None => out.push_str(word),
     }
@@ -198,8 +197,7 @@ fn without_passive_opening<'a>(text: &'a str, convention: &DocConvention) -> &'a
     let lowered = text.to_lowercase();
     let mut best: Option<usize> = None;
     for opening in &convention.passive_openings {
-        if lowered.starts_with(&opening.to_lowercase())
-            && best.is_none_or(|at| opening.len() > at)
+        if lowered.starts_with(&opening.to_lowercase()) && best.is_none_or(|at| opening.len() > at)
         {
             best = Some(opening.len());
         }

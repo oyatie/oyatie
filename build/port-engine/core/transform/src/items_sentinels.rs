@@ -46,7 +46,9 @@ pub(crate) fn grouped_sentinels(resolver: &Resolver<'_>) -> RustItem {
                         names
                             .iter()
                             .map(|name| {
-                                port_engine_rust_ir::RustExpr::Path(crate::naming::to_screaming_snake(name))
+                                port_engine_rust_ir::RustExpr::Path(
+                                    crate::naming::to_screaming_snake(name),
+                                )
                             })
                             .collect()
                     })

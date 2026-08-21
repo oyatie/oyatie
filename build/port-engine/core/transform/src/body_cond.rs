@@ -13,9 +13,9 @@ use port_engine_api::Declaration;
 use port_engine_rust_ir::{RustExpr, RustStmt};
 
 use crate::body::{Body, TailPosition, translate};
-use crate::body_stmt::statement;
-use crate::body_parts::{named_child, one_child};
 use crate::body_expr::expression;
+use crate::body_parts::{named_child, one_child};
+use crate::body_stmt::statement;
 use crate::error::TransformError;
 
 /// An `if`, and the block its init clause needs.
@@ -61,9 +61,9 @@ pub(crate) fn branch_value(
         then: vec![RustStmt::Tail(expression(then_value, cx)?)],
         // The target's `else` takes a block or another `if`, never a bare expression, so the
         // value is wrapped exactly as a `then` branch's statement list already is.
-        otherwise: Some(Box::new(RustExpr::Block(vec![RustStmt::Tail(
-            expression(else_value, cx)?,
-        )]))),
+        otherwise: Some(Box::new(RustExpr::Block(vec![RustStmt::Tail(expression(
+            else_value, cx,
+        )?)]))),
     };
     let Some(init) = node.children_of_kind("init").first().copied() else {
         return Ok(chosen);

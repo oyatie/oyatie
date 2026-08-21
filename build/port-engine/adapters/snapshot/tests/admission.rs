@@ -66,7 +66,7 @@ fn v1_fixture_admits_and_carries_declarations() {
             "basic",
             "composite",
             "fallible",
-        "formatted",
+            "formatted",
             "geometry",
             "globals",
             "handoff",

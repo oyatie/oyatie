@@ -7,17 +7,21 @@ use port_engine_rust_ir::{
 
 use crate::error::TransformError;
 use crate::impls::trait_impls;
-use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
-use crate::params::params;
-use crate::results::results;
+use crate::items_self::rename_own_type;
 use crate::items_types::{
     blanket_impl, build_newtype, build_struct, build_trait, build_type_alias,
 };
+use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case, visibility};
+use crate::params::params;
 use crate::resolve::Resolver;
-use crate::items_self::rename_own_type;
+use crate::results::results;
 use crate::signature::{Body, inherent_methods, trait_methods};
 use crate::vocabulary::{
-    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST, CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE, CONSTRUCTION_RUST_STATIC, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY, CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, IDIOM_SELF_IN_IMPL, POSITION_FIELD, POSITION_SUPERTRAIT, TYPE_POINTER,
+    ATTR_VALUE, CHILD_BODY, CHILD_EMBEDS, CHILD_FIELD, CHILD_RESULT, CONSTRUCTION_RUST_CONST,
+    CONSTRUCTION_RUST_FN, CONSTRUCTION_RUST_FN_BODY, CONSTRUCTION_RUST_NEWTYPE,
+    CONSTRUCTION_RUST_STATIC, CONSTRUCTION_RUST_STRUCT, CONSTRUCTION_RUST_STRUCT_BODY,
+    CONSTRUCTION_RUST_TRAIT, CONSTRUCTION_RUST_TYPE_ALIAS, CONSTRUCTOR_PREFIX, IDIOM_SELF_IN_IMPL,
+    POSITION_FIELD, POSITION_SUPERTRAIT, TYPE_POINTER,
 };
 use crate::{body, docs::docs_of};
 
@@ -166,8 +170,13 @@ fn build_fn(
                 name: declaration.name.clone(),
                 datum: "body",
             })?;
-        let (statements, folded) =
-            body::statements(&source.children, declaration, resolver, body::ResultShape::Own, None)?;
+        let (statements, folded) = body::statements(
+            &source.children,
+            declaration,
+            resolver,
+            body::ResultShape::Own,
+            None,
+        )?;
         consumed = folded;
         statements
     } else {

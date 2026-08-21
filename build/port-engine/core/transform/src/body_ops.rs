@@ -10,8 +10,8 @@ use crate::body::Body;
 use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, to_snake_case};
 use crate::resolve::Resolver;
-use crate::vocabulary::{REF_PACKAGE_VAR, 
-    ATTR_OP, ATTR_REF, CHILD_RESULT, REF_CONST, REF_PACKAGE, SOURCE_STRING,
+use crate::vocabulary::{
+    ATTR_OP, ATTR_REF, CHILD_RESULT, REF_CONST, REF_PACKAGE, REF_PACKAGE_VAR, SOURCE_STRING,
 };
 
 /// Case an identifier by what it REFERS to.
@@ -98,7 +98,11 @@ pub(crate) fn constant_shift(
         return None;
     }
     let count: u32 = rhs.attr(crate::vocabulary::ATTR_VALUE)?.parse().ok()?;
-    let target = cx.resolver.resolve(&lhs.type_ref, cx.owner).ok()?.spelling();
+    let target = cx
+        .resolver
+        .resolve(&lhs.type_ref, cx.owner)
+        .ok()?
+        .spelling();
     let width = target_width(&target)?;
     (count < width).then_some(op)
 }
@@ -270,7 +274,11 @@ pub(crate) fn own_returned_string(expr: RustExpr, cx: &Body<'_>) -> RustExpr {
 /// and `String` are strings today and deciding by their shape would break the moment a form is
 /// spelled differently for the same decision.
 pub(crate) fn own_string_for(expr: RustExpr, wanted: &str, cx: &Body<'_>) -> RustExpr {
-    match cx.resolver.owned_string_target().is_some_and(|owned| owned == wanted) {
+    match cx
+        .resolver
+        .owned_string_target()
+        .is_some_and(|owned| owned == wanted)
+    {
         true => own_string(expr),
         false => expr,
     }

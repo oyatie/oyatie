@@ -14,7 +14,6 @@ pub use sources::CRATE_SOURCES;
 
 mod declaration;
 mod error;
-mod value_rules;
 mod failure;
 mod identity;
 mod ownership;
@@ -22,10 +21,10 @@ mod plan;
 mod receipt;
 mod seams;
 mod type_ref;
+mod value_rules;
 
 pub use declaration::Declaration;
 pub use error::PortError;
-pub use value_rules::{Allocation, BinaryString, ChannelForms, ForeignType, BitPatternConstants, ByteOrderCalls, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
 pub use failure::{
     DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };
@@ -35,6 +34,10 @@ pub use plan::{PlanStep, TransformPlan};
 pub use receipt::{RECEIPT_AXES, Receipt, ReceiptAxis};
 pub use seams::{PackSemantics, Renderer, RulePack, SourceModel, TargetIr};
 pub use type_ref::TypeRef;
+pub use value_rules::{
+    Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ChannelForms, ForeignType,
+    FormatCalls, FormatFunction, ReadableLiterals, SequenceAppend,
+};
 
 /// Fail-closed readiness gate. `true` once the seam types are present.
 #[must_use]

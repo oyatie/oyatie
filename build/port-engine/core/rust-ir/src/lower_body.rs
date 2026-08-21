@@ -6,10 +6,10 @@ use quote::{ToTokens, quote};
 use port_engine_api::PortError;
 
 use crate::expr::{MatchArm, RustExpr};
-use crate::stmt::{ForBinding, RustStmt};
-use crate::lower_parts::{parse_expr, parse_ident, parse_type};
 use crate::lower_expr::lower_expr;
+use crate::lower_parts::{parse_expr, parse_ident, parse_type};
 use crate::lower_precedence::is_block_like;
+use crate::stmt::{ForBinding, RustStmt};
 
 pub(crate) fn lower_block(statements: &[RustStmt]) -> Result<TokenStream, PortError> {
     let mut tokens = TokenStream::new();
@@ -97,8 +97,14 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             Ok(quote! { #target #operator #value; })
         }
         RustStmt::AssignTuple { places, values } => {
-            let places = places.iter().map(lower_expr).collect::<Result<Vec<_>, _>>()?;
-            let values = values.iter().map(lower_expr).collect::<Result<Vec<_>, _>>()?;
+            let places = places
+                .iter()
+                .map(lower_expr)
+                .collect::<Result<Vec<_>, _>>()?;
+            let values = values
+                .iter()
+                .map(lower_expr)
+                .collect::<Result<Vec<_>, _>>()?;
             // A SINGLE value is one expression that already yields the whole tuple — the source's
             // `x, err = f()`. Several are the source's `a, b = b, a`, and they become a tuple here
             // so both spell one destructuring assignment rather than two shapes.

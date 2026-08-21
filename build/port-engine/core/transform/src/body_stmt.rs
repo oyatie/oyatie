@@ -24,7 +24,8 @@ use crate::body_parts::{branch, named_child, one_child, two_children};
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::vocabulary::{
-    ATTR_LIT_KIND, ATTR_OP, CHILD_BIND, CHILD_PLACE, CHILD_VALUE, FLAG_INFERRED, FLAG_MUTATED, IDIOM_SWAP, KIND_LITERAL, LIT_KIND_FLOAT, LIT_KIND_INT,
+    ATTR_LIT_KIND, ATTR_OP, CHILD_BIND, CHILD_PLACE, CHILD_VALUE, FLAG_INFERRED, FLAG_MUTATED,
+    IDIOM_SWAP, KIND_LITERAL, LIT_KIND_FLOAT, LIT_KIND_INT,
 };
 
 pub(crate) fn statement(
@@ -125,8 +126,8 @@ pub(crate) fn statement(
             // `int(x)` in that position means "as wide as the place" rather than "as wide as the
             // source's int". Emitting the source's width there made `n = n.wrapping_sub(last as
             // i64)` where `n` is a `usize`, which is the two ends of one decision disagreeing.
-            let indexed_place =
-                target.kind == crate::vocabulary::KIND_IDENT && cx.usize_counters.contains(&target.name);
+            let indexed_place = target.kind == crate::vocabulary::KIND_IDENT
+                && cx.usize_counters.contains(&target.name);
             let Some(spelling) = node.attr(ATTR_OP) else {
                 let mut built = expression(value, cx)?;
                 if indexed_place {
@@ -322,7 +323,10 @@ fn reads_once(place: &RustExpr) -> bool {
 fn starts_as_untyped_number(node: &Declaration) -> bool {
     node.children.first().is_some_and(|value| {
         value.kind == KIND_LITERAL
-            && matches!(value.attr(ATTR_LIT_KIND), Some(LIT_KIND_INT | LIT_KIND_FLOAT))
+            && matches!(
+                value.attr(ATTR_LIT_KIND),
+                Some(LIT_KIND_INT | LIT_KIND_FLOAT)
+            )
     })
 }
 

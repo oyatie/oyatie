@@ -140,7 +140,10 @@ pub(crate) fn byte_order_call(
 /// The source spells the write as a call — `PutUint32(b, v)` leaves `b` holding the bytes — and the
 /// target spells it as a mutation. A binding that appears only as such an argument is never observed
 /// assigned, so it comes out immutable and the emitted mutation does not compile.
-pub(crate) fn writes_into_first_argument(node: &Declaration, resolver: &crate::resolve::Resolver<'_>) -> bool {
+pub(crate) fn writes_into_first_argument(
+    node: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+) -> bool {
     let rule = resolver.byte_order_calls;
     if rule.package.is_empty() {
         return false;

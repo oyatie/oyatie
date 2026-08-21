@@ -79,7 +79,10 @@ fn a_moved_upstream_carries_its_change_into_the_emit() {
         before.contains("wrapping_mul(2)"),
         "the earlier body:\n{before}"
     );
-    assert!(after.contains("wrapping_mul(3)"), "the changed body:\n{after}");
+    assert!(
+        after.contains("wrapping_mul(3)"),
+        "the changed body:\n{after}"
+    );
     assert!(
         !before.contains("fn offset") && after.contains("pub fn offset(value: i64) -> i64"),
         "a declaration that appeared upstream must appear in the port:\n{after}"

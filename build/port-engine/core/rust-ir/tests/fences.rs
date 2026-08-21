@@ -33,8 +33,14 @@ const PRODUCTION_SOURCES: &[(&str, &str)] = &[
     ("lower_body.rs", include_str!("../src/lower_body.rs")),
     ("lower_expr.rs", include_str!("../src/lower_expr.rs")),
     ("lower_parts.rs", include_str!("../src/lower_parts.rs")),
-    ("lower_precedence.rs", include_str!("../src/lower_precedence.rs")),
-    ("lower_sentinel.rs", include_str!("../src/lower_sentinel.rs")),
+    (
+        "lower_precedence.rs",
+        include_str!("../src/lower_precedence.rs"),
+    ),
+    (
+        "lower_sentinel.rs",
+        include_str!("../src/lower_sentinel.rs"),
+    ),
     ("ops.rs", include_str!("../src/ops.rs")),
     ("render.rs", include_str!("../src/render.rs")),
     ("sources.rs", include_str!("../src/sources.rs")),

@@ -24,9 +24,7 @@ pub(crate) enum End {
 }
 
 /// Which end each of this declaration's channel PARAMETERS holds, by position.
-pub(crate) fn parameter_ends(
-    declaration: &Declaration,
-) -> std::collections::BTreeMap<usize, End> {
+pub(crate) fn parameter_ends(declaration: &Declaration) -> std::collections::BTreeMap<usize, End> {
     let Some(body) = declaration
         .children_of_kind(crate::vocabulary::CHILD_BODY)
         .first()
@@ -87,7 +85,9 @@ fn handed_onward(
     found: &mut Option<Option<End>>,
 ) {
     if node.kind == crate::vocabulary::KIND_CALL {
-        let callee = node.attr(crate::vocabulary::ATTR_CALLEE).unwrap_or_default();
+        let callee = node
+            .attr(crate::vocabulary::ATTR_CALLEE)
+            .unwrap_or_default();
         for (index, argument) in node.children.iter().skip(1).enumerate() {
             if !is_name(argument, name) {
                 continue;
@@ -209,9 +209,7 @@ pub(crate) fn sent(
     Ok(RustExpr::MethodCall {
         receiver: Box::new(sent),
         method: abort.to_owned(),
-        args: vec![RustExpr::Literal(
-            message.trim_end_matches(')').to_owned(),
-        )],
+        args: vec![RustExpr::Literal(message.trim_end_matches(')').to_owned())],
     })
 }
 
@@ -298,7 +296,10 @@ pub(crate) fn selected(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, Tr
             name: name.clone(),
             mutable: false,
             ty: None,
-            value: Some(zero_on_close(RustExpr::Path(name.clone()), &forms.zero_on_close)),
+            value: Some(zero_on_close(
+                RustExpr::Path(name.clone()),
+                &forms.zero_on_close,
+            )),
         }];
         statements.extend(crate::body::translate(
             &body.children,
@@ -383,7 +384,9 @@ pub(crate) fn spawned(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, Tra
                      this does not answer yet"
                 .to_owned(),
         })?;
-    let callee = started.attr(crate::vocabulary::ATTR_CALLEE).unwrap_or_default();
+    let callee = started
+        .attr(crate::vocabulary::ATTR_CALLEE)
+        .unwrap_or_default();
     let mut call = crate::body_expr::expression(started, cx)?;
     if cx.resolver.signatures.suspends(callee) {
         call = RustExpr::Await(Box::new(call));

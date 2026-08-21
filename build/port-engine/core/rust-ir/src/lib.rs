@@ -30,27 +30,27 @@ mod sources;
 pub use sources::CRATE_SOURCES;
 
 mod expr;
-mod stmt;
 mod item;
+mod item_parts;
+mod item_types;
 mod lower;
 mod lower_body;
 mod lower_expr;
-mod lower_precedence;
-mod item_parts;
-mod item_types;
 mod lower_parts;
+mod lower_precedence;
 mod lower_sentinel;
 mod ops;
 mod render;
+mod stmt;
 mod ty;
 
 pub use expr::{ClosureParam, MatchArm, RustExpr};
-pub use stmt::{ForBinding, RustStmt, SelectArm, TupleBind};
 pub use item::{RustItem, SentinelVariant};
 pub use item_parts::{Receiver, RustField, RustFn, RustParam, StructShape, Visibility};
 pub use lower::lower_file;
 pub use ops::{BinaryOp, Precedence, UnaryOp};
 pub use render::{EmptyRenderer, FORMATTER_ID, RustIr, RustRenderer, rendered_text};
+pub use stmt::{ForBinding, RustStmt, SelectArm, TupleBind};
 pub use ty::RustType;
 
 /// Fail-closed readiness gate. `true` once the typed IR and its renderer are present.

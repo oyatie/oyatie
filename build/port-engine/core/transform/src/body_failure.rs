@@ -9,14 +9,15 @@ use port_engine_api::Declaration;
 use port_engine_rust_ir::{RustExpr, RustStmt, TupleBind};
 
 use crate::body::Body;
-use crate::body_operand::returned_operand;
-use crate::failure_proof::{discards_nothing, is_certainly_a_failure};
 use crate::body_expr::expression;
+use crate::body_operand::returned_operand;
 use crate::body_ops::own_returned_string;
 use crate::error::TransformError;
+use crate::failure_proof::{discards_nothing, is_certainly_a_failure};
 use crate::naming::{to_screaming_snake, to_snake_case};
 use crate::vocabulary::{
-    ATTR_CALLEE, ATTR_OP, ATTR_VALUE, KIND_CALL, KIND_COMPOSITE, KIND_IDENT, KIND_UNARY, OPERATOR_ADDRESS_OF,
+    ATTR_CALLEE, ATTR_OP, ATTR_VALUE, KIND_CALL, KIND_COMPOSITE, KIND_IDENT, KIND_UNARY,
+    OPERATOR_ADDRESS_OF,
 };
 
 /// The source's bind-and-check pair as one operator.
@@ -137,7 +138,9 @@ pub(crate) fn translated_return(
             .collect::<Result<Vec<_>, _>>()?;
         match values.len() {
             0 => None,
-            1 => values.into_iter().next().map(|expr| crate::body_ops::own_returned_sequence(own_returned_string(expr, cx), 0, cx)),
+            1 => values.into_iter().next().map(|expr| {
+                crate::body_ops::own_returned_sequence(own_returned_string(expr, cx), 0, cx)
+            }),
             // Several results leave as a tuple, matching how the signature renders them.
             // Each ELEMENT owns on its own terms: a tuple of results is several results, and only
             // some of them are sequences the target owns.
@@ -272,13 +275,14 @@ fn inferred(built: RustExpr, cx: &Body<'_>) -> RustExpr {
     // A SENTINEL is already the failure's own type, so the destination's conversion is all it
     // needs — there is no construction to rewrite because there was none.
     if let RustExpr::Path(name) = &built
-        && cx.resolver.scope.sentinels.keys().any(|source| {
-            cx.resolver.sentinel_path(source) == *name
-        })
+        && cx
+            .resolver
+            .scope
+            .sentinels
+            .keys()
+            .any(|source| cx.resolver.sentinel_path(source) == *name)
     {
-        return RustExpr::Literal(
-            convention.inferred_construction.replace("{0}", name),
-        );
+        return RustExpr::Literal(convention.inferred_construction.replace("{0}", name));
     }
     // Only a rendered CONSTRUCTION is rewritten, and only by matching the general form the pack
     // declares: the operand inside it is what the shorter form takes, and reading it from the form
@@ -300,15 +304,12 @@ fn inferred(built: RustExpr, cx: &Body<'_>) -> RustExpr {
         .strip_prefix(prefix)
         .and_then(|rest| rest.strip_suffix(suffix))
     {
-        Some(operand) => RustExpr::Literal(
-            convention
-                .inferred_construction
-                .replace("{0}", operand),
-        ),
+        Some(operand) => {
+            RustExpr::Literal(convention.inferred_construction.replace("{0}", operand))
+        }
         None => built,
     }
 }
-
 
 /// The failure a SENTINEL operand builds, if the operand is one.
 ///

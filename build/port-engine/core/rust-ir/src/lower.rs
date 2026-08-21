@@ -55,9 +55,7 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
         RustItem::Nothing => Ok(quote! {}),
         item @ (RustItem::SentinelEnum { .. }
         | RustItem::SentinelError { .. }
-        | RustItem::MessageImpl { .. }) => {
-            crate::lower_sentinel::lower(item)
-        }
+        | RustItem::MessageImpl { .. }) => crate::lower_sentinel::lower(item),
 
         RustItem::PackageValue {
             docs,
@@ -74,7 +72,10 @@ fn lower_item(item: &RustItem) -> Result<TokenStream, PortError> {
 
         RustItem::BlanketImpl { name, bounds } => {
             let name = parse_ident(name)?;
-            let bounds = bounds.iter().map(parse_type).collect::<Result<Vec<_>, _>>()?;
+            let bounds = bounds
+                .iter()
+                .map(parse_type)
+                .collect::<Result<Vec<_>, _>>()?;
             Ok(quote! { impl<T: #(#bounds)+*> #name for T {} })
         }
 
@@ -238,9 +239,12 @@ fn lower_fn(function: &RustFn) -> Result<TokenStream, PortError> {
                     detail: format!("`{attr}` is not a valid target attribute: {err}"),
                 })
                 .and_then(|item| {
-                    item.attrs.into_iter().next().ok_or_else(|| PortError::Render {
-                        detail: format!("`{attr}` parsed as no attribute at all"),
-                    })
+                    item.attrs
+                        .into_iter()
+                        .next()
+                        .ok_or_else(|| PortError::Render {
+                            detail: format!("`{attr}` parsed as no attribute at all"),
+                        })
                 })
         })
         .collect::<Result<Vec<_>, _>>()?;
@@ -299,7 +303,9 @@ fn lower_fn(function: &RustFn) -> Result<TokenStream, PortError> {
         None => Ok(quote! { #docs #(#attrs)* #vis #asyncness fn #name(#(#inputs),*) #ret ; }),
         Some(body) => {
             let statements = lower_block(body)?;
-            Ok(quote! { #docs #(#attrs)* #vis #asyncness fn #name(#(#inputs),*) #ret { #statements } })
+            Ok(
+                quote! { #docs #(#attrs)* #vis #asyncness fn #name(#(#inputs),*) #ret { #statements } },
+            )
         }
     }
 }

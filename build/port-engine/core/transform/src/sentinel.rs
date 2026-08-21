@@ -36,7 +36,10 @@ use crate::vocabulary::{ATTR_CALLEE, ATTR_VALUE, FLAG_REBOUND, KIND_CALL, KIND_L
 ///   makes the value a failure and its sole argument the message;
 /// - that argument is a LITERAL, because a message computed from anything else is not a constant
 ///   expression, and `fmt.Errorf` is exactly the case that fails here.
-pub(crate) fn sentinels(declarations: &[Declaration], failure: Option<&FailureConvention>) -> BTreeMap<String, String> {
+pub(crate) fn sentinels(
+    declarations: &[Declaration],
+    failure: Option<&FailureConvention>,
+) -> BTreeMap<String, String> {
     sentinels_with(declarations, failure, &BTreeMap::new())
         .into_iter()
         .map(|(name, (message, _))| (name, message))
