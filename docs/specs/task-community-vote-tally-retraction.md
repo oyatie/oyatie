@@ -3,7 +3,7 @@
 **Status:** SPEC  
 **Vertical:** community  
 **Lane:** `feat/task-community-vote-tally-retraction-2026-05-28`  
-**Crate:** `oya-community-post-store-domain` (`crates/oya-community-post-store-domain/`)
+**Crate:** `community-post-store-domain` (`crates/community-post-store-domain/`)
 
 ---
 
@@ -15,7 +15,7 @@ Extend the community post-store domain crate with vote-retraction, net-score tal
 
 ## Vertical Context
 
-The `community` vertical owns the post-store service (`oya-community-post-store-*` crate family). The domain crate (`oya-community-post-store-domain`) holds all business invariants as pure Rust: `CommunityPost`, `VoteLedger`, `VoteReceipt`, `ModerationAction`, and `CommunityError`.
+The `community` vertical owns the post-store service (`oya-community-post-store-*` crate family). The domain crate (`community-post-store-domain`) holds all business invariants as pure Rust: `CommunityPost`, `VoteLedger`, `VoteReceipt`, `ModerationAction`, and `CommunityError`.
 
 ---
 
@@ -23,7 +23,7 @@ The `community` vertical owns the post-store service (`oya-community-post-store-
 
 This task operates exclusively on:
 
-- `crates/oya-community-post-store-domain/src/lib.rs`
+- `crates/community-post-store-domain/src/lib.rs`
 - `docs/specs/task-community-vote-tally-retraction.md` (this file)
 - `tasks/community-vote-tally-retraction-plan.md`
 
@@ -164,8 +164,8 @@ All tests live in the `#[cfg(test)] mod tests` block at the bottom of `src/lib.r
 ## Verification Gates
 
 ```
-cargo check -p oya-community-post-store-domain --all-targets
-cargo nextest run -p oya-community-post-store-domain
+cargo check -p community-post-store-domain --all-targets
+cargo nextest run -p community-post-store-domain
 ```
 
 Both must be green. No bare `cargo check --workspace` (masks test/feature breaks per project rules).

@@ -327,8 +327,8 @@ pub fn parse_baseline(value: &Value) -> Result<Baseline, String> {
 struct ParsedPolicy {
     /// Governed crate roots (member globs) — the set of first-party crate dirs to scan.
     crate_root_globs: Vec<String>,
-    /// Governed SERVICE roots whose `manifest.json` carries tier metadata (`cloud/`, `oya/`).
-    /// Shape: `<root>/<service>/**`, so the tier unit is the 2-component service prefix.
+    /// Governed SERVICE roots whose `manifest.json` carries tier metadata (`cloud/`, `oya/`,
+    /// `app/`). Shape: `<root>/<service>/**`, so the tier unit is the 2-component service prefix.
     service_roots: Vec<String>,
     /// Governed CAPABILITY roots (ADR-0562 `<capability>/<face>/<crate>`). Shape-distinct from
     /// `service_roots`: the tier unit is the ROOT ITSELF (the capability), because the second path
@@ -718,8 +718,9 @@ fn segment_matches(pattern: &str, name: &str) -> bool {
 ///   second component is a FACE (`core`/`ports`/`adapters`/`facade`/`observability`), so a
 ///   2-component prefix would name `iam/adapters` — a face, not a tier-bearing unit. This is why
 ///   capability roots cannot simply be appended to `service_roots`.
-/// - a `service_roots` root (`cloud/<svc>/crates/…`, `oya/<svc>/crates/…`) → the 2-component
-///   `<root>/<svc>` prefix, which is where the tier'd `manifest.json` lives.
+/// - a `service_roots` root (`cloud/<svc>/crates/…`, `oya/<svc>/crates/…`,
+///   `app/<product>/<face>/…`) → the 2-component `<root>/<svc>` prefix, which is
+///   where the tier'd `manifest.json` lives (`app/community`, `oya/community`).
 ///
 /// Returns `None` for crates outside both (the meta trees), which the evaluator treats as
 /// unclassified.

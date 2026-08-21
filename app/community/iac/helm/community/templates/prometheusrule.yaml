@@ -1,0 +1,132 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers — helpers via {{ include "oya.X" $ }} (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: community-burn-rate-rules
+  namespace: community
+  labels:
+    app.kubernetes.io/name: community
+    prometheus: mimir
+spec:
+  groups:
+    - name: community-recording-rules
+      interval: 60s
+      rules:
+        - record: community:post_create:availability_5m
+          expr: |
+            sum(rate(oya_community_post_create_total{result="success"}[5m]))
+            /
+            sum(rate(oya_community_post_create_total[5m]))
+        - record: community:post_create:latency_p99_5m
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le) (rate(oya_community_post_create_duration_seconds_bucket[5m]))
+            )
+        - record: community:vote_cast:latency_p99_5m
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le) (rate(oya_community_vote_cast_duration_seconds_bucket[5m]))
+            )
+        - record: community:search_query:latency_p99_5m
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le) (rate(oya_community_search_query_duration_seconds_bucket[5m]))
+            )
+        - record: community:moderation_action:latency_p99_5m
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le) (rate(oya_community_moderation_action_duration_seconds_bucket[5m]))
+            )
+        - record: community:audit_seal:latency_p99_5m
+          expr: |
+            histogram_quantile(0.99,
+              sum by (le) (rate(oya_community_audit_seal_duration_seconds_bucket[5m]))
+            )
+
+    - name: community-burn-rate-alerts
+      rules:
+        - alert: CommunityPostCreateFastBurn1h
+          expr: |
+            (1 - community:post_create:availability_5m) > 14.4 * (1 - 0.999)
+          for: 5m
+          labels:
+            severity: critical
+            burn_window: 1h
+            sli: availability
+            microservice: community
+            bc: post-store
+          annotations:
+            summary: "community post-create fast-burn (14.4x) for 5m"
+            runbook_url: "https://oyatie.com/app/community/runbooks/post-mass-deletion"
+
+        - alert: CommunityPostCreateSlowBurn6h
+          expr: |
+            (1 - avg_over_time(community:post_create:availability_5m[6h])) > 6 * (1 - 0.999)
+          for: 30m
+          labels:
+            severity: warning
+            burn_window: 6h
+            sli: availability
+            microservice: community
+
+        - alert: CommunityVoteCastLatencyP99High
+          expr: community:vote_cast:latency_p99_5m > 0.1
+          for: 10m
+          labels:
+            severity: warning
+            sli: latency
+            microservice: community
+            bc: voting-engine
+          annotations:
+            summary: "community vote-cast p99 latency > 100ms for 10m"
+            runbook_url: "https://oyatie.com/app/community/runbooks/vote-anomaly"
+
+        - alert: CommunitySearchQueryLatencyP99High
+          expr: community:search_query:latency_p99_5m > 0.5
+          for: 10m
+          labels:
+            severity: warning
+            sli: latency
+            microservice: community
+            bc: search-index
+          annotations:
+            summary: "community search-query p99 > 500ms for 10m"
+            runbook_url: "https://oyatie.com/app/community/runbooks/search-rebuild"
+
+        - alert: CommunityModerationQueueDepthHigh
+          expr: |
+            max by (tenant_id) (oya_community_moderation_queue_depth) > 5000
+          for: 15m
+          labels:
+            severity: warning
+            sli: queue-depth
+            microservice: community
+            bc: moderation-queue
+          annotations:
+            summary: "community moderation queue depth > 5000 for 15m"
+            runbook_url: "https://oyatie.com/app/community/runbooks/moderation-queue-clear"
+
+        - alert: CommunityAuditSealMiss
+          expr: |
+            increase(oya_community_audit_seal_missed_total[5m]) > 0
+          for: 1m
+          labels:
+            severity: critical
+            policy: audit-chain-seal-invariant
+            microservice: community
+          annotations:
+            summary: "community audit-chain seal miss detected — P0"
+            runbook_url: "https://oyatie.com/app/community/decisions/ADR-COMM-0001"
+
+        - alert: CommunitySpamFloodDetected
+          expr: |
+            sum by (tenant_id) (rate(oya_community_post_create_total[5m])) > 100
+          for: 5m
+          labels:
+            severity: warning
+            sli: rate-limit
+            microservice: community
+            bc: post-store
+          annotations:
+            summary: "community post-create rate >100/s sustained 5m per tenant — possible spam flood"
+            runbook_url: "https://oyatie.com/app/community/runbooks/spam-flood-throttle"

@@ -158,7 +158,7 @@ The full registry lives in `[workspace.metadata.oya.microservices]` in the root
 | `application` | B2B unified shell: tenants sign in; enable µservices à-la-carte. | `oya-application-product-enablement-rest` |
 | `messenger` | Concrete messaging µservice with strict personal/professional tenant and RBAC separation. | `oya-messenger-domain`, `oya-messenger-message-stream-usecase` |
 | `mail` | Concrete mail µservice with strict personal/professional tenant and RBAC separation. | `oya-mail-domain`, `oya-mail-mailbox-store-usecase` |
-| `community` | Concrete community µservice for groups, professional profile/graph, social/anonymous modes, and moderation. | `oya-community-post-store-domain`, `oya-community-social-domain` |
+| `community` | Concrete community µservice for groups, professional profile/graph, social/anonymous modes, and moderation. | `community-post-store-domain`, `community-social-domain` |
 | `connector` | Integration-adapter substrate for external systems, OAuth/webhook brokerage, and connector catalog/runtime contracts. Not a product-group wrapper. | `oya-connector-salesforce-adapter`, `oya-connector-netsuite-adapter` |
 | `tenancy` | Tenant lifecycle, multi-tenant isolation, RLS enforcement. | `oya-tenancy-kernel`, `oya-tenancy-adapter` |
 | `identity` | Authentication, STS token issue, PKCE+nonce, SSO binding. | `oya-identity-kernel`, `oya-identity-rest` |

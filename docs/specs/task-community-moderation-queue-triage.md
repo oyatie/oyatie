@@ -1,7 +1,7 @@
 # Spec: community-moderation-queue-triage
 
 **Vertical:** community  
-**Crate:** `oya-community-post-store-usecase`  
+**Crate:** `community-post-store-usecase`  
 **ADR governance:** ADR-0509 (single-crate-per-service, mod-based subsystems)  
 **Layout authority:** ADR-0131 (per-microservice flat layout)
 
@@ -9,14 +9,14 @@
 
 ## Objective
 
-Extend `oya-community-post-store-usecase` with a deterministic, evidence-gated moderation-queue triage usecase. The queue accepts moderation outcomes produced by the existing `moderate_post` / `moderation_case` surface, assigns a severity/priority ordering (`Remove > Hide > Allow` with evidence-strength and report-count tiebreaks), and exposes a pure ordered-drain function yielding the next case for a reviewer. No new crate, no DB, no root `Cargo.toml` change — additive module within the existing crate.
+Extend `community-post-store-usecase` with a deterministic, evidence-gated moderation-queue triage usecase. The queue accepts moderation outcomes produced by the existing `moderate_post` / `moderation_case` surface, assigns a severity/priority ordering (`Remove > Hide > Allow` with evidence-strength and report-count tiebreaks), and exposes a pure ordered-drain function yielding the next case for a reviewer. No new crate, no DB, no root `Cargo.toml` change — additive module within the existing crate.
 
 ---
 
 ## Vertical & Boundaries
 
 - **Vertical:** community / post-store  
-- **Crate boundary:** `oya-community-post-store-usecase` (`crates/oya-community-post-store-usecase/`)  
+- **Crate boundary:** `community-post-store-usecase` (`crates/community-post-store-usecase/`)  
 - **Must not touch:** root `Cargo.toml`, any other crate, any adapter or app layer  
 - **No persistence:** pure in-memory domain logic; caller is responsible for persisting queue state if needed
 
@@ -25,7 +25,7 @@ Extend `oya-community-post-store-usecase` with a deterministic, evidence-gated m
 ## Module Layout (flat-clean-arch)
 
 ```
-crates/oya-community-post-store-usecase/src/
+crates/community-post-store-usecase/src/
   lib.rs                     ← existing; re-exports moderation_queue module
   moderation_queue.rs        ← NEW: ModerationQueue, enqueue, next_case, drain_ordered
 ```
@@ -128,7 +128,7 @@ Non-mutating. Does not touch `audit_correlation_id` or `idempotency_key`.
 
 This is a pure domain usecase module. It has no REST or gRPC surface of its own; callers (adapter/rest/grpc layers) invoke `enqueue` after `moderate_post` returns a `ModerationReceipt`, and `drain_ordered` / `next_case` when serving a reviewer queue endpoint.
 
-The existing `ModerationQueueService` proto binding in `oya-community-post-store-api` (`proto_service: "ModerationQueueService"`, `proto_rpc: "ApplyAction"`) provides the external contract anchor. This spec does not extend the proto surface.
+The existing `ModerationQueueService` proto binding in `community-post-store-api` (`proto_service: "ModerationQueueService"`, `proto_rpc: "ApplyAction"`) provides the external contract anchor. This spec does not extend the proto surface.
 
 **AsyncAPI channel (existing):** `community.moderation.actioned`  
 **OpenAPI 3.2.0 operation (existing):** `applyModerationAction` on `ModerationQueueService`
@@ -181,5 +181,5 @@ All tests are `#[cfg(test)]` inside `src/moderation_queue.rs` using `cargo nexte
 
 - No new crate; no root `Cargo.toml` edit.
 - No database, no async runtime, no I/O of any kind.
-- No new external dependencies beyond what `oya-community-post-store-usecase` already has.
+- No new external dependencies beyond what `community-post-store-usecase` already has.
 - No changes to existing functions (`create_post`, `cast_vote`, `moderate_post`, `map_mode`, `map_moderation`).

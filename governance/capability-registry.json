@@ -524,7 +524,7 @@
         "app/hr",
         "app/payroll",
         "oya/application",
-        "oya/community",
+        "app/community",
         "oya/connect",
         "oya/contract-lifecycle-management",
         "oya/crm",

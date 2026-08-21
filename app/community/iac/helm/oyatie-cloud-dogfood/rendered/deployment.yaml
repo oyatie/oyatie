@@ -1,0 +1,108 @@
+# Static rendered manifest snapshot for ADR-0199 tenant-cost-label coverage.
+# Source chart: app/community/iac/k8s/helm/templates/deployment.yaml
+# Source values: app/community/iac/k8s/helm/values.yaml
+# Non-claim: not applied to any Kubernetes cluster; no ArgoCD sync, admission, or OpenCost report is claimed.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: community
+  labels:
+    app.kubernetes.io/name: community
+    app.kubernetes.io/part-of: oyatie-microservices
+    app.kubernetes.io/managed-by: Helm
+    oyatie.com/adr-0349: argocd-managed
+    oyatie.com/cargo-package: oya-community
+    oya.io/tenant-id: fd001-dogfood
+    oya.io/cost-center: fd001-backbone
+    oya.io/workload-class: app
+    oya.io/regulatory-pack: generic
+    oyatie.com/dogfood-substrate: oyatie-cloud
+    oyatie.com/product-goal: fd-001
+  annotations:
+    oyatie.com/non-claim: static-rendered-manifest-snapshot-only-no-cluster-apply-or-opencost-report
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: community
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: community
+        app.kubernetes.io/part-of: oyatie-microservices
+        istio.io/dataplane-mode: ambient
+        oyatie.com/tenant-class: contributor
+        oya.io/tenant-id: fd001-dogfood
+        oya.io/cost-center: fd001-backbone
+        oya.io/workload-class: app
+        oya.io/regulatory-pack: generic
+        oyatie.com/dogfood-substrate: oyatie-cloud
+        oyatie.com/product-goal: fd-001
+      annotations:
+        cosign.sigstore.dev/required: "true"
+        oyatie.com/image-digest: ""
+        oyatie.com/image-promotion-policy: ADR-0181
+        oyatie.com/audit-chain-event: microservice-deployment
+    spec:
+      runtimeClassName: runc
+      serviceAccountName: oya-community
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      topologySpreadConstraints:
+        - maxSkew: 1
+          topologyKey: topology.kubernetes.io/zone
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: community
+        - maxSkew: 1
+          topologyKey: kubernetes.io/hostname
+          whenUnsatisfiable: ScheduleAnyway
+          labelSelector:
+            matchLabels:
+              app.kubernetes.io/name: community
+      containers:
+        - name: app
+          # Intentionally blank: static evidence snapshots are not deployable without release automation.
+          image: ""
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: OYA_MICROSERVICE
+              value: community
+            - name: OYA_CARGO_PACKAGE
+              value: oya-community
+            - name: OYA_OTEL_ENDPOINT
+              value: http://otel-collector.observability.svc.cluster.local:4317
+            - name: OYA_IMAGE_PROMOTION_POLICY
+              value: cosign-required
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 30
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL

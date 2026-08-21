@@ -1100,7 +1100,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - reduce before personal tenant expansion.
 - acceptance posture: Avoid behavioral advertising to minors; reduce other exposure.
 - transfer posture: parental consent processors transfer limited verification support.
-- microservice mitigations: `oya-identity-domain`, `oya-messenger-domain`, `oya-community-social-domain`, `oya-mail-domain`, `oya-ads-analytics-domain`, `oya-intelligence-guardrails-content-safety-rule-engine-kernel`.
+- microservice mitigations: `oya-identity-domain`, `oya-messenger-domain`, `community-social-domain`, `oya-mail-domain`, `oya-ads-analytics-domain`, `oya-intelligence-guardrails-content-safety-rule-engine-kernel`.
 - Cedar policies: `policy.minor_age_gate`, `policy.minor_no_sale_share`, `policy.guardian_consent_required`, `policy.default_private_minor`.
 - monitoring: age assurance failure, minor content report, consent expiration, ad sharing deny count, account recovery risk.
 - named indicators: under-16 signal, guardian dispute, minor data in ads, social-media complaint, safety escalation.
@@ -1874,7 +1874,7 @@ California OAG/CPPA enforcement actions: Sephora, Healthline, Disney, Jam City, 
 - status: Open - mitigated by moderation and takedown controls.
 - acceptance posture: Reduce; accept private enterprise content boundary only where contractually controlled.
 - transfer posture: moderation vendors and insurance transfer some operational cost only.
-- microservice mitigations: `oya-intelligence-guardrails-content-safety-rule-engine-kernel`, `oya-marketplace-domain`, `oya-community-social-domain`, `oya-messenger-domain`, `oya-mail-domain`, storage abuse controls.
+- microservice mitigations: `oya-intelligence-guardrails-content-safety-rule-engine-kernel`, `oya-marketplace-domain`, `community-social-domain`, `oya-messenger-domain`, `oya-mail-domain`, storage abuse controls.
 - Cedar policies: `policy.content_takedown_authorized`, `policy.abuse_report_triage`, `policy.public_marketplace_listing_review`.
 - monitoring: abuse report queue, takedown SLA, classifier false negatives, marketplace listing flags, repeat offender count.
 - named indicators: illegal content report, customer harassment complaint, public listing abuse, law enforcement request.

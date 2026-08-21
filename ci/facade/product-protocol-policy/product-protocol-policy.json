@@ -81,6 +81,7 @@
   },
   "manifest_inventory": {
     "governed_roots": [
+      "app/community",
       "audit",
       "billing",
       "cell",

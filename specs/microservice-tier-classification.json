@@ -806,9 +806,9 @@
         "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
     },
-    "oya/community/manifest.json": {
-      "service": "oya/community",
-      "manifest": "oya/community/manifest.json",
+    "app/community/manifest.json": {
+      "service": "app/community",
+      "manifest": "app/community/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-community",

@@ -1,0 +1,31 @@
+rust_library(
+    name = "community-post-store-rest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_post_store_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/facade/post-store-app:community-post-store-app",
+        "//app/community/core/post-store-domain:community-post-store-domain",
+        "//app/community/core/post-store-usecase:community-post-store-usecase",
+    ],
+)
+
+rust_test(
+    name = "community-post-store-rest-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_post_store_rest",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/facade/post-store-app:community-post-store-app",
+        "//app/community/core/post-store-domain:community-post-store-domain",
+        "//app/community/core/post-store-usecase:community-post-store-usecase",
+    ],
+)

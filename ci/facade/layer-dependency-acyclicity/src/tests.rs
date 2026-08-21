@@ -589,6 +589,18 @@ fn owning_service_consumes_the_configured_roots_not_a_hardcode() {
     );
     assert_eq!(owning_service("messaging/core/domain", &roots, &none), None);
 
+    // ADR-0562 composition ring: app/<product>/<face>/<crate> is a 2-component
+    // service unit (`app/community`), never a capability root and never unclassified.
+    let with_app = vec!["app".to_string(), "cloud".to_string(), "oya".to_string()];
+    assert_eq!(
+        owning_service("app/community/ports/post-store-api", &with_app, &none),
+        Some("app/community".to_string())
+    );
+    assert_eq!(
+        owning_service("app/community/ports/post-store-api", &roots, &none),
+        None
+    );
+
     // Repointing the policy at a different root set must change the projection. Under a hardcode
     // this assertion fails.
     let repointed = vec!["messaging".to_string()];
@@ -720,7 +732,7 @@ fn unclassified_root_silently_exempts_an_otherwise_red_edge() {
     // a fix.
     let edge = (
         "iam/core/identity-domain",
-        "oya/community/crates/oya-community-post-store-api",
+        "app/community/ports/post-store-api",
     );
     let unclassified = {
         let mut c = corpus(

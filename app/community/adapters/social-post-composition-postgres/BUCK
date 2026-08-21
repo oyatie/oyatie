@@ -1,0 +1,21 @@
+rust_library(
+    name = "community-social-post-composition-postgres",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_social_post_composition_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+    ],
+)
+
+rust_test(
+    name = "community-social-post-composition-postgres-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_social_post_composition_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+    ],
+)

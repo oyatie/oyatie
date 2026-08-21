@@ -2,7 +2,7 @@
 
 **Status**: draft  
 **Vertical**: community  
-**Crate**: `oya-community-social-post-composition-usecase` (`crates/oya-community-social-post-composition-usecase/`)  
+**Crate**: `community-social-post-composition-usecase` (`crates/community-social-post-composition-usecase/`)  
 **Branch**: `feat/task-social-feed-ranking-score-2026-05-28`  
 **ADR authority**: ADR-0509 (flat single-crate service), ADR-0131 (flat layout)
 
@@ -10,7 +10,7 @@
 
 ## Objective
 
-Extend the `oya-community-social-post-composition-usecase` crate with a deterministic feed-ranking usecase. The new `feed_ranking` module provides:
+Extend the `community-social-post-composition-usecase` crate with a deterministic feed-ranking usecase. The new `feed_ranking` module provides:
 
 1. `FeedRankInput` — a plain data struct carrying post reference, creation timestamp, and bounded engagement counter.
 2. `score(input, now) -> u64` — a pure, integer-only score function combining recency decay and capped engagement signal.
@@ -25,17 +25,17 @@ No I/O, no new crate, no root `Cargo.toml` edit.
 | Attribute | Value |
 |---|---|
 | Vertical | community |
-| Owning crate | `oya-community-social-post-composition-usecase` |
-| Lib name | `oya_community_social_post_composition_usecase` |
+| Owning crate | `community-social-post-composition-usecase` |
+| Lib name | `community_social_post_composition_usecase` |
 | New module | `feed_ranking` (additive; `src/feed_ranking.rs` + `pub mod feed_ranking;` in `lib.rs`) |
-| Existing dependencies | `oya-community-social-domain`, `oya-community-social-post-composition-api` |
+| Existing dependencies | `community-social-domain`, `community-social-post-composition-api` |
 
 ---
 
 ## Mod layout (flat clean-arch)
 
 ```
-crates/oya-community-social-post-composition-usecase/
+crates/community-social-post-composition-usecase/
   src/
     lib.rs            ← add `pub mod feed_ranking;`; existing functions untouched
     feed_ranking.rs   ← new: FeedRankInput, score(), rank_feed()
@@ -235,8 +235,8 @@ All tests live in `src/feed_ranking.rs` inside `#[cfg(test)] mod tests`.
 ## Acceptance gate
 
 ```sh
-cargo check -p oya-community-social-post-composition-usecase --all-targets
-cargo nextest run -p oya-community-social-post-composition-usecase
+cargo check -p community-social-post-composition-usecase --all-targets
+cargo nextest run -p community-social-post-composition-usecase
 ```
 
 Both commands must exit 0 with all tests passing.
@@ -245,7 +245,7 @@ Both commands must exit 0 with all tests passing.
 
 ## Boundaries and constraints
 
-- **No new crate** — all additions are inside `oya-community-social-post-composition-usecase`.
+- **No new crate** — all additions are inside `community-social-post-composition-usecase`.
 - **No root `Cargo.toml` edit** — workspace manifest is untouched.
 - **No I/O** — `score` and `rank_feed` are pure functions.
 - **No adjacent refactoring** — existing `compose_post`, `plan_story_purge`, and helper functions are not modified.

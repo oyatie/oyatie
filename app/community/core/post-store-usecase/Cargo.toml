@@ -1,0 +1,19 @@
+[package]
+name = "community-post-store-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+community-post-store-api = { path = "../../ports/post-store-api" }
+community-post-store-domain = { path = "../post-store-domain" }
+
+[lib]
+name = "community_post_store_usecase"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true
