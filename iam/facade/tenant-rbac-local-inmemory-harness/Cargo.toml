@@ -13,14 +13,14 @@ billing-accounting-storage-inmemory-adapter = { path = "../../../billing/adapter
 iam-tenant-rbac-usecase = { path = "../../core/tenant-rbac-usecase" }
 iam-tenant-rbac-storage-inmemory = { path = "../../adapters/tenant-rbac-storage-inmemory" }
 iam-tenant-rbac-workflow-inmemory = { path = "../../adapters/tenant-rbac-workflow-inmemory" }
-oya-hr-employment-app = { path = "../../../oya/hr/crates/oya-hr-employment-app" }
-oya-hr-employment-storage-adapter-inmemory = { path = "../../../oya/hr/crates/oya-hr-employment-storage-adapter-inmemory" }
+hr-employment-app = { path = "../../../app/hr/facade/employment-app" }
+hr-employment-storage-inmemory = { path = "../../../app/hr/adapters/employment-storage-inmemory" }
 oya-payroll-run-app = { path = "../../../oya/payroll/crates/oya-payroll-run-app" }
 oya-payroll-run-storage-adapter-inmemory = { path = "../../../oya/payroll/crates/oya-payroll-run-storage-adapter-inmemory" }
 
 [dev-dependencies]
 iam-tenant-rbac-domain = { path = "../../core/tenant-rbac-domain" }
-oya-hr-employment-domain = { path = "../../../oya/hr/crates/oya-hr-employment-domain" }
+hr-employment-domain = { path = "../../../app/hr/core/employment-domain" }
 oya-payroll-run-domain = { path = "../../../oya/payroll/crates/oya-payroll-run-domain" }
 
 [lib]
