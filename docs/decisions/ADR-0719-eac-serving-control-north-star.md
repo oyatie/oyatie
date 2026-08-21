@@ -10,9 +10,9 @@ door: two-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: [ADR-0702, ADR-0704, ADR-0705, ADR-0708]
+amends: [ADR-0701, ADR-0702, ADR-0704, ADR-0705, ADR-0708]
 amended_by: []
-depends_on: [ADR-0615, ADR-0702, ADR-0704, ADR-0705, ADR-0710]
+depends_on: [ADR-0615, ADR-0701, ADR-0702, ADR-0704, ADR-0705, ADR-0710]
 related: [ADR-0243, ADR-0280, ADR-0354, ADR-0049]
 milestone: W0
 deliverables:
@@ -27,6 +27,10 @@ deliverables:
   - id: ADR-0719-D3
     description: "Record compliance as jurisdiction packs. EU is not the world baseline. KR (and others) are not GDPR subsets. ReBAC and snapshots stay in the certified cell."
     exit_criteria: "Pack overlays are the only place jurisdiction law is specialized; no implement PR assumes EU-only identity, retention, or global ACL replication."
+    verified_by: "oya-ci-required"
+  - id: ADR-0719-D8
+    description: "Closed directory set for repo root and capability/app/<product>/ roots. A name exists only if a compiler, test, PDP, SLO controller, or reconciler loads it (or it is OWNERS/README/BUCK/app PRD). Census files and wrap languages are not children."
+    exit_criteria: "ADR-0701 Status cites this D-8; new cap/app children outside the set are born-blocking without grandfathering catalog.yaml or dual cedar+policy; layout-allowlist PRs match this set."
     verified_by: "oya-ci-required"
 ---
 
@@ -170,13 +174,62 @@ gateway; packs.
 
 **Regret:** etcd as product DB; AWS closed journal; JSON as product codec; Helm-as-source;
 Kyverno/Kubewarden as default; one global cluster; worldwide ACL replica; silent drop of
-privileged evidence; passkeys as L3; unpublished binary lock-in; EU-as-only-baseline.
+privileged evidence; passkeys as L3; unpublished binary lock-in; EU-as-only-baseline;
+cap-root census files; dual `cedar/`+`policy/` children.
+
+### D-8 — Repo root and capability / app root (amends ADR-0701)
+
+A directory or file is allowed only if something that is **not a census gate** loads it,
+or it is `OWNERS` / short `README.md` / `BUCK` / `app/<product>/PRD.md`. Git history is
+the audit log. Do not invent a destination for leftovers; many must **not exist**.
+
+**Repo root (closed).** Workspace: `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`,
+`rustfmt.toml`, `deny.toml`, `reindeer.toml`, `.buckconfig`, `.buckroot`, `.cargo/`.
+GitHub: `.github/`, `.gitignore`, `.gitattributes`. Hubs: `README.md`, `LICENSE`,
+`OWNERS`, `AGENTS.md`, `CLAUDE.md`, founder-thin `HANDOFF.md`. Meta: `kernel/`, `os/`,
+`base/` (crate enters only if ≥3 capabilities depend on it and it sits strictly below
+them), `governance/`, `build/`, `third-party/`. Composition: `app/`. One directory per
+**registered** capability (including `policy/` when extracted). Jurisdiction: `packs/<id>/`
+as one versioned bundle the engines load (Cedar + ontology + constraints), not per-cap
+copies. `docs/` holds ADRs and the operating contract, not product novels.
+
+**Not repo-root (reorg_now or should-not-exist):** `oya/`, `cloud/`, `libs/`, `infra/`,
+`tools/`, `toolchains/`; root `Makefile`; root `Dockerfile*` (images live under `build/`);
+`oya-*.toml`; tracked `.claude/` `.codex/` `.cursor/` `.grok/`; `evidence/` dumps;
+`benchmarks/`; `scripts/`; `tasks/` / `plan/` as required-existence corpora; `catalog.yaml`
+trees; root `contracts/` YAML as a second SSOT (IDL is the Rust/proto contract). Root
+`specs/` / `registry/` that duplicate `governance/` or that engines do not load are
+removal targets, not keep-forever.
+
+**Capability root and `app/<product>/` (closed children):** `core/`, `ports/`, `adapters/`,
+`facade/`, `policy/` (`.cedar` / `.cedarschema` the PDP loads — **one** name, not also
+`cedar/`), `observability/slos/` (OpenSLO the controller applies), `iac/` (**IR / objects
+the reconciler applies**, not Helm/Tofu/raw Deployment as source), `OWNERS`, short
+`README.md`, `BUCK`. `app/<product>/` may add `PRD.md`. Nested leftover service trees
+(`oya-*`, `comms/mail`, `ci/tide`, …) are the old service: become faces or go.
+
+**Must not exist at cap/app root:** `manifest.json` census, `catalog.yaml`, `IPs/`,
+`IP-journey-*.md`, `AUDIT-FINDINGS-*.json`, `REMEDIATION-NOTES-*.md`, `scorecards/`,
+`dashboards/*.json`, `dpia/`, `decisions/` copies of ADRs, `capabilities/*.yaml` essays,
+stamped runbooks, dual `ARCH.md`/`ARCHITECTURE.md`, placeholder READMEs. Gates that
+require those files to exist are the reason they exist; delete the gate with the files.
+
+**MUST (closed children)**
+
+- **achieves:** cap/app roots stay engine-shaped; mechanical reorg cannot re-stamp census.
+- **origin:** 0701 gists and membership gates required manifests/IPs/scorecards; #2220
+  allowed `catalog.yaml` and both `cedar/` and `policy/` and grandfathered junk.
+- **rule:** only the closed child set above; one Cedar directory name (`policy/`); PRD
+  only on apps; `iac/` is IR; extras are deleted, not rehomed.
+- **ensure:** layout allowlists match this set; no grandfather of `IPs/` as immortal.
+- **overturn_when:** a child is shown to be loaded by a compiler/PDP/SLO/reconciler AND
+  a five-field amendment lands same-wave.
 
 ## Consequences
 
-- Implementers read this plus ADR-0702/0704/0705/0615. Do not re-derive from chat.
+- Implementers read this plus ADR-0701/0702/0704/0705/0615. Do not re-derive from chat.
 - `policy/` extraction and IR proto are implementation follow-through, not optional sketch.
-- Admission remains ADR-0710 (VAP/CEL+PSA); this ADR does not re-open D-8.
+- Admission remains ADR-0710 (VAP/CEL+PSA); this ADR does not re-open ADR-0710's D-8.
 
 ## Rejected alternatives
 
@@ -187,3 +240,5 @@ privileged evidence; passkeys as L3; unpublished binary lock-in; EU-as-only-base
 - EU GDPR as the sole compliance floor.
 - Mega EaC orchestrator / remote PDP on the hit path.
 - Sync Merkle on every `Check`.
+- Cap-root `catalog.yaml` / `manifest.json` / dual `cedar/`+`policy/` as allowlist debt.
+- Rehoming AUDIT-FINDINGS, IPs, scorecards, DPIA essays into `docs/` instead of deleting.

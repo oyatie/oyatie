@@ -11,7 +11,7 @@ owner: council-architecture
 supersedes: [ADR-0011, ADR-0017, ADR-0026, ADR-0034, ADR-0036, ADR-0058, ADR-0131, ADR-0145, ADR-0159, ADR-0165, ADR-0177, ADR-0188, ADR-0197, ADR-0199, ADR-0201, ADR-0206, ADR-0218, ADR-0220, ADR-0245, ADR-0246, ADR-0255, ADR-0280, ADR-0307, ADR-0331, ADR-0332, ADR-0333, ADR-0335, ADR-0336, ADR-0338, ADR-0343, ADR-0344, ADR-0351, ADR-0363, ADR-0370, ADR-0375, ADR-0376, ADR-0378, ADR-0379, ADR-0476, ADR-0479, ADR-0480, ADR-0482, ADR-0510, ADR-0512, ADR-0520, ADR-0532, ADR-0552, ADR-0561, ADR-0562, ADR-0564, ADR-0571, ADR-0580, ADR-0591, ADR-0598, ADR-0599, ADR-0604, ADR-0614, ADR-0615, ADR-0617, ADR-0620, ADR-0621, ADR-0635]
 superseded_by: []
 amends: []
-amended_by: [ADR-0710]
+amended_by: [ADR-0710, ADR-0719]
 depends_on: []
 related: []
 milestone: W0
@@ -27,6 +27,8 @@ deliverables:
 
 **Accepted** — live consolidated source-of-truth entry for topic `monorepo_capability` (E5 2026-08-06).
 
+**Live amendment (ADR-0719, founder 2026-08-21).** Repo-root and capability/`app/<product>/` **directory shape** is the closed set in [ADR-0719 D-8](ADR-0719-eac-serving-control-north-star.md). That set **scoped-supersedes** member gists below that require census files (`manifest.json`, `catalog.yaml`, `scorecards/`, `IPs/`, `AUDIT-FINDINGS`, dashboard JSON, `dpia.md` essays), `microservices/` paths, Helm/Tofu/Kyverno as **sources**, or both `cedar/` and `policy/` as cap-root children. Faces (`core`/`ports`/`adapters`/`facade`), ADR-0562/0615 placement, and shrink-only `reorg_now` of `oya/`/`libs/`/`cloud/`/`infra/`/`tools/`/`toolchains/` still stand. On conflict, ADR-0719 D-8 wins.
+
 ## Context
 
 Oyatie ADR corpus cleanup: agents must not treat every historical Accepted file as equal live law.
@@ -41,6 +43,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 2. **Member ADRs listed in `supersedes`** are historical; normative gist is preserved below.
 3. **Contradictions** among members are resolved by later higher-number members and by
    ADR-0515 / ADR-0363 / ADR-0562 / ADR-0615 / ADR-0635 / ADR-0637–0639 when applicable.
+   **Layout closed-set and “should not exist” classes:** ADR-0719 D-8.
 4. **Activation-sensitive** items (warm CAS, RE workers) remain fail-closed until explicit go-gate.
 
 ## Preserved member gists
