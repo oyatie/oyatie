@@ -22,7 +22,7 @@ use ci_scan_root_liveness::{
 use serde_json::Value;
 
 const POLICY_PATH: &str = "ci/facade/scan-root-liveness/scan-root-liveness-policy.json";
-const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
+const EXPECTED_BASELINED_DEAD_ROOTS: usize = 9;
 
 /// The reviewed ceiling on tolerated dark gate crates.
 ///
@@ -53,13 +53,14 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 11;
 // -- shardability, layered-architecture-discipline, cursor-pagination-coverage, data-class,
 // ontology-projection-coverage, active-artifact-contract -- each of which leaves the dark
 // baseline in the same change that gives it a live-corpus test. 94 - 6 = 88, and the set
-// diff confirms it: exactly those six left, nothing was added back.
-// 2026-08-20  89 -> 88. data-class leaves the dark baseline: it gains a live-corpus test
-// in this change, which was blocked until the 28 unannotated struct fields #2136 landed
-// in governance/check/apex-gist-integrity were annotated. Both halves ship together
-// because neither is correct alone -- wiring the gate without the annotations reds on
-// another PR's crate, and annotating without wiring proves nothing.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 87;
+// 2026-08-20  87 -> 86. no-grouping leaves the dark baseline: it gains a live-corpus test
+// asserting flat single-concern microservices under specs/microservices/ with zero grouping wrappers.
+// 2026-08-20  86 -> 85. benchmark leaves the dark baseline: a live-corpus test now walks
+// the 14 real PRDs (docs/prds/*.md + docs/products/**/PRD*.md, doc_class-filtered) and
+// freezes 4 real SectionMissing violations two-sided.
+// 2026-08-20  85 -> 84. retired-vocabulary leaves the dark baseline: it gains a live-corpus test
+// asserting no live documentation mentions retired CLI surfaces, scripts, or hooks.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 84;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -482,8 +483,11 @@ fn frozen_baseline_is_exactly_the_live_non_forward_debt_set() {
     assert_eq!(
         policy.baselined_dead_roots.len(),
         EXPECTED_BASELINED_DEAD_ROOTS,
-        "the reviewed frozen ceiling is four pre-existing roots plus exactly seven retired \
-         top-level cloud roots"
+        "the reviewed frozen ceiling shrinks as gates stop enumerating roots by hand: it was 11 \
+         (four pre-existing roots plus seven retired top-level cloud roots), and dropped by one \
+         for each of embedded-asset-hermeticity and caller-supplied-authorization when they were \
+         routed through the registry-derived resolver in ci/adapters/scan-root-derivation. This \
+         number only ever goes DOWN"
     );
 }
 
@@ -549,21 +553,40 @@ fn forward_declarations_are_all_still_absent() {
     }
 }
 
+/// The broken-collector guard, keyed on a SET rather than a corpus size.
+///
+/// It used to be two counts: `roots.len() >= min_expected_roots` (floor 150, against 152 declared)
+/// and `policy_files_with_roots.len() >= 5` (against exactly 5). Both were within one routing of
+/// going red, and they would have gone red on PROGRESS: every gate that stops hand-enumerating its
+/// roots and derives them from the capability registry removes 30-odd declarations from this
+/// corpus, which is the outcome this fleet wants. A floor that a successful burn-down trips is the
+/// shape that killed `min_expected_unpackaged_yaml_files` after six lowerings.
+///
+/// The replacement does not decay: EVERY file in `registered_policy_files` must yield at least one
+/// declared root. A registered file yielding none means one of two specific things, and the message
+/// says which to check — either the file was routed through the registry-derived resolver and its
+/// entry belongs in `exempt_policy_files`, or the collector broke on it. `min_expected_roots` is
+/// kept only as a coarse "the walk returned something at all" tripwire and is now far below the
+/// live count on purpose; it is LOWERED as gates route, never raised.
 #[test]
-fn collector_sees_the_real_corpus() {
+fn every_registered_policy_file_yields_declared_roots() {
     let root = repo_root();
     let (policy, keys) = load_policy(&root);
     let observed = collect(&root, &keys);
+
+    for file in &policy.registered_policy_files {
+        assert!(
+            observed.policy_files_with_roots.contains(file),
+            "registered policy file `{file}` declares NO coverage-bearing root. Either it now \
+             derives its roots (move it to exempt_policy_files with the reason) or the collector \
+             broke on it — this is not a file that can legitimately declare nothing."
+        );
+    }
     assert!(
         observed.roots.len() >= policy.min_expected_roots,
-        "collected only {} declared roots (floor {}) — the collector is broken",
+        "collected only {} declared roots (tripwire floor {}) — the collector is broken",
         observed.roots.len(),
         policy.min_expected_roots
-    );
-    assert!(
-        observed.policy_files_with_roots.len() >= 5,
-        "only {} policy files declare roots — the walk is broken",
-        observed.policy_files_with_roots.len()
     );
 }
 

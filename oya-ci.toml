@@ -67,6 +67,11 @@ value = "governance/check/cursor-pagination-coverage/cursor-pagination-coverage-
 reason = "the frozen missing-cursor baseline ENUMERATES the OpenAPI operations still owing ADR-0150 cursor pagination, keyed by their tracked document path; four of those tracked paths carry a forbidden stem in their own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by rewording the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs."
 
 [[vocab.carve_outs]]
+kind = "path_exact"
+value = "governance/check/benchmark/benchmark-policy.json"
+reason = "the frozen missing-Competitive-Benchmark-section baseline ENUMERATES the PRD paths still owing an ADR-0062 benchmark section, keyed by their tracked document path; one of those tracked paths (docs/products/foundry/PRD.md) carries a forbidden stem in its own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by rewording the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs."
+
+[[vocab.carve_outs]]
 kind = "path_prefix"
 value = "libs/oya-check-brand-residue/"
 reason = "the deny-list patterns themselves are not residue"

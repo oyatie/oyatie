@@ -71,13 +71,23 @@ impl fmt::Display for Error {
 
 impl std::error::Error for Error {}
 
-const SECTION_HEADING: &str = "## Competitive benchmark";
+/// The doctrine's own canonical casing (ADR-0062 archived text, restated by the live apex
+/// ADR-0709 as the "ADR-62 residual"). Matching against it is case-insensitive; see
+/// `extract_section_body`.
+const SECTION_HEADING: &str = "## Competitive Benchmark";
 
 fn extract_section_body<'a>(content: &'a str, heading: &str) -> Option<&'a str> {
+    // Case-insensitive on purpose. ADR-0062's own canonical text spells the required
+    // heading `## Competitive Benchmark` (title case); the constant below spelled it
+    // `## Competitive benchmark` (sentence case). Under exact matching, 8 of the 10 real
+    // PRDs that carry the section in title case -- following the ADR verbatim -- were
+    // SectionMissing false negatives. The doctrine names the heading TEXT, not its case;
+    // a heading's semantics do not change when someone re-cases it.
+    let heading_lower = heading.to_ascii_lowercase();
     let mut consumed = 0usize;
     let mut start: Option<usize> = None;
     for line in content.split('\n') {
-        if line.trim_end() == heading {
+        if line.trim_end().to_ascii_lowercase() == heading_lower {
             start = Some(consumed + line.len() + 1);
             break;
         }

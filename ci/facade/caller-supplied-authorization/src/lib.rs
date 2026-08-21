@@ -172,12 +172,19 @@ const POLICY_KEY: &str = "<policy>";
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CollectError {
     Io(String),
+    /// The scan roots could not be resolved. Carries the path-naming report from
+    /// `ci-scan-root-derivation-adapters`; a gate that cannot say WHICH root it failed to resolve
+    /// has reproduced the silent-skip defect in a different colour.
+    ScanRoots(String),
 }
 
 impl std::fmt::Display for CollectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CollectError::Io(message) => write!(f, "dto-authz-trust io: {message}"),
+            CollectError::ScanRoots(message) => {
+                write!(f, "dto-authz-trust scan roots: {message}")
+            }
         }
     }
 }
@@ -192,7 +199,9 @@ impl std::error::Error for CollectError {}
 /// function that READS a caller-supplied authorization-decision field and makes NO PDP
 /// decision-port call. Each instance is `{ "file", "fn", "line", "key", "signal" }`.
 pub fn collect_instances(root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let scan_roots = string_list(policy, "scan_roots");
+    let resolution = ci_scan_root_derivation_adapters::resolve_policy_scan_roots(root, policy)
+        .map_err(|e| CollectError::ScanRoots(e.to_string()))?;
+    let scan_roots = resolution.roots.clone();
     let excluded_dirs: BTreeSet<String> = string_list(policy, "excluded_dir_names")
         .into_iter()
         .collect();
@@ -222,6 +231,13 @@ pub fn collect_instances(root: &Path, policy: &Value) -> Result<Value, CollectEr
     Ok(json!({
         "functions_scanned": functions_scanned,
         "instances": instances,
+        // The roots ACTUALLY walked, and the registered roots deliberately not walked because they
+        // have not landed. Emitting both makes the scan itself reviewable rather than inferred from
+        // a function count: min_expected_functions cannot tell a collapsed scan from a smaller
+        // corpus, and a SET can.
+        "scan_roots": resolution.roots,
+        "pending_roots": resolution.pending,
+        "scan_root_source": resolution.source,
     }))
 }
 
@@ -250,7 +266,11 @@ fn collect_rs_files(
 ) -> Result<(), CollectError> {
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
-        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        // A NotFound used to `return Ok(())` here, which made this function's own doc comment
+        // ("an unreadable scan root is a fail-closed error, never a silently skipped subtree")
+        // false for the one case that mattered: a declared root that does not exist. Scan roots
+        // are now proven to exist before the walk starts, so a NotFound at this depth is either a
+        // race or a broken exclusion and must fail closed like any other read failure.
         Err(e) => return Err(CollectError::Io(format!("read dir {}: {e}", dir.display()))),
     };
     for entry in entries {
@@ -1184,10 +1204,6 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             "policy `pdp_decision_idents` must be a non-empty array of recognized PDP/authorizer decision-port ident strings; correct the policy before the gate can evaluate",
         ),
         (
-            "scan_roots",
-            "policy `scan_roots` must be a non-empty array of repo-relative scan-root strings; correct the policy before the gate can evaluate",
-        ),
-        (
             "trigger_decision_field_idents",
             "policy `trigger_decision_field_idents` must be a non-empty array of authz-specific field ident strings; correct the policy before the gate can evaluate",
         ),
@@ -1196,6 +1212,29 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
             "policy `authorization_dto_type_suffixes` must be a non-empty array of DTO type-name suffix strings; correct the policy before the gate can evaluate",
         ),
     ];
+    // Scan roots are declared in ONE of two forms and exactly one must be present. The derived form
+    // (`scan_root_source`) carries no array to check for emptiness — its emptiness check is the
+    // resolver itself, which fails closed on any root it cannot resolve and names the path.
+    let derived_roots = policy
+        .get("scan_root_source")
+        .and_then(Value::as_object)
+        .is_some();
+    let explicit_roots = policy
+        .get("scan_roots")
+        .and_then(Value::as_array)
+        .is_some_and(|roots| !roots.is_empty());
+    if !derived_roots && !explicit_roots {
+        findings.insert(Finding::new(
+            "DAT-POLICY-MALFORMED",
+            POLICY_KEY,
+            "policy must declare scan roots in exactly one of two forms: `scan_root_source` \
+             (derived from the closed capability registry, the form this repository uses) or a \
+             non-empty `scan_roots` array of repo-relative strings (the pack-shaped form for an \
+             adopting repository with no registry); correct the policy before the gate can evaluate",
+        ));
+        return findings;
+    }
+
     for (key, msg) in required_lists {
         match policy.get(key).and_then(Value::as_array) {
             None => {

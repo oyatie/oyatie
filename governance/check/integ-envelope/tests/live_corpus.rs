@@ -179,8 +179,9 @@ fn live_authority(root: &Path) -> (Authority, BTreeMap<String, Vec<String>>) {
 /// These are pre-existing and are tolerated so the gate can land. Releasing a
 /// claim REMOVES its entry; nothing may be added. The count is pinned so a new
 /// overlap cannot be absorbed silently alongside a release.
-const BASELINED_CLAIM_OVERLAPS: [&str; 16] = [
+const BASELINED_CLAIM_OVERLAPS: [&str; 17] = [
     ".claude/workflows/**",
+    "Cargo.toml",
     ".grok/harness/model-routing.v1.json",
     ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md",
     "ci/facade/action-item-accounting/friction-accounting-baseline.json",

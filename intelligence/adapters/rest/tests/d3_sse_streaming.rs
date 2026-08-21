@@ -16,7 +16,6 @@ use std::time::Instant;
 use axum::body::Body;
 use bytes::Bytes;
 use futures::StreamExt as _;
-use httpmock::prelude::*;
 use intelligence_kernel::{
     AgentId, AuthzDecision, AuthzRequest, OAuthSubscription, Provider, SeatId, SeatOutcome,
     SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
@@ -25,6 +24,7 @@ use intelligence_rest::{
     AnthropicAdapter, AppState, ProxyRequest, RestAdapterError, SecretProviderStore,
     SseStreamWithLease,
 };
+use scripted_http_server::{Chunk, ScriptedResponse, ScriptedServer};
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -146,34 +146,31 @@ fn make_app_state(
 /// SSE-1: Non-streaming request (Accept omitted) → one-shot JSON body returned.
 #[tokio::test]
 async fn sse1_non_streaming_returns_json_body() {
-    let server = MockServer::start();
-
-    let _token_mock = server.mock(|when, then| {
-        when.method(POST).path("/v1/oauth/token");
-        then.status(200)
-            .header("content-type", "application/json")
-            .body(r#"{"access_token":"tok","refresh_token":"rt2","expires_in":3600}"#);
-    });
-
     let expected = r#"{"id":"msg-1","type":"message"}"#;
-    let _msg_mock = server.mock(|when, then| {
-        when.method(POST).path("/v1/messages");
-        then.status(200)
+    let server = ScriptedServer::start(vec![
+        ScriptedResponse::ok()
             .header("content-type", "application/json")
-            .body(expected);
-    });
+            .body(r#"{"access_token":"tok","refresh_token":"rt2","expires_in":3600}"#),
+        ScriptedResponse::ok()
+            .header("content-type", "application/json")
+            .body(expected),
+    ]);
 
     let adapter = AnthropicAdapter::with_base_url(
         StubStore {
             token: "rt".to_string(),
         },
-        server.base_url(),
+        server.base_url().to_owned(),
     );
     let client = make_client();
     let req = proxy_req_json("/v1/messages", "t1");
     let resp = adapter.proxy(&client, &req, "t1/seat-1").await.unwrap();
     assert_eq!(resp.status, 200);
     assert_eq!(resp.body, expected.as_bytes());
+    assert_eq!(
+        server.request_lines(),
+        vec!["POST /v1/oauth/token", "POST /v1/messages"]
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -183,31 +180,27 @@ async fn sse1_non_streaming_returns_json_body() {
 /// SSE-2: Streaming request → raw SSE bytes from upstream passed through intact.
 #[tokio::test]
 async fn sse2_streaming_returns_sse_bytes() {
-    let server = MockServer::start();
-
-    let _token_mock = server.mock(|when, then| {
-        when.method(POST).path("/v1/oauth/token");
-        then.status(200)
+    let delta_event = "data: {\"type\":\"content_block_delta\"}\n\n";
+    let done_event = "data: [DONE]\n\n";
+    let sse_body = format!("{delta_event}{done_event}");
+    // Unlike httpmock, this server sends a GENUINELY chunked `text/event-stream`
+    // response — one frame per event, each flushed on its own — so the pass-through
+    // path is exercised against real incremental framing rather than one buffered write.
+    let server = ScriptedServer::start(vec![
+        ScriptedResponse::ok()
             .header("content-type", "application/json")
-            .body(r#"{"access_token":"tok-sse","refresh_token":"rt-sse","expires_in":3600}"#);
-    });
-
-    let sse_body = "data: {\"type\":\"content_block_delta\"}\n\ndata: [DONE]\n\n";
-    let _msg_mock = server.mock(|when, then| {
-        when.method(POST)
-            .path("/v1/messages")
-            .header("accept", "text/event-stream");
-        then.status(200)
-            .header("content-type", "text/event-stream")
-            .header("cache-control", "no-cache")
-            .body(sse_body);
-    });
+            .body(r#"{"access_token":"tok-sse","refresh_token":"rt-sse","expires_in":3600}"#),
+        ScriptedResponse::ok().sse(vec![
+            Chunk::new(delta_event),
+            Chunk::after(std::time::Duration::from_millis(30), done_event),
+        ]),
+    ]);
 
     let adapter = AnthropicAdapter::with_base_url(
         StubStore {
             token: "rt-sse".to_string(),
         },
-        server.base_url(),
+        server.base_url().to_owned(),
     );
     let client = make_client();
     let req = proxy_req_sse("/v1/messages", "t2");
@@ -222,10 +215,27 @@ async fn sse2_streaming_returns_sse_bytes() {
     assert_eq!(status, 200);
 
     let mut collected = Vec::<u8>::new();
+    let mut frames = 0usize;
     while let Some(chunk) = stream.next().await {
         collected.extend_from_slice(&chunk.unwrap());
+        frames += 1;
     }
     assert_eq!(collected, sse_body.as_bytes());
+    // Pass-through must stay INCREMENTAL: the two upstream frames must not be
+    // coalesced into one before reaching the caller. httpmock could not express this.
+    assert!(
+        frames >= 2,
+        "SSE frames were buffered into {frames} chunk(s); streaming pass-through must \
+         forward each upstream frame as it arrives"
+    );
+
+    let requests = server.requests();
+    assert_eq!(
+        server.request_lines(),
+        vec!["POST /v1/oauth/token", "POST /v1/messages"]
+    );
+    // Was a `header("accept", "text/event-stream")` matcher on the mock.
+    assert_eq!(requests[1].header("accept"), Some("text/event-stream"));
 }
 
 // ---------------------------------------------------------------------------
@@ -236,29 +246,31 @@ async fn sse2_streaming_returns_sse_bytes() {
 /// response. (The router sets only the gateway's own headers.)
 #[tokio::test]
 async fn sse3_streaming_response_hop_by_hop_not_leaked() {
-    let server = MockServer::start();
-
-    let _token_mock = server.mock(|when, then| {
-        when.method(POST).path("/v1/oauth/token");
-        then.status(200)
+    let server = ScriptedServer::start(vec![
+        ScriptedResponse::ok()
             .header("content-type", "application/json")
-            .body(r#"{"access_token":"tok-hbh","refresh_token":"rt-hbh","expires_in":3600}"#);
-    });
-
-    let _msg_mock = server.mock(|when, then| {
-        when.method(POST).path("/v1/messages");
-        then.status(200)
-            .header("content-type", "text/event-stream")
-            // httpmock does not actually send chunked encoding, but we verify
-            // the axum router layer does NOT forward these hop-by-hop headers.
-            .header("transfer-encoding", "chunked")
-            .header("connection", "keep-alive")
-            .body("data: ping\n\n");
-    });
+            .body(r#"{"access_token":"tok-hbh","refresh_token":"rt-hbh","expires_in":3600}"#),
+        // The httpmock original carried the note "httpmock does not actually send
+        // chunked encoding", so the leak this test is named for could not actually
+        // occur and the assertion below was vacuous. `.sse(..)` sends a REAL
+        // `Transfer-Encoding: chunked` response, and reqwest surfaces
+        // transfer-encoding/connection/keep-alive on it (verified), so the filter now
+        // has something genuine to strip.
+        // Every upstream hop-by-hop value here is DISTINGUISHABLE from anything the
+        // gateway sets for its own hop, so "was it stripped?" is answerable. The
+        // gateway legitimately sets `connection: keep-alive` itself (lib.rs, SSE branch)
+        // — that is its own hop, not a leak — so the upstream value carries an extra
+        // nominated token that must never appear downstream.
+        ScriptedResponse::ok()
+            .header("connection", "keep-alive, x-upstream-nominated")
+            .header("keep-alive", "timeout=97")
+            .header("x-upstream-nominated", "leak-me")
+            .sse(vec![Chunk::new("data: ping\n\n")]),
+    ]);
 
     // Use the full axum router path for this test.
     let pool = make_pool_2_seats("t3");
-    let state = make_app_state(server.base_url(), pool, "t3");
+    let state = make_app_state(server.base_url().to_owned(), pool, "t3");
     let app = intelligence_rest::build_router(state);
 
     let request = axum::http::Request::builder()
@@ -288,6 +300,40 @@ async fn sse3_streaming_response_hop_by_hop_not_leaked() {
                 .map(|v| v.to_str().unwrap_or(""))
                 != Some("chunked"),
         "transfer-encoding: chunked must not be leaked from upstream"
+    );
+    // Upstream's `Keep-Alive: timeout=97` and its Connection-nominated header must not
+    // survive the hop. The httpmock original could assert none of this: its own comment
+    // records that httpmock never actually sent these headers, so the single assertion
+    // above was vacuous. This server does send them (verified against reqwest).
+    assert!(
+        response.headers().get("keep-alive").is_none(),
+        "upstream Keep-Alive must not be forwarded: {:?}",
+        response.headers()
+    );
+    assert!(
+        response.headers().get("x-upstream-nominated").is_none(),
+        "the upstream Connection-nominated header must not be forwarded: {:?}",
+        response.headers()
+    );
+    // `connection` is the gateway's OWN per-hop header on the SSE branch, so its
+    // presence is correct — but it must be the gateway's value, never upstream's.
+    if let Some(connection) = response.headers().get("connection") {
+        let connection = connection.to_str().unwrap_or("");
+        assert!(
+            !connection.contains("x-upstream-nominated"),
+            "upstream's Connection value leaked downstream: {connection}"
+        );
+    }
+    for hop in ["upgrade", "proxy-authenticate", "proxy-authorization", "te"] {
+        assert!(
+            response.headers().get(hop).is_none(),
+            "hop-by-hop header '{hop}' must not be present: {:?}",
+            response.headers()
+        );
+    }
+    assert_eq!(
+        server.request_lines(),
+        vec!["POST /v1/oauth/token", "POST /v1/messages"]
     );
 }
 
