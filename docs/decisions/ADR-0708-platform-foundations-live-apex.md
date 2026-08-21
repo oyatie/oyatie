@@ -11,7 +11,7 @@ owner: council-architecture
 supersedes: [ADR-0049, ADR-0158, ADR-0240, ADR-0251, ADR-0253]
 superseded_by: []
 amends: []
-amended_by: []
+amended_by: [ADR-0719]
 depends_on: []
 related: []
 milestone: W0

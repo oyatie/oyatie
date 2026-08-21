@@ -1,5 +1,5 @@
 {
-  "_comment": "THE ONE-WAY DOOR. This is the ONLY human-edited, founder-signed file in the firewall ratchet \u2014 it is NOT producer-generated and is NOT byte-diffed by registry-drift. It is the sole exemption to the ratchet GROWTH check: a key listed under _sign_off_additions[gate][code] is exempted, for ONE regen, from the rule that the baseline may only shrink. Growing tolerated debt requires an explicit signed decision here, never a silent producer re-run (founder one-way-door / verify-each-step rule). Keep this tiny and audited. EMPTY = the ratchet is fully closed: the baseline can only shrink. | 2026-08-18: ADR-0718 signed off under unpropagated_decision. Every Accepted ADR is born unpropagated-and-baselined \u2014 in_spec is true for any on-disk ADR, but in_masterplan requires a bound plan node and in_roadmap a roadmap entry, and the gate demands ALL THREE. This follows the documented treatment of the 148 existing entries and of ADR-0716/ADR-0717 immediately before it. Propagating ADR-0718 into the masterplan and roadmap is real follow-up work, not waived: it is deferred because the roadmap face this producer reads currently resolves under .grok/, itself a retirement target, and guessing at plan data is worse than recording the debt.",
+  "_comment": "THE ONE-WAY DOOR. This is the ONLY human-edited, founder-signed file in the firewall ratchet \u2014 it is NOT producer-generated and is NOT byte-diffed by registry-drift. It is the sole exemption to the ratchet GROWTH check: a key listed under _sign_off_additions[gate][code] is exempted, for ONE regen, from the rule that the baseline may only shrink. Growing tolerated debt requires an explicit signed decision here, never a silent producer re-run (founder one-way-door / verify-each-step rule). Keep this tiny and audited. EMPTY = the ratchet is fully closed: the baseline can only shrink. | 2026-08-21: ADR-0719 signed off under unpropagated_decision (same born-unpropagated class as ADR-0716/0717/0718). Propagating into masterplan/roadmap remains follow-up; the roadmap face still resolves under a retirement-target path.",
   "_provenance": {
     "authority": "founder sign-off (door:one-way)",
     "signoff_schema_version": 1,
@@ -68,7 +68,8 @@
     },
     "cloud-ci-cross-artifact-agreement": {
       "unpropagated_decision": [
-        "ADR-0718"
+        "ADR-0718",
+        "ADR-0719"
       ]
     }
   },
