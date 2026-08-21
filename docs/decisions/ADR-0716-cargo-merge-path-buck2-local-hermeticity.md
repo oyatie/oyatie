@@ -113,18 +113,28 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 - **overturn_when:** a live buck2 remote cache is deployed and measured to beat cargo's
   wall clock on this fleet, with a recorded measurement and an ADR that re-adopts it.
 
-## Amendment 2026-08-21 — drop hosted Windows/macOS smoke
+## Amendment 2026-08-21 — Linux dual-arch nextest; no product cargo/buck2 on the PR
 
-A hyperscaler does not presubmit-test operating systems it does not run. Oyatie's
-cloud is Linux VMs (amd64 per-PR; arm64 nightly + weekly release-train per the
-2026-08-21 suite interview D88-amend). There is no consumer Windows, macOS, or
-Android binary to smoke. The previous "soft" `cross-platform-smoke` matrix
-(`windows-latest`, `macos-latest`) ran `cargo test -p ci-scm-facts-snapshot`
-(a git-facts crate, not a product), was skipped on `merge_group`, was
-`continue-on-error`, was absent from the fan-in, and the Windows leg was red
-on `dev` itself. That is cost without a merge signal: GitHub bills macOS 10×
-and Windows 2×, and the two legs were ~73 of ~90 billable minutes of a PR
-build. ADR-0718 already named this retirement as complementary to the
-five-minute wall clock. Native-app smoke (SwiftUI / Compose / later Windows
-shells, interview D24) is a different gate, added when those artifacts exist,
-on the release train — never as a per-PR cargo-workspace matrix.
+A hyperscaler tests the OS/arch it ships, in parallel, and builds release
+artifacts on the CD train.
+
+- **OS:** Linux VMs only. There is no consumer Windows, macOS, or Android
+  binary. The previous "soft" `cross-platform-smoke` matrix is deleted.
+- **Arch (D88 restored):** `oya-ci-required` runs the workspace nextest
+  natively on amd64 (`ubuntu-24.04`) AND arm64 (`ubuntu-24.04-arm`) in
+  parallel. Wall clock is `max` of the two, not the sum. D88-amend (arm64
+  nightly only, to chase a five-minute budget the amd64 test job already
+  misses) is overruled. rustfmt, advisory clippy, and live-postgres stay
+  single-arch — they are not the native compile of the product graph.
+- **Compile proof on the PR is `cargo nextest`, not `cargo build`.** A
+  background `cargo build --workspace --tests` next to the materializer
+  contended for Cargo's target lock and did not overlap. Product
+  `cargo build --release` and image builds belong on the weekly train
+  (D63). The remaining `cargo build -p ci-artifact-inventory-registry
+  --bin …` is a test-fixture binary that gate tests exec; nextest does
+  not build unrelated bins.
+- **`buck2 build //...` stays off the merge path** (weekly honesty job,
+  then the CD train). The face materializer still shells out to `buck2
+  build` of a handful of face-tool bins — that is an ADR-0716 leak to
+  cut in a follow-up by driving those bins through cargo. It is not a
+  product graph build.

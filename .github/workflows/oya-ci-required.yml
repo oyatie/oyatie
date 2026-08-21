@@ -106,8 +106,15 @@ jobs:
         run: cargo clippy --locked --workspace --all-targets -- -D warnings
 
   test:
-    name: test (workspace + gates)
-    runs-on: ubuntu-latest
+    name: test (workspace + gates) (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # D88: both first-class; parallel so wall clock is max(amd64, arm64), not the sum.
+        # rustfmt/clippy/live-postgres stay on one Linux amd64 runner — they are not
+        # arch-specific product builds. Native compile+test of the workspace is.
+        os: [ubuntu-24.04, ubuntu-24.04-arm]
     permissions:
       contents: read
       pull-requests: read
@@ -148,7 +155,7 @@ jobs:
           # small subset of the workspace; sharing a key would let their thin save overwrite this
           # lane's workspace-crate cache on every run — cache thrash that silently undoes the
           # setting below.
-          shared-key: cargo-ci-test-workspace
+          shared-key: cargo-ci-test-workspace-${{ matrix.os }}
           # THE fix for the measured defect: a run logged `Cache hit for: v0-rust-cargo-ci`
           # with Cargo.lock untouched and still compiled 1,565 crates, because this action
           # caches dependency crates but NOT workspace members by default — and this workspace
@@ -169,17 +176,15 @@ jobs:
         # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
         # build resolves the triple-named toolchain through rustup; pre-installing everything
         # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
+        run: host=$(rustc -vV | awk '/^host/{print $2}') && rustup component add --toolchain 1.97.1-$host cargo clippy rustfmt rust-std rustc && rustup default 1.97.1 && rustc --version
       # Materialize generated faces before tests: several gate crates consume them.
+      # This is cargo *run* of the materializer, not a product `cargo build --workspace`.
+      # The materializer still shells out to buck2 to build face-tool bins (ADR-0716
+      # leak); product `buck2 build //...` stays on the weekly honesty job / CD train.
       - name: Materialize generated faces
-        run: |
-          cargo build --locked --workspace --tests --quiet &
-          compile=$!
-          cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
-          wait "$compile"
-      # Shared accounting-registry producer for OYA_CI_PRODUCER_BIN and
-      # OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER. Step name is a frozen
-      # workflow_inline_shell baseline key — do not rename.
+        run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
+      # Test-fixture binary that gate tests exec via OYA_CI_PRODUCER_BIN. nextest does
+      # not build unrelated bins. Not a product image build.
       - name: Build enforcement-liveness producer
         run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app
       # Every workspace member, including the whole ci/facade gate fleet, runs here.
@@ -332,10 +337,9 @@ jobs:
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
         run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
-  # Fan-in: the single required context. Green IFF lint, test, and both live-postgres
-  # lanes are green. Hosted production is Linux VMs (amd64 per-PR, arm64 on the
-  # nightly/release-train — D88-amend). There is no Windows/macOS/Android product
-  # binary to smoke, so those runners are not a merge-path or per-PR job.
+  # Fan-in: the single required context. Green IFF lint, both native Linux test
+  # legs (amd64 + arm64), and both live-postgres lanes are green. GitHub reports
+  # a matrix job as success only when every leg is green. No Windows/macOS job.
   oya-ci-required:
     # The context string is the job's `name:`, not its id, so this renames the PUBLIC status
     # check while leaving the job id -- and therefore the rust-first inline-shell baseline key

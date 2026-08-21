@@ -356,7 +356,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::test::Materialize generated faces",
-          "shell_lines": 4
+          "shell_lines": 1
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::test::Pre-provision pinned toolchain components",
