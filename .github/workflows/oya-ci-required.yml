@@ -93,15 +93,14 @@ jobs:
       pull-requests: read
     timeout-minutes: 60
     env:
-      # Same accounting-registry producer the Buck gate targets inject as
-      # OYA_CI_PRODUCER_BIN (artifact-accountability and sibling live-corpus
-      # tests fail closed without it) and OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER
-      # (hook-wiring). Built once below; both names point at that binary.
-      OYA_CI_PRODUCER_BIN: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
-      OYA_CI_ENFORCEMENT_LIVENESS_PRODUCER: ${{ github.workspace }}/target/debug/oya-cloud-ci-accounting-registry-app
-      OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/tools/hooks/registration/claude-settings.json
-      OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/tools/hooks/registration/codex-hooks.json
-      OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
+      # swatinem/rust-cache caches registry dependencies, NOT workspace members, and this
+      # workspace has 885 of them — a run logged a cache HIT with Cargo.lock untouched and still
+      # compiled 1,565 crates. sccache is content-addressed per compilation unit, so it survives
+      # the lockfile churn and the workspace-member gap that rust-cache leaves open.
+      # CARGO_INCREMENTAL=0 (set workflow-wide) is a prerequisite: sccache cannot cache
+      # incremental compilation.
+      RUSTC_WRAPPER: sccache
+      SCCACHE_GHA_ENABLED: "true"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -143,17 +142,13 @@ jobs:
         # Buck2 still resolves 1.96.0 (prelude pin) as well as rust-toolchain.toml 1.97.1.
         # Pre-install both so face materialize does not rustup-download clippy in-band.
         run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
-      # Materialize generated faces before tests: several gate crates consume them.
+      # Materialize generated faces before tests: several remaining crates consume them.
       # This is cargo *run* of the materializer, not a product `cargo build --workspace`.
       # The materializer still shells out to buck2 to build face-tool bins (ADR-0716
       # leak); product `buck2 build //...` stays on the weekly honesty job / CD train.
       - name: Materialize generated faces
         run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
-      # Test-fixture binary that gate tests exec via OYA_CI_PRODUCER_BIN. nextest does
-      # not build unrelated bins. Not a product image build.
-      - name: Build enforcement-liveness producer
-        run: cargo build --locked -p ci-artifact-inventory-registry --bin oya-cloud-ci-accounting-registry-app
-      # Every workspace member, including the whole ci/facade gate fleet, runs here.
+      # Every remaining workspace member (D-17 admission set, not the census fleet) runs here.
       - name: Workspace tests
         # ADR-0718-D3. nextest runs each test in its own process with a work-stealing
         # scheduler — materially faster than libtest's in-process threads at this scale, with

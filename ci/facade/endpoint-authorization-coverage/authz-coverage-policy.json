@@ -15,7 +15,6 @@
     "comms",
     "compliance",
     "compute",
-    "console",
     "data",
     "flags",
     "gateway",
@@ -97,7 +96,6 @@
     "/.well-known/"
   ],
   "frozen_unauthenticated_surfaces": [
-    "console/facade/workspace-shell-app/src/lib.rs#build_router::router[HttpMethod::Get <unresolved:LIST_ALL_SURFACES_ROUTE>; HttpMethod::Get <unresolved:LIST_LIVE_SURFACES_ROUTE>; HttpMethod::Get <unresolved:SHELL_HEALTH_ROUTE>]",
     "iac/adapters/infrastructure/src/lib.rs#assemble_module_registry_http_service::router[unclassified:method-ident:MODULE_REGISTRY_REST_METHOD <unresolved:template>]",
     "libs/oya-shared-backbone-rest-runtime-adapter/src/lib.rs#build_backbone_rest_router_with_state::router[surface:<unresolved:<unclassified-field-path:route.path>>]",
     "intelligence/adapters/anthropic-compat-api/src/lib.rs#build_routes::router[HttpMethod::Get /v1/messages/count_tokens; HttpMethod::Post /v1/messages]",

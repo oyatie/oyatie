@@ -45,7 +45,6 @@
   "comms/": "comms",
   "compliance/": "compliance",
   "compute/": "compute",
-  "console/": "console",
   "data/": "data",
   "docs/": "docs",
   "flags/": "flags",

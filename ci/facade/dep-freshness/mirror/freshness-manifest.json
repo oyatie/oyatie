@@ -1,9 +1,0 @@
-{
-  "schema": "oya-dep-freshness/v1",
-  "source": {
-    "index": "index.crates.io",
-    "snapshot_date": "2026-08-17"
-  },
-  "content_hash": "504f81d0c58b7cd2cc59cf145423dc669a87248c1ce2d91fdd3e852e11c8e04b",
-  "crate_count": 75
-}

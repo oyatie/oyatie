@@ -56,6 +56,14 @@ deliverables:
     description: "Cloud-provider purpose, in-scope, and out-of-scope for each registered engine. This set is IaaS/PaaS/control plane only. Tenant SaaS (HR, payroll, community, Slack-superset, SAP-class ledger/payments products) is app/, not a capability charter."
     exit_criteria: "Reorg and new crates match these in/out lists; no cap charter absorbs an app product; no app/ grows a cloud engine."
     verified_by: "presubmit"
+  - id: ADR-0719-D16
+    description: "console/ is not a cloud-provider capability. Discard the ops-dashboard-control-center pilot. git rm; no empty scaffold; do not park in app/ops-console. Token broker is iam. Operator actions stay on each cap facade. A future UI is app/ after the apps discussion."
+    exit_criteria: "console/ is absent from the tree and from the closed capability registry; ADR-0701 Status cites D-16; layout allowlists do not re-admit console/."
+    verified_by: "presubmit"
+  - id: ADR-0719-D17
+    description: "Presubmit is cargo fmt/clippy/test plus a short closed set of admission engines. Census gates, Helm/OpenAPI/OpenSLO parity, docs-coverage, frozen counts, min_expected_*, and expected_total pins are deleted, not trimmed."
+    exit_criteria: "ci/facade and governance/check contain only the D-17 keep set; cedar-deploy-parity and scan-root-liveness are gone; no new gate is a path/count freeze."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -151,7 +159,7 @@ Temporarily breaking callers is accepted; a dual REST+proto product API is not.
 North star wire: HTTP/3 + protobuf, Connect-class HTTP (no gRPC trailers), WebTransport for
 watches. Identity on the channel: SPIFFE mTLS east-west; passkeys at L2; **step-up to L3/L4**
 (KR 본인인증 / eIDAS EUDI / passport+liveness per interview D58) via Cedar `acr_required`.
-PQC + ECH at the edge (ADR-0354). Public gRPC-Web is not the console protocol. FlatBuffers
+PQC + ECH at the edge (ADR-0354). Public gRPC-Web is not an operator-UI protocol. FlatBuffers
 remain a measured adapter, never a second SSOT.
 
 `Check` is never a public method. Product RPCs are. PEPs call the in-cell PDP.
@@ -428,7 +436,6 @@ calls `policy/` in-process; it does not embed a second PDP.
 | CloudFormation / Config reconciler | **iac** | core: IR unifier + reconcilers. `<cap>/iac/` is **this** cap’s desired state; `iac/` the cap owns the **engine**. |
 | Billing / Cost Explorer | **billing** | core: meter, rate, invoice, tax, FinOps. Sold-ness, not a drawer. |
 | Marketplace | **marketplace** | core: plugins, signed modules, SKU **engine**. Generated sell-catalog view is `build/`. |
-| Console | **console** | core: shell, token broker, nav. 2+ cap dashboards → `app/`. |
 | Artifact / evidence packs | **compliance** | core: pack evidence, data-class registry. Consumes **audit**. Not the Merkle log. |
 | SES / Chat / Meet | **comms** | core: mail, messenger, meet, notify, contact-center **engines**. End-user “Workspace” product → `app/` when it wires 2+. |
 | AppConfig / Feature flags | **flags** | core: flags, kill switches. Pack-gated overrides. |
@@ -465,14 +472,13 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
 | **billing** | Meter, rate, invoice, tax, FinOps. | Ledger books (`ledger/`). Payments rails (`payments/`). | Nested accounting/tax leftover dirs. |
 | **marketplace** | Plugins, signed modules, SKU **engine**. | Generated sell-catalog (**`build/` view**). | Dev-cli as merge authority. |
-| **console** | Shell, token broker, nav. | Ops dashboards that compose 2+ (`app/`). | Extra product surfaces in `console/`. |
 | **compliance** | Pack evidence, data-class registry. | Merkle log (`audit`). Cloned `dpia.md`. | Those clones. |
 | **comms** | Mail/meet/messenger/notify **engines**. | Slack-superset **app** (2+ caps). Emergency clinical product. | Nested `mail/`/`meet/` leftover trees → faces or rm. |
 | **flags** | Flags, kill switches. | Census `catalog.yaml` / IPs. | Cap-root junk. |
 | **governance/** | Registry + check **crates** (off ladder). | Org JSON `specs/` corpus. | Specs catch-all. |
 | **build/** | Toolchains, images, **port-engine**, SKU **view**. | Capability engines. | — |
 | **third-party/** | Vendored pins when we need them. | Fake rungs (`kernel/`/`os/`). | Asterinas eval in `kernel/`. |
-| **app/** | 2+ cap products. | A cloud engine. | Absorbing D41 retirees; parking payments. |
+| **app/** | 2+ cap products. | A cloud engine. | Absorbing D41 retirees; parking payments; **do not absorb the `console/` pilot**. |
 
 **Missed before, now closed:** GKE vs kube-port (`k8s/`); Talos vs `os/`; PDP vs iam; trustd vs secrets; payments/ledger not billing; no empty `base/`/`kernel/`/`os/`/`k8s-port/`; census `ci` gates are not the delivery fabric.
 
@@ -504,12 +510,11 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`ci`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, permission envelope, SKU **engine**. | Generated price list (**`build/` view**). The apps themselves. |
-| **console** | **Cloud console** shell. | One shell, token broker, nav to **platform** surfaces. | HR/payroll UI. FinOps-as-app (2+ caps → `app/`). CLI as authority. |
 | **compliance** | Evidence **engine** for the platform. | Load packs, data-class registry, evidence export. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA files. |
 | **comms** | **Platform** notify/email/voice/video **infrastructure** (SES/Chime analog). | Send/receive engines, fanout, media **infra**. | Slack/Meet **products**. Nested leftover µservice trees. Emergency clinical app. |
 | **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | Cedar+ontology+constraints per region. | Copied into each cap. EU as world floor. |
 
-**Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
+**Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS), **`console/`** (D-16 — discarded pilot, not a shell engine). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
 
 **Dogfood.** First-party `app/<product>/` is a **tenant of this cloud** (Oyatie as tenant #0). It calls the **same** gateway, iam, policy Check, cells, storage, data, messaging, workflow, billing meters, and packs as any customer. No private Helm tree, no in-process PDP that customers cannot call, no `iam/**` shortcut around `policy/`, no cap `core/` that exists only for our SaaS.
 
@@ -528,6 +533,83 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 - **rule:** a cloud-provider engine occupies exactly one registered capability’s `core/`; sold single-cap surface is `facade/`; 2+ is `app/`; repo root does not hold IaaS dumps.
 - **ensure:** new engines get a registry row or a face, never `cloud/` or `libs/`.
 - **overturn_when:** a §7 split/merge ADR with five fields lands same-wave.
+
+### D-16 — `console/` is not a capability; discard the pilot
+
+The tree at `console/` is **ops-dashboard-control-center**: a Wave-15 internal
+ops dashboard (incident-command, tenant-admin, pack-author, on-call-handoff, …).
+That is a **pilot product**, not a cloud engine.
+
+Hyperscaler analog: AWS Console / GCP Console is a **first-party web app** that
+dogfoods IAM and the public APIs. It is not EC2. It is not a closed-registry row.
+ADR-0615 “console SHELL is the substrate; ops leaves → `app/ops-console/`” mixed
+the shell with the pilot and invented a parking lot.
+
+**Burn.** `git rm -r console/`. No empty `console/` scaffold. Do **not** park the
+pilot in `app/ops-console/` or `app/console/`. Token broker is **iam**. Operator
+mutations stay on each capability’s **facade** (Cedar). A future tenant/operator
+UI is `app/` **after** the apps discussion, as tenant #0, same public APIs.
+
+**MUST (no console capability)**
+
+- **achieves:** a dashboard pilot cannot occupy a cloud-provider root.
+- **origin:** `console/` README is ops-dashboard-control-center; registry called it
+  the Leptos shell / token broker.
+- **rule:** `console/` is absent from the tree and the closed registry; no empty
+  scaffold; no `app/ops-console` rehome of this pilot.
+- **ensure:** membership/hygiene allowlists do not re-admit `console/`; new UI
+  waits for the apps discussion.
+- **overturn_when:** a §7 ADR adds a real sold shell as `app/` (or a new cap) with
+  five fields same-wave — not a resurrection of this directory.
+
+### D-17 — Presubmit is cargo plus a short admission set; census gates delete
+
+`ci/facade/*` and `governance/check/*` grew a second product: JSON policy files
+with `min_expected_*`, `expected_total`, frozen path lists, FNV signatures, and
+Helm/OpenAPI/OpenSLO corpora. That is observation-hardcode, not TAP. Trimming one
+stale path (e.g. `cedar-deploy-parity-policy.json`) keeps the anti-pattern.
+
+**Keep (admission).** Workflow cargo fmt + nextest. Then only:
+
+| Engine | Why it is TAP |
+|---|---|
+| `generated-artifact-freshness` / `generated-artifact-policy` | Generated faces are not merge surfaces. |
+| `license-policy` / `supply-chain-audit` | Legal + advisory activation. |
+| `automation-language-policy` | Rust-first automation. |
+| `repo-root-hygiene` | D-8 closed root names. |
+| `module-membership` | Closed capability registry. |
+| `endpoint-authorization-coverage` | New HTTP control plane is fail-closed authz. |
+| `graphql-usage-policy` | No GraphQL without a reversing ADR. |
+| `crypto-backend-policy` | No `ring` activation. |
+| `affected-target-set` | Graph + live hub-exclusivity binary the workflow runs. |
+| `no-template-stamping` | D-8 stamped docs. |
+
+Support crates those engines import (`planning-projection`,
+`cross-artifact-agreement`, `path-resolver`, `corpus-census`, Tide/webhook,
+`dependency-automation`, toolchain proposer) stay as **libraries/tools**, not as
+extra required predicates. The accounting-registry / scm-facts producer is
+**deleted with the census fleet**; generated-face materialize is cargo-lock +
+diff-policy until a producer that does not fan-in census gates exists.
+
+**Delete.** Every other `ci/facade/*` and `governance/check/*` crate, including
+`policy-deploy-parity` (Helm Cedar census), `scan-root-liveness` (`min_expected_roots`),
+`corpus-index-coverage`, `product-protocol-policy` (`expected_total`),
+`crate-catalog-coverage`, `slo-coverage`, `helm-chart-shape`, `gitops-chart-license`,
+`baseline-ratchet`, `gate-self-conformance`, docs/glossary/runbook/RACI/OpenAPI
+coverage, `authz-tier-discipline` frozen leak **counts**, `event-schema-versioning`
+`min_*` floors. Do not re-freeze numbers to make a delete green.
+
+**MUST (no census gates)**
+
+- **achieves:** merge admission cannot be a hand-maintained observation of the tree.
+- **origin:** GH #16 Helm Cedar parity; `min_expected_roots`; `expected_total` pins;
+  two-sided frozen path lists that must be edited on every `git rm`.
+- **rule:** a gate is born-blocking on a **pattern** (new path, new unauth route,
+  new license, new GraphQL crate) or it does not exist. Path/count freeze JSON is
+  not a gate.
+- **ensure:** new `ci/facade/*` crates match the keep table or they are not merged.
+- **overturn_when:** a five-field ADR adds one engine that evaluates IR/Cedar/cargo
+  graph without a frozen corpus.
 
 ## Rejected alternatives
 
@@ -548,6 +630,11 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 - Branding the merge-blocking CI `oya-ci-*` or adding one required check per capability.
 - Keeping `specs/` as a JSON org-law tree (even “thin”).
 - Keeping `HANDOFF.md` as a fourth root hub.
+- Keeping `console/` as a shell/token-broker capability, or rehoming the
+  ops-dashboard pilot to `app/ops-console/`.
+- Trimming `cedar-deploy-parity-policy.json` (or any census JSON) instead of
+  deleting the gate. Hand-maintained path lists, FNV signatures, `min_expected_*`,
+  and `expected_total` are the same anti-pattern.
 
 ## Appendix — considerations (not implement authority)
 
