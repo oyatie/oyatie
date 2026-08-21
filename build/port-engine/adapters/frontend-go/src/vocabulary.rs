@@ -129,8 +129,18 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "closure",
     "continue",
     "composite",
+    // One arm of a `select`: a communication and a body, or a body alone when the arm is
+    // `default`. The default arm is what makes a select non-blocking, so an arm that has one and
+    // an arm that does not are recorded distinctly rather than collapsed.
+    "comm_clause",
+    // The communicating statement of a select arm.
+    "comm",
     "convert",
     "for",
+    // A GOROUTINE. Its child is the call it starts, whose arguments the source evaluates BEFORE
+    // the goroutine begins -- so the call is recorded rather than folded into whatever the target
+    // spawns, which is where that evaluation order would be lost.
+    "go",
     // An interface an interface EMBEDS. The target has no embedding, so this becomes a
     // supertrait — which is a requirement rather than a copy of the method set, and is why it is
     // recorded as a relation rather than flattened into the outer interface's methods.
@@ -183,6 +193,11 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "param",
     "result",
     "return",
+    // `select { case ... }`. The source picks UNIFORMLY AT RANDOM among the arms that are ready,
+    // which is a property of the construct rather than of any arm.
+    "select",
+    // `ch <- v`. Children are the channel and the value, in that order.
+    "send",
     "then",
     // A TYPE standing where an expression would. A few of the source's builtins take one —
     // `make([]byte, 0, n)` names what to allocate — and walking it as an expression recorded the

@@ -161,6 +161,35 @@ func statementNode(stmt ast.Stmt, ctx *extractCtx) node {
 		}
 		return unsupportedNode(stmt)
 
+	case *ast.GoStmt:
+		// A GOROUTINE, recorded as the call it starts. What the target does with it -- a spawned
+		// task, a thread, a refusal -- is the transform's decision; what the source says is that
+		// this call runs CONCURRENTLY with what follows, and the call's own arguments are
+		// evaluated HERE, before it starts. Recording the call keeps that evaluation order
+		// visible instead of folding it into whatever the target spawns.
+		//
+		// The call is extracted with this as the DESTINATION, because a literal started here
+		// outlives the frame that wrote it exactly as a returned one does -- and more strictly:
+		// the target's spawn requires what it captures to be owned AND sendable, where a return
+		// requires only that it be owned.
+		outer := ctx.destination
+		ctx.destination = destinationGo
+		started := expressionNode(typed.Call, ctx)
+		ctx.destination = outer
+		return node{Kind: kindGo, Children: []node{started}}
+
+	case *ast.SendStmt:
+		// `ch <- v`. Two children in a fixed order: the channel, then the value. The source's send
+		// BLOCKS until a receiver takes the value on an unbuffered channel and until there is room
+		// on a buffered one, which is a property of the channel rather than of this statement.
+		return node{Kind: kindSend, Children: []node{
+			expressionNode(typed.Chan, ctx),
+			expressionNode(typed.Value, ctx),
+		}}
+
+	case *ast.SelectStmt:
+		return selectNode(typed, ctx)
+
 	case *ast.ForStmt:
 		return forNode(typed, ctx)
 
@@ -247,6 +276,40 @@ func switchNode(stmt *ast.SwitchStmt, ctx *extractCtx) node {
 				node{Kind: kindThen, Children: statementNodes(caseClause.Body, ctx)},
 			),
 		})
+	}
+	return out
+}
+
+// selectNode records a `select`, whose arms are COMMUNICATIONS rather than values.
+//
+// Each arm carries the statement that communicates -- a send, a receive, or a receive that binds --
+// and the body that runs when that arm is chosen. The arm with no communication is `default`, and
+// it is what makes a select non-blocking; recording it distinctly matters because a select with a
+// default and one without are different programs.
+//
+// The source picks UNIFORMLY AT RANDOM among the arms that are ready. Nothing here says that; it is
+// a property of the construct that whatever translates this has to answer for.
+func selectNode(stmt *ast.SelectStmt, ctx *extractCtx) node {
+	out := node{Kind: kindSelect}
+	for _, clause := range stmt.Body.List {
+		comm, ok := clause.(*ast.CommClause)
+		if !ok {
+			return unsupportedNode(stmt)
+		}
+		arm := node{Kind: kindCommClause}
+		if comm.Comm == nil {
+			arm.Attrs = map[string]string{attrDefault: "true"}
+		} else {
+			arm.Children = append(arm.Children, node{
+				Kind:     kindComm,
+				Children: []node{statementNode(comm.Comm, ctx)},
+			})
+		}
+		arm.Children = append(arm.Children, node{
+			Kind:     kindBody,
+			Children: statementNodes(comm.Body, ctx),
+		})
+		out.Children = append(out.Children, arm)
 	}
 	return out
 }
