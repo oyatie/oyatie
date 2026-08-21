@@ -5,6 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//ci/adapters/scan-root-derivation:ci-scan-root-derivation-adapters",
         "third-party//:serde_json",
     ],
 )
@@ -15,6 +16,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//ci/adapters/scan-root-derivation:ci-scan-root-derivation-adapters",
         ":ci-caller-supplied-authorization",
         "third-party//:serde_json",
     ],
@@ -27,6 +29,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//ci/adapters/scan-root-derivation:ci-scan-root-derivation-adapters",
         "third-party//:serde_json",
     ],
 )
@@ -45,6 +48,7 @@ rust_test(
     crate_root = "tests/dto_authz_trust.rs",
     visibility = ["PUBLIC"],
     deps = [
+        "//ci/adapters/scan-root-derivation:ci-scan-root-derivation-adapters",
         ":ci-caller-supplied-authorization",
         "third-party//:serde_json",
     ],

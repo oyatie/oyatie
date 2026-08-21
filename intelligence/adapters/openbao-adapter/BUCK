@@ -29,7 +29,7 @@ rust_test(
         ":intelligence-openbao-adapter",
         "third-party//:base64",
         "third-party//:futures",
-        "third-party//:httpmock",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
         "third-party//:tokio",
     ],

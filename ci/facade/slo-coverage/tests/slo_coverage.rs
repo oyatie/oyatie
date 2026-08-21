@@ -147,9 +147,20 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  context). Attributable one-for-one: exactly three `git rm`s
 ///                                  under registry/catalog/ in this change, so the same producer
 ///                                  enumerates three fewer rows than the rebased base. Not a
-///   2026-08-20  740 -> pin 741     ROW ADDED: registry/catalog/check-integ-envelope.yaml
+///                                  collapsed enumeration. The pin moved 742 -> 739 before the
+///                                  rebase; the base's own +1 is what makes it 740.
+///   2026-08-20  740 -> pin 741     ROW ADDED, legitimately: registry/catalog/
+///                                  scripted-http-server.yaml, the catalog row for the
+///                                  owned test server replacing httpmock. Corpus gained
+///                                  exactly one row, face gained exactly one; the
+///   2026-08-20  741 -> pin 742     ROW ADDED, legitimately: registry/catalog/
+///                                  ci-scan-root-derivation-adapters.yaml, the catalog row
+///                                  for the new ci/adapters/scan-root-derivation crate this
+///                                  change introduces. Corpus gained exactly one row, face
+///                                  gained exactly one; the enumeration did not widen.
+///   2026-08-20  742 -> pin 743     ROW ADDED: registry/catalog/check-integ-envelope.yaml
 ///                                  for the new governance/check/integ-envelope crate.
-const SLO_CATALOG_CENSUS: usize = 741;
+const SLO_CATALOG_CENSUS: usize = 743;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
