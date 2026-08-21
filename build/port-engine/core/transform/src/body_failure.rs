@@ -163,6 +163,21 @@ pub(crate) fn fallible_return(
         });
     };
 
+    // FORWARDING. `return f(x)` where `f` fails the same way this function does is not a failing
+    // return at all — the source hands its caller whatever `f` answered, success or failure, and
+    // the target's `Result` is that same answer. There is nothing to prove about the operand
+    // because nothing is being wrapped: `Err(..)` never appears.
+    //
+    // This is why 16 declarations across seven packages asked to prove a `call` was "certainly a
+    // failure" and could not. They were never claiming one. `func (i *KSUID) Set(s string) error {
+    // return i.UnmarshalText([]byte(s)) }` is the shape, and it is common — a method that exists to
+    // delegate.
+    if values.is_empty()
+        && let Some(forwarded) = forwards_the_same_failure(failure, cx)
+    {
+        return expression(forwarded, cx);
+    }
+
     if crate::failure::is_absent(failure, cx.resolver.failure) {
         let values = values
             .iter()
@@ -298,4 +313,42 @@ fn sentinel_failure(operand: &Declaration, cx: &Body<'_>) -> Option<RustExpr> {
     // failure type is the destination's own conversion, applied by `inferred` beside every other
     // built failure — so a sentinel and a constructed failure reach `Err` the same way.
     Some(RustExpr::Path(cx.resolver.sentinel_path(&operand.name)))
+}
+
+/// The call this return FORWARDS, when it forwards one.
+///
+/// Two things have to hold, and each is read off the model rather than assumed. The operand is a
+/// CALL — a name that merely holds a failure is a value being wrapped, not an answer being passed
+/// on. And the CALLEE's own results are the failure alone, which the model carries on the call's
+/// selector: the front end records a callee's whole signature there, so no table has to be asked.
+///
+/// The third thing the caller has already proved: this is reached only where the return's operands
+/// are the failure and nothing else, so the enclosing function results in exactly what the callee
+/// does. Equal shapes are the whole requirement — a callee answering with a value beside the
+/// failure would need that value carried, and this returns the call unchanged.
+fn forwards_the_same_failure<'a>(
+    operand: &'a Declaration,
+    cx: &Body<'_>,
+) -> Option<&'a Declaration> {
+    if operand.kind != crate::vocabulary::KIND_CALL {
+        return None;
+    }
+    // A CONSTRUCTOR is not a forward. `return errors.New("key size must be 16, 24 or 32 bytes")`
+    // is a call whose result is the failure type, and it is the source saying FAIL WITH THIS —
+    // there is no answer being passed on, because the callee had no chance to succeed. The pack
+    // already names which callees those are, and reading its answer keeps the two rules from
+    // disagreeing about one call. Without this, `validate_key` returned a boxed error where its
+    // signature promised a `Result`.
+    if is_certainly_a_failure(operand, cx.resolver) {
+        return None;
+    }
+    let callee = operand.children.first()?;
+    if callee.type_ref.kind != "func" {
+        return None;
+    }
+    let produced = callee.type_ref.args.get(1)?;
+    let [answered] = produced.args.as_slice() else {
+        return None;
+    };
+    crate::failure::is_failure_type(answered, cx.resolver.failure).then_some(operand)
 }

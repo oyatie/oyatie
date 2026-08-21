@@ -7286,3 +7286,40 @@ THE COMPILE GATE CAUGHT THIS, unreachable-pattern under deny-warnings, before an
 believed. That is the second time in this session a rule that raised coverage exposed a defect that
 had been sitting behind a refusal, and the first time the defect was one the engine would otherwise
 have shipped.
+
+## R4v — `return f(x)` was never claiming a failure
+
+Sixteen declarations across seven packages asked the engine to prove a `call` was "certainly a
+failure" and it could not. They were never claiming one.
+
+    func (i *KSUID) Set(s string) error { return i.UnmarshalText([]byte(s)) }
+
+The source hands its caller whatever `UnmarshalText` answered — success or failure — and the
+target's `Result` is that same answer. Nothing is being wrapped, so there is nothing to prove about
+the operand: `Err(..)` never appears. It is a method that exists to delegate, and that is common.
+
+Two things are read off the model rather than assumed. The operand is a CALL, because a name that
+merely holds a failure is a value being wrapped rather than an answer being passed on. And the
+CALLEE's own results are the failure alone — which the model already carries on the call's SELECTOR,
+because the front end records a callee's whole signature there. No signature table had to grow a
+results column, which was the shape this rule was expected to need.
+
+The third condition the caller had already proved: this is reached only where the return's operands
+are the failure and nothing beside it, so the enclosing function results in exactly what the callee
+does. Equal shapes are the whole requirement.
+
+A CONSTRUCTOR is not a forward, and missing that broke `memberlist`:
+
+    return errors.New("key size must be 16, 24 or 32 bytes")
+
+is a call whose result is the failure type, and it is the source saying FAIL WITH THIS — the callee
+had no chance to succeed, so there is no answer to pass on. The pack already names which callees
+those are and `is_certainly_a_failure` already reads it; asking the same question here is what keeps
+two rules from disagreeing about one call. Without it `validate_key` returned a boxed error where
+its signature promised a `Result`, and the compile gate said so.
+
+The cause dropped from 16 to 12 and COVERAGE DID NOT MOVE. That is the sixth rule this session with
+that shape, and the pattern is now the finding rather than a disappointment: the declarations this
+unblocked call callees that refuse, so they refuse again one step later as CASCADE. Cascade is 134
+declarations across all ten packages — the largest single category — and none of it resolves until
+the roots do.
