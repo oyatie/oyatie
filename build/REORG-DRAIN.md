@@ -8070,3 +8070,40 @@ time, and the eighth time it was a fact that already existed on one side.
 
 This is the next task, and it is a root cause rather than a repair: every reassigned parameter in
 every package is currently typed by a decision that ignores the reassignment.
+
+## R5q — the spelling has to be chosen before the form is applied
+
+chi's `mut p: str` from R5p, fixed at the root. 7 errors -> 3.
+
+The parameter carries `['escapes', 'rebound']` and matches the `rebound_sequence_owned`
+disposition, whose pointer form is owned (`Option<Box<{0}>>`) and whose REFERENCE form was a bare
+`{0}`. That `{0}` is substituted with the BORROWED spelling -- the unsized view, `str` for a string
+and `[T]` for a sequence, which exists so that `&str` can take strictly more callers than `&String`.
+Applied to a form that does not borrow, it yields `mut p: str`: not a parameter, a size error.
+
+So the fix is not in the template. WHICH SPELLING is a decision, and it has to be made BEFORE the
+form is applied, because no template can turn `str` into `String` afterwards. `reference_owned` is
+now a field on the disposition, set on `rebound_sequence_owned` alone, with the reason: the source
+REBINDS ITS OWN COPY, and the target cannot point a borrow at a value the body just created.
+
+The cost is stated in the entry and is narrow: the caller hands its value over where the source lent
+it. Faithful for this disposition and only this one, because the parameter ESCAPES as well as being
+rebound -- the source's own copy was already outliving the call.
+
+chi now emits, for a function that had never translated at all:
+
+    fn replace_wildcards(mut p: String) -> String {
+        while p.contains("/*/") { p = p.replace("/*/", "/"); }
+        p
+    }
+
+**THE NEXT ROOT CAUSE, and it is the same shape a third time.** chi's remaining 3 errors are
+`v.starts_with(self.prefix.clone())` -- `String` does not implement `Pattern`. The argument is
+CLONED into a position that wants a BORROW. Mapping `strings.HasSuffix` made that function translate
+for the first time and exposed it; `strings.HasPrefix` had been mapped all along and the defect sat
+behind a refusal.
+
+What is missing: a mapped call's argument POSITIONS are all treated as taking a value, and some of
+them borrow. That is pack data -- the entry knows its own template -- and it wants saying once, next
+to the form, rather than inferred at each call site. `starts_with`, `ends_with`, `contains`,
+`matches`, `find`, `split`, `replace` all take patterns; the same seam answers every one.

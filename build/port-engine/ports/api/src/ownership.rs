@@ -107,6 +107,13 @@ pub struct PointerDisposition {
     /// source's pointer can be nil and the pointee needs an owner, and none of that is true of a
     /// sequence that is already owned.
     pub reference_target: Option<String>, // data_class: INTERNAL_ONLY
+    /// Whether the reference form is applied to the OWNED spelling rather than the borrowed one.
+    ///
+    /// A borrow of a reference kind is spelled over the UNSIZED view -- `str` for a string, `[T]`
+    /// for a sequence -- because `&str` accepts strictly more callers than `&String`. A disposition
+    /// that does not borrow needs the sized spelling instead: the unsized one is not a type a
+    /// parameter can have.
+    pub reference_owned: bool, // data_class: INTERNAL_ONLY
     /// Why a reference takes that form, and what it costs.
     pub reference_reason: Option<String>, // data_class: INTERNAL_ONLY
     /// Why these facts deserve this form, and what it costs.

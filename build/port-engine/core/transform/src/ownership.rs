@@ -222,3 +222,22 @@ impl<'a> OwnershipContext<'a> {
         Self { rules, log }
     }
 }
+
+/// Whether this parameter's reference form is built over the OWNED spelling.
+///
+/// Asked separately from [`reference_target`] because the answer decides which spelling that
+/// function is HANDED, and a template cannot turn `str` into `String` after the fact. The borrowed
+/// spelling is the unsized view and exists to sit behind an `&`; a disposition that hands ownership
+/// over needs the sized type, and taking the unsized one produces a parameter whose size is not
+/// known at compile time.
+///
+/// # Errors
+/// [`TransformError::Ownership`] when no rule accepts the facts, which is the same refusal
+/// [`reference_target`] would raise.
+pub(crate) fn reference_owned(
+    parameter: &Declaration,
+    site: &str,
+    context: &OwnershipContext<'_>,
+) -> Result<bool, TransformError> {
+    Ok(decision_for(site, facts_of(parameter), context)?.reference_owned)
+}

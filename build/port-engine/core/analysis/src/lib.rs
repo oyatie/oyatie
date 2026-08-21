@@ -53,6 +53,8 @@ pub struct Decision {
     /// `Option<Box<..>>` because the source's pointer can be nil and the pointee needs an owner,
     /// and none of that is true of a sequence that is already owned.
     pub reference_target: Option<String>,
+    /// Whether the reference form is applied to the OWNED spelling rather than the borrowed one.
+    pub reference_owned: bool,
     /// Why a reference takes that form, when the rule says.
     pub reference_reason: Option<String>,
     /// Why these facts deserve this form.
@@ -140,6 +142,7 @@ pub fn decide(
             target: rule.target.clone(),
             receiver: rule.receiver.clone(),
             reference_target: rule.reference_target.clone(),
+            reference_owned: rule.reference_owned,
             reference_reason: rule.reference_reason.clone(),
             reason: rule.reason.clone(),
             facts,
