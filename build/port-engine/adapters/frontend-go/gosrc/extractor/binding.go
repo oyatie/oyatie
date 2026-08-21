@@ -240,7 +240,15 @@ func compoundOperator(tok token.Token) string {
 // one is assigned. Only the body knows which, so the body is asked.
 func bindingFlags(name *ast.Ident, ctx *extractCtx) []string {
 	object := ctx.info.Defs[name]
-	if object == nil || ctx.assigned == nil || !ctx.assigned[object] {
+	// EITHER FACT makes an owned binding mutable: a write to the name, or a write through an index
+	// into what it holds. They are recorded apart because a PARAMETER needs different things of
+	// them -- see `indexWrittenLocals`.
+	if object == nil {
+		return nil
+	}
+	rebound := ctx.assigned != nil && ctx.assigned[object]
+	mutated := ctx.indexWritten != nil && ctx.indexWritten[object]
+	if !rebound && !mutated {
 		return nil
 	}
 	return []string{flagMutated}

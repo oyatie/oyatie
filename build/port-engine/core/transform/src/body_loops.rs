@@ -527,10 +527,24 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
         (ForBinding::Blank, false) => iter,
     };
 
+    // THE INDEX `enumerate` HANDS BACK IS ALREADY THE TARGET'S INDEX TYPE, and the body has to know
+    // that or it converts it again — `points[i as usize]` where `i` came from `enumerate`, which is
+    // a `usize` casting to a `usize`. The counted loop already tells its body this; the ranged one
+    // did not, so the two ends of one decision disagreed the moment the ranged form started
+    // producing an index at all.
+    let widened;
+    let inner: &Body<'_> = match &binding {
+        ForBinding::Indexed { index, .. } => {
+            widened = cx.with_usize_counter(index);
+            &widened
+        }
+        _ => cx,
+    };
+
     Ok(RustStmt::ForIn {
+        body: translate(&body.children, inner, TailPosition::No)?,
         binding,
         iter,
-        body: translate(&body.children, cx, TailPosition::No)?,
     })
 }
 

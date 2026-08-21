@@ -123,6 +123,28 @@ pub(crate) fn structured_repeat(form: &str, args: &[RustExpr]) -> Option<RustExp
     };
     Some(RustExpr::VecRepeat {
         value: Box::new(args.get(index(value)?)?.clone()),
-        count: Box::new(args.get(index(count)?)?.clone()),
+        count: Box::new(counted(args.get(index(count)?)?.clone())),
     })
+}
+
+/// A repeat COUNT in the target's index type.
+///
+/// `vec![v; n]` takes a `usize`, and the source's count is its own integer — so the mapping that
+/// renders `len` puts ` as i64` on the end and the count no longer fits. Stripping that cast gets
+/// the `usize` the length already was, rather than casting it back through a second conversion.
+///
+/// A count that is not a length is converted instead. The source's `make` takes its own integer
+/// there too, and a negative one aborts in both languages: the source panics on a negative make and
+/// the target's allocation fails on the value it wraps to.
+fn counted(count: RustExpr) -> RustExpr {
+    match count {
+        RustExpr::Cast { expr, ref ty } if *ty == port_engine_rust_ir::RustType::path("i64") => {
+            *expr
+        }
+        RustExpr::Literal(_) => count,
+        other => RustExpr::Cast {
+            expr: Box::new(other),
+            ty: port_engine_rust_ir::RustType::path("usize"),
+        },
+    }
 }
