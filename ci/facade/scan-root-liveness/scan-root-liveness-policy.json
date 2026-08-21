@@ -70,6 +70,7 @@
   "baselined_dead_roots": [
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/cli_package_authority/roots::cloud",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/interpreter_command_authority/roots::cloud/cloud-ci",
+    "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::.codex",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::bin",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/roots::cloud",
     "ci/facade/automation-language-policy/rust-first-automation-policy.json::/scan/workflow_forbidden_uses/roots::.github/actions",

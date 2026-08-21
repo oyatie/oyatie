@@ -22,7 +22,9 @@ use ci_scan_root_liveness::{
 use serde_json::Value;
 
 const POLICY_PATH: &str = "ci/facade/scan-root-liveness/scan-root-liveness-policy.json";
-const EXPECTED_BASELINED_DEAD_ROOTS: usize = 9;
+// 9 -> 10: this PR untracks `.codex` while rust-first anti-narrowing forbids
+// dropping that scan root, so the debt is recorded in the baseline.
+const EXPECTED_BASELINED_DEAD_ROOTS: usize = 10;
 
 /// The reviewed ceiling on tolerated dark gate crates.
 ///
