@@ -97,15 +97,10 @@ jobs:
           # train (staging/canary/production). Not a required per-PR fan-in leg.
           - os: ubuntu-24.04-arm
             lane: arm64-train
-    if: |
-      (matrix.lane == 'presubmit' && github.event_name != 'schedule') ||
-      (matrix.lane == 'arm64-train' && (
-        github.event_name == 'schedule' ||
-        github.event_name == 'workflow_dispatch' ||
-        github.ref == 'refs/heads/staging' ||
-        github.ref == 'refs/heads/canary' ||
-        github.ref == 'refs/heads/production'
-      ))
+    # Job-level `if` must be a ${{ }} expression when it reads `matrix.*`.
+    # A bare YAML `|` block here made GitHub reject the workflow at register
+    # (0 jobs, run name = file path) so the PR never got oya-ci-required.
+    if: ${{ (matrix.lane == 'presubmit' && github.event_name != 'schedule') || (matrix.lane == 'arm64-train' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/canary' || github.ref == 'refs/heads/production')) }}
     permissions:
       contents: read
       pull-requests: read
