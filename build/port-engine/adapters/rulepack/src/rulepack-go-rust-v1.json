@@ -710,13 +710,33 @@
       "form": "{0}.contains({1})",
       "reason": "A SUBSTRING SEARCH, byte-wise in both. Neither language folds case or normalises here, and both answer true for the empty needle."
     },
+    "strings.ContainsRune": {
+      "form": "{0}.contains({1})",
+      "requires_argument": null,
+      "reason": "A SINGLE CODE POINT, and the target's `contains` takes one directly because a `char` is itself a pattern. The source's rune is a code point and the pack maps it to the target's `char`, which is the same thing with the surrogate range excluded -- and the source cannot produce a surrogate from a decoded string either, because its own decoder yields the replacement character for one."
+    },
+    "strings.Count": {
+      "form": "{0}.matches({1}).count() as i64",
+      "requires_argument": null,
+      "reason": "NON-OVERLAPPING INSTANCES, left to right, in both -- so both answer 1 for `aaa` in `aaaa` rather than 2.\n\nThe empty needle agrees too, which is the case worth checking rather than assuming: the source documents it as the rune count plus one, and the target's `matches` yields an empty match at every UTF-8 boundary and at each end, which is the same number.\n\n`as i64` because the source's result is its own signed integer and the target's is a `usize`; a count cannot overflow the conversion because it is bounded by the length of a string that already fits in memory."
+    },
     "strings.HasPrefix": {
       "form": "{0}.starts_with({1})",
       "reason": "BYTE-WISE IN BOTH. The source tests `len(s) >= len(prefix) && s[:len(prefix)] == prefix`, and the target's `starts_with` on a string pattern compares the same bytes -- no case folding, no normalisation, no decoding, so there is no input the two answer differently on."
     },
+    "strings.HasSuffix": {
+      "form": "{0}.ends_with({1})",
+      "requires_argument": null,
+      "reason": "BYTE-WISE IN BOTH, and the exact mirror of `strings.HasPrefix` above. The source tests `len(s) >= len(suffix) && s[len(s)-len(suffix):] == suffix` and the target's `ends_with` on a string pattern compares the same bytes -- no case folding, no normalisation, no decoding. Both answer true for the empty suffix."
+    },
     "strings.Index": {
       "form": "{0}.find({1}).map_or(-1, |at| at as i64)",
       "reason": "The source answers with a BYTE OFFSET or -1; the target answers with an option over a byte offset. The absent case is spelled by the source's own sentinel rather than by a panic, and the offsets agree because both count bytes. Shaped exactly as `strings.LastIndex` beside it, because they are the same function looking the other way."
+    },
+    "strings.IndexByte": {
+      "form": "{0}.bytes().position(|byte| byte == {1}).map_or(-1, |at| at as i64)",
+      "requires_argument": null,
+      "reason": "A BYTE OFFSET or -1, shaped exactly as `strings.Index` above.\n\nSearched over BYTES rather than over characters, which is the whole point of the source's function and is not the same as searching for a `char`: a byte at or above 0x80 is not a code point, and asking the target to find it as one would search for a two-byte sequence the source never looks for. `.bytes()` is the iterator that keeps the two counting the same units."
     },
     "strings.Join": {
       "form": "{0}.join({1})",
@@ -725,6 +745,31 @@
     "strings.LastIndex": {
       "form": "{0}.rfind({1}).map_or(-1, |at| at as i64)",
       "reason": "The source answers with a byte offset or -1; the target answers with an optional byte offset. Same search, same units -- both count BYTES rather than characters, which is the thing that usually differs between two languages' index functions -- so only the absent case needs spelling, and -1 is how the source spells it. Kept as the sentinel rather than turned into an option because the call sites are the source's and they compare against -1."
+    },
+    "strings.LastIndexByte": {
+      "form": "{0}.bytes().rposition(|byte| byte == {1}).map_or(-1, |at| at as i64)",
+      "requires_argument": null,
+      "reason": "THE LAST such byte, or -1. The mirror of `strings.IndexByte` above and searched over the same units for the same reason; `rposition` scans from the right, which is what makes the offset the source's rather than merely a matching one."
+    },
+    "strings.ReplaceAll": {
+      "form": "{0}.replace({1}, {2})",
+      "requires_argument": null,
+      "reason": "EVERY NON-OVERLAPPING INSTANCE, left to right, in both. The two scan the same way and agree on the empty needle, which both insert between every UTF-8 boundary and at each end. Neither allocates in place: the source returns a new string and so does the target."
+    },
+    "strings.ToLower": {
+      "form": "{0}.to_lowercase()",
+      "requires_argument": null,
+      "reason": "UNICODE CASE MAPPING in both, not the ASCII subset.\n\nTHE COST, and it is real: the source applies SIMPLE case mapping and the target applies FULL. They differ where one code point lowers to several -- the target lowercases U+0130 LATIN CAPITAL I WITH DOT ABOVE to two code points and the source to one. Neither is wrong; they implement two different clauses of the same standard. The mapping is exact for every ASCII input, which is what a header name, a scheme, or an identifier is, and those are what this is called on."
+    },
+    "strings.ToUpper": {
+      "form": "{0}.to_uppercase()",
+      "requires_argument": null,
+      "reason": "UNICODE CASE MAPPING in both, and the same simple-versus-full divergence as `strings.ToLower` with a more familiar example: the target uppercases U+00DF SHARP S to `SS` and the source leaves it alone. Exact for every ASCII input. Stated rather than hidden, because a program that round-trips a non-ASCII string through this and compares lengths would see the difference."
+    },
+    "strings.TrimSpace": {
+      "form": "{0}.trim().to_string()",
+      "requires_argument": null,
+      "reason": "LEADING AND TRAILING WHITESPACE, from both ends, in both.\n\nTHE COST: the two do not define whitespace identically. The source trims what its `unicode.IsSpace` accepts and the target trims the Unicode `White_Space` property; they agree on every character either is likely to meet -- the ASCII five, NBSP, the ideographic space -- and a program whose input separates them is trimming something it should be naming.\n\n`to_string` is what makes the type line up: the target's `trim` borrows and the source's function returns a new string, so the mapping owns its result rather than leaking a borrow of the argument into a position typed as a value."
     }
   },
   "value_map": {
