@@ -17,7 +17,7 @@
 
 ```bash
 cd <repo>   # oyatie monorepo root
-node tools/delivery/auth-preflight.mjs   # fail fast before push/merge/babysit/restack
+node templates/agent-delivery/auth-preflight.mjs   # fail fast before push/merge/babysit/restack
 bd prime
 git fetch origin dev
 # Law freshness (CLI-safe; no Grok workflow):
@@ -311,11 +311,11 @@ remains envelopes `#daemon_hotset` / `#perimeter`.
 Before any push / merge / babysit / restack path:
 
 ```bash
-node tools/delivery/auth-preflight.mjs
+node templates/agent-delivery/auth-preflight.mjs
 ```
 
-Non-zero exit → stop. Encoded in `tools/delivery/deliver.js` Preflight and
-`tools/delivery/preflight.mjs` / `merge-check.mjs`.
+Non-zero exit → stop. Encoded in `templates/agent-delivery/deliver.js` Preflight and
+`templates/agent-delivery/preflight.mjs` / `merge-check.mjs`.
 
 ## Equality-pinned census merge protocol (oyatie-o90)
 
@@ -323,11 +323,11 @@ After any rebase or merge touching `governance/check/adr-citation-closure/adr-ci
 
 1. **Never** accept git's auto-merge as proof the pin is correct — two branches can agree on identical text for different reasons.
 2. **Re-derive** from the gate oracle: `buck2 test //governance/check/adr-citation-closure:check-adr-citation-closure-gate` → read `observed N`, set frozen to `N` as TEXT keyed by name.
-3. **Re-run** the gate after restack; paste output. Encoded in `tools/delivery/deliver.js` and `tools/delivery/restack.js`.
+3. **Re-run** the gate after restack; paste output. Encoded in `templates/agent-delivery/deliver.js` and `templates/agent-delivery/restack.js`.
 
 ## Two-round rule (carry-forward)
 
-In Converge (`tools/delivery/deliver.js`): if the same failure **class** is still red after two
+In Converge (`templates/agent-delivery/deliver.js`): if the same failure **class** is still red after two
 fix rounds, **halt output patches** and fix the process / unit spec / oracle instead. Do not attempt
 a third output patch for that class.
 

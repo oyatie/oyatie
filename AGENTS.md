@@ -44,7 +44,7 @@ INV-DOC-9: doctrine that exists only in a plan file or chat is **not** survived.
 
 - **achieves:** every agent runs the same start/end checklist without pasting the whole north-star plan.
 - **origin:** strategy and procedure were conflated; babysit-only regressions followed.
-- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. In-repo short form: [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc). Canonical long form: [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md). `docs/checklists/swarm-agent-ritual.md` 404s; do not recreate it.
+- **rule:** every implement/audit/review/plan/scout/recon dispatch MUST run the Tier-2 ritual. Canonical in-repo copy: [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md) (short form is inlined in [`docs/AGENTS.md`](docs/AGENTS.md)). `docs/checklists/swarm-agent-ritual.md` 404s; do not recreate it.
 - **ensure:** ritual file tracked under process_meta; receipts include role-scaled evidence.
 - **overturn_when:** a recorded challenge shows the ritual blocks delivery AND a replacement ritual with five fields lands same-wave.
 

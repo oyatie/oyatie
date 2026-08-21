@@ -35,9 +35,9 @@ INV-DOC-9: plan/chat-only doctrine is **not** survived. Binding short form + why
 [`docs/AGENTS.md`](docs/AGENTS.md); Amendment C catalog at
 [`specs/agentic-operating-patterns.json`](specs/agentic-operating-patterns.json).
 
-Per-dispatch ritual (Tier 2): [`.cursor/rules/swarm-agent-ritual.mdc`](.cursor/rules/swarm-agent-ritual.mdc)
-(short) and [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md)
-(canonical long form). `docs/checklists/swarm-agent-ritual.md` does not exist; do not recreate it.
+Per-dispatch ritual (Tier 2): [`templates/checklists/swarm-agent-ritual.md`](templates/checklists/swarm-agent-ritual.md)
+(canonical long form; short form is inlined in [`docs/AGENTS.md`](docs/AGENTS.md)).
+`docs/checklists/swarm-agent-ritual.md` does not exist; do not recreate it.
 
 <!-- agent-instructions:start -->
 coordination_surface: governance_pipeline

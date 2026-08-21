@@ -319,11 +319,13 @@ fn synthetic_tracked_runtime_state_paths_are_born_blocking_red() {
 
     let findings = evaluate_keyed(&policy, &observed);
     for path in SYNTHETIC_RUNTIME_STATE_PATHS {
+        let top = path.split('/').next().unwrap_or(path);
         assert!(
             findings.iter().any(|f| {
-                f.code == "root_workspace_restricted_dir_unallowlisted_path" && f.key == path
+                (f.code == "root_workspace_restricted_dir_unallowlisted_path" && f.key == path)
+                    || (f.code == "root_workspace_unallowlisted_dir" && f.key == top)
             }),
-            "{path} must be born-blocking under restricted runtime/state roots; got {findings:#?}"
+            "{path} must be born-blocking under unallowlisted/restricted runtime/state roots; got {findings:#?}"
         );
     }
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);

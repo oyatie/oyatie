@@ -20,7 +20,7 @@ if [ -n "$offending" ]; then
     echo "[pre-commit] REFUSED: agent directory files are staged."
     echo "$offending" | sed 's/^/             /'
     echo "             Drain any load-bearing content to a tracked home first"
-    echo "             (see tools/delivery/ and tools/hooks/registration/), then"
+    echo "             (see templates/agent-delivery/ and tools/hooks/registration/), then"
     echo "             leave the directory untracked. It may stay on disk."
     exit 1
 fi

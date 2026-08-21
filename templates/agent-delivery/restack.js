@@ -82,7 +82,7 @@ EQUALITY-PINNED CENSUS MERGE PROTOCOL — the mandatory merge sequence (oyatie-o
   3. Run the gate again after restack; paste output. The post-restack gate is the admission check.
 
 AUTH PREFLIGHT — HARD GATE when push is requested (${DO_PUSH ? 'push ENABLED for this run' : 'push disabled'}).
-Before any restack lane pushes, run \`node tools/delivery/auth-preflight.mjs\`. Both \`gh auth status\`
+Before any restack lane pushes, run \`node templates/agent-delivery/auth-preflight.mjs\`. Both \`gh auth status\`
 and \`gh api user -q .login\` must succeed. If either fails, STOP — do not rebase lanes that need push.
 Remediation: gh auth login -h github.com
 
@@ -291,7 +291,7 @@ if (DO_PUSH) {
 
 AUTH PREFLIGHT — required because this restack will PUSH. Change nothing.
 
-Run: node ${REPO}/tools/delivery/auth-preflight.mjs
+Run: node ${REPO}/templates/agent-delivery/auth-preflight.mjs
 Paste stdout/stderr and exit code. If non-zero, summary first line REFUSE with remediation.
 If zero, report login from PASS line. Set passed=true only when exit code is 0.`,
     { label: 'preflight:auth', phase: 'Preflight', schema: PREFLIGHT_SCHEMA })

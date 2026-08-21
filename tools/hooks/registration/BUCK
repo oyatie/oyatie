@@ -1,0 +1,11 @@
+filegroup(
+    name = "claude-settings-json",
+    srcs = ["claude-settings.json"],
+    visibility = ["PUBLIC"],
+)
+
+filegroup(
+    name = "codex-hooks-json",
+    srcs = ["codex-hooks.json"],
+    visibility = ["PUBLIC"],
+)

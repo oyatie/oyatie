@@ -31,8 +31,8 @@ const FACE_SETTLE_COMMIT_MESSAGE: &str = "chore: settle generated cloud-ci faces
 const FACES_DIR: &str = "ci/facade/artifact-inventory-registry";
 const SCM_FACTS_FACE: &str = "scm-facts.generated.json";
 const ADR_CENSUS_EPOCH_RECEIPT_FACE: &str = "adr-census-epoch-receipt.generated.json";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = "tools/hooks/registration/claude-settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = "tools/hooks/registration/codex-hooks.json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 /// The generated-artifact control-plane manifest. Faces whose `materialization_mode` is
 /// non-PR-owned are materialized by cloud-ci/controllers, not byte-compared against contributor
@@ -83,8 +83,9 @@ const CODEMOD_TARGET: &str = "//tools/oya-reorg-codemod-app:oya-reorg-codemod";
 const ARCHITECTURE_GRAPH_GENERATOR_TARGET: &str =
     "//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator";
 const MASTERPLAN_GENERATOR_TARGET: &str = "//marketplace/facade/dev-cli:oya";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str = "//.claude:settings-json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//.codex:hooks-json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_TARGET: &str =
+    "//tools/hooks/registration:claude-settings-json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS_TARGET: &str = "//tools/hooks/registration:codex-hooks-json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET: &str = "//tools/hooks:top-level-hook-scripts";
 const MOVE_MANIFEST_FACE: &str = "specs/reorg/move-manifest.generated.json";
 /// De-committed face: merge-base CONTENT of every `normal-source-merge` hand-curated-ratchet
@@ -2582,8 +2583,8 @@ fn parse_enforcement_liveness_corpus_paths(
     let hooks_dir =
         parse_show_output_path(repo_root, output, ENFORCEMENT_LIVENESS_HOOKS_DIR_TARGET)?;
     Ok(EnforcementLivenessCorpusPaths {
-        claude_settings: buck_filegroup_file(claude_settings_output, "settings.json"),
-        codex_hooks: buck_filegroup_file(codex_hooks_output, "hooks.json"),
+        claude_settings: buck_filegroup_file(claude_settings_output, "claude-settings.json"),
+        codex_hooks: buck_filegroup_file(codex_hooks_output, "codex-hooks.json"),
         hooks_dir,
     })
 }
@@ -3806,8 +3807,8 @@ mod materialize_generated_faces_tests {
         let mut command = Command::new("/tmp/producer");
         append_enforcement_liveness_corpus_paths(
             &mut command,
-            Path::new("/repo/.claude/settings.json"),
-            Path::new("/repo/.codex/hooks.json"),
+            Path::new("/repo/tools/hooks/registration/claude-settings.json"),
+            Path::new("/repo/tools/hooks/registration/codex-hooks.json"),
             Path::new("/repo/tools/hooks"),
         );
 
@@ -3819,13 +3820,13 @@ mod materialize_generated_faces_tests {
         assert!(args.windows(2).any(|pair| {
             pair == [
                 "--enforcement-liveness-claude-settings",
-                "/repo/.claude/settings.json",
+                "/repo/tools/hooks/registration/claude-settings.json",
             ]
         }));
         assert!(args.windows(2).any(|pair| {
             pair == [
                 "--enforcement-liveness-codex-hooks",
-                "/repo/.codex/hooks.json",
+                "/repo/tools/hooks/registration/codex-hooks.json",
             ]
         }));
         assert!(
@@ -3842,8 +3843,8 @@ root//ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app
 root//tools/oya-reorg-codemod-app:oya-reorg-codemod buck-out/v2/gen/codemod\n\
 root//marketplace/facade/dev-cli:oya /tmp/oya\n\
 root//tools/oya-architecture-graph-generator-app:oya-architecture-graph-generator buck-out/v2/gen/architecture-graph\n\
-root//.claude:settings-json buck-out/v2/gen/.claude/__settings-json__/settings-json\n\
-root//.codex:hooks-json buck-out/v2/gen/.codex/__hooks-json__/hooks-json\n\
+root//tools/hooks/registration:claude-settings-json buck-out/v2/gen/tools/hooks/registration/__claude-settings-json__/claude-settings-json\n\
+root//tools/hooks/registration:codex-hooks-json buck-out/v2/gen/tools/hooks/registration/__codex-hooks-json__/codex-hooks-json\n\
 root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level-hook-scripts__/top-level-hook-scripts\n\
 ";
 
@@ -3876,12 +3877,14 @@ root//tools/hooks:top-level-hook-scripts buck-out/v2/gen/tools/hooks/__top-level
         assert_eq!(
             corpus.claude_settings,
             PathBuf::from(
-                "/repo/buck-out/v2/gen/.claude/__settings-json__/settings-json/settings.json"
+                "/repo/buck-out/v2/gen/tools/hooks/registration/__claude-settings-json__/claude-settings-json/claude-settings.json"
             )
         );
         assert_eq!(
             corpus.codex_hooks,
-            PathBuf::from("/repo/buck-out/v2/gen/.codex/__hooks-json__/hooks-json/hooks.json")
+            PathBuf::from(
+                "/repo/buck-out/v2/gen/tools/hooks/registration/__codex-hooks-json__/codex-hooks-json/codex-hooks.json"
+            )
         );
         assert_eq!(
             corpus.hooks_dir,
@@ -4419,7 +4422,7 @@ printf '{{"gates":{{}}}}\n'
             masterplan_generator: PathBuf::from("/unused-masterplan"),
             architecture_graph_generator: PathBuf::from("/unused-architecture"),
             enforcement_liveness_corpus: EnforcementLivenessCorpusPaths {
-                claude_settings: root.join(".claude/settings.json"),
+                claude_settings: root.join("tools/hooks/registration/claude-settings.json"),
                 codex_hooks: root.join(".codex/hooks.json"),
                 hooks_dir: root.join("tools/hooks"),
             },

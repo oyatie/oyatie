@@ -229,8 +229,8 @@ fn unique_temp_path(label: &str) -> PathBuf {
 
 fn current_enforcement_tracked_paths(corpus: &DeclaredCorpus) -> Vec<String> {
     let mut paths = BTreeSet::new();
-    paths.insert(".claude/settings.json".to_owned());
-    paths.insert(".codex/hooks.json".to_owned());
+    paths.insert("tools/hooks/registration/claude-settings.json".to_owned());
+    paths.insert("tools/hooks/registration/codex-hooks.json".to_owned());
     paths.extend(current_hook_paths(&corpus.hooks_dir));
     paths.into_iter().collect()
 }
@@ -344,7 +344,7 @@ fn green_rows_allow_dual_wired_hooks_and_marked_compatibility_stubs() {
             },
             {
                 "row_type": "command_reference",
-                "wiring_file": ".claude/settings.json",
+                "wiring_file": "tools/hooks/registration/claude-settings.json",
                 "command_path": "tools/hooks/no-cargo-enforcer.sh",
                 "target_exists": true
             }
@@ -377,7 +377,7 @@ fn malformed_rows_are_red_with_actionable_keys() {
             {"row_type": "hook", "wired_in_claude": true, "wired_in_codex": true},
             {
                 "row_type": "command_reference",
-                "wiring_file": ".codex/hooks.json",
+                "wiring_file": "tools/hooks/registration/codex-hooks.json",
                 "target_exists": true
             }
         ]
@@ -420,7 +420,7 @@ fn malformed_boolean_fields_are_red_not_coerced_to_false() {
             },
             {
                 "row_type": "command_reference",
-                "wiring_file": ".codex/hooks.json",
+                "wiring_file": "tools/hooks/registration/codex-hooks.json",
                 "command_path": "tools/hooks/fully-wired-but-malformed.sh"
             }
         ]
@@ -467,8 +467,12 @@ fn live_hook_missing_dual_wiring_is_red() {
     assert!(findings.iter().any(|finding| {
         finding.code == "hook_unwired_without_stub_marker"
             && finding.key == "tools/hooks/no-cargo-enforcer.sh"
-            && finding.remediation.contains(".claude/settings.json")
-            && finding.remediation.contains(".codex/hooks.json")
+            && finding
+                .remediation
+                .contains("tools/hooks/registration/claude-settings.json")
+            && finding
+                .remediation
+                .contains("tools/hooks/registration/codex-hooks.json")
             && finding.remediation.contains("governance PR")
     }));
     assert_eq!(evaluate(&input).verdict, Verdict::Red);
@@ -490,8 +494,12 @@ fn one_sided_live_hook_wiring_is_mirror_drift() {
     assert!(findings.iter().any(|finding| {
         finding.code == "hook_wiring_mirror_drift"
             && finding.key == "tools/hooks/stale-tool-suggester.sh"
-            && finding.remediation.contains(".claude/settings.json")
-            && finding.remediation.contains(".codex/hooks.json")
+            && finding
+                .remediation
+                .contains("tools/hooks/registration/claude-settings.json")
+            && finding
+                .remediation
+                .contains("tools/hooks/registration/codex-hooks.json")
             && finding.remediation.contains("governance PR")
     }));
     assert_eq!(evaluate(&input).verdict, Verdict::Red);
@@ -502,7 +510,7 @@ fn wired_hook_missing_file_is_red() {
     let input = json!({
         "rows": [{
             "row_type": "command_reference",
-            "wiring_file": ".codex/hooks.json",
+            "wiring_file": "tools/hooks/registration/codex-hooks.json",
             "command_path": "tools/hooks/deleted-enforcer.sh",
             "target_exists": false
         }]
@@ -514,9 +522,13 @@ fn wired_hook_missing_file_is_red() {
     assert_eq!(finding.code, "wired_hook_missing_file");
     assert_eq!(
         finding.key,
-        ".codex/hooks.json:tools/hooks/deleted-enforcer.sh"
+        "tools/hooks/registration/codex-hooks.json:tools/hooks/deleted-enforcer.sh"
     );
-    assert!(finding.remediation.contains(".codex/hooks.json"));
+    assert!(
+        finding
+            .remediation
+            .contains("tools/hooks/registration/codex-hooks.json")
+    );
     assert!(finding.remediation.contains("governance PR"));
     assert_eq!(evaluate(&input).verdict, Verdict::Red);
 }
@@ -534,7 +546,7 @@ fn evaluate_is_bare_projection_of_evaluate_keyed() {
             },
             {
                 "row_type": "command_reference",
-                "wiring_file": ".codex/hooks.json",
+                "wiring_file": "tools/hooks/registration/codex-hooks.json",
                 "command_path": "tools/hooks/deleted-enforcer.sh",
                 "target_exists": false
             }
@@ -583,8 +595,8 @@ fn producer_consumes_declared_corpus_for_synthetic_hook_paths() {
     }
 
     let tracked_paths = vec![
-        ".claude/settings.json".to_owned(),
-        ".codex/hooks.json".to_owned(),
+        "tools/hooks/registration/claude-settings.json".to_owned(),
+        "tools/hooks/registration/codex-hooks.json".to_owned(),
         "tools/hooks/hermetic-fixture.sh".to_owned(),
     ];
 

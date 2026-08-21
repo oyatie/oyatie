@@ -1,7 +1,7 @@
 // merge-check — the five conditions that must ALL hold before merging a PR.
 //
-//     node tools/delivery/merge-check.mjs <pr>      check one PR
-//     node tools/delivery/merge-check.mjs --self-test
+//     node templates/agent-delivery/merge-check.mjs <pr>      check one PR
+//     node templates/agent-delivery/merge-check.mjs --self-test
 //
 // WHY THIS EXISTS AS A SCRIPT RATHER THAN A REMEMBERED CHECKLIST. Two failures on 2026-08-09, in
 // OPPOSITE directions, on the same signal:

@@ -1470,8 +1470,8 @@ fn collect_target_parity(
     Ok(json!({ "rows": rows }))
 }
 
-const CLAUDE_WIRING_FILE: &str = ".claude/settings.json";
-const CODEX_WIRING_FILE: &str = ".codex/hooks.json";
+const CLAUDE_WIRING_FILE: &str = "tools/hooks/registration/claude-settings.json";
+const CODEX_WIRING_FILE: &str = "tools/hooks/registration/codex-hooks.json";
 const HOOKS_DIR: &str = "tools/hooks";
 const COMPATIBILITY_STUB_MARKER: &str = "Compatibility stub only";
 

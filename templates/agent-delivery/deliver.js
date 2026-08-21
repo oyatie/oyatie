@@ -251,7 +251,7 @@ whole file. The sibling trap ci/facade/lifecycle-status has the OPPOSITE right a
 lifecycle stage in frontmatter rather than raising its shrink-only baseline.
 
 AUTH PREFLIGHT — HARD GATE before any push, merge, babysit, or restack that needs the forge.
-Run \`node tools/delivery/auth-preflight.mjs\` from the repo root BEFORE spending tokens on
+Run \`node templates/agent-delivery/auth-preflight.mjs\` from the repo root BEFORE spending tokens on
 push/merge paths. BOTH must pass:
   1. \`gh auth status\` exits 0 with a logged-in account
   2. \`gh api user -q .login\` returns a non-empty login
@@ -645,7 +645,7 @@ const preflight = await agent(`${CTX}
 AUTH PREFLIGHT — run BEFORE Admit. Change nothing in the repo.
 
 Run exactly:
-  node ${REPO}/tools/delivery/auth-preflight.mjs
+  node ${REPO}/templates/agent-delivery/auth-preflight.mjs
 
 Paste full stdout/stderr and the exit code. If non-zero, your summary's first line must be REFUSE,
 quote the remediation from the script, and stop — do not proceed to Admit or any push path.
@@ -659,7 +659,7 @@ if (!preflightOk) {
   return {
     refused: 'auth preflight failed',
     preflight,
-    remedy: 'Run: gh auth login -h github.com — then re-run node tools/delivery/auth-preflight.mjs',
+    remedy: 'Run: gh auth login -h github.com — then re-run node templates/agent-delivery/auth-preflight.mjs',
   }
 }
 
@@ -1529,7 +1529,7 @@ re-anchors, generated-face materialisation, census re-freezes. Once at the end o
 is correct and cheap; per unit produced six near-identical commits on #1620 that one would cover.
 
 PRECONDITIONS — verify each, and if any fails, DO NOT UPSERT THE PR. Report instead:
-  0. \`node tools/delivery/auth-preflight.mjs\` passes (re-check immediately before push).
+  0. \`node templates/agent-delivery/auth-preflight.mjs\` passes (re-check immediately before push).
   1. Claim phase returned CLAIM for this tip (envelope + merge-tree + hub exclusivity).
   2. The gates governing every touched path are green locally. Paste the output.
   3. No test was deleted, skipped or newly ignored.

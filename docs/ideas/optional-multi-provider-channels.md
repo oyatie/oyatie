@@ -17,7 +17,7 @@ multi-provider spend view is useful. **Not** worker-lane default execution.
 
 **Success:** truthful capability card + corrected routing copy. Using these tools remains
 optional (“if useful”), never required. Task `model:` slugs remain the default dispatch path
-(`.cursor/rules/model-routing.mdc`, `ci/facade/harness/model-routing.v1.json` — Amendment C /
+(`ci/facade/harness/model-routing.v1.json` — Amendment C /
 `specs/agentic-operating-patterns.json` for catalog cites).
 
 ## Flag semantics (founder lock)

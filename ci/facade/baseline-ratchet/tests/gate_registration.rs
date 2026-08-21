@@ -2292,7 +2292,7 @@ fn every_active_quality_lane_resolves_to_a_real_target() {
 // contract agents are told to read first — carried an "Active hooks" line that
 // named FIVE behaviours and one file, `scripts/hooks/guard-pr-merge-review.mjs`,
 // and not one of them existed. The `enforcement-liveness` face already resolves
-// `.claude/settings.json` -> `tools/hooks/`, but nothing ever resolved the PROSE
+// `tools/hooks/registration/claude-settings.json` -> `tools/hooks/`, but nothing ever resolved the PROSE
 // mirror, so the contract described an enforcement posture the repo never had.
 //
 // A mirror that can drift is the defect; equality against the SSOT is the fix.
@@ -2303,7 +2303,7 @@ fn agents_contract_path(root: &Path) -> PathBuf {
 }
 
 fn claude_hook_wiring_path(root: &Path) -> PathBuf {
-    root.join(".claude/settings.json")
+    root.join("tools/hooks/registration/claude-settings.json")
 }
 
 /// The `Active hooks` line of the Claude Code appendix — the mirror under test.
@@ -2377,7 +2377,7 @@ fn the_operating_contract_hook_list_equals_the_claude_wiring() {
 
     assert!(
         unwired.is_empty() && undocumented.is_empty(),
-        "docs/AGENTS.md `Active hooks` has drifted from .claude/settings.json.\n\
+        "docs/AGENTS.md `Active hooks` has drifted from tools/hooks/registration/claude-settings.json.\n\
          claimed-but-not-wired: {unwired:?}\n\
          wired-but-not-claimed: {undocumented:?}\n\
          The wiring file is the SSOT; the contract line is a mirror. Naming a hook the harness \
@@ -2387,7 +2387,7 @@ fn the_operating_contract_hook_list_equals_the_claude_wiring() {
     for name in &wired {
         assert!(
             root.join("tools/hooks").join(name).is_file(),
-            "{name} is wired in .claude/settings.json but tools/hooks/{name} does not exist"
+            "{name} is wired in tools/hooks/registration/claude-settings.json but tools/hooks/{name} does not exist"
         );
     }
 }

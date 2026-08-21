@@ -1,4 +1,5 @@
 {
+  ".githooks/": "ci",
   ".github/": "ci",
   ".grok/": "ci",
   "app/": "app",
@@ -69,8 +70,8 @@
   "specs/": "specs",
   "storage/": "storage",
   "templates/": "docs",
+  "templates/agent-delivery/": "ci",
   "tenancy/": "tenancy",
   "tools/": "tools",
-  "tools/delivery/": "ci",
   "workflow/": "workflow"
 }

@@ -1,5 +1,5 @@
 // Preflight for the workflow suite. Run before dispatching anything:
-//     node tools/delivery/preflight.mjs
+//     node templates/agent-delivery/preflight.mjs
 //
 // Runs auth-preflight first (gh token must work before push/merge/babysit/restack paths).
 //

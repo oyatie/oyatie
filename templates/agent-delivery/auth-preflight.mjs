@@ -1,7 +1,7 @@
 // auth-preflight — hard gate before push, merge, babysit, or restack dispatch.
 //
-//     node tools/delivery/auth-preflight.mjs
-//     node tools/delivery/auth-preflight.mjs --self-test
+//     node templates/agent-delivery/auth-preflight.mjs
+//     node templates/agent-delivery/auth-preflight.mjs --self-test
 //
 // WHY THIS EXISTS. Fleet babysit burned time on restacks that needed push, then failed on an
 // invalid gh token and SSH deny. Both are avoidable if auth is checked BEFORE any lane spends

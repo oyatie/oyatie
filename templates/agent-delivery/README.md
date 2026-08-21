@@ -82,7 +82,7 @@ findings *is* the accretion problem. Every check added to the lane runner ships 
 proving it fires — a rule that cannot be shown to fire is the false green it exists to prevent.
 
 **Hard gates before forge paths:**
-- `node tools/delivery/auth-preflight.mjs` — required before push/merge/babysit/restack (`preflight.mjs` runs this automatically).
+- `node templates/agent-delivery/auth-preflight.mjs` — required before push/merge/babysit/restack (`preflight.mjs` runs this automatically).
 - Equality-pinned census merge protocol — mandatory re-derive after rebase even when git auto-merges clean (oyatie-o90; see `deliver.js` / `restack.js`).
 - Two-round rule — same failure class twice → fix process/oracle, not output (`deliver.js` Converge).
 - Claim phase (ADR-0711) — envelope verify + `git merge-tree` preflight + hub exclusivity before any integ push (`deliver.js` Claim; policy in `specs/integ-branch-envelopes.json`).

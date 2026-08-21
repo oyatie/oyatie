@@ -50,6 +50,7 @@ app/itsm/ @teams/itsm
 deny.toml @teams/build
 registry/ @teams/registry
 workflow/ @teams/workflow
+.githooks/ @teams/ci
 Cargo.lock @teams/build
 Cargo.toml @teams/build
 HANDOFF.md @teams/ci
@@ -75,7 +76,6 @@ app/community/ @teams/community
 app/warehouse/ @teams/warehouse
 observability/ @teams/observability
 app/whiteboard/ @teams/whiteboard
-tools/delivery/ @teams/ci
 app/application/ @teams/application
 app/procurement/ @teams/procurement
 app/real-estate/ @teams/real-estate
@@ -91,6 +91,7 @@ app/learning-management/ @teams/learning-management
 app/production-planning/ @teams/production-planning
 app/design-collaboration/ @teams/design-collaboration
 app/marketing-automation/ @teams/marketing-automation
+templates/agent-delivery/ @teams/ci
 app/supply-chain-planning/ @teams/supply-chain-planning
 app/workplace-integration/ @teams/workplace-integration
 app/healthcare-integration/ @teams/healthcare-integration

@@ -11,14 +11,17 @@ one. The producer errors on an absent corpus file rather than reporting that it
 could not measure, so untracking without moving first turns five
 `baseline-ratchet` firewall tests red.
 
-The canonical copy is therefore here, tracked and reviewed. The agent
-directories keep local copies because Claude Code and Codex read those exact
-paths and cannot be pointed elsewhere; those copies are gitignored.
+The canonical copy is therefore here, tracked and reviewed. Claude Code still
+loads the gitignored `.claude/settings.json` locally; Codex still loads
+`.codex/hooks.json`. Those local copies can drift — they are not CI corpus.
+There is no `hook_registration_copies_agree` test.
 
 `.cargo/config.toml` sets `OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS` and
 `..._CODEX_HOOKS` to these paths. That env var **overrides** the constants in
-`ci/facade/baseline-ratchet/tests/firewall.rs`, so changing the constant alone
-has no effect — a trap worth knowing before editing either.
+the enforcement-liveness consumers.
 
-**If you change one copy, change both.** `hook_registration_copies_agree` in the
-firewall test fails when they diverge.
+To enable the tracked git hooks in a clone:
+
+```
+git config core.hooksPath .githooks
+```

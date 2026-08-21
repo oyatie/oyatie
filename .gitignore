@@ -55,11 +55,11 @@ evidence/oci-readiness/a1-capacity-retry.log
 # Pattern catches *.json.tmp.<uuid> and *.tmp.<uuid> shapes outside ignored
 # runtime roots.
 **/*.json.tmp.*
-# Agent-spawned Claude Code worktrees (transient; each is a git worktree itself).
-# .claude/settings.json (project-scoped) and .claude/commands/ remain tracked.
-.claude/worktrees/
-# Session-scoped Claude hook overrides are local-only; tracked project wiring stays authoritative.
-.claude/settings.local.json
+# Agent working directories (scratch only). Drain load-bearing content to
+# tools/hooks/registration/, templates/agent-delivery/, or ci/facade/harness/
+# before relying on it. Claude Code still loads a gitignored
+# .claude/settings.json locally; that copy is not CI corpus.
+.claude/
 # Transient test output
 test-results/
 # ADR-0516 fabric drive-loop OPERATIONAL (execution) plane — repo-adjacent
@@ -218,12 +218,7 @@ _ralplan_workflow.js
 # committed fragment is always read. Ignore the machine-local file; keep the
 # committed-fragment door open.
 /.buckconfig.local
-# Multi-model harness journals (local process kit only).
-# Retention: keep recent mm-runs for active drive/babysit debugging; prune older
-# run trees locally as needed. Never commit mm-runs (gitignored); no bulk purge
-# in product PRs — process-kit hygiene only.
-.grok/mm-runs/
-.grok/memory/
+# Multi-model harness journals (local process kit only; covered by .grok/ below).
 # Swarm check-daemon outputs (orchestrator main-checkout only; workers read these).
 /err.txt
 /.check/
@@ -234,14 +229,10 @@ _ralplan_workflow.js
 # Stray agent worktrees accidentally created at the repo root (e.g. wt-1616); lanes belong under .worktrees/
 /wt-*/
 # Anti-friction wave (2026-08-14): local-only agent runtime state and transient dirs.
-/.beads/
-/.cursor/
 /infra/capi/_out/
 
-# Agent working directories must never be committed. Load-bearing content is
-# drained to a real home first (see PLAN.md 39); these hold scratch only.
+# Agent working directories must never be committed.
 .grok/
-.claude/
 .codex/
 .cursor/
 .agents/
