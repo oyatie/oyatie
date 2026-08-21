@@ -8030,3 +8030,43 @@ counts on their fingers.
 
 **Still open on this seam:** `Duration::from_nanos(0)` where `Duration::ZERO` is what a Rust author
 writes. The template is value-independent and cannot say it; noted rather than special-cased.
+
+## R5p — nine `strings` mappings, and the defect the ninth uncovered
+
+The cross-package histogram put `strings` at 5 packages and 21 declarations, the largest real root
+cause once CASCADE (283 declarations, all 13 packages, and derived rather than causal) is set aside.
+Nine entries added as pack data; six deliberately left refusing, with the reason each:
+
+- `HasSuffix`, `ReplaceAll`, `ContainsRune` — byte-exact, no divergence to state.
+- `TrimSpace` — the two whitespace sets differ in principle and agree on every character either is
+  likely to meet.
+- `ToLower`, `ToUpper` — the source applies SIMPLE case mapping and the target FULL. `ß` uppercases
+  to `SS` in the target and not in the source. Exact for every ASCII input, which is what a header
+  name or a scheme is. Stated in the entry rather than hidden.
+- `IndexByte`, `LastIndexByte` — over `.bytes()`, NOT over `char`: a byte at or above 0x80 is not a
+  code point, and finding it as one would search for a sequence the source never looks for.
+- `Count` — the empty-needle case was CHECKED rather than assumed; the source documents it as the
+  rune count plus one and the target's `matches` yields exactly that.
+- `EqualFold` refuses: the source folds by Unicode simple case folding and the target's standard
+  library has no equivalent. `Split`/`SplitN`/`Replace` refuse: the source reads a negative count as
+  "all", which is a DIFFERENT target function, and the shape vocabulary cannot yet say
+  "non-negative literal". `Cut` refuses: it returns `(string, string, bool)` and wants the
+  tuple-to-`Option` fixpoint specified in R5d.
+
+chi 51 -> 52, memberlist 77 -> 78.
+
+**AND IT TURNED THE GATE RED, which is the useful part.** chi now emits
+
+    fn replace_wildcards(mut p: str) -> String { while p.contains("/*/") { p = p.replace(...) } p }
+
+for 7 errors. `str` is unsized, so this never compiled -- but the function had never TRANSLATED
+before, because `ReplaceAll` was unmapped, so the defect was invisible. It is not a defect in the new
+mapping.
+
+THE RULE THAT IS MISSING: a parameter REASSIGNED in the body must be OWNED. The body already knows
+this -- `assigned` was split from `indexWritten` in an earlier phase for exactly this distinction --
+and the signature does not ask. Both ends of one decision reading different answers, for the eighth
+time, and the eighth time it was a fact that already existed on one side.
+
+This is the next task, and it is a root cause rather than a repair: every reassigned parameter in
+every package is currently typed by a decision that ignores the reassignment.
