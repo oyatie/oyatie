@@ -18,6 +18,7 @@
 // and dropping a FORBID leaves the permit standing — the guard deletes itself exactly when it is
 // needed. That was finding S1 of the v1.0.0 review, and `has` is the structural fix; mirroring the
 // bound into every permit is only the second line.
+@id("F10")
 forbid (
   principal,
   action,

@@ -20,6 +20,7 @@
 // This reads the snapshot through `resource.served_from`. v1.0.0 asked the CALLER for
 // `context.snapshot_age_seconds`, i.e. it asked the party being constrained to report the fact that
 // constrains it — a request could always claim age 0.
+@id("F2")
 forbid (
   principal,
   action == OyaPolicy::Action::"ReadRebacTuple",
@@ -31,6 +32,7 @@ when {
 
 // F3 — evaluating a snapshot older than the caller's declared tolerance is refused. The caller may
 // only tighten below the ceiling, never loosen past it; F3b is what makes that true.
+@id("F3")
 forbid (
   principal,
   action == OyaPolicy::Action::"EvaluateAgainstSnapshot",
@@ -44,6 +46,7 @@ unless {
 // F3b — the absolute ceiling, independent of anything the caller asserts. Also covers distribution:
 // v1.0.0 gated distribution on signature only, so an ancient non-authoritative snapshot propagated
 // fleet-wide.
+@id("F3b")
 forbid (
   principal,
   action in [
@@ -56,6 +59,7 @@ when { resource.age_seconds > 300 && !resource.is_authoritative };
 
 // F4 — an unverified snapshot never serves and never propagates. Verification precedes use,
 // mirroring the load order in iam/adapters/cloud-pdp-bundle-file: verify, THEN parse.
+@id("F4")
 forbid (
   principal,
   action in [
@@ -67,6 +71,7 @@ forbid (
 unless { resource.signature_verified };
 
 // F4b — the same rule on the tuple read path, which reaches its snapshot indirectly.
+@id("F4b")
 forbid (
   principal,
   action == OyaPolicy::Action::"ReadRebacTuple",

@@ -1,9 +1,11 @@
 ---
 doc_class: Specification
 shape: Specification
-length_cap: 500
+length_cap: 600
 microservice: policy
 related_adrs:
+  - ADR-0701
+  - ADR-0702
   - ADR-0243
   - ADR-0280
 inbound_citations:
@@ -16,17 +18,15 @@ Every claim here was produced by running the policies in `policy/policy/` agains
 `cedar-policy` engine at the version the workspace locks (**4.12.0**; root `Cargo.toml` requires
 `"4.11"`, `Cargo.lock` resolves 4.12.0).
 
-The harness runs **out of tree**, in a scratch crate, because this capability may not add a workspace
-member yet (see `PROMOTION.md` §2 — `Cargo.lock` is a hub owned by `integ/build`, and a new crate
-additionally owes a `registry/catalog/*.yaml` row this envelope cannot write). Rather than ship an
-unrunnable claim, the harness source is reproduced in full below; at promotion it becomes the test
-body of `policy/adapters/policy-cedar-conformance`, unchanged.
+The harness runs **out of tree** because this capability may not add a workspace member yet
+(`PROMOTION.md` §2). Rather than ship an unrunnable claim, the harness source is reproduced in full
+below; at promotion it becomes the test body of `policy/adapters/policy-cedar-conformance`.
 
 **These fragments are version 2.0.0.** Version 1.0.0 was broken by an adversarial review that found
 six classes of defect — every safety forbid failing open on an absent attribute, tenant binding by
 self-asserted string, a caller-declared staleness bound with no ceiling, global-scope signing
 ungated, ReBAC writes bypassing change control, and credential freshness required only on the audit
-read. All six are closed, and each is now a named regression case below.
+read. All six are closed and each is a named regression case below.
 
 ## 1. Instrument check first
 
@@ -55,9 +55,11 @@ VALIDATE-OK policy/policy/static-stability.cedar (5 policies)
 exit 0
 ```
 
-`policy/cedar/policies.cedar` is the byte-exact concatenation of these fragments and validates clean
-at **26 policies**. The behavioural suite runs against **the bundle**, so consolidation-equivalence
-is asserted by every case rather than claimed.
+`policy/cedar/policies.cedar` validates clean at **26 policies**. It is the concatenation of the
+fragments **plus** a header and one separator comment per fragment — *not* byte-identical to
+`cat policy/policy/*.cedar`, which an earlier revision of this page wrongly claimed. Comment-stripped
+they are byte-identical, and the whole suite runs against the bundle, so decisional equivalence is
+tested rather than asserted.
 
 ## 3. Behavioural suite
 
@@ -65,6 +67,7 @@ is asserted by every case rather than claimed.
   ok   P2 admin authors own-tenant policy  [red if: drop P2]
   ok   P2a activation after soak  [red if: drop P2a]
   ok   P3 step-up-C engineer authors global  [red if: tighten F8 past step-up C]
+  ok   P3a step-up-C engineer activates global after soak  [red if: drop P3a]
   ok   P4 signer signs another's policy  [red if: drop P4]
   ok   P5 admin writes tuple at step-up C  [red if: drop P5]
   ok   P6 pep evaluates fresh in-cell snapshot  [red if: drop P6]
@@ -98,25 +101,23 @@ is asserted by every case rather than claimed.
   ok   F11 unrecognised scope value denied  [red if: drop F11]
   ok   cross-tenant tuple read denied  [red if: drop F1]
 
-35 passed, 0 failed
+36 passed, 0 failed
 ```
 
 ## 4. Backstop run — every bound is enforced twice
 
-Because each bound is written both inside the permit and again in a forbid, the permits alone deny
-these cases and the **forbids are never reached**. A forbid nothing reaches is a forbid nothing
-tests. So this run injects a fixture of deliberately *bound-blind* permits — each omitting a bound
-the shipped permits carry — which is precisely the authoring mistake the forbids exist to survive:
+Each bound is written both inside the permit that grants the action and again in a forbid. The
+permits alone therefore deny these cases, and the **forbids are never reached** — a forbid nothing
+reaches is a forbid nothing tests. This run injects a fixture of deliberately *bound-blind* permits,
+each omitting a bound the shipped permits carry, which is precisely the authoring mistake the forbids
+exist to survive:
 
 ```cedar
-// tenant-blind AND token-blind
+// tenant-blind AND token-blind                       // soak-blind activate
 permit (principal, action == OyaPolicy::Action::"AuthorPolicy", resource)
 when { principal in OyaPolicy::Role::"tenant-policy-admin" };
-
-// freshness-blind and signature-blind evaluate
-permit (principal, action == OyaPolicy::Action::"EvaluateAgainstSnapshot", resource)
-when { principal in OyaPolicy::Role::"pep-workload" && principal in resource.owner_tenant };
-// ... likewise for ReadRebacTuple and DistributeSnapshot
+// ... likewise freshness/signature-blind Evaluate, ReadRebacTuple, DistributeSnapshot,
+//     and a step-up-blind WriteRebacTuple
 ```
 
 ```
@@ -127,46 +128,74 @@ when { principal in OyaPolicy::Role::"pep-workload" && principal in resource.own
   ok   BACKSTOP F2: freshness-blind permit, ancient tuple read  [red if: drop F2]
   ok   BACKSTOP F4b: signature-blind permit, unverified tuple read  [red if: drop F4b]
   ok   BACKSTOP F3b: freshness-blind permit, ancient distribute  [red if: drop F3b's DistributeSnapshot arm]
-42 passed, 0 failed
+  ok   BACKSTOP F7: soak-blind permit, 30s soak  [red if: drop F7]
+  ok   BACKSTOP F12: step-up-blind permit, no step-up  [red if: drop F12]
+45 passed, 0 failed
 ```
 
-All 42 pass **with the bound-blind permits present**. That is the property worth stating plainly:
-every safety bound in this bundle survives a permit that forgets it.
+All 45 pass **with the bound-blind permits present**: every safety bound in this bundle survives a
+permit that forgets it.
 
-## 5. Mutation coverage
+## 5. Mutation coverage — per POLICY, not per fragment
 
-A suite that passes tells you nothing until you show it can fail. Each fragment was dropped from the
-bundle in turn, in both runs:
+A suite that passes tells you nothing until you show it can fail. Each of the 26 policies carries an
+`@id(...)` annotation, and the harness drops exactly one by id (`DROP_POLICY_ID=F7`) and re-runs.
 
-| fragment dropped | plain run | with bound-blind fixture |
+**This measure replaces a per-fragment matrix that was hiding real gaps.** An audit of v1.0.0 showed
+three case names asserting they tested a rule that no mutation could reach: `F8` and `F9` were
+covered by *nothing*, because the permits independently denied those requests. Fragment granularity
+could not see it — a fragment "covered" by one of its six policies reads as covered. Per-policy
+granularity is the honest instrument, and applying it to v2.0.0 immediately found **eight** more
+uncovered policies.
+
+| policy | plain run: cases red when dropped | backstop run: cases red when dropped |
 |---|---|---|
-| `auditor-scope.cedar` | 34/1 **fail** | 41/1 **fail** |
-| `authoring-grants.cedar` | 30/5 **fail** | 38/4 **fail** |
-| `change-control.cedar` | 31/4 **fail** | 36/6 **fail** |
-| `credential-freshness.cedar` | 35/0 — | 38/4 **fail** |
-| `cross-tenant-isolation.cedar` | 35/0 — | 40/2 **fail** |
-| `runtime-attestation.cedar` | 35/0 — | 40/2 **fail** |
-| `runtime-grants.cedar` | 31/4 **fail** | 42/0 — |
-| `static-stability.cedar` | 35/0 — | 31/11 **fail** |
+| `F1` | 0 | 2 |
+| `F10` | 0 | 4 |
+| `F11` | 0 | 1 |
+| `F12` | 0 | 2 |
+| `F13` | 0 | 1 |
+| `F14` | 0 | 1 |
+| `F2` | 0 | 2 |
+| `F3` | 0 | 1 |
+| `F3b` | 0 | 4 |
+| `F4` | 0 | 2 |
+| `F4b` | 0 | 2 |
+| `F5` | 1 | 1 |
+| `F5b` | 1 | 1 |
+| `F6` | 1 | 1 |
+| `F7` | 0 | 3 |
+| `F8` | 1 | 2 |
+| `P1` | 1 | 1 |
+| `P2` | 1 | 0 |
+| `P2a` | 1 | 0 |
+| `P3` | 1 | 1 |
+| `P3a` | 1 | 1 |
+| `P4` | 1 | 1 |
+| `P5` | 1 | 0 |
+| `P6` | 1 | 0 |
+| `P7` | 2 | 0 |
+| `P8` | 1 | 0 |
 
-Every fragment is covered by at least one run, and the split is the design showing through: the
-plain run exercises the **permits**, the fixture run exercises the **forbids**. `runtime-grants`
-shows no failures in the fixture run only because the fixture supplies replacement permits for those
-same three actions; the plain run covers it.
+Every policy is red in at least one run. Zero are uncovered in both. The split is the design showing
+through: the plain run exercises the **permits**, the backstop run the **forbids**; a `0` in one
+column is a policy that column's fixture deliberately shadows.
 
-**This matrix has already caught two real defects in these tests.** In v1.0.0,
-`cross-tenant-isolation.cedar` was covered by *nothing*: its test passed with the fragment removed,
-because every permit already bound the tenant, so the case was measuring default-deny and reporting
-it as F1. In v2.0.0 the same reading showed four fragments uncovered, which is what motivated the
-fixture run — and building it exposed a genuine gap (four bounds enforced only inside permits, with
-no forbid at all), closed by `runtime-attestation.cedar` and the `has`-guarded forbids.
+Closing the last four gaps changed the policy set, not just the tests:
+
+- **F5** was uncovered because **F5b subsumed it entirely** — a principal always shares its own
+  `spiffe_id`, so the shared-identity rule fired on every case the self-authorship rule would have.
+  F5b is now scoped `resource.author != principal`, making the two disjoint and both reachable. Two
+  rules no test can tell apart are one rule with a spare.
+- **F7** (soak) and **F12** (tuple step-up) needed bound-blind permits added to the fixture.
+- **P3a** (step-up-C engineer activating global after soak) had no Allow case at all.
 
 ## 6. Harness source
 
 Reproduce with `cedar-policy = "4.12"` and `serde_json = "1"`. Note `Context::from_json_value(ctx,
 None)` and `Request::new(..., None)`: the schema is deliberately **not** passed, so omitted context
 attributes stay omitted. That is the precondition for the `S1` cases, and passing the schema would
-silently paper over the failure mode they exist to catch.
+paper over the failure mode they exist to catch.
 
 `conform.rs`:
 
@@ -206,13 +235,18 @@ fn tuple(id: &str, tenant: &str, snap: &str) -> Value {
            "parents": [ent("Tenant", tenant)]})
 }
 
-fn main() -> std::process::ExitCode {
+pub fn run(drop_id: Option<&str>, quiet: bool) -> (usize, usize, Vec<String>) {
     let a: Vec<String> = std::env::args().collect();
     let (schema, _) = Schema::from_cedarschema_str(&fs::read_to_string(&a[1]).unwrap()).unwrap();
     let mut src = fs::read_to_string(&a[2]).unwrap();
     let backstop = a.len() > 3;
     if backstop { src.push('\n'); src.push_str(&fs::read_to_string(&a[3]).unwrap()); }
-    let ps: PolicySet = src.parse().unwrap();
+    let parsed: PolicySet = src.parse().unwrap();
+    let ps: PolicySet = if let Some(d) = drop_id {
+        PolicySet::from_policies(parsed.policies()
+            .filter(|pol| pol.annotation("id").map(|a| a != d).unwrap_or(true))
+            .cloned()).expect("subset")
+    } else { parsed };
 
     let mut e = vec![
         json!({"uid": ent("Tenant","t1"), "attrs": {"tenant_id":"t1"}, "parents": []}),
@@ -272,6 +306,7 @@ fn main() -> std::process::ExitCode {
       ("P2 admin authors own-tenant policy","admin1","AuthorPolicy","pv_t1",t(json!({})),Decision::Allow,"drop P2"),
       ("P2a activation after soak","admin1","ActivatePolicy","pv_t1",t(json!({"soak_elapsed_seconds":120})),Decision::Allow,"drop P2a"),
       ("P3 step-up-C engineer authors global","eng_c","AuthorPolicy","pv_global",t(json!({})),Decision::Allow,"tighten F8 past step-up C"),
+      ("P3a step-up-C engineer activates global after soak","eng_c","ActivatePolicy","pv_global",t(json!({"soak_elapsed_seconds":120})),Decision::Allow,"drop P3a"),
       ("P4 signer signs another's policy","signer1","SignPolicy","pv_t1",t(json!({})),Decision::Allow,"drop P4"),
       ("P5 admin writes tuple at step-up C","admin1","WriteRebacTuple","rt_fresh",t(json!({})),Decision::Allow,"drop P5"),
       ("P6 pep evaluates fresh in-cell snapshot","pep1","EvaluateAgainstSnapshot","snap_ok",t(json!({"max_staleness_seconds":300})),Decision::Allow,"drop P6"),
@@ -326,11 +361,14 @@ fn main() -> std::process::ExitCode {
           ("BACKSTOP F2: freshness-blind permit, ancient tuple read","pep1","ReadRebacTuple","rt_stale",t(json!({})),Decision::Deny,"drop F2"),
           ("BACKSTOP F4b: signature-blind permit, unverified tuple read","pep1","ReadRebacTuple","rt_unverified",t(json!({})),Decision::Deny,"drop F4b"),
           ("BACKSTOP F3b: freshness-blind permit, ancient distribute","dist1","DistributeSnapshot","snap_ancient",t(json!({})),Decision::Deny,"drop F3b's DistributeSnapshot arm"),
+          ("BACKSTOP F7: soak-blind permit, 30s soak","admin1","ActivatePolicy","pv_t1",t(json!({"soak_elapsed_seconds":30})),Decision::Deny,"drop F7"),
+          ("BACKSTOP F12: step-up-blind permit, no step-up","admin_nostep","WriteRebacTuple","rt_fresh",t(json!({})),Decision::Deny,"drop F12"),
         ]);
     }
 
     let auth = Authorizer::new();
-    let (mut pass, mut fail) = (0, 0);
+    let (mut pass, mut fail) = (0usize, 0usize);
+    let mut flipped: Vec<String> = Vec::new();
     for (name, p, act, r, ctx, want, red) in cases {
         let action = uid(&format!(r#"OyaPolicy::Action::"{act}""#));
         let rtype = match act { "AuthorPolicy"|"SignPolicy"|"PublishPolicy"|"ActivatePolicy" => "PolicyVersion",
@@ -342,10 +380,16 @@ fn main() -> std::process::ExitCode {
         let req = Request::new(uid(&format!(r#"OyaPolicy::Principal::"{p}""#)), action,
                                uid(&format!(r#"OyaPolicy::{rtype}::"{r}""#)), context, None).expect("req");
         let got = auth.is_authorized(&req, &ps, &entities).decision();
-        if got == want { pass += 1; println!("  ok   {name}  [red if: {red}]"); }
-        else { fail += 1; println!("  FAIL {name}: want {want:?} got {got:?}"); }
+        if got == want { pass += 1; if !quiet { println!("  ok   {name}  [red if: {red}]"); } }
+        else { fail += 1; flipped.push(name.to_string()); if !quiet { println!("  FAIL {name}: want {want:?} got {got:?}"); } }
     }
-    println!("\n{pass} passed, {fail} failed");
+    if !quiet { println!("\n{pass} passed, {fail} failed"); }
+    (pass, fail, flipped)
+}
+
+fn main() -> std::process::ExitCode {
+    let drop = std::env::var("DROP_POLICY_ID").ok();
+    let (_p, fail, _f) = run(drop.as_deref(), false);
     if fail == 0 { std::process::ExitCode::SUCCESS } else { std::process::ExitCode::FAILURE }
 }
 ```

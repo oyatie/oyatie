@@ -4,9 +4,10 @@ shape: Specification
 length_cap: 400
 microservice: policy
 related_adrs:
+  - ADR-0701
+  - ADR-0702
   - ADR-0280
   - ADR-0615
-  - ADR-0702
 inbound_citations:
   - policy/README.md
 ---
@@ -20,7 +21,9 @@ first is deliberate: the shape is the load-bearing decision, and it is reviewabl
 
 ## What exists, and why it is not enough
 
-`libs/oya-shared-pdp-kernel` and `iam/core/cloud-pdp-kernel` already carry the runtime PDP seam:
+`iam/core/cloud-pdp-kernel/src/lib.rs:92` carries the runtime PDP seam (the trait is defined there
+and nowhere else; `libs/oya-shared-pdp-kernel` carries `PolicyBundle`, `PolicyDecisionPoint` and
+`DecisionAuthorizer`, which are related but are not this trait):
 
 ```rust
 pub trait PolicyBundleStore: Send + Sync {
@@ -32,6 +35,9 @@ pub trait PolicyBundleStore: Send + Sync {
 That signature is **binary**: it either yields a bundle or an error. The invariant is **ternary**:
 
 > A stale snapshot must **DENY or route to the authoritative shard — never silently authorize.**
+
+(That sentence is ADR-0280 **§D-13.D**, "Policy placement". §D-13.E is the static-stability invariant
+it serves; both are quoted in `policy/README.md`.)
 
 `load()` cannot express "route to the authoritative shard". A caller holding
 `Ok(bundle)` has no way to learn that the bundle it just received is too old for the decision it is
@@ -47,7 +53,10 @@ nor `Sync` — so it cannot sit behind a shared runtime PDP as written.
 
 ## The port
 
-Destined for `policy/ports/policy-snapshot-store` (`policy-snapshot-store`), depending on nothing in
+Destined for `policy/ports/policy-snapshot-store` (`policy-snapshot-store`). Named
+`PolicySnapshotStore`, not `SnapshotStore`: `pub trait SnapshotStore` is already taken in the tree by
+`os/core/etcd-domain/src/backup.rs:19` (etcd backups). Different crate, no compile conflict, but one
+name for two unrelated contracts is how a reader ends up reading the wrong one. It depends on nothing in
 this capability — `core` and `adapters` depend inward on it, and `facade` composes.
 
 ```rust
@@ -85,7 +94,7 @@ pub struct VersionedSnapshot {
 
 /// The C0 store. `&self` and `Send + Sync` so one instance serves a whole cell's
 /// concurrent decision traffic — deliberately unlike `RebacTupleStore`'s `&mut self`.
-pub trait SnapshotStore: Send + Sync {
+pub trait PolicySnapshotStore: Send + Sync {
     /// Resolve the freshness verdict for `tenant` against `tolerance`.
     ///
     /// MUST NOT perform a synchronous G-plane call. The C0 face never blocks on G

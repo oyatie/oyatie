@@ -11,10 +11,22 @@ inbound_citations:
 
 # Runbook — a policy activation was refused
 
+> **Status: not yet operable.** This capability has no crate, no running PDP and no metric emitter —
+> `PROMOTION.md` §2 records why. The identifiers below (the Cedar rules below) are real and tested
+> (`policy/cedar/CONFORMANCE.md`), but nothing evaluates them at runtime yet. This is the procedure the design commits to, written before the code so it can be
+> reviewed against the design; it is not a description of a system in production.
+
 **Symptom:** `ActivatePolicy` or `PublishPolicy` denied for a change that "looks fine".
 
-The decision is attributable: every allow names at least one permit, and a deny names the forbid that
-produced it. Read the determining policy id before anything else — it tells you which of these it is.
+Read the determining policy ids first. **Two shapes of deny exist and they are not the same:**
+
+- **An explicit deny** names the forbid that produced it. Match it in the table below.
+- **A default deny names nothing** — the determining-policy set is *empty*. Cedar denies when no
+  permit matches, so an empty set means "no rule granted this", not "a rule refused it". If you see
+  no determining policy, the actor is missing a role, a tenant membership or a step-up class; go to
+  the permits in `authoring-grants.cedar`, not to the table.
+
+Every allow names at least one permit, so an allow is always attributable.
 
 | Determining rule | Meaning | Correct action |
 |---|---|---|

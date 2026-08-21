@@ -36,12 +36,13 @@ It is **not** a singleton global PDP. It is cell-distributed (ADR-0280 §D-13.D)
 ADR-0280 §D-13.E, the **static-stability invariant**:
 
 > Cell runtime never synchronously depends on the G-plane. Existing sessions and routes continue on
-> cached, signed, versioned state. Only *new* identity / tenant / placement / migration operations
-> may safely stop when G is unavailable — and even those fail closed (deny or route-to-authoritative),
-> never fail open.
+> cached, signed, versioned state (policy bundles, tenant directory, placement snapshots). Only *new*
+> identity / tenant / placement / migration operations may safely stop when G is unavailable — and
+> even those fail closed (deny or route-to-authoritative), never fail open.
 
-Restated as the rule every artifact here is measured against: **a stale snapshot denies, or routes to
-the authoritative shard. It never silently authorizes.**
+and §D-13.D, which states the rule every artifact here is measured against:
+
+> A stale snapshot must **DENY or route to the authoritative shard — never silently authorize**.
 
 ## Entry points
 
@@ -70,6 +71,17 @@ ADR-0711 B-1a forbids rename-only waves.
 
 `absorbs_current_dirs` is `[]` and `oya/policy/` does not exist — this is a greenfield birth, not a
 migration.
+
+## A note on authority
+
+Every ADR this capability leans on for *design* is Superseded and lives in `docs/adr-archive/`:
+ADR-0615 and ADR-0280 (→ **ADR-0701**), ADR-0243 and ADR-0538 (→ **ADR-0700**), ADR-0294 and ADR-0191
+(→ **ADR-0702**). They are cited here as **provenance for the design**, because the live apexes are
+consolidations that preserve one-paragraph gists rather than the face model, the static-stability
+invariant or the soak window in full. The quotations were checked against the archived text; the
+*authority* is the successor apex in each case. No file in `policy/**` writes a
+`docs/decisions/ADR-…` path, and `policy/` is not an authority surface, so `adr-citation-closure`
+raises nothing — this note is about honesty, not about a gate.
 
 ## Hyperscaler precedents
 

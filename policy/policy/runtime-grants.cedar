@@ -14,6 +14,7 @@
 // `principal in resource.cell` is the cell binding. v1.0.0 declared `cell_id` on both Tenant and
 // Snapshot and then never referenced it in any policy, so the cell-distributed model (ADR-0280
 // §D-13.D) had no enforcement at all — a PEP in cell c1 could evaluate cell c99's snapshot.
+@id("P6")
 permit (
   principal,
   action == OyaPolicy::Action::"EvaluateAgainstSnapshot",
@@ -32,6 +33,7 @@ when {
 
 // P7 — an attested PEP workload reads ReBAC tuples for its own tenant, from a verified and
 // sufficiently fresh snapshot.
+@id("P7")
 permit (
   principal,
   action == OyaPolicy::Action::"ReadRebacTuple",
@@ -50,6 +52,7 @@ when {
 //
 // Attestation is required here too. v1.0.0 demanded a SPIFFE id for the local read paths but not
 // for distribution, which has the higher blast radius — the asymmetry was backwards.
+@id("P8")
 permit (
   principal,
   action == OyaPolicy::Action::"DistributeSnapshot",

@@ -13,6 +13,7 @@
 // case, so the special case is gone rather than duplicated.
 
 // P1 — an auditor reads the decision log of their own tenant on a fresh token.
+@id("P1")
 permit (
   principal,
   action == OyaPolicy::Action::"ReadDecisionLog",

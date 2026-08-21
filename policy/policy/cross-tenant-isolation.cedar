@@ -16,6 +16,7 @@
 //
 // Note it is `unless`, not `when`: a request whose principal is in NO tenant is forbidden, rather
 // than slipping through a `!=` that never becomes true.
+@id("F1")
 forbid (
   principal,
   action,

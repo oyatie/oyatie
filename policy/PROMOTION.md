@@ -14,8 +14,9 @@ inbound_citations:
 # Promotion — what this capability still owes, and what blocks it
 
 This capability was delivered under a hard scope bound: **`policy/**` only**, which is also its
-ADR-0711 D-9 envelope (`specs/integ-branch-envelopes.json#roots.policy` → `envelope_globs:
-["policy/**"]`). Every edit below is outside that envelope. The envelope law is fail-closed —
+ADR-0711 envelope (`specs/integ-branch-envelopes.json#roots.policy` → `envelope_globs:
+["policy/**"]`; §D-9 makes ownership = path = integ scope, §D-2 carries the containment and adjunct
+rules). Every edit below is outside that envelope. The envelope law is fail-closed —
 *"a unit may touch paths outside envelope(R) only when an explicit adjunct claim is recorded for this
 wave. Claims are fail-closed: absent claim = refuse"* — and no adjunct claim exists for `integ/policy`.
 So these are **not** work that was skipped; they are work this branch may not perform.
@@ -102,7 +103,9 @@ construction (ADR-0538).
 
 ## §3 Blocked: no `.json` or `.yaml` file can land anywhere
 
-ADR-0717's corpus-budget ratchet freezes nine classes shrink-only, and **two of them are repo-wide**:
+ADR-0717 makes corpus classes policy-as-DATA and ratifies four of them by name; the live DATA in
+`ci/facade/repo-root-hygiene/root-workspace-hygiene-policy.json` today freezes **nine**, and **two of
+those are repo-wide**:
 `json_files` and `yaml_files` use the empty prefix, so they count every tracked file with that suffix
 anywhere in the tree. Measured on `origin/dev@7f8a5a075`:
 
@@ -119,7 +122,9 @@ each class permits only **one** sanctioned raise whose `from`/`to` must match ex
 
 This is why the capability ships **no `manifest.json`, no `capabilities/*.yaml`, no
 `observability/slos/*.openslo.yaml`, no `dashboards/*.json`, and no `scorecards/overrides.json`**,
-despite all five being present in every sibling capability root. `.md`, `.cedar`, `.cedarschema`,
+despite all five being conventional in a sibling capability root. (Not universal, and the first
+draft of this file overstated it: of the 23 siblings, 9 carry all five at the capability root, and
+`compute`, `messaging` and `ci` carry none of them anywhere.) `.md`, `.cedar`, `.cedarschema`,
 `.toml`, `BUCK` and `OWNERS` are counted by no class, which is exactly what this capability is built from.
 
 Note on the OpenSLO gap specifically: doctrine (ADR-0706, `CLAUDE.md#observability_substrate`) places
@@ -129,6 +134,19 @@ per-capability OpenSLO at `<capability>/observability/slos/`, but no gate compel
 the `slo:` scalar on the catalog row, which is §2.3. So the missing SLO is a doctrinal debt with a
 named unblock, not a silently dropped obligation.
 
+## §4a The registry contradicts the ADR, and this capability did not resolve it
+
+`README.md` calls this a greenfield birth on the strength of `absorbs_current_dirs: []`. That is true
+of the tree — `oya/policy/` does not exist today — but ADR-0615 §5 specifies the opposite intent:
+*"`policy` gets `oya/policy` (the sole moved path…)"*, and records the registry entry as
+`absorbs_current_dirs: ["oya/policy"]`. The live registry's own `boundary_note` still reads "Only
+oya/policy moves" while its `absorbs_current_dirs` is empty — the row disagrees with itself, and
+`oya/policy` was folded into `iam/` by commit `07c17470c` before either was written.
+
+Nothing here resolves that; the registry is a hub. §1 already requires an edit to this row, and
+whoever makes it should reconcile the `boundary_note` in the same change rather than only setting
+`absorbs_current_dirs`.
+
 ## §4 Not attempted: the tier ruling
 
 `governance/capability-registry.json` deliberately leaves `policy` with **no declared `tier` or
@@ -137,13 +155,20 @@ and needs a founder/architecture ruling. Nothing here invents one. `specs/substr
 already declares both faces (`policy.authoring.cp` plane G, `policy.local-pdp` plane C0), so the DAG
 needs no edit either way.
 
-## §5 Finding for other capabilities — bare `forbid` in 64 fragments
+## §5 Finding for other capabilities — bare `forbid` in 176 fragments
 
-Recorded in `policy/cedar/README.md` with an executable demonstration. 64 of 448 tracked `.cedar`
-fragments open with `forbid (principal, action, resource);`, which denies the entire `PolicySet` it
-lands in. It is a **latent hazard, not a live defect** — no loader concatenates those fragments today.
-Fixing them is outside this envelope and is not attempted here. Owners: `audit` (35),
-`oya/global-trade` (10), `gateway` (6), `marketplace` (6), `oya/slides` (4), `iam` (2), `flags` (1).
+Recorded in `policy/cedar/README.md` with an executable demonstration. **176 of 448** tracked
+`.cedar` fragments carry a bare `forbid (principal, action, resource);`, which denies the entire
+`PolicySet` it lands in — including, since **176 of those 176 also contain permits**, the file's own.
+Spread over **19 capability roots**, led by `audit` (39), `oya/intelligence` (30), `comms` (15) and
+`workflow` (12).
+
+It is a **latent hazard, not a live defect**, because nothing loads these files — not because a
+standalone fragment is safe. Fixing them is outside this envelope and is not attempted here.
+
+An earlier revision of this file reported "64 of 448" over "six capabilities" including `flags`. That
+was measured with a line-anchored grep against a multi-line construct, and `flags` has zero. The
+numbers above are re-derived comment-stripped at `origin/dev@7f8a5a075`.
 
 ## Suggested promotion order
 
