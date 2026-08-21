@@ -514,9 +514,9 @@ fn lint_format_gate_is_cargo_fmt_all_check() {
 
 #[test]
 fn linux_arm64_nextest_is_not_a_per_pr_fan_in_leg() {
-    // D88-amend: amd64 nextest is the merge-path compile proof. Arm64 is nightly +
-    // release-train. A two-element `os: [ubuntu-24.04, ubuntu-24.04-arm]` matrix on
-    // the test job would make arm64 required for every PR.
+    // D88-amend: amd64 nextest is the merge-path compile proof. Arm64 is not a
+    // fan-in input. GitHub rejects job-level `if:` that reads `matrix.*`, so a
+    // two-element os matrix cannot be event-gated and must not live on this job.
     let root = repo_root();
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
     let workflow = fs::read_to_string(&workflow_path)
@@ -531,50 +531,38 @@ fn linux_arm64_nextest_is_not_a_per_pr_fan_in_leg() {
     assert!(
         test.get("strategy")
             .and_then(|strategy| strategy.get("matrix"))
-            .and_then(|matrix| matrix.get("os"))
             .is_none(),
-        "do not put ubuntu-24.04-arm on a per-PR os matrix"
+        "do not put ubuntu-24.04-arm on a per-PR os matrix; GitHub rejects job-level if: matrix.*"
     );
-
-    let include = test
-        .get("strategy")
-        .and_then(|strategy| strategy.get("matrix"))
-        .and_then(|matrix| matrix.get("include"))
-        .and_then(YamlValue::as_sequence)
-        .expect("test matrix.include");
-    let mut saw_presubmit = false;
-    let mut saw_arm64_train = false;
-    for row in include {
-        let lane = row
-            .get("lane")
-            .and_then(YamlValue::as_str)
-            .unwrap_or_default();
-        let os = row
-            .get("os")
-            .and_then(YamlValue::as_str)
-            .unwrap_or_default();
-        match (lane, os) {
-            ("presubmit", "ubuntu-24.04") => saw_presubmit = true,
-            ("arm64-train", "ubuntu-24.04-arm") => saw_arm64_train = true,
-            other => panic!("unexpected test matrix include row: {other:?}"),
-        }
-    }
-    assert!(saw_presubmit, "amd64 presubmit lane missing");
-    assert!(saw_arm64_train, "arm64-train lane missing");
-
-    let job_if = test
-        .get("if")
+    let runs_on = test
+        .get("runs-on")
         .and_then(YamlValue::as_str)
         .unwrap_or_default();
-    assert!(
-        job_if.contains("arm64-train")
-            && job_if.contains("schedule")
-            && job_if.contains("refs/heads/staging"),
-        "arm64 nextest must be gated to nightly + release-train, not pull_request; got {job_if}"
+    assert_eq!(
+        runs_on, "ubuntu-24.04",
+        "per-PR nextest is native Linux amd64; got {runs_on}"
     );
     assert!(
-        !job_if.contains("pull_request"),
-        "arm64 must not be selected by pull_request; got {job_if}"
+        !workflow.contains("ubuntu-24.04-arm"),
+        "arm64 nextest must not be a merge-path job in this workflow (no matrix.if); got arm runner"
+    );
+
+    let fan_in_needs = workflow_doc
+        .get("jobs")
+        .and_then(|jobs| jobs.get("oya-ci-required"))
+        .and_then(|job| job.get("needs"))
+        .and_then(YamlValue::as_sequence)
+        .expect("fan-in needs");
+    let needed: Vec<&str> = fan_in_needs.iter().filter_map(YamlValue::as_str).collect();
+    assert_eq!(
+        needed,
+        [
+            "lint",
+            "test",
+            "live-postgres-adapters",
+            "live-postgres-facades"
+        ],
+        "arm64 nextest is not a per-PR fan-in input; got {needed:?}"
     );
 }
 

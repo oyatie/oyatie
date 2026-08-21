@@ -7,7 +7,8 @@
 #   this file            — PRE-MERGE (pull_request + merge_group): rustfmt + native
 #                          Linux amd64 nextest. Live-postgres on amd64.
 #                          No cargo build --release, no buck2 build //..., no mac/win.
-#                          Arm64 nextest is nightly + release-train (D88-amend), not per-PR.
+#                          Arm64 nextest is not a job here (GitHub forbids job-level
+#                          if: matrix.*; D88-amend follow-up workflow for nightly/train).
 #   buck2-weekly-smoke   — POST-SUBMIT graph honesty.
 #   CD train (D63)       — PRE-DEPLOYMENT: release binaries / multi-arch OCI.
 #
@@ -22,12 +23,8 @@ name: oya-ci-required
 
 on:
   workflow_dispatch:
-  schedule:
-    # D88-amend: native arm64 nextest is a nightly + release-train job, not a
-    # per-PR merge-path leg. Presubmit stays Linux amd64.
-    - cron: "17 6 * * *"
   push:
-    branches: [dev, staging, canary, production]
+    branches: [dev]
   pull_request:
     branches: [dev]
     types: [opened, reopened, synchronize]
@@ -84,23 +81,13 @@ jobs:
         run: cargo fmt --all --check
 
   test:
-    name: test (workspace + gates) (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          # D88-amend: per-PR / merge_group / push-to-dev is Linux amd64 only.
-          - os: ubuntu-24.04
-            lane: presubmit
-          # Native arm64 nextest: nightly, workflow_dispatch, and the promotion
-          # train (staging/canary/production). Not a required per-PR fan-in leg.
-          - os: ubuntu-24.04-arm
-            lane: arm64-train
-    # Job-level `if` must be a ${{ }} expression when it reads `matrix.*`.
-    # A bare YAML `|` block here made GitHub reject the workflow at register
-    # (0 jobs, run name = file path) so the PR never got oya-ci-required.
-    if: ${{ (matrix.lane == 'presubmit' && github.event_name != 'schedule') || (matrix.lane == 'arm64-train' && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/canary' || github.ref == 'refs/heads/production')) }}
+    # D88-amend: per-PR / merge_group / push-to-dev nextest is native Linux
+    # amd64 only. GitHub rejects job-level `if:` that reads `matrix.*`
+    # ("Unrecognized named-value: matrix"), so arm64 cannot share this job.
+    # Arm64 nextest stays a follow-up workflow (nightly + promotion train);
+    # it is not a fan-in input below.
+    name: test (workspace + gates)
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pull-requests: read
@@ -133,7 +120,7 @@ jobs:
           # small subset of the workspace; sharing a key would let their thin save overwrite this
           # lane's workspace-crate cache on every run — cache thrash that silently undoes the
           # setting below.
-          shared-key: cargo-ci-test-workspace-${{ matrix.os }}
+          shared-key: cargo-ci-test-workspace-ubuntu-24.04
           # THE fix for the measured defect: a run logged `Cache hit for: v0-rust-cargo-ci`
           # with Cargo.lock untouched and still compiled 1,565 crates, because this action
           # caches dependency crates but NOT workspace members by default — and this workspace
