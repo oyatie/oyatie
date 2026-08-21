@@ -1,5 +1,5 @@
 {
-  "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) \u2014 renaming one means moving that binding in the same change.",
+  "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
   "count": 891,
   "cloud_prefixed_names": [
