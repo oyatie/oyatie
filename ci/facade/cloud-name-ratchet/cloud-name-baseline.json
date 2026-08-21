@@ -1,7 +1,7 @@
 {
   "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
-  "count": 865,
+  "count": 864,
   "cloud_prefixed_names": [
     "dir:.github/workflows/oya-ci-required.yml",
     "dir:billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md",
@@ -802,7 +802,6 @@
     "name:oya/notes/iac/helm/notes/Chart.yaml:oya-notes",
     "name:oya/payments/iac/helm/payments-app/Chart.yaml:oya-payments-app",
     "name:oya/payments/iac/helm/payments-webhook-handler/Chart.yaml:oya-payments-webhook-handler",
-    "name:oya/sheets/iac/helm/visual-grid-rest/Chart.yaml:oya-sheets-cell-grid-rest",
     "name:oya/sites/crates/oya-sites-domain/Cargo.toml:oya-sites-domain",
     "name:oya/sites/crates/oya-sites-domain/Cargo.toml:oya_sites_domain",
     "name:oya/sites/iac/helm/Chart.yaml:oya-sites",

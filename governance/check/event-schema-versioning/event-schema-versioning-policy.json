@@ -69,7 +69,7 @@
     "oya/intelligence/contracts/asyncapi/supervisor-foundry-supervisor-events.yaml",
     "oya/notes/contracts/asyncapi/notes-events.yaml",
     "oya/payments/contracts/asyncapi-v1.yaml",
-    "oya/sheets/contracts/asyncapi/sheets-events.yaml",
+    "app/sheets/contracts/asyncapi/sheets-events.yaml",
     "oya/slides/contracts/asyncapi/slides-events.yaml",
     "oya/translate/contracts/asyncapi/translate-events.yaml",
     "secrets/contracts/asyncapi/cloud-secrets-events.yaml",

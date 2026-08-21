@@ -51,7 +51,7 @@
       "oya/payments/iac/k8s/helm/values.yaml",
       "marketplace/plugin-app-store/iac/k8s/helm/values.yaml",
       "storage/recordings/iac/k8s/helm/values.yaml",
-      "oya/sheets/iac/k8s/helm/values.yaml",
+      "app/sheets/iac/k8s/helm/values.yaml",
       "oya/sites/iac/k8s/helm/values.yaml",
       "oya/slides/iac/k8s/helm/values.yaml",
       "workflow/tasks/iac/k8s/helm/values.yaml",

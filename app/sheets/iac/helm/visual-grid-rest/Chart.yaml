@@ -1,0 +1,13 @@
+# Canonical-base: microservices/governance/iac/helm/_oya-helpers (SWEEP-I Slice 2 per ADR-0064)
+apiVersion: v2
+name: sheets-cell-grid-rest
+description: |
+  Sheets cell-grid REST surface — Helm chart per ADR-0131 per-microservice flat layout.
+  Houses the editor REST endpoints (workbook session, cell/range CRUD, save, XLSX import/export
+  job submission, AI-formula, connected-sheets, sharing, comments, version-history, embed-bridge).
+type: application
+version: 0.1.0
+appVersion: "1.0.0"  # sheets µservice version
+maintainers:
+  - name: axis-sheets + council-design-system
+    email: axis-sheets@oyatie.com
