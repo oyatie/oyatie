@@ -1487,7 +1487,6 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
          96 -> 94, retiring the 51 unreferenced oya product crates moved it 94 -> 77, draining \
          the leftover oya/calendar husk (app/ is not a governed root) moved it 77 -> 76, \
          admitting app/community as its own governed root keeps the community product in the \
-<<<<<<< HEAD
          corpus after the oya/community husk drain so the pin stays 76, admitting \
          app/sheets as its own governed root keeps the sheets product in the corpus after \
          the oya/sheets husk drain so the pin stays 76, and admitting ci/webhook-gateway keeps \
@@ -1518,7 +1517,6 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     // product-tier: 95 -> 77 with substrate held at 54. Draining the leftover oya/calendar
     // husk drops one more product entry (77 -> 76) without touching substrate. Admitting
     // app/community as a governed root after the oya/community husk drain keeps that
-<<<<<<< HEAD
     // product entry in the walk (still 76). Admitting app/sheets as a governed root
     // after the oya/sheets husk drain keeps that product entry in the walk (still 76).
     // Admitting ci/webhook-gateway after the oya/ci-webhook-gateway leftover drain
