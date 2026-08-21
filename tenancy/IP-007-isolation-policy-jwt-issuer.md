@@ -4,7 +4,7 @@ template_id: TPL-IMPL
 milestone: M01-foundation
 phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-007-isolation-policy-jwt-issuer
-status: pending
+status: in-progress
 owner: axis-tenancy + ops-security
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-jwt-key-fingerprint-advertised]
 ---
@@ -14,6 +14,14 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-jwt-key-fingerprin
 # IP-007: Isolation-policy JWT issuer + verifier
 
 ## Intent
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/isolation-policy as `tenancy-isolation-policy` (module `src/claims.rs`), collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: the tenant-scoped claims model and its validation rules over an issuer port. Deferred and named as a gap in the crate's `lib.rs` header:
+> signature signing and verification, which need a crypto dependency the frozen lockfile forbids — this module validates claim SHAPE only. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 JWT issuance + verification subsystem within `oya-tenancy-isolation-policy-*`. Ed25519 signing key from OpenBao; 30d rotation cadence; old pubkey 30d grace; fingerprint advertised via Workflow. Algorithm-confusion-attack hardening (Invariant JWT-01).
 

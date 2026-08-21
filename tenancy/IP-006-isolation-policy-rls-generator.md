@@ -4,7 +4,7 @@ template_id: TPL-IMPL
 milestone: M01-foundation
 phase: P01-tenancy-substrate-stable
 impl_plan_id: IP-006-isolation-policy-rls-generator
-status: pending
+status: in-progress
 owner: axis-tenancy + ops-security
 acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-rls-no-superuser-bypass, oya-governance-rls-force-on-tenant-tables]
 ---
@@ -14,6 +14,14 @@ acceptance_lanes: [cargo-check, cargo-nextest, oya-governance-rls-no-superuser-b
 # IP-006: Isolation-policy RLS generator + enforcement
 
 ## Intent
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/isolation-policy as `tenancy-isolation-policy` (module `src/rls.rs`), collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: the deterministic RLS DDL generator with strict identifier validation and golden tests. Deferred and named as a gap in the crate's `lib.rs` header:
+> applying the DDL, which belongs to the Postgres adapter. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 Build the `oya-tenancy-isolation-policy-{kernel,domain,usecase,adapter-postgres}` crates: RLS YAML manifest → Postgres DDL emission; FORCE ROW LEVEL SECURITY enforcement; tenant-bound-table registry; LEAN-check integration.
 

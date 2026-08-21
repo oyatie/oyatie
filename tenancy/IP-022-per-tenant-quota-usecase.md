@@ -3,11 +3,19 @@ ip_id: IP-022
 microservice: tenancy
 bounded_context: per-tenant-quota
 layer: usecase
-status: planned
+status: in-progress
 related_adrs: [ADR-0244, ADR-0248, ADR-0263, ADR-0243]
 ---
 
 # IP-022 — per-tenant quota usecase
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/per-tenant-quota as `tenancy-per-tenant-quota`, collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: the class/pack/tenant precedence chain with honest provenance, hard-cap clamping and reserve/commit/release accounting. Deferred and named as a gap in the crate's `lib.rs` header:
+> the REST surface and durable persistence. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 ## A. Problem
 

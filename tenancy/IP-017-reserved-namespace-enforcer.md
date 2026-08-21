@@ -3,11 +3,19 @@ ip_id: IP-017
 microservice: tenancy
 bounded_context: reserved-namespace
 layer: usecase
-status: planned
+status: in-progress
 related_adrs: [ADR-0242, ADR-0244, ADR-0284, ADR-0263]
 ---
 
 # IP-017 — reserved-namespace enforcer
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/reserved-namespace as `tenancy-reserved-namespace`, collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: the syntax, reservation and ASCII-skeleton confusable checks behind the two existing ports. Deferred and named as a gap in the crate's `lib.rs` header:
+> UNICODE confusable handling (UTS #39) — NOT met, see the crate's Gaps header; plus Cedar evaluation and reading the platform-owner binding JSON, both of which need a dependency. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 ## A. Problem
 

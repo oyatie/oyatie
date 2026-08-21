@@ -3,11 +3,19 @@ ip_id: IP-018
 microservice: tenancy
 bounded_context: kyb-kyc
 layer: domain
-status: planned
+status: in-progress
 related_adrs: [ADR-0244, ADR-0250, ADR-0292, ADR-0263]
 ---
 
 # IP-018 — KYB-KYC verifier domain
+
+> **Delivery note (2026-08-20).** Implemented in tenancy/core/kyb-kyc-verifier as `tenancy-kyb-kyc-verifier`, collapsed into that ONE crate
+> as a module tree rather than this plan's multi-crate fan-out: the capability is capped at 12 crates
+> and `Cargo.lock` is a hub path owned by `integ/build`, so neither a new crate nor a new dependency
+> was available to this lane. Landed: the decision rules, the explicit case state machine, per-jurisdiction requirement satisfaction and expiry. Deferred and named as a gap in the crate's `lib.rs` header:
+> real provider integration, which is network- and async-bound. The crate names in the tables below are this plan's original
+> proposal, not what shipped.
+
 
 ## A. Problem
 
