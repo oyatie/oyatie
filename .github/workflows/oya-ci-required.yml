@@ -5,8 +5,9 @@
 #   git hook pre-commit  — rustfmt on staged *.rs (seconds). No workspace compile.
 #   git hook pre-push    — not a full nextest; authors use CI for that.
 #   this file            — PRE-MERGE (pull_request + merge_group): rustfmt + native
-#                          Linux nextest on amd64 AND arm64. Live-postgres on amd64.
+#                          Linux amd64 nextest. Live-postgres on amd64.
 #                          No cargo build --release, no buck2 build //..., no mac/win.
+#                          Arm64 nextest is nightly + release-train (D88-amend), not per-PR.
 #   buck2-weekly-smoke   — POST-SUBMIT graph honesty.
 #   CD train (D63)       — PRE-DEPLOYMENT: release binaries / multi-arch OCI.
 #
@@ -21,8 +22,12 @@ name: oya-ci-required
 
 on:
   workflow_dispatch:
+  schedule:
+    # D88-amend: native arm64 nextest is a nightly + release-train job, not a
+    # per-PR merge-path leg. Presubmit stays Linux amd64.
+    - cron: "17 6 * * *"
   push:
-    branches: [dev]
+    branches: [dev, staging, canary, production]
   pull_request:
     branches: [dev]
     types: [opened, reopened, synchronize]
@@ -64,6 +69,7 @@ jobs:
   # + edition). Local hooks must NOT pass `--all` — they format the change, not 885 crates.
   lint:
     name: lint (format + clippy)
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -83,10 +89,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # D88: both first-class; parallel so wall clock is max(amd64, arm64), not the sum.
-        # rustfmt/clippy/live-postgres stay on one Linux amd64 runner — they are not
-        # arch-specific product builds. Native compile+test of the workspace is.
-        os: [ubuntu-24.04, ubuntu-24.04-arm]
+        include:
+          # D88-amend: per-PR / merge_group / push-to-dev is Linux amd64 only.
+          - os: ubuntu-24.04
+            lane: presubmit
+          # Native arm64 nextest: nightly, workflow_dispatch, and the promotion
+          # train (staging/canary/production). Not a required per-PR fan-in leg.
+          - os: ubuntu-24.04-arm
+            lane: arm64-train
+    if: |
+      (matrix.lane == 'presubmit' && github.event_name != 'schedule') ||
+      (matrix.lane == 'arm64-train' && (
+        github.event_name == 'schedule' ||
+        github.event_name == 'workflow_dispatch' ||
+        github.ref == 'refs/heads/staging' ||
+        github.ref == 'refs/heads/canary' ||
+        github.ref == 'refs/heads/production'
+      ))
     permissions:
       contents: read
       pull-requests: read
@@ -189,6 +208,7 @@ jobs:
 
   live-postgres-adapters:
     name: live-postgres-adapters (RLS / CDC / SCIM)
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -249,6 +269,7 @@ jobs:
 
   live-postgres-facades:
     name: live-postgres-facades (tenant lifecycle / SCIM)
+    if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 25
     services:
@@ -300,9 +321,10 @@ jobs:
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
         run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
-  # Fan-in: the single required context. Green IFF lint, both native Linux test
-  # legs (amd64 + arm64), and both live-postgres lanes are green. GitHub reports
-  # a matrix job as success only when every leg is green. No Windows/macOS job.
+  # Fan-in: the single required context. Green IFF lint, Linux amd64 nextest, and
+  # both live-postgres lanes are green. Arm64 nextest is not a per-PR fan-in
+  # input (D88-amend). No Windows/macOS job. Skipped on the nightly schedule so
+  # a skipped lint/postgres lane cannot fail-closed a non-merge event.
   oya-ci-required:
     # The context string is the job's `name:`, not its id, so this renames the PUBLIC status
     # check while leaving the job id -- and therefore the rust-first inline-shell baseline key
@@ -310,7 +332,7 @@ jobs:
     # a replacement-window ADR.
     name: merge-admission-required
     runs-on: ubuntu-latest
-    if: ${{ always() }}
+    if: ${{ always() && github.event_name != 'schedule' }}
     needs: [lint, test, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Fan-in verdict

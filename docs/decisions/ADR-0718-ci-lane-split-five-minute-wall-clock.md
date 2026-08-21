@@ -128,10 +128,11 @@ back to the fan-in in that same change; this ADR does not pre-authorize that.
 The five-minute target may not be reachable by constant factors alone. That outcome is an
 expected result of D4, not a failure of it, and it is precisely the evidence D5 requires.
 The per-PR Windows/macOS smoke is retired (see ADR-0716 amendment 2026-08-21).
-The Linux `test` job is a two-leg native matrix (amd64 + arm64); wall clock is
-the slower leg. The background `cargo build --workspace --tests` prefetch is
-removed: nextest is the compile proof, and two cargo processes on one target
-dir serialize on the build lock. Product `cargo build --release` / `buck2
+The Linux `test` job on pull_request / merge_group is native amd64 only
+(D88-amend). Arm64 nextest is nightly + release-train, not a per-PR fan-in
+leg. The background `cargo build --workspace --tests` prefetch is removed:
+nextest is the compile proof, and two cargo processes on one target dir
+serialize on the build lock. Product `cargo build --release` / `buck2
 build //...` are CD-train work, not this gate.
 
 ## Amendment 2026-08-18: measured step profile, and the linker deferred

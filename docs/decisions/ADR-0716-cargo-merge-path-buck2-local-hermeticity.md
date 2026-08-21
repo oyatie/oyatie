@@ -67,8 +67,9 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 
 1. **The Cargo workspace graph is the CI merge path.** The required workflow runs lint, test,
    and live-postgres, fanned in to the single protected `oya-ci-required` context. No
-   Windows/macOS job: production is Linux VMs; presubmit nextest is native amd64
-   AND arm64 in parallel (interview D88 restored). No buck2 build/test verdict step (the face
+   Windows/macOS job: production is Linux VMs; per-PR nextest is native Linux amd64
+   (D88-amend). Arm64 nextest runs nightly and on the release/promotion train, not
+   as a required per-PR fan-in leg. No buck2 build/test verdict step (the face
    materializer keeps buck2 as an internal helper via the digest-pinned installer), no
    producer artifact handoff, no affected-set baselines, no daily-red canary.
 2. **buck2 remains a local hermeticity tool**, kept honest by a weekly non-blocking
@@ -113,19 +114,18 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 - **overturn_when:** a live buck2 remote cache is deployed and measured to beat cargo's
   wall clock on this fleet, with a recorded measurement and an ADR that re-adopts it.
 
-## Amendment 2026-08-21 — Linux dual-arch nextest; no product cargo/buck2 on the PR
+## Amendment 2026-08-21 — Linux amd64 nextest on the PR; arm64 on the train
 
-A hyperscaler tests the OS/arch it ships, in parallel, and builds release
-artifacts on the CD train.
+A hyperscaler tests the OS it ships on the merge path, and runs the second
+arch on a nightly + release train rather than doubling every PR.
 
 - **OS:** Linux VMs only. There is no consumer Windows, macOS, or Android
   binary. The previous "soft" `cross-platform-smoke` matrix is deleted.
-- **Arch (D88 restored):** `oya-ci-required` runs the workspace nextest
-  natively on amd64 (`ubuntu-24.04`) AND arm64 (`ubuntu-24.04-arm`) in
-  parallel. Wall clock is `max` of the two, not the sum. D88-amend (arm64
-  nightly only, to chase a five-minute budget the amd64 test job already
-  misses) is overruled. rustfmt, advisory clippy, and live-postgres stay
-  single-arch — they are not the native compile of the product graph.
+- **Arch (D88-amend):** per-PR / merge_group nextest is native amd64
+  (`ubuntu-24.04`) only. Arm64 (`ubuntu-24.04-arm`) nextest runs on the
+  nightly schedule, `workflow_dispatch`, and the staging/canary/production
+  promotion train. It is not a `needs` input to `oya-ci-required` on a PR.
+  rustfmt and live-postgres stay single-arch amd64.
 - **Compile proof on the PR is `cargo nextest`, not `cargo build`.** A
   background `cargo build --workspace --tests` next to the materializer
   contended for Cargo's target lock and did not overlap. Product

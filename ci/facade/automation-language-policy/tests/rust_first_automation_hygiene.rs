@@ -513,6 +513,72 @@ fn lint_format_gate_is_cargo_fmt_all_check() {
 }
 
 #[test]
+fn linux_arm64_nextest_is_not_a_per_pr_fan_in_leg() {
+    // D88-amend: amd64 nextest is the merge-path compile proof. Arm64 is nightly +
+    // release-train. A two-element `os: [ubuntu-24.04, ubuntu-24.04-arm]` matrix on
+    // the test job would make arm64 required for every PR.
+    let root = repo_root();
+    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow = fs::read_to_string(&workflow_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
+    let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
+        .unwrap_or_else(|e| panic!("parse {}: {e}", workflow_path.display()));
+
+    let test = workflow_doc
+        .get("jobs")
+        .and_then(|jobs| jobs.get("test"))
+        .expect("test job");
+    assert!(
+        test.get("strategy")
+            .and_then(|strategy| strategy.get("matrix"))
+            .and_then(|matrix| matrix.get("os"))
+            .is_none(),
+        "do not put ubuntu-24.04-arm on a per-PR os matrix"
+    );
+
+    let include = test
+        .get("strategy")
+        .and_then(|strategy| strategy.get("matrix"))
+        .and_then(|matrix| matrix.get("include"))
+        .and_then(YamlValue::as_sequence)
+        .expect("test matrix.include");
+    let mut saw_presubmit = false;
+    let mut saw_arm64_train = false;
+    for row in include {
+        let lane = row
+            .get("lane")
+            .and_then(YamlValue::as_str)
+            .unwrap_or_default();
+        let os = row
+            .get("os")
+            .and_then(YamlValue::as_str)
+            .unwrap_or_default();
+        match (lane, os) {
+            ("presubmit", "ubuntu-24.04") => saw_presubmit = true,
+            ("arm64-train", "ubuntu-24.04-arm") => saw_arm64_train = true,
+            other => panic!("unexpected test matrix include row: {other:?}"),
+        }
+    }
+    assert!(saw_presubmit, "amd64 presubmit lane missing");
+    assert!(saw_arm64_train, "arm64-train lane missing");
+
+    let job_if = test
+        .get("if")
+        .and_then(YamlValue::as_str)
+        .unwrap_or_default();
+    assert!(
+        job_if.contains("arm64-train")
+            && job_if.contains("schedule")
+            && job_if.contains("refs/heads/staging"),
+        "arm64 nextest must be gated to nightly + release-train, not pull_request; got {job_if}"
+    );
+    assert!(
+        !job_if.contains("pull_request"),
+        "arm64 must not be selected by pull_request; got {job_if}"
+    );
+}
+
+#[test]
 fn retirement_control_plane_has_a_dedicated_owners_boundary() {
     let root = repo_root();
     let control_plane_root = root.join("registry/history-only-retirement");
