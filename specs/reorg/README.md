@@ -32,7 +32,7 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 
 | File | Status |
 |------|--------|
-| `community-move-plan.json` | **LIVE executable** — community absorb #2201 (`oya/community` → `app/community`); also carries spent parent payroll + HR crate-dir pairs so origin/dev...HEAD stays a singleton bijection |
+| `sheets-move-plan.json` | **LIVE executable** — sheets absorb (`oya/sheets` → `app/sheets`); also carries spent parent community + payroll + HR crate-dir pairs so origin/dev...HEAD stays a singleton bijection |
 | `ci-keystone-rename-map.json` | **rename SSOT** (not a move-plan) — gate_registration + disposition |
 | `kernel-move-plan.BLOCKED.json` | **BLOCKED** — mechanical blockers |
 | `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
@@ -44,7 +44,7 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 
 > **Spent leaf (2026-08-14):** REORG-INTEL-REMAINDER (G024) is applied in-tree: 78 crates `oya/intelligence/crates` → `intelligence/{core,adapters,facade}` + 78 catalog co-moves; evidence `evidence/reorg/rr-intel-remainder-execute-20260814.json`. The plan file was kept committed through the move PR for ADR-0563 relabel authentication and REMOVED by this follow-up cleanup PR after #1956 merged.
 
-> **Spent leaf (this stacked PR):** HR absorb #2192 occupied the singleton via `hr-move-plan.json`; payroll absorb #2194 then occupied it via `payroll-move-plan.json` (carrying spent HR pairs). This stacked community absorb (#2201) deletes `payroll-move-plan.json` as spent and occupies the singleton with `community-move-plan.json` (community moves plus spent payroll + HR pairs).
+> **Spent leaf (this stacked PR):** HR absorb #2192 occupied the singleton via `hr-move-plan.json`; payroll absorb #2194 then occupied it via `payroll-move-plan.json` (carrying spent HR pairs); community absorb #2201 occupied it via `community-move-plan.json` (community plus spent payroll + HR pairs). This stacked sheets absorb deletes `community-move-plan.json` as spent and occupies the singleton with `sheets-move-plan.json` (sheets crate plus spent community + payroll + HR pairs).
 >
 > **Wave25/26 closeout (2026-08-10):** PR #1620 (`1d3105277`) landed 29 residual rehomes; closeout evidence `evidence/reorg/rr-wave25-26-residual-consolidation-closeout-20260810.json`. Drafts #1580–#1608 superseded except **#1587** and **#1607** held on `oyatie-0s8` founder rulings — both resolved 2026-08-14 (git history is the audit log; do not keep N+1 evidence catalogs): #1587 superseded by #1620 (`1d3105277`; flags README restore from `932f1e1e8`), #1607 superseded by integ/cloud PR #1938 (`79fdd53db`).
 

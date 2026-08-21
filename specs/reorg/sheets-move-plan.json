@@ -1,6 +1,6 @@
 {
-  "_comment": "Live executable move-plan authenticating the oya/community -> app/community absorb (PR #2201) and carrying the spent parent payroll absorb bijection plus the spent grandparent HR absorb bijection so origin/dev...HEAD stays a single-plan substitution after payroll-move-plan.json and hr-move-plan.json are deleted (RR-MOVEPLAN-SINGLETON). Occupies the singleton so generated-artifact diff-policy can apply a bijective key substitution on the port-placement baseline member_path. Catalog records co-move one-for-one.",
-  "capability": "community",
+  "_comment": "Live executable move-plan authenticating the oya/sheets -> app/sheets absorb and carrying the spent parent community absorb bijection plus the spent grandparent payroll absorb bijection plus the spent great-grandparent HR absorb bijection so origin/dev...HEAD stays a single-plan substitution after community-move-plan.json is deleted (RR-MOVEPLAN-SINGLETON). Occupies the singleton so generated-artifact diff-policy can apply a bijective key substitution on the port-placement baseline member_path. Catalog records co-move one-for-one.",
+  "capability": "sheets",
   "moves": [
     {
       "old_path": "oya/hr/crates/oya-hr-employment-api",
@@ -145,6 +145,12 @@
       "new_path": "app/community/adapters/social-post-composition-rest",
       "old_cargo_name": "oya-community-social-post-composition-rest",
       "new_cargo_name": "community-social-post-composition-rest"
+    },
+    {
+      "old_path": "oya/sheets/crates/oya-sheets-domain",
+      "new_path": "app/sheets/core/sheets-domain",
+      "old_cargo_name": "oya-sheets-domain",
+      "new_cargo_name": "sheets-domain"
     }
   ],
   "artifacts": [
@@ -243,6 +249,10 @@
     {
       "old_path": "registry/catalog/oya-community-social-post-composition-rest.yaml",
       "new_path": "registry/catalog/community-social-post-composition-rest.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-sheets-domain.yaml",
+      "new_path": "registry/catalog/sheets-domain.yaml"
     }
   ]
 }

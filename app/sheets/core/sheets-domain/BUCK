@@ -1,7 +1,7 @@
 rust_library(
-    name = "oya-sheets-domain",
+    name = "sheets-domain",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_sheets_domain",
+    crate = "sheets_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
@@ -11,9 +11,9 @@ rust_library(
 )
 
 rust_test(
-    name = "oya-sheets-domain-unittest",
+    name = "sheets-domain-unittest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
-    crate = "oya_sheets_domain",
+    crate = "sheets_domain",
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [

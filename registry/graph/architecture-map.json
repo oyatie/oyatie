@@ -790,7 +790,7 @@
     { "id": "oya/quality-management/crates/oya-quality-management-inspection-app", "kind": "crate", "label": "oya-quality-management-inspection-app" },
     { "id": "oya/real-estate/crates/oya-real-estate-lease-app", "kind": "crate", "label": "oya-real-estate-lease-app" },
     { "id": "oya/real-estate/crates/oya-real-estate-portfolio-domain", "kind": "crate", "label": "oya-real-estate-portfolio-domain" },
-    { "id": "oya/sheets/crates/oya-sheets-domain", "kind": "crate", "label": "oya-sheets-domain" },
+    { "id": "app/sheets/core/sheets-domain", "kind": "crate", "label": "sheets-domain" },
     { "id": "oya/sites/crates/oya-sites-domain", "kind": "crate", "label": "oya-sites-domain" },
     { "id": "oya/slides/crates/oya-slides-domain", "kind": "crate", "label": "oya-slides-domain" },
     { "id": "oya/supply-chain-planning/crates/oya-supply-chain-planning-domain", "kind": "crate", "label": "oya-supply-chain-planning-domain" },

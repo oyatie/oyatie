@@ -8583,14 +8583,6 @@ name = "oya-shared-wasm-runtime-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-sheets-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-collab-runtime-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "oya-sites-domain"
 version = "0.1.0"
 dependencies = [
@@ -10454,6 +10446,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f40ca3c46823713e0d4209592e8d6e826aa57e928f09752619fc696c499637f6"
 dependencies = [
  "lazy_static",
+]
+
+[[package]]
+name = "sheets-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-collab-runtime-domain",
+ "oya-data-boundary-kernel",
 ]
 
 [[package]]

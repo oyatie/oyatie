@@ -1,5 +1,5 @@
 [package]
-name = "oya-sheets-domain"
+name = "sheets-domain"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -11,7 +11,7 @@ oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" 
 intelligence-collab-runtime-domain = { path = "../../../../intelligence/core/collab-runtime-domain" }
 
 [lib]
-name = "oya_sheets_domain"
+name = "sheets_domain"
 path = "src/lib.rs"
 doctest = false
 
