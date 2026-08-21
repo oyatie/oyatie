@@ -521,6 +521,7 @@
       "meta_dir": "app/",
       "current_dirs": [
         "app/hr",
+        "app/payroll",
         "oya/application",
         "oya/calendar",
         "oya/community",
@@ -536,7 +537,6 @@
         "oya/learning-management",
         "oya/marketing-automation",
         "oya/payments",
-        "oya/payroll",
         "oya/performance-management",
         "oya/plant-maintenance",
         "oya/production-planning",

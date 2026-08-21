@@ -10,7 +10,7 @@ license = "Apache-2.0"
 billing-accounting-http-adapter = { path = "../../../billing/adapters/accounting-http" }
 iam-tenant-rbac-app = { path = "../tenant-rbac-app" }
 hr-employment-infrastructure = { path = "../../../app/hr/adapters/employment-infrastructure" }
-oya-payroll-run-infrastructure = { path = "../../../oya/payroll/crates/oya-payroll-run-infrastructure" }
+payroll-run-infrastructure = { path = "../../../app/payroll/adapters/run-infrastructure" }
 
 [lib]
 name = "iam_tenant_rbac_local_runtime_composition"

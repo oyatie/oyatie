@@ -153,8 +153,8 @@ pub fn fd001_tenant_workload_manifest() -> Fd001TenantWorkloadManifest {
                 Fd001TenantWorkloadKind::PayrollRun,
                 "payroll-run-runtime",
                 "payroll-run",
-                "oya-payroll-run-infrastructure",
-                "crates/oya-payroll-run-infrastructure",
+                "payroll-run-infrastructure",
+                "app/payroll/adapters/run-infrastructure",
                 "evidence/multispectrum/cs-ent-payroll-runtime-adapter-foundation-1779535800.json",
             ),
             workload(
