@@ -10,7 +10,7 @@
 #   docker build \
 #     --build-arg BIN_NAME=oya-intelligence-runtime \
 #     --build-arg TARGET=x86_64-unknown-linux-musl \
-#     -f Dockerfile.distroless -t oya-intelligence-runtime:dev .
+#     -f build/images/Dockerfile.distroless -t oya-intelligence-runtime:dev .
 
 ARG TARGET=x86_64-unknown-linux-musl
 ARG BIN_NAME=oya-intelligence-runtime
