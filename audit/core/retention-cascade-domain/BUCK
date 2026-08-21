@@ -8,3 +8,14 @@ rust_library(
         "//audit/ports/retention-cascade-api:audit-retention-cascade-api",
     ],
 )
+
+rust_test(
+    name = "audit-retention-cascade-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "audit_retention_cascade_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//audit/ports/retention-cascade-api:audit-retention-cascade-api",
+    ],
+)

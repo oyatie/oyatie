@@ -6,9 +6,10 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Wave 15-IMPL-truth-up scaffold (2026-05-21):
-# Pure proof + signature verification per IP-011. Reuses
-# oya-audit-chain-domain Ed25519 + Merkle behavior.
+# Pure (I/O-free) verifier: resolve key, verify signature, verify proof,
+# walk prior root, reject cross-pack mixtures, report redaction honestly.
+# Reuses audit-chain-domain's Ed25519 + RFC 6962 Merkle behavior directly;
+# see src/lib.rs's crate doc for the full "what this crate owns" breakdown.
 
 [dependencies]
 audit-chain-domain = { path = "../chain-domain" }

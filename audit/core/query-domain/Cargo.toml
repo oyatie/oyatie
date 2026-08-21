@@ -6,8 +6,10 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Wave 15-IMPL-truth-up scaffold (2026-05-21):
-# Pure query validation per IP-012.
+# Pure query validation, pagination-cursor codec, and auditor-engagement
+# authorization gating for the audit-chain query path. Depends only on the
+# audit-query-api port DTOs; see src/lib.rs for the full rule set and the
+# audit/policy/*.cedar fragments it encodes.
 
 [dependencies]
 audit-query-api = { path = "../../ports/query-api" }

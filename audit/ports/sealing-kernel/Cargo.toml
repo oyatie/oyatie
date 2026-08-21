@@ -6,8 +6,8 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Wave 15-IMPL-truth-up scaffold (2026-05-21):
-# Port-only crate per IP-006. Pure types/traits; no I/O.
+# Port-only crate: pure types and traits, no I/O.
+# Rules live in audit/core/sealing-domain.
 
 [dependencies]
 

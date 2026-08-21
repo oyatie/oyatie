@@ -6,8 +6,8 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Wave 15-IMPL-truth-up scaffold (2026-05-21):
-# DTO-only crate per IP-005. Implementation in IP-005.
+# DTO-only crate for the audit-event-emit surface. No logic: the rules live in
+# audit/core/emission-domain, the wire schema in contracts/openapi/audit-chain.yaml.
 
 [dependencies]
 audit-emission-kernel = { path = "../emission-kernel" }

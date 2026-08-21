@@ -6,9 +6,10 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Wave 15-IMPL-truth-up scaffold (2026-05-21):
-# Merkle math home per IP-007. Wraps oya-audit-chain-domain::merkle_tree until
-# the full extraction lands.
+# Merkle-root and inclusion-proof math is not reimplemented here: this crate
+# wraps audit_chain_domain::MerkleTree (RFC 6962 ss2.1) behind the
+# MerkleEngine port instead of re-deriving any hashing. See src/lib.rs's
+# crate doc for the full "what this crate owns" breakdown.
 
 [dependencies]
 audit-chain-domain = { path = "../chain-domain" }

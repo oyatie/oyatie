@@ -1,6 +1,8 @@
 //! Audit-chain sealing API: command/result DTOs for the worker cycle.
 //!
-//! Wave 15-IMPL-truth-up scaffold (2026-05-21). Full schema in IP-010.
+//! Command/result DTOs for the sealing worker cycle. The seal-record
+//! construction, status-transition and epoch-coverage rules live in
+//! `audit/core/sealing-domain`.
 #![allow(dead_code)]
 
 use audit_sealing_kernel::{SealRecord, SealStatus};
@@ -13,7 +15,7 @@ pub struct SealCycleCommand {
     pub period_id: String,
 }
 
-/// Worker-cycle result. Full enum in IP-010.
+/// Worker-cycle result.
 #[derive(Clone, Debug)]
 pub enum SealCycleResult {
     Minted(SealRecord),

@@ -1,7 +1,7 @@
 //! Audit-chain verification kernel: pure proof + signature ports.
 //!
-//! Wave 15-IMPL-truth-up scaffold (2026-05-21). Resolver and registry traits
-//! land fully in IP-011.
+//! Root-registry, key-resolver and Merkle-verifier ports. Pure traits; the
+//! verifier applying them lives in `audit/core/verification-domain`.
 #![allow(dead_code)]
 
 /// Port: resolves a published root by (pack, tenant_partition, period_id).

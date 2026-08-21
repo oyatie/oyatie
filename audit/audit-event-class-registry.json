@@ -8,7 +8,7 @@
   "canonical_sources": [
     "/specs/audit-chain-merkle-ed25519.json",
     "microservices/audit-chain/PRD.md",
-    "microservices/audit-chain/contracts/asyncapi/audit-events.yaml",
+    "audit/contracts/asyncapi/audit-events.yaml",
     "microservices/audit-chain/policy/seal-integrity.md",
     "microservices/audit-chain/decisions/ADR-AUD-001-per-cell-authoritative-audit-chain-roots.md"
   ],

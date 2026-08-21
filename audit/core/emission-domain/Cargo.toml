@@ -6,8 +6,9 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Wave 15-IMPL-truth-up scaffold (2026-05-21):
-# Pure-domain envelope validation per IP-004.
+# Pure-domain envelope validation: construction, canonical preimage
+# encoding, fingerprint verification, and period bucketing. See the
+# crate-level doc comment in src/lib.rs for the rules this crate enforces.
 
 [dependencies]
 audit-emission-kernel = { path = "../../ports/emission-kernel" }

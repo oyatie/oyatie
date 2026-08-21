@@ -295,16 +295,16 @@ Every suite asserts that audit-chain fails closed when evidence integrity is unc
 
 ## Cross-References
 
-- Unit companion: `microservices/audit-chain/test-plans/unit-test-strategy.md`.
-- Contract companion: `microservices/audit-chain/test-plans/contract-test-strategy.md`.
-- Manifest: `microservices/audit-chain/manifest.json`.
+- Unit companion: `audit/test-plans/unit-test-strategy.md`.
+- Contract companion: `audit/test-plans/contract-test-strategy.md`.
+- Manifest: `audit/manifest.json`.
 - Architecture: `microservices/audit-chain/ARCHITECTURE.md`.
 - Failure catalog: `microservices/audit-chain/failure-modes.md`.
-- Runbook directory: `microservices/audit-chain/runbooks/`.
-- SLO directory: `microservices/audit-chain/slos/`.
-- OpenAPI contract: `microservices/audit-chain/contracts/openapi/audit-chain.yaml`.
-- AsyncAPI contract: `microservices/audit-chain/contracts/asyncapi/audit-events.yaml`.
-- Proto contract: `microservices/audit-chain/contracts/proto/audit-chain.proto`.
+- Runbook directory: `audit/runbooks/`.
+- SLO directory: `audit/observability/slos/`.
+- OpenAPI contract: `audit/contracts/openapi/audit-chain.yaml`.
+- AsyncAPI contract: `audit/contracts/asyncapi/audit-events.yaml`.
+- Proto contract: `audit/contracts/proto/audit-chain.proto`.
 - Fixture: `registry/sample-tenants/acme-mid-market-saas.md`.
 - Fixture: `registry/sample-tenants/helios-fortune-500-manufacturer.md`.
 - Standard: `docs/standards/documentation-rigor.md`.

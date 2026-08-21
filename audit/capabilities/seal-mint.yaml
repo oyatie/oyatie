@@ -16,7 +16,7 @@ related_adrs: [ADR-0028, ADR-0131]
 related_specs: [/specs/audit-chain-merkle-ed25519.json]
 related_artifacts:
   - microservices/audit-chain/policy/seal-integrity.md
-  - microservices/audit-chain/contracts/asyncapi/audit-events.yaml
+  - audit/contracts/asyncapi/audit-events.yaml
 
 autonomy_tier: T3
 # T3: cryptographic signing operation; state-mutating; load-bearing for compliance.
@@ -90,7 +90,7 @@ cost_profile:
     - GitHub manifest commit (~200ms; rate-bounded; daily-batched in practice)
 
 cedar_policy_fragments:
-  - microservices/audit-chain/policy/ci-scope.cedar
+  - audit/policy/ci-scope.cedar
   - microservices/audit-chain/policy/seal-integrity.md
 
 eval_set:
