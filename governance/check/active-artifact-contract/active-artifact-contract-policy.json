@@ -10,7 +10,6 @@
   "min_registry_rows": 80,
   "min_rows_with_tracked_path": 78,
   "frozen_untracked_artifact_paths": [
-    "check-empirical-evidence::/registry/check-empirical-evidence",
     "loop-recovery-patterns::/registry/loop-recovery-patterns"
   ],
   "_frozen_untracked_artifact_paths_note": "Keyed `<artifact_id>::<artifact_path>`, the id and the exact declared value, so the entry is reviewable without opening the registry. Both are directories, so both are repairable in one of two honest ways: point the row at the tracked file inside the directory that actually carries the artifact, or split the row per file. Either repair must strike its line here in the same change. The leading slash is preserved verbatim — the caller strips it before the tracked-path lookup (the registry writes repo-absolute paths, `git ls-files` emits repo-relative ones), but the frozen key shows what the registry SAYS, so a reviewer can see the declaration rather than the caller's normalization.",
