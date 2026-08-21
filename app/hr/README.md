@@ -8,7 +8,7 @@ This flat microservice owns employee/employment records, organizational reportin
 
 ## Current landed slice
 
-- `crates/oya-hr-employment-domain` (`oya-hr-employment-domain`): pure Rust domain invariants for legal-entity-scoped employment records, audit-backed lifecycle events, and Korea-first rules-of-employment / labor-management-council threshold obligations.
+- `core/employment-domain` (`hr-employment-domain`): pure Rust domain invariants for legal-entity-scoped employment records, audit-backed lifecycle events, and Korea-first rules-of-employment / labor-management-council threshold obligations.
 
 ## Does not own
 

@@ -792,9 +792,9 @@
       "tier_subtype": "product-developer-application-shell",
       "dr_tier": "T1"
     },
-    "oya/ci-webhook-gateway/manifest.json": {
-      "service": "oya/ci-webhook-gateway",
-      "manifest": "oya/ci-webhook-gateway/manifest.json",
+    "ci/webhook-gateway/manifest.json": {
+      "service": "ci/webhook-gateway",
+      "manifest": "ci/webhook-gateway/manifest.json",
       "capability": "ci",
       "tier": "substrate",
       "tier_subtype": "substrate-meta",
