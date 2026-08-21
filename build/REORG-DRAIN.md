@@ -7383,3 +7383,50 @@ compared against an integer literal — `self.kind.clone() == 0`, which the sour
 defined type carries its underlying type's operations — and a conversion between two newtypes
 without reaching through either. Those are the next work, and they exist because a gate that was
 lying stopped lying.
+
+## R4x — the defects the lying gate had been hiding
+
+`yaml` came back from the digest fix carrying 207 translated declarations and eight compile errors
+that had never been checked. All eight were real, and all eight are now fixed.
+
+### `nil` is a question, not a name
+
+    self.alias.clone() == nil
+
+`nil` reached the output as a bare identifier, which names nothing. The source asks whether a
+pointer holds anything and the target asks the OPTION that pointer became: `self.alias.is_none()`,
+and `is_some` for `!=`.
+
+ONLY A POINTER. The source's other nil-able kinds do not survive the question — a nil SLICE and an
+empty one are different values there, `append` and equality both see the difference, and the
+target's growable sequence has no state that is not a sequence. Answering with emptiness would be a
+different question, so a slice or a map compared against nil refuses by name. That refusal took
+`Node::IsZero` out of the emitted set, which is the correct answer for a function whose meaning the
+target cannot carry.
+
+### A conversion between two defined types wants the value, not the other wrapper
+
+    YamlMappingStyleT(self.style)   // self.style is a YamlStyleT
+
+The source allows converting between defined types wherever they share an underlying type, and
+spells it as a conversion. The target's two newtypes are unrelated, so the constructor wants the
+UNDERLYING value: `YamlMappingStyleT(self.style.0)`.
+
+FIRST ATTEMPT PUT THIS IN `unwraps_newtype`, which the INDEX path shares — reaching through every
+operand that happens to be a newtype is right for a conversion and wrong for an index, and it broke
+`uuid`. The question belongs to the caller that needs the answer, so it is asked in `convert`.
+
+### Reading through a wrapper does not need a copy of it
+
+    YamlMappingStyleT(self.style.clone().0)
+
+The operand was built for a position that OWNS, and this position reads through it. `unowned` --
+written for Display exits in R4h -- already strips exactly that, so it is reused rather than
+written a second time.
+
+`yaml` compiles. TWELVE of thirteen packages now do, and `gocache` is the last: it translates 0 of
+23 declarations, which is a coverage result and not a defect.
+
+`yaml` is now the corpus's largest emitted crate by a wide margin -- 207 declarations against
+`memberlist`'s 76 -- and every one of its defects existed because a gate that could not tell
+compiling from empty had been reporting it green.

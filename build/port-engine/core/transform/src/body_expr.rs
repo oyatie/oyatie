@@ -193,6 +193,15 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
     let spelling = operator_of(node, cx)?;
     let (lhs, rhs) = two_children(node, cx, "binary")?;
 
+    // A COMPARISON AGAINST THE SOURCE'S ABSENT VALUE. `n.Alias == nil` asks whether a pointer holds
+    // anything, and the target asks the option that pointer became. Emitting the source's spelling
+    // put a bare `nil` in the output, which names nothing at all.
+    if let Some(built) = absence_test(spelling, lhs, rhs, cx)?
+        .or(absence_test(spelling, rhs, lhs, cx)?)
+    {
+        return Ok(built);
+    }
+
     // An IDIOM first: it changes the spelling and never the program, so it applies wherever the
     // shape matches regardless of what the operands turn out to be.
     if let Some(rendered) = emptiness_test(spelling, lhs, rhs, cx)? {
@@ -400,5 +409,48 @@ fn borrowed_concat_operand(
     RustExpr::Reference {
         mutable: false,
         inner: Box::new(right),
+    }
+}
+
+/// `x == nil` and `x != nil`, asked of the option the source's pointer became.
+///
+/// Only a POINTER. The source's other nil-able kinds do not survive the question: a nil SLICE and
+/// an empty one are different values there — `append` and equality both see the difference — and
+/// the target's growable sequence has no state that is not a sequence, so a comparison against nil
+/// would be answering about emptiness instead. Same for a map. Those refuse by name rather than
+/// being answered with the nearest thing.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] where the operand is a kind whose absence the target cannot
+/// represent.
+fn absence_test(
+    spelling: &str,
+    operand: &Declaration,
+    absent: &Declaration,
+    cx: &Body<'_>,
+) -> Result<Option<RustExpr>, TransformError> {
+    if !matches!(spelling, "==" | "!=") || absent.attr(crate::vocabulary::ATTR_REF) != Some("nil") {
+        return Ok(None);
+    }
+    match operand.type_ref.kind.as_str() {
+        crate::vocabulary::TYPE_POINTER => Ok(Some(RustExpr::MethodCall {
+            receiver: Box::new(in_position(operand, cx, Position::Place)?),
+            method: match spelling {
+                "==" => "is_none".to_owned(),
+                _ => "is_some".to_owned(),
+            },
+            args: Vec::new(),
+        })),
+        "slice" | "map" => Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!(
+                "a `{}` is compared against the source's absent value, and the target's form for \
+                 it has no such state: the source distinguishes a nil sequence from an empty one — \
+                 `append` and equality both see the difference — and answering with emptiness would \
+                 be a different question",
+                operand.type_ref.kind
+            ),
+        }),
+        _ => Ok(None),
     }
 }
