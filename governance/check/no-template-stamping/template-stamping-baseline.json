@@ -6,8 +6,8 @@
   "_scope_floor_remeasure_2026_08_21_calendar_husk": "scanned_markdown_files 3512 -> 3492. Deletion, not a narrowed scope: this change deletes the leftover oya/calendar husk (21 markdown files; the detector skips one below MIN_LINE_SHAPES, matching the prior CI measurement of 3492). The scan configuration is untouched. groups_total 44, files_total 268 and every per-directory group list are unchanged (none of the deleted calendar docs were part of a stamped group).",
   "_scope_floor_remeasure_2026_08_21_d41": "scanned_markdown_files 3492 -> 3419. Deletion, not a narrowed scope: this change deletes the oya/notes, oya/slides, oya/sites, and oya/translate rails (73 tracked markdown files; the detector skips one below MIN_LINE_SHAPES, matching git TreeDelta 3493->3420 tracked). The scan configuration is untouched. groups_total 44, files_total 268 and every per-directory group list are unchanged (none of the deleted D41 docs were part of a stamped group).",
   "threshold": 0.7,
-  "scanned_markdown_files": 3419,
-  "scanned_directories": 674,
+  "scanned_markdown_files": 3378,
+  "scanned_directories": 663,
   "groups_total": 44,
   "files_total": 268,
   "groups": {
@@ -107,5 +107,6 @@
       5,
       3
     ]
-  }
+  },
+  "_scope_floor_remeasure_2026_08_21_agent_dirs": "scanned_markdown_files 3419 -> 3378, scanned_directories 674 -> 663. Deletion, not a narrowed scope: PR #2180 untracks agent working directories (.grok/.claude/.codex), removing their markdown from the walk after D41 retire. The scan configuration is untouched. groups_total 44, files_total 268 and every per-directory group list are unchanged (none of the deleted agent-dir notes were part of a stamped group)."
 }

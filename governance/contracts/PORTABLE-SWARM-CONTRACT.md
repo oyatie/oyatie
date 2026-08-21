@@ -7,7 +7,7 @@
 
 | Layer | Role | Portable tool |
 |-------|------|----------------|
-| **Live law SOURCE** | ADR-0700…0711 on `origin/dev` | `git fetch` + `git show origin/dev:docs/decisions/ADR-07xx-….md` |
+| **Live law SOURCE** | ADR-0700…0711 on `origin/dev` | `git fetch` + `git show origin/dev:docs/decisions/ADR-0700-….md` |
 | **Live law INDEX** | Fast resume | Hindsight tags `oyatie`+`law:live` + metadata `origin_dev` (if MCP available) |
 | **Work DAG / claim** | What to do next | **`bd` only** — ready / claim / close / gate / swarm |
 | **Integ topology** | Where unit work assembles | ADR-0711 + `specs/integ-branch-envelopes.json` — durable `integ/<root>` |
