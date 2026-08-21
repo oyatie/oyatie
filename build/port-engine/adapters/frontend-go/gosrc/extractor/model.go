@@ -148,6 +148,12 @@ const (
 	kindReturn  = "return"
 	// kindGo is a goroutine: `go f(x)`. Its child is the call.
 	kindGo = "go"
+	// kindDeref is `*p`, a read or a write THROUGH a pointer. Distinct from the pointer type that
+	// shares its syntax, which the type-checker separates and this never records.
+	kindDeref = "deref"
+	// kindAssert is `x.(T)`. Its own type is the ASSERTED type and its child is the operand,
+	// because what the target can do about it depends on both.
+	kindAssert = "assert"
 	// kindSend is `ch <- v`. Children are the channel and the value, in that order.
 	kindSend = "send"
 	// kindSelect is `select { case ... }`. Children are its arms.

@@ -215,6 +215,37 @@ func expressionNode(expr ast.Expr, ctx *extractCtx) node {
 	case *ast.FuncLit:
 		return closureNode(typed, ctx)
 
+	case *ast.TypeAssertExpr:
+		// `x.(T)`. The ASSERTED type is what the source names and the OPERAND's type is what it
+		// names it about, and both are recorded because the target's answer depends on the pair: a
+		// concrete type out of the failure type is a downcast the target has, and out of a bare
+		// interface it is not.
+		//
+		// A nil `Type` is `x.(type)`, which is only legal as a type switch's subject and is that
+		// statement's to record rather than this expression's.
+		if typed.Type == nil {
+			return unsupportedNode(expr)
+		}
+		return node{
+			Kind:     kindAssert,
+			Type:     typeTree(ctx.info.TypeOf(typed.Type)),
+			Children: []node{expressionNode(typed.X, ctx)},
+		}
+
+	case *ast.StarExpr:
+		// A DEREFERENCE, or a pointer TYPE wearing the same syntax. Go spells both `*X`, and only
+		// the type-checker separates them: `*p` reads through a pointer and `*T` names a type, so a
+		// translator guessing from the shape would emit one for the other. A type in expression
+		// position is not something this models, and it says so rather than inventing a read.
+		if tv, ok := ctx.info.Types[typed]; ok && tv.IsType() {
+			return unsupportedNode(expr)
+		}
+		return node{
+			Kind:     kindDeref,
+			Type:     typeTree(ctx.info.TypeOf(typed)),
+			Children: []node{expressionNode(typed.X, ctx)},
+		}
+
 	case *ast.UnaryExpr:
 		operand := expressionNode(typed.X, ctx)
 		// A CONSTANT EXPRESSION resolves at its OUTERMOST node. go/types records the literal inside
