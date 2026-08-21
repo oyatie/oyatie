@@ -12,5 +12,5 @@ genrule(
     name = "corpus-yaml-facts",
     srcs = glob(["**/*.yaml", "**/*.yml"]),
     out = "yaml-facts.json",
-    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//oya/payroll/contracts:corpus-yaml-facts --prefix oya/payroll/contracts --out $OUT $SRCS",
+    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//app/payroll/contracts:corpus-yaml-facts --prefix app/payroll/contracts --out $OUT $SRCS",
 )

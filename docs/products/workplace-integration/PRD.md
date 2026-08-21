@@ -237,7 +237,7 @@ The following are explicitly out-of-scope for the Workplace Integration product 
 4. **Brand-surface UI authoring** — owned by `oya/application/` (Application Shell); workplace-integration provides the embedded views + state, not the shell.
 5. **Per-µservice substrate concerns** — Mail's IMAP/JMAP protocol, Calendar's RFC 5545 parser, Meet's LiveKit SFU, Workflow Engine's state machine — all owned by the respective µservice; workplace-integration consumes their stable contracts.
 6. **Country-by-country labor law interpretation** — owned by the `oya/compliance/` substrate (per-pack overlay); workplace-integration consumes the resolved policy fragment at Cedar evaluation time.
-7. **HR record-of-truth schema authoring** — owned by `oya/hr/` (reserved-then-promoted; see §5.4) and ontology object types `Employee`, `LeaveBalance`, `EmploymentRecord`.
+7. **HR record-of-truth schema authoring** — owned by `app/hr/` (reserved-then-promoted; see §5.4) and ontology object types `Employee`, `LeaveBalance`, `EmploymentRecord`.
 8. **General-purpose document storage** — owned by `oya/drive/`; workplace-integration documents are stored in drive with retention policy refs.
 
 Promotion of any anti-scope item to in-scope requires a founder-/governance-recorded decision in this PRD's §12 decision log.
@@ -1193,8 +1193,8 @@ Each object type carries `data_class` annotation per ADR-0099; per-tenant + per-
 
 For Workplace Integration to reach M04 stable, workforce dependencies must be explicit repo-local service anchors or remain blocked behind promotion gates per ADR-0245 D-6:
 
-- **`oya/hr/`** — repo-local HR service anchor for records of truth (employment, leave-balance, org-chart, compensation-summary). Promotion remains certification-gated: PRD, threat-model, DPIA, manifest tier=product tier_subtype=product-consumer-hr, IaC, SOC 2 Type II employment-data controls, and per-jurisdiction labor-law overlay packs (KR pack-kr-labor, EU pack-eu-working-time, US pack-us-flsa).
-- **`oya/payroll/`** — repo-local payroll service anchor for payroll calculation + paycheck issuance; coordinates with banking via reserved `payments` µservice + Plugin App Store integrations (ADP, Gusto, Justworks, Rippling). Promotion remains gated on per-jurisdiction tax authority registrations (US-IRS, KR-NTS, EU-VAT-MOSS, etc.) and labor-law packs.
+- **`app/hr/`** — repo-local HR service anchor for records of truth (employment, leave-balance, org-chart, compensation-summary). Promotion remains certification-gated: PRD, threat-model, DPIA, manifest tier=product tier_subtype=product-consumer-hr, IaC, SOC 2 Type II employment-data controls, and per-jurisdiction labor-law overlay packs (KR pack-kr-labor, EU pack-eu-working-time, US pack-us-flsa).
+- **`app/payroll/`** — repo-local payroll service anchor for payroll calculation + paycheck issuance; coordinates with banking via reserved `payments` µservice + Plugin App Store integrations (ADP, Gusto, Justworks, Rippling). Promotion remains gated on per-jurisdiction tax authority registrations (US-IRS, KR-NTS, EU-VAT-MOSS, etc.) and labor-law packs.
 - **`oya/compensation/`** — not present as a repo-local service anchor in this checkout; compensation remains promotion-blocked until a founder-/governance-approved service anchor, PRD, threat model, DPIA, manifest, IaC, 409A provider integration, and ASC 718 controls exist.
 
 Until every promotion gate lands, Workplace Integration sagas that need HR/payroll/compensation data use the existing service anchors where present and otherwise integrate via Plugin App Store providers (BambooHR, Rippling, Gusto, ADP) with their respective APIs; they must not silently assume an unavailable record-of-truth service.

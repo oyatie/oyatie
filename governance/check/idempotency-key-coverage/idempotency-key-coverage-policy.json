@@ -284,7 +284,7 @@
     "oya/application/contracts/openapi/application.yaml::/modules/{module}/manifest:publish::post",
     "oya/application/contracts/openapi/tenant-admin-console.yaml::/tenant-admin/policy-drafts/{draft_id}/apply::post",
     "oya/application/contracts/openapi/tenant-admin-console.yaml::/tenant-admin/policy-drafts::post",
-    "oya/ci-webhook-gateway/contracts/openapi-v1.yaml::/webhook/github::post",
+    "ci/webhook-gateway/contracts/openapi-v1.yaml::/webhook/github::post",
     "app/community/contracts/openapi/community.yaml::/kb/articles/{article_id}/attachments::post",
     "app/community/contracts/openapi/community.yaml::/kb/articles/{article_id}/publish::post",
     "app/community/contracts/openapi/community.yaml::/kb/articles/{article_id}::patch",

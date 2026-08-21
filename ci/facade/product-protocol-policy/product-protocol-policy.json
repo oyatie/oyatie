@@ -86,6 +86,7 @@
       "audit",
       "billing",
       "cell",
+      "ci/webhook-gateway",
       "comms",
       "compliance",
       "console",
@@ -117,7 +118,7 @@
       "data/data-pipeline/manifest.json",
       "data/data-warehouse/manifest.json",
       "observability/diagnostics/manifest.json",
-      "oya/ci-webhook-gateway/manifest.json",
+      "ci/webhook-gateway/manifest.json",
       "oya/global-trade/manifest.json",
       "storage/imaging/manifest.json"
     ],

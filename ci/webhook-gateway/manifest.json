@@ -115,7 +115,7 @@
   "slos": [
     {
       "name": "ci-webhook-gateway",
-      "file": "oya/ci-webhook-gateway/slos/ci-webhook-gateway.openslo.yaml"
+      "file": "ci/webhook-gateway/slos/ci-webhook-gateway.openslo.yaml"
     }
   ],
   "capabilities": [

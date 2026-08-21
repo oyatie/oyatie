@@ -1,0 +1,14 @@
+# Committed HR contract consumed as a declared resource; Buck and Cargo
+# (ADR-0716) must read the same bytes.
+export_file(
+    name = "openapi-v1.yaml",
+    visibility = ["PUBLIC"],
+)
+
+# Index this package's YAML into the corpus liveness graph (ADR-0541).
+genrule(
+    name = "corpus-yaml-facts",
+    srcs = glob(["**/*.yaml", "**/*.yml"]),
+    out = "yaml-facts.json",
+    cmd = "$(exe //governance/corpus/extract:yaml-facts) --target root//app/hr/contracts:corpus-yaml-facts --prefix app/hr/contracts --out $OUT $SRCS",
+)

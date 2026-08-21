@@ -1,13 +1,13 @@
 # Hermetic embedded-asset mapping (ADR-0545 / FRIC-1781131000-webhook-cedar-buck2):
-# src/lib.rs include_str!("../../../../oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar")
+# src/lib.rs include_str!("../../../webhook-gateway/policy/ci-webhook-gateway.cedar")
 # resolves, relative to the including source file inside the buck2 __srcs tree, to
-# ADAPTER_ROOT/../../../../oya/ci-webhook-gateway/policy/... . The shared cedar policy still
-# lives in the Phase-2 leftover oya/ci-webhook-gateway/policy package, so it MUST be mapped into
-# the sandbox at exactly that include-relative location.
+# ADAPTER_ROOT/../../../webhook-gateway/policy/... . The shared cedar policy lives in
+# ci/webhook-gateway/policy, so it MUST be mapped into the sandbox at exactly that
+# include-relative location.
 ADAPTER_ROOT = "ci/adapters/webhook-gateway-authz-cedar"
 ADAPTER_SRCS = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"])
 ADAPTER_MAPPED_SRCS = {src: ADAPTER_ROOT + "/" + src for src in ADAPTER_SRCS}
-ADAPTER_MAPPED_SRCS["//oya/ci-webhook-gateway/policy:ci-webhook-gateway.cedar"] = "oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar"
+ADAPTER_MAPPED_SRCS["//ci/webhook-gateway/policy:ci-webhook-gateway.cedar"] = "ci/webhook-gateway/policy/ci-webhook-gateway.cedar"
 
 rust_library(
     name = "ci-webhook-gateway-authz-cedar",

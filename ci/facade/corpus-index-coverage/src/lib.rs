@@ -1231,7 +1231,7 @@ mod tests {
     }
 
     fn declaration(text: &str) -> Result<ExtractionDeclaration, DeclarationError> {
-        extraction_declaration("oya/ci-webhook-gateway", text)
+        extraction_declaration("ci/webhook-gateway", text)
     }
 
     const CANONICAL: &str = r#"
@@ -1259,7 +1259,7 @@ corpus_yaml_facts_shards(
         );
     }
 
-    const CANONICAL_LITERAL_CMD: &str = "$(exe //governance/corpus/extract:yaml-facts) --target root//oya/ci-webhook-gateway:corpus-yaml-facts --prefix oya/ci-webhook-gateway --out $OUT $SRCS";
+    const CANONICAL_LITERAL_CMD: &str = "$(exe //governance/corpus/extract:yaml-facts) --target root//ci/webhook-gateway:corpus-yaml-facts --prefix ci/webhook-gateway --out $OUT $SRCS";
 
     fn literal(cmd: &str, out: &str) -> String {
         format!(
@@ -1290,7 +1290,7 @@ corpus_yaml_facts_shards(
         assert!(
             declaration(&literal(
                 &CANONICAL_LITERAL_CMD.replace(
-                    "root//oya/ci-webhook-gateway:corpus-yaml-facts",
+                    "root//ci/webhook-gateway:corpus-yaml-facts",
                     "root//oya/wrong:corpus-yaml-facts"
                 ),
                 "yaml-facts.json"
@@ -1303,8 +1303,7 @@ corpus_yaml_facts_shards(
     fn literal_wrong_prefix_blocks() {
         assert!(
             declaration(&literal(
-                &CANONICAL_LITERAL_CMD
-                    .replace("--prefix oya/ci-webhook-gateway", "--prefix oya/wrong"),
+                &CANONICAL_LITERAL_CMD.replace("--prefix ci/webhook-gateway", "--prefix ci/wrong"),
                 "yaml-facts.json"
             ))
             .is_err()

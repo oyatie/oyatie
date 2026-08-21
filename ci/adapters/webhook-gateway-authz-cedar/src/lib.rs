@@ -34,7 +34,7 @@ use ci_webhook_gateway_kernel::{AuthzDecision, WebhookAuthzGate, WebhookAuthzReq
 ///
 /// Tracked under: registry/placeholder-debt/adr-follow-ups.yaml#ci-webhook-gateway-cedar-action-namespace
 const _BUNDLED_SKELETON: &str =
-    include_str!("../../../../oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar");
+    include_str!("../../../webhook-gateway/policy/ci-webhook-gateway.cedar");
 
 /// Stage-5 corrected policy: same semantics as the skeleton but using Cedar's
 /// canonical `Action::` namespace so it compiles under cedar-policy 4.x.

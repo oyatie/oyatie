@@ -8,7 +8,7 @@ This flat microservice owns payroll-run close invariants, payee payroll classifi
 
 ## Current landed slice
 
-- `crates/oya-payroll-run-domain` (`oya-payroll-run-domain`): pure Rust domain invariants for trial close, legal-entity group rollup, statutory export evidence, payroll journal balancing, and rollback-first promotion decisions.
+- `core/run-domain` (`payroll-run-domain`): pure Rust domain invariants for trial close, legal-entity group rollup, statutory export evidence, payroll journal balancing, and rollback-first promotion decisions.
 
 ## Does not own
 

@@ -4,6 +4,7 @@
   "bespoke_charts": [
     "app/community",
     "ci/controller",
+    "ci/webhook-gateway",
     "comms/mail",
     "comms/messenger",
     "data/analytics",
@@ -11,7 +12,6 @@
     "iam/identity",
     "intelligence",
     "observability",
-    "oya/ci-webhook-gateway",
     "secrets/kms"
   ]
 }

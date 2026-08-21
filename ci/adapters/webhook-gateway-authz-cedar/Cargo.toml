@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 # Cedar authorization adapter for the CI webhook gateway (ADR-0387 D6).
 # Implements the kernel WebhookAuthzGate trait via cedar-policy engine.
-# Loads policy from oya/ci-webhook-gateway/policy/ci-webhook-gateway.cedar.
+# Loads policy from ci/webhook-gateway/policy/ci-webhook-gateway.cedar.
 # Deny-by-default + forbid-wins semantics (ADR-0183 inheritance).
 # Stage-5 GREEN: Cedar engine wired; dogfood tenant on same path.
 
