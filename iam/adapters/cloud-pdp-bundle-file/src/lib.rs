@@ -52,10 +52,10 @@
 use std::path::{Path, PathBuf};
 
 use iam_cloud_pdp_kernel::{BundleStoreError, PolicyBundleStore};
-use oya_shared_audit_digest_adapter_awslc::Ed25519ChainVerifier;
-use oya_shared_audit_event_kernel::{ChainVerifier, DigestChainError, decode_hex};
-use oya_shared_pdp_kernel::PolicyBundle;
-use oya_shared_platform_contracts_kernel::pdp::PolicyVersion;
+use shared_audit_digest_adapter_awslc::Ed25519ChainVerifier;
+use shared_audit_event_kernel::{ChainVerifier, DigestChainError, decode_hex};
+use shared_pdp_kernel::PolicyBundle;
+use shared_platform_contracts_kernel::pdp::PolicyVersion;
 use serde::{Deserialize, Serialize};
 
 /// One detached signature over a signed policy-bundle envelope's inner bytes.
@@ -277,10 +277,10 @@ mod tests {
     use std::collections::BTreeMap;
     use std::sync::atomic::{AtomicU64, Ordering};
 
-    use oya_shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
-    use oya_shared_audit_event_kernel::{ChainSigner, encode_hex};
-    use oya_shared_pdp_kernel::{TemplateLink, TemplateSrc};
-    use oya_shared_platform_contracts_kernel::pdp::EntityRef;
+    use shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
+    use shared_audit_event_kernel::{ChainSigner, encode_hex};
+    use shared_pdp_kernel::{TemplateLink, TemplateSrc};
+    use shared_platform_contracts_kernel::pdp::EntityRef;
 
     /// TEST-SIDE signer only. Production private-key custody is a deferred
     /// founder-gated slice; this slice ships verify-against-trusted-public-keys

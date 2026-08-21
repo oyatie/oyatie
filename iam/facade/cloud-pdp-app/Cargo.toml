@@ -11,15 +11,15 @@ build = "build.rs"
 [dependencies]
 iam-cloud-pdp-kernel = { path = "../../core/cloud-pdp-kernel" }
 iam-cloud-pdp-bundle-file = { path = "../../adapters/cloud-pdp-bundle-file" }
-oya-shared-pdp-kernel = { path = "../../../libs/oya-shared-pdp-kernel" }
+shared-pdp-kernel = { path = "../../core/shared-pdp-kernel" }
 iam-pdp-cedar = { path = "../../adapters/pdp-cedar" }
-oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
-oya-shared-ulid-id-kernel = { path = "../../../libs/oya-shared-ulid-id-kernel" }
+shared-platform-contracts-kernel = { path = "../../../base/shared-platform-contracts-kernel" }
+shared-ulid-id-kernel = { path = "../../core/shared-ulid-id-kernel" }
 iam-identity-workload-domain = { path = "../../core/identity-workload-domain" }
 iam-identity-workload-svid-kernel = { path = "../../core/identity-workload-svid-kernel" }
 iam-identity-workload-svid-trustd = { path = "../../adapters/identity-workload-svid-trustd" }
 os-trustd-domain = { path = "../../../os/core/trustd-domain" }
-oya-http-runtime-hyper-adapter = { path = "../../../libs/oya-http-runtime-hyper-adapter" }
+http-runtime-hyper-adapter = { path = "../../../base/http-runtime-hyper-adapter" }
 x509-parser = { workspace = true }
 aws-lc-rs = "1.17.0"
 tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "net", "macros", "sync", "signal"] }
@@ -48,24 +48,14 @@ protoc-bin-vendored.workspace = true
 tonic-prost-build.workspace = true
 
 [dev-dependencies]
-# E2E: drive the live REST socket with reqwest and the live gRPC socket with
-# the generated tonic client. Dev-only — NOT library dependencies.
 reqwest = { workspace = true }
 tower = { version = "0.5", default-features = false, features = ["util"] }
 http-body-util = { version = "0.1", default-features = false }
-# Keystone closure E2E (slice-1b-iii-c): drive the LIVE SVID-delivery operator's
-# issuance→Secret path so the PDP boots from OPERATOR-PRODUCED mTLS material (not
-# test-written), proving the operator closes the cert-delivery dimension. Dev-only.
 iam-identity-workload-svid-operator-k8s = { path = "../../adapters/identity-workload-svid-operator-k8s" }
 iam-identity-workload-svid-operator-kernel = { path = "../../core/identity-workload-svid-operator-kernel" }
-# Production-path closure E2E (slice-1b-iii): serialize real CA/leaf DER into the
-# operator-shaped kubernetes.io/tls PEM mount the production boot parses. Dev-only.
 base64 = { version = "0.22", default-features = false, features = ["std"] }
-# G004 bundle-signing slice: the TEST-SIDE Ed25519 signer + envelope types to
-# write signed bundle fixtures and trust-anchor dirs (production key custody is a
-# deferred founder-gated slice). Dev-only — the lib never signs.
-oya-shared-audit-digest-adapter-awslc = { path = "../../../libs/oya-shared-audit-digest-adapter-awslc" }
-oya-shared-audit-event-kernel = { path = "../../../libs/oya-shared-audit-event-kernel" }
+shared-audit-digest-adapter-awslc = { path = "../../core/shared-audit-digest-adapter-awslc" }
+shared-audit-event-kernel = { path = "../../core/shared-audit-event-kernel" }
 
 [lib]
 name = "iam_cloud_pdp_app"

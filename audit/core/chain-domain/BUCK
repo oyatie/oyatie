@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "third-party//:ed25519-dalek",
         "third-party//:sha2",
     ],
@@ -18,7 +18,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "third-party//:ed25519-dalek",
         "third-party//:sha2",
     ],
@@ -32,7 +32,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":audit-chain-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "third-party//:ed25519-dalek",
         "third-party//:sha2",
     ],
@@ -46,7 +46,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":audit-chain-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "third-party//:ed25519-dalek",
         "third-party//:sha2",
     ],

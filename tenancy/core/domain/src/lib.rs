@@ -7,7 +7,7 @@ pub mod design_partner_status;
 pub use design_partner_status::{DesignPartnerStatus, DesignPartnerStatusError};
 
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use oya_data_boundary_kernel::{Classified, DataClass};
+use data_boundary_kernel::{Classified, DataClass};
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct Tenant {

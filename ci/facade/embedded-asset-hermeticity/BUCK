@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//ci/adapters/scan-root-derivation:ci-scan-root-derivation-adapters",
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -23,7 +23,7 @@ rust_binary(
     deps = [
         ":ci-embedded-asset-hermeticity",
         "//ci/adapters/scan-root-derivation:ci-scan-root-derivation-adapters",
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -36,7 +36,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//ci/adapters/scan-root-derivation:ci-scan-root-derivation-adapters",
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -56,7 +56,7 @@ rust_test(
     deps = [
         ":ci-embedded-asset-hermeticity",
         "//ci/adapters/scan-root-derivation:ci-scan-root-derivation-adapters",
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
         "third-party//:serde_json",
     ],
 )

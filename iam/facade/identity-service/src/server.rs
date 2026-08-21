@@ -23,7 +23,7 @@ use iam_identity_workload_rest::{BearerCallerVerifier, WorkloadAuthzState};
 use identity_scim_store_postgres::{
     PgScimGroupStore, PgScimUserStore, assert_rls_enforceable, connect_pool,
 };
-use oya_shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
+use shared_scim_server_kernel::{InMemoryGroupStore, InMemoryUserStore};
 
 use crate::AppState;
 use crate::config::Config;

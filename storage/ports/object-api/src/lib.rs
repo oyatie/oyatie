@@ -8,7 +8,7 @@
 use std::collections::BTreeMap;
 
 use compute_resource::ResourceId;
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 use secrets_kms_domain::KmsPurpose;
 use storage_domain::{
     CloudStorageCatalog, CloudStorageError, ObjectCreate, ObjectEncryptionBindingCreate, ObjectKey,
@@ -1246,7 +1246,7 @@ fn detail(field: &str, issue: &str) -> CloudStorageObjectApiErrorDetail {
 mod tests {
     #![allow(clippy::unwrap_used, clippy::expect_used)]
 
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
     use storage_domain::{
         BucketCreate, BucketState, BucketTier, CloudStorageCatalog, EncryptionMode, ObjectLockMode,
         ObjectLockPolicy, ReplicationPolicyCreate, StorageRepo,

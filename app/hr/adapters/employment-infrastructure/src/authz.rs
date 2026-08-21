@@ -12,7 +12,7 @@
 
 use std::sync::Arc;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+use http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
 
 pub const AUTHORIZATION_HEADER: &str = "authorization";
 pub const VERIFIED_TENANT_CAPTURE_KEY: &str = "verified_tenant_id";

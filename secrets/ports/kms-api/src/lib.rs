@@ -21,7 +21,7 @@ use authz::{
 };
 
 use cell_region::{CellId, RegionCode};
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 use secrets_kms_domain::{
     CloudKmsDirectory, CloudKmsError, KmsDecryptRequest, KmsEncryptRequest, KmsOperation,
     KmsPurpose, KmsRepo, KmsUseReceipt,
@@ -1109,7 +1109,7 @@ fn decrypt_input(
 
 fn parse_api_data_class(
     label: String,
-) -> Result<oya_data_boundary_kernel::DataClass, CloudKmsApiError> {
+) -> Result<data_boundary_kernel::DataClass, CloudKmsApiError> {
     parse_data_class_label(&label)
         .ok_or(CloudKmsApiError::InvalidDataClassLabel { data_class: label })
 }

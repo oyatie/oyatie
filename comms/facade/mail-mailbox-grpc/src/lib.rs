@@ -3,8 +3,8 @@
 
 use comms_mail_mailbox_api::{AuthorizedMailContext, SubmitMessageRequest};
 use comms_mail_mailbox_app::{MailAppError, MailSubmissionPlan, plan_submit_message};
-use oya_shared_postgres_command_kernel::TenantSqlContext;
-use oya_shared_protocol_transport_kernel::GrpcUnaryPlan;
+use shared_postgres_command_kernel::TenantSqlContext;
+use shared_protocol_transport_kernel::GrpcUnaryPlan;
 
 pub const MAIL_PROTO_PACKAGE: &str = "oya.mail.v1";
 pub const MAIL_GRPC_SERVICE: &str = "Mail";

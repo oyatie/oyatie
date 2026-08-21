@@ -49,7 +49,7 @@ use ci_artifact_inventory_registry::{
     fix_owners, fix_reachability, front_matter_field, load_envelope_prefix_allows,
     load_reachability_registry, registration_matches, resolve_owners, to_canonical_json,
 };
-use oya_check_brand_residue::forbidden_vocab::{
+use check_brand_residue::forbidden_vocab::{
     CensusDocument, VocabPolicy, census_findings_with, is_path_carved_out_with,
     strict_zero_retired_brand_finding,
 };
@@ -272,7 +272,7 @@ fn run() -> Result<(), CliError> {
     // Root discovery uses the bundled default's markers (chicken/egg: we need a root before we
     // can read a root-relative oya-ci.toml). Discovery markers are not repo-policy, so this is
     // safe even when an adopter overrides them in the file.
-    let bootstrap_cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+    let bootstrap_cfg = ci_config_kernel::OyaCiConfig::bundled_default();
 
     let repo_root = match repo_root {
         Some(root) => root,
@@ -427,7 +427,7 @@ fn run() -> Result<(), CliError> {
     };
     // The §2.5#4 bnf-layer-suffix gate input: the first-party oya-* crate names enumerated from
     // the tracked Cargo.toml manifests. The gate's evaluate_keyed resolves the role carve-out-
-    // aware and reuses oya_governance_predictable_naming_kernel::check.
+    // aware and reuses check_predictable_naming_kernel::check.
     let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths, &cfg);
     // The §2.5#7 manifest-hygiene gate input: per-crate Cargo.toml hygiene flags.
     let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths, &cfg);
@@ -546,7 +546,7 @@ fn run() -> Result<(), CliError> {
 fn load_policy_config(
     repo_root: &Path,
     policy_root: Option<&Path>,
-) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+) -> Result<ci_config_kernel::OyaCiConfig, CliError> {
     load_config(policy_root.unwrap_or(repo_root))
 }
 
@@ -556,7 +556,7 @@ fn load_policy_config(
 fn load_frozen_reference_policy_config(
     repo_root: &Path,
     policy_root: Option<&Path>,
-) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+) -> Result<ci_config_kernel::OyaCiConfig, CliError> {
     load_frozen_reference_config(policy_root.unwrap_or(repo_root))
 }
 
@@ -564,13 +564,13 @@ fn load_frozen_reference_policy_config(
 /// it is parsed by the CLOSED-schema loader (a malformed file / unknown key is a hard error, so
 /// a broken config fails LOUDLY rather than silently reverting policy); when it is absent the
 /// compiled-in bundled default applies (zero-config = today's language-agnostic posture).
-fn load_config(config_root: &Path) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+fn load_config(config_root: &Path) -> Result<ci_config_kernel::OyaCiConfig, CliError> {
     let path = config_root.join("oya-ci.toml");
     match std::fs::read_to_string(&path) {
-        Ok(text) => oya_ci_config_kernel::OyaCiConfig::from_toml_str(&text)
+        Ok(text) => ci_config_kernel::OyaCiConfig::from_toml_str(&text)
             .map_err(|e| CliError::Io(format!("{}: {e}", path.display()))),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            Ok(oya_ci_config_kernel::OyaCiConfig::bundled_default())
+            Ok(ci_config_kernel::OyaCiConfig::bundled_default())
         }
         Err(e) => Err(CliError::Io(format!("{}: {e}", path.display()))),
     }
@@ -578,13 +578,13 @@ fn load_config(config_root: &Path) -> Result<oya_ci_config_kernel::OyaCiConfig, 
 
 fn load_frozen_reference_config(
     config_root: &Path,
-) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
+) -> Result<ci_config_kernel::OyaCiConfig, CliError> {
     let path = config_root.join("oya-ci.toml");
     match std::fs::read_to_string(&path) {
-        Ok(text) => oya_ci_config_kernel::OyaCiConfig::from_frozen_reference_toml_str(&text)
+        Ok(text) => ci_config_kernel::OyaCiConfig::from_frozen_reference_toml_str(&text)
             .map_err(|e| CliError::Io(format!("{}: {e}", path.display()))),
         Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            Ok(oya_ci_config_kernel::OyaCiConfig::frozen_reference_bundled_default())
+            Ok(ci_config_kernel::OyaCiConfig::frozen_reference_bundled_default())
         }
         Err(e) => Err(CliError::Io(format!("{}: {e}", path.display()))),
     }
@@ -596,7 +596,7 @@ fn load_frozen_reference_config(
 /// marker walk); (2) walking up-tree until any `[repo].root_markers` entry is present. The markers
 /// are DATA (the neutral profile uses the generic `.git`; oyatie uses `specs/root-hub-pointers.json`),
 /// so the producer is not hardcoded to the oyatie marker.
-fn discover_repo_root(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<PathBuf, CliError> {
+fn discover_repo_root(cfg: &ci_config_kernel::OyaCiConfig) -> Result<PathBuf, CliError> {
     if let Some(root) = std::env::var_os("OYA_CI_REPO_ROOT") {
         return Ok(PathBuf::from(root));
     }
@@ -679,7 +679,7 @@ fn should_collect_brand_residue(to_stdout: bool, face: &str) -> bool {
 fn collect_brand_residue(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Result<BTreeMap<String, BTreeSet<String>>, CliError> {
     // The forbidden-stem table + carve-outs are sourced from the oya-ci config `[vocab]` section
     // (§3.3 / Stage 3); the bundled default reproduces today's consts, so the census is
@@ -838,9 +838,9 @@ fn invalid_git_path(tracked_path: &str, reason: &str) -> CliError {
 /// Map the oya-ci config `[vocab]` section onto the brand crate's injected [`VocabPolicy`]
 /// (§3.3 / Stage 3). The kind enum is mirrored 1:1; the bundled default reproduces today's
 /// `FORBIDDEN_VOCAB_STEMS` + `CARVE_OUT_RULES`.
-fn vocab_policy(cfg: &oya_ci_config_kernel::VocabConfig) -> VocabPolicy {
-    use oya_check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
-    use oya_ci_config_kernel::VocabCarveOutKind;
+fn vocab_policy(cfg: &ci_config_kernel::VocabConfig) -> VocabPolicy {
+    use check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
+    use ci_config_kernel::VocabCarveOutKind;
     VocabPolicy {
         stems: cfg
             .forbidden_stems
@@ -875,7 +875,7 @@ fn vocab_policy(cfg: &oya_ci_config_kernel::VocabConfig) -> VocabPolicy {
 fn collect_bnf_layer_suffix(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Value {
     let prefix = cfg.naming.required_prefix.as_str();
     let mut names: BTreeSet<String> = BTreeSet::new();
@@ -923,7 +923,7 @@ fn cargo_prefix_scope(crate_id: &str, package_name: &str, required_prefix: &str)
 /// Return valid workspace member directories while preserving invalid matches for the dedicated
 /// workspace-glob-coverage face. Structural manifest errors still fail every producer face.
 fn scan_valid_member_dirs(repo_root: &Path, face: &str) -> Result<Vec<String>, CliError> {
-    oya_workspace_members_kernel::scan_member_dirs(repo_root)
+    workspace_members_kernel::scan_member_dirs(repo_root)
         .map(|scan| scan.member_dirs)
         .map_err(|error| CliError::Io(format!("{face} scan member dirs: {error}")))
 }
@@ -931,7 +931,7 @@ fn scan_valid_member_dirs(repo_root: &Path, face: &str) -> Result<Vec<String>, C
 fn collect_cargo_prefix(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Result<Value, CliError> {
     let tracked: BTreeSet<&str> = tracked_paths
         .iter()
@@ -974,7 +974,7 @@ fn collect_cargo_prefix(
 fn collect_license_policy(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Result<Value, CliError> {
     let tracked: BTreeSet<&str> = tracked_paths
         .iter()
@@ -1024,7 +1024,7 @@ type SloCoverageRecord = (String, String, Option<String>, bool, Option<String>);
 fn collect_slo_coverage(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Result<Value, CliError> {
     // The slo-coverage gate composes the live-OR-marked predicate (PR-C3): a row with an SLO is
     // not enough if the catalog record itself is silently stale. Resolve the live crate-id
@@ -1247,7 +1247,7 @@ fn repo_path_is_tracked_file(repo_root: &Path, tracked_paths: &BTreeSet<&str>, p
 
 fn catalog_exemption_for_member(
     member_path: &str,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Option<Value> {
     cfg.catalog_liveness
         .workspace_member_exemptions
@@ -1272,7 +1272,7 @@ type CatalogLivenessRecord = (String, String, bool, Option<String>, Option<Strin
 fn collect_catalog_liveness(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Result<Value, CliError> {
     let live = live_workspace_crates(repo_root)?;
     let live_ids: BTreeSet<String> = live.iter().map(|row| row.crate_id.clone()).collect();
@@ -1359,16 +1359,16 @@ fn collect_catalog_liveness(
 fn collect_workspace_glob_coverage(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Result<Value, CliError> {
-    let entries = oya_workspace_members_kernel::read_workspace_manifest_entries(repo_root)
+    let entries = workspace_members_kernel::read_workspace_manifest_entries(repo_root)
         .map_err(|error| {
             CliError::Io(format!(
                 "workspace-glob-coverage read root workspace entries: {error}"
             ))
         })?;
     let member_scan =
-        oya_workspace_members_kernel::scan_member_dirs(repo_root).map_err(|error| {
+        workspace_members_kernel::scan_member_dirs(repo_root).map_err(|error| {
             CliError::Io(format!("workspace-glob-coverage scan member dirs: {error}"))
         })?;
     let covered_dirs: BTreeSet<String> = member_scan.member_dirs.into_iter().collect();
@@ -1440,7 +1440,7 @@ fn collect_workspace_glob_coverage(
 fn collect_target_parity(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Result<Value, CliError> {
     let tracked: BTreeSet<&str> = tracked_paths
         .iter()
@@ -1824,11 +1824,11 @@ mod tests {
         fs::write(binary, [&[0, 255][..], upper.as_slice()].concat()).expect("write binary");
 
         let cfg =
-            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+            ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
         let grouped = collect_brand_residue(&root, &tracked_paths, &cfg)
             .expect("strict-zero collection succeeds");
         let keys =
-            &grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE];
+            &grouped[check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE];
         assert_eq!(keys, &tracked_paths.into_iter().collect());
         fs::remove_dir_all(root).expect("remove temp repo");
     }
@@ -1852,12 +1852,12 @@ mod tests {
         symlink(target, &link).expect("create symlink fixture");
         let tracked_paths = vec!["links/retired-target".to_owned()];
         let cfg =
-            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+            ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
 
         let grouped = collect_brand_residue(&root, &tracked_paths, &cfg)
             .expect("dangling tracked symlink payload is readable");
         assert!(
-            grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
+            grouped[check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
                 .contains("links/retired-target")
         );
         fs::remove_dir_all(root).expect("remove temp repo");
@@ -1867,7 +1867,7 @@ mod tests {
     fn strict_zero_collector_fails_closed_on_missing_tracked_blob() {
         let root = unique_temp_repo();
         let cfg =
-            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+            ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
         let error = collect_brand_residue(&root, &["missing.bin".to_owned()], &cfg)
             .expect_err("missing tracked blob must fail closed");
         assert!(error.to_string().contains("missing.bin"));
@@ -1892,12 +1892,12 @@ mod tests {
         fs::create_dir_all(full.parent().expect("fixture parent")).expect("create parent");
         fs::write(&full, retired_coordination_brand_bytes()).expect("write quoted-path fixture");
         let cfg =
-            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+            ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
 
         let grouped = collect_brand_residue(&root, std::slice::from_ref(&tracked_key), &cfg)
             .expect("decoded tracked pathname resolves to its exact bytes");
         assert!(
-            grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
+            grouped[check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
                 .contains(&tracked_key)
         );
         fs::remove_dir_all(root).expect("remove temp repo");
@@ -1942,7 +1942,7 @@ mod tests {
         );
 
         let cfg =
-            oya_ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
+            ci_config_kernel::OyaCiConfig::from_toml_str("").expect("default config parses");
         let owners = resolve_owners(&root, &tracked, &cfg).by_path;
         assert_eq!(
             owners.get(&sibling).map(String::as_str),
@@ -2021,7 +2021,7 @@ mod tests {
 
     #[test]
     fn vocab_policy_mapping_preserves_line_exception_stem_scope() {
-        let cfg = oya_ci_config_kernel::OyaCiConfig::from_toml_str(
+        let cfg = ci_config_kernel::OyaCiConfig::from_toml_str(
             r#"
 [[vocab.carve_outs]]
 kind = "line_contains_ci"
@@ -2268,7 +2268,7 @@ value = "legacy-marker"
         )
         .expect("write ADR");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let paths = vec![".omc/ultragoal/TEAMMATE-PREAMBLE.md".to_owned()];
         let justifications = resolve_justifications(&root, &paths, &cfg);
 
@@ -2291,7 +2291,7 @@ value = "legacy-marker"
         )
         .expect("write ADR");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let paths = vec!["oya-deps.toml".to_owned()];
         let justifications = resolve_justifications(&root, &paths, &cfg);
 
@@ -2306,7 +2306,7 @@ value = "legacy-marker"
     #[test]
     fn collect_repo_inputs_excludes_configured_third_party_scm_path() {
         let root = unique_temp_repo();
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let excluded_path = "third-party/vendored/lib.rs".to_owned();
 
         assert!(
@@ -2332,7 +2332,7 @@ value = "legacy-marker"
     /// FRIC #1328 — the verdict a pre-push author-side check-mode invocation would print for
     /// `path`, computed via `check_added_paths`. `find` panics if the path is absent.
     fn check_verdict(root: &Path, path: &str) -> AddedPathVerdict {
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let policy = Policy::from_config(&cfg).expect("policy from bundled default");
         let paths = vec![path.to_owned()];
         let mut verdicts =
@@ -2466,7 +2466,7 @@ value = "legacy-marker"
         fs::write(root.join("good/OWNERS"), "cloud-ci-platform\n").expect("write valid");
         fs::write(root.join("bad/OWNERS"), "# owner: TBD\n").expect("write invalid");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let policy = Policy::from_config(&cfg).expect("policy");
         let paths = vec!["good/OWNERS".to_owned(), "bad/OWNERS".to_owned()];
         let verdicts = check_added_paths(&root, &cfg, &policy, &paths).expect("check added paths");
@@ -2518,7 +2518,7 @@ value = "legacy-marker"
         )
         .expect("write ADR");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let policy = Policy::from_config(&cfg).expect("policy from bundled default");
         let paths = vec![justified_path.to_owned(), "beta/src/lib.rs".to_owned()];
 
@@ -2572,7 +2572,7 @@ value = "legacy-marker"
     #[test]
     fn enforcement_inventory_flags_live_cli_authority_but_not_bridge_history() {
         let root = unique_temp_repo();
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let decisions = root.join(&cfg.justification.adr_dir);
         fs::create_dir_all(&decisions).expect("create decisions dir");
         fs::write(
@@ -2750,7 +2750,7 @@ status: Accepted
         )
         .expect("write mismatched ADR");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let inputs = collect_crosswalk_inputs(&root, &cfg);
 
         assert!(
@@ -2780,7 +2780,7 @@ status: Accepted
     #[test]
     fn crosswalk_flags_phantom_citations_and_minting_heals_them() {
         let root = unique_temp_repo();
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let decisions = root.join(&cfg.justification.adr_dir);
         fs::create_dir_all(&decisions).expect("create decisions dir");
         fs::write(
@@ -2929,7 +2929,7 @@ status: Accepted
         )
         .expect("write clean ADR");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let inputs = collect_crosswalk_inputs(&root, &cfg);
 
         assert!(inputs.duplicate_ids.is_empty());
@@ -2964,7 +2964,7 @@ status: Accepted
         )
         .expect("write second catalog row");
 
-        let mut cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let mut cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         cfg.slo_coverage.catalog_record_globs = vec![
             "registry/catalog-a/*.yaml".to_owned(),
             "registry/catalog-b/*.yaml".to_owned(),
@@ -3016,7 +3016,7 @@ status: Accepted
         let face = collect_cargo_prefix(
             &root,
             &tracked_paths,
-            &oya_ci_config_kernel::OyaCiConfig::bundled_default(),
+            &ci_config_kernel::OyaCiConfig::bundled_default(),
         )
         .expect("collect cargo-prefix");
 
@@ -3062,9 +3062,9 @@ status: Accepted
             "traceability:\n  source_crate: crates/old-audit-emission-api/Cargo.toml\n",
         );
 
-        let mut cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let mut cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         cfg.catalog_liveness.workspace_member_exemptions =
-            vec![oya_ci_config_kernel::CatalogLivenessExemption {
+            vec![ci_config_kernel::CatalogLivenessExemption {
                 path_glob: "audit/ports/exempt-row".to_owned(),
                 owner: "platform-governance".to_owned(),
                 reason: "temporary fixture exemption proves bounded exemptions are surfaced"
@@ -3167,7 +3167,7 @@ status: Accepted
         let face = collect_workspace_glob_coverage(
             &root,
             &tracked_paths,
-            &oya_ci_config_kernel::OyaCiConfig::bundled_default(),
+            &ci_config_kernel::OyaCiConfig::bundled_default(),
         )
         .expect("collect workspace glob coverage");
         let findings = ci_workspace_member_coverage::evaluate_keyed(&face);
@@ -3209,7 +3209,7 @@ status: Accepted
         let face = collect_workspace_glob_coverage(
             &root,
             &["Cargo.toml".to_owned()],
-            &oya_ci_config_kernel::OyaCiConfig::bundled_default(),
+            &ci_config_kernel::OyaCiConfig::bundled_default(),
         )
         .expect("collect workspace glob coverage");
         let findings = ci_workspace_member_coverage::evaluate_keyed(&face);
@@ -3316,7 +3316,7 @@ status: Accepted
             r#"{"registered":[{"prefix":"evidence/","anchor":"gate evidence corpus"}]}"#,
         )
         .expect("write registry");
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let paths = vec![
             "evidence/run.json".to_owned(),
             "oya/unregistered.rs".to_owned(),
@@ -3352,7 +3352,7 @@ status: Accepted
             }"#,
         )
         .expect("write envelopes");
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let paths = vec![
             "compute/manifest.json".to_owned(),
             "compute/stale-path-hygiene-note.md".to_owned(),
@@ -3417,7 +3417,7 @@ status: Accepted
         )
         .expect("write masterplan");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let paths: Vec<String> = [
             "OWNERS",
             "README.md",
@@ -3506,11 +3506,11 @@ status: Accepted
                 .get("max_paths_per_owners_file")
                 .and_then(Value::as_u64)
             {
-                Some(bound) => oya_ci_config_kernel::OyaCiConfig::from_toml_str(&format!(
+                Some(bound) => ci_config_kernel::OyaCiConfig::from_toml_str(&format!(
                     "[owners]\nmax_paths_per_owners_file = {bound}\n"
                 ))
                 .expect("fixture bound parses"),
-                None => oya_ci_config_kernel::OyaCiConfig::bundled_default(),
+                None => ci_config_kernel::OyaCiConfig::bundled_default(),
             };
             let tracked: Vec<String> = fixture["tracked_paths"]
                 .as_array()
@@ -3620,7 +3620,7 @@ status: Accepted
         let cfg = load_policy_config(&candidate_root, Some(&trusted_root))
             .expect("trusted policy root loads");
 
-        assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Oyatie);
+        assert_eq!(cfg.profile, ci_config_kernel::Profile::Oyatie);
         fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
         fs::remove_dir_all(trusted_root).expect("remove trusted temp repo");
     }
@@ -3633,7 +3633,7 @@ status: Accepted
 
         let cfg = load_policy_config(&candidate_root, None).expect("candidate policy root loads");
 
-        assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Neutral);
+        assert_eq!(cfg.profile, ci_config_kernel::Profile::Neutral);
         fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
     }
 }
@@ -3705,7 +3705,7 @@ struct ManifestFlags {
 fn collect_manifest_hygiene(
     repo_root: &Path,
     tracked_paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Value {
     let prefix = cfg.naming.required_prefix.as_str();
     let mut by_name: BTreeMap<String, ManifestFlags> = BTreeMap::new();
@@ -3983,7 +3983,7 @@ fn masterplan_propagates_decision(masterplan: &str, decision_id: &str) -> bool {
 /// over the ADR corpus.
 fn collect_crosswalk_inputs(
     repo_root: &Path,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> CrosswalkInputs {
     let decisions_dir = repo_root.join(&cfg.justification.adr_dir);
     let masterplan = read_text(&repo_root.join(&cfg.reachability.masterplan));
@@ -4360,7 +4360,7 @@ fn adr_enforcement_status_is_blocking(body: &str) -> bool {
 /// blocking invariant through an `oya gate`/`oya gen`/`oya verify`/`oya-dev-cli` CLI call.
 fn collect_enforcement_inputs(
     repo_root: &Path,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
     scm_facts: &ScmFacts,
 ) -> EnforcementInputs {
     let mut rows: Vec<EnforcementRow> = Vec::new();
@@ -4589,7 +4589,7 @@ fn front_matter_lines(body: &str) -> Vec<&str> {
 /// the tree cannot support.
 fn load_planned_move_paths(repo_root: &Path) -> BTreeSet<String> {
     let mut planned = BTreeSet::new();
-    let Ok(plans) = oya_reorg_codemod_app::discover_committed_move_plans(repo_root) else {
+    let Ok(plans) = reorg_codemod_app::discover_committed_move_plans(repo_root) else {
         return planned;
     };
     for plan_path in plans {
@@ -4638,7 +4638,7 @@ fn load_capability_placement(repo_root: &Path) -> CapabilityPlacement {
 
 fn collect_repo_inputs(
     repo_root: &Path,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
     scm_facts: &ScmFacts,
 ) -> Result<(RepoInputs, OwnersIntegrity), CliError> {
     let tracked_paths: Vec<String> = scm_facts
@@ -4685,7 +4685,7 @@ fn collect_repo_inputs(
 fn resolve_reachability(
     repo_root: &Path,
     paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> Result<BTreeMap<String, Vec<String>>, CliError> {
     let masterplan = read_text(&repo_root.join(&cfg.reachability.masterplan));
     let root_hub = read_text(&repo_root.join(&cfg.reachability.root_hub));
@@ -4808,7 +4808,7 @@ fn read_cargo_member_prefixes(repo_root: &Path) -> Result<Vec<String>, CliError>
 /// Live decisions dir plus the historical ADR archive (when present).
 /// Archive is outside the P3 direct-child census root but still supplies
 /// path-justification tokens and known decision ids for phantom resolution.
-fn adr_corpus_dirs(repo_root: &Path, cfg: &oya_ci_config_kernel::OyaCiConfig) -> Vec<PathBuf> {
+fn adr_corpus_dirs(repo_root: &Path, cfg: &ci_config_kernel::OyaCiConfig) -> Vec<PathBuf> {
     let mut dirs = vec![repo_root.join(&cfg.justification.adr_dir)];
     let archive = repo_root.join("docs/adr-archive");
     if archive.is_dir() {
@@ -4827,7 +4827,7 @@ fn adr_corpus_dirs(repo_root: &Path, cfg: &oya_ci_config_kernel::OyaCiConfig) ->
 fn resolve_justifications(
     repo_root: &Path,
     paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> BTreeMap<String, String> {
     let tracked: BTreeSet<&str> = paths.iter().map(String::as_str).collect();
     // token (a tracked path mentioned in an ADR) -> first ADR id mentioning it.
@@ -4941,7 +4941,7 @@ fn git_added_paths(repo_root: &Path, merge_base: &str) -> Result<Vec<String>, Cl
 /// (+ the path-only `scratch_artifact` / `no_ttl_class` classes).
 fn check_added_paths(
     repo_root: &Path,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
     policy: &Policy,
     paths: &[String],
 ) -> Result<Vec<AddedPathVerdict>, CliError> {
@@ -5159,7 +5159,7 @@ fn read_required_text(path: &Path, label: &str) -> Result<String, CliError> {
 /// `collect_*` filter). Reproduces the legacy `third-party/` semantics exactly: a path is
 /// excluded iff, for some configured prefix P, it `starts_with(P)` OR `contains("/" + P)`
 /// (so both a top-level `third-party/...` and a nested `.../third-party/...` are caught).
-fn is_path_excluded(path: &str, cfg: &oya_ci_config_kernel::OyaCiConfig) -> bool {
+fn is_path_excluded(path: &str, cfg: &ci_config_kernel::OyaCiConfig) -> bool {
     cfg.repo
         .path_excludes
         .iter()

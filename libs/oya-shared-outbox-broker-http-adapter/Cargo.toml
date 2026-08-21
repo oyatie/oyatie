@@ -7,10 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-shared-transactional-outbox-dispatch-app = { path = "../oya-shared-transactional-outbox-dispatch-app" }
+shared-transactional-outbox-dispatch-app = { path = "../../data/core/shared-transactional-outbox-dispatch-app" }
 
 [dev-dependencies]
-oya-shared-transactional-outbox-kernel = { path = "../oya-shared-transactional-outbox-kernel" }
+shared-transactional-outbox-kernel = { path = "../../data/core/shared-transactional-outbox-kernel" }
 
 [lib]
 path = "src/lib.rs"

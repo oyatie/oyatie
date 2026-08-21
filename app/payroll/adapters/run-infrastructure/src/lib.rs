@@ -24,9 +24,9 @@ pub use authz::{
 
 use std::time::Duration;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
     ServerConfig, SyncHandler, dispatch as dispatch_http, handler_to_sync,
 };
 use payroll_run_api::{
@@ -228,7 +228,7 @@ struct AccountingJournalDraftHandler;
 struct HrLeaveImpactIntakeHandler;
 struct HealthHandler;
 
-impl oya_http_middleware_kernel::Handler for TrialCloseHandler {
+impl http_middleware_kernel::Handler for TrialCloseHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -248,7 +248,7 @@ impl oya_http_middleware_kernel::Handler for TrialCloseHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for AccountingJournalDraftHandler {
+impl http_middleware_kernel::Handler for AccountingJournalDraftHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -269,7 +269,7 @@ impl oya_http_middleware_kernel::Handler for AccountingJournalDraftHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for HrLeaveImpactIntakeHandler {
+impl http_middleware_kernel::Handler for HrLeaveImpactIntakeHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -284,7 +284,7 @@ impl oya_http_middleware_kernel::Handler for HrLeaveImpactIntakeHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for HealthHandler {
+impl http_middleware_kernel::Handler for HealthHandler {
     type Error = HttpResponse;
 
     fn call(&self, _req: HttpRequest) -> Result<HttpResponse, Self::Error> {

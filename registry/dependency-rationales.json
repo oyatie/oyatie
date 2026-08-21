@@ -31,10 +31,10 @@
       "isolated_in_crate": "tooling and application-edge crates; kernel/domain usage report-only",
       "allowed_crates": [
         "intelligence-codeview-cli",
-        "oya-governance-purpose-audit-app",
-        "oya-shared-architecture-check-cli",
-        "oya-shared-semver-check-cli",
-        "oya-shared-supply-chain-check-cli",
+        "check-purpose-audit-app",
+        "check-shared-architecture-check-cli",
+        "check-shared-semver-check-cli",
+        "check-shared-supply-chain-check-cli",
         "oya-xtask-metadata-augment-app"
       ]
     },
@@ -44,7 +44,7 @@
       "owner_team": "council-architecture",
       "rationale": "Byte buffer type for hyper bodies. After ADR-0092 Phase 2, only the adapter declares this dep; kernel uses Vec<u8> and the adapter converts at the boundary. Was previously leaked into oya-http-middleware-kernel + 3 middleware crates + ops-runtime — those leaks are CLOSED.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter",
+      "isolated_in_crate": "http-runtime-hyper-adapter",
       "allowed_crates": [
         "gateway-slack-connector",
         "marketplace-cloud-domain",
@@ -54,9 +54,9 @@
         "oya-accounting-journal-infrastructure",
         "application-shell-frontend",
         "oya-audit-chain-sealing-kernel",
-        "oya-check-adr-placeholders",
-        "oya-check-brand-residue",
-        "oya-check-dependency-seam",
+        "check-adr-placeholders",
+        "check-brand-residue",
+        "check-dependency-seam",
         "check-honest-claims",
         "ci-webhook-gateway-app",
         "oya-cloud-capacity-domain",
@@ -84,15 +84,15 @@
         "application-surface-domain",
         "intelligence-collab-crdt-portability-kernel",
         "intelligence-document-format-domain",
-        "oya-governance-authoritative-tracked-app",
-        "oya-governance-image-discipline-kernel",
-        "oya-governance-sunset-lifecycle-kernel",
+        "check-authoritative-tracked-app",
+        "check-image-discipline-kernel",
+        "check-sunset-lifecycle-kernel",
         "hr-employment-domain",
         "hr-employment-infrastructure",
-        "oya-http-middleware-kernel",
-        "oya-http-runtime-hyper-adapter",
-        "oya-http-sse-kernel",
-        "oya-http-tenant-middleware-infrastructure",
+        "http-middleware-kernel",
+        "http-runtime-hyper-adapter",
+        "http-sse-kernel",
+        "http-tenant-middleware-infrastructure",
         "oya-identity-domain",
         "oya-intelligence-account-domain",
         "intelligence-account-kernel",
@@ -115,7 +115,7 @@
         "intelligence-providers-adapter-openai",
         "intelligence-subagent-runtime-app",
         "oya-intelligence-subagent-runtime-kernel",
-        "oya-json-kernel",
+        "json-kernel",
         "oya-mail-domain",
         "oya-ops-workspace-shell-app",
         "payroll-run-domain",
@@ -123,25 +123,25 @@
         "oya-policy-cedar-domain",
         "oya-secrets-domain",
         "oya-secrets-file-adapter",
-        "oya-shared-audit-chain-client-kernel",
-        "oya-shared-backbone-grpc-generated-adapter",
-        "oya-shared-backbone-proto-contracts-kernel",
-        "oya-shared-backup-kernel",
-        "oya-shared-connector-kernel",
-        "oya-shared-idempotency-key-kernel",
+        "shared-audit-chain-client-kernel",
+        "shared-backbone-grpc-generated-adapter",
+        "shared-backbone-proto-contracts-kernel",
+        "shared-backup-kernel",
+        "shared-connector-kernel",
+        "shared-idempotency-key-kernel",
         "storage-object-store-kernel",
-        "oya-shared-oidc-client-kernel",
-        "oya-shared-olap-client-kernel",
-        "oya-shared-outbox-broker-http-adapter",
-        "oya-shared-postgres-command-adapter-sqlx",
-        "oya-shared-protocol-transport-kernel",
-        "oya-shared-realtime-transport-kernel",
-        "oya-shared-scim-server-kernel",
-        "oya-shared-timeseries-kernel",
-        "oya-shared-transactional-outbox-dispatch-app",
-        "oya-shared-vector-store-kernel",
-        "oya-shared-wasm-runtime-kernel",
-        "oya-shared-webhook-delivery-kernel",
+        "shared-oidc-client-kernel",
+        "shared-olap-client-kernel",
+        "shared-outbox-broker-http-adapter",
+        "shared-postgres-command-adapter-sqlx",
+        "shared-protocol-transport-kernel",
+        "shared-realtime-transport-kernel",
+        "shared-scim-server-kernel",
+        "shared-timeseries-kernel",
+        "shared-transactional-outbox-dispatch-app",
+        "shared-vector-store-kernel",
+        "shared-wasm-runtime-kernel",
+        "shared-webhook-delivery-kernel",
         "oya-tenancy-kernel",
         "oya-tenant-rbac-app",
         "oya-tooling-agent-read",
@@ -162,9 +162,9 @@
         "oya-analytics-app",
         "oya-analytics-tenant-bootstrap-app",
         "intelligence-codeview-cli",
-        "oya-shared-architecture-check-cli",
-        "oya-shared-semver-check-cli",
-        "oya-shared-supply-chain-check-cli",
+        "check-shared-architecture-check-cli",
+        "check-shared-semver-check-cli",
+        "check-shared-supply-chain-check-cli",
         "oya-tenant-cli",
         "oya-xtask-metadata-augment-app"
       ]
@@ -175,9 +175,9 @@
       "owner_team": "council-architecture",
       "rationale": "Full<Bytes> body collector + Limited<B> bounded-collector. Limited is the load-bearing primitive for S3 unbounded-body DoS defense (ADR-0092 Phase 8).",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter",
+      "isolated_in_crate": "http-runtime-hyper-adapter",
       "allowed_crates": [
-        "oya-http-runtime-hyper-adapter",
+        "http-runtime-hyper-adapter",
         "oya-identity-workload-rest",
         "oya-cloud-intelligence-app",
         "oya-cloud-intelligence-rest",
@@ -191,15 +191,15 @@
       "owner_team": "council-architecture",
       "rationale": "HTTP I/O protocol — h1/h2 framing. Selected over axum/actix/poem per ADR-0090: bare protocol surface, smallest transitive cost. Workspace-wide directive 2026-05-14: hyper for framework; we build router/middleware/SSE ourselves above this layer.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter",
+      "isolated_in_crate": "http-runtime-hyper-adapter",
       "allowed_crates": [
-        "oya-check-dependency-seam",
+        "check-dependency-seam",
         "oya-cloud-iac-app",
         "oya-cloud-iac-infrastructure",
-        "oya-http-middleware-kernel",
-        "oya-http-router-kernel",
-        "oya-http-runtime-hyper-adapter",
-        "oya-http-sse-kernel",
+        "http-middleware-kernel",
+        "http-router-kernel",
+        "http-runtime-hyper-adapter",
+        "http-sse-kernel",
         "intelligence-anthropic-compat-api",
         "intelligence-openai-compat-api",
         "intelligence-api-rest-adapter",
@@ -209,8 +209,8 @@
         "oya-ops-workspace-shell-app",
         "oya-ops-workspace-shell-rest",
         "oya-payments-charge-rest",
-        "oya-shared-realtime-transport-kernel",
-        "oya-shared-scim-server-kernel"
+        "shared-realtime-transport-kernel",
+        "shared-scim-server-kernel"
       ]
     },
     "hyper-rustls": {
@@ -230,9 +230,9 @@
       "owner_team": "council-architecture",
       "rationale": "Tokio + auto-builder helpers for hyper. Adapter-local; no kernel exposure. Provides ConnBuilder used for slowloris-defense timeouts (ADR-0092 Phase 8 S4).",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0705-product-protocol-live-apex.md",
-      "isolated_in_crate": "oya-http-runtime-hyper-adapter",
+      "isolated_in_crate": "http-runtime-hyper-adapter",
       "allowed_crates": [
-        "oya-http-runtime-hyper-adapter",
+        "http-runtime-hyper-adapter",
         "oya-cloud-intelligence-app",
         "oya-cloud-intelligence-rest"
       ]
@@ -247,8 +247,8 @@
       "allowed_crates": [
         "check-shardability",
         "intelligence-codeview-cli",
-        "oya-governance-pr-traceability-kernel",
-        "oya-shared-hyperscaler-metrics-kernel"
+        "check-pr-traceability-kernel",
+        "shared-hyperscaler-metrics-kernel"
       ]
     },
     "serde": {
@@ -268,9 +268,9 @@
         "oya-analytics-usecase",
         "application-shell-frontend",
         "check-authz-tier-discipline",
-        "oya-check-dependency-seam",
+        "check-dependency-seam",
         "check-ontology-projection-coverage",
-        "oya-check-step-up-auth-coverage",
+        "check-step-up-auth-coverage",
         "ci-webhook-gateway-app",
         "ci-webhook-gateway-github-adapter",
         "ci-webhook-gateway-kernel",
@@ -281,7 +281,7 @@
         "oya-cloud-intelligence-openbao-adapter",
         "oya-cloud-intelligence-rest",
         "intelligence-codeview-cli",
-        "oya-governance-license-policy-kernel",
+        "check-license-policy-kernel",
         "hr-employment-api",
         "hr-employment-infrastructure",
         "oya-identity-workload-api",
@@ -314,10 +314,10 @@
         "payroll-run-infrastructure",
         "oya-policy-cedar-domain",
         "oya-resolve-scorecards-app",
-        "oya-shared-oidc-client-kernel",
-        "oya-shared-olap-clickhouse-adapter",
-        "oya-shared-scim-server-kernel",
-        "oya-shared-webauthn-server-kernel",
+        "shared-oidc-client-kernel",
+        "shared-olap-clickhouse-adapter",
+        "shared-scim-server-kernel",
+        "shared-webauthn-server-kernel",
         "oya-tenant-rbac-api",
         "oya-tenant-rbac-app",
         "oya-workflow-studio-dsl-emitter-domain",
@@ -342,7 +342,7 @@
         "oya-analytics-tenant-bootstrap-app",
         "application-shell-frontend",
         "check-authz-tier-discipline",
-        "oya-check-dependency-seam",
+        "check-dependency-seam",
         "check-ontology-projection-coverage",
         "oya-checkout-guard-app",
         "ci-webhook-gateway-app",
@@ -353,9 +353,9 @@
         "oya-cloud-intelligence-openbao-adapter",
         "oya-cloud-intelligence-rest",
         "intelligence-codeview-cli",
-        "oya-governance-audit-event-emission",
-        "oya-governance-purpose-audit-app",
-        "oya-governance-upstream-api-drift-kernel",
+        "check-audit-event-emission",
+        "check-purpose-audit-app",
+        "check-upstream-api-drift-kernel",
         "hr-employment-api",
         "hr-employment-infrastructure",
         "oya-identity-workload-api",
@@ -364,7 +364,7 @@
         "intelligence-attribution-app",
         "intelligence-eval-app",
         "intelligence-provider-pool-app",
-        "oya-json-kernel",
+        "json-kernel",
         "oya-managed-k8s-cluster-lifecycle-app",
         "oya-managed-k8s-control-plane-host-api",
         "oya-managed-k8s-control-plane-host-app",
@@ -378,12 +378,12 @@
         "oya-policy-cedar-domain",
         "oya-resolve-scorecards-app",
         "oya-search-index-vector-domain",
-        "oya-shared-backbone-rest-runtime-adapter",
-        "oya-shared-connector-kernel",
-        "oya-shared-oidc-client-kernel",
-        "oya-shared-olap-clickhouse-adapter",
-        "oya-shared-scim-server-kernel",
-        "oya-shared-webauthn-server-kernel",
+        "shared-backbone-rest-runtime-adapter",
+        "shared-connector-kernel",
+        "shared-oidc-client-kernel",
+        "shared-olap-clickhouse-adapter",
+        "shared-scim-server-kernel",
+        "shared-webauthn-server-kernel",
         "oya-tenant-rbac-api",
         "oya-tenant-rbac-app",
         "oya-workflow-studio-dsl-emitter-domain",
@@ -400,8 +400,8 @@
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "oya-check-* lane crates and manifest tooling",
       "allowed_crates": [
-        "oya-check-step-up-auth-coverage",
-        "oya-governance-purpose-audit-app"
+        "check-step-up-auth-coverage",
+        "check-purpose-audit-app"
       ]
     },
     "tempfile": {
@@ -412,10 +412,10 @@
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
       "isolated_in_crate": "tests and tooling crates",
       "allowed_crates": [
-        "oya-check-doc-axis",
-        "oya-governance-adapter-with-no-importer-kernel",
-        "oya-governance-mistakes-ledger-kernel",
-        "oya-governance-sunset-lifecycle-app",
+        "check-doc-axis",
+        "check-adapter-with-no-importer-kernel",
+        "check-mistakes-ledger-kernel",
+        "check-sunset-lifecycle-app",
         "intelligence-jsonl-supervisor-adapter",
         "intelligence-pr-review-dispatcher-app",
         "intelligence-subagent-runtime-app",
@@ -440,7 +440,7 @@
         "oya-cloud-intelligence-kernel",
         "oya-cloud-intelligence-openbao-adapter",
         "oya-cloud-intelligence-rest",
-        "oya-http-runtime-hyper-adapter",
+        "http-runtime-hyper-adapter",
         "oya-identity-workload-rest",
         "intelligence-architecture-map-kernel",
         "intelligence-attribution-app",
@@ -459,14 +459,14 @@
         "oya-managed-k8s-tenant-quota-app",
         "oya-ops-workspace-shell-app",
         "oya-payments-charge-kernel",
-        "oya-shared-backbone-grpc-transport-adapter",
-        "oya-shared-backbone-rest-runtime-adapter",
-        "oya-shared-connector-kernel",
-        "oya-shared-postgres-command-adapter-sqlx",
-        "oya-shared-postgres-command-kernel",
-        "oya-shared-realtime-transport-kernel",
-        "oya-shared-timeseries-kernel",
-        "oya-shared-transactional-outbox-runtime-tokio-app"
+        "shared-backbone-grpc-transport-adapter",
+        "shared-backbone-rest-runtime-adapter",
+        "shared-connector-kernel",
+        "shared-postgres-command-adapter-sqlx",
+        "shared-postgres-command-kernel",
+        "shared-realtime-transport-kernel",
+        "shared-timeseries-kernel",
+        "shared-transactional-outbox-runtime-tokio-app"
       ]
     },
     "toml": {
@@ -478,18 +478,18 @@
       "isolated_in_crate": "oya-check-* lane crates + tooling binaries",
       "allowed_crates": [
         "marketplace-dev-cli",
-        "oya-check-dependency-seam",
+        "check-dependency-seam",
         "check-wasm-runtime-discipline",
-        "oya-governance-adapter-with-no-importer-app",
-        "oya-governance-adapter-with-no-importer-kernel",
-        "oya-governance-banned-primitives-app",
-        "oya-governance-sunset-lifecycle-app",
-        "oya-governance-sunset-lifecycle-kernel",
+        "check-adapter-with-no-importer-app",
+        "check-adapter-with-no-importer-kernel",
+        "check-banned-primitives-app",
+        "check-sunset-lifecycle-app",
+        "check-sunset-lifecycle-kernel",
         "intelligence-architecture-map-app",
         "intelligence-architecture-map-kernel",
         "intelligence-mdbook-domain",
         "intelligence-supervisor-app",
-        "oya-shared-architecture-check-cli",
+        "check-shared-architecture-check-cli",
         "oya-xtask-metadata-augment-app"
       ]
     },
@@ -519,8 +519,8 @@
         "oya-managed-k8s-cluster-lifecycle-app",
         "oya-managed-k8s-control-plane-host-app",
         "oya-managed-k8s-tenant-quota-app",
-        "oya-shared-connector-kernel",
-        "oya-shared-tracing-client-kernel"
+        "shared-connector-kernel",
+        "shared-tracing-client-kernel"
       ]
     },
     "tracing-subscriber": {
@@ -560,11 +560,11 @@
       "owner_team": "council-architecture",
       "rationale": "Protocol Buffers message encode/decode traits used only by the generated backbone gRPC adapter crate. Domain/API/usecase kernels keep framework-free request/receipt types and explicit conversion seams.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
-      "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter",
+      "isolated_in_crate": "shared-backbone-grpc-generated-adapter",
       "allowed_crates": [
         "oya-identity-workload-rest",
         "oya-messenger-message-stream-grpc",
-        "oya-shared-backbone-grpc-generated-adapter"
+        "shared-backbone-grpc-generated-adapter"
       ]
     },
     "protoc-bin-vendored": {
@@ -576,7 +576,7 @@
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter build.rs",
       "allowed_crates": [
         "oya-identity-workload-rest",
-        "oya-shared-backbone-grpc-generated-adapter"
+        "shared-backbone-grpc-generated-adapter"
       ]
     },
     "sqlx": {
@@ -592,11 +592,11 @@
         "intelligence-backbone-workload-live-app",
         "oya-mail-mailbox-store-adapter-postgres",
         "oya-messenger-message-stream-adapter-postgres",
-        "oya-shared-outbox-pattern-kernel",
-        "oya-shared-postgres-command-adapter-sqlx",
-        "oya-shared-postgres-command-kernel",
-        "oya-shared-transactional-outbox-adapter-sqlx",
-        "oya-shared-transactional-outbox-worker-app",
+        "shared-outbox-pattern-kernel",
+        "shared-postgres-command-adapter-sqlx",
+        "shared-postgres-command-kernel",
+        "shared-transactional-outbox-adapter-sqlx",
+        "shared-transactional-outbox-worker-app",
         "community-social-post-composition-adapter-postgres"
       ]
     },
@@ -610,8 +610,8 @@
       "allowed_crates": [
         "oya-identity-workload-rest",
         "oya-payments-charge-grpc",
-        "oya-shared-backbone-grpc-generated-adapter",
-        "oya-shared-backbone-grpc-transport-adapter"
+        "shared-backbone-grpc-generated-adapter",
+        "shared-backbone-grpc-transport-adapter"
       ]
     },
     "tonic-prost": {
@@ -620,10 +620,10 @@
       "owner_team": "council-architecture",
       "rationale": "Prost codec type referenced by tonic 0.14 generated service bindings. Kept inside the generated adapter crate and not exposed to domain/usecase logic.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
-      "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter",
+      "isolated_in_crate": "shared-backbone-grpc-generated-adapter",
       "allowed_crates": [
         "oya-identity-workload-rest",
-        "oya-shared-backbone-grpc-generated-adapter"
+        "shared-backbone-grpc-generated-adapter"
       ]
     },
     "tonic-prost-build": {
@@ -635,7 +635,7 @@
       "isolated_in_crate": "oya-shared-backbone-grpc-generated-adapter build.rs",
       "allowed_crates": [
         "oya-identity-workload-rest",
-        "oya-shared-backbone-grpc-generated-adapter"
+        "shared-backbone-grpc-generated-adapter"
       ]
     },
     "opentelemetry": {
@@ -644,7 +644,7 @@
       "owner_team": "council-architecture + observability",
       "rationale": "Rust OpenTelemetry metrics API used only by the OTLP metrics adapter to construct canonical counters/gauges from the shared HyperscalerMetrics port. Domain/kernel/usecase crates remain OpenTelemetry-free.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0706-observability-live-apex.md",
-      "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
+      "isolated_in_crate": "shared-hyperscaler-metrics-adapter-otlp",
       "allowed_crates": [
         "check-otel-trace-propagation",
         "oya-tenant-rbac-audit-chain-runtime-evidence",
@@ -656,7 +656,7 @@
         "oya-tenant-rbac-tenant-workload-manifest",
         "oya-tenant-rbac-tenant-workload-runtime-evidence",
         "oya-tenant-rbac-workflow-runtime-evidence",
-        "oya-shared-hyperscaler-metrics-adapter-otlp"
+        "shared-hyperscaler-metrics-adapter-otlp"
       ]
     },
     "opentelemetry-otlp": {
@@ -665,9 +665,9 @@
       "owner_team": "council-architecture + observability",
       "rationale": "OTLP HTTP/protobuf metric exporter used behind an explicit environment gate for collector integration harnesses. It does not leak into microservice domain/API/usecase crates and no live export is claimed unless the operator enables the harness with a reachable collector.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0706-observability-live-apex.md",
-      "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
+      "isolated_in_crate": "shared-hyperscaler-metrics-adapter-otlp",
       "allowed_crates": [
-        "oya-shared-hyperscaler-metrics-adapter-otlp"
+        "shared-hyperscaler-metrics-adapter-otlp"
       ]
     },
     "opentelemetry_sdk": {
@@ -676,9 +676,9 @@
       "owner_team": "council-architecture + observability",
       "rationale": "OpenTelemetry SDK MeterProvider used only by the OTLP metrics adapter to host instruments and periodic metric export. Composition roots opt in explicitly; pure layers remain SDK-free.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0706-observability-live-apex.md",
-      "isolated_in_crate": "oya-shared-hyperscaler-metrics-adapter-otlp",
+      "isolated_in_crate": "shared-hyperscaler-metrics-adapter-otlp",
       "allowed_crates": [
-        "oya-shared-hyperscaler-metrics-adapter-otlp"
+        "shared-hyperscaler-metrics-adapter-otlp"
       ]
     },
     "cedar-policy": {
@@ -694,7 +694,7 @@
         "oya-identity-workload-authz-cedar-adapter",
         "oya-managed-k8s-tenant-quota-adapter-cedar",
         "iam-pdp-cedar",
-        "oya-shared-platform-contracts-kernel"
+        "shared-platform-contracts-kernel"
       ]
     },
     "kube": {
@@ -736,9 +736,9 @@
       "owner_team": "council-analytics",
       "rationale": "ClickHouse 26.3 LTS HTTP client (Apache-2.0, OSI-clean). Provides async query execution and LZ4 compression for the OLAP analytics warehouse mandated by ADR-0193. Isolated exclusively to oya-shared-olap-clickhouse-adapter; no kernel, domain, usecase, or api crate may take this as a direct dependency. Matches manifest.json lts_pins.clickhouse=26.3.10.60-lts.",
       "replacement_strategy_doc_ref": "docs/decisions/ADR-0709-general-live-apex.md",
-      "isolated_in_crate": "oya-shared-olap-clickhouse-adapter",
+      "isolated_in_crate": "shared-olap-clickhouse-adapter",
       "allowed_crates": [
-        "oya-shared-olap-clickhouse-adapter"
+        "shared-olap-clickhouse-adapter"
       ]
     }
   },

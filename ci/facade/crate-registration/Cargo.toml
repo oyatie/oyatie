@@ -23,9 +23,9 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-crate-registrar-kernel = { path = "../../../libs/oya-crate-registrar-kernel" }
-oya-crate-registrar-app = { path = "../../../libs/oya-crate-registrar-app" }
-oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
+crate-registrar-kernel = { path = "../../core/crate-registrar-kernel" }
+crate-registrar-app = { path = "../../core/crate-registrar-app" }
+ci-config-kernel = { path = "../../core/ci-config-kernel" }
 ci-artifact-inventory-registry = { path = "../artifact-inventory-registry" }
 ci-module-membership = { path = "../module-membership" }
 ci-artifact-accountability = { path = "../artifact-accountability" }

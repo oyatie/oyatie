@@ -1,0 +1,28 @@
+rust_library(
+    name = "data-outbox-adapter-postgres",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql"]),
+    crate = "data_outbox_adapter_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/data-outbox-kernel:data-outbox-kernel",
+        "//data/core/data-sql-kernel:data-sql-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
+        "third-party//:sqlx",
+    ],
+)
+
+rust_test(
+    name = "data-outbox-adapter-postgres-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql"]),
+    crate = "data_outbox_adapter_postgres",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/data-outbox-kernel:data-outbox-kernel",
+        "//data/core/data-sql-kernel:data-sql-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
+        "third-party//:sqlx",
+        "third-party//:tokio",
+    ],
+)

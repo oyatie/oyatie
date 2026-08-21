@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
-        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "//iam/core/shared-pdp-kernel:shared-pdp-kernel",
+        "//base/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
     ],
 )
 
@@ -17,7 +17,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
-        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
+        "//iam/core/shared-pdp-kernel:shared-pdp-kernel",
+        "//base/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
     ],
 )

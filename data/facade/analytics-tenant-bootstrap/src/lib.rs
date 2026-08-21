@@ -24,7 +24,7 @@
 
 use std::fmt;
 
-use oya_shared_olap_client_kernel::{KernelError, OlapClient, TenantId};
+use shared_olap_client_kernel::{KernelError, OlapClient, TenantId};
 
 // =====================================================================
 // Tenant lifecycle events
@@ -182,7 +182,7 @@ impl InMemoryEventQueue {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_olap_client_kernel::memory_adapter::InMemoryOlapClient;
+    use shared_olap_client_kernel::memory_adapter::InMemoryOlapClient;
 
     fn tid(s: &str) -> TenantId {
         TenantId::try_new(s).unwrap()

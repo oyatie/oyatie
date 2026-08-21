@@ -25,9 +25,9 @@ use iac_rest::{
     MODULE_REGISTRY_DOWNLOAD_REST_ROUTE, MODULE_REGISTRY_REST_METHOD,
     MODULE_REGISTRY_VERSIONS_REST_ROUTE, match_module_registry_rest_route,
 };
-use oya_http_middleware_kernel::{Handler, HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
+use http_middleware_kernel::{Handler, HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
     ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request, handler_to_sync,
 };
 

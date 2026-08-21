@@ -13,10 +13,10 @@ use comms_messenger_stream_api::{
 };
 use comms_messenger_stream_app::{MessengerAppError, MessengerWritePlan, plan_send_message};
 use comms_messenger_stream_usecase::{MessengerUsecaseError, send_message};
-use oya_shared_hyperscaler_metrics_kernel::{
+use shared_hyperscaler_metrics_kernel::{
     MetricsContext, MetricsError, RequestTelemetryBinding,
 };
-use oya_shared_postgres_command_kernel::TenantSqlContext;
+use shared_postgres_command_kernel::TenantSqlContext;
 
 pub const POST_MESSAGE_ROUTE: &str = "/channels/{channel_id}/messages";
 pub const POST_MESSAGE_METHOD: &str = "POST";

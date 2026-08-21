@@ -9,7 +9,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const TENANT_RBAC_DECISION_SCHEMA_VERSION: u32 = 1;
 const GROUP_ROLLUP_SCHEMA_VERSION: u32 = 1;

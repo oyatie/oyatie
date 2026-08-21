@@ -5,9 +5,9 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-transactional-outbox-kernel:oya-shared-transactional-outbox-kernel",
-        "//libs/oya-shared-transactional-outbox-poller-app:oya-shared-transactional-outbox-poller-app",
-        "//libs/oya-shared-transactional-outbox-worker-app:oya-shared-transactional-outbox-worker-app",
+        "//data/core/shared-transactional-outbox-kernel:shared-transactional-outbox-kernel",
+        "//data/core/shared-transactional-outbox-poller-app:shared-transactional-outbox-poller-app",
+        "//data/core/shared-transactional-outbox-worker-app:shared-transactional-outbox-worker-app",
         "third-party//:tokio",
     ],
 )

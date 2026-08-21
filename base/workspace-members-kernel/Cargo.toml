@@ -1,0 +1,27 @@
+[package]
+name = "workspace-members-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "workspace-members"
+kind = "shared"
+layer = "kernel"
+purpose = "Canonical resolver for globbed root Cargo workspace members and excludes."
+
+[lib]
+name = "workspace_members_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+toml = { workspace = true }
+
+[dev-dependencies]
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

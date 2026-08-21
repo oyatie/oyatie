@@ -3,8 +3,8 @@
 use std::collections::BTreeMap;
 use std::sync::Arc;
 
-use oya_http_middleware_kernel::HttpRequest;
-use oya_http_router_kernel::HttpMethod;
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
 use payroll_run_api::{
     HrLeaveImpactIntakeRequest, HrLeaveImpactKindDto, MoneyAmountDto, PayeeClassDto, PayeeRequest,
     PayrollJournalDraftRequest, PayrollJournalLineRequest, PayrollTrialCloseRequest,

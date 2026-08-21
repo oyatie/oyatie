@@ -10,10 +10,10 @@ license = "Apache-2.0"
 comms-messenger-stream-postgres = { path = "../../adapters/messenger-stream-postgres" }
 comms-messenger-stream-api = { path = "../../ports/messenger-stream-api" }
 comms-messenger-stream-usecase = { path = "../messenger-stream-usecase" }
-oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres-command-kernel" }
-oya-shared-protocol-parity-kernel = { path = "../../../libs/oya-shared-protocol-parity-kernel" }
-oya-shared-protocol-transport-kernel = { path = "../../../libs/oya-shared-protocol-transport-kernel" }
-oya-shared-transactional-outbox-kernel = { path = "../../../libs/oya-shared-transactional-outbox-kernel" }
+shared-postgres-command-kernel = { path = "../../../base/shared-postgres-command-kernel" }
+shared-protocol-parity-kernel = { path = "../../../base/shared-protocol-parity-kernel" }
+shared-protocol-transport-kernel = { path = "../shared-protocol-transport-kernel" }
+shared-transactional-outbox-kernel = { path = "../../../data/core/shared-transactional-outbox-kernel" }
 
 [lib]
 name = "comms_messenger_stream_app"

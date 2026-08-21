@@ -26,7 +26,7 @@ use check_data_class::{
     DataClassFitnessError, FieldIdentity, KernelField, LegacyUnannotatedField,
     validate_data_class_fitness,
 };
-use oya_workspace_members_kernel::resolve_member_dirs;
+use workspace_members_kernel::resolve_member_dirs;
 
 const POLICY_PATH: &str = "governance/check/data-class/data-class-policy.json";
 const LEDGER_PATH: &str = "registry/data-class/legacy-unannotated-fields.tsv";

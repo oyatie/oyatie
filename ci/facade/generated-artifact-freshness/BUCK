@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
         "//ci/facade/planning-projection:ci-planning-projection",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
     ],
@@ -52,7 +52,7 @@ rust_test(
     deps = [
         "//ci/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
         "//ci/facade/planning-projection:ci-planning-projection",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
     ],

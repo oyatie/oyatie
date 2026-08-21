@@ -1,0 +1,33 @@
+rust_binary(
+    name = "oya-xtask-metadata-augment",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    env = {"CARGO_PKG_VERSION": "0.1.0", "CARGO_PKG_NAME": "oya-xtask-metadata-augment-app"},
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/cargo-lock-transform-kernel:cargo-lock-transform-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
+        "third-party//:anyhow",
+        "third-party//:clap",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:toml_edit",
+    ],
+)
+
+rust_test(
+    name = "oya-xtask-metadata-augment-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    env = {"CARGO_PKG_VERSION": "0.1.0", "CARGO_PKG_NAME": "oya-xtask-metadata-augment-app"},
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/cargo-lock-transform-kernel:cargo-lock-transform-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
+        "third-party//:anyhow",
+        "third-party//:clap",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:toml_edit",
+    ],
+)

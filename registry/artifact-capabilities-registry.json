@@ -906,7 +906,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "manual \u2014 adapter implementations expose SettingsRenderer::render, but no unattended remediation invocation path exists",
+          "healer": "manual — adapter implementations expose SettingsRenderer::render, but no unattended remediation invocation path exists",
           "safe_unattended": [],
           "requires_human_approval_for": [
             "rendering drift remediation",
@@ -966,7 +966,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "libs/oya-check-dependency-seam",
+          "checker_crate": "governance/check/dependency-seam",
           "command": "cargo check -p intelligence-settings-template-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
@@ -984,7 +984,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "manual \u2014 kernel boundary violations require architectural review",
+          "healer": "manual — kernel boundary violations require architectural review",
           "safe_unattended": [],
           "requires_human_approval_for": [
             "any new external dep in kernel"
@@ -1054,7 +1054,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "libs/oya-check-dependency-seam",
+          "checker_crate": "governance/check/dependency-seam",
           "command": "cargo check -p intelligence-supervisor-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
@@ -1072,7 +1072,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "manual \u2014 kernel boundary violations require human architectural review",
+          "healer": "manual — kernel boundary violations require human architectural review",
           "safe_unattended": [],
           "requires_human_approval_for": [
             "any new external dep in kernel",
@@ -1163,7 +1163,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "manual \u2014 invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
+          "healer": "manual — invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1247,7 +1247,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "manual \u2014 invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
+          "healer": "manual — invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1331,7 +1331,7 @@
           "idempotency_class": "content-addressed-blake3"
         },
         "selfheal": {
-          "healer": "manual \u2014 invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
+          "healer": "manual — invoke an intelligence/adapters/settings-template-adapter implementation of SettingsRenderer::render; no reconciliation API exists",
           "heals_what": [
             "drift between template and rendered per-account files"
           ],
@@ -1792,7 +1792,7 @@
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane \u00d7 contains|exposes|governs|depends-on|enforces.",
+      "purpose_short": "Cargo manifest for Foundry architecture-map kernel (std-only graph model) per visualization-as-code directive 2026-05-12. Node/Edge taxonomy: Microservice|BC|Crate|OpenApi|CedarFragment|Lane × contains|exposes|governs|depends-on|enforces.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -1952,7 +1952,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "axis-intelligence",
-      "purpose_short": "CI lane enforcing settings-template drift detection. Feature-flagged off until N>=10 account rows. Before threshold runs against fixture files only (vacuous pass). Per v5 \u00a7A.1.2.",
+      "purpose_short": "CI lane enforcing settings-template drift detection. Feature-flagged off until N>=10 account rows. Before threshold runs against fixture files only (vacuous pass). Per v5 §A.1.2.",
       "artifact_profile": "ci-lane",
       "capability_overrides": {
         "enforcement": {
@@ -1981,7 +1981,7 @@
           "idempotency_class": "deterministic"
         },
         "selfheal": {
-          "healer": "not-applicable \u2014 this planned lane is verify-only and has no remediation invocation path",
+          "healer": "not-applicable — this planned lane is verify-only and has no remediation invocation path",
           "safe_unattended": [],
           "requires_human_approval_for": [
             "rendering drift remediation",
@@ -2155,7 +2155,7 @@
       "artifact_format": "json",
       "contract_version": "v3.0.0",
       "owner_team": "council-architecture + axis-foundry",
-      "purpose_short": "Machine-readable \u00b5service registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
+      "purpose_short": "Machine-readable µservice registry per ADR-0056 BNF v4.1 + ADR-0058 flat catalog. Wave 1 IP-X1 catalog-prelude entry.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -2230,7 +2230,7 @@
       "artifact_format": "openapi-yaml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 \u22642s.",
+      "purpose_short": "OpenAPI 3.2 contract for ops docs-portal BC. Consumes oya-ops-docs-portal-kernel types (ManifestPort + LiveFeedPort + ExtractorClass hot/warm/cold per ADR-0066). SSE p99 ≤2s.",
       "artifact_profile": "schema",
       "capability_overrides": {
         "verification": {
@@ -2309,7 +2309,7 @@
     },
     {
       "artifact_id": "oya-http-latency-budget-middleware-infrastructure-manifest",
-      "artifact_path": "libs/oya-http-latency-budget-middleware-infrastructure/Cargo.toml",
+      "artifact_path": "gateway/core/http-latency-budget-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2328,7 +2328,7 @@
     },
     {
       "artifact_id": "oya-http-middleware-kernel-manifest",
-      "artifact_path": "libs/oya-http-middleware-kernel/Cargo.toml",
+      "artifact_path": "base/http-middleware-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2347,7 +2347,7 @@
     },
     {
       "artifact_id": "oya-http-router-kernel-manifest",
-      "artifact_path": "libs/oya-http-router-kernel/Cargo.toml",
+      "artifact_path": "base/http-router-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2366,11 +2366,11 @@
     },
     {
       "artifact_id": "oya-http-runtime-hyper-adapter-manifest",
-      "artifact_path": "libs/oya-http-runtime-hyper-adapter/Cargo.toml",
+      "artifact_path": "base/http-runtime-hyper-adapter/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Hyper foundation Layer 5: THE ONLY crate importing hyper directly per ADR-0090. Bridges Router + MiddlewareChain \u2192 hyper::service::Service. Deps: hyper 1, hyper-util 0.1, tokio 1, http-body-util 0.1, bytes 1.",
+      "purpose_short": "Hyper foundation Layer 5: THE ONLY crate importing hyper directly per ADR-0090. Bridges Router + MiddlewareChain → hyper::service::Service. Deps: hyper 1, hyper-util 0.1, tokio 1, http-body-util 0.1, bytes 1.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {
@@ -2385,7 +2385,7 @@
     },
     {
       "artifact_id": "oya-http-sse-kernel-manifest",
-      "artifact_path": "libs/oya-http-sse-kernel/Cargo.toml",
+      "artifact_path": "intelligence/core/http-sse-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2404,7 +2404,7 @@
     },
     {
       "artifact_id": "oya-http-telemetry-middleware-infrastructure-manifest",
-      "artifact_path": "libs/oya-http-telemetry-middleware-infrastructure/Cargo.toml",
+      "artifact_path": "gateway/core/http-telemetry-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -2423,11 +2423,11 @@
     },
     {
       "artifact_id": "oya-http-tenant-middleware-infrastructure-manifest",
-      "artifact_path": "libs/oya-http-tenant-middleware-infrastructure/Cargo.toml",
+      "artifact_path": "gateway/core/http-tenant-middleware-infrastructure/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
-      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; \u2264128 chars); deny-on-missing/invalid with 400.",
+      "purpose_short": "Layer 4 middleware: x-tenant-id header extraction + validation (alphanumeric + dash + underscore; ≤128 chars); deny-on-missing/invalid with 400.",
       "artifact_profile": "registry",
       "capability_overrides": {
         "verification": {

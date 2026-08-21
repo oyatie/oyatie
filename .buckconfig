@@ -1,7 +1,11 @@
 [cells]
   root = .
   prelude = prelude
-  toolchains = toolchains
+  # Cell ROOT moves to its ADR-declared home; the cell NAME is unchanged, so every
+  # `toolchains//...` label keeps resolving. specs/integ-branch-envelopes.json records
+  # path `toolchains/` -> greenfield_destination `build/toolchains/`, and the root copy
+  # was byte-identical to the already-landed build/toolchains/ (all 4 files compared).
+  toolchains = build/toolchains
   none = none
   third-party = third-party
 

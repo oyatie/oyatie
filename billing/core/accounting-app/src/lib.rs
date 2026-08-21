@@ -16,7 +16,7 @@ use billing_accounting_journal::{
     evaluate_vat_deadline, idempotency_body_fingerprint, payroll_posting, post_journal,
     scoped_idempotency_key,
 };
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const ACCOUNTING_JOURNAL_TOPIC: &str = "audit.accounting.journal.posted";
 const ACCOUNTING_PAYROLL_POSTING_TOPIC: &str = "audit.accounting.payroll.posted";

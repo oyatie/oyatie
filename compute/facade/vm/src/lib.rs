@@ -13,7 +13,7 @@ use compute_domain::{
 };
 use compute_resource::{InstanceFlavor, ResourceId};
 use network_residency::{ResidencyClass, parse_residency_class_label};
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_COMPUTE_VM_CREATE_SURFACE: &str = "cloud.compute.vm.create";
 const DEFAULT_VM_CREATE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;

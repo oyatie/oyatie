@@ -12,7 +12,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 
 const OPENAPI_PREFIX: &str = "contracts/openapi/";
 const SUPPORTED_OPENAPI_MAJOR_MINOR: &str = "3.2.";

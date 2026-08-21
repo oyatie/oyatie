@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
-use oya_crate_registrar_kernel::{CatalogSpec, CrateRole, RegisterCrateRequest};
+use crate_registrar_kernel::{CatalogSpec, CrateRole, RegisterCrateRequest};
 
 use super::*;
 

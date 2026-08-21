@@ -11,10 +11,10 @@ community-post-store-adapter-postgres = { path = "../../adapters/post-store-adap
 community-post-store-api = { path = "../../ports/post-store-api" }
 community-post-store-domain = { path = "../../core/post-store-domain" }
 community-post-store-usecase = { path = "../../core/post-store-usecase" }
-oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
-oya-shared-protocol-parity-kernel = { path = "../../../../libs/oya-shared-protocol-parity-kernel" }
-oya-shared-protocol-transport-kernel = { path = "../../../../libs/oya-shared-protocol-transport-kernel" }
-oya-shared-transactional-outbox-kernel = { path = "../../../../libs/oya-shared-transactional-outbox-kernel" }
+shared-postgres-command-kernel = { path = "../../../../base/shared-postgres-command-kernel" }
+shared-protocol-parity-kernel = { path = "../../../../base/shared-protocol-parity-kernel" }
+shared-protocol-transport-kernel = { path = "../../../../comms/core/shared-protocol-transport-kernel" }
+shared-transactional-outbox-kernel = { path = "../../../../data/core/shared-transactional-outbox-kernel" }
 
 [lib]
 name = "community_post_store_app"

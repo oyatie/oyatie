@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "//iam/core/identity-domain:iam-identity-domain",
     ],
 )
@@ -17,7 +17,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "//iam/core/identity-domain:iam-identity-domain",
     ],
 )
@@ -30,7 +30,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":iam-identity-usecase",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "//iam/core/identity-domain:iam-identity-domain",
     ],
 )
@@ -43,7 +43,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":iam-identity-usecase",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "//iam/core/identity-domain:iam-identity-domain",
     ],
 )

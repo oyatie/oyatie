@@ -7,7 +7,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_shared_protocol_transport_kernel::{
+use shared_protocol_transport_kernel::{
     ProtocolTransportBundle, ProtocolTransportError, ProtocolTransportExecutionReport,
     ProtocolTransportExecutor,
 };
@@ -238,10 +238,10 @@ fn permanent_transport_error(error: ProtocolTransportError) -> ProtocolTransport
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_protocol_parity_kernel::{
+    use shared_protocol_parity_kernel::{
         ProtocolEventEnvelope, ProtocolParityBinding, ProtocolParityBindingSpec,
     };
-    use oya_shared_protocol_transport_kernel::{
+    use shared_protocol_transport_kernel::{
         RecordingProtocolTransportExecutor, execute_transport_bundle, plan_transport_from_envelope,
     };
 
@@ -287,7 +287,7 @@ mod tests {
                 }
                 ScriptStep::Success => Ok(ProtocolTransportExecutionReport {
                     sequence: u64::from(attempt),
-                    broker_ack: oya_shared_protocol_transport_kernel::BrokerPublishAck {
+                    broker_ack: shared_protocol_transport_kernel::BrokerPublishAck {
                         ack_ref: format!("broker:{}:{attempt}", bundle.broker_publish.operation_id),
                         operation_id: bundle.broker_publish.operation_id,
                         channel_address: bundle.broker_publish.channel_address,
@@ -300,7 +300,7 @@ mod tests {
                             .audit_correlation_id
                             .clone(),
                     },
-                    grpc_ack: oya_shared_protocol_transport_kernel::GrpcUnaryAck {
+                    grpc_ack: shared_protocol_transport_kernel::GrpcUnaryAck {
                         ack_ref: format!(
                             "grpc:{}:{attempt}",
                             bundle.grpc_unary.fully_qualified_method

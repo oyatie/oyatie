@@ -11,8 +11,8 @@ community-post-store-app = { path = "../post-store-app" }
 community-post-store-api = { path = "../../ports/post-store-api" }
 community-post-store-domain = { path = "../../core/post-store-domain" }
 community-post-store-usecase = { path = "../../core/post-store-usecase" }
-oya-shared-hyperscaler-metrics-kernel = { path = "../../../../libs/oya-shared-hyperscaler-metrics-kernel" }
-oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+shared-hyperscaler-metrics-kernel = { path = "../../../../comms/core/shared-hyperscaler-metrics-kernel" }
+shared-postgres-command-kernel = { path = "../../../../base/shared-postgres-command-kernel" }
 
 [lib]
 name = "community_post_store_rest"

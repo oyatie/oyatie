@@ -1,0 +1,33 @@
+rust_library(
+    name = "workspace-members-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "workspace_members_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "workspace-members-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "workspace_members_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "workspace-members-kernel-cargo-differential",
+    srcs = ["tests/cargo_differential.rs"],
+    crate = "workspace_members_kernel_cargo_differential",
+    crate_root = "tests/cargo_differential.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":workspace-members-kernel",
+        "third-party//:serde_json",
+    ],
+)

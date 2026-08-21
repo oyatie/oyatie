@@ -103,7 +103,7 @@
     "iam/ports/cloud-api/src/lib.rs#validate_authorization:9ab52454",
     "iam/ports/identity-api/src/lib.rs#validate_authorization:517acda8",
     "iam/ports/policy-cedar-api/src/lib.rs#validate_authorization:96197af4",
-    "libs/oya-governance-eval-usecase/src/lib.rs#validate_api_binding:6f193126",
+    "governance/check/eval-usecase/src/lib.rs#validate_api_binding:6f193126",
     "oya/application/crates/oya-workspace-chat-api/src/lib.rs#send_fingerprint_for:21f2e017",
     "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_authorization:bc32ce6e",
     "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_tenant_binding:96920e1d",

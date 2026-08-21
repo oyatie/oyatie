@@ -28,7 +28,7 @@
 use std::fmt;
 use std::num::NonZeroU64;
 
-use oya_shared_platform_contracts_kernel::identity::{Principal, PrincipalKind, PrincipalState};
+use shared_platform_contracts_kernel::identity::{Principal, PrincipalKind, PrincipalState};
 
 /// Bounds for lease TTLs: no sub-minute churn, no day-plus static handouts.
 pub const MIN_LEASE_TTL_SECONDS: u64 = 60;

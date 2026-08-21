@@ -13,7 +13,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 use crate::reaction::MessageReaction;
 
@@ -138,7 +138,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::{DataClass, DataClassification};
+    use data_boundary_kernel::{DataClass, DataClassification};
 
     use crate::reaction::MessageReactionCreate;
 

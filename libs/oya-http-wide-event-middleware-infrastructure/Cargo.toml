@@ -28,7 +28,7 @@ tower = { workspace = true }
 futures-util = { version = "0.3", default-features = false, features = ["alloc"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
-oya-shared-hyperscaler-metrics-kernel = { path = "../oya-shared-hyperscaler-metrics-kernel" }
+shared-hyperscaler-metrics-kernel = { path = "../../comms/core/shared-hyperscaler-metrics-kernel" }
 
 [lints]
 workspace = true

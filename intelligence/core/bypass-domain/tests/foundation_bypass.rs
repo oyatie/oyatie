@@ -6,7 +6,7 @@ use intelligence_bypass_domain::{
     AutonomyBreakGlassInput, AutonomyTier, BreakGlassQuorum, BypassError, BypassGate, BypassLedger,
     FoundationBypassInput,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn foundation_bypass_records_validate_window_and_public_classification() {

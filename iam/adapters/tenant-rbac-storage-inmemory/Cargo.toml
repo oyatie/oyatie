@@ -11,7 +11,7 @@ iam-tenant-rbac-usecase = { path = "../../core/tenant-rbac-usecase" }
 iam-tenant-rbac-domain = { path = "../../core/tenant-rbac-domain" }
 
 [dev-dependencies]
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../base/data-boundary-kernel" }
 
 [lib]
 name = "iam_tenant_rbac_storage_inmemory"

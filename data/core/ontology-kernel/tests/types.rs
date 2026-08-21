@@ -4,7 +4,7 @@
 use data_ontology_kernel::{
     ObjectEntity, ObjectEntityUpsertOutcome, ObjectGraph, ObjectProperty, PropertyTier,
 };
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 #[test]
 fn test_register_type() {

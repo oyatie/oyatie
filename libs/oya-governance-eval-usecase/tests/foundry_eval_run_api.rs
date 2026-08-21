@@ -2,7 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_governance_eval_domain::REQUIRED_LINGUISTIC_COHORT_LOCALES;
+use check_eval_domain::REQUIRED_LINGUISTIC_COHORT_LOCALES;
 use oya_governance_eval_usecase::{
     FOUNDRY_EVAL_RUN_OPENAPI_CONTRACT, FOUNDRY_EVAL_RUN_SURFACE, FoundryEvalApiAuthorization,
     FoundryEvalApiBoundaryContext, FoundryEvalApiPrincipal, FoundryEvalCaseRequest,

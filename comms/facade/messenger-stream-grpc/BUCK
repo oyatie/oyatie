@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
-        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
+        "//comms/core/shared-protocol-transport-kernel:shared-protocol-transport-kernel",
         "//comms/core/messenger-stream-app:comms-messenger-stream-app",
         "//comms/ports/messenger-stream-api:comms-messenger-stream-api",
     ],
@@ -19,8 +19,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
-        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
+        "//comms/core/shared-protocol-transport-kernel:shared-protocol-transport-kernel",
         "//comms/core/messenger-stream-app:comms-messenger-stream-app",
         "//comms/ports/messenger-stream-api:comms-messenger-stream-api",
     ],

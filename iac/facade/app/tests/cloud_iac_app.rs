@@ -29,8 +29,8 @@ use iac_app::{
     serve_bounded_cloud_iac_app_on_listener,
 };
 use iac_domain::{ModuleRegistry, OpenTofuModuleRelease};
-use oya_http_middleware_kernel::HttpRequest;
-use oya_http_router_kernel::HttpMethod;
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
 
 const TEST_BEARER: &str = "local-registry-bearer-fixture";
 const TEST_PRINCIPAL: &str = "sp_cloud_iac_app_test_reader";
@@ -54,7 +54,7 @@ fn http_request_with_auth(method: HttpMethod, path: &str, bearer: &str) -> HttpR
     request
 }
 
-fn body_text(response: &oya_http_middleware_kernel::HttpResponse) -> String {
+fn body_text(response: &http_middleware_kernel::HttpResponse) -> String {
     String::from_utf8(response.body.clone()).expect("response body is UTF-8")
 }
 

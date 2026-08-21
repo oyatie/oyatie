@@ -8,7 +8,7 @@ rust_library(
         "//compute/core/domain:compute-domain",
         "//compute/core/resource:compute-resource",
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -22,6 +22,6 @@ rust_test(
         "//compute/core/domain:compute-domain",
         "//compute/core/resource:compute-resource",
         "//network/core/residency:network-residency",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )

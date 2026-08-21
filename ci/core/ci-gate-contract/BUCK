@@ -1,0 +1,23 @@
+rust_library(
+    name = "ci-gate-contract",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_gate_contract",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-gate-contract-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_gate_contract",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

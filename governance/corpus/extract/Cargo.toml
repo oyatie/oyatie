@@ -16,7 +16,7 @@ license = "Apache-2.0"
 blake3 = "1.8.5"
 corpus-core = { path = "../core" }
 corpus-yaml-kernel = { path = "../yaml-kernel" }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+workspace-members-kernel = { path = "../../../base/workspace-members-kernel" }
 syn = { workspace = true }
 quote = { workspace = true }
 

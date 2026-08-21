@@ -6,7 +6,7 @@
 //! ## Posture
 //! ADR-0536 D-2 makes Cedar the single policy language: every service embeds
 //! the formally-verified `cedar-policy` engine behind the shared
-//! [`oya_shared_pdp_kernel::PolicyDecisionPoint`] port, and a central policy
+//! [`shared_pdp_kernel::PolicyDecisionPoint`] port, and a central policy
 //! store (cloud-iam, the three-plane IdP substrate) compiles, signs, and
 //! pushes content-addressed policy bundles. This crate is the SERVICE-side
 //! kernel for that central decision point: the seams the runnable
@@ -41,7 +41,7 @@ use std::collections::BTreeMap;
 use std::fmt;
 use std::sync::Mutex;
 
-use oya_shared_pdp_kernel::{DecisionAuditRecord, PolicyBundle};
+use shared_pdp_kernel::{DecisionAuditRecord, PolicyBundle};
 
 // =====================================================================
 // Policy-bundle store port
@@ -313,7 +313,7 @@ impl PdpConfig {
 mod tests {
     use super::*;
 
-    use oya_shared_platform_contracts_kernel::pdp::{Decision, EntityRef, PolicyVersion};
+    use shared_platform_contracts_kernel::pdp::{Decision, EntityRef, PolicyVersion};
 
     fn full_vars() -> BTreeMap<String, String> {
         BTreeMap::from([

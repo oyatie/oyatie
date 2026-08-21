@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-shared-protocol-parity-kernel = { path = "../../../libs/oya-shared-protocol-parity-kernel" }
+shared-protocol-parity-kernel = { path = "../../../base/shared-protocol-parity-kernel" }
 
 [lib]
 name = "comms_mail_mailbox_api"

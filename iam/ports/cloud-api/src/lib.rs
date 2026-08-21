@@ -13,7 +13,7 @@ pub use iam_cloud_domain::{
     CloudIamBoundaryCellId, CloudIamBoundaryRegionId, CloudIamBoundaryTenantId,
     CloudIamPlacementBoundary as CloudIamApiPlacementBoundary,
 };
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 
 pub const CLOUD_IAM_IDENTITY_PROVIDER_CREATE_SURFACE: &str = "cloud.iam.identity_provider.create";
 pub const CLOUD_IAM_IDENTITY_PROVIDER_DELETE_SURFACE: &str = "cloud.iam.identity_provider.delete";

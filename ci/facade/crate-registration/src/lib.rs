@@ -1,8 +1,8 @@
 //! # oya-cloud-ci-register-crate-app (ADR-0568, G011 born-accounting slice 3b)
 //!
 //! The ORCHESTRATOR half of `register_crate`: the integration layer that wires the pure
-//! [`oya-crate-registrar-kernel`](oya_crate_registrar_kernel)'s typed plan to the on-disk
-//! writers ([`oya-crate-registrar-app`](oya_crate_registrar_app)) and the producer's
+//! [`oya-crate-registrar-kernel`](crate_registrar_kernel)'s typed plan to the on-disk
+//! writers ([`oya-crate-registrar-app`](crate_registrar_app)) and the producer's
 //! registration bridges ([`oya-cloud-ci-accounting-registry-app`](ci_artifact_inventory_registry)).
 //!
 //! ## Dependency direction (load-bearing — ADR-0131/ADR-0512)
@@ -13,11 +13,11 @@
 //!
 //! ## What it does (the integration the pure kernel can't)
 //! 1. LOADERS — read the live repo SSOTs into the kernel's input types
-//!    ([`CurrentState`](oya_crate_registrar_kernel::CurrentState),
-//!    [`CapabilitySet`](oya_crate_registrar_kernel::CapabilitySet)).
-//! 2. PLAN — call [`plan_register_crate`](oya_crate_registrar_kernel::plan_register_crate) to get
-//!    the ordered, typed [`Edit`](oya_crate_registrar_kernel::Edit) diff (fail-closed on a
-//!    [`ValidationError`](oya_crate_registrar_kernel::ValidationError)).
+//!    ([`CurrentState`](crate_registrar_kernel::CurrentState),
+//!    [`CapabilitySet`](crate_registrar_kernel::CapabilitySet)).
+//! 2. PLAN — call [`plan_register_crate`](crate_registrar_kernel::plan_register_crate) to get
+//!    the ordered, typed [`Edit`](crate_registrar_kernel::Edit) diff (fail-closed on a
+//!    [`ValidationError`](crate_registrar_kernel::ValidationError)).
 //! 3. DISPATCH — apply each `Edit` in order to its writer/bridge (the dispatch table below).
 //! 4. OUTCOME — record what was applied (and whether faces still need a settle run).
 //!
@@ -66,11 +66,11 @@ use ci_module_membership::{Mapping, homes_for, parse_mapping};
 // `evaluate_keyed` is driven over the POST-settle faces so the just-registered crate is validated
 // against the SAME gate logic CI runs (never a reimplementation). All three are cycle-free (they dep
 // only serde_json / a downward libs/ crate, never back to this orchestrator).
-use oya_ci_config_kernel::OyaCiConfig;
-use oya_crate_registrar_app::{
+use ci_config_kernel::OyaCiConfig;
+use crate_registrar_app::{
     WriterError, adr_governed_paths, capability_mapping, catalog_yaml, workspace_member_glob,
 };
-use oya_crate_registrar_kernel::{
+use crate_registrar_kernel::{
     CapabilitySet, CurrentState, Edit, RegisterCrateRequest, RegistrationPlan, ValidationError,
     plan_register_crate,
 };

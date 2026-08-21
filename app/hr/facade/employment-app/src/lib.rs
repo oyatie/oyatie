@@ -19,7 +19,7 @@ use hr_employment_domain::{
     SensitiveReadPurpose, TenantId, WorkflowRef, evaluate_labor_compliance,
     evaluate_sensitive_hr_read, plan_leave_payroll_impact,
 };
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const HR_LIFECYCLE_TOPIC: &str = "audit.hr.employment.lifecycle";
 const HR_COMPLIANCE_WORKFLOW_TOPIC: &str = "workflow.hr.compliance.dispatch";

@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/cargo-prefix-domain:intelligence-cargo-prefix-domain",
-        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -19,7 +19,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         "//intelligence/core/cargo-prefix-domain:intelligence-cargo-prefix-domain",
-        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -48,8 +48,8 @@ rust_test(
         "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
         "//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot-lib",
-        "//libs/oya-ci-config:oya-ci-config-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:tempfile",
         "third-party//:toml",

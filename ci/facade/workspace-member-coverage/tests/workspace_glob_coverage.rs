@@ -101,7 +101,7 @@ fn workspace_glob_coverage_verdict_matches_the_live_corpus() {
         .map(str::to_owned)
         .collect();
     let declared_entries: BTreeSet<String> =
-        oya_workspace_members_kernel::read_workspace_manifest_entries(&root)
+        workspace_members_kernel::read_workspace_manifest_entries(&root)
             .expect("read the live root workspace manifest entries")
             .members
             .into_iter()
@@ -123,7 +123,7 @@ fn workspace_glob_coverage_verdict_matches_the_live_corpus() {
         })
         .collect();
     let resolved_members: BTreeSet<String> =
-        oya_workspace_members_kernel::resolve_member_dirs(&root)
+        workspace_members_kernel::resolve_member_dirs(&root)
             .expect("resolve_member_dirs must resolve the live root workspace Cargo.toml")
             .into_iter()
             .collect();

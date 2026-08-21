@@ -67,10 +67,10 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::fs;
 use std::path::Path;
 
-use oya_buck_syntax_kernel::{
+use buck_syntax_kernel::{
     Env, Expr, PreImageRegistry, Stmt, call_strings, guarded_rewrite, remove_list_element,
 };
-use oya_workspace_members_kernel::resolve_member_dirs;
+use workspace_members_kernel::resolve_member_dirs;
 use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target + the policy `gate_id`.
@@ -724,7 +724,7 @@ fn parse_buck_external_deps(
 /// EOF fallback took; the REMOVER path is independently guarded and refuses unsound input).
 pub fn extract_buck_library_thirdparty_deps(text: &str) -> BTreeSet<String> {
     let mut deps = BTreeSet::new();
-    let Ok(doc) = oya_buck_syntax_kernel::parse(text) else {
+    let Ok(doc) = buck_syntax_kernel::parse(text) else {
         collect_thirdparty_tokens(text, &mut deps);
         return deps;
     };
@@ -1668,7 +1668,7 @@ fn remove_buck_dep_edges_text(text: &str, dep: &str) -> Option<String> {
     let mut current = text.to_owned();
     let mut removed_any = false;
     loop {
-        let doc = oya_buck_syntax_kernel::parse(&current).ok()?;
+        let doc = buck_syntax_kernel::parse(&current).ok()?;
         let mut found: Option<String> = None;
         for stmt in &doc.stmts {
             let Stmt::Call(call) = stmt else { continue };

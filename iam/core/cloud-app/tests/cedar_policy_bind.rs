@@ -15,7 +15,7 @@ use iam_policy_cedar_domain::{
     AuthorizationQuery, AuthorizationSubject, PolicyEffect, PolicyRuleInput, PolicyScope,
     PolicySet, PolicyVersion,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use std::collections::BTreeMap;
 
 const TENANT_ID: &str = "ten_alpha";

@@ -27,7 +27,7 @@
 use std::path::Path;
 use std::process::{Command, ExitCode, Stdio};
 
-use oya_governance_gate_catalog_domain::{
+use check_gate_catalog_domain::{
     AGGREGATED_VALIDATE_LANES, BANNED_PRIMITIVES_COMMAND_LOG_CORPUS_ROOT,
     CI_REQUIRED_PREFLIGHT_COMMANDS, DEPENDENCY_SEAM_EVIDENCE,
 };
@@ -117,7 +117,7 @@ pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
         match changed_files(repo_root, &args.base) {
             Ok(changed) => {
                 let changed_refs: Vec<&str> = changed.iter().map(String::as_str).collect();
-                let selected = oya_governance_gate_catalog_domain::lanes_for_changed(&changed_refs);
+                let selected = check_gate_catalog_domain::lanes_for_changed(&changed_refs);
                 println!(
                     "[gate run-all] affected mode: {}/{} lanes selected (base={})",
                     selected.len(),
@@ -540,7 +540,7 @@ mod tests {
             AGGREGATED_VALIDATE_LANES.to_vec()
         } else {
             // This branch must NOT be reached when ci_required is true.
-            oya_governance_gate_catalog_domain::lanes_for_changed(&[
+            check_gate_catalog_domain::lanes_for_changed(&[
                 "docs/decisions/ADR-9999-test.md",
             ])
         };
@@ -558,7 +558,7 @@ mod tests {
         // Simulate an ADR-only diff: only docs/decisions changed.
         // lanes_for_changed is pure (no I/O), so we call it directly.
         let changed = ["docs/adr-archive/ADR-0360-ci-pipeline-optimization-program.md"];
-        let selected = oya_governance_gate_catalog_domain::lanes_for_changed(&changed);
+        let selected = check_gate_catalog_domain::lanes_for_changed(&changed);
 
         // (1) The result must be strictly smaller than the full catalog because
         //     cloud-iac-*, slo-coverage, and other infra lanes are NOT triggered

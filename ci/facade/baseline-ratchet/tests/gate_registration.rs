@@ -1069,14 +1069,14 @@ fn phase0_pre_merge_review_rows(root: &Path) -> Vec<Value> {
 /// Nine siblings — the ADR-0109 `oya-governance-*-lifecycle-app` set — were replaced wholesale by
 /// the single parameterized `ci/facade/lifecycle-status` lane, which is why they are absent here.
 const GATE_CRATES_OUTSIDE_THE_FLEET: [&str; 8] = [
-    "tools/oya-governance-adapter-with-no-importer-app",
-    "tools/oya-governance-adr-shape-app",
-    "tools/oya-governance-authoritative-tracked-app",
-    "tools/oya-governance-banned-primitives-app",
-    "tools/oya-governance-portfolio-citation-app",
-    "tools/oya-governance-predictable-naming-app",
-    "tools/oya-governance-purpose-audit-app",
-    "tools/oya-governance-sunset-lifecycle-app",
+    "governance/check/adapter-with-no-importer-app",
+    "governance/check/adr-shape-app",
+    "governance/check/authoritative-tracked-app",
+    "governance/check/banned-primitives-app",
+    "governance/check/portfolio-citation-app",
+    "governance/check/predictable-naming-app",
+    "governance/check/purpose-audit-app",
+    "governance/check/sunset-lifecycle-app",
 ];
 
 /// Roots that may hold crates but are NOT the gate fleet. A `fitness-*` capability found here is a

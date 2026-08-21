@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_check_dependency_seam::{
+use check_dependency_seam::{
     DependencySeamConfig, DependencySeamReport, DependencySeamSeverity, validate_dependency_seam,
 };
 

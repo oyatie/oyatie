@@ -11,7 +11,7 @@ use comms_meet_domain::{
     MeetError, MeetSession, MeetSessionCreate, ParticipantConnectionState, ParticipantRef,
     ParticipantRole, RecordingConsentMode, workspace_meet_data_class_from_legacy,
 };
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 
 pub const WORKSPACE_MEET_SESSION_START_SURFACE: &str = "workspace.meet.session.start";
 pub const WORKSPACE_MEET_OPENAPI_CONTRACT: &str =

@@ -30,9 +30,9 @@ use iac_infrastructure::{
     CloudIacModuleRegistryHttpHandler, CloudIacModuleRegistryServiceAssemblyError,
     assemble_module_registry_http_service,
 };
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
     HyperRuntimeError, ServerConfig, SyncHandler, dispatch as dispatch_hyper_adapter_request,
     serve_n_connections_on_std_listener, serve_on_std_listener,
 };

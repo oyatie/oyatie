@@ -17,7 +17,7 @@ use std::fs;
 use std::path::PathBuf;
 
 use ci_lifecycle_status::{LaneObservation, compare, parse_policy};
-use oya_governance_lifecycle_kernel::{NaiveDate, discovery, evaluate};
+use check_lifecycle_kernel::{NaiveDate, discovery, evaluate};
 
 /// Walk up to the dir holding the canonical `specs/root-hub-pointers.json`. Mirrors the helper
 /// every other gate lane uses so all lanes resolve the root identically.

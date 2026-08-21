@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
     ],
@@ -19,8 +19,8 @@ rust_binary(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-core-dependency-isolation",
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
     ],
@@ -33,8 +33,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
     ],
@@ -52,8 +52,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-core-dependency-isolation",
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
         "third-party//:serde_json",
         "third-party//:toml",
     ],

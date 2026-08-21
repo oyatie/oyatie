@@ -11,10 +11,10 @@ use community_post_store_app::{
 };
 use community_post_store_domain::{CommunityPost, VoteLedger};
 use community_post_store_usecase::{CommunityUsecaseError, cast_vote, create_post, moderate_post};
-use oya_shared_hyperscaler_metrics_kernel::{
+use shared_hyperscaler_metrics_kernel::{
     MetricsContext, MetricsError, RequestTelemetryBinding,
 };
-use oya_shared_postgres_command_kernel::TenantSqlContext;
+use shared_postgres_command_kernel::TenantSqlContext;
 
 pub const CREATE_POST_ROUTE: &str = "/spaces/{space_id}/posts";
 pub const CREATE_POST_METHOD: &str = "POST";

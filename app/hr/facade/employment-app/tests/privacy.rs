@@ -5,7 +5,7 @@ use hr_employment_domain::{
     SensitiveHrDataKind, SensitiveHrReadInput, SensitiveReadDecisionStatus,
     SensitiveReadLegalBasis, SensitiveReadPurpose,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn sensitive_read_envelope_is_metadata_only() {

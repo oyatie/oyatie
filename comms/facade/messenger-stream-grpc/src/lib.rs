@@ -7,8 +7,8 @@
 
 use comms_messenger_stream_api::{AuthorizedMessengerContext, SendMessageRequest};
 use comms_messenger_stream_app::{MessengerAppError, MessengerWritePlan, plan_send_message};
-use oya_shared_postgres_command_kernel::TenantSqlContext;
-use oya_shared_protocol_transport_kernel::GrpcUnaryPlan;
+use shared_postgres_command_kernel::TenantSqlContext;
+use shared_protocol_transport_kernel::GrpcUnaryPlan;
 
 pub const MESSENGER_PROTO_PACKAGE: &str = "oya.messenger.v1";
 pub const MESSENGER_GRPC_SERVICE: &str = "MessageStream";

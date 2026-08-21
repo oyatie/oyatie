@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -28,7 +28,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-buck-syntax-kernel:oya-buck-syntax-kernel",
+        "//ci/core/buck-syntax-kernel:buck-syntax-kernel",
         "third-party//:serde_json",
     ],
 )

@@ -16,7 +16,7 @@ use std::str::FromStr;
 use cell_region::{AzCode, CellId, RegionCode};
 use compute_resource::{CloudResourceError, LbProtocol, PrincipalId, ResourceId, ResourceKind};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const NETWORK_SCHEMA_VERSION: u32 = 1;
 const TENANT_ID_PREFIX: &str = "ten_";

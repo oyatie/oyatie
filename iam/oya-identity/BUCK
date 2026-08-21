@@ -2,7 +2,7 @@
 # (implementation pending). The rust targets below are commented out so `buck2 build //...`
 # is green. This package has no Cargo.toml and is not a workspace member, so no generator can
 # reach it: when the crate implementations land they ship a hand-written BUCK (the buck2-native
-# per-package mechanism), and //tools/oya-buck-test-wiring-app wires the rust_test.
+# per-package mechanism), and //build/buck-test-wiring-app wires the rust_test.
 #
 # Buck2 build targets for oya-identity.
 # Single-crate hyperscaler pattern per ADR-0509.

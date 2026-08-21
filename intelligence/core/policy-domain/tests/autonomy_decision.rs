@@ -7,7 +7,7 @@ use intelligence_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyCeilingInputs, AutonomyVerdict, TenantPolicy,
     agentic_ads_cap, subject_class_cap, vertical_pack_cap,
 };
-use oya_data_boundary_kernel::{AgeBand, DataClass, PrivacyDataClass, SubjectClass};
+use data_boundary_kernel::{AgeBand, DataClass, PrivacyDataClass, SubjectClass};
 
 #[test]
 fn tenant_policy_emits_replayable_autonomy_decision_inputs() {

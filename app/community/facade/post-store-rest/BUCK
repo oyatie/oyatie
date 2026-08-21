@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//comms/core/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
         "//app/community/ports/post-store-api:community-post-store-api",
         "//app/community/facade/post-store-app:community-post-store-app",
         "//app/community/core/post-store-domain:community-post-store-domain",
@@ -21,8 +21,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//comms/core/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
         "//app/community/ports/post-store-api:community-post-store-api",
         "//app/community/facade/post-store-app:community-post-store-app",
         "//app/community/core/post-store-domain:community-post-store-domain",

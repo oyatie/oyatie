@@ -1,0 +1,31 @@
+[package]
+name = "buck-test-wiring-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+vertical = "shared"
+bounded_context = "buck-test-wiring"
+kind = "shared"
+layer = "app"
+purpose = "Local bridge generator for ADR-0540 Rust test target wiring; retirement-marked CLI with zero merge authority."
+
+[lib]
+name = "buck_test_wiring_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-buck-test-wiring"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true }
+workspace-members-kernel = { path = "../../base/workspace-members-kernel" }
+
+[lints]
+workspace = true

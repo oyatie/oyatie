@@ -19,7 +19,7 @@ use observability_api::{
     CloudObservabilityAuditReadTopicRef, ConfiguredBearerPrincipalVerifier, PrincipalVerifier,
     VerifiedPrincipal, read_cloud_observability_audit_from_api,
 };
-use oya_data_boundary_kernel::{DataClass, Purpose};
+use data_boundary_kernel::{DataClass, Purpose};
 
 const TENANT: &str = "ten_alpha";
 const OTHER_TENANT: &str = "ten_other";

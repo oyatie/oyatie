@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//comms/core/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
         "//comms/core/messenger-stream-app:comms-messenger-stream-app",
         "//comms/ports/messenger-stream-api:comms-messenger-stream-api",
         "//comms/core/messenger-stream-usecase:comms-messenger-stream-usecase",
@@ -20,8 +20,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//comms/core/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
         "//comms/core/messenger-stream-app:comms-messenger-stream-app",
         "//comms/ports/messenger-stream-api:comms-messenger-stream-api",
         "//comms/core/messenger-stream-usecase:comms-messenger-stream-usecase",
@@ -36,8 +36,8 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":comms-messenger-stream-rest",
-        "//libs/oya-shared-hyperscaler-metrics-kernel:oya-shared-hyperscaler-metrics-kernel",
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//comms/core/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
         "//comms/core/messenger-stream-app:comms-messenger-stream-app",
         "//comms/ports/messenger-stream-api:comms-messenger-stream-api",
         "//comms/core/messenger-stream-usecase:comms-messenger-stream-usecase",

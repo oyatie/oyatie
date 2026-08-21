@@ -10,8 +10,8 @@ license = "Apache-2.0"
 comms-messenger-stream-app = { path = "../../core/messenger-stream-app" }
 comms-messenger-stream-api = { path = "../../ports/messenger-stream-api" }
 comms-messenger-stream-usecase = { path = "../../core/messenger-stream-usecase" }
-oya-shared-hyperscaler-metrics-kernel = { path = "../../../libs/oya-shared-hyperscaler-metrics-kernel" }
-oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres-command-kernel" }
+shared-hyperscaler-metrics-kernel = { path = "../../core/shared-hyperscaler-metrics-kernel" }
+shared-postgres-command-kernel = { path = "../../../base/shared-postgres-command-kernel" }
 
 [lib]
 name = "comms_messenger_stream_rest"

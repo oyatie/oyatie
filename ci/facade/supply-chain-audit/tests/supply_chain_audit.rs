@@ -25,7 +25,7 @@ use std::path::{Component, Path, PathBuf};
 use ci_supply_chain_audit::{
     GATE_ID, collect, configured_lockfiles, evaluate_keyed, render_findings,
 };
-use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
+use advisory_mirror_kernel::{Advisory, canonical_hash};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical

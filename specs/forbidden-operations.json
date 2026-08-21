@@ -24,7 +24,7 @@
       "enforcement": {
         "mode": "mechanical-deferred",
         "planned_enforcement_refs": [
-          "oya-governance-authoritative-tracked-kernel"
+          "check-authoritative-tracked-kernel"
         ],
         "evidence": "Planned authoritative-tracked lane will verify every authoritative doc is in docs/; current control is PR review plus retired-vocabulary checks."
       }
@@ -40,7 +40,7 @@
           ".github/workflows/cosign.yml (post-2026-05-15: pinned identity + issuer regex)"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-pre-push-kernel"
+          "check-pre-push-kernel"
         ],
         "evidence": "cosign verify-blob pins certificate identity to repo's own workflow file for signing posture; planned pre-push fitness lane will reject commits authored with --no-verify."
       }
@@ -125,10 +125,10 @@
       "enforcement": {
         "mode": "mechanical",
         "enforced_by": [
-          "oya-check-license-policy"
+          "check-license-policy"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-license-policy-kernel"
+          "check-license-policy-kernel"
         ],
         "evidence": "license-policy lane scans Cargo.lock + transitive deps against forbidden-license enum"
       }
@@ -146,7 +146,7 @@
           "intelligence-autonomy-ceiling-app"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-claim-ceiling-kernel"
+          "check-claim-ceiling-kernel"
         ],
         "evidence": "autonomy-ceiling crates validate Cedar policy presence + runtime check on every uplift attempt"
       }

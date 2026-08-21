@@ -7,7 +7,7 @@ use iam_identity_domain::{
     RevocationLedger, RevocationReason, UnknownRevocationReason, issue_credential, issue_token,
     token_fingerprint,
 };
-use oya_data_boundary_kernel::Purpose;
+use data_boundary_kernel::Purpose;
 
 // ── RevocationReason wire round-trip (edge case 9) ───────────────────────────
 

@@ -823,7 +823,7 @@
         "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
       },
       {
-        "path_glob": "libs/oya-governance-lifecycle-kernel/src/lib.rs",
+        "path_glob": "governance/check/lifecycle-kernel/src/lib.rs",
         "claiming_branch": "integ/specs",
         "reason": "Bootstrap residual: lifecycle-kernel consumer update coupled to specs/lifecycle-configs absorption on integ/specs.",
         "expires_at_or_wave": "wave-after-integ-specs-bootstrap-land"
@@ -3943,7 +3943,7 @@
         "forever_name": "(never; ci/process-kit instead)"
       },
       {
-        "path": "tools/oya-governance-adapter-with-no-importer-app/",
+        "path": "governance/check/adapter-with-no-importer-app/",
         "action": "reorg_now",
         "greenfield_destination": "ci/facade/",
         "destination": "ci/facade/",
@@ -3951,7 +3951,7 @@
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
-        "name_now": "tools/oya-governance-adapter-with-no-importer-app/",
+        "name_now": "governance/check/adapter-with-no-importer-app/",
         "name_forever": "ci/facade/",
         "kind": "gate-app",
         "grammar_compliant": false,
@@ -3974,7 +3974,7 @@
         "shrink_source_integ": "integ/tools"
       },
       {
-        "path": "tools/oya-governance-adr-shape-app/",
+        "path": "governance/check/adr-shape-app/",
         "action": "reorg_now",
         "greenfield_destination": "ci/facade/",
         "destination": "ci/facade/",
@@ -3982,7 +3982,7 @@
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
-        "name_now": "tools/oya-governance-adr-shape-app/",
+        "name_now": "governance/check/adr-shape-app/",
         "name_forever": "ci/facade/",
         "kind": "gate-app",
         "grammar_compliant": false,
@@ -4005,7 +4005,7 @@
         "shrink_source_integ": "integ/tools"
       },
       {
-        "path": "tools/oya-governance-banned-primitives-app/",
+        "path": "governance/check/banned-primitives-app/",
         "action": "reorg_now",
         "greenfield_destination": "ci/facade/",
         "destination": "ci/facade/",
@@ -4013,7 +4013,7 @@
         "redesign": "rewrite",
         "judgment_status": "done",
         "disposition": "rewrite-into-durable-shape",
-        "name_now": "tools/oya-governance-banned-primitives-app/",
+        "name_now": "governance/check/banned-primitives-app/",
         "name_forever": "ci/facade/",
         "kind": "gate-app",
         "grammar_compliant": false,
@@ -6237,9 +6237,9 @@
       "oya/supply-chain-planning/",
       "oya/treasury/",
       "oya/warehouse/",
-      "tools/oya-governance-adapter-with-no-importer-app/",
-      "tools/oya-governance-adr-shape-app/",
-      "tools/oya-governance-banned-primitives-app/",
+      "governance/check/adapter-with-no-importer-app/",
+      "governance/check/adr-shape-app/",
+      "governance/check/banned-primitives-app/",
       "scripts/ci/",
       "scripts/tests/",
       "templates-audit-rewrite",

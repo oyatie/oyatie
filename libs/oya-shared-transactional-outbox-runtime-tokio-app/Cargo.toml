@@ -7,9 +7,9 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-shared-transactional-outbox-kernel = { path = "../oya-shared-transactional-outbox-kernel" }
-oya-shared-transactional-outbox-poller-app = { path = "../oya-shared-transactional-outbox-poller-app" }
-oya-shared-transactional-outbox-worker-app = { path = "../oya-shared-transactional-outbox-worker-app" }
+shared-transactional-outbox-kernel = { path = "../../data/core/shared-transactional-outbox-kernel" }
+shared-transactional-outbox-poller-app = { path = "../../data/core/shared-transactional-outbox-poller-app" }
+shared-transactional-outbox-worker-app = { path = "../../data/core/shared-transactional-outbox-worker-app" }
 tokio = { workspace = true, features = ["time"] }
 
 [lib]

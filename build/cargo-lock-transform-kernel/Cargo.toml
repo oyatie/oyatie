@@ -1,0 +1,25 @@
+[package]
+name = "cargo-lock-transform-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cargo-lock-transform"
+kind = "shared"
+layer = "kernel"
+purpose = "Pure, I/O-free Cargo.lock rename + move-canonicalize transform (byte-identical, no cargo in the loop) shared by the xtask lockfile CLI and the reorg move codemod."
+
+[lib]
+name = "cargo_lock_transform_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+anyhow = { workspace = true }
+toml_edit = "0.22"
+
+[lints]
+workspace = true

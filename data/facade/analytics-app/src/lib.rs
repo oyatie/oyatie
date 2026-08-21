@@ -16,7 +16,7 @@
 
 use std::fmt;
 
-use oya_shared_olap_client_kernel::TenantId;
+use shared_olap_client_kernel::TenantId;
 
 /// Boot errors raised before the service starts listening.
 #[derive(Debug)]

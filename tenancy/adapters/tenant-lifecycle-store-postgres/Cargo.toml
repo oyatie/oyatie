@@ -9,17 +9,16 @@ description = "Real async sqlx/Postgres TenantLifecycleStore adapter: per-transa
 
 [dependencies]
 tenancy-tenant-lifecycle-kernel = { path = "../../core/tenant-lifecycle-kernel" }
-oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
-oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres-command-kernel" }
-oya-shared-postgres-command-adapter-sqlx = { path = "../../../libs/oya-shared-postgres-command-adapter-sqlx" }
+shared-platform-contracts-kernel = { path = "../../../base/shared-platform-contracts-kernel" }
+shared-postgres-command-kernel = { path = "../../../base/shared-postgres-command-kernel" }
+shared-postgres-command-adapter-sqlx = { path = "../../../base/shared-postgres-command-adapter-sqlx" }
 sqlx.workspace = true
 serde.workspace = true
 serde_json.workspace = true
 
 [dev-dependencies]
-# Live integration tests `.await` the boxed-future methods behind an env gate.
 tokio = { workspace = true, features = ["macros", "rt", "rt-multi-thread"] }
-oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
+shared-resource-provider-contract-kernel = { path = "../../core/shared-resource-provider-contract-kernel" }
 
 [lib]
 name = "tenancy_tenant_lifecycle_store_postgres"

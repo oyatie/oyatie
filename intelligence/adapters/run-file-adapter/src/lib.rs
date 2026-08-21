@@ -8,7 +8,7 @@ use std::path::PathBuf;
 
 use intelligence_capability_domain::AutonomyTier;
 use intelligence_run_domain::{Run, RunDisposition, RunError, RunLedger, RunState};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, parse_data_class_pascal_label,
     privacy_data_classes_from,
 };

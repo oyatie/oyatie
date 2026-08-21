@@ -11,7 +11,7 @@
 // `panic!()` to assert invariants under the `cfg(test)` exemption.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 use crate::{ChatError, OwnershipPillar};
 
@@ -214,7 +214,7 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_data_boundary_kernel::{DataClass, DataClassification};
+    use data_boundary_kernel::{DataClass, DataClassification};
 
     // -----------------------------------------------------------------------
     // Helpers

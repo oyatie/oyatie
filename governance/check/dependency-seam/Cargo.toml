@@ -1,0 +1,21 @@
+[package]
+name = "check-dependency-seam"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "check_dependency_seam"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+toml = { workspace = true }
+workspace-members-kernel = { path = "../../../base/workspace-members-kernel" }
+
+[lints]
+workspace = true

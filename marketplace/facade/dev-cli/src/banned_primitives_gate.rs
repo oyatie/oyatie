@@ -1,7 +1,7 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_governance_banned_primitives_kernel::{
+use check_banned_primitives_kernel::{
     CommandInvocation, PrimitiveUsage, check_documented_genuine_need, scan_agent_instruction_file,
     scan_command_invocation,
 };

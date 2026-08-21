@@ -50,7 +50,7 @@
   "_ulid_surface_comment": "DECLARATION ONLY -- this gate does not enforce over Rust code, and saying so here is the point. ADR-0709 D-1 names UUIDv7 the single canonical scheme, but a live in-house ULID kernel ships with three consumers. Recording that split as data rather than leaving it as a contradiction between two lines of the same ADR is what makes it a tracked migration instead of doctrine that lies about the tree. These entries are enumerated so the set is closed and countable; retiring the kernel removes them.",
   "declared_ulid_surface": [
     {
-      "path": "libs/oya-shared-ulid-id-kernel",
+      "path": "iam/core/shared-ulid-id-kernel",
       "reason": "the in-house ULID minting kernel: Crockford-base32, 26 characters"
     },
     {

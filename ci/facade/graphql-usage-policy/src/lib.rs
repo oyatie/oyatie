@@ -97,7 +97,7 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::Path;
 
-use oya_workspace_members_kernel::resolve_member_dirs;
+use workspace_members_kernel::resolve_member_dirs;
 use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target + the policy `gate_id`.

@@ -36,7 +36,7 @@ use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
-use oya_http_runtime_hyper_adapter::pqc_hybrid_tls13_server_config_builder;
+use http_runtime_hyper_adapter::pqc_hybrid_tls13_server_config_builder;
 use rustls::pki_types::{CertificateDer, PrivateKeyDer, PrivatePkcs8KeyDer};
 use tokio::io::{AsyncRead, AsyncWrite, ReadBuf};
 use tokio::net::{TcpListener, TcpStream};

@@ -1,0 +1,35 @@
+[package]
+name = "shared-platform-contracts-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# FD-001 shared platform contract models (contract-lock seed, Smithy-architecture
+# style: typed, protocol-agnostic shapes locked BEFORE any handler exists, per the
+# masterplan api_first_contracts_must_exist_before_handlers rule). Pure serde types
+# + invariants for the four shared contract families — identity (principal,
+# credential, token claims, identity domain), PDP (authorization request/response
+# with decision id + zookie-style policy-version freshness per Zanzibar), tenancy
+# (tenant resource, lifecycle, isolation posture per the AWS SaaS silo/pool/bridge
+# models), and shell-BFF (capability registry entry, module route registration).
+# NO handlers, NO IO. The cedar/ dir seeds the FD-001 Cedar schema + structural
+# tenant-isolation invariant; cedar-policy is a DEV-ONLY dependency that validates
+# the seed against the real engine (production surface stays Cedar-free per
+# ADR-0183 policy-engine separation).
+
+[lib]
+name = "shared_platform_contracts_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+cedar-policy = { workspace = true }
+
+[lints]
+workspace = true

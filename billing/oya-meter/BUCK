@@ -7,7 +7,7 @@
 #
 # This package has no Cargo.toml and is not a workspace member, so no generator can reach it.
 # When the implementations land they ship a hand-written BUCK (the buck2-native per-package
-# mechanism), and //tools/oya-buck-test-wiring-app wires the rust_test. Until then this package
+# mechanism), and //build/buck-test-wiring-app wires the rust_test. Until then this package
 # intentionally declares no targets.
 
 load("//governance/corpus/extract:yaml_facts.bzl", "corpus_yaml_facts_shards")

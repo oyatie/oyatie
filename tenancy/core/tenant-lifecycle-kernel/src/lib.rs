@@ -23,8 +23,8 @@ use core::future::Future;
 use core::pin::Pin;
 use std::fmt;
 
-use oya_shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleOperation};
-use oya_shared_resource_provider_contract_kernel::Operation;
+use shared_platform_contracts_kernel::tenancy::{Tenant, TenantLifecycleOperation};
+use shared_resource_provider_contract_kernel::Operation;
 use serde::{Deserialize, Serialize};
 
 /// What a client-UUID idempotency key was first applied to: the dedup record
@@ -171,8 +171,8 @@ pub trait TenantLifecycleStore {
 
 #[cfg(test)]
 mod tests {
-    use oya_shared_platform_contracts_kernel::tenancy::{IsolationPosture, TenantLifecycleState};
-    use oya_shared_resource_provider_contract_kernel::{
+    use shared_platform_contracts_kernel::tenancy::{IsolationPosture, TenantLifecycleState};
+    use shared_resource_provider_contract_kernel::{
         CancellationMetadata, CompensationMetadata, OperationLedgerEntry, OperationPhase,
         OperationState, RetryPolicy,
     };

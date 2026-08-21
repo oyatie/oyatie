@@ -4,7 +4,7 @@ use iam_tenant_rbac_usecase::{
     OpsCommandKind, TenantRbacApplicationError, TenantRbacOpsCommandInput, TenantRbacOpsRoute,
     prepare_tenant_rbac_ops_envelope,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn test_tenant_rbac_ops_contract_has_no_manual_ssh() {

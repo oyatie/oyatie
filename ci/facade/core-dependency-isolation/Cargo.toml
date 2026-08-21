@@ -25,8 +25,8 @@ doctest = false
 [dependencies]
 serde_json = { workspace = true }
 toml = { workspace = true }
-oya-buck-syntax-kernel = { path = "../../../libs/oya-buck-syntax-kernel" }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+buck-syntax-kernel = { path = "../../core/buck-syntax-kernel" }
+workspace-members-kernel = { path = "../../../base/workspace-members-kernel" }
 
 [lints]
 workspace = true

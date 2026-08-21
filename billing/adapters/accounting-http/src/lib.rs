@@ -29,9 +29,9 @@ use billing_accounting_api::{
 use billing_accounting_app::{
     AccountingAppError, plan_vat_workflow, post_journal_with_audit, record_payroll_posting,
 };
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{
     ServerConfig, SyncHandler, dispatch as dispatch_http, handler_to_sync,
 };
 use serde::Serialize;
@@ -243,7 +243,7 @@ struct PayrollPostingHandler;
 struct VatWorkflowHandler;
 struct HealthHandler;
 
-impl oya_http_middleware_kernel::Handler for JournalPostHandler {
+impl http_middleware_kernel::Handler for JournalPostHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -263,7 +263,7 @@ impl oya_http_middleware_kernel::Handler for JournalPostHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for PayrollPostingHandler {
+impl http_middleware_kernel::Handler for PayrollPostingHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -283,7 +283,7 @@ impl oya_http_middleware_kernel::Handler for PayrollPostingHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for VatWorkflowHandler {
+impl http_middleware_kernel::Handler for VatWorkflowHandler {
     type Error = HttpResponse;
 
     fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -313,7 +313,7 @@ impl oya_http_middleware_kernel::Handler for VatWorkflowHandler {
     }
 }
 
-impl oya_http_middleware_kernel::Handler for HealthHandler {
+impl http_middleware_kernel::Handler for HealthHandler {
     type Error = HttpResponse;
 
     fn call(&self, _req: HttpRequest) -> Result<HttpResponse, Self::Error> {

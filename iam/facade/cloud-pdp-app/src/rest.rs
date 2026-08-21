@@ -35,8 +35,8 @@ use serde::Deserialize;
 
 use os_trustd_domain::TrustBundle;
 use os_trustd_domain::signer::EcdsaP256Signer;
-use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError};
-use oya_shared_platform_contracts_kernel::pdp::AuthorizationRequest;
+use shared_pdp_kernel::{EntityRecord, EntitySlice, PdpError};
+use shared_platform_contracts_kernel::pdp::AuthorizationRequest;
 
 use crate::PdpState;
 use crate::mtls::SpiffeCallerAuth;

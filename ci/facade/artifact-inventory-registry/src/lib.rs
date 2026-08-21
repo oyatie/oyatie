@@ -149,14 +149,14 @@ impl Policy {
     /// Parse the bundled DATA tables from oya-ci-config (SSOT). Returns an error rather
     /// than panicking on malformed data.
     pub fn from_bundled() -> Result<Self, ProducerError> {
-        Self::from_config(&oya_ci_config_kernel::OyaCiConfig::bundled_default())
+        Self::from_config(&ci_config_kernel::OyaCiConfig::bundled_default())
     }
 
     /// Parse the carve-out + TTL tables from the oya-ci config (OYA-CI-CONFORMANCE-FLOOR-PLAN
     /// §3.3). The config carries these two tables as DATA (the `[unit_class]` + `[ttl]`
     /// sections); the bundled default is the SSOT, so this is equivalent to
     /// [`Policy::from_bundled`] under the default config.
-    pub fn from_config(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<Self, ProducerError> {
+    pub fn from_config(cfg: &ci_config_kernel::OyaCiConfig) -> Result<Self, ProducerError> {
         Self::from_strs(cfg.unit_class_policy_json(), cfg.ttl_policy_json())
     }
 
@@ -958,7 +958,7 @@ pub struct GateInputs<'a> {
     /// The §2.5#4 BNF layer-suffix gate input: `{"rows":[{"crate_name": "oya-..."}]}` —
     /// the first-party `oya-*` crate names the binary enumerates from the tracked Cargo.toml
     /// manifests. The gate's `evaluate_keyed` resolves the role carve-out-aware and reuses
-    /// `oya_governance_predictable_naming_kernel::check`. Empty in unit tests.
+    /// `check_predictable_naming_kernel::check`. Empty in unit tests.
     pub bnf_layer_suffix: &'a Value,
     /// The §2.5#7 manifest-hygiene gate input: `{"rows":[{"crate_name", "has_version_workspace",
     /// "has_publish_false", "has_license", "has_rust_version_workspace", "has_lints_workspace",
@@ -975,11 +975,11 @@ pub struct GateInputs<'a> {
     /// The SLO coverage gate input: `{"rows":[{"crate_id", "slo"}]}`. The producer expands the
     /// config-declared `[slo_coverage].catalog_record_globs` against tracked paths, derives the
     /// catalog identity from each file stem, and parses the top-level `slo:` value. The gate's
-    /// `evaluate_keyed` reuses `oya_check_slo_coverage::validate_slo_coverage` per row.
+    /// `evaluate_keyed` reuses `check_slo_coverage::validate_slo_coverage` per row.
     pub slo_coverage: &'a Value,
     /// The license-policy gate input: `{"rows":[{"package_name","manifest_path","license"}]}`.
     /// The producer resolves workspace members via `oya-workspace-members-kernel`, reads each
-    /// member manifest, and the gate reuses `oya_check_license_policy::LicensePolicy` per row.
+    /// member manifest, and the gate reuses `check_license_policy::LicensePolicy` per row.
     pub license_policy: &'a Value,
     /// The catalog-liveness gate input: `{"rows":[{"crate_id", "source_path", "is_live",
     /// "marker"}]}`. The producer expands the config-declared `[catalog_liveness]
@@ -1007,7 +1007,7 @@ pub struct GateInputs<'a> {
     /// references from `.claude/settings.json` + `.codex/hooks.json`.
     pub enforcement_liveness: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
-    /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
+    /// files per stem), captured by the binary via `check_brand_residue::forbidden_vocab`
     /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
     /// files (not a generated face), so it is supplied already grouped rather than re-derived
     /// here. Empty in unit tests that do not exercise the brand gate.
@@ -1019,11 +1019,11 @@ pub struct GateInputs<'a> {
 /// face↔evaluator binding is the single per-gate coupling that cannot be data-driven in Rust
 /// (no reflection); everything else (which gates, their dispositions, their KIND) is config.
 fn producer_face_keys(
-    face: oya_ci_config_kernel::GateFace,
+    face: ci_config_kernel::GateFace,
     inputs: &GateInputs<'_>,
-    naming: &oya_ci_config_kernel::NamingConfig,
+    naming: &ci_config_kernel::NamingConfig,
 ) -> BTreeMap<String, BTreeSet<String>> {
-    use oya_ci_config_kernel::GateFace;
+    use ci_config_kernel::GateFace;
     match face {
         GateFace::TotalAccounting => group_findings(
             ci_artifact_accountability::evaluate_keyed(inputs.total_accounting)
@@ -1114,10 +1114,10 @@ fn producer_face_keys(
 /// irrelevant to the on-disk bytes: the baseline `gates` object is BTreeMap-sorted on
 /// serialization — but the disposition join in `build_gate_baseline` still walks this map.)
 fn current_keys_per_gate(
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
     inputs: &GateInputs<'_>,
 ) -> BTreeMap<String, BTreeMap<String, BTreeSet<String>>> {
-    use oya_ci_config_kernel::GateInputKind;
+    use ci_config_kernel::GateInputKind;
     let mut out: BTreeMap<String, BTreeMap<String, BTreeSet<String>>> = BTreeMap::new();
     for gate in &cfg.gates.enabled {
         let keys = match gate.input_kind {
@@ -1156,7 +1156,7 @@ where
 /// (auto-shrink drops fixed keys on regen); GROWTH beyond the committed baseline is a
 /// `ratchet_regression` caught by the cloud-ci-firewall runner, not by this builder.
 pub fn build_gate_baseline(
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
     inputs: &GateInputs<'_>,
     config_digest: &str,
 ) -> Result<Value, ProducerError> {
@@ -1180,7 +1180,7 @@ pub fn build_gate_baseline(
     // contributes NO codes (quiet). Under the OYATIE profile a gate enabled but absent from the
     // disposition table stays a HARD error (a real misconfig must fail loud — the safety property
     // keeps first-party behaviour identical).
-    let quiet_missing_disposition = cfg.profile == oya_ci_config_kernel::Profile::Neutral;
+    let quiet_missing_disposition = cfg.profile == ci_config_kernel::Profile::Neutral;
     let empty_disp = Map::new();
     let mut gates_obj = Map::new();
     for spec in &cfg.gates.enabled {
@@ -1509,7 +1509,7 @@ fn is_top_level_buck_metadata(path: &str) -> bool {
 pub fn resolve_owners(
     repo_root: &std::path::Path,
     paths: &[String],
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
 ) -> OwnersResolution {
     let owners_file = cfg.owners.file_name.as_str();
     let bound = usize::try_from(cfg.owners.max_paths_per_owners_file.get()).unwrap_or(usize::MAX);
@@ -1766,7 +1766,7 @@ pub fn load_envelope_prefix_allows(
 /// new file. Returns the success message; refusal leaves NO residue.
 pub fn fix_owners(
     repo_root: &std::path::Path,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
     tracked_paths: &[String],
     spec: &str,
 ) -> Result<String, ProducerError> {
@@ -1879,7 +1879,7 @@ pub fn fix_owners(
 /// coverage count is taken over `tracked_paths`. Returns the success message.
 pub fn fix_reachability(
     repo_root: &std::path::Path,
-    cfg: &oya_ci_config_kernel::OyaCiConfig,
+    cfg: &ci_config_kernel::OyaCiConfig,
     tracked_paths: &[String],
     spec: &str,
 ) -> Result<String, ProducerError> {
@@ -2286,7 +2286,7 @@ mod tests {
             enforcement_liveness: &empty_face,
             brand_residue: &brand_residue,
         };
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let baseline = build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("baseline");
         let ta = &baseline["gates"]["cloud-ci-total-accounting"];
 
@@ -2381,7 +2381,7 @@ mod tests {
             enforcement_liveness: &empty_face,
             brand_residue: &brand_residue,
         };
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let a = to_canonical_json(&build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("a"))
             .expect("ja");
         let b = to_canonical_json(&build_gate_baseline(&cfg, &inputs, "fnv1a64:test").expect("b"))
@@ -2466,7 +2466,7 @@ mod tests {
             enforcement_liveness: &empty_face,
             brand_residue: &neutral_residue,
         };
-        let neutral_cfg = oya_ci_config_kernel::OyaCiConfig::neutral();
+        let neutral_cfg = ci_config_kernel::OyaCiConfig::neutral();
         let neutral_baseline =
             build_gate_baseline(&neutral_cfg, &neutral_inputs, "fnv1a64:neutral").expect("neutral");
         // THE DE-BRAND PROOF: the GATE FINDINGS (the `gates` object — codes + keys the gates
@@ -2527,7 +2527,7 @@ mod tests {
             enforcement_liveness: &empty_face,
             brand_residue: &brand_residue,
         };
-        let oyatie_cfg = oya_ci_config_kernel::OyaCiConfig::oyatie();
+        let oyatie_cfg = ci_config_kernel::OyaCiConfig::oyatie();
         let oyatie_baseline =
             build_gate_baseline(&oyatie_cfg, &oyatie_inputs, "fnv1a64:oyatie").expect("oyatie");
         let cp = &oyatie_baseline["gates"]["cloud-ci-cargo-prefix"]["cargo_prefix_violation"];
@@ -2573,7 +2573,7 @@ mod tests {
     fn fix_owners_applies_the_decided_edit_and_self_validates() {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let scm =
             tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
         let message = fix_owners(&root, &cfg, &scm, "docs/adr-archive=council-architecture")
@@ -2610,7 +2610,7 @@ mod tests {
         std::fs::write(root.join("cloud/gate/app.rs"), "fn main() {}\n")
             .expect("write nested code");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::from_toml_str(
+        let cfg = ci_config_kernel::OyaCiConfig::from_toml_str(
             "[owners]\nmax_paths_per_owners_file = 3\n",
         )
         .expect("bound parses");
@@ -2646,7 +2646,7 @@ mod tests {
     fn fix_owners_refuses_schema_invalid_and_over_broad_registrations() {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let scm =
             tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
 
@@ -2667,7 +2667,7 @@ mod tests {
         // The bulk-neuter shape: a registration covering more tracked paths than the
         // bound is refused with the split-the-registration fix, and the written file is
         // reverted.
-        let small_bound_cfg = oya_ci_config_kernel::OyaCiConfig::from_toml_str(
+        let small_bound_cfg = ci_config_kernel::OyaCiConfig::from_toml_str(
             "[owners]\nmax_paths_per_owners_file = 3\n",
         )
         .expect("bound parses");
@@ -2727,7 +2727,7 @@ mod tests {
         std::fs::write(root.join("good/thing.rs"), "fn main() {}\n").expect("write covered");
         std::fs::write(root.join("bad/thing.rs"), "fn main() {}\n").expect("write covered");
 
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let paths = tracked(&["bad/OWNERS", "bad/thing.rs", "good/OWNERS", "good/thing.rs"]);
         let resolution = resolve_owners(&root, &paths, &cfg);
         assert_eq!(
@@ -2874,7 +2874,7 @@ mod tests {
     fn fix_reachability_refuses_owners_paths_as_accounted_by_construction() {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("specs")).expect("create specs");
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let registry_rel = cfg.reachability.registry.clone();
         let seed = "{\n  \"registered\": []\n}\n";
         std::fs::write(root.join(&registry_rel), seed).expect("seed registry");
@@ -2916,7 +2916,7 @@ mod tests {
     fn fix_reachability_appends_registers_sorts_and_round_trips() {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("specs")).expect("create specs");
-        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let cfg = ci_config_kernel::OyaCiConfig::bundled_default();
         let scm = tracked(&["specs/fixtures/x/tc-1.json"]);
         let message = fix_reachability(
             &root,

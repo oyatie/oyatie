@@ -12,8 +12,8 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
-oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
+shared-platform-contracts-kernel = { path = "../../../base/shared-platform-contracts-kernel" }
+shared-resource-provider-contract-kernel = { path = "../shared-resource-provider-contract-kernel" }
 serde = { workspace = true }
 
 [lints]

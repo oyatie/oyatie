@@ -7,7 +7,7 @@ use check_documentation_system::{
     validate_documentation_system,
 };
 use check_readme_coverage::validate_readme_doc_coverage;
-use oya_governance_gate_catalog_domain::all_canonical_commands_rendered;
+use check_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{
     extract_first_backticked_value, extract_json_object_entries, extract_json_object_for_key,

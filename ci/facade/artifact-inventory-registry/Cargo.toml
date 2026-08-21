@@ -30,11 +30,11 @@ name = "oya-cloud-ci-cargo-test-producer-adapter"
 path = "src/bin/oya-cloud-ci-cargo-test-producer-adapter.rs"
 
 [dependencies]
-oya-reorg-codemod-app = { path = "../../../tools/oya-reorg-codemod-app" }
+reorg-codemod-app = { path = "../../../build/reorg-codemod-app" }
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 serde = { workspace = true }
 serde_json = { workspace = true }
-oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
+ci-config-kernel = { path = "../../core/ci-config-kernel" }
 ci-artifact-accountability = { path = "../artifact-accountability" }
 ci-cross-artifact-agreement = { path = "../cross-artifact-agreement" }
 ci-stale-artifact-detection = { path = "../stale-artifact-detection" }
@@ -48,8 +48,8 @@ ci-service-catalog-parity = { path = "../service-catalog-parity" }
 ci-workspace-member-coverage = { path = "../workspace-member-coverage" }
 ci-build-target-parity = { path = "../build-target-parity" }
 ci-hook-wiring = { path = "../hook-wiring" }
-oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+check-brand-residue = { path = "../../../governance/check/brand-residue" }
+workspace-members-kernel = { path = "../../../base/workspace-members-kernel" }
 
 [lints]
 workspace = true

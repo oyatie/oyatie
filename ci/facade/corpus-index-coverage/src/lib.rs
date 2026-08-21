@@ -40,7 +40,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::fmt;
 
-use oya_buck_syntax_kernel::{CallExpr, Expr, Stmt, glob_match, parse};
+use buck_syntax_kernel::{CallExpr, Expr, Stmt, glob_match, parse};
 use serde::{Deserialize, Serialize};
 
 /// The gate's stable identifier.

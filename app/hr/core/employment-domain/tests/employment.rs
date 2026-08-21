@@ -3,7 +3,7 @@
 use hr_employment_domain::{
     Employee, EmployeeCreate, EmploymentStatus, HrDomainError, HrLifecycleKind, TenantTierSnapshot,
 };
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 #[test]
 fn test_employment_requires_entity_and_audit() {

@@ -6,7 +6,7 @@ use audit_chain_domain::{
     AuditAppendInput, AuditChain, AuditChainError, Ed25519SigningKey, Ed25519VerificationKeySet,
     Plane, append, verify_chain,
 };
-use oya_data_boundary_kernel::{DataClass, Purpose};
+use data_boundary_kernel::{DataClass, Purpose};
 
 #[test]
 fn merkle_root_advances_with_each_append_and_detects_payload_tamper() {

@@ -37,8 +37,8 @@ use std::sync::Arc;
 
 use iam_cloud_pdp_kernel::DecisionAuditSink;
 use iam_pdp_cedar::CedarPdp;
-use oya_shared_pdp_kernel::{EntitySlice, PdpError, PolicyDecisionPoint};
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_pdp_kernel::{EntitySlice, PdpError, PolicyDecisionPoint};
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, PolicyVersion,
 };
 

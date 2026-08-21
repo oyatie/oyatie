@@ -13,7 +13,7 @@ use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpStream, ToSocketAddrs};
 use std::time::Duration;
 
-use oya_shared_transactional_outbox_dispatch_app::{
+use shared_transactional_outbox_dispatch_app::{
     OutboxDispatchAppError, OutboxTransportAck, OutboxTransportExecutor, OutboxTransportPlan,
 };
 
@@ -587,10 +587,10 @@ fn push_json_string(out: &mut String, value: &str) {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_transactional_outbox_dispatch_app::{
+    use shared_transactional_outbox_dispatch_app::{
         OutboxBrokerHeaders, OutboxBrokerPublishPlan, OutboxGrpcUnaryPlan, OutboxTransportPlan,
     };
-    use oya_shared_transactional_outbox_kernel::BackboneOutboxTable;
+    use shared_transactional_outbox_kernel::BackboneOutboxTable;
     use std::net::TcpListener;
     use std::sync::mpsc;
     use std::thread;

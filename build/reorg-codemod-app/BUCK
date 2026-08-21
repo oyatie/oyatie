@@ -1,0 +1,52 @@
+rust_library(
+    name = "reorg-codemod-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "reorg_codemod_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/cargo-lock-transform-kernel:cargo-lock-transform-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml_edit",
+    ],
+)
+
+rust_binary(
+    name = "oya-reorg-codemod",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":reorg-codemod-app",
+        "//build/cargo-lock-transform-kernel:cargo-lock-transform-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml_edit",
+    ],
+)
+
+rust_test(
+    name = "reorg-codemod-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "reorg_codemod_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//build/cargo-lock-transform-kernel:cargo-lock-transform-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml_edit",
+    ],
+)
+
+rust_test(
+    name = "reorg-codemod-app-fixtures",
+    srcs = ["tests/fixture_roundtrip.rs"],
+    crate = "reorg_codemod_app_fixtures",
+    crate_root = "tests/fixture_roundtrip.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":reorg-codemod-app",
+    ],
+)

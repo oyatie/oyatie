@@ -6,7 +6,7 @@ use intelligence_catalog_domain::{
     ApiStability, CatalogError, CatalogIndex, CatalogRecordInput, CatalogRole, SecurityReview,
     SupplyChainAttestation,
 };
-use oya_data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
+use data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
 
 #[test]
 fn catalog_record_validates_existing_registry_shape() {

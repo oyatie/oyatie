@@ -4,7 +4,7 @@ use hr_employment_domain::{
     HrDomainError, SensitiveHrDataKind, SensitiveHrReadInput, SensitiveReadDecisionStatus,
     SensitiveReadLegalBasis, SensitiveReadPurpose, evaluate_sensitive_hr_read,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn test_sensitive_hr_read_requires_basis() {

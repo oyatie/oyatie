@@ -1,0 +1,17 @@
+[package]
+name = "check-portfolio-citation-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "oya-governance-portfolio-citation-app"
+path = "src/main.rs"
+
+[dependencies]
+check-portfolio-citation-kernel = { path = "../portfolio-citation-kernel" }
+
+[lints]
+workspace = true

@@ -23,7 +23,7 @@
 //! The `tenant_id_hash` is a low-cardinality FNV-1a 64-bit hash of the raw
 //! tenant identifier. The raw value is never stored in the event.
 
-use oya_data_boundary_kernel::parse_purpose_pascal_label;
+use data_boundary_kernel::parse_purpose_pascal_label;
 
 use crate::{
     IdentityTokenIssueApiError, IdentityTokenIssueApiRequest, IdentityTokenRotationRequest,

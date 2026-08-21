@@ -4,7 +4,7 @@ use iam_tenant_rbac_domain::{
     ServiceWriteInput, TenantRbacDomainError, TenantRbacService, TenantRbacWriteKind,
     admit_service_write,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn test_services_share_tenant_rbac_policy_gateway() {

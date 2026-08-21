@@ -10,7 +10,7 @@ use observability_aggregate::{
     AuditReadRequest, AuditReadScope, CloudAuditOperation, CloudAuditRecord, CloudAuditTopic,
     CloudObservabilityCatalog, CloudObservabilityError,
 };
-use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
+use data_boundary_kernel::{OperationalDataClass, Purpose};
 
 pub mod authz;
 

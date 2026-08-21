@@ -7,15 +7,15 @@ use comms_mail_mailbox_api::{
 };
 use comms_mail_mailbox_postgres::{PersistMailMessageRecord, build_mail_message_write_batch};
 use comms_mail_mailbox_usecase::{MailUsecaseError, submit_message};
-use oya_shared_postgres_command_kernel::{
+use shared_postgres_command_kernel::{
     PostgresPoolConfig, SqlCommandError, SqlExecutionPlan, SqlWriteBatch, TenantSqlContext,
 };
-use oya_shared_protocol_parity_kernel::{ProtocolEventEnvelope, ProtocolParityError};
-use oya_shared_protocol_transport_kernel::{
+use shared_protocol_parity_kernel::{ProtocolEventEnvelope, ProtocolParityError};
+use shared_protocol_transport_kernel::{
     ProtocolTransportBudget, ProtocolTransportBundle, ProtocolTransportError,
     plan_transport_from_envelope,
 };
-use oya_shared_transactional_outbox_kernel::{
+use shared_transactional_outbox_kernel::{
     BackboneOutboxTable, TransactionalOutboxError, append_outbox_to_batch,
 };
 
@@ -133,7 +133,7 @@ fn dmarc_action_name(action: DmarcApiAction) -> &'static str {
 mod tests {
     use super::*;
     use comms_mail_mailbox_api::{DmarcApiPolicy, DmarcCheckRequest, MailApiContext};
-    use oya_shared_postgres_command_kernel::SqlParam;
+    use shared_postgres_command_kernel::SqlParam;
 
     fn tenant() -> TenantSqlContext {
         TenantSqlContext::new("tenant:t", "cell-a", "tenant:t#cell-a", "US").unwrap()

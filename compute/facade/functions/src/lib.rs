@@ -11,7 +11,7 @@ use compute_domain::{
     FunctionInvocationRequest,
 };
 use compute_resource::ResourceId;
-use oya_data_boundary_kernel::{DataClass, parse_data_class_label};
+use data_boundary_kernel::{DataClass, parse_data_class_label};
 
 pub const CLOUD_COMPUTE_FUNCTIONS_INVOKE_SURFACE: &str = "cloud.compute.functions.invoke";
 const DEFAULT_FUNCTIONS_INVOKE_IDEMPOTENCY_LEDGER_MAX_ENTRIES: usize = 1024;

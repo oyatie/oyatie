@@ -14,13 +14,13 @@ use std::sync::{Arc, Mutex};
 
 use comms_mail_mailbox_api::DmarcApiAction;
 use community_post_store_domain::{CommunityPost, VoteLedger};
-use oya_shared_backbone_grpc_generated_adapter::{
+use shared_backbone_grpc_generated_adapter::{
     GeneratedBackboneGrpcAdapterError, community, community_apply_action_generated_write_plan,
     community_cast_vote_generated_write_plan, community_create_post_generated_write_plan, mail,
     mail_send_message_generated_write_plan, messenger, messenger_post_message_generated_write_plan,
     social, social_publish_post_generated_write_plan,
 };
-use oya_shared_postgres_command_kernel::TenantSqlContext;
+use shared_postgres_command_kernel::TenantSqlContext;
 use tonic::transport::{Channel, Endpoint, Server, server::TcpIncoming};
 use tonic::{Request, Response, Status};
 
@@ -379,8 +379,8 @@ fn dmarc_action(action: DmarcApiAction) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_backbone_grpc_generated_adapter::community::v1::voting_engine_service_server::VotingEngineService;
-    use oya_shared_backbone_grpc_generated_adapter::messenger::v1::message_stream_server::MessageStream;
+    use shared_backbone_grpc_generated_adapter::community::v1::voting_engine_service_server::VotingEngineService;
+    use shared_backbone_grpc_generated_adapter::messenger::v1::message_stream_server::MessageStream;
     use tonic::Code;
 
     #[tokio::test]

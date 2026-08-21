@@ -1,0 +1,21 @@
+rust_library(
+    name = "shared-protocol-transport-kernel",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_protocol_transport_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//base/shared-protocol-parity-kernel:shared-protocol-parity-kernel",
+    ],
+)
+
+rust_test(
+    name = "shared-protocol-transport-kernel-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_protocol_transport_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//base/shared-protocol-parity-kernel:shared-protocol-parity-kernel",
+    ],
+)

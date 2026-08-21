@@ -22,19 +22,13 @@ iam-identity-workload-app = { path = "../identity-workload-app" }
 iam-identity-workload-authz-cedar = { path = "../../adapters/identity-workload-authz-cedar" }
 iam-identity-workload-oidc = { path = "../../adapters/identity-workload-oidc" }
 iam-identity-workload-rest = { path = "../identity-workload-rest" }
-oya-shared-scim-server-kernel = { path = "../../../libs/oya-shared-scim-server-kernel" }
-# Durable SCIM stores (G005): the composition root holds the shared PgPool and
-# runs the fail-closed RLS-enforceability guard (free fn over &PgPool) before
-# serving. Transient Postgres adapter behind the unchanged UserStore/GroupStore
-# kernel ports (cutover litmus holds).
+shared-scim-server-kernel = { path = "../../core/shared-scim-server-kernel" }
 identity-scim-store-postgres = { path = "../../adapters/identity-scim-store-postgres" }
 axum = { version = "0.8", default-features = false, features = ["http1", "json", "tokio"] }
 aws-lc-rs = { workspace = true }
 base64 = "0.22.1"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-# The composition root owns the sqlx::PgPool the SCIM stores share and passes it
-# to the RLS-enforceability guard (assert_rls_enforceable(&PgPool)).
 sqlx = { workspace = true }
 tokio = { workspace = true, features = ["macros", "rt-multi-thread", "net", "signal", "sync"] }
 tonic = { workspace = true, features = ["router", "transport"] }

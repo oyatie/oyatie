@@ -17,8 +17,8 @@
 //! The broker is generic over the [`OidcClient`] port so deployment-specific
 //! OIDC adapters can swap without changing this module or its callers.
 
-use oya_shared_oidc_client_kernel::{AcrLevel, OidcClaims, OidcClient, OidcError, VerifyConfig};
-use oya_shared_platform_contracts_kernel::shell_bff::CapabilityRegistryEntry;
+use shared_oidc_client_kernel::{AcrLevel, OidcClaims, OidcClient, OidcError, VerifyConfig};
+use shared_platform_contracts_kernel::shell_bff::CapabilityRegistryEntry;
 
 /// A verified session held by the shell. The claims never leave this module:
 /// product surfaces interact only through [`ModuleGrant`]s minted from it.
@@ -117,8 +117,8 @@ impl<C: OidcClient> ShellTokenBroker<C> {
 mod tests {
     use std::collections::BTreeMap;
 
-    use oya_shared_oidc_client_kernel::Audience;
-    use oya_shared_platform_contracts_kernel::shell_bff::NavigationSurface;
+    use shared_oidc_client_kernel::Audience;
+    use shared_platform_contracts_kernel::shell_bff::NavigationSurface;
 
     use super::*;
 

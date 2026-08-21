@@ -8,7 +8,7 @@ use data_analytics_api::{
     ANALYTICS_ASYNCAPI_CONTRACT, ANALYTICS_OPENAPI_CONTRACT, ANALYTICS_PROTO_CONTRACT, ApiError,
 };
 use data_analytics_usecase::UseCaseError;
-use oya_shared_olap_client_kernel::KernelError;
+use shared_olap_client_kernel::KernelError;
 
 /// The runtime constants must equal the paths the CATALOG declares, not a second copy of
 /// them written here. Hard-coding the expected strings made this test vacuous against the

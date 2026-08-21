@@ -29,7 +29,7 @@ doctest = false
 [dependencies]
 serde_json = { workspace = true }
 toml = { workspace = true }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+workspace-members-kernel = { path = "../../../base/workspace-members-kernel" }
 
 [lints]
 workspace = true

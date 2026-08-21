@@ -7,10 +7,10 @@ use community_social_post_composition_api::{
     SocialApiError, SocialPostReceipt,
 };
 use community_social_post_composition_usecase::{SocialUsecaseError, compose_post};
-use oya_shared_hyperscaler_metrics_kernel::{
+use shared_hyperscaler_metrics_kernel::{
     MetricsContext, MetricsError, RequestTelemetryBinding,
 };
-use oya_shared_postgres_command_kernel::TenantSqlContext;
+use shared_postgres_command_kernel::TenantSqlContext;
 
 pub const PUBLISH_POST_ROUTE: &str = "/posts";
 pub const PUBLISH_POST_METHOD: &str = "POST";

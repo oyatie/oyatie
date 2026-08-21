@@ -54,7 +54,7 @@ pub fn build_map(root: &Path) -> Result<ArchitectureMap, MapBuildError> {
     // already use, so the node set matches what Cargo itself resolves.
     let cargo_toml = root.join("Cargo.toml");
     let _ = read(&cargo_toml)?;
-    let expanded = oya_workspace_members_kernel::scan_member_dirs(root)
+    let expanded = workspace_members_kernel::scan_member_dirs(root)
         .map(|scan| scan.member_dirs)
         .unwrap_or_default();
     for crate_path in expanded {

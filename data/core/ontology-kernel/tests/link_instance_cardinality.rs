@@ -11,7 +11,7 @@ use data_ontology_kernel::{
     LinkInstanceOutcome, LinkTypeDefinition, LinkTypeId, OntologyEngine, OntologyEngineError,
     PropertyTier,
 };
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 // ---------------------------------------------------------------------------
 // Shared helpers

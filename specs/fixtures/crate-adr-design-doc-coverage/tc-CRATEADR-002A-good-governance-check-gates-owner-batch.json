@@ -124,8 +124,8 @@
       }
     },
     {
-      "crate_name": "oya-check-adr-placeholders",
-      "crate_manifest": "libs/oya-check-adr-placeholders/Cargo.toml",
+      "crate_name": "check-adr-placeholders",
+      "crate_manifest": "governance/check/adr-placeholders/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -174,8 +174,8 @@
       }
     },
     {
-      "crate_name": "oya-check-claim-ceiling",
-      "crate_manifest": "libs/oya-check-claim-ceiling/Cargo.toml",
+      "crate_name": "check-claim-ceiling",
+      "crate_manifest": "governance/check/claim-ceiling/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -224,8 +224,8 @@
       }
     },
     {
-      "crate_name": "oya-check-cost-budget",
-      "crate_manifest": "libs/oya-check-cost-budget/Cargo.toml",
+      "crate_name": "check-cost-budget",
+      "crate_manifest": "governance/check/cost-budget/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",
@@ -649,8 +649,8 @@
       }
     },
     {
-      "crate_name": "oya-check-slo-coverage",
-      "crate_manifest": "libs/oya-check-slo-coverage/Cargo.toml",
+      "crate_name": "check-slo-coverage",
+      "crate_manifest": "governance/check/slo-coverage/Cargo.toml",
       "owner_batch": "governance-check-gates",
       "owner_unit": "governance-check-crates",
       "required_action": "cite_existing_adr",

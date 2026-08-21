@@ -10,7 +10,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const REGION_REF_SCHEMA_VERSION: u32 = 1;
 const REGULATOR_OVERLAY_SCHEMA_VERSION: u32 = 1;

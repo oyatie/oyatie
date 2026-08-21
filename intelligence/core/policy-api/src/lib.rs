@@ -12,7 +12,7 @@ use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityAction,
 use intelligence_policy_domain::{
     AutonomyCapReason, AutonomyCapSource, AutonomyDecision, AutonomyVerdict, TenantPolicy,
 };
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     AgeBand, DataClass, PrivacyDataClass, SubjectClass, parse_data_class_label,
 };
 

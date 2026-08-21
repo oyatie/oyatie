@@ -9,7 +9,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use ci_cross_artifact_agreement::{MASTERPLAN_MD_PATH, derive_masterplan_md_projection};
 use ci_planning_projection::render_board_sync_projection;
-use oya_workspace_members_kernel::resolve_member_dirs;
+use workspace_members_kernel::resolve_member_dirs;
 
 mod masterplan_source;
 mod rust_toolchain_drift;

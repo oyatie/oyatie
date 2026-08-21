@@ -34,9 +34,9 @@
 use core::future::Future;
 use core::pin::Pin;
 
-use oya_shared_postgres_command_adapter_sqlx::assert_rls_enforceable as assert_rls_enforceable_shared;
-use oya_shared_postgres_command_kernel::{RlsEnforceabilityError, SET_LOCAL_TENANT_SQL};
-use oya_shared_scim_server_kernel::{
+use shared_postgres_command_adapter_sqlx::assert_rls_enforceable as assert_rls_enforceable_shared;
+use shared_postgres_command_kernel::{RlsEnforceabilityError, SET_LOCAL_TENANT_SQL};
+use shared_scim_server_kernel::{
     Group, GroupStore, ScimId, ScimStoreError, TenantId, User, UserStore,
 };
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
@@ -823,7 +823,7 @@ mod tests {
         // at boot. Asserting the SAME list the guard passes EXACTLY equals the
         // migration's FORCE'd-table set makes that drift impossible. DB-free —
         // pure string comparison, runs in the always-on unit lane.
-        use oya_shared_postgres_command_kernel::force_rls_tables;
+        use shared_postgres_command_kernel::force_rls_tables;
         let migration = include_str!("../migrations/0001_identity_scim_store.sql");
         let mut from_migration = force_rls_tables(migration);
         from_migration.sort();

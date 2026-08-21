@@ -8,8 +8,8 @@ use std::collections::BTreeSet;
 use std::fmt;
 
 use intelligence_capability_domain::Capability;
-use oya_check_cost_budget::BudgetSnapshot;
-use oya_data_boundary_kernel::{
+use check_cost_budget::BudgetSnapshot;
+use data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, data_classes_from_privacy_data_classes,
     privacy_data_classes_from,
 };

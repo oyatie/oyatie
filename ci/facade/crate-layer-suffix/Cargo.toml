@@ -23,11 +23,8 @@ doctest = false
 
 [dependencies]
 serde_json = { workspace = true }
-oya-governance-predictable-naming-kernel = { path = "../../../libs/oya-governance-predictable-naming-kernel" }
-# The §2.5#4 naming policy (prefix/role-enum/adopted-pattern tables) is now sourced from the
-# oya-ci config (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3): the gate maps `[naming]` onto the kernel's
-# injected NamingPolicy and calls check_with_policy. Bundled default == today's consts (byte-parity).
-oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
+check-predictable-naming-kernel = { path = "../../../governance/check/predictable-naming-kernel" }
+ci-config-kernel = { path = "../../core/ci-config-kernel" }
 
 [dev-dependencies]
 # The shared independent corpus census the born-blocking self-test re-derives the oya-* crate set

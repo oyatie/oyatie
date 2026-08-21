@@ -8,7 +8,7 @@ use intelligence_mcp_gateway_domain::{
     McpGatewayDescriptor, McpGatewayError, McpPrincipal, McpRateLimitPolicy, McpRateLimiter,
     McpTenantEndpoint, authorize_tool_call, validate_access_token,
 };
-use oya_data_boundary_kernel::{DataClass, privacy_data_classes_from};
+use data_boundary_kernel::{DataClass, privacy_data_classes_from};
 
 #[test]
 fn tenant_endpoint_and_descriptor_project_mcp_tools_and_prompts() {

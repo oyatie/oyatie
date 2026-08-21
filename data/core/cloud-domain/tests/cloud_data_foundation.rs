@@ -7,7 +7,7 @@ use network_residency::{
     PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     ResidencyClass,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 const TENANT: &str = "ten_acme";
 const REGION: &str = "region-alpha1";

@@ -79,7 +79,7 @@ fn live_workspace_is_born_blocking_green_zero_ring_activation() {
     // its useless value: an INDEPENDENT derivation of the corpus, compared as a SET.
     //
     // `ci/adapters/corpus-census` resolves the live workspace members through the canonical
-    // `oya_workspace_members_kernel` with its own from-scratch manifest parse — nothing in common
+    // `workspace_members_kernel` with its own from-scratch manifest parse — nothing in common
     // with this gate's `visit_files` walk, so a bug in that walk cannot hide behind the census
     // reusing it. Every workspace member holds a `Cargo.toml`, so every member directory MUST
     // appear in the walk; if one stops appearing, the walk collapsed and the diagnostic names it.

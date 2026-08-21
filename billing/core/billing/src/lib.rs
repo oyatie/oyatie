@@ -14,7 +14,7 @@ use billing_metering::{
 };
 use cell_region::RegionCode;
 use compute_resource::ResourceId;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const BILLING_ACCOUNT_SCHEMA_VERSION: u32 = 1;
 const CLOUD_BILLING_EVENT_SCHEMA_VERSION: u32 = 1;

@@ -517,7 +517,7 @@ fn validate_consent_grant_id(grant_id: &str) -> Result<(), KnowledgeGraphQueryEr
 mod tests {
     use super::*;
     use data_ontology_kernel::{ObjectEntity, ObjectProperty, PropertyTier};
-    use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+    use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
     fn property(name: &str) -> ObjectProperty {
         ObjectProperty::new(

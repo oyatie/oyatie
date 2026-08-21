@@ -14,13 +14,10 @@ tenancy-tenant-lifecycle-store-inmemory = { path = "../../adapters/tenant-lifecy
 tenancy-tenant-lifecycle-store-postgres = { path = "../../adapters/tenant-lifecycle-store-postgres" }
 tenancy-tenant-lifecycle-authz-port = { path = "../../ports/tenant-lifecycle-authz" }
 tenancy-tenant-lifecycle-authz-pdp = { path = "../../adapters/tenant-lifecycle-authz-pdp" }
-oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
-oya-shared-resource-provider-contract-kernel = { path = "../../../libs/oya-shared-resource-provider-contract-kernel" }
+shared-platform-contracts-kernel = { path = "../../../base/shared-platform-contracts-kernel" }
+shared-resource-provider-contract-kernel = { path = "../../core/shared-resource-provider-contract-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
-# "sync" adds tokio::sync::Mutex (the async composition-root lock held across
-# the now-async provider `.await`s); the workspace default already brings
-# rt-multi-thread/net/macros.
 tokio = { workspace = true, features = ["sync"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true }

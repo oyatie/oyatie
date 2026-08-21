@@ -51,7 +51,7 @@ use std::collections::{BTreeMap, BTreeSet, VecDeque};
 use std::fs;
 use std::path::Path;
 
-use oya_buck_syntax_kernel::{ExprNode, Stmt, call_strings, expr_strings, parse};
+use buck_syntax_kernel::{ExprNode, Stmt, call_strings, expr_strings, parse};
 use serde_json::{Value, json};
 
 /// The gate id, matching the buck2 target + the policy `gate_id`.

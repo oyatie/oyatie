@@ -12,7 +12,7 @@ license = "Apache-2.0"
 # collector integration and production composition roots.
 
 [dependencies]
-oya-shared-hyperscaler-metrics-kernel = { path = "../oya-shared-hyperscaler-metrics-kernel" }
+shared-hyperscaler-metrics-kernel = { path = "../../comms/core/shared-hyperscaler-metrics-kernel" }
 opentelemetry.workspace = true
 opentelemetry-otlp.workspace = true
 opentelemetry_sdk.workspace = true

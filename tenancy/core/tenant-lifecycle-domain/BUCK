@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
-        "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "//base/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//tenancy/core/shared-resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:serde",
     ],
 )
@@ -18,8 +18,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
-        "//libs/oya-shared-resource-provider-contract-kernel:oya-shared-resource-provider-contract-kernel",
+        "//base/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+        "//tenancy/core/shared-resource-provider-contract-kernel:shared-resource-provider-contract-kernel",
         "third-party//:serde",
     ],
 )

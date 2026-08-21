@@ -260,7 +260,7 @@ records the rule; the corpus is brought to it by separate, evidenced changes.
 
 ### ADR-626 residual
 
-**Resolve fixup-ledger merges structurally instead of by hand** — Ship a structural three-way merge driver, following the two drivers already in the repo (`tools/oya-cargo-lock-merge-driver-app`, `tools/oya-friction-ledger-merge-driver-app`). **D1 — Pure kernel, thin binary.** The merge is a pure function over parsed rows with zero I/O, so it is fixture-drivable; the binary is only the `%O %A %B` git contract plus an atomic write. Same split as both sibling driv
+**Resolve fixup-ledger merges structurally instead of by hand** — Ship a structural three-way merge driver, following the two drivers already in the repo (`build/cargo-lock-merge-driver-app`, `build/friction-ledger-merge-driver-app`). **D1 — Pure kernel, thin binary.** The merge is a pure function over parsed rows with zero I/O, so it is fixture-drivable; the binary is only the `%O %A %B` git contract plus an atomic write. Same split as both sibling driv
 
 ### ADR-4 residual
 
@@ -324,7 +324,7 @@ records the rule; the corpus is brought to it by separate, evidenced changes.
 
 ### ADR-558 residual
 
-**Friction-ledger structural merge driver: id-aware union + second-author conversion** — Ship `tools/oya-friction-ledger-merge-driver-app`, a structural three-way merge driver for the friction ledger, registered as `/.omc/ultragoal/friction-ledger.jsonl merge=friction-ledger` in `.gitattributes`, with these pinned semantics: - **Id-aware union.** Base rows preserved in base order (append-only doctrine: a side-deleted base row is preserved; legitimate redaction is a linearised commit o
+**Friction-ledger structural merge driver: id-aware union + second-author conversion** — Ship `build/friction-ledger-merge-driver-app`, a structural three-way merge driver for the friction ledger, registered as `/.omc/ultragoal/friction-ledger.jsonl merge=friction-ledger` in `.gitattributes`, with these pinned semantics: - **Id-aware union.** Base rows preserved in base order (append-only doctrine: a side-deleted base row is preserved; legitimate redaction is a linearised commit o
 
 ### ADR-23 residual
 
@@ -632,7 +632,7 @@ records the rule; the corpus is brought to it by separate, evidenced changes.
 
 ### ADR-568 residual
 
-**born-accounting register_crate: the pure registrar kernel (RegisterCrateRequest → RegistrationPlan)** — Introduce **`libs/oya-crate-registrar-kernel`**: the PURE planner half of `register_crate` (G011 pipeline-as-product, slice 1). It composes a [`RegisterCrateRequest`] with a [`CurrentState`] snapshot of the born-accounting SSOTs and computes an ordered, typed [`RegistrationPlan`] — the set of edits that make a new crate fully born-accounted. It is a diff/upsert: re-planning against an already-regi
+**born-accounting register_crate: the pure registrar kernel (RegisterCrateRequest → RegistrationPlan)** — Introduce **`ci/core/crate-registrar-kernel`**: the PURE planner half of `register_crate` (G011 pipeline-as-product, slice 1). It composes a [`RegisterCrateRequest`] with a [`CurrentState`] snapshot of the born-accounting SSOTs and computes an ordered, typed [`RegistrationPlan`] — the set of edits that make a new crate fully born-accounted. It is a diff/upsert: re-planning against an already-regi
 
 ### ADR-397 residual
 
@@ -660,7 +660,7 @@ records the rule; the corpus is brought to it by separate, evidenced changes.
 
 ### ADR-555 residual
 
-**Unaccounted artifacts are unmergeable: advisory→blocking accounting conversion + the structural accounting model** — ### D1 — Convert the exists-but-unaccounted codes to blocking, grandfathered at the merge-base The disposition table (`libs/oya-ci-config/src/bundled/gate-disposition.json` — DATA, not code) flips: | gate | code | was | now | live keys grandfathered | |---|---|---|---|---| | cloud-ci-total-accounting | `unowned` | advisory-until-infra | **baseline-block-on-new** | 16,924 (pre-seed) | | cloud-ci-to
+**Unaccounted artifacts are unmergeable: advisory→blocking accounting conversion + the structural accounting model** — ### D1 — Convert the exists-but-unaccounted codes to blocking, grandfathered at the merge-base The disposition table (`ci/core/ci-config-kernel/src/bundled/gate-disposition.json` — DATA, not code) flips: | gate | code | was | now | live keys grandfathered | |---|---|---|---|---| | cloud-ci-total-accounting | `unowned` | advisory-until-infra | **baseline-block-on-new** | 16,924 (pre-seed) | | cloud-ci-to
 
 ### ADR-8 residual
 
