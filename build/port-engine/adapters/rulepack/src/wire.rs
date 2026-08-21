@@ -64,6 +64,8 @@ pub(crate) struct RulepackDocument {
     #[serde(default)]
     pub(crate) value_map: BTreeMap<String, FunctionMappingRule>,
     #[serde(default)]
+    pub(crate) channel_forms: Option<ChannelFormsRule>,
+    #[serde(default)]
     pub(crate) format_calls: Option<FormatCallsRule>,
     #[serde(default)]
     pub(crate) target_imports: Option<TargetImportsRule>,
@@ -234,4 +236,16 @@ pub(crate) struct RuleDocument {
     pub(crate) proof_obligations: Vec<String>,
     #[serde(default)]
     pub(crate) selecting_fixtures: Vec<SelectingFixture>,
+}
+
+/// How the source's channel and its scheduler statements are spelled in the target.
+#[derive(Debug, serde::Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ChannelFormsRule {
+    pub(crate) sender: String,
+    pub(crate) receiver: String,
+    pub(crate) send: String,
+    pub(crate) receive: String,
+    pub(crate) spawn: String,
+    pub(crate) reason: String,
 }

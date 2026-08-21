@@ -62,6 +62,7 @@ pub struct Pack {
     pub failure: Option<FailureConvention>,
     pub functions: BTreeMap<String, FunctionMapping>,
     pub values: BTreeMap<String, FunctionMapping>,
+    pub channel: port_engine_api::ChannelForms,
     /// Empty by default: these tests are not about overflow, and an empty table leaves the plain
     /// operator, which is what they assert on.
     pub arithmetic: IntegerArithmetic,
@@ -394,6 +395,12 @@ impl PackSemantics for Pack {
     /// would be answering a question they do not ask.
     fn value_map(&self) -> &BTreeMap<String, FunctionMapping> {
         &self.values
+    }
+
+    /// EMPTY, deliberately: these fixtures name no channel, and a pack that answered for one would
+    /// be answering a question they do not ask.
+    fn channel_forms(&self) -> &port_engine_api::ChannelForms {
+        &self.channel
     }
     fn failure_convention(&self) -> Option<&FailureConvention> {
         self.failure.as_ref()

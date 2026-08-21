@@ -129,6 +129,7 @@ pub fn stub_item() -> RustItem {
         params: Vec::new(),
         ret: None,
         attrs: Vec::new(),
+        is_async: false,
         body: Some(Vec::new()),
     })
 }

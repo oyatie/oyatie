@@ -7863,3 +7863,58 @@ correct answer for a value nobody has decided.
 
 The test pack implements the new seam EMPTY and says why: its fixtures name no foreign package, so a
 pack that answered for one would be answering a question they do not ask.
+
+## R5l — Phase 3 begins: a channel is a PAIR, and the first end compiles
+
+    pub async fn produce(out: tokio::sync::mpsc::Sender<i64>, values: &[i64]) {
+        for value in values.iter().copied() {
+            out.send(value).await.expect("send on a closed channel");
+        }
+    }
+
+That builds against real `tokio`, with no errors and no warnings, under `#![forbid(unsafe_code)]`.
+It is the first item of the operator's canonical checklist — `chan T` to `tokio::sync::mpsc` —
+standing up in emitted code.
+
+### The shape of the problem, and why there is no channel TYPE
+
+The source's channel is ONE value carrying both ends. The target's is a pair: a sender that clones
+and a receiver that does not. So the pack has no "channel type" entry and could not have one — which
+end a site holds is a fact about where the channel is USED. A parameter the body only sends on is a
+sender; one it only receives from is a receiver; one that does both has no single end and REFUSES,
+saying so.
+
+### What was built
+
+- `ChannelForms` as its own seam, carrying the sender, the receiver, the send, the receive and the
+  spawn, with the reason naming what `mpsc` keeps and what it drops. EMPTY means undecided, and
+  every one of those constructs refuses by name rather than picking a primitive on the author's
+  behalf.
+- `channels::end_held`, which reads the direction off the body.
+- `RustExpr::Await` — its own node and not a method call named `await`, because the target parses it
+  as a postfix keyword and there is no such call.
+- `RustFn::is_async`, because `.await` is legal only inside an `async` body: the signature and the
+  statement that awaits read ONE answer. A `go` does not colour its enclosing function — the spawn
+  hands the work over and returns, which is the whole of what the source's `go` says.
+- The send built as a TREE from the pack's form, read for its shape rather than substituted into.
+
+### Two defects it surfaced, both older than it
+
+- `for v := range xs` over a BORROWED slice emitted `for v in xs`, handing the body a reference
+  where the source hands it a copy. Every use downstream then had one type too many. Go's range
+  copies; `.iter().copied()` is that, and the counted loop already did it.
+- The first fix asked the SOURCE whether the element was basic. Go's `string` is basic and the
+  target's `String` is not copyable, so `[]string` came out `.copied()` and broke `chi` and
+  `xxhash`. The pack already answers this through `moves_on_read`, and one answer asked in one place
+  is the fix.
+
+The front end now types the ranged expression: it types an expression only where a rule asks, and
+this is a rule asking.
+
+### Where it stops, exactly
+
+`Consume` and `Start` still refuse. The receive is NOT the send mirrored: the source's receive on a
+CLOSED channel yields the zero value and keeps going, and `recv()` yields `None` — so a bare `<-ch`
+is `recv().await.unwrap_or_default()` and the comma-ok form is the `Option` itself, and a `select`
+arm over a closed channel fires forever in the source and is disabled in the target. That is three
+different answers and none of them is written yet.

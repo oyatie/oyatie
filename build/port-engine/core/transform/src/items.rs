@@ -189,6 +189,9 @@ fn build_fn(
         ret: results(declaration, resolver)?,
         attrs: crate::params::inline_attrs(Some(&body), visibility(declaration), resolver),
         body: Some(body),
+        // The signature says whether the body may yield, because `.await` is legal only inside an
+        // `async` one -- the same answer the statement that awaits reads.
+        is_async: crate::channels::suspends(declaration),
     };
 
     // A package-level CONSTRUCTOR belongs on the type, not beside it.
@@ -268,6 +271,7 @@ pub(crate) fn build_unit_item(construction: &str, region: &str) -> Option<RustIt
         // A canary carries none: it is the engine's own marker, not a ported declaration.
         attrs: Vec::new(),
         body: Some(Vec::new()),
+        is_async: false,
     }))
 }
 

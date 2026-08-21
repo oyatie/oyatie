@@ -218,6 +218,13 @@ pub enum RustExpr {
         /// test is most often wrong and least often noticed.
         inclusive: bool,
     },
+    /// `<inner>.await` — the point a task may yield to its executor.
+    ///
+    /// Its own node rather than a method call named `await`, because it is not one: the target
+    /// parses it as a postfix keyword, and a call by that name does not exist. Modelling it as a
+    /// call would also let it be built anywhere a call is, and it is legal only inside an `async`
+    /// body — which is a property of the function, not of the expression.
+    Await(Box<RustExpr>),
     /// `&<inner>` or `&mut <inner>`
     Reference {
         /// `true` for `&mut`.
@@ -286,6 +293,7 @@ impl RustExpr {
             | Self::Field { .. }
             | Self::TupleIndex { .. }
             | Self::Call { .. }
+            | Self::Await(_)
             | Self::MethodCall { .. }
             | Self::MacroCall { .. }
             | Self::VecRepeat { .. }

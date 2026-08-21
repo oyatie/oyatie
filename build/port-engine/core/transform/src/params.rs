@@ -84,7 +84,13 @@ pub(crate) fn params_at(
             // type exists only to be converted, and a NEGATIVE argument the source would reject
             // with a bounds check becomes one the target rejects at the call. Stricter, never
             // different: no value the source accepts here is one the target does not.
-            let ty = if crate::index_params::indexes_only_parameter(declaration, param, resolver) {
+            // A CHANNEL PARAMETER IS ONE END OF ONE, and which end is a fact about this body rather
+            // than about the type: the source's channel value carries both, and the target's does
+            // not. A body that only sends holds the sender; one that only receives holds the
+            // receiver; one that does both holds neither, and refuses.
+            let ty = if param.type_ref.kind == crate::vocabulary::TYPE_CHANNEL {
+                channel_parameter(declaration, param, resolver)?
+            } else if crate::index_params::indexes_only_parameter(declaration, param, resolver) {
                 RustType::path("usize")
             } else if is_reference_kind(&param.type_ref) {
                 RustType::path(reference_target(
@@ -266,4 +272,60 @@ pub(crate) fn inline_attrs(
         attrs.push(method.to_owned());
     }
     attrs
+}
+
+/// The target type for a parameter the source declares as a channel.
+///
+/// # Errors
+/// [`TransformError::Unsupported`] where the pack names no channel, or where this body holds both
+/// ends of one -- a shape the target's pair has no single type for.
+fn channel_parameter(
+    declaration: &Declaration,
+    param: &Declaration,
+    resolver: &Resolver<'_>,
+) -> Result<RustType, TransformError> {
+    let forms = resolver.channel;
+    if forms.sender.is_empty() {
+        return Err(TransformError::Unsupported {
+            name: declaration.name.clone(),
+            detail: "a channel parameter has no target form, because the pack names no channel"
+                .to_owned(),
+        });
+    }
+    let element = param
+        .type_ref
+        .args
+        .first()
+        .ok_or_else(|| TransformError::Unsupported {
+            name: declaration.name.clone(),
+            detail: "a channel parameter carries no element type".to_owned(),
+        })?;
+    let element = resolver.resolve(element, &declaration.name)?.spelling();
+    let body = declaration
+        .children_of_kind(crate::vocabulary::CHILD_BODY)
+        .first()
+        .copied()
+        .ok_or_else(|| TransformError::Unsupported {
+            name: declaration.name.clone(),
+            detail: "a channel parameter needs a body to say which end this function holds, and \
+                     this declaration has none"
+                .to_owned(),
+        })?;
+    let form = match crate::channels::end_held(body, &param.name) {
+        Some(crate::channels::End::Sender) => &forms.sender,
+        Some(crate::channels::End::Receiver) => &forms.receiver,
+        None => {
+            return Err(TransformError::Unsupported {
+                name: declaration.name.clone(),
+                detail: format!(
+                    "`{}` is a channel this body holds BOTH ends of, or neither. The source's \
+                     channel value carries both and the target's is a pair, so there is no single \
+                     type for a site that sends and receives on one -- it is two values there, and \
+                     which of them each use wants is not something the parameter can say",
+                    param.name
+                ),
+            });
+        }
+    };
+    Ok(RustType::path(form.replace("{0}", &element)))
 }

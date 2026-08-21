@@ -241,8 +241,19 @@ func rangeNode(stmt *ast.RangeStmt, ctx *extractCtx) node {
 	out := node{Kind: kindRange}
 	out.Attrs = withAttr(out.Attrs, "key", identName(stmt.Key))
 	out.Attrs = withAttr(out.Attrs, "value", identName(stmt.Value))
+	// WHAT IS RANGED, typed. The source's `range` binds a COPY of each element, and whether the
+	// target can copy one is a property of the element -- so the transform needs the type and the
+	// bare identifier does not carry it: the front end types an expression only where a rule asks,
+	// and this is a rule asking. Without it a range over a borrowed slice handed the body a
+	// reference where the source handed it a value, and every use downstream had one type too many.
+	over := expressionNode(stmt.X, ctx)
+	if over.Type == nil {
+		if typed := ctx.info.TypeOf(stmt.X); typed != nil {
+			over.Type = typeTree(typed)
+		}
+	}
 	out.Children = append(out.Children,
-		node{Kind: "over", Children: []node{expressionNode(stmt.X, ctx)}},
+		node{Kind: "over", Children: []node{over}},
 		node{Kind: kindThen, Children: statementNodes(stmt.Body.List, ctx)},
 	)
 	return out

@@ -25,7 +25,7 @@ mod type_ref;
 
 pub use declaration::Declaration;
 pub use error::PortError;
-pub use value_rules::{Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
+pub use value_rules::{Allocation, BinaryString, ChannelForms, BitPatternConstants, ByteOrderCalls, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
 pub use failure::{
     DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };

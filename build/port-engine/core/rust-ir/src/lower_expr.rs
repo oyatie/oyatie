@@ -291,6 +291,10 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 false => Ok(quote! { #start..#end }),
             }
         }
+        RustExpr::Await(inner) => {
+            let inner = lower_postfix_base(inner)?;
+            Ok(quote! { #inner.await })
+        }
         RustExpr::Reference { mutable, inner } => {
             let inner = lower_postfix_base(inner)?;
             if *mutable {
