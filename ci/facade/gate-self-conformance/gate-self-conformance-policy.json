@@ -212,6 +212,7 @@
     "gate-self-conformance": "Gate self-conformance findings require changing gate code, Buck2 wiring, workflow registration, or policy exceptions; automatic rewrites would hide the review decision.",
     "generated-artifact-freshness": "Freshness failures require regenerating generated faces from authoritative sources or fixing the source drift; automatic mutation is separated into explicit materializer binaries.",
     "generated-artifact-policy": "Generated artifact policy findings require classifying artifact authority and generated-path ownership, not blind path edits.",
+    "gitops-chart-license": "An undeclared or plane-forbidden chart pull is fixed by a reviewed policy decision -- which license the upstream project actually carries, and which plane (ops-internal vs tenant-facing) the chart serves; the gate cannot author that classification automatically.",
     "graphql-usage-policy": "GraphQL reintroduction requires an explicit reversing ADR or removal; the gate cannot author that decision automatically.",
     "helm-chart-shape": "A non-manifest file under templates/ can be fixed two incompatible ways \u2014 move it out of the chart, or list it in .helmignore \u2014 and only the author knows whether the file must stay for Buck wiring. Choosing for them would silently delete build wiring or silently hide a stray manifest.",
     "hook-wiring": "Enforcement liveness failures require wiring real hook/settings/controller surfaces; the gate cannot safely invent enforcement.",
