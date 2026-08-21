@@ -62,6 +62,7 @@
     "ci-tide-github-adapter",
     "ci-tide-kernel",
     "ci-topology-manifest-contract",
+    "ci-webhook-gateway-ports",
     "ci-workspace-member-coverage",
     "compute-dcops",
     "compute-resource",
