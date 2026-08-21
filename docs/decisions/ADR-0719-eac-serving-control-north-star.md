@@ -119,8 +119,8 @@ are **IR modules** on the cloud, not private Helm worlds.
 - **overturn_when:** a pack or Data-Act export format is separately Accepted as
   **control-plane dump**, not as the serving API.
 
-W0 may still transcode leftover REST until the gateway is the only door. That transcode is
-migration, not the star.
+Leftover REST/JSON public shapes are **reorg_now deletion**, not a supported codec.
+Temporarily breaking callers is accepted; a dual REST+proto product API is not.
 
 ### D-4 — Protocol (no pre-2016 compatibility as destination)
 
@@ -187,53 +187,55 @@ the audit log. Do not invent a destination for leftovers; many must **not exist*
 `rustfmt.toml`, `deny.toml`, `reindeer.toml`, `.buckconfig`, `.buckroot`, `.cargo/`.
 GitHub: `.github/`, `.gitignore`, `.gitattributes`. Hubs: `README.md`, `LICENSE`,
 `OWNERS`, `AGENTS.md`, `CLAUDE.md`, founder-thin `HANDOFF.md`. Meta: `kernel/`, `os/`,
-`base/` (crate enters only if ≥3 capabilities depend on it and it sits strictly below
-them), `governance/`, `build/`, `third-party/`. Composition: `app/`. One directory per
-**registered** capability (including `policy/` when extracted). Jurisdiction: `packs/<id>/`
-as one versioned bundle the engines load (Cedar + ontology + constraints), not per-cap
-copies. `docs/` holds ADRs and the operating contract, not product novels.
+`base/` (≥3 caps and strictly below them, else it is not `base/`), `build/`,
+`third-party/`. `governance/` is a **capability** (checks + `capability-registry.json`).
+`specs/` is the **singleton org machine-readable tree gates already load** (root-hub,
+masterplan, schemas); shrink unused rows, do not dual-home under `governance/` or
+`registry/`. Composition: `app/`. One directory per **registered** capability
+(including `policy/` the **engine**). Jurisdiction: `packs/<id>/` one versioned bundle
+the engines load. `docs/` = ADRs + operating contract.
 
-**Not repo-root (reorg_now or should-not-exist):** `oya/`, `cloud/`, `libs/`, `infra/`,
-`tools/`, `toolchains/`; root `Makefile`; root `Dockerfile*` (images live under `build/`);
-`oya-*.toml`; tracked `.claude/` `.codex/` `.cursor/` `.grok/`; `evidence/` dumps;
-`benchmarks/`; `scripts/`; `tasks/` / `plan/` as required-existence corpora; `catalog.yaml`
-trees; root `contracts/` YAML as a second SSOT (IDL is the Rust/proto contract). Root
-`specs/` / `registry/` that duplicate `governance/` or that engines do not load are
-removal targets, not keep-forever.
+**Not repo-root:** `oya/`, `cloud/`, `libs/`, `infra/`, `tools/`, `toolchains/`
+(reorg_now); root `Makefile`; root `Dockerfile*` (→ `build/`); `oya-*.toml`; tracked
+agent dirs; `evidence/` dumps; `benchmarks/`; `scripts/`; `tasks/`/`plan/` as required
+corpora; `catalog.yaml` trees; root `contracts/` YAML as IDL; root `registry/` as a
+third org tree.
 
-**Capability root and `app/<product>/` (closed children):** `core/`, `ports/`, `adapters/`,
-`facade/`, `policy/` (`.cedar` / `.cedarschema` the PDP loads — **one** name, not also
-`cedar/`), `observability/slos/` (OpenSLO the controller applies), `iac/` (**IR / objects
-the reconciler applies**, not Helm/Tofu/raw Deployment as source), `OWNERS`, short
-`README.md`, `BUCK`. `app/<product>/` may add `PRD.md`. Nested leftover service trees
-(`oya-*`, `comms/mail`, `ci/tide`, …) are the old service: become faces or go.
+**Capability root and `app/<product>/` (closed children):** `core/`, `ports/`,
+`adapters/`, `facade/`, `cedar/` (**.cedar unique to this cap** — schema and resource
+policies the PDP compiles; platform templates live under the `policy/` **capability**,
+not stamped here), `observability/slos/` (**generated OpenSLO from IR only** — hand-authored OpenSLO,
+including “unique” files, is debt; clones already forbidden), `iac/` (IR the reconciler
+applies, not Helm/Tofu source), `OWNERS`,
+short `README.md`, `BUCK`. `app/<product>/` may add `PRD.md`. No cap-root `contracts/`
+(IDL is Rust → proto on `ports/` / generated faces). No cap-root `policy/` (that name
+is the engine at repo root). Nested leftover service trees become faces or go.
 
 **Must not exist at cap/app root:** `manifest.json` census, `catalog.yaml`, `IPs/`,
 `IP-journey-*.md`, `AUDIT-FINDINGS-*.json`, `REMEDIATION-NOTES-*.md`, `scorecards/`,
-`dashboards/*.json`, `dpia/`, `decisions/` copies of ADRs, `capabilities/*.yaml` essays,
-stamped runbooks, dual `ARCH.md`/`ARCHITECTURE.md`, placeholder READMEs. Gates that
-require those files to exist are the reason they exist; delete the gate with the files.
+`dashboards/*.json`, `dpia/`, `decisions/` copies, `capabilities/*.yaml` essays,
+stamped runbooks, stamped `tenant-scope.cedar` copies, dual ARCH files, placeholder
+READMEs. Delete the gate with the files.
+
+**Public door:** proto/H3 is the product. REST/JSON leftover is **deleted**, not
+transcoded as a standing codec. No new public REST shapes. Console/SDK/gates that
+still speak REST may go red until they speak proto — that break is in-scope hygiene.
 
 **MUST (closed children)**
 
-- **achieves:** cap/app roots stay engine-shaped; mechanical reorg cannot re-stamp census.
-- **origin:** 0701 gists and membership gates required manifests/IPs/scorecards; #2220
-  allowed `catalog.yaml` and both `cedar/` and `policy/` and grandfathered junk.
-- **rule:** only the closed child set above; one Cedar directory name (`policy/`); PRD
-  only on apps; `iac/` is IR; extras are deleted, not rehomed.
-- **ensure:** layout allowlists match this set; no grandfather of `IPs/` as immortal.
-- **overturn_when:** a child is shown to be loaded by a compiler/PDP/SLO/reconciler AND
-  a five-field amendment lands same-wave.
-
-**Founder-locked defaults (2026-08-21, no further shape debate):**
-
-| Fork | Locked default |
-|---|---|
-| Cedar directory | `policy/` only. Existing `cedar/` trees rehome or delete; allowlists must not list both. |
-| Cap-root `contracts/` | Absent. IDL is Rust → proto on `ports/` and generated faces. |
-| OpenSLO | `observability/slos/` — controller-native OpenSLO; not a product codec; not proto-only until a later ADR. |
-| Singleton org law | `governance/` + `docs/decisions/`. Root `specs/` / `registry/` that engines do not load shrink away; do not recreate a second org-spec tree. |
-| Public door | Destination = proto/H3. W0 may transcode leftover REST at the gateway. Cutting REST on this Accept is rejected. |
+- **achieves:** engine vs data names do not collide; N copies of platform Cedar/SLO
+  cannot reappear; org law has one tree gates already load.
+- **origin:** naming `policy/` for both the PDP and per-cap Cedar followed the live
+  tree; OpenSLO-as-authoring and REST transcode are Helm-shaped dual stacks; dual
+  `cedar/`+`policy/` allowlists encoded the collision.
+- **rule:** cap-root `cedar/` only; `policy/` is the capability; SLO source is IR;
+  `specs/` is org-data SSOT; `ports/` is the contract face; extras and REST/JSON
+  product surfaces deleted, not grandfathered. Temporarily breaking live callers/gates
+  is accepted. Leaving anti-pattern debt is not.
+- **ensure:** layout allowlists match this set; no immortal `IPs/`; no both `cedar/` and
+  `policy/` as cap children.
+- **overturn_when:** a child is loaded by a compiler/PDP/SLO/reconciler AND a five-field
+  amendment lands same-wave.
 
 ## Consequences
 
@@ -250,7 +252,10 @@ require those files to exist are the reason they exist; delete the gate with the
 - EU GDPR as the sole compliance floor.
 - Mega EaC orchestrator / remote PDP on the hit path.
 - Sync Merkle on every `Check`.
-- Cap-root `catalog.yaml` / `manifest.json` / dual `cedar/`+`policy/` as allowlist debt.
+- Cap-root `catalog.yaml` / `manifest.json` as allowlist debt.
+- Cap-root `policy/` for Cedar files (collides with the `policy/` engine) or dual `cedar/`+`policy/` children.
 - Rehoming AUDIT-FINDINGS, IPs, scorecards, DPIA essays into `docs/` instead of deleting.
 - Cap-root `contracts/` or root `contracts/*.yaml` as IDL SSOT.
-- Cutting public REST on Accept of this ADR (W0 transcode stands).
+- Hand-authored OpenSLO (clones or “unique”) as SLO source of truth.
+- Standing REST/JSON transcode “until SDK is ready” (that is dual-stack debt).
+- Hand-authored OpenSLO as a W0 source of truth.
