@@ -6,7 +6,7 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.24",
+    "version": "1.16.25",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
@@ -14,7 +14,7 @@
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
     "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit forever ci/process-kit (Rust-first; no tools/swarm birth on #1644; BAN agent-dotdirs forever homes), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
-    "prior_version": "1.16.20"
+    "prior_version": "1.16.24"
   },
   "admission": {
     "trunk": "dev",
@@ -318,11 +318,11 @@
     },
     "notes": {
       "branch": "integ/notes",
-      "envelope_globs": [
-        "app/notes/**"
-      ],
-      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/notes/**; rehome from oya/notes. Product subtree claims via integ/notes — integ/app is composition glue only.",
-      "forward_declared": true
+      "envelope_globs": [],
+      "note": "D41 retired 2026-08-21. Founder interview: retire notes; do NOT absorb into app/notes. Rail closed; tree deleted.",
+      "retired": true,
+      "closed": true,
+      "forward_declared": false
     },
     "observability": {
       "branch": "integ/observability",
@@ -429,19 +429,19 @@
     },
     "sites": {
       "branch": "integ/sites",
-      "envelope_globs": [
-        "app/sites/**"
-      ],
-      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/sites/**; rehome from oya/sites. Product subtree claims via integ/sites — integ/app is composition glue only (MUST NOT serialize N products).",
-      "forward_declared": true
+      "envelope_globs": [],
+      "note": "D41 retired 2026-08-21. Founder interview: retire sites; do NOT absorb into app/sites. Rail closed; tree deleted.",
+      "retired": true,
+      "closed": true,
+      "forward_declared": false
     },
     "slides": {
       "branch": "integ/slides",
-      "envelope_globs": [
-        "app/slides/**"
-      ],
-      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d). Forever path app/slides/**; rehome from oya/slides. Product subtree claims via integ/slides — integ/app is composition glue only.",
-      "forward_declared": true
+      "envelope_globs": [],
+      "note": "D41 retired 2026-08-21. Founder interview: retire slides; do NOT absorb into app/slides. Rail closed; tree deleted.",
+      "retired": true,
+      "closed": true,
+      "forward_declared": false
     },
     "storage": {
       "branch": "integ/storage",
@@ -474,11 +474,11 @@
     },
     "translate": {
       "branch": "integ/translate",
-      "envelope_globs": [
-        "app/translate/**"
-      ],
-      "note": "Forward-declared multi-month PRODUCT rail (programme plan rule 3d OVERRULE). Forever path app/translate/**; rehome from oya/translate. Product subtree claims via integ/translate — integ/app is composition glue only (MUST NOT serialize N products).",
-      "forward_declared": true
+      "envelope_globs": [],
+      "note": "D41/D42 retired 2026-08-21. Translate is a platform AI feature, not an app/translate product rail. Rail closed; tree deleted.",
+      "retired": true,
+      "closed": true,
+      "forward_declared": false
     },
     "treasury": {
       "branch": "integ/treasury",
@@ -3155,25 +3155,25 @@
       },
       {
         "path": "oya/translate/",
-        "action": "reorg_now",
-        "greenfield_destination": "app/translate/",
-        "destination": "app/translate/",
-        "shape": "stub-crate dump → app/<product>/ via integ/translate",
-        "redesign": "rewrite",
-        "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 84 files; stub oya-translate-domain only. 2) oya/ dump. 3) Translate product. 4) Dest app/translate/ via integ/translate. 5) Fit app/<product>/. 6) rewrite. 7) Forever: app/translate/.",
+        "action": "delete_permanently",
+        "greenfield_destination": "",
+        "destination": "",
+        "shape": "retired/closed — D41/D42; not an app/translate rail",
+        "redesign": "delete",
+        "disposition": "retire-delete; do not absorb into app/",
+        "rationale": "D41/D42 OVERRULE 2026-08-21: translate is a platform AI feature, not a product rail. Delete oya/translate/; do not create app/translate/.",
         "evidence": [
           "origin/dev oya/translate: rust=2 stub",
           "app/** via integ/translate"
         ],
-        "destination_integ": "integ/translate",
-        "land_status": "ready_for_integ_translate",
-        "land_when": "integ/translate absorb oya/translate/ → app/translate/; Phase 2 shrink-only: integ/oya delete oya/translate/",
-        "kind": "product-dump",
+        "destination_integ": "",
+        "land_status": "retired_closed_d41_d42",
+        "land_when": "tree deleted this wave; rail closed; no app/translate forever path",
+        "kind": "retired-product",
         "grammar_compliant": false,
         "judgment_status": "done",
         "name_now": "oya/translate/",
-        "name_forever": "app/translate/",
+        "name_forever": "",
         "lenses_applied": "scoped",
         "challenges": [
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
@@ -3187,24 +3187,24 @@
       },
       {
         "path": "oya/sites/",
-        "action": "reorg_now",
-        "greenfield_destination": "app/sites/",
-        "destination": "app/sites/",
-        "shape": "stub-crate dump → app/<product>/",
-        "redesign": "rewrite",
-        "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 85 files; stub oya-sites-domain. 2) oya/ dump. 3) Sites product. 4) Dest app/sites/. 5) Fit app/<product>/. 6) rewrite. 7) Forever: app/sites/.",
+        "action": "delete_permanently",
+        "greenfield_destination": "",
+        "destination": "",
+        "shape": "retired/closed — D41; not an app/sites rail",
+        "redesign": "delete",
+        "disposition": "retire-delete; do not absorb into app/",
+        "rationale": "D41 OVERRULE 2026-08-21: retire sites; do not app-absorb. Delete oya/sites/; do not create app/sites/.",
         "evidence": [
           "origin/dev oya/sites: rust=2 stub"
         ],
-        "destination_integ": "integ/sites",
-        "land_status": "ready_for_integ_sites",
-        "land_when": "integ/sites absorb oya/sites/ → app/sites/; Phase 2 shrink-only: integ/oya delete oya/sites/",
-        "kind": "product-dump",
+        "destination_integ": "",
+        "land_status": "retired_closed_d41",
+        "land_when": "tree deleted this wave; rail closed; no app/sites forever path",
+        "kind": "retired-product",
         "grammar_compliant": false,
         "judgment_status": "done",
         "name_now": "oya/sites/",
-        "name_forever": "app/sites/",
+        "name_forever": "",
         "lenses_applied": "scoped",
         "challenges": [
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
@@ -3312,25 +3312,25 @@
       },
       {
         "path": "oya/notes/",
-        "action": "reorg_now",
-        "greenfield_destination": "app/notes/",
-        "destination": "app/notes/",
-        "shape": "stub-crate dump → product rail app/notes/ (integ/notes)",
-        "redesign": "rewrite",
-        "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 106 files; stub oya-notes-domain only. 2) oya/ dump vs office notes sibling. 3) Notes product. 4) Dest app/notes/ per product rail. 5) Fit roots.notes forward_declared. 6) rewrite. 7) Forever: app/notes/.",
+        "action": "delete_permanently",
+        "greenfield_destination": "",
+        "destination": "",
+        "shape": "retired/closed — D41; not an app/notes rail",
+        "redesign": "delete",
+        "disposition": "retire-delete; do not absorb into app/",
+        "rationale": "D41 OVERRULE 2026-08-21: retire notes; do not app-absorb. Delete oya/notes/; do not create app/notes/.",
         "evidence": [
           "origin/dev oya/notes: 106 paths, rust=1 stub",
           "roots.notes → integ/notes app/notes/**"
         ],
-        "destination_integ": "integ/notes",
-        "land_status": "ready_for_integ_notes",
-        "land_when": "integ/notes absorb; integ/oya delete oya/notes/**",
-        "kind": "product-dump",
+        "destination_integ": "",
+        "land_status": "retired_closed_d41",
+        "land_when": "tree deleted this wave; rail closed; no app/notes forever path",
+        "kind": "retired-product",
         "grammar_compliant": false,
         "judgment_status": "done",
         "name_now": "oya/notes/",
-        "name_forever": "app/notes/",
+        "name_forever": "",
         "lenses_applied": "scoped",
         "challenges": [
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
@@ -3343,25 +3343,25 @@
       },
       {
         "path": "oya/slides/",
-        "action": "reorg_now",
-        "greenfield_destination": "app/slides/",
-        "destination": "app/slides/",
-        "shape": "stub-crate dump → product rail app/slides/ (integ/slides)",
-        "redesign": "rewrite",
-        "disposition": "rewrite-into-durable-shape",
-        "rationale": "1) 92 files; stub oya-slides-domain only. 2) oya/ dump vs real oya/office slide crates. 3) Slides product. 4) Dest app/slides/ per product rail. 5) Fit roots.slides forward_declared. 6) rewrite. 7) Forever: app/slides/.",
+        "action": "delete_permanently",
+        "greenfield_destination": "",
+        "destination": "",
+        "shape": "retired/closed — D41; not an app/slides rail",
+        "redesign": "delete",
+        "disposition": "retire-delete; do not absorb into app/",
+        "rationale": "D41 OVERRULE 2026-08-21: retire slides; do not app-absorb. Delete oya/slides/; do not create app/slides/.",
         "evidence": [
           "origin/dev oya/slides: 92 paths, rust=1 stub",
           "roots.slides → integ/slides app/slides/**"
         ],
-        "destination_integ": "integ/slides",
-        "land_status": "ready_for_integ_slides",
-        "land_when": "integ/slides absorb; integ/oya delete oya/slides/**",
-        "kind": "product-dump",
+        "destination_integ": "",
+        "land_status": "retired_closed_d41",
+        "land_when": "tree deleted this wave; rail closed; no app/slides forever path",
+        "kind": "retired-product",
         "grammar_compliant": false,
         "judgment_status": "done",
         "name_now": "oya/slides/",
-        "name_forever": "app/slides/",
+        "name_forever": "",
         "lenses_applied": "scoped",
         "challenges": [
           "chestertons_fence: oya/* strangler held product dumps before capability-first ADR-0562/0615 layout",
@@ -5336,27 +5336,27 @@
         "id": "W-oya-leaf-translate",
         "path": "oya/translate/",
         "judgment_status": "done",
-        "action": "reorg_now",
-        "redesign": "rewrite",
-        "destination_integ": "integ/translate",
-        "land_status": "ready_for_integ_translate",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "destination_integ": "",
+        "land_status": "retired_closed_d41_d42",
         "shrink_source_integ": "integ/oya",
         "status": "judgment_closed_on_integ_specs_oya_batch1b",
-        "note": "rule 3d OVERRULE: multi-month product rail integ/translate owns app/translate/**; integ/app composition glue only",
-        "two_phase_note": "Phase 1: integ/translate absorb oya/translate/ → app/translate/**; Phase 2: integ/oya shrink-only delete"
+        "note": "D41/D42 OVERRULE: translate is platform AI, not an app/translate rail; tree deleted",
+        "two_phase_note": "retired/closed; no Phase 1 app absorb"
       },
       {
         "id": "W-oya-leaf-sites",
         "path": "oya/sites/",
         "judgment_status": "done",
-        "action": "reorg_now",
-        "redesign": "rewrite",
-        "destination_integ": "integ/sites",
-        "land_status": "ready_for_integ_sites",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "destination_integ": "",
+        "land_status": "retired_closed_d41",
         "shrink_source_integ": "integ/oya",
         "status": "judgment_closed_on_integ_specs_oya_batch1b",
-        "note": "rule 3d OVERRULE: multi-month product rail integ/sites owns app/sites/**; integ/app composition glue only",
-        "two_phase_note": "Phase 1: integ/sites absorb oya/sites/ → app/sites/**; Phase 2: integ/oya shrink-only delete"
+        "note": "D41 OVERRULE: retire sites; do not absorb into app/sites; tree deleted",
+        "two_phase_note": "retired/closed; no Phase 1 app absorb"
       },
       {
         "id": "W-oya-leaf-docs-product",
@@ -5469,16 +5469,16 @@
             "note": "OVERRULE 1.16.12: close batch1b residual delete_permanently (row already reorg_now since 1.16.10); multi-destination decompose — authority first; NOT wholesale META dump"
           },
           "oya/translate/": {
-            "action": "reorg_now",
-            "destination_integ": "integ/translate",
+            "action": "delete_permanently",
+            "destination_integ": "",
             "shrink_source_integ": "integ/oya",
-            "land_status": "ready_for_integ_translate"
+            "land_status": "retired_closed_d41_d42"
           },
           "oya/sites/": {
-            "action": "reorg_now",
-            "destination_integ": "integ/sites",
+            "action": "delete_permanently",
+            "destination_integ": "",
             "shrink_source_integ": "integ/oya",
-            "land_status": "ready_for_integ_sites"
+            "land_status": "retired_closed_d41"
           },
           "oya/docs/": {
             "action": "reorg_now",
@@ -5505,25 +5505,25 @@
         "id": "W-oya-leaf-notes",
         "path": "oya/notes/",
         "judgment_status": "done",
-        "action": "reorg_now",
-        "redesign": "rewrite",
-        "destination_integ": "integ/notes",
-        "land_status": "ready_for_integ_notes",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "destination_integ": "",
+        "land_status": "retired_closed_d41",
         "shrink_source_integ": "integ/oya",
         "status": "judgment_closed_on_integ_specs_oya_batch1c",
-        "two_phase_note": "Phase 1: integ/notes absorb oya/notes/** → app/notes/**; Phase 2: integ/oya shrink-only delete"
+        "two_phase_note": "retired/closed; no Phase 1 app absorb"
       },
       {
         "id": "W-oya-leaf-slides",
         "path": "oya/slides/",
         "judgment_status": "done",
-        "action": "reorg_now",
-        "redesign": "rewrite",
-        "destination_integ": "integ/slides",
-        "land_status": "ready_for_integ_slides",
+        "action": "delete_permanently",
+        "redesign": "delete",
+        "destination_integ": "",
+        "land_status": "retired_closed_d41",
         "shrink_source_integ": "integ/oya",
         "status": "judgment_closed_on_integ_specs_oya_batch1c",
-        "two_phase_note": "Phase 1: integ/slides absorb oya/slides/** → app/slides/**; Phase 2: integ/oya shrink-only delete"
+        "two_phase_note": "retired/closed; no Phase 1 app absorb"
       },
       {
         "id": "W-oya-leaf-workplace-integration",
@@ -5610,16 +5610,16 @@
         ],
         "product_destinations": {
           "oya/notes/": {
-            "action": "reorg_now",
-            "destination_integ": "integ/notes",
+            "action": "delete_permanently",
+            "destination_integ": "",
             "shrink_source_integ": "integ/oya",
-            "land_status": "ready_for_integ_notes"
+            "land_status": "retired_closed_d41"
           },
           "oya/slides/": {
-            "action": "reorg_now",
-            "destination_integ": "integ/slides",
+            "action": "delete_permanently",
+            "destination_integ": "",
             "shrink_source_integ": "integ/oya",
-            "land_status": "ready_for_integ_slides"
+            "land_status": "retired_closed_d41"
           },
           "oya/workplace-integration/": {
             "action": "reorg_now",
@@ -5890,16 +5890,16 @@
           "shrink_source_integ": "integ/oya"
         },
         "oya/translate/": {
-          "destination_integ": "integ/translate",
-          "forever": "app/translate/**",
+          "destination_integ": "",
+          "forever": "",
           "shrink_source_integ": "integ/oya",
-          "note": "rule 3d OVERRULE: integ/translate owns app/translate/**; integ/app glue only"
+          "note": "D41/D42 retired/closed; no app/translate forever path"
         },
         "oya/sites/": {
-          "destination_integ": "integ/sites",
-          "forever": "app/sites/**",
+          "destination_integ": "",
+          "forever": "",
           "shrink_source_integ": "integ/oya",
-          "note": "rule 3d OVERRULE: integ/sites owns app/sites/**; integ/app glue only"
+          "note": "D41 retired/closed; no app/sites forever path"
         },
         "oya/docs/": {
           "destination_integ": "integ/app-docs",
@@ -5908,14 +5908,16 @@
           "note": "rule 3d OVERRULE: integ/app-docs owns app/docs/**; integ/app glue only; NOT docs/ plane (integ/docs)"
         },
         "oya/notes/": {
-          "destination_integ": "integ/notes",
-          "forever": "app/notes/**",
-          "shrink_source_integ": "integ/oya"
+          "destination_integ": "",
+          "forever": "",
+          "shrink_source_integ": "integ/oya",
+          "note": "D41 retired/closed; no app/notes forever path"
         },
         "oya/slides/": {
-          "destination_integ": "integ/slides",
-          "forever": "app/slides/**",
-          "shrink_source_integ": "integ/oya"
+          "destination_integ": "",
+          "forever": "",
+          "shrink_source_integ": "integ/oya",
+          "note": "D41 retired/closed; no app/slides forever path"
         },
         "oya/workplace-integration/": {
           "destination_integ": "integ/workplace-integration",
