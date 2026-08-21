@@ -49,8 +49,12 @@ deliverables:
     exit_criteria: "kernel/ and os/ are absent from the tree and from the capability-registry meta_directories; AGENTS.md/CLAUDE.md no longer list them as production rungs; port-engine remains under build/."
     verified_by: "presubmit"
   - id: ADR-0719-D14
-    description: "Per-capability is/is-not/burn: each registered engine named as the cloud product it is, not a port of upstream, not a census dump, not another cap's job. payments and ledger are capabilities (first crate+registry same change). Nested leftover service trees burn."
+    description: "Per-capability is/is-not/burn for the cloud-provider set. Nested leftover service trees burn. Product engines (payments, ledger, SaaS apps) are out of this set — later discussion."
     exit_criteria: "This table is the reading for reorg; no PR parks a second engine inside a cap or treats a k8s/Talos port as that cap's core."
+    verified_by: "presubmit"
+  - id: ADR-0719-D15
+    description: "Cloud-provider purpose, in-scope, and out-of-scope for each registered engine. This set is IaaS/PaaS/control plane only. Tenant SaaS (HR, payroll, community, Slack-superset, SAP-class ledger/payments products) is app/, not a capability charter."
+    exit_criteria: "Reorg and new crates match these in/out lists; no cap charter absorbs an app product; no app/ grows a cloud engine."
     verified_by: "presubmit"
 ---
 
@@ -433,7 +437,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 
 **`app/<product>/`:** composition only (hr, payroll, calendar, community, …). Wires 2+ of the table. **Does not** grow a cloud engine.
 
-**`payments/` and `ledger/` are capabilities** (interview E17 / D15). First crate + registry row land **together** (no empty dir). `oya/payments` is not a parking lot: move into `payments/` or delete. Not a `billing/` drawer.
+**`payments/` and `ledger/` are not this cloud set** (D-15). Do not park them in `billing/` or `oya/`. Product placement is a later discussion.
 
 ### D-14 — Each capability: is / is not / burns
 
@@ -471,6 +475,49 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **app/** | 2+ cap products. | A cloud engine. | Absorbing D41 retirees; parking payments. |
 
 **Missed before, now closed:** GKE vs kube-port (`k8s/`); Talos vs `os/`; PDP vs iam; trustd vs secrets; payments/ledger not billing; no empty `base/`/`kernel/`/`os/`/`k8s-port/`; census `ci` gates are not the delivery fabric.
+
+### D-15 — Cloud-provider purpose and scope (not SaaS)
+
+This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azure **platforms**.  
+**Out of every row below:** tenant SaaS products (HR, payroll, community, calendar, Slack-class UX, SAP-class accounting). Those **use** these engines via `app/<product>/`. A capability that ships a vertical product in `core/` is out of charter.
+
+| Cap | Purpose | In scope | Out of scope |
+|---|---|---|---|
+| **cell** | Bound failure domains and place load. | Cell topology, hard caps, router, rebalance, home-cell **placement**. | Selling a k8s cluster (`k8s`). Tenant directory (`tenancy`). Mesh (`network`). |
+| **tenancy** | Tenant as the scoping primitive. | Create/suspend/delete tenant, home-cell binding, org/account tree. | IdP (`iam`). Authz eval (`policy`). Marketplace SKUs. HR orgs. |
+| **iam** | Prove **who**. | Principals, credentials, passkeys, SCIM, role **store**, workload identity **consume**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). Tenant lifecycle (`tenancy`). |
+| **policy** | Decide **may**. | Cedar PDP, ReBAC tuples, G-face distribute, C0 in-cell snapshot, in-process Check. | IdP. Writing every cap’s Cedar (caps own `<cap>/cedar/`). Global tuple replica. |
+| **secrets** | Crypto root and issuance. | KMS, secret material, SPIFFE **issue**, cert **issue** when sold. | PDP. Embedding secrets in app products. |
+| **audit** | Tamper-evident **record**. | Merkle log, seal of principal+tenant, privileged-path durability. | Pack evidence (`compliance`). Sync seal on every Check. DPIA markdown. |
+| **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO apply. | Hand OpenSLO novels. SIEM as a 25th cap. App product analytics. |
+| **storage** | Durable **bytes**. | Object/CAS; drive/recordings as **byte facades**. | Tables/ontology (`data`). Block/file until sold as facades. Imaging product. |
+| **data** | Durable **records** and analytics engines. | Ontology/OLTP/OLAP/pipelines as **platform**. Postgres as adapter. | Object store (`storage`). Foundry **app**. Cache/search until sold as facades. |
+| **compute** | Run **workloads**. | One engine: VM + k8s-on-compute + functions. GPU as facade when sold. | GKE product (`k8s`). Cell topology (`cell`). |
+| **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
+| **network** | Connect inside the cloud. | VPC, DNS snapshots, mesh dataplane. | Public API door (`gateway`). CDN/Interconnect until sold as facades. |
+| **gateway** | **One** north-south door. | Proto/H3 edge, authn terminate, quota, Cedar on the call. | Mesh (`network`). Second connector door. Tenant SaaS APIs implemented here. |
+| **messaging** | Move **events**. | Bus, outbox, idempotency, per-key order. | Saga engine (`workflow`). Kafka-as-source. App notification UX. |
+| **workflow** | Managed **sagas** (Step Functions / Workflows). | State machine, retries, timers, execution API; studio as **authoring facade for this engine**. | Deploy/CD (`ci`/`iac`). Owning the bus (`messaging`). HR/payroll graphs as a **product**. `saas-*` product kernels. |
+| **intelligence** | Managed **model/agent** substrate. | Inference/agent runtime, adapters to models, platform proof layer. | Console. Workflow studio. Vertical AI products. Cap-root autonomy YAML essays. |
+| **flags** | Dynamic config and kill switches. | Flag eval, targeting, kill switch. | App feature roadmaps. Census catalogs. |
+| **ci** | **Presubmit** delivery fabric (TAP). | Graph-aware presubmit, postsubmit, queue, controller. | Census/`specs/` gates. Per-cap required GitHub checks. CD desired-state (`iac`). |
+| **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`ci`). Business sagas (`workflow`). Helm/Tofu as source. |
+| **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
+| **marketplace** | Third-party **modules** on the cloud. | Signed plugins, permission envelope, SKU **engine**. | Generated price list (**`build/` view**). The apps themselves. |
+| **console** | **Cloud console** shell. | One shell, token broker, nav to **platform** surfaces. | HR/payroll UI. FinOps-as-app (2+ caps → `app/`). CLI as authority. |
+| **compliance** | Evidence **engine** for the platform. | Load packs, data-class registry, evidence export. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA files. |
+| **comms** | **Platform** notify/email/voice/video **infrastructure** (SES/Chime analog). | Send/receive engines, fanout, media **infra**. | Slack/Meet **products**. Nested leftover µservice trees. Emergency clinical app. |
+| **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | Cedar+ontology+constraints per region. | Copied into each cap. EU as world floor. |
+
+**Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
+
+**MUST (cloud vs SaaS)**
+
+- **achieves:** capability charters cannot absorb HR/Slack/SAP products.
+- **origin:** registry mixed `cloud/` + `oya/` seeds; drafts delivered IPs as if each cap were a SaaS.
+- **rule:** D-15 in/out is the cloud-provider charter; apps only in `app/`; no cap `core/` owns a vertical product.
+- **ensure:** new crates match in-scope; PRs that put payroll/studio-SaaS in `workflow/core` fail review.
+- **overturn_when:** a §7 ADR explicitly adds a product engine **outside** this cloud set, with five fields.
 
 **MUST (cloud lives in caps)**
 
