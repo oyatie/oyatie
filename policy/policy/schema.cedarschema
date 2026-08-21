@@ -1,0 +1,118 @@
+// Cedar schema — policy capability control surface
+// Binding ADRs: ADR-0615 §5 (policy extracted as the 24th capability),
+//               ADR-0280 §D-13.D/§D-13.E (cell-distributed PDP; static-stability invariant),
+//               ADR-0243 (Cedar as universal gate), ADR-0294 (fragment soak window >= 60s).
+// Cedar version: 4.12 (workspace lock; `cedar-policy = "4.11"` requirement, resolved 4.12.0).
+// Scope: this schema governs the policy capability's OWN control surface — who may author, sign,
+// publish, activate and distribute authorization state. It is NOT the tenant-facing decision
+// schema; that is `iam/adapters/pdp-cedar/cedar/platform.cedarschema` (namespace OyaPlatform),
+// which stays iam-mapped per ADR-0615 §5.
+
+namespace OyaPolicy {
+
+  entity Tenant = {
+    "tenant_id": String,
+    "cell_id": String,
+  };
+
+  // The verified principal the iam capability produces. `policy` consumes it and never mints it.
+  entity Principal in [Tenant] = {
+    "tenant_id": String,
+    "principal_id": String,
+    "role": String,           // tenant-policy-admin | platform-policy-engineer | policy-signer
+                              // | policy-distributor | auditor | pep-workload
+    "step_up_class": String,  // "" | A | B | C
+    "spiffe_id": String,
+  };
+
+  // A versioned, scoped policy document in the G plane.
+  entity PolicyVersion in [Tenant] = {
+    "tenant_id": String,
+    "policy_id": String,
+    "scope": String,               // "tenant" | "global"
+    "signed": Bool,
+    "author_principal_id": String,
+  };
+
+  // A ReBAC relation tuple (Zanzibar-shaped: object#relation@subject), tenant-scoped.
+  entity RebacTuple in [Tenant] = {
+    "tenant_id": String,
+    "object_type": String,
+    "relation": String,
+  };
+
+  // The C0 face's last-known-good versioned snapshot. `age_seconds` and `is_authoritative` are the
+  // two facts the static-stability invariant (ADR-0280 §D-13.E) turns into a decision.
+  entity Snapshot in [Tenant] = {
+    "tenant_id": String,
+    "cell_id": String,
+    "snapshot_version": String,
+    "age_seconds": Long,
+    "is_authoritative": Bool,
+    "signature_verified": Bool,
+  };
+
+  entity DecisionLog in [Tenant] = {
+    "tenant_id": String,
+  };
+
+  // ─── G face: authoring, signing, distribution ──────────────────────────────
+
+  action AuthorPolicy appliesTo {
+    principal: [Principal],
+    resource: [PolicyVersion],
+    context: { "now": Long },
+  };
+
+  action SignPolicy appliesTo {
+    principal: [Principal],
+    resource: [PolicyVersion],
+    context: { "now": Long },
+  };
+
+  action PublishPolicy appliesTo {
+    principal: [Principal],
+    resource: [PolicyVersion],
+    context: { "now": Long },
+  };
+
+  action ActivatePolicy appliesTo {
+    principal: [Principal],
+    resource: [PolicyVersion],
+    context: { "now": Long, "soak_elapsed_seconds": Long },
+  };
+
+  action WriteRebacTuple appliesTo {
+    principal: [Principal],
+    resource: [RebacTuple],
+    context: { "now": Long },
+  };
+
+  action DistributeSnapshot appliesTo {
+    principal: [Principal],
+    resource: [Snapshot],
+    context: { "now": Long },
+  };
+
+  // ─── C0 face: runtime read paths, served from the local snapshot ───────────
+
+  action ReadRebacTuple appliesTo {
+    principal: [Principal],
+    resource: [RebacTuple],
+    context: { "now": Long, "snapshot_age_seconds": Long, "snapshot_is_authoritative": Bool },
+  };
+
+  action EvaluateAgainstSnapshot appliesTo {
+    principal: [Principal],
+    resource: [Snapshot],
+    context: { "now": Long, "max_staleness_seconds": Long },
+  };
+
+  // ─── Audit ────────────────────────────────────────────────────────────────
+
+  action ReadDecisionLog appliesTo {
+    principal: [Principal],
+    resource: [DecisionLog],
+    context: { "now": Long, "token_age_seconds": Long },
+  };
+}
