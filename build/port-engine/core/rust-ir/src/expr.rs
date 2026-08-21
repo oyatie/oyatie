@@ -203,8 +203,12 @@ pub enum RustExpr {
     },
     /// `<start>..<end>`
     Range {
-        /// Inclusive lower bound.
-        start: Box<RustExpr>,
+        /// Inclusive lower bound, absent for a range that starts where its subject does.
+        ///
+        /// `None` is `..end`, which the target spells and means: a slice's prefix has no lower
+        /// bound to state. Writing `0` there instead compiles to the same thing and reads as
+        /// something a person did not write.
+        start: Option<Box<RustExpr>>,
         /// The upper bound, included only when `inclusive`.
         end: Box<RustExpr>,
         /// Whether the upper bound is INCLUDED — `..=` rather than `..`.

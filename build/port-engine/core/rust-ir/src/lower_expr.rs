@@ -284,7 +284,8 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
             end,
             inclusive,
         } => {
-            let (start, end) = (lower_expr(start)?, lower_expr(end)?);
+            let end = lower_expr(end)?;
+            let start = start.as_ref().map(|bound| lower_expr(bound)).transpose()?;
             match inclusive {
                 true => Ok(quote! { #start..=#end }),
                 false => Ok(quote! { #start..#end }),
