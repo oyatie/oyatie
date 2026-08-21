@@ -1,12 +1,14 @@
 // Cedar 4.12 fragment — static-stability
 // Capability: policy (ADR-0615 §5, 24th registered capability)
-// Binding ADRs: ADR-0280 §D-13.E (static-stability invariant)
+// Binding ADRs: ADR-0280 §D-13.E (static-stability invariant) + §D-13.D (the deny-or-route rule
+//               quoted below); live apex ADR-0701
 // Fragment soak window: >= 60s per ADR-0294
 // Fragment version: 2.0.0
 // Reviewed: 2026-08-20 (adversarial review; v1.0.0 findings S1-S6 closed)
 //
-// The invariant: "a stale snapshot must DENY or route to the authoritative shard — never silently
-// authorize." These forbids are the DENY half. The route half is a runtime concern specified in
+// The rule, verbatim from ADR-0280 §D-13.D: "a stale snapshot must DENY or route to the
+// authoritative shard — never silently authorize." (§D-13.E is the static-stability invariant it
+// serves.) These forbids are the DENY half. The route half is a runtime concern specified in
 // policy/CONTRACT.md, because Cedar answers allow/deny and cannot express "ask someone else".
 //
 // 300s is the ABSOLUTE ceiling. v1.0.0 let the caller declare `max_staleness_seconds` with no cap,
