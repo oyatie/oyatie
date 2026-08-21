@@ -268,18 +268,29 @@ fn collect_observability_umbrella_charts(repo_root: &Path) -> Result<Vec<ChartKe
     Ok(keys)
 }
 
-fn policy_entries(policy: &Value) -> BTreeMap<ChartKey, (String, String)> {
-    let mut map = BTreeMap::new();
+fn policy_entries(
+    policy: &Value,
+) -> Result<BTreeMap<ChartKey, (String, String)>, BTreeSet<Finding>> {
+    let mut findings = BTreeSet::new();
     let Some(entries) = policy.get("entries").and_then(Value::as_array) else {
-        return map;
+        findings.insert(Finding::new(
+            "gitops_chart_license_malformed_policy",
+            "missing entries array",
+        ));
+        return Err(findings);
     };
-    for entry in entries {
+    let mut map = BTreeMap::new();
+    for (index, entry) in entries.iter().enumerate() {
         let (Some(repository), Some(chart), Some(license), Some(plane)) = (
             entry.get("repository").and_then(Value::as_str),
             entry.get("chart").and_then(Value::as_str),
             entry.get("license").and_then(Value::as_str),
             entry.get("plane").and_then(Value::as_str),
         ) else {
+            findings.insert(Finding::new(
+                "gitops_chart_license_malformed_policy_entry",
+                format!("entries[{index}]"),
+            ));
             continue;
         };
         map.insert(
@@ -290,7 +301,11 @@ fn policy_entries(policy: &Value) -> BTreeMap<ChartKey, (String, String)> {
             (license.to_owned(), plane.to_owned()),
         );
     }
-    map
+    if findings.is_empty() {
+        Ok(map)
+    } else {
+        Err(findings)
+    }
 }
 
 fn plane_accepts(policy: &Value, plane: &str, license: &str) -> bool {
@@ -324,7 +339,13 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         ));
     }
 
-    let entries = policy_entries(policy);
+    let entries = match policy_entries(policy) {
+        Ok(entries) => entries,
+        Err(malformed) => {
+            findings.extend(malformed);
+            return findings;
+        }
+    };
     for row in rows {
         let (Some(repository), Some(chart)) = (
             row.get("repository").and_then(Value::as_str),
@@ -437,6 +458,44 @@ mod tests {
             findings
                 .iter()
                 .any(|f| f.code == "gitops_chart_license_scan_narrowed")
+        );
+        assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn a_malformed_policy_entry_fails_closed_not_silently_skipped() {
+        let mut policy = policy_fixture();
+        policy["entries"]
+            .as_array_mut()
+            .unwrap()
+            .push(json!({"repository": "https://example.com/charts", "chart": "broken"}));
+        let observed =
+            json!({"rows": [{"repository": "https://example.com/charts", "chart": "widget"}]});
+        let findings = evaluate_keyed(&policy, &observed);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "gitops_chart_license_malformed_policy_entry"),
+            "got {findings:?}"
+        );
+        assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
+    }
+
+    #[test]
+    fn a_policy_without_entries_array_fails_closed() {
+        let policy = json!({
+            "planes": {
+                "ops-internal": {"accepted_licenses": ["Apache-2.0"]}
+            },
+            "min_expected_rows": 1
+        });
+        let observed =
+            json!({"rows": [{"repository": "https://example.com/charts", "chart": "widget"}]});
+        let findings = evaluate_keyed(&policy, &observed);
+        assert!(
+            findings
+                .iter()
+                .any(|f| f.code == "gitops_chart_license_malformed_policy")
         );
         assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
     }
