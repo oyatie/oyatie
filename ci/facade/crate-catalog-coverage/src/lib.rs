@@ -78,8 +78,8 @@ pub struct Observed {
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Baseline {
     pub uncatalogued: BTreeSet<String>,
-    /// Floor on the observed crate count. Collecting fewer than this means the
-    /// collector broke, not that the repo shrank by hundreds of crates.
+    /// Optional test-only floor. Live policy no longer carries a crate-count
+    /// census; an empty scan still fails closed.
     pub min_expected_crates: usize,
 }
 
@@ -108,15 +108,16 @@ pub struct Report {
 pub fn evaluate(observed: &Observed, baseline: &Baseline) -> Report {
     let mut findings: Vec<Finding> = Vec::new();
 
-    // FALSE-GREEN FLOOR first: if the corpus is implausible, every other verdict
-    // below is meaningless, so say so loudly rather than reporting a clean pass.
-    if observed.crates.len() < baseline.min_expected_crates {
+    // FALSE-GREEN GUARD first: an empty collection must not read as full coverage.
+    // A numeric crate-count census is not a coverage invariant.
+    if observed.crates.is_empty() || observed.crates.len() < baseline.min_expected_crates {
         findings.push(Finding {
             code: CODE_IMPLAUSIBLE_CORPUS.to_owned(),
             subject: format!("{} crates", observed.crates.len()),
             detail: format!(
-                "collected {} crates, below the floor of {}; the collector is broken or the \
-                 scan root moved — treat this as a gate failure, never as coverage",
+                "collected {} crates (empty scan, or below the optional test floor of {}); \
+                 the collector is broken or the scan root moved — treat this as a gate \
+                 failure, never as coverage",
                 observed.crates.len(),
                 baseline.min_expected_crates
             ),

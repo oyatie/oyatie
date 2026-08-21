@@ -47,9 +47,10 @@ fn load_baseline(root: &Path) -> Baseline {
         .iter()
         .map(|v| v.as_str().expect("entry is a string").to_owned())
         .collect();
-    let min_expected_crates = doc["min_expected_crates"]
-        .as_u64()
-        .expect("min_expected_crates") as usize;
+    let min_expected_crates = doc
+        .get("min_expected_crates")
+        .and_then(serde_json::Value::as_u64)
+        .unwrap_or(0) as usize;
     Baseline {
         uncatalogued,
         min_expected_crates,

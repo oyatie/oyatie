@@ -13,7 +13,7 @@ fn policy() -> Value {
         "meta_directories": ["kernel", "os", "base", "governance", "build", "app"],
         "allowed_top_level_dirs": [
             "kernel", "os", "base", "governance", "build", "app",
-            "cloud", "oya", "libs", "tools", "specs", "docs"
+            "cloud", "oya", "libs", "tools", "specs", "docs", "flags"
         ],
         "min_expected_crates": 1
     })
@@ -283,7 +283,7 @@ fn base_crate_with_three_consumers_below_all_passes() {
 // --- empty-scan + fail-closed ---
 
 #[test]
-fn empty_scan_below_floor_fails() {
+fn empty_scan_fails_closed() {
     let obs = observed(
         vec![],
         vec!["cloud", "oya", "libs", "tools", "specs", "docs"],
@@ -459,4 +459,119 @@ fn every_freeze_code_is_registered() {
     let c = codes(&findings);
     assert!(c.contains("MEM-NEW-LEGACY-ROOT-CRATE"), "{c:?}");
     assert!(c.contains("MEM-STALE-LEGACY-ROOT-BASELINE"), "{c:?}");
+}
+
+fn layout_policy() -> Value {
+    let mut p = policy();
+    p["capability_root_allowed_children"] = json!([
+        "core",
+        "ports",
+        "adapters",
+        "facade",
+        "contracts",
+        "cedar",
+        "policy",
+        "observability",
+        "iac",
+        "OWNERS",
+        "README.md",
+        "PRD.md",
+        "BUCK",
+        "catalog.yaml"
+    ]);
+    p
+}
+
+fn observed_layout(children: Value, protected: Option<Value>) -> Value {
+    let mut obs = observed(
+        vec![
+            "cloud/cloud-iam/crates/oya-cloud-iam-kernel",
+            "libs/oya-shared-idempotency-key-kernel",
+        ],
+        vec!["cloud", "flags", "app", "libs"],
+    );
+    obs["capability_root_children"] = children;
+    if let Some(protected) = protected {
+        obs["protected_capability_root_children"] = protected;
+    }
+    obs
+}
+
+#[test]
+fn grandfathered_flags_ips_is_green() {
+    let obs = observed_layout(
+        json!({"flags": ["core", "IPs"]}),
+        Some(json!({"flags": ["IPs"]})),
+    );
+    let findings = evaluate_keyed(&layout_policy(), &obs);
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.code == "MEM-NEW-CAPABILITY-ROOT-CHILD"),
+        "existing IPs must stay grandfathered: {findings:#?}"
+    );
+    assert_eq!(
+        evaluate(&layout_policy(), &obs).verdict,
+        Verdict::Green,
+        "grandfathered IPs must be green: {findings:#?}"
+    );
+}
+
+#[test]
+fn new_synthetic_flags_ips2_is_red() {
+    let obs = observed_layout(json!({"flags": ["IPs2"]}), Some(json!({"flags": ["IPs"]})));
+    let findings = evaluate_keyed(&layout_policy(), &obs);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "MEM-NEW-CAPABILITY-ROOT-CHILD" && f.key == "flags/IPs2"),
+        "a NEW flags/IPs2 child must fail: {findings:#?}"
+    );
+    assert_eq!(evaluate(&layout_policy(), &obs).verdict, Verdict::Red);
+}
+
+#[test]
+fn grandfathered_app_product_child_is_green() {
+    let obs = observed_layout(
+        json!({"app/calendar": ["OWNERS", "IPs"]}),
+        Some(json!({"app/calendar": ["IPs"]})),
+    );
+    let findings = evaluate_keyed(&layout_policy(), &obs);
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.code == "MEM-NEW-CAPABILITY-ROOT-CHILD"),
+        "existing app/<product>/ extras must stay grandfathered: {findings:#?}"
+    );
+}
+
+#[test]
+fn new_app_product_child_is_red() {
+    let obs = observed_layout(
+        json!({"app/calendar": ["IPs2"]}),
+        Some(json!({"app/calendar": ["IPs"]})),
+    );
+    let findings = evaluate_keyed(&layout_policy(), &obs);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "MEM-NEW-CAPABILITY-ROOT-CHILD" && f.key == "app/calendar/IPs2"),
+        "a NEW app/<product>/ child must fail: {findings:#?}"
+    );
+}
+
+#[test]
+fn live_tree_extras_are_advisory_without_protected_children() {
+    let obs = observed_layout(
+        json!({"flags": ["IPs", "scorecards", "AUDIT-FINDINGS-2026-05-18.json"]}),
+        None,
+    );
+    let findings = evaluate_keyed(&layout_policy(), &obs);
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.code == "MEM-NEW-CAPABILITY-ROOT-CHILD"),
+        "without protected children the live extras stay advisory: {findings:#?}"
+    );
+    assert_eq!(evaluate(&layout_policy(), &obs).verdict, Verdict::Green);
 }

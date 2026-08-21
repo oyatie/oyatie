@@ -8,7 +8,6 @@
     "pr1934_fix_forward": "Catalogued live ci-controller-* / port-engine W0-B / os-harness absorb crates. Kept oya-ci-controller-* in uncatalogued baseline (legacy dual-home under oya/ci-controller/crates).",
     "pr1646_absorb_complete": "Dropped oya-ci-controller-* from uncatalogued baseline after dual-home delete; live ci-controller-* are catalogued. Lock orphans pruned same change."
   },
-  "min_expected_crates": 780,
   "uncatalogued": [
     "ci-action-item-accounting",
     "ci-affected-target-set",
