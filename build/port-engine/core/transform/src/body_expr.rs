@@ -237,10 +237,30 @@ fn binary(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError>
         });
     }
 
-    let op = binary_operator(spelling).ok_or_else(|| TransformError::Unsupported {
-        name: cx.owner.to_owned(),
-        detail: format!("binary operator `{spelling}` has no direct translation"),
-    })?;
+    let op = binary_operator(spelling)
+        .or_else(|| crate::body_ops::constant_shift(spelling, lhs, rhs, cx))
+        .ok_or_else(|| TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            // THE REASON, not just the operator. This said only "has no direct translation",
+            // which tells a reader nothing they can act on — and the reasons were written down
+            // beside the table all along, where nobody reading a survey would ever see them.
+            detail: format!(
+                "binary operator `{spelling}` has no direct translation: {}",
+                match spelling {
+                    "<<" | ">>" =>
+                        "the source defines a shift at or beyond the operand's width as ZERO and \
+                         panics on a negative count; the target panics on the first in a debug \
+                         build and masks the count in a release one. A count this engine can show \
+                         is a constant below the width translates, because there the two agree — \
+                         this one it cannot show",
+                    "&^" =>
+                        "AND NOT has no single-operator target form. `& !` spells it, and the \
+                         operand widths differ between the languages, so the rewrite would change \
+                         a bit operation silently",
+                    _ => "the pack declares no target form for it",
+                }
+            ),
+        })?;
     let built = RustExpr::Binary {
         op,
         lhs: Box::new(left),
