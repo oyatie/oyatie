@@ -1,0 +1,29 @@
+[package]
+name = "ci-gitops-chart-license"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "cloud-ci"
+kind = "shared"
+layer = "app"
+purpose = "Cloud CI gate resolving the license of every third-party Helm chart the GitOps declaration pulls (infra/gitops/values.yaml app entries + observability/iac/helm/*/Chart.yaml dependencies), evaluated per-plane per ADR-0706 D-5 (ops-internal admits AGPL-3.0; tenant-facing does not)."
+
+[lib]
+name = "ci_gitops_chart_license"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "gitops-chart-license-gate"
+path = "src/main.rs"
+
+[dependencies]
+serde_json = { workspace = true }
+serde_yaml = { workspace = true }
+
+[lints]
+workspace = true

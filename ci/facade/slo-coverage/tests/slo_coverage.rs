@@ -167,7 +167,11 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  two of the 45 carried no catalog row to begin with). The
 ///                                  row set shrinks with its subjects; nothing was retired to
 ///                                  make room.
-const SLO_CATALOG_CENSUS: usize = 700;
+///   2026-08-21  700 -> pin 701     ROW ADDED: registry/catalog/ci-gitops-chart-license.yaml,
+///                                  the catalog row for the new ci/facade/gitops-chart-license
+///                                  crate (ADR-0706 D-5 enforcement). Corpus gained exactly
+///                                  one row, face gained exactly one.
+const SLO_CATALOG_CENSUS: usize = 701;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {
