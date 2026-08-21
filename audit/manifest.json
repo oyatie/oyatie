@@ -20,9 +20,9 @@
       "observability",
       "ontology",
       "workflow-engine"
-    ],
-    "_note": "specs/capability-registry.json name=audit dag_node=audit-chain stratum=S0. depends_on/consumed_by_substrates retained from absorbed audit-chain service manifest (microservice-era names); registry entry declares stratum only."
+    ]
   },
+  "_substrate_dag_position_source": "specs/capability-registry.json name=audit dag_node=audit-chain stratum=S0. depends_on/consumed_by_substrates retained from absorbed audit-chain service manifest (microservice-era names); registry entry declares stratum only.",
   "_tier_source": "specs/capability-registry.json name=audit dag_node=audit-chain stratum=S0; tier_subtype=substrate-audit retained from absorbed audit-chain service manifest",
   "version": "0.1.0",
   "owner": "axis-audit-chain",
