@@ -393,8 +393,8 @@
       "dotdir_files": 242,
       "reorg_paths": 25,
       "oya_legacy_root_files": 1659,
-      "yaml_files": 2980,
-      "json_files": 1285
+      "yaml_files": 2981,
+      "json_files": 1286
     },
     "reviewed_raises": {
       "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
@@ -404,9 +404,9 @@
         "reason": "oya/crates/oya-application-shell-frontend/src/browser_panic_hook.rs replaces console_error_panic_hook with std panic hook."
       },
       "yaml_files": {
-        "from": 3024,
-        "to": 3025,
-        "reason": "registry/catalog/check-integ-envelope.yaml is the catalog row for the ADR-0711 Phase B envelope gate. The crate-catalog-coverage gate requires one row per package keyed by filename, so a new gate crate cannot land without it -- the raise is forced by another gate, not chosen. The row is also where this gate's non-claims are recorded, including that it judges integ/* heads only and does not wire the per-PR check into oya-ci-required."
+        "from": 2980,
+        "to": 2981,
+        "reason": "registry/catalog/ci-gitops-chart-license.yaml is the catalog row for the ADR-0706 D-5 chart-license gate (bead oyatie-f2fg). The crate-catalog-coverage gate requires one row per package keyed by filename, so a new gate crate cannot land without it -- the raise is forced by another gate, not chosen. The prior entry for this class is now stale (stale from/to fails closed) and is replaced rather than appended, one sanctioned raise per class."
       },
       "evidence_files": {
         "from": 53,
@@ -424,9 +424,9 @@
         "reason": "Same single file as the docs_markdown_files raise above — ADR-0718 is counted by both classes. Recorded as its own exact from->to because the ratchet evaluates each class independently and an unrecorded class is born-blocking."
       },
       "json_files": {
-        "from": 1286,
-        "to": 1287,
-        "reason": "One gate policy document: governance/check/benchmark/benchmark-policy.json, the two-sided frozen violation set the newly-connected live-corpus test asserts against. The prior entry for this class is now stale (stale from/to fails closed) and is replaced rather than appended -- one sanctioned raise per class is the contract. One-in-none-out, the intended shape of a doctrine connection."
+        "from": 1285,
+        "to": 1286,
+        "reason": "One gate policy document: ci/facade/gitops-chart-license/gitops-chart-license-policy.json, the curated plane-keyed chart-license allow-list the ADR-0706 D-5 gate (bead oyatie-f2fg) evaluates against. The prior entry for this class is now stale (stale from/to fails closed) and is replaced rather than appended -- one sanctioned raise per class is the contract."
       }
     }
   }

@@ -609,11 +609,6 @@
         ]
       },
       {
-        "_comment": "FANOUT-03: Group-A safe-metadata secret kernel homed under workflow orchestration substrate.",
-        "capability": "workflow",
-        "globs": []
-      },
-      {
         "_comment": "The owned data plane primitives (ADR-0562 'data→data'): the data boundary/outbox/SQL kernels + adapters dissolve into the data capability home.",
         "capability": "data",
         "globs": [
@@ -622,7 +617,7 @@
       }
     ],
     "frozen_unmapped_baseline": {
-      "_comment": "BORN-ADVISORY FROZEN BASELINE (ADR-0562 §6 strangler burn-down). These current crates are genuinely ambiguous PRE-MOVE — they are the libs/oya-shared-* cross-capability junk-drawer the reorg explicitly dissolves PER-CRATE (idempotency/outbox/pagination/pdp/scim/webauthn/etc. each home to a different capability or to base/ pending the >=3-consumer admission check), the libs/oya-http-* middleware (base/ candidates pending the ADR-0280 DAG admission verification), and the irreducible primitives (json) that are base/ candidates. They are NOT force-mapped to a wrong capability. The membership lint is ADVISORY for these but enforces NO REGRESSION: no NEW crate may join this list, no NEW top-level dir may appear, and the list burns DOWN as the strangler moves home each crate. FLIP-TO-BLOCKING TRIGGER: when this list reaches size 0 (post-strangler), the lint promotes from born-advisory to blocking. Each entry is a current crate dir (repo-relative).",
+      "_comment": "BORN-ADVISORY FROZEN BASELINE (ADR-0562 §6 strangler burn-down). These current crates are genuinely ambiguous PRE-MOVE — they are the libs/oya-shared-* cross-capability junk-drawer the reorg explicitly dissolves PER-CRATE (idempotency/outbox/pagination/pdp/scim/webauthn/etc. each home to a different capability or to base/ pending the >=3-consumer admission check), the libs/oya-http-* middleware (base/ candidates pending the ADR-0280 DAG admission verification), and other base/ candidates pending DAG admission. They are NOT force-mapped to a wrong capability. The membership lint is ADVISORY for these but enforces NO REGRESSION: no NEW crate may join this list, no NEW top-level dir may appear, and the list burns DOWN as the strangler moves home each crate. FLIP-TO-BLOCKING TRIGGER: when this list reaches size 0 (post-strangler), the lint promotes from born-advisory to blocking. Each entry is a current crate dir (repo-relative).",
       "burn_down_target": 0,
       "crates": [
         "libs/oya-http-middleware-kernel",
