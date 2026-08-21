@@ -2,24 +2,14 @@
   "_comment": "Embedded-asset hermeticity gate policy (DATA, not code). Motivated by FRIC-1781131000: a crate's include_str!(\"../policy/x.cedar\") was mapped to the wrong sandbox path, so buck2 never built it hermetically (rustc 'couldn't read', masked as a downstream 'missing rmeta'). This gate statically asserts that every Rust include_str!/include_bytes! STRING-LITERAL path resolves, relative to the including source file's sandbox location, to a destination that the owning BUCK target's srcs/mapped_srcs actually provides. It reimplements Bazel/Buck hermetic-action missing-input enforcement Rust-native (founder doctrine: proven patterns, Rust reimplementation). ALL repo-specifics live here; the Rust kernel hardcodes no oyatie path and runs on any repo by repointing scan_roots + the extension/allowlist sets. See ADR-0545.",
   "gate_id": "cloud-ci-embedded-asset-hermeticity",
   "schema_version": "1.0.0",
-  "scan_roots": [
-    "app",
-    "base",
-    "build",
-    "ci",
-    "cloud",
-    "data",
-    "oya",
-    "libs",
-    "tools",
-    "infra",
-    "marketplace",
-    "iam",
-    "intelligence",
-    "os",
-    "policy",
-    "governance"
-  ],
+  "scan_root_source": {
+    "kind": "capability_registry_derived",
+    "registry_path": "governance/capability-registry.json",
+    "resolver_crate": "ci/adapters/scan-root-derivation",
+    "_comment": "REPLACES a hand-enumerated `scan_roots` array of 16 directory names. That array had drifted: 18 of the 24 REGISTERED capabilities were absent from it (audit, billing, cell, comms, compliance, compute, console, flags, gateway, iac, k8s, messaging, network, observability, secrets, storage, tenancy, workflow) and 3 declared roots were dead (cloud, base, policy). A dangling embedded asset planted in comms/ left this gate GREEN, verified twice. The roots are now DERIVED from the closed capability registry — every materialized capability, every landed meta directory except the vendored third-party/ carve-out, and the shared legacy list (oya/, libs/, tools/, infra/) each carrying a written deletion condition. This is the move the root Cargo.toml already made one level up when it replaced 24 per-capability member globs with four shape globs: a conforming capability is covered BY CONSTRUCTION and needs zero edit here.",
+    "_born_pack_shaped": "Still pack-shaped. An adopting repository with no capability registry deletes `scan_root_source` and declares a literal `scan_roots` array instead; the collector supports both. In BOTH modes a declared root that does not exist is a hard error naming the path, never a silent skip.",
+    "_absence_is_never_a_skip": "A root the registry records as materialized but that is absent fails the run. A root the registry declares that has NOT materialized is PENDING: not scanned, reported by name, and frozen two-sided in the baseline's _provenance.pending_roots, so a pending root that LANDS must be struck from the frozen set in the same change that makes it real."
+  },
   "exclude_path_substrings": [
     "/target/",
     "/.git/",

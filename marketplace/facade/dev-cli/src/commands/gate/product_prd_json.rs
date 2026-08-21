@@ -643,7 +643,51 @@ fn is_current_prd_reference_shape(reference: &str) -> bool {
         ]
         .iter()
         .any(|prefix| trimmed.starts_with(prefix))
+        || CAPABILITY_ROOT_PREFIXES
+            .iter()
+            .any(|prefix| trimmed.starts_with(prefix))
 }
+
+/// Top-level directories the ADR-0562 capability registry declares legal, projected here as a
+/// constant so reference-shape checking stays a pure function of the string.
+///
+/// This is a committed projection of `governance/capability-registry.json` (the closed placement
+/// authority): every capability `name` plus every `meta_directories[].dir`, each as a path prefix.
+/// `capability_root_prefixes_match_the_closed_registry` re-derives it from that file and fails on
+/// any drift, so a newly registered capability cannot silently go unaccepted here.
+const CAPABILITY_ROOT_PREFIXES: [&str; 31] = [
+    "app/",
+    "audit/",
+    "base/",
+    "billing/",
+    "build/",
+    "cell/",
+    "ci/",
+    "comms/",
+    "compliance/",
+    "compute/",
+    "console/",
+    "data/",
+    "flags/",
+    "gateway/",
+    "governance/",
+    "iac/",
+    "iam/",
+    "intelligence/",
+    "k8s/",
+    "kernel/",
+    "marketplace/",
+    "messaging/",
+    "network/",
+    "observability/",
+    "os/",
+    "policy/",
+    "secrets/",
+    "storage/",
+    "tenancy/",
+    "third-party/",
+    "workflow/",
+];
 
 fn is_slug_reference(reference: &str) -> bool {
     let trimmed = reference.trim();
@@ -1054,6 +1098,57 @@ mod tests {
         })
         .expect_err("non-PRD explicit input rejected");
         assert!(non_prd_error.contains("explicit product path must be an active product PRD JSON"));
+    }
+
+    /// `CAPABILITY_ROOT_PREFIXES` is a committed projection of the closed capability registry.
+    /// Re-derive it from that file so registering a capability without extending the projection
+    /// fails here rather than silently rejecting every reference into the new root.
+    #[test]
+    fn capability_root_prefixes_match_the_closed_registry() {
+        let mut root = PathBuf::from(env!("CARGO_MANIFEST_DIR"));
+        while !root.join("governance/capability-registry.json").is_file() {
+            assert!(
+                root.pop(),
+                "governance/capability-registry.json not found above {}",
+                env!("CARGO_MANIFEST_DIR")
+            );
+        }
+
+        let registry: Value = serde_json::from_str(
+            &std::fs::read_to_string(root.join("governance/capability-registry.json"))
+                .expect("read capability registry"),
+        )
+        .expect("parse capability registry");
+
+        let mut expected = BTreeSet::new();
+        for capability in registry["capabilities"]
+            .as_array()
+            .expect("capabilities is an array")
+        {
+            let name = capability["name"].as_str().expect("capability name");
+            expected.insert(format!("{name}/"));
+        }
+        for meta in registry["meta_directories"]
+            .as_array()
+            .expect("meta_directories is an array")
+        {
+            let dir = meta["dir"].as_str().expect("meta dir");
+            expected.insert(if dir.ends_with('/') {
+                dir.to_owned()
+            } else {
+                format!("{dir}/")
+            });
+        }
+
+        let projected: BTreeSet<String> = CAPABILITY_ROOT_PREFIXES
+            .iter()
+            .map(|prefix| (*prefix).to_owned())
+            .collect();
+
+        assert_eq!(
+            projected, expected,
+            "CAPABILITY_ROOT_PREFIXES has drifted from governance/capability-registry.json"
+        );
     }
 
     #[test]

@@ -22,7 +22,7 @@ fn historical_dev_push_context_fails_closed_on_head_and_parent_topology() {
     assert!(historical_dev_push_context_from_source(&multiple_parent, CANDIDATE).is_err());
 
     let mut first_parent_drift = fixture();
-    first_parent_drift.first_parent = PREDECESSOR.to_owned();
+    first_parent_drift.first_parent_override = Some(PREDECESSOR.to_owned());
     assert!(historical_dev_push_context_from_source(&first_parent_drift, CANDIDATE).is_err());
 }
 
@@ -201,7 +201,7 @@ fn event_identity_rejects_evaluated_commit_away_from_head() {
 #[test]
 fn event_identity_rejects_push_with_provider_first_parent_mismatch() {
     let mut source = fixture();
-    source.first_parent = PREDECESSOR.to_owned();
+    source.first_parent_override = Some(PREDECESSOR.to_owned());
 
     let error = materialize_history_only_retirement_facts(&source, &context())
         .expect_err("push first parent must equal provider protected SHA");

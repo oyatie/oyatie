@@ -131,47 +131,98 @@ fn total_accounting_fixtures_execute_red_green_cases() {
 ///
 /// Counts are MEASURED, not hardcoded (the plan's 780/57 were not re-derived this session).
 #[test]
-fn move_plan_conformance_fires_on_the_live_corpus() {
+fn move_plan_conformance_is_wired_on_the_live_corpus() {
     // ANTI-VACUITY. The two conformance codes compare the registry's derived `disposition`
     // against the committed `specs/reorg/*-move-plan.json` set. If either side ever stops being
     // produced — the `disposition` field dropped, `planned_move_paths` empty, the plan glob
     // moved — the comparison silently returns nothing and the gate certifies agreement it never
-    // checked. That is the exact false-green this test exists to prevent.
+    // checked. That is the false-green this test exists to prevent.
     //
-    // Measured when written: 650 `move_derived_not_planned` and 78 `move_planned_not_derived`.
-    // Both are expected to SHRINK as capabilities cut over (#1956 is executing the intelligence
-    // plan now), so this asserts presence and a sane floor rather than exact counts — an exact
-    // pin would go red on progress, which is the wrong direction for a burn-down.
+    // It proves the comparison is WIRED, never that it currently finds disagreement. The two
+    // directions are proven to fire by dedicated unit fixtures over synthetic input
+    // (`a_derived_move_with_no_committed_plan_is_reported` and
+    // `a_planned_move_the_registry_says_should_stay_is_reported`), which is where an
+    // does-it-detect assertion belongs — it holds no matter what the live corpus contains.
+    //
+    // Asserting a non-zero live finding count instead, as this test originally did, is a
+    // self-defeating ratchet: both counts exist to be burned down, so the gate would go red
+    // at exactly the moment the burn-down succeeded. It did — executing the intelligence
+    // move plan drove `move_planned_not_derived` to zero and turned a completed migration
+    // into a CI failure.
     let root = repo_root();
     let registry = run_producer_stdout(&root);
 
     let planned = registry["planned_move_paths"]
         .as_array()
         .expect("the face must carry planned_move_paths");
+
+    // Discovery is checked against an INDEPENDENT enumeration of the plan glob, not against a
+    // constant. RR-MOVEPLAN-SINGLETON allows AT MOST one live plan, so zero is a legitimate
+    // state between rehomes -- the previous `!planned.is_empty()` made finishing a rehome and
+    // retiring its spent plan fail this gate, which is the same shape as the finding-count
+    // assertions removed earlier: an anti-vacuity check that punishes the work completing.
+    //
+    // What still must hold is AGREEMENT: if a live plan is committed, the producer must have
+    // found it. Counting the glob here rather than reusing the producer's own discovery is the
+    // point -- a broken glob shows up as disagreement, which a self-consistent count cannot see.
+    let live_plans: Vec<String> = fs::read_dir(root.join("specs/reorg"))
+        .expect("specs/reorg must exist")
+        .filter_map(Result::ok)
+        .filter_map(|entry| entry.file_name().into_string().ok())
+        .filter(|name| {
+            name.ends_with("-move-plan.json")
+                && !name.contains(".PARKED.")
+                && !name.contains(".BLOCKED.")
+        })
+        .collect();
     assert!(
-        !planned.is_empty(),
-        "at least one committed move plan must be discovered, else conformance is vacuous"
+        live_plans.len() <= 1,
+        "RR-MOVEPLAN-SINGLETON allows at most one live move plan; found {live_plans:?}"
+    );
+    assert_eq!(
+        live_plans.is_empty(),
+        planned.is_empty(),
+        "committed live plans {live_plans:?} disagree with the face's planned_move_paths \
+         ({} entries) -- the plan glob and the producer's discovery have diverged",
+        planned.len()
     );
 
-    let findings = ci_artifact_accountability::evaluate_keyed(&registry);
-    let derived_not_planned = findings
-        .iter()
-        .filter(|f| f.code == "move_derived_not_planned")
-        .count();
-    let planned_not_derived = findings
-        .iter()
-        .filter(|f| f.code == "move_planned_not_derived")
-        .count();
-
+    // The derived half: every accounting row must carry a `disposition`, drawn from the closed
+    // vocabulary. Dropping or emptying the field is the failure this catches — a row set that
+    // silently lost its disposition compares equal to a corpus in perfect agreement.
+    let rows = registry["rows"]
+        .as_array()
+        .expect("the face must carry accounting rows");
     assert!(
-        derived_not_planned > 0,
-        "the derived-move set and the committed plans disagree today; reporting ZERO means the \
-         comparison stopped running, not that the corpus converged"
+        !rows.is_empty(),
+        "the live corpus must produce accounting records"
     );
+
+    let mut missing = Vec::new();
+    let mut seen = BTreeSet::new();
+    for row in rows {
+        match row["disposition"].as_str() {
+            Some(value) if !value.is_empty() => {
+                seen.insert(value.to_owned());
+            }
+            _ => {
+                if missing.len() < 5 {
+                    missing.push(row["path"].as_str().unwrap_or("<no path>").to_owned());
+                }
+            }
+        }
+    }
     assert!(
-        planned_not_derived > 0,
-        "the committed plans move paths the registry calls settled; reporting ZERO means the \
-         reverse direction stopped running"
+        missing.is_empty(),
+        "every accounting row must carry a non-empty disposition, else the derived half of \
+         move-plan conformance is comparing against nothing; first offenders: {missing:?}"
+    );
+
+    // A single-valued disposition column is the other way this silently goes vacuous: if the
+    // deriver collapses to one verdict, the comparison still runs and still agrees with itself.
+    assert!(
+        seen.len() > 1,
+        "disposition collapsed to a single value {seen:?}; the deriver is no longer classifying"
     );
 }
 

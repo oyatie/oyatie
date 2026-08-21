@@ -268,6 +268,36 @@ exits MUST include (measure at EV0/K — **do not invent tip numbers**):
    runs full CNCF + Sonobuoy. PR-gate smoke subsets are unaffected; this is a promotion-gate
    precondition, not an Accept of this ADR.
 
+**Harvested doctrine — the owned-executor law and its adversarial corpus (2026-08-19).**
+This clause records, in the ADR that owns the decision, design law that until now existed only
+inside `os/harness/oci-executor-oracle` — a self-declared scaffold slated for deletion under
+Accept (b). It is recorded here BEFORE that deletion, so retiring the scaffold costs no doctrine.
+
+- **The forever executor is an OWNED library** of the per-sandbox shim, built from the OCI
+  runtime-spec. `youki`, `runc` and `crun` are **pinned differential oracles and CVE regression
+  fixtures only — never shipped product**.
+- **Shipping an oracle to green a gate the owned executor did not pass is _conformance
+  laundering_.** Naming it is the point: it is the specific failure this clause exists to forbid,
+  and it is indistinguishable from success in any report that counts gate colour alone.
+- **Bootstrap lock.** K1-reference is the declared bootstrap (youki / Go-containerd) with a
+  calendar fail-closed expiry; promotion to **K1-owned** is gated on the security-response
+  process named in the process-law exits above. The two clauses are the same lock seen from
+  either end.
+- **Adversarial corpus, closed set.** Three regression classes are mandatory, each bound to its
+  identity so a rename cannot silently drop one:
+
+  | CVE | Regression class |
+  |---|---|
+  | `CVE-2019-5736` | `proc_self_exe_reexec` |
+  | `CVE-2024-21626` | `fd_leak` |
+  | `CVE-MOUNT-SYMLINK-RACE` | `mount_symlink_race` |
+
+  CVE fixtures are the adversarial corpus, not a coverage statistic. An executor that passes the
+  differential oracles but fails one of these has not passed.
+
+This is recorded doctrine, not an Accept. Accept (a) remains gated on its state-machine /
+recovery Definition of Done exactly as written above.
+
 ### Accept (b) — `os/`-layer retirement encode
 
 #### D-B1 — Apex noun amend proposal (text only)

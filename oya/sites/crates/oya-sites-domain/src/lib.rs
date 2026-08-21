@@ -11,7 +11,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_collab_runtime_domain::{CollabRuntime, CollabSurface};
+use intelligence_collab_runtime_domain::{CollabRuntime, CollabSurface};
 use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const SITE_SCHEMA_VERSION: u32 = 1;
@@ -706,7 +706,9 @@ fn internal<T>(value: T) -> Classified<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_collab_runtime_domain::{CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef};
+    use intelligence_collab_runtime_domain::{
+        CollabRuntimeCreate, CollabSnapshotRef, CollabStateVectorRef,
+    };
     use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
 
     fn runtime(surface: CollabSurface) -> CollabRuntime {

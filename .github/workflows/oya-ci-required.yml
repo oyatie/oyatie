@@ -335,6 +335,17 @@ jobs:
   cross-platform-smoke:
     name: cross-platform-smoke (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+    # Portability signal only where it is actionable. On merge_group this job's result is
+    # structurally discarded: it is absent from the fan-in verdict below (which checks only
+    # lint/test/live-postgres-*) and carries continue-on-error, so it cannot affect
+    # admission. That is observable, not inferred -- dev merges green today with the
+    # windows leg red. The two legs are 73 of the 90 billable minutes a queue build costs
+    # (macOS bills 10x, Windows 2x), so running them where nothing can read the answer is
+    # 81% of that build spent for no merge signal.
+    #
+    # It stays on pull_request, which is the only event where an author can still change
+    # the diff in response, and on push to dev for post-merge detection.
+    if: github.event_name != 'merge_group'
     continue-on-error: true
     timeout-minutes: 30
     strategy:
@@ -346,6 +357,9 @@ jobs:
         with:
           persist-credentials: false
           fetch-depth: 0
+      - name: Configure MSVC toolchain
+        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756
+        if: matrix.os == 'windows-latest'
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
@@ -369,10 +383,19 @@ jobs:
   # Fan-in: the single required context. Green IFF lint, test, and both live-postgres
   # lanes are green. The cross-platform lane is soft: its failure never blocks merge.
   oya-ci-required:
-    name: oya-ci-required
+    # The context string is the job's `name:`, not its id, so this renames the PUBLIC status
+    # check while leaving the job id -- and therefore the rust-first inline-shell baseline key
+    # `<file>::<job-id>::<step>` -- untouched. That is what makes this rename possible without
+    # a replacement-window ADR.
+    name: merge-admission-required
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    needs: [lint, test, live-postgres-adapters, live-postgres-facades, cross-platform-smoke]
+    # cross-platform-smoke is deliberately NOT a dependency. The verdict below never reads
+    # its result, so listing it only made the fan-in WAIT on a lane it does not consult --
+    # and would make this required context's fate depend on that job's skip state. With
+    # enforce_admins on, a required context that fails to report blocks every merge, so the
+    # dependency is removed rather than reasoned about.
+    needs: [lint, test, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Fan-in verdict
         run: |
@@ -381,7 +404,13 @@ jobs:
   # Dual-emit of the forever public status string alongside the legacy protected context.
   # The branch-protection flip to `merge-admission-required` is a founder-only setting change.
   merge-admission-required:
-    name: merge-admission-required
+    # TRANSITION MIRROR, to be deleted once branch protection requires only the new name.
+    # It carries the OLD context string so `oya-ci-required` keeps reporting while protection
+    # still lists it. It is a mirror, not the verdict: it SKIPS when the fan-in fails, which is
+    # exactly why it must never be the sole required context. Protection currently requires
+    # BOTH names, so at every point in this migration at least one required context is the real
+    # fan-in and fails closed on red -- there is no window where a skip can satisfy the gate.
+    name: oya-ci-required
     runs-on: ubuntu-latest
     if: ${{ always() && needs.oya-ci-required.result == 'success' }}
     needs:

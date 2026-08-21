@@ -41,8 +41,15 @@ exceptions = [
   { allow = ["Zlib"], crate = "konst_macro_rules@0.2.19" },
   { allow = ["Zlib"], crate = "slotmap@1.1.1" },
   { allow = ["BSL-1.0"], crate = "xxhash-rust@0.8.15" },
+  # 2026-08-19: refreshed when `cargo deny check licenses` was FIRST actually executed
+  # (see .github/workflows/license-weekly-advisory.yml). These rows had drifted because
+  # nothing ran them: the pinned 1.0.7 row named a version no longer in the lock, and
+  # rustls split its trust-anchor data into a SECOND crate, webpki-root-certs, which no
+  # row covered at all. Same CDLA-Permissive-2.0 trust-anchor data, same rationale as the
+  # 2026-05-23 review above; only the crate names and versions move.
   { allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots@0.26.11" },
-  { allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots@1.0.7" },
+  { allow = ["CDLA-Permissive-2.0"], crate = "webpki-roots@1.0.9" },
+  { allow = ["CDLA-Permissive-2.0"], crate = "webpki-root-certs@1.0.9" },
 ]
 
 [advisories]

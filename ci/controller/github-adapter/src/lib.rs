@@ -80,7 +80,7 @@ impl GitHubCommitStatusPoster {
         Self::new(DEFAULT_REPO_OWNER, DEFAULT_REPO_NAME, token)
     }
 
-    /// Override the API base URL (useful in tests to point at httpmock).
+    /// Override the API base URL (useful in tests to point at a local test server).
     pub fn with_api_base(mut self, base: &str) -> Self {
         self.api_base = base.trim_end_matches('/').to_owned();
         self

@@ -1,9 +1,0 @@
-apiVersion: oyatie.dev/v1
-kind: EchConfig
-metadata:
-  name: oya-real-estate-ech
-spec:
-  rotationCadenceDays: 90
-  httpsRecord: true
-  gracefulFallback: true
-  auditEventClass: EVT-REAL_ESTATE-LEASE_CONTRACT-ECH_ROTATED

@@ -10,9 +10,6 @@ excludes:
 - path: /specs/master-plan-sequencing.json
   reason: Historical sequencing sidecar; after masterplan v2 it is provenance-only and
     not a live plan authority.
-- path: /specs/markdown-retirement-policy.json
-  reason: Markdown lifecycle and root-hub survival policy; cited and not duplicated
-    fully.
 - path: docs/DOC-CATALOG.md
   reason: Legacy pre-PHASE-5 projection and trigger taxonomy; non-authoritative migration input only.
 - path: docs/templates/pull-request-template.md
@@ -200,7 +197,7 @@ For any question, route to its authority. Click the link; do not duplicate inlin
 | Surfaces (capabilities, APIs, events, indexes, ad slots, cloud resources) | [`SPEC.md`](SPEC.md) <!-- forward-reference: wave-1 --> |
 | North star, axes, scope, success metrics, decision log | [`PRD.md`](PRD.md) <!-- forward-reference: wave-1 --> |
 | Human plan projection / archived roadmap provenance | [`MASTERPLAN.md`](MASTERPLAN.md), [`ROADMAP.md`](ROADMAP.md) |
-| Markdown lifecycle and current doc-authority routing | [`/specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json), [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json); [`DOC-CATALOG.md`](DOC-CATALOG.md) is legacy migration input only |
+| Markdown lifecycle and current doc-authority routing | [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json). The markdown-retirement policy was retired: its migration phases had gone overdue with no owner, and its one executable clause now lives at [`ci/facade/cross-artifact-agreement/idea-archive-policy.json`](../ci/facade/cross-artifact-agreement/idea-archive-policy.json). [`DOC-CATALOG.md`](DOC-CATALOG.md) is legacy migration input only |
 | Doc-class taxonomy, voice, dual-audience rules | [`standards/doc-style.md`](standards/doc-style.md) <!-- forward-reference: wave-1 --> |
 | Architectural decisions (ADR pack) | [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 --> |
 | Recurring failure modes + mechanical preventions | [`MISTAKES-LEDGER.md`](MISTAKES-LEDGER.md) <!-- forward-reference: wave-1 --> |
@@ -472,7 +469,7 @@ State: legacy OMC may write to `.omc/state/`, `.omc/notepad.md`, `.omc/project-m
 This contract does not cover:
 
 - **Machine-readable authority registry** — see [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json).
-- **Historical per-doc catalog design** — [`DOC-CATALOG.md`](DOC-CATALOG.md) is non-authoritative migration input until PHASE-5 promotion; current lifecycle/routing comes from [`/specs/markdown-retirement-policy.json`](../specs/markdown-retirement-policy.json) and [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json).
+- **Historical per-doc catalog design** — [`DOC-CATALOG.md`](DOC-CATALOG.md) is non-authoritative migration input until PHASE-5 promotion; current lifecycle/routing comes from [`/specs/root-hub-pointers.json`](../specs/root-hub-pointers.json); the markdown-retirement policy that formerly shared that role is retired.
 - **PR template body** — see [`templates/pull-request-template.md`](templates/pull-request-template.md) <!-- forward-reference: wave-1 -->.
 - **Architectural rationale per decision** — see [`decisions/`](decisions/) <!-- forward-reference: wave-1 --> indexed at [`ADR-INDEX.md`](ADR-INDEX.md) <!-- forward-reference: wave-1 -->.
 - **Per-team norms** — see [`teams/`](teams/) <!-- forward-reference: wave-1 -->.

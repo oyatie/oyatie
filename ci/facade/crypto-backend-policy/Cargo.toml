@@ -28,5 +28,12 @@ doctest = false
 serde_json = { workspace = true }
 oya-buck-syntax-kernel = { path = "../../../libs/oya-buck-syntax-kernel" }
 
+[dev-dependencies]
+# The shared independent corpus census (ci/adapters/corpus-census). The live-tree self-test's only
+# anti-collapse check used to be `census >= min_expected_workspace_packages`, and that floor is 1
+# against ~900 manifests. The census re-derives the workspace members a second, independent way so
+# a collapsed walk is caught as a named set difference instead of a number nothing can attribute.
+ci-corpus-census-adapters = { path = "../../adapters/corpus-census" }
+
 [lints]
 workspace = true

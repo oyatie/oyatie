@@ -28,6 +28,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
+ci-scan-root-derivation-adapters = { path = "../../adapters/scan-root-derivation" }
 serde_json = { workspace = true }
 
 [lints]

@@ -6,12 +6,26 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
+# Pure std-only kernel (port-in-kernel, ADR-0015): no runtime dependencies. The LIVE-TREE walk that
+# grounds it — JSON parsing, file I/O, `git ls-files` — lives in tests/ and is the only thing that
+# needs serde_json.
+
 [dependencies]
+
+[dev-dependencies]
+serde_json = { workspace = true }
 
 [lib]
 name = "check_active_artifact_contract"
 path = "src/lib.rs"
 doctest = false
+
+# The unit suite inside src/lib.rs proves the kernel correct on hand-written fixtures and says
+# nothing about this repository. This target is the LIVE-TREE walk that grounds the doctrine in the
+# real artifact-capabilities registry.
+[[test]]
+name = "active_artifact_contract_live"
+path = "tests/active_artifact_contract_live.rs"
 
 [lints]
 workspace = true

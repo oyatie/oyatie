@@ -1,0 +1,15 @@
+{
+  "_comment": "Shrink-only, TWO-SIDED freeze of the workspace-glob-coverage findings that exist on the live tree. Before this file, the live-corpus test asserted only that findings and verdict AGREE (`findings.is_empty()` implied Green, otherwise Red) \u2014 a tautology over the kernel's own internal consistency that never asserted the finding set was EMPTY. It printed `BORN-BLOCKING ... verdict=Red` and exited 0 with 7 real violations standing, and a planted crate outside the workspace raised the count to 8 while the test stayed green. Two-sided rather than a ceiling because a one-sided subset rule cannot distinguish debt paid off from a collapsed scan: ci/facade/cloud-name-ratchet was mutation-proven to catch a partial collapse for exactly this reason, and the same shape is used here.",
+  "policy": "A finding whose code::key is absent from `frozen` is a NEW violation and is blocking. A `frozen` entry no longer produced is ALSO blocking, and must be deleted from this file in the same change that removes it \u2014 that keeps a shrinking finding set a reviewed diff of named keys rather than an unattributable number.",
+  "adr": "ADR-0538",
+  "frozen": [
+    "workspace_member_explicit_path::ci/controller/app",
+    "workspace_member_explicit_path::ci/controller/github-adapter",
+    "workspace_member_explicit_path::ci/controller/k8s-adapter",
+    "workspace_member_explicit_path::ci/controller/kernel",
+    "workspace_member_explicit_path::ci/tide/app",
+    "workspace_member_explicit_path::ci/tide/github-adapter",
+    "workspace_member_explicit_path::ci/tide/kernel"
+  ],
+  "frozen_note": "All 7 are the SAME defect: ADR-0538 requires every root [workspace].members entry to be a glob, and these are literal paths. They are the reorg's remaining debt under ci/, not a new regression. Burning them down means giving ci/tide and ci/controller a conforming layer shape so a shape glob matches them."
+}

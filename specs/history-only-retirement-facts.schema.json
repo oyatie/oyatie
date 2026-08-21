@@ -964,7 +964,7 @@
           "const": true
         },
         "protected_base_is_evaluated_first_parent": {
-          "const": true
+          "type": "boolean"
         },
         "subject_is_evaluated_second_parent": {
           "type": "boolean"

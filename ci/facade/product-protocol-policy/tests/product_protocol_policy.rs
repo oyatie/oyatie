@@ -1012,9 +1012,16 @@ fn live_adr_authority_reconciliation_is_green() {
         .collect::<BTreeSet<_>>();
     for corpus_rel in ["docs/decisions", "docs/adr-archive"] {
         let corpus_dir = root.join(corpus_rel);
-        if !corpus_dir.is_dir() {
-            continue;
-        }
+        // A declared corpus root that no longer resolves is NOT "nothing to reconcile" — it is a
+        // root that scans zero ADRs and reports green over an empty set. This used to `continue`,
+        // so `mv docs/decisions` left this reconciliation passing with an empty authority map.
+        assert!(
+            corpus_dir.is_dir(),
+            "declared ADR corpus root {corpus_rel} does not resolve under {} — reconciliation \
+             over a missing root scans nothing and reports green; repoint the root in the same \
+             change that moves it",
+            root.display()
+        );
         for entry in fs::read_dir(&corpus_dir).unwrap_or_else(|e| panic!("read {corpus_rel}: {e}"))
         {
             let path = entry.expect("ADR entry").path();
@@ -1472,8 +1479,9 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
         "the retired cloud root must leave every other governed root unchanged"
     );
     assert_eq!(
-        policy["manifest_inventory"]["expected_total"], 94,
-        "retiring the two cloud manifests must move the exact corpus total 96 -> 94"
+        policy["manifest_inventory"]["expected_total"], 77,
+        "the governed corpus total is review-pinned: retiring the two cloud manifests moved it \
+         96 -> 94, and retiring the 51 unreferenced oya product crates moved it 94 -> 77"
     );
     let retirement = policy["manifest_inventory"]["_comment"]
         .as_str()
@@ -1495,7 +1503,11 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     // test attributes above — the retirement pins are the two `cloud/*` entries asserted there,
     // which are untouched. Kept as an exact pin rather than a range so a silent revival of the
     // retired corpus still fails here.
-    assert_eq!(projection["service_count"], 95);
+    // Retiring the 51 unreferenced oya product crates dropped 18 entries, all of them
+    // product-tier: 95 -> 77 with substrate held at 54. A retirement of product crates that
+    // moved the substrate count would mean the walk, not the retirement, changed — so the
+    // substrate pin stays exact and is the control on this shrink.
+    assert_eq!(projection["service_count"], 77);
     assert_eq!(projection["tier_distribution"]["substrate"], 54);
     assert!(
         projection["services"]

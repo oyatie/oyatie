@@ -1,11 +1,17 @@
 {
-  "_comment": "Legacy embedded-asset skip debt frozen at gate go-live (ADR-0545). This baseline is the shrink-only ratchet reference for the skip_* codes whose keys exist in the corpus TODAY. The live-repo gate test asserts the MEASURED skip set equals these keys EXACTLY (set equality, not a count): a NEW site triggering any skip code is born-blocking because it is not in the baseline, while frozen legacy keys age out as their sites are resolved (a tracked test target wired, a non-literal include replaced by a literal + mapping, a build-output include retired). This file is NOT producer-regenerated \u2014 it is a reviewed, hand-shrunk artifact. The anti-laundering property is REVIEW-VISIBLE, not structural (FRIC-1781112000 follow-up): because this file and the test's ceilings are same-PR-editable, laundering new debt requires a visible edit a reviewer must approve. The BLOCKING codes embedded_asset_unmapped_include and embedded_asset_policy_gate_id_mismatch carry NO baseline: any key is RED (the repo is hermetic today after the prerequisite webhook cedar-adapter BUCK fix).",
+  "_comment": "Legacy embedded-asset skip debt frozen at gate go-live (ADR-0545). SCAN WIDENING 2026-08-19: the gate's 16 hand-enumerated scan_roots were replaced by derivation from the closed capability registry, taking the walked set from 13 live roots to 32 and the visible corpus from 267 include sites to 285. The 18 newly visible sites (cell, comms, iac, kernel, network, tenancy) all RESOLVE against their owning targets' srcs, so every skip set below is unchanged and no key was baselined to absorb the widening. Measured, not assumed: the same dangling include planted in comms/ is GREEN under the old root list and RED under derivation. This baseline is the shrink-only ratchet reference for the skip_* codes whose keys exist in the corpus TODAY. The live-repo gate test asserts the MEASURED skip set equals these keys EXACTLY (set equality, not a count): a NEW site triggering any skip code is born-blocking because it is not in the baseline, while frozen legacy keys age out as their sites are resolved (a tracked test target wired, a non-literal include replaced by a literal + mapping, a build-output include retired). This file is NOT producer-regenerated — it is a reviewed, hand-shrunk artifact. The anti-laundering property is REVIEW-VISIBLE, not structural (FRIC-1781112000 follow-up): because this file and the test's ceilings are same-PR-editable, laundering new debt requires a visible edit a reviewer must approve. The BLOCKING codes embedded_asset_unmapped_include and embedded_asset_policy_gate_id_mismatch carry NO baseline: any key is RED (the repo is hermetic today after the prerequisite webhook cedar-adapter BUCK fix).",
   "_provenance": {
     "authority": "ADR-0545 embedded-asset hermeticity gate go-live; door:one-way",
     "baseline_schema_version": 1,
     "frozen_at": "2026-06-11",
     "policy_path": "ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-policy.json",
     "sites_floor": 72,
+    "_sites_floor_is_a_broken_scan_guard_not_a_coverage_guard": "sites_floor was the only defence against a collapsed scan, and it is a COUNT — unattributable, and it cannot tell a collapsed scan from a legitimately smaller corpus. It is deliberately LEFT AT 72 and not re-frozen to the post-widening 285: a floor raised to the current measurement reds the moment a crate is legitimately deleted, which is how min_expected_unpackaged_yaml_files died after six lowerings. What it SHOULD become, and now has, is a SET assertion on the scan itself: walked_roots_are_exactly_the_registry_derived_set pins the walked root set against the capability registry and names the missing root, and no_registered_capability_is_unaccounted_for proves every registered capability is either scanned or frozen pending. Once those two carry the broken-scan duty, sites_floor is a redundant coarse tripwire kept only because deleting a floor and widening a scan in one change is not a diff a reviewer can check.",
+    "pending_roots": [
+      "base",
+      "policy"
+    ],
+    "_pending_roots_contract": "REGISTERED roots that have not materialized on disk, frozen TWO-SIDED by pending_roots_equal_the_frozen_set_exactly. They are NOT scanned (there is nothing to scan) and they are NOT silently dropped. base/ is the ADR-0562 shared floor, created by the first libs/ consolidation move; policy is the capability ADR-0615 extracted from iam and is where Cedar/PDP assets — exactly the include_str! class this gate maps — will land. When either lands it is scanned BY CONSTRUCTION with no edit to any policy, and the gate reds until its key is struck from this list, so a landed root cannot keep an unaudited exemption. This replaces the two hand-written forward_declarations entries this gate carried in scan-root-liveness, which had to be retired by hand and had already outlived their app/ and build/ siblings by two retirement events.",
     "ceilings": {
       "skip_non_literal_argument": 1,
       "skip_absolute_literal": 0,
@@ -16,7 +22,7 @@
   },
   "codes": {
     "skip_non_literal_argument": [
-      "intelligence/core/openapi-domain/src/lib.rs:6088"
+      "intelligence/core/openapi-domain/src/lib.rs:6158"
     ],
     "skip_absolute_literal": [],
     "skip_build_output_path": [],

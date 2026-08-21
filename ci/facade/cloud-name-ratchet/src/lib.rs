@@ -45,7 +45,7 @@ pub const CARVE_OUTS: &[&str] = &[
 /// leading `cloud_` alike (ADR-0711), and the same holds for the `oya-`/`oya_` wrapper. Matching
 /// only the hyphen let `secrets/cloud_new_service` — or a Cargo package named `oya_cloud_thing` —
 /// walk straight past a blocking gate by changing one character.
-#[must_use]
+///
 /// Does this name segment begin with a deprecated brand-namespace prefix?
 ///
 /// BOTH `cloud-` and `oya-` are shrink-to-zero targets. They are the same kind of debt — a brand

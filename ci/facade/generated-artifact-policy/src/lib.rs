@@ -894,6 +894,35 @@ fn parse_ratchet_tsv(content: &str) -> Vec<RatchetRow> {
 /// byte (alnum/`_`/`-`/`/`/`.`) and the byte after it (if any) is not an identifier-continuation
 /// byte (alnum/`_`/`-`) — so `<old>/src/lib.rs:123` rewrites but a longer unrelated name that
 /// merely starts with `old`, or `old` nested inside a longer unrelated path, does not.
+/// Whether `removed` and `added` are the same baseline key with only its trailing `:<line>`
+/// anchor moved — e.g. `a/b/lib.rs:6088` -> `a/b/lib.rs:6158`.
+///
+/// Line-anchored baseline keys name a construct by WHERE it sits, so any edit above that
+/// construct renumbers the key without changing the debt it records. Neither sanctioned
+/// transformation covered that: a pure shrink loses the entry the live gate still requires,
+/// and a move-plan substitution rewrites the PATH, which is identical here. That left a
+/// legal-edit deadlock — the hermeticity gate demanding the new line while this policy
+/// rejected writing it.
+///
+/// This cannot launder debt. The path component must match exactly, so no new file can be
+/// introduced; the caller consumes one removed key per addition, so the count cannot grow;
+/// and ceiling checks run separately and still reject any increase.
+fn is_line_anchor_drift(removed: &str, added: &str) -> bool {
+    let Some((removed_path, removed_line)) = removed.rsplit_once(':') else {
+        return false;
+    };
+    let Some((added_path, added_line)) = added.rsplit_once(':') else {
+        return false;
+    };
+    removed_path == added_path
+        && !removed_path.is_empty()
+        && removed_line != added_line
+        && !removed_line.is_empty()
+        && !added_line.is_empty()
+        && removed_line.bytes().all(|b| b.is_ascii_digit())
+        && added_line.bytes().all(|b| b.is_ascii_digit())
+}
+
 fn rewrite_path_token_local(text: &str, old: &str, new: &str) -> Option<String> {
     if old.is_empty() {
         return None;
@@ -984,10 +1013,10 @@ fn validate_ratchet_diff(
         for add_row in &added {
             let matched_index = removed_pool.iter().position(|rm_row| {
                 rm_row.rest == add_row.rest
-                    && move_plan_pairs.iter().any(|(old, new)| {
+                    && (move_plan_pairs.iter().any(|(old, new)| {
                         rewrite_path_token_local(&rm_row.key, old, new).as_deref()
                             == Some(add_row.key.as_str())
-                    })
+                    }) || is_line_anchor_drift(&rm_row.key, &add_row.key))
             });
             match matched_index {
                 Some(idx) => {
@@ -996,7 +1025,7 @@ fn validate_ratchet_diff(
                 None => {
                     return Err(format!(
                         "unexplained new key {:?} in group {group:?} (not a move-plan-backed \
-                         substitution of any removed key)",
+                         substitution or line-anchor drift of any removed key)",
                         add_row.key
                     ));
                 }
@@ -2316,6 +2345,70 @@ mod tests {
         let after = r#"{"_provenance":{"ceilings":{"c1":1}},"codes":{"c1":["new/dir/f.rs:1"]}}"#;
         let moves = vec![("old/dir".to_owned(), "new/dir".to_owned())];
         assert_eq!(validate_ratchet_diff(before, after, &moves), Ok(()));
+    }
+
+    #[test]
+    fn ratchet_diff_allows_line_anchor_drift_on_an_unchanged_path() {
+        // The #1956 shape: the guarded construct did not move between files, but an edit ABOVE it
+        // renumbered the anchor. Path identical, line different, count unchanged.
+        let before = r#"{"_provenance":{"ceilings":{"c1":1}},"codes":{"c1":["a/b/lib.rs:6088"]}}"#;
+        let after = r#"{"_provenance":{"ceilings":{"c1":1}},"codes":{"c1":["a/b/lib.rs:6158"]}}"#;
+        assert_eq!(validate_ratchet_diff(before, after, &[]), Ok(()));
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_a_path_change_disguised_as_line_drift() {
+        // Line drift must be PATH-IDENTICAL. Changing the path is a substitution and still needs
+        // a move plan to back it, else this arm becomes the laundering hole the other arm closes.
+        let before = r#"{"codes":{"c1":["a/real-debt.rs:1"]}}"#;
+        let after = r#"{"codes":{"c1":["b/laundered.rs:2"]}}"#;
+        assert!(
+            validate_ratchet_diff(before, after, &[]).is_err(),
+            "a differing path must RED even when the line also differs"
+        );
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_line_drift_that_grows_the_entry_count() {
+        // One removal is consumed per addition, so drift cannot add a second anchor into the
+        // same file while keeping the first.
+        let before = r#"{"codes":{"c1":["a/b/lib.rs:10"]}}"#;
+        let after = r#"{"codes":{"c1":["a/b/lib.rs:20","a/b/lib.rs:30"]}}"#;
+        assert!(
+            validate_ratchet_diff(before, after, &[]).is_err(),
+            "drift must not be a route to MORE baseline entries than were removed"
+        );
+    }
+
+    #[test]
+    fn ratchet_diff_rejects_line_drift_alongside_a_ceiling_increase() {
+        let before = r#"{"_provenance":{"ceilings":{"c1":1}},"codes":{"c1":["a/b/lib.rs:10"]}}"#;
+        let after = r#"{"_provenance":{"ceilings":{"c1":2}},"codes":{"c1":["a/b/lib.rs:20"]}}"#;
+        assert!(
+            validate_ratchet_diff(before, after, &[]).is_err(),
+            "a valid drift must not carry a ceiling raise through with it"
+        );
+    }
+
+    #[test]
+    fn line_anchor_drift_requires_numeric_anchors_on_both_sides() {
+        assert!(is_line_anchor_drift("a/b.rs:10", "a/b.rs:20"));
+        assert!(
+            !is_line_anchor_drift("a/b.rs:10", "a/b.rs:10"),
+            "identical is not drift"
+        );
+        assert!(
+            !is_line_anchor_drift("a/b.rs:10", "a/b.rs:beta"),
+            "non-numeric anchor"
+        );
+        assert!(
+            !is_line_anchor_drift("a/b.rs", "a/b.rs:10"),
+            "missing anchor"
+        );
+        assert!(
+            !is_line_anchor_drift("a/b.rs:10", "c/d.rs:20"),
+            "path must match"
+        );
     }
 
     #[test]

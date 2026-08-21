@@ -663,13 +663,6 @@
       "purpose": "Per-file rows tracking each Markdown retirement event (source_md_path / target_json_path / status / migration_date).",
       "target_path_after_md_retirement": "same"
     },
-    "markdown_retirement_policy": {
-      "current_path": "/specs/markdown-retirement-policy.json",
-      "kind": "spec",
-      "migration_phase": "complete",
-      "purpose": "Migration policy per the 'we don't need markdown' directive, rebaselined against the 2026-07-13 tracked corpus and MPV2-0003. Historical deadlines are not completion claims.",
-      "target_path_after_md_retirement": "same"
-    },
     "master_plan_sequencing": {
       "current_path": "/specs/master-plan-sequencing.json",
       "kind": "spec",

@@ -4,7 +4,7 @@
 use std::path::PathBuf;
 use std::time::Instant;
 
-use oya_intelligence_architecture_map_app::{MapBuildError, build_map, emit_json};
+use intelligence_architecture_map_app::{MapBuildError, build_map, emit_json};
 
 use crate::usage;
 

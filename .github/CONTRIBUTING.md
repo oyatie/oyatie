@@ -43,9 +43,13 @@ From `docs/AGENTS.md` §Pre-flight checklist — complete all items. Highlights:
   doc map in `docs/AGENTS.md`) and cite it in `## Summary`.
 - **Data Use Boundary**: every new field on a kernel struct carries a
   `data_class` annotation.
-- **License posture**: license policy is enforced by the Cargo/cloud-ci
-  supply-chain and license-policy lanes; `cargo deny check` is local advisory
-  feedback. AGPL / GPL / SSPL / BUSL / RSAL are not permitted in product code.
+- **License posture**: AGPL / GPL / SSPL / BUSL / RSAL are not permitted in
+  product code. Know what actually enforces that, because the three layers differ:
+  the `cloud-ci-license-policy` gate validates the `license` field declared by
+  **workspace-member packages only**; `deny.toml`'s allow-list covers **third-party
+  crates** and is checked by the weekly `license-weekly-advisory` lane, not on the
+  merge path; **container images and Helm charts are not covered at all** by either.
+  `cargo deny check` remains useful local advisory feedback before you push.
 - **Search `MISTAKES-LEDGER`** for the failure-mode class and cite the
   `MFL-NNNN` row (or a "no prior row" note).
 

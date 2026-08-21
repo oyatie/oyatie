@@ -1,0 +1,37 @@
+[package]
+name = "intelligence-eval-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Intelligence eval composition root (usecase layer per ADR-0105). Wires the pure intelligence-eval-kernel scoring function + the eval-domain policy gating + the eval-usecase idempotency/audit recorder + the eval-adapter runner envelope + the eval-worker retry loop into an end-to-end metadata-only dispatch use-case (`dispatch_eval_job`). Path-deps on the kernel/domain/usecase/adapter/worker only; no NEW external workspace dependency seam. Mirrors the provider-pool-app composition pattern (ports + in-memory adapters + production transport adapter; default-deny on error; ADR-0083 Tier-3 panic-free)."
+
+# INVARIANT: path-deps on the eval kernel/domain/usecase/adapter/worker
+# crates only. The composition layer adds tokio/futures-util/bytes/tracing for
+# the production hosted-eval-runner transport scaffold (mirroring how the
+# provider-pool-app composes the same backbone). No NEW external workspace
+# dependency seam.
+[dependencies]
+intelligence-eval-kernel = { path = "../eval-kernel" }
+intelligence-eval-domain = { path = "../eval-domain" }
+intelligence-eval-usecase = { path = "../eval-usecase" }
+intelligence-eval-adapter = { path = "../../adapters/eval-adapter" }
+intelligence-eval-worker = { path = "../eval-worker" }
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "sync", "time"] }
+futures-util = { version = "0.3", default-features = false }
+bytes = { version = "1", default-features = false }
+tracing = { version = "0.1", default-features = false, features = ["std", "attributes"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[dev-dependencies]
+tokio = { version = "1", default-features = false, features = ["rt-multi-thread", "macros", "sync", "time"] }
+
+[lib]
+name = "intelligence_eval_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

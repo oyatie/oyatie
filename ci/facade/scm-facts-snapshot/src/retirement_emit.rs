@@ -66,7 +66,14 @@ pub(crate) fn census_revision_from_event(
         &evaluated,
         &subject,
     )?;
-    if source.first_parent(&evaluated)? != protected {
+    // Same event scoping as retirement_materialize_resolve.rs and validate_event.rs:46. Without
+    // it this site simply inherits the failure the moment the other two are relaxed -- it is the
+    // third of three, and the reason relaxing one at a time reads as whack-a-mole.
+    let evaluated_first_parent = source.first_parent(&evaluated)?;
+    let first_parent_is_base_history = evaluated_first_parent == protected
+        || (context.scm_event_name == "pull_request"
+            && source.is_ancestor(&protected, &evaluated_first_parent)?);
+    if !first_parent_is_base_history {
         return Err("retirement protected base is not evaluated first parent".to_owned());
     }
     Ok(if context.scm_event_name == "pull_request" {

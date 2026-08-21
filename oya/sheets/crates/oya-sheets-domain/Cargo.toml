@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
-oya-collab-runtime-domain = { path = "../../../intelligence/crates/oya-collab-runtime-domain" }
+intelligence-collab-runtime-domain = { path = "../../../../intelligence/core/collab-runtime-domain" }
 
 [lib]
 name = "oya_sheets_domain"
