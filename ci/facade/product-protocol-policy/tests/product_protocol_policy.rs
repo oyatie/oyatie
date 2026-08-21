@@ -1520,10 +1520,12 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     // product entry in the walk (still 76). Admitting app/sheets as a governed root
     // after the oya/sheets husk drain keeps that product entry in the walk (still 76).
     // Admitting ci/webhook-gateway after the oya/ci-webhook-gateway leftover drain
-    // keeps that substrate entry (still 76). A retirement of product crates that
-    // moved the substrate count would mean the walk, not the retirement, changed —
-    // so the substrate pin stays exact and is the control on this shrink.
-    assert_eq!(projection["service_count"], 76);
+    // keeps that substrate entry (still 76). Retiring the D41 notes/slides/sites/translate
+    // rails deletes four product manifests (76 -> 72) without touching substrate. A
+    // retirement that moved the substrate count would mean the walk, not the
+    // retirement, changed — so the substrate pin stays exact and is the control on
+    // this shrink.
+    assert_eq!(projection["service_count"], 72);
     assert_eq!(projection["tier_distribution"]["substrate"], 54);
     assert!(
         projection["services"]

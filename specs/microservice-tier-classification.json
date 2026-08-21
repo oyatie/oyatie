@@ -14,11 +14,11 @@
   },
   "tier_distribution": {
     "substrate": 54,
-    "product": 22,
+    "product": 18,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 76,
+  "service_count": 72,
   "services": {
     "audit/manifest.json": {
       "service": "audit",
@@ -892,14 +892,6 @@
         ]
       }
     },
-    "oya/notes/manifest.json": {
-      "service": "oya/notes",
-      "manifest": "oya/notes/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-notes",
-      "dr_tier": "T0"
-    },
     "oya/payments/manifest.json": {
       "service": "oya/payments",
       "manifest": "oya/payments/manifest.json",
@@ -915,30 +907,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer-sheets",
       "dr_tier": "T2"
-    },
-    "oya/sites/manifest.json": {
-      "service": "oya/sites",
-      "manifest": "oya/sites/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-sites",
-      "dr_tier": "T2"
-    },
-    "oya/slides/manifest.json": {
-      "service": "oya/slides",
-      "manifest": "oya/slides/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-slides",
-      "dr_tier": "T2"
-    },
-    "oya/translate/manifest.json": {
-      "service": "oya/translate",
-      "manifest": "oya/translate/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-translate",
-      "dr_tier": "T0"
     },
     "secrets/kms/manifest.json": {
       "service": "secrets/kms",

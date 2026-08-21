@@ -55,13 +55,10 @@ workflow/ @teams/workflow
 Cargo.lock @teams/build
 Cargo.toml @teams/build
 HANDOFF.md @teams/ci
-app/notes/ @teams/notes
-app/sites/ @teams/sites
 messaging/ @teams/messaging
 templates/ @teams/docs
 app/office/ @teams/office
 app/sheets/ @teams/sheets
-app/slides/ @teams/slides
 app/social/ @teams/social
 compliance/ @teams/compliance
 governance/ @teams/governance
@@ -77,7 +74,6 @@ intelligence/ @teams/intelligence
 oya-deps.toml @teams/build
 reindeer.toml @teams/build
 app/community/ @teams/community
-app/translate/ @teams/translate
 app/warehouse/ @teams/warehouse
 observability/ @teams/observability
 app/whiteboard/ @teams/whiteboard

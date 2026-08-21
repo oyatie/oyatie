@@ -171,7 +171,11 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  the catalog row for the new ci/facade/gitops-chart-license
 ///                                  crate (ADR-0706 D-5 enforcement). Corpus gained exactly
 ///                                  one row, face gained exactly one.
-const SLO_CATALOG_CENSUS: usize = 701;
+///   2026-08-21  701 -> pin 697     ROWS DELETED: four registry/catalog domain rows for the
+///                                  retired D41 rails (oya-notes-domain, oya-slides-domain,
+///                                  oya-sites-domain, oya-translate-domain). TreeDelta vs
+///                                  merge-base; the scan did not collapse.
+const SLO_CATALOG_CENSUS: usize = 697;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {

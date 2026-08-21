@@ -8297,14 +8297,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-notes-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-collab-runtime-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "oya-reorg-codemod-app"
 version = "0.1.0"
 dependencies = [
@@ -8583,32 +8575,8 @@ name = "oya-shared-wasm-runtime-kernel"
 version = "0.1.0"
 
 [[package]]
-name = "oya-sites-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-collab-runtime-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-slides-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-collab-runtime-domain",
- "intelligence-document-format-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "oya-tooling-agent-read"
 version = "0.1.0"
-
-[[package]]
-name = "oya-translate-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
 
 [[package]]
 name = "oya-workspace-chat-api"

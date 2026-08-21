@@ -69,7 +69,7 @@
     "dropped_by_name": 71,
     "dropped_by_context_foundry": 202,
     "dropped_by_content_jenkins_bridge": 2,
-    "kept_count": 627,
+    "kept_count": 619,
     "notes": "Per D-FOUNDRY/D11(d) the foundry-context block is mid-rename (platform→oya-intelligence, fitness/oya-check-*→oya-governance, agentic-VCS→retired) and NOT yet sense-routed in source; this DRAFT EXCISES all 202 foundry-context + 71 foundry/vcs/jenkins-named crates rather than blindly swap keys (canon: 'never a blind swap'). oya-check-brand-residue KEPT (it IS the forbidden-token deny-list SSOT; names tokens as the enum it guards, not as residue)."
   },
   "normalizations": {
@@ -77,7 +77,7 @@
     "note_OPEN_3": "role 'application'→'app' collapsed per STORE-SCHEMA §6 OPEN-3 recommendation; api/rest/grpc kept distinct.",
     "note_data_class_token": "live catalog token is SENSITIVE_PIPA_ART23 (PIPA Art.23 sensitive-data); STORE-SCHEMA §3.2 shows truncated 'SENSITIVE_PIPA_ART' — DRAFT preserves the live grounded token; flag schema doc to reconcile."
   },
-  "entity_count": 627,
+  "entity_count": 619,
   "entities": [
     {
       "key": "oya-accounting-journal-api",
@@ -1013,7 +1013,6 @@
         "security_review remains unreviewed until a code-backed review ChangeSet upgrades it"
       ]
     },
-
     {
       "key": "oya-cloud-billing-adapter-aws",
       "context": "compatibility",
@@ -6622,21 +6621,6 @@
       ]
     },
     {
-      "key": "oya-notes-domain",
-      "context": "notes",
-      "role": "domain",
-      "capability": "notes",
-      "plane": "control",
-      "slo": "preview-control-plane",
-      "data_classes_owned": [
-        "INTERNAL_ONLY"
-      ],
-      "operational_classes_owned": [],
-      "api_stability": "preview",
-      "security_review": "unreviewed",
-      "supply_chain": "source-only"
-    },
-    {
       "key": "oya-observability-domain",
       "context": "observability",
       "role": "domain",
@@ -9280,36 +9264,6 @@
       ]
     },
     {
-      "key": "oya-sites-domain",
-      "context": "sites",
-      "role": "domain",
-      "capability": "sites",
-      "plane": "control",
-      "slo": "preview-control-plane",
-      "data_classes_owned": [
-        "INTERNAL_ONLY"
-      ],
-      "operational_classes_owned": [],
-      "api_stability": "preview",
-      "security_review": "unreviewed",
-      "supply_chain": "source-only"
-    },
-    {
-      "key": "oya-slides-domain",
-      "context": "slides",
-      "role": "domain",
-      "capability": "slides",
-      "plane": "control",
-      "slo": "preview-control-plane",
-      "data_classes_owned": [
-        "INTERNAL_ONLY"
-      ],
-      "operational_classes_owned": [],
-      "api_stability": "preview",
-      "security_review": "unreviewed",
-      "supply_chain": "source-only"
-    },
-    {
       "key": "oya-social-app",
       "context": "social",
       "role": "app",
@@ -10447,21 +10401,6 @@
       "context": "tooling",
       "role": "runtime",
       "capability": "dev-cli",
-      "plane": "control",
-      "slo": "preview-control-plane",
-      "data_classes_owned": [
-        "INTERNAL_ONLY"
-      ],
-      "operational_classes_owned": [],
-      "api_stability": "preview",
-      "security_review": "unreviewed",
-      "supply_chain": "source-only"
-    },
-    {
-      "key": "oya-translate-domain",
-      "context": "translate",
-      "role": "domain",
-      "capability": "translate",
       "plane": "control",
       "slo": "preview-control-plane",
       "data_classes_owned": [

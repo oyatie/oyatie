@@ -72,8 +72,8 @@ fn live_service_corpus_is_born_blocking_green() {
     );
     assert_eq!(report.verdict, Verdict::Green);
     assert!(
-        report.manifests_checked >= 76,
-        "the live tree should carry at least the current 76 service manifests; got {}",
+        report.manifests_checked >= 72,
+        "the live tree should carry at least the current 72 service manifests; got {}",
         report.manifests_checked
     );
     eprintln!(

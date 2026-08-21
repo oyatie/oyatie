@@ -72,8 +72,10 @@ fn target_parity_face_reports_live_corpus_debt() {
     let rows = face["rows"].as_array().expect("target-parity face rows");
     // 2026-08-20  817 -> 793. Deletion, not a narrowed scan: 45 zero-importer libs/ crates were
     // removed outright, so the root workspace member census shrinks with them.
+    // 2026-08-21  793 -> 791. Deletion, not a narrowed scan: D41 notes/slides/sites/translate
+    // domain crates are removed; cargo-metadata member census dropped two workspace members.
     assert!(
-        rows.len() >= 793,
+        rows.len() >= 791,
         "the target-parity face should enumerate at least the G011 base workspace members, got {}",
         rows.len()
     );
