@@ -7716,3 +7716,36 @@ and `select` — needs the mutex reshape including a seven-way field partition, 
 path, `WaitGroup`, the closure-ownership rule for spawned literals, a channel decision, `select`, and
 timers. That is a body of work measured in weeks, not in rules. The engine's refusals name every
 piece of it by now, which is what they are for.
+
+## R5h — a refusal whose own text says nothing was lost is not a refusal
+
+Chasing the error-interface satisfaction cause — 18 declarations across seven packages, the largest
+rule-shaped root left — found that it is not a gap at all. The reason ends:
+
+> The conformance is NOT lost ... The method becomes a display impl for the type.
+
+And it does. `uuid` reports four of these and emits three `impl StdError` alongside the `Display`
+each was folded into:
+
+    impl fmt::Display for InvalidLengthError { ... write!(f, "invalid UUID length: {}", self.len) }
+    impl StdError for InvalidLengthError {}
+
+So the source's `Error() string` IS translated — into the pair of traits the target uses for the
+same job — and what is recorded as refused is the SATISFACTION RECORD, which correctly does not
+become a trait impl of its own.
+
+That makes it a defect in the MEASUREMENT rather than in the engine, and the fourth instrument
+defect this session after `-A dead_code`, the review bundle's missing manifest, and a gate that
+called an empty crate compiled. Corpus-wide:
+
+    translated  468
+    refused     973   <- of which at least 18 are folded rather than lost
+
+Coverage UNDERSTATES what the engine translates, and every coverage figure quoted in this session
+carries that error. The fix is a category — a declaration whose meaning is emitted somewhere else is
+neither translated-here nor refused, and `deferred` already exists for a related idea — but a survey
+restructure is not something to start at the end of a long session, so this records the size and the
+shape instead.
+
+WHAT IT DOES NOT CHANGE: 18 of 973 is not the reason the blind gate says the crate is a skeleton.
+The cascade is 277 and the decisions are still the roots. This corrects a number, not a conclusion.
