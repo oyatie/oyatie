@@ -7570,3 +7570,30 @@ like; they answer the same question about the same thing and should be one.
 takes `i` as a parameter AND RETURNS IT, so `i` cannot be an index type until the RESULT is one too,
 and the result's type is part of a signature its callers read. That is the whole-program half of the
 same rule.
+
+## R5c — a slice of a borrowed parameter is the parameter's memory
+
+    fn pkcs7decode(buf: &[u8], _: usize) -> &[u8] {
+        let mut n: usize = buf.len();
+        let last = buf[n.wrapping_sub(1)];
+        n = n.wrapping_sub(last as usize);
+        &buf[..n]
+    }
+
+The source's `return buf[:n]` reslices what it was given and copies nothing. The port allocated,
+because a `[]byte` result maps to an owned sequence — on the decrypt path of every packet
+`memberlist` receives, of a payload bounded at forty megabytes. Both gates named it.
+
+EXACTLY ONE BORROWED PARAMETER is the condition, and it is what keeps this inside the doctrine's
+refusal to infer lifetimes: with one reference input the target ELIDES the result's lifetime and
+there is nothing left to infer. Two would need the engine to say which input the result comes from,
+and it does not know. Every return must also be a slice of that same parameter — a body handing back
+a built value on one path owns the result there, and no signature is right for both.
+
+The two ends had to be told once more. `results` decided `&[T]` and `returns_owned_sequence` went on
+adding the owning conversion, so the first emit was a `.to_vec()` under a signature that said `&[u8]`
+— the fifth instance of that failure mode this session, and the reason the second end now READS the
+first's answer instead of deriving its own.
+
+Composed as a borrow of `[element]`, the way the pack already composes a borrowed sequence PARAMETER
+under `borrowed_sequence_is_a_slice`, rather than by naming a container the source never had.

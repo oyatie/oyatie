@@ -495,3 +495,51 @@ pub(crate) fn spells_an_option(declaration: &Declaration) -> bool {
         }
     })
 }
+
+/// Whether every return hands back a SLICE OF ONE BORROWED PARAMETER, so the result can borrow it.
+///
+/// The source's `return buf[:n]` reslices what it was given and copies nothing; the target's owned
+/// sequence result makes the port allocate where the source did not, on the decrypt path of every
+/// packet in `memberlist`'s case. `&[T]` is the same value with the same cost the source had.
+///
+/// EXACTLY ONE BORROWED PARAMETER, which is what keeps this inside the doctrine's refusal to infer
+/// lifetimes: with one reference input the target ELIDES the result's lifetime and there is nothing
+/// to infer. Two would need the engine to say which one the result comes from, and it does not know.
+///
+/// Every return, and only slices of that parameter. A body with one path handing back a slice and
+/// another handing back something it built owns the result on that path, and there is no signature
+/// that is right for both.
+pub(crate) fn borrows_from_parameter(
+    declaration: &Declaration,
+    resolver: &crate::resolve::Resolver<'_>,
+) -> bool {
+    let results = declaration.children_of_kind(crate::vocabulary::CHILD_RESULT);
+    let [result] = results.as_slice() else {
+        return false;
+    };
+    if result.type_ref.kind != "slice" {
+        return false;
+    }
+    let borrowed = crate::params::borrowed_parameters(declaration, resolver);
+    let lenders: Vec<&String> = borrowed.iter().collect();
+    let [lender] = lenders.as_slice() else {
+        return false;
+    };
+    let Some(body) = declaration.children_of_kind(CHILD_BODY).first().copied() else {
+        return false;
+    };
+    let mut returns = Vec::new();
+    collect_returns(body, &mut returns);
+    !returns.is_empty()
+        && returns.iter().all(|node| {
+            matches!(node.children.as_slice(), [only] if is_slice_of(only, lender))
+        })
+}
+
+/// Whether this operand is a slice expression over exactly the named parameter.
+fn is_slice_of(operand: &Declaration, lender: &str) -> bool {
+    operand.kind == "slice"
+        && operand.children.first().is_some_and(|base| {
+            base.kind == KIND_IDENT && crate::naming::to_snake_case(&base.name) == lender
+        })
+}

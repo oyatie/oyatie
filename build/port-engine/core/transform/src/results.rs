@@ -128,6 +128,27 @@ pub(crate) fn results_in(
         // A GETTER's result is a VIEW of the receiver, not a copy of it. The source's string
         // shares its backing, so handing one back copies nothing; an owned `String` would clone on
         // every call, which is work the source never does.
+        // A SLICE OF A BORROWED PARAMETER is the parameter's memory, not new memory. The source
+        // reslices and copies nothing; an owned result makes the port allocate where the source did
+        // not. One borrowed input means the target elides the result's lifetime, so nothing here
+        // infers one.
+        if idioms && crate::returns::borrows_from_parameter(declaration, resolver) {
+            let Some(element) = result.type_ref.args.first() else {
+                return Err(TransformError::Unsupported {
+                    name: declaration.name.clone(),
+                    detail: "a sequence result has no element type to borrow".to_owned(),
+                });
+            };
+            // Composed the same way the borrowed PARAMETER is — `[element]` inside a borrow —
+            // rather than by naming a container the source never had. See the pack's
+            // `borrowed_sequence_is_a_slice`.
+            let element = resolver.resolve(element, &declaration.name)?;
+            types.push(RustType::Reference {
+                mutable: false,
+                inner: Box::new(RustType::path(format!("[{}]", element.spelling()))),
+            });
+            continue;
+        }
         if idioms && crate::returns::borrows_from_receiver(declaration) {
             types.push(RustType::Reference {
                 mutable: false,
