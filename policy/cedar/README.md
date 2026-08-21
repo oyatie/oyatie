@@ -66,7 +66,33 @@ forbid (
 );
 ```
 
-so a single-line grep understates the finding by ~2.8x. **A first pass of this page reported "64 of
+so a single-line grep understates the finding by ~2.8x.
+
+Reproduce (the command matters — the previous revision of these numbers was wrong precisely because
+its regex was line-anchored, and `git grep -E '^\s*forbid'` answers the wrong question):
+
+```python
+# python3 - <<'EOF'   (run from the repo root)
+import re, subprocess, collections
+files = [f for f in subprocess.run(['git','ls-tree','-r','--name-only','origin/dev'],
+         capture_output=True, text=True).stdout.split()
+         if re.fullmatch(r'[^/]+(/[^/]+)*/(policy|cedar)/[^/]+\.cedar', f)]
+blob   = lambda f: subprocess.run(['git','show',f'origin/dev:{f}'], capture_output=True, text=True).stdout
+strip  = lambda s: re.sub(r'//[^\n]*', '', s)                       # comments lie; strip them
+one    = re.compile(r'^[ \t]*forbid[ \t]*\([ \t]*principal[ \t]*,[ \t]*action[ \t]*,'
+                    r'[ \t]*resource[ \t]*\)[ \t]*;', re.M)       # ONE-LINE form only
+anyf   = re.compile(r'forbid\s*\(\s*principal\s*,\s*action\s*,\s*resource\s*\)\s*;')  # \s spans newlines
+hits   = [f for f in files if anyf.search(strip(blob(f)))]
+print('denominator      :', len(files))
+print('one-line form    :', sum(1 for f in files if one.search(strip(blob(f)))))
+print('any form         :', len(hits))
+print('of those, w/permit:', sum(1 for f in hits if re.search(r'\bpermit\s*\(', strip(blob(f)))))
+root = lambda p: p.split('/')[0] if not p.startswith('oya/') else '/'.join(p.split('/')[:2])
+print(collections.Counter(map(root, hits)).most_common())
+# EOF
+```
+
+Output at `origin/dev@7f8a5a075`: `448 / 63 / 176 / 176`, over 19 roots. **A first pass of this page reported "64 of
 448" across "six capabilities" and listed `flags/` as an owner. All three were wrong**: the count was
 line-anchored, `flags/` has zero, and the true spread is **19 capability roots** — `audit` 39,
 `oya/intelligence` 30, `comms` 15, `workflow` 12, `oya/global-trade` 10, `console` 9,
