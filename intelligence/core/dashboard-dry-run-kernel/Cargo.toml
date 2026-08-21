@@ -1,0 +1,19 @@
+[package]
+name = "intelligence-dashboard-dry-run-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "intelligence_dashboard_dry_run_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-account-domain = { path = "../account-domain" }
+intelligence-dashboard-kernel = { path = "../dashboard-kernel" }
+
+[lints]
+workspace = true

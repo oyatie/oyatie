@@ -21,8 +21,8 @@ merge_authority = "oya-ci-required"
 channel = "stable"
 pin = "1.97.1"
 update_policy = "latest-stable"
-drift_guard = "cloud/cloud-ci/gates/oya-cloud-ci-freshness-app/src/rust_toolchain_drift.rs"
-exclusions = ["cloud/cloud-kernel/"]
+drift_guard = "ci/facade/generated-artifact-freshness/src/rust_toolchain_drift.rs"
+exclusions = []
 
 [supply_chain]
 license_policy = "deny.toml"
@@ -60,3 +60,45 @@ path = "docs/standards/dependency-policy.md"
 role = "human-policy-summary"
 update = "sync-rust-pin"
 reason = "Human policy row remains aligned with the machine policy."
+
+# ---------------------------------------------------------------------------
+# Crate dependency freshness (oyatie-gr1n). Sibling of the [rust] toolchain pin
+# above: that clause tracks the TOOLCHAIN, this one tracks the CRATES.
+#
+# Motivation, measured rather than assumed: deny.toml sets
+# advisories.unmaintained = "workspace" and the advisory mirror models
+# informational: unmaintained correctly, but RustSec has never filed an
+# unmaintained advisory for serde_yaml and ZERO workspace-declared dependencies
+# carry one. That gate is not broken; it is blind by construction, because
+# RustSec coverage is voluntary and lagging. Time-since-last-release needs no
+# third party to file anything.
+[freshness]
+mirror = "ci/facade/dep-freshness/mirror/freshness.json"
+manifest = "ci/facade/dep-freshness/mirror/freshness-manifest.json"
+producer = "oya-dep-freshness-producer"
+kernel = "ci/facade/dep-freshness/src/kernel.rs"
+
+# THRESHOLD IS DATA, not a constant in code, so it can be tuned without a code
+# review. 90 days is the starting window; on the 2026-08-17 corpus it selects
+# 27 of 75 direct dependencies (median age 42 days).
+stale_after_days = 90
+
+# ADVISORY, not blocking — and that is a correctness requirement, not a
+# softening. Staleness is TIME-driven: it advances with the calendar, with no
+# repository change. A blocking staleness gate therefore reds the required
+# context on whichever unrelated PR happens to be open that day, which is the
+# ADR-0717 docs-budget pathology. Precedent: the required lint job runs clippy
+# under continue-on-error and blocks only on changed-file rustfmt.
+enforcement = "advisory"
+
+# The single blocking case is CHANGE-driven and cannot fire on an unrelated PR:
+# a diff that ADDS a dependency, or bumps one TO a version, that is already
+# stale or carries an unmaintained advisory. That is the actual incident shape —
+# the failure was INTRODUCING a deprecated dependency, not tolerating one.
+blocking_exception = "added-or-bumped-to-stale"
+
+# BEHIND (a newer stable exists) and STALE (no release in the window) are
+# different failures with different remedies. They must not share a threshold or
+# a waiver: serde_yaml is STALE and NOT behind, because 0.9.34+deprecated IS the
+# latest version — which is exactly why version-only bots report it current.
+signals = ["DEP-FRESHNESS-BEHIND", "DEP-FRESHNESS-STALE", "DEP-FRESHNESS-UNKNOWN"]

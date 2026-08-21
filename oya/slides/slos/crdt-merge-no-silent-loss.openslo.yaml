@@ -43,7 +43,7 @@ spec:
       metadata: { name: collab-silent-loss-detected }
       spec:
         description: ANY silent loss event → immediate Sev-1 page
-        notificationTargets: [{ target: grafana-oncall:slides-sev1 }]
+        notificationTargets: [{ target: "grafana-oncall:slides-sev1" }]
         conditions:
           - kind: AlertCondition
             spec: { op: gte, threshold: 1, lookbackWindow: 5m, alertAfter: 0m }

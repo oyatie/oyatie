@@ -34,8 +34,6 @@ members = [
   # nothing as `oya/`, `libs/`, `tools/` and `cloud/` empty out.
   "libs/oya-*",
   "oya/*/crates/oya-*",
-  "cloud/cloud-os/crates/oya-*",
-  "oya/office/oya-*",
   "tools/oya-*",
   "tools/*-app",
 
@@ -65,7 +63,7 @@ members = [
   # reviewer's call to make knowingly, not one to discover.
   #
   # Scoped to `build/port-engine/`, never `build/*`: `build/` stays a meta directory that owns zero
-  # CAPABILITY crates (specs/capability-registry.json, `owns_crates: false`), and this glob must
+  # CAPABILITY crates (governance/capability-registry.json, `owns_crates: false`), and this glob must
   # never widen into a licence for one.
   "build/port-engine/*/*",
 
@@ -74,28 +72,35 @@ members = [
   "ci/tide/app",
   "ci/tide/github-adapter",
   "ci/tide/kernel",
+  "ci/controller/app",
+  "ci/controller/github-adapter",
+  "ci/controller/k8s-adapter",
+  "ci/controller/kernel",
 ]
 exclude = [
   # Workspace carve-outs and non-crate directories the layer globs over-match.
   #
-  # `kernel` and `cloud/cloud-kernel` are their own workspaces (ADR-0512 carve-out) — excluded
+  # `kernel` is its own workspace (ADR-0512 carve-out) — excluded
   # because they are separate roots, not because a glob over-matched them.
   #
-  # `ci/facade/automation-language-policy` and `storage/adapters/nativelink` are directories the
-  # layer globs match that hold no [package] manifest (automation-language-policy is a
-  # buck2-only gate home; nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
+  # `ci/facade/harness` and `storage/adapters/nativelink` are directories the layer globs
+  # match that hold no [package] manifest (harness holds process-kit JSON mirrors only;
+  # nativelink is the dark NativeLink CAS/AC k8s declaration + OWNERS
   # seed rehomed by CAS Lane 3A / specs/reorg/nativelink-storage-move-plan.json).
+  # (ci/facade/automation-language-policy gained a Cargo manifest with ADR-0716 so the
+  # rust-first ratchet is enforced by the cargo merge path.)
   #
-  # `governance/check/integ-envelope` is matched by `governance/check/*` but holds only
-  # judgments/waivers DATA (no [package] manifest) — exclude so cargo/freshness resolve.
+    # `governance/check/integ-envelope` was excluded here while it held only
+    # judgments/waivers DATA. ADR-0711 Phase B gives it an evaluator, so it is a
+    # crate now and rejoins the `governance/check/*` member glob.
   #
   # The ~23 `<cap>/observability`-shaped entries that used to live here are GONE, not relocated:
   # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
-  "ci/facade/automation-language-policy",
-  "cloud/cloud-kernel",
-  "governance/check/integ-envelope",
+  "ci/facade/harness",
+  # os/harness/{attestation-relying-party,oci-executor-oracle} absorbed into
+  # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
   "kernel",
   "storage/adapters/nativelink",
 ]
@@ -459,6 +464,16 @@ syn = { version = "2.0", features = ["full", "extra-traits", "parsing", "visit",
 # pre-image). Promoted to a DIRECT workspace dep so reindeer emits a PUBLIC `third-party//:quote`
 # alias; the locked version (1.0.45) is unchanged by this flip.
 quote = "1.0"
+# The Rust formatter behind the port engine's `Renderer` seam (P1). Promoted from a transitive-only
+# dep so `formatter_digest` can name a formatter that actually exists: the axis previously hashed
+# the string "fmt-port-go-v1", i.e. a label, so one of the six receipt axes attested to nothing.
+# `prettyplease` rather than shelling out to rustfmt because the emit path must stay hermetic and
+# in-process — a receipt axis that depends on whichever rustfmt is on PATH is not reproducible.
+prettyplease = "0.2"
+# `quote!` produces a `proc_macro2::TokenStream`, so the IR's lowering functions have to name the
+# type. Already resolved transitively via syn/quote; promoted to a direct dep so the buck label
+# exists too.
+proc-macro2 = "1.0"
 # Owned supply-chain advisory gate (cloud-ci-supply-chain-audit; replaces the reverted #974 shell
 # cargo-audit/deny). Promoted from a transitive-only dep (already locked at 1.0.28 via
 # cedar-policy/rustc_version/wasmparser) to a DIRECT workspace dep so reindeer emits a PUBLIC

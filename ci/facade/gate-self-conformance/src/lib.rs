@@ -194,10 +194,12 @@ fn sorted_dir_entries(dir: &Path) -> Result<Vec<PathBuf>, ScanError> {
     Ok(entries)
 }
 
+/// Recursion only descends into entries this walk already saw as directories, so the caller is
+/// the only source of a path that might not exist. An `if !dir.exists() { return Ok(()) }` guard
+/// here therefore did nothing except convert "this gate crate has no sources to scan" into a
+/// clean, silent, empty result — the meta-gate reported green over a gate it never read. The
+/// missing directory now surfaces as the `read_dir` error, which names the path.
 fn visit_rs_files(dir: &Path, files: &mut Vec<PathBuf>) -> Result<(), ScanError> {
-    if !dir.exists() {
-        return Ok(());
-    }
     for path in sorted_dir_entries(dir)? {
         let metadata = fs::symlink_metadata(&path).map_err(|e| io_error(&path, "metadata", e))?;
         if metadata.file_type().is_symlink() {
@@ -529,10 +531,42 @@ fn workflow_executes_recursive_gates_pattern(workflow: &str, gates_root_rel: &st
 /// result to be compared in the fan-in success chain. This function feeds the descriptive
 /// `workflow_registered` property; do not promote it to an admission check without adding that
 /// reachability restriction.
+/// True iff an executable workflow line runs the whole workspace test suite — `cargo test
+/// --workspace` or `cargo nextest run --workspace`, with or without `--locked` — which executes
+/// every workspace-member gate crate under the gates root. The Cargo merge path (ADR-0716)
+/// replaces the buck2 matrix as the registration surface, and ADR-0718-D3 makes the runner
+/// interchangeable.
+///
+/// The property that matters is "every gate crate actually runs and its failure counts", NOT the
+/// spelling of the command. Matching the literal `cargo test` would silently DEREGISTER every gate
+/// crate the moment the runner changed — the fan-in would still be green while the collector
+/// believed nothing was wired. Hence both runners are accepted here, and the advisory escapes
+/// (`--keep-going`, `|| true`) remain rejected: a run whose failures cannot fail the job does not
+/// register anything.
+fn workflow_executes_workspace_tests(workflow: &str) -> bool {
+    workflow.lines().any(|line| {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#')
+            || trimmed.contains("--keep-going")
+            || trimmed.contains("|| true")
+        {
+            return false;
+        }
+        let Some((_, args)) = trimmed
+            .split_once("cargo nextest run ")
+            .or_else(|| trimmed.split_once("cargo test "))
+        else {
+            return false;
+        };
+        args.split_whitespace().any(|token| token == "--workspace")
+    })
+}
+
 fn workflow_registers_gate(workflow: &str, name: &str, gates_root_rel: &str) -> bool {
     workflow_matrix_includes_crate(workflow, name)
         || workflow_invokes_buck_target(workflow, name, gates_root_rel)
         || workflow_executes_recursive_gates_pattern(workflow, gates_root_rel)
+        || workflow_executes_workspace_tests(workflow)
 }
 
 fn is_rust_test_source(path: &Path) -> bool {
@@ -568,9 +602,19 @@ pub fn collect_observed_gates(repo_root: &Path, policy: &Value) -> Result<Value,
         if !name.starts_with(gate_prefix) || non_gate_crates.contains(&name) {
             continue;
         }
+        // A directory under the gates root that carries no manifest is either a declared
+        // non-gate (which belongs in `scan.non_gate_crates`, checked above) or a gate that
+        // just lost its manifest. Silently skipping conflated the two: the meta-gate's own
+        // fleet quietly shrank by one and nothing went red. Fail closed and name the path.
         let cargo_path = dir.join("Cargo.toml");
         if !cargo_path.exists() {
-            continue;
+            return Err(ScanError::Io(format!(
+                "gate directory {} carries no manifest at {} — declare it in \
+                 scan.non_gate_crates if it is not a gate crate, otherwise restore the \
+                 manifest; skipping it silently drops a gate from the self-conformance fleet",
+                dir.display(),
+                cargo_path.display()
+            )));
         }
         let cargo_toml = fs::read_to_string(&cargo_path)
             .map_err(|e| io_error(&cargo_path, "read manifest", e))?;

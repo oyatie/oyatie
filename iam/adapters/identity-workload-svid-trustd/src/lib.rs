@@ -173,12 +173,14 @@ impl<'a, S: os_trustd_domain::signer::SigningBackend> TrustdSvidVerifier<'a, S> 
         cert: &Certificate,
         now: u64,
     ) -> Result<SpiffeId, VerifyError> {
-        self.bundle.verify_leaf(cert, now).map_err(|err| match err {
-            TrustError::Expired(_) => VerifyError::Expired,
-            other => VerifyError::UntrustedIssuer {
-                detail: other.to_string(),
-            },
-        })?;
+        self.bundle
+            .verify_leaf(cert, now)
+            .map_err(|err| match err {
+                TrustError::Expired(_) => VerifyError::Expired,
+                other => VerifyError::UntrustedIssuer {
+                    detail: other.to_string(),
+                },
+            })?;
         match cert.sans.uris.as_slice() {
             [] => Err(VerifyError::NoSpiffeUriSan),
             [uri] => SpiffeId::parse(uri).map_err(VerifyError::MalformedSpiffeId),
@@ -187,9 +189,7 @@ impl<'a, S: os_trustd_domain::signer::SigningBackend> TrustdSvidVerifier<'a, S> 
     }
 }
 
-impl<S: os_trustd_domain::signer::SigningBackend> SvidVerifier
-    for TrustdSvidVerifier<'_, S>
-{
+impl<S: os_trustd_domain::signer::SigningBackend> SvidVerifier for TrustdSvidVerifier<'_, S> {
     fn verify_peer(&self, leaf_der: &[u8], now: u64) -> Result<SpiffeId, VerifyError> {
         // Parse + verify the REAL leaf DER against the bundle's CA public keys.
         let trusted = self.bundle.trusted_ca_spki_ders();
@@ -223,9 +223,9 @@ fn map_leaf_err(err: LeafVerifyError) -> VerifyError {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use os_trustd_domain::JoinToken;
     use os_trustd_domain::ca::CertificateAuthority;
     use os_trustd_domain::certificate::CertUsage;
-    use os_trustd_domain::JoinToken;
 
     const JOIN_TOKEN: &str = "clusterid.clustersecret";
 
@@ -263,13 +263,8 @@ mod tests {
         let (mut svc, ca_signer) = real_service();
         let wl = EcdsaP256Signer::generate().unwrap();
         let uri = "spiffe://oyatie.cell-7/tenant/ten_acme/secrets-sync";
-        let mut issuer = TrustdSvidIssuer::new(
-            &mut svc,
-            JOIN_TOKEN,
-            wl,
-            ca_signer.clone(),
-            "secrets-sync",
-        );
+        let mut issuer =
+            TrustdSvidIssuer::new(&mut svc, JOIN_TOKEN, wl, ca_signer.clone(), "secrets-sync");
         let request = SvidRequest::new(SpiffeId::parse(uri).unwrap(), 3_600);
         let svid = issuer.issue(&request, 2_000).unwrap();
         assert_eq!(svid.spiffe_id.as_uri(), uri);
@@ -287,13 +282,8 @@ mod tests {
         // verifier (bundle trusts only the real CA) must reject it on SIGNATURE.
         let (mut rogue_svc, rogue_signer) = real_service();
         let wl = EcdsaP256Signer::generate().unwrap();
-        let mut issuer = TrustdSvidIssuer::new(
-            &mut rogue_svc,
-            JOIN_TOKEN,
-            wl,
-            rogue_signer.clone(),
-            "evil",
-        );
+        let mut issuer =
+            TrustdSvidIssuer::new(&mut rogue_svc, JOIN_TOKEN, wl, rogue_signer.clone(), "evil");
         let request = SvidRequest::new(
             SpiffeId::parse("spiffe://oyatie.cell-7/tenant/ten_acme/evil").unwrap(),
             3_600,
@@ -311,8 +301,7 @@ mod tests {
     fn expired_leaf_is_denied_distinctly() {
         let (mut svc, ca_signer) = real_service();
         let wl = EcdsaP256Signer::generate().unwrap();
-        let mut issuer =
-            TrustdSvidIssuer::new(&mut svc, JOIN_TOKEN, wl, ca_signer.clone(), "x");
+        let mut issuer = TrustdSvidIssuer::new(&mut svc, JOIN_TOKEN, wl, ca_signer.clone(), "x");
         let request = SvidRequest::new(
             SpiffeId::parse("spiffe://oyatie.cell-7/platform/cloud-iam-pdp").unwrap(),
             3_600,
@@ -340,7 +329,9 @@ mod tests {
             join_token: JOIN_TOKEN.to_string(),
             csr: node_csr,
         };
-        let resp = svc.handle_certificate(&cert_request, &node_key, 2_000).unwrap();
+        let resp = svc
+            .handle_certificate(&cert_request, &node_key, 2_000)
+            .unwrap();
         let leaf_der = der::encode_leaf_der(
             &resp.identity.certificate,
             &node,
@@ -360,8 +351,7 @@ mod tests {
     fn bad_join_token_refuses_issuance() {
         let (mut svc, ca_signer) = real_service();
         let wl = EcdsaP256Signer::generate().unwrap();
-        let mut issuer =
-            TrustdSvidIssuer::new(&mut svc, "clusterid.WRONG", wl, ca_signer, "x");
+        let mut issuer = TrustdSvidIssuer::new(&mut svc, "clusterid.WRONG", wl, ca_signer, "x");
         let request = SvidRequest::new(
             SpiffeId::parse("spiffe://oyatie.cell-7/platform/x").unwrap(),
             3_600,

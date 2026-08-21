@@ -151,20 +151,11 @@ checksum = "d3fb67a6e08acf24fdeccbac2cb6ac4305825bd1f117462e0e6f2f193345ad56"
 
 [[package]]
 name = "ascii-canvas"
-version = "3.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8824ecca2e851cec16968d54a01dd372ef8f95b244fb84b84e70128be347c3c6"
-dependencies = [
- "term 0.7.0",
-]
-
-[[package]]
-name = "ascii-canvas"
 version = "4.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ef1e3e699d84ab1b0911a1010c5c106aa34ae89aeac103be5ce0c3859db1e891"
 dependencies = [
- "term 1.2.1",
+ "term",
 ]
 
 [[package]]
@@ -207,105 +198,15 @@ dependencies = [
 ]
 
 [[package]]
-name = "assert-json-diff"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47e4f2b81832e72834d7518d8487a0396a28cc408186a2e8854c0f98011faf12"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "async-attributes"
-version = "1.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a3203e79f4dd9bdda415ed03cf14dae5a2bf775c683a00f94e9cd1faf0f596e5"
-dependencies = [
- "quote",
- "syn 1.0.109",
-]
-
-[[package]]
 name = "async-broadcast"
 version = "0.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "435a87a52755b8f27fcf321ac4f04b2802e337c8c4872923137471ec39c37532"
 dependencies = [
- "event-listener 5.4.2",
+ "event-listener",
  "event-listener-strategy",
  "futures-core",
  "pin-project-lite",
-]
-
-[[package]]
-name = "async-channel"
-version = "1.9.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81953c529336010edd6d8e358f886d9581267795c61b19475b71314bffa46d35"
-dependencies = [
- "concurrent-queue",
- "event-listener 2.5.3",
- "futures-core",
-]
-
-[[package]]
-name = "async-channel"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "924ed96dd52d1b75e9c1a3e6275715fd320f5f9439fb5a4a11fa51f4221158d2"
-dependencies = [
- "concurrent-queue",
- "event-listener-strategy",
- "futures-core",
- "pin-project-lite",
-]
-
-[[package]]
-name = "async-executor"
-version = "1.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c96bf972d85afc50bf5ab8fe2d54d1586b4e0b46c97c50a0c9e71e2f7bcd812a"
-dependencies = [
- "async-task",
- "concurrent-queue",
- "fastrand",
- "futures-lite",
- "pin-project-lite",
- "slab",
-]
-
-[[package]]
-name = "async-global-executor"
-version = "2.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "05b1b633a2115cd122d73b955eadd9916c18c8f510ec9cd1686404c60ad1c29c"
-dependencies = [
- "async-channel 2.5.0",
- "async-executor",
- "async-io",
- "async-lock",
- "blocking",
- "futures-lite",
- "once_cell",
-]
-
-[[package]]
-name = "async-io"
-version = "2.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "456b8a8feb6f42d237746d4b3e9a178494627745c3c56c6ea55d92ba50d026fc"
-dependencies = [
- "autocfg",
- "cfg-if",
- "concurrent-queue",
- "futures-io",
- "futures-lite",
- "parking",
- "polling",
- "rustix",
- "slab",
- "windows-sys 0.61.2",
 ]
 
 [[package]]
@@ -314,18 +215,9 @@ version = "3.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "290f7f2596bd5b78a9fec8088ccd89180d7f9f55b94b0576823bbbdc72ee8311"
 dependencies = [
- "event-listener 5.4.2",
+ "event-listener",
  "event-listener-strategy",
  "pin-project-lite",
-]
-
-[[package]]
-name = "async-object-pool"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "333c456b97c3f2d50604e8b2624253b7f787208cb72eb75e64b0ad11b221652c"
-dependencies = [
- "async-std",
 ]
 
 [[package]]
@@ -333,70 +225,6 @@ name = "async-once-cell"
 version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4288f83726785267c6f2ef073a3d83dc3f9b81464e9f99898240cced85fce35a"
-
-[[package]]
-name = "async-process"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc50921ec0055cdd8a16de48773bfeec5c972598674347252c0399676be7da75"
-dependencies = [
- "async-channel 2.5.0",
- "async-io",
- "async-lock",
- "async-signal",
- "async-task",
- "blocking",
- "cfg-if",
- "event-listener 5.4.2",
- "futures-lite",
- "rustix",
-]
-
-[[package]]
-name = "async-signal"
-version = "0.2.14"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "52b5aaafa020cf5053a01f2a60e8ff5dccf550f0f77ec54a4e47285ac2bab485"
-dependencies = [
- "async-io",
- "async-lock",
- "atomic-waker",
- "cfg-if",
- "futures-core",
- "futures-io",
- "rustix",
- "signal-hook-registry",
- "slab",
- "windows-sys 0.61.2",
-]
-
-[[package]]
-name = "async-std"
-version = "1.13.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c8e079a4ab67ae52b7403632e4618815d6db36d2a010cfe41b02c1b1578f93b"
-dependencies = [
- "async-attributes",
- "async-channel 1.9.0",
- "async-global-executor",
- "async-io",
- "async-lock",
- "async-process",
- "crossbeam-utils",
- "futures-channel",
- "futures-core",
- "futures-io",
- "futures-lite",
- "gloo-timers",
- "kv-log-macro",
- "log",
- "memchr",
- "once_cell",
- "pin-project-lite",
- "pin-utils",
- "slab",
- "wasm-bindgen-futures",
-]
 
 [[package]]
 name = "async-stream"
@@ -419,12 +247,6 @@ dependencies = [
  "quote",
  "syn 2.0.119",
 ]
-
-[[package]]
-name = "async-task"
-version = "4.7.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b75356056920673b02621b35afd0f7dda9306d03c79a30f5c56c44cf256e3de"
 
 [[package]]
 name = "async-trait"
@@ -628,14 +450,14 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "31b698c5f9a010f6573133b09e0de5408834d0c82f8d7475a89fc1867a71cd90"
 dependencies = [
  "axum-core",
- "base64 0.22.1",
+ "base64",
  "bytes",
  "form_urlencoded",
  "futures-util",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "hyper-util",
  "itoa",
  "matchit",
@@ -666,8 +488,8 @@ checksum = "08c78f31d7b1291f7ee735c1c6780ccde7785daae9a9206026862dab7d8792d1"
 dependencies = [
  "bytes",
  "futures-core",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "http-body-util",
  "mime",
  "pin-project-lite",
@@ -696,12 +518,6 @@ checksum = "d27c3610c36aee21ce8ac510e6224498de4228ad772a171ed65643a24693a5a8"
 
 [[package]]
 name = "base64"
-version = "0.21.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d297deb1925b89f2ccc13d7635fa0714f12c87adce1c75356b39ca9b7178567"
-
-[[package]]
-name = "base64"
 version = "0.22.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72b3254f16251a8381aa12e40e3c4d2f0199f8c6508fbecb9d91f575e0fbb8c6"
@@ -711,17 +527,6 @@ name = "base64ct"
 version = "1.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
-
-[[package]]
-name = "basic-cookies"
-version = "0.1.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "67bd8fd42c16bdb08688243dc5f0cc117a3ca9efeeaba3a345a18a6159ad96f7"
-dependencies = [
- "lalrpop 0.20.2",
- "lalrpop-util 0.20.2",
- "regex",
-]
 
 [[package]]
 name = "billing-accounting-api"
@@ -860,27 +665,12 @@ version = "0.1.0"
 
 [[package]]
 name = "bit-set"
-version = "0.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0700ddab506f33b20a03b13996eccd309a48e5ff77d0d95926aa0210fb4e95f1"
-dependencies = [
- "bit-vec 0.6.3",
-]
-
-[[package]]
-name = "bit-set"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08807e080ed7f9d5433fa9b275196cfc35414f66a0c79d864dc51a0d825231a3"
 dependencies = [
  "bit-vec 0.8.0",
 ]
-
-[[package]]
-name = "bit-vec"
-version = "0.6.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "349f9b6a179ed607305526ca489b34ad0a41aed5f7980fa90eb03160b69598fb"
 
 [[package]]
 name = "bit-vec"
@@ -930,19 +720,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3078c7629b62d3f0439517fa394996acacc5cbc91c5a20d8c658e77abd503a71"
 dependencies = [
  "generic-array",
-]
-
-[[package]]
-name = "blocking"
-version = "1.6.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e83f8d02be6967315521be875afa792a316e28d57b5a2d401897e2a7921b7f21"
-dependencies = [
- "async-channel 2.5.0",
- "async-task",
- "futures-io",
- "futures-lite",
- "piper",
 ]
 
 [[package]]
@@ -1040,8 +817,8 @@ dependencies = [
  "educe 0.7.6",
  "either",
  "itertools 0.15.0",
- "lalrpop 0.22.2",
- "lalrpop-util 0.22.2",
+ "lalrpop",
+ "lalrpop-util",
  "linked-hash-map",
  "linked_hash_set",
  "miette",
@@ -1165,13 +942,19 @@ version = "0.1.0"
 [[package]]
 name = "check-active-artifact-contract"
 version = "0.1.0"
-
-[[package]]
-name = "check-adr-citation"
-version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-adr-citation-closure"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "check-apex-gist-integrity"
 version = "0.1.0"
 dependencies = [
  "serde_json",
@@ -1203,6 +986,9 @@ dependencies = [
 [[package]]
 name = "check-benchmark"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-cedar-fragment-coverage"
@@ -1223,10 +1009,18 @@ version = "0.1.0"
 [[package]]
 name = "check-cursor-pagination-coverage"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-data-class"
 version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde_json",
+ "toml 0.8.23",
+]
 
 [[package]]
 name = "check-doc-catalog"
@@ -1239,6 +1033,9 @@ version = "0.1.0"
 [[package]]
 name = "check-event-schema-versioning"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-glossary-coverage"
@@ -1266,18 +1063,34 @@ version = "0.1.0"
 [[package]]
 name = "check-id-discipline"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-idempotency-key-coverage"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-image-signing-discipline"
 version = "0.1.0"
 
 [[package]]
+name = "check-integ-envelope"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
 name = "check-layered-architecture-discipline"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-metric-cardinality"
@@ -1290,6 +1103,19 @@ version = "0.1.0"
 [[package]]
 name = "check-no-grouping"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "check-no-template-stamping"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "serde",
+ "serde_json",
+ "walkdir",
+]
 
 [[package]]
 name = "check-olap-tier-discipline"
@@ -1317,14 +1143,6 @@ version = "0.1.0"
 
 [[package]]
 name = "check-placeholder-debt"
-version = "0.1.0"
-
-[[package]]
-name = "check-pr-traceability"
-version = "0.1.0"
-
-[[package]]
-name = "check-pre-push"
 version = "0.1.0"
 
 [[package]]
@@ -1366,6 +1184,9 @@ version = "0.1.0"
 [[package]]
 name = "check-shardability"
 version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
 
 [[package]]
 name = "check-slsa-l3-evidence-grounded"
@@ -1373,10 +1194,6 @@ version = "0.1.0"
 
 [[package]]
 name = "check-statelessness"
-version = "0.1.0"
-
-[[package]]
-name = "check-supply-chain"
 version = "0.1.0"
 
 [[package]]
@@ -1437,6 +1254,7 @@ dependencies = [
 name = "ci-artifact-accountability"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1453,12 +1271,14 @@ dependencies = [
  "ci-hook-wiring",
  "ci-license-policy",
  "ci-package-manifest-hygiene",
+ "ci-path-resolver-adapters",
  "ci-service-catalog-parity",
  "ci-slo-coverage",
  "ci-stale-artifact-detection",
  "ci-workspace-member-coverage",
  "oya-check-brand-residue",
  "oya-ci-config-kernel",
+ "oya-reorg-codemod-app",
  "oya-workspace-members-kernel",
  "serde",
  "serde_json",
@@ -1468,28 +1288,27 @@ dependencies = [
 name = "ci-automation-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
+]
+
+[[package]]
+name = "ci-automation-language-policy"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+ "serde_yaml",
+ "toml 0.8.23",
 ]
 
 [[package]]
 name = "ci-baseline-ratchet"
 version = "0.1.0"
 dependencies = [
+ "ci-generated-artifact-freshness",
+ "ci-path-resolver-adapters",
  "reqwest 0.13.4",
  "serde_json",
- "sha2",
-]
-
-[[package]]
-name = "ci-build-cache-policy"
-version = "0.1.0"
-dependencies = [
- "prost",
- "rcgen",
- "reqwest 0.13.4",
- "rustls",
- "serde_json",
- "serde_yaml",
  "sha2",
 ]
 
@@ -1497,6 +1316,7 @@ dependencies = [
 name = "ci-build-target-parity"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1504,11 +1324,19 @@ dependencies = [
 name = "ci-caller-supplied-authorization"
 version = "0.1.0"
 dependencies = [
+ "ci-scan-root-derivation-adapters",
  "serde_json",
 ]
 
 [[package]]
 name = "ci-canonical-json"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "ci-cloud-name-ratchet"
 version = "0.1.0"
 dependencies = [
  "serde_json",
@@ -1523,6 +1351,60 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-controller-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "ci-controller-github-adapter",
+ "ci-controller-k8s-adapter",
+ "ci-controller-kernel",
+ "futures",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ci-controller-github-adapter"
+version = "0.1.0"
+dependencies = [
+ "ci-controller-kernel",
+ "reqwest 0.13.4",
+ "scripted-http-server",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-controller-k8s-adapter"
+version = "0.1.0"
+dependencies = [
+ "ci-controller-kernel",
+ "k8s-openapi",
+ "kube",
+ "kube-runtime",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "ci-controller-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "ci-core-dependency-isolation"
 version = "0.1.0"
 dependencies = [
@@ -1530,6 +1412,14 @@ dependencies = [
  "oya-workspace-members-kernel",
  "serde_json",
  "toml 0.8.23",
+]
+
+[[package]]
+name = "ci-corpus-census-adapters"
+version = "0.1.0"
+dependencies = [
+ "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
 ]
 
 [[package]]
@@ -1552,6 +1442,8 @@ dependencies = [
 name = "ci-crate-layer-suffix"
 version = "0.1.0"
 dependencies = [
+ "ci-corpus-census-adapters",
+ "ci-path-resolver-adapters",
  "oya-ci-config-kernel",
  "oya-governance-predictable-naming-kernel",
  "serde_json",
@@ -1561,9 +1453,14 @@ dependencies = [
 name = "ci-crate-name-prefix"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
+ "ci-scm-facts-snapshot",
  "intelligence-cargo-prefix-domain",
  "oya-ci-config-kernel",
+ "oya-workspace-members-kernel",
  "serde_json",
+ "tempfile",
+ "toml 0.8.23",
 ]
 
 [[package]]
@@ -1585,6 +1482,7 @@ dependencies = [
 name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-adr-index",
  "oya-governance-adr-shape-kernel",
  "serde",
@@ -1597,7 +1495,19 @@ dependencies = [
 name = "ci-crypto-backend-policy"
 version = "0.1.0"
 dependencies = [
+ "ci-corpus-census-adapters",
+ "oya-buck-syntax-kernel",
  "serde_json",
+]
+
+[[package]]
+name = "ci-dep-freshness"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+ "toml 0.8.23",
 ]
 
 [[package]]
@@ -1619,6 +1529,7 @@ dependencies = [
 name = "ci-embedded-asset-hermeticity"
 version = "0.1.0"
 dependencies = [
+ "ci-scan-root-derivation-adapters",
  "oya-buck-syntax-kernel",
  "serde_json",
 ]
@@ -1679,15 +1590,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-helm-chart-shape"
+version = "0.1.0"
+
+[[package]]
 name = "ci-hook-wiring"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
 [[package]]
 name = "ci-inventory-registry-drift"
 version = "0.1.0"
+dependencies = [
+ "ci-path-resolver-adapters",
+]
 
 [[package]]
 name = "ci-k8s-program-docs"
@@ -1707,6 +1626,7 @@ dependencies = [
 name = "ci-license-policy"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-license-policy",
  "serde_json",
 ]
@@ -1738,6 +1658,8 @@ dependencies = [
 name = "ci-package-manifest-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-corpus-census-adapters",
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1793,7 +1715,9 @@ dependencies = [
 name = "ci-repo-root-hygiene"
 version = "0.1.0"
 dependencies = [
+ "ci-scm-facts-snapshot",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -1817,6 +1741,22 @@ name = "ci-runner-disk-reclaim"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-rust-toolchain-bump-proposer"
+version = "0.1.0"
+dependencies = [
+ "ci-dependency-automation",
+ "ci-generated-artifact-freshness",
+ "proptest",
+]
+
+[[package]]
+name = "ci-scan-root-derivation-adapters"
+version = "0.1.0"
+dependencies = [
  "serde_json",
 ]
 
@@ -1849,6 +1789,7 @@ dependencies = [
 name = "ci-service-catalog-parity"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1863,6 +1804,7 @@ dependencies = [
 name = "ci-slo-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "oya-check-slo-coverage",
  "serde_json",
 ]
@@ -1871,6 +1813,7 @@ dependencies = [
 name = "ci-stale-artifact-detection"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
  "serde_json",
 ]
 
@@ -1878,9 +1821,11 @@ dependencies = [
 name = "ci-supply-chain-audit"
 version = "0.1.0"
 dependencies = [
+ "ci-scm-facts-snapshot",
  "oya-advisory-mirror-kernel",
  "semver",
  "serde_json",
+ "tempfile",
  "toml 0.8.23",
 ]
 
@@ -1925,6 +1870,8 @@ dependencies = [
 name = "ci-workspace-member-coverage"
 version = "0.1.0"
 dependencies = [
+ "ci-path-resolver-adapters",
+ "oya-workspace-members-kernel",
  "serde_json",
 ]
 
@@ -1996,7 +1943,7 @@ dependencies = [
  "futures",
  "futures-channel",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "hyper-util",
  "lz4_flex",
  "replace_with",
@@ -2382,15 +2329,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "concurrent-queue"
-version = "2.5.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ca0197aee26d1ae37445ee532fefce43251d24cc7c166799f4d46817f1d3973"
-dependencies = [
- "crossbeam-utils",
-]
-
-[[package]]
 name = "config"
 version = "0.15.25"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2488,16 +2426,6 @@ name = "console-workspace-shell-usecase"
 version = "0.1.0"
 dependencies = [
  "console-workspace-shell-kernel",
-]
-
-[[package]]
-name = "console_error_panic_hook"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
-dependencies = [
- "cfg-if",
- "wasm-bindgen",
 ]
 
 [[package]]
@@ -2675,12 +2603,6 @@ name = "crossbeam-utils"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "61803da095bee82a81bb1a452ecc25d3b2f1416d1897eb86430c6159ef717c17"
-
-[[package]]
-name = "crunchy"
-version = "0.2.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
 name = "crypto-common"
@@ -3065,27 +2987,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "dirs-next"
-version = "2.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b98cf8ebf19c3d1b223e151f99a4f9f0690dca41414773390fc824184ac833e1"
-dependencies = [
- "cfg-if",
- "dirs-sys-next",
-]
-
-[[package]]
-name = "dirs-sys-next"
-version = "0.1.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ebda144c4fe02d1f7ea1a7d9641b6fc6b580adcfa024ae48797ecdeb6825b4d"
-dependencies = [
- "libc",
- "redox_users",
- "winapi",
-]
-
-[[package]]
 name = "displaydoc"
 version = "0.2.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3261,12 +3162,6 @@ dependencies = [
 
 [[package]]
 name = "event-listener"
-version = "2.5.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0206175f82b8d6bf6652ff7d71a1e27fd2e4efde587fd368662814d6ec1d9ce0"
-
-[[package]]
-name = "event-listener"
 version = "5.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5a23add41df1562121a9393cb065eab5146a1242410f23a644851e90cfd669d2"
@@ -3281,7 +3176,7 @@ version = "0.5.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8be9f3dfaaffdae2972880079a491a1a8bb7cbed0b8dd7a347f668b4150a3b93"
 dependencies = [
- "event-listener 5.4.2",
+ "event-listener",
  "pin-project-lite",
 ]
 
@@ -3302,12 +3197,6 @@ name = "find-msvc-tools"
 version = "0.1.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26b73573e6edcd2af0cdf47bd6cb58f0b3839491263c314eaad1ccf24430e1de"
-
-[[package]]
-name = "fixedbitset"
-version = "0.4.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0ce7134b9999ecaf8bcd65542e436736ef32ddca1b3e06094cb6ec5755203b80"
 
 [[package]]
 name = "fixedbitset"
@@ -3425,19 +3314,6 @@ name = "futures-io"
 version = "0.3.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4577ecaa3c4f96589d473f679a71b596316f6641bc350038b962a5daf0085d7a"
-
-[[package]]
-name = "futures-lite"
-version = "2.6.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f78e10609fe0e0b3f4157ffab1876319b5b0db102a2c60dc4626306dc46b44ad"
-dependencies = [
- "fastrand",
- "futures-core",
- "futures-io",
- "parking",
- "pin-project-lite",
-]
 
 [[package]]
 name = "futures-macro"
@@ -3614,7 +3490,7 @@ dependencies = [
  "futures-core",
  "futures-sink",
  "gloo-utils",
- "http 1.5.0",
+ "http",
  "js-sys",
  "pin-project",
  "serde",
@@ -3667,7 +3543,7 @@ dependencies = [
  "fnv",
  "futures-core",
  "futures-sink",
- "http 1.5.0",
+ "http",
  "indexmap 2.14.0",
  "slab",
  "tokio",
@@ -3737,12 +3613,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
-name = "hermit-abi"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fc0fef456e4baa96da950455cd02c081ca953b141298e41db3fc7e36b1da849c"
-
-[[package]]
 name = "hex"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3794,17 +3664,6 @@ checksum = "c9356095b4b41197bba32173600e1582792cda618f65d12f68e2e77d273413c5"
 
 [[package]]
 name = "http"
-version = "0.2.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "601cbb57e577e2f5ef5be8e7b83f0f63994f25aa94d673e54a92d5c516d101f1"
-dependencies = [
- "bytes",
- "fnv",
- "itoa",
-]
-
-[[package]]
-name = "http"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "918d3568bebf352712bc2ef3d46a8bcf1a75b373be6539de198e9105cbbf9ce0"
@@ -3815,23 +3674,12 @@ dependencies = [
 
 [[package]]
 name = "http-body"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ceab25649e9960c0311ea418d17bee82c0dcec1bd053b5f9a66e265a693bed2"
-dependencies = [
- "bytes",
- "http 0.2.12",
- "pin-project-lite",
-]
-
-[[package]]
-name = "http-body"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca2a8f2913ee65f60facd6a5905613afaa448497a0230cc41ce022d93290bc2c"
 dependencies = [
  "bytes",
- "http 1.5.0",
+ "http",
 ]
 
 [[package]]
@@ -3842,8 +3690,8 @@ checksum = "e9f41fd6a08e4d4ec69df65976da761afd5ad5e58a9d4acb46bd1c953a9e3ff2"
 dependencies = [
  "bytes",
  "futures-core",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "pin-project-lite",
 ]
 
@@ -3866,34 +3714,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df3b46402a9d5adb4c86a0cf463f42e19994e3ee891101b1841f30a545cb49a9"
 
 [[package]]
-name = "httpmock"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "08ec9586ee0910472dec1a1f0f8acf52f0fdde93aea74d70d4a3107b4be0fd5b"
-dependencies = [
- "assert-json-diff",
- "async-object-pool",
- "async-std",
- "async-trait",
- "base64 0.21.7",
- "basic-cookies",
- "crossbeam-utils",
- "form_urlencoded",
- "futures-util",
- "hyper 0.14.32",
- "lazy_static",
- "levenshtein",
- "log",
- "regex",
- "serde",
- "serde_json",
- "serde_regex",
- "similar",
- "tokio",
- "url",
-]
-
-[[package]]
 name = "hydration_context"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3910,29 +3730,6 @@ dependencies = [
 
 [[package]]
 name = "hyper"
-version = "0.14.32"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "41dfc780fdec9373c01bae43289ea34c972e40ee3c9f6b3c8801a35f35586ce7"
-dependencies = [
- "bytes",
- "futures-channel",
- "futures-core",
- "futures-util",
- "http 0.2.12",
- "http-body 0.4.6",
- "httparse",
- "httpdate",
- "itoa",
- "pin-project-lite",
- "socket2 0.5.10",
- "tokio",
- "tower-service",
- "tracing",
- "want",
-]
-
-[[package]]
-name = "hyper"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d22053281f852e11534f5198498373cbb59295120a20771d90f7ed1897490a72"
@@ -3942,8 +3739,8 @@ dependencies = [
  "futures-channel",
  "futures-core",
  "h2",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "httparse",
  "httpdate",
  "itoa",
@@ -3959,8 +3756,8 @@ version = "0.27.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "33ca68d021ef39cf6463ab54c1d0f5daf03377b70561305bb89a8f83aab66e0f"
 dependencies = [
- "http 1.5.0",
- "hyper 1.11.0",
+ "http",
+ "hyper",
  "hyper-util",
  "log",
  "rustls",
@@ -3977,7 +3774,7 @@ version = "0.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2b90d566bffbce6a75bd8b09a05aa8c2cb1fabb6cb348f8840c9e4c90a0d83b0"
 dependencies = [
- "hyper 1.11.0",
+ "hyper",
  "hyper-util",
  "pin-project-lite",
  "tokio",
@@ -3990,18 +3787,18 @@ version = "0.1.20"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "96547c2556ec9d12fb1578c4eaf448b04993e7fb79cbaad930a656880a6bdfa0"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "bytes",
  "futures-channel",
  "futures-util",
- "http 1.5.0",
- "http-body 1.1.0",
- "hyper 1.11.0",
+ "http",
+ "http-body",
+ "hyper",
  "ipnet",
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.6.5",
+ "socket2",
  "tokio",
  "tower-service",
  "tracing",
@@ -4094,10 +3891,10 @@ dependencies = [
  "async-stream",
  "aws-lc-rs",
  "axum",
- "base64 0.22.1",
+ "base64",
  "futures-core",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "hyper-util",
  "iam-cloud-pdp-bundle-file",
  "iam-cloud-pdp-kernel",
@@ -4183,7 +3980,7 @@ version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
  "axum",
- "base64 0.22.1",
+ "base64",
  "iam-identity-oidc-issuer-kernel",
  "iam-identity-workload-app",
  "iam-identity-workload-authz-cedar",
@@ -4226,7 +4023,7 @@ name = "iam-identity-workload-app"
 version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
- "base64 0.22.1",
+ "base64",
  "iam-identity-workload-authz-cedar",
  "iam-identity-workload-domain",
  "iam-identity-workload-oidc",
@@ -4249,7 +4046,7 @@ name = "iam-identity-workload-oidc"
 version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
- "base64 0.22.1",
+ "base64",
  "iam-identity-workload-domain",
  "serde",
  "serde_json",
@@ -4261,7 +4058,7 @@ version = "0.1.0"
 dependencies = [
  "aws-lc-rs",
  "axum",
- "base64 0.22.1",
+ "base64",
  "http-body-util",
  "iam-identity-oidc-issuer-kernel",
  "iam-identity-workload-api",
@@ -4304,7 +4101,7 @@ dependencies = [
 name = "iam-identity-workload-svid-operator-k8s"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "futures",
  "iam-identity-workload-svid-kernel",
  "iam-identity-workload-svid-operator-kernel",
@@ -4895,12 +4692,85 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-anthropic-compat-api"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-kernel",
+ "intelligence-provider-pool-kernel",
+ "oya-http-router-kernel",
+ "oya-http-sse-kernel",
+]
+
+[[package]]
+name = "intelligence-anthropic-subscription-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "intelligence-account-domain",
+ "intelligence-account-kernel",
+ "intelligence-oauth-subscription-kernel",
+ "oya-http-runtime-hyper-adapter",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-api"
+version = "0.1.0"
+dependencies = [
+ "oya-application-app",
+]
+
+[[package]]
+name = "intelligence-api-rest-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-api-rest-kernel",
+]
+
+[[package]]
 name = "intelligence-api-rest-kernel"
 version = "0.1.0"
 
 [[package]]
 name = "intelligence-api-semver-domain"
 version = "0.1.0"
+
+[[package]]
+name = "intelligence-api-sse-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-api-rest-kernel",
+ "intelligence-api-sse-kernel",
+]
+
+[[package]]
+name = "intelligence-api-sse-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-api-rest-kernel",
+]
+
+[[package]]
+name = "intelligence-api-websocket-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-api-rest-kernel",
+ "intelligence-api-websocket-kernel",
+]
+
+[[package]]
+name = "intelligence-api-websocket-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-api-rest-kernel",
+]
 
 [[package]]
 name = "intelligence-app"
@@ -4922,8 +4792,130 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-architecture-map-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-architecture-map-kernel",
+ "oya-workspace-members-kernel",
+]
+
+[[package]]
 name = "intelligence-architecture-map-kernel"
 version = "0.1.0"
+
+[[package]]
+name = "intelligence-assist-draft-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-assist-draft-usecase",
+]
+
+[[package]]
+name = "intelligence-assist-draft-api"
+version = "0.1.0"
+dependencies = [
+ "intelligence-assist-draft-adapter",
+]
+
+[[package]]
+name = "intelligence-assist-draft-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-assist-draft-kernel",
+]
+
+[[package]]
+name = "intelligence-assist-draft-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-assist-draft-rest"
+version = "0.1.0"
+dependencies = [
+ "intelligence-assist-draft-api",
+]
+
+[[package]]
+name = "intelligence-assist-draft-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-assist-draft-domain",
+]
+
+[[package]]
+name = "intelligence-assist-draft-worker"
+version = "0.1.0"
+dependencies = [
+ "intelligence-assist-draft-adapter",
+]
+
+[[package]]
+name = "intelligence-attribution-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-attribution-usecase",
+]
+
+[[package]]
+name = "intelligence-attribution-app"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "intelligence-attribution-adapter",
+ "intelligence-attribution-domain",
+ "intelligence-attribution-kernel",
+ "intelligence-attribution-usecase",
+ "intelligence-attribution-worker",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-attribution-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-attribution-kernel",
+]
+
+[[package]]
+name = "intelligence-attribution-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-attribution-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-attribution-domain",
+]
+
+[[package]]
+name = "intelligence-attribution-worker"
+version = "0.1.0"
+dependencies = [
+ "intelligence-attribution-adapter",
+ "intelligence-attribution-usecase",
+]
+
+[[package]]
+name = "intelligence-audit-tap-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-audit-tap-usecase",
+]
+
+[[package]]
+name = "intelligence-audit-tap-usecase"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-audit-tap-worker"
+version = "0.1.0"
+dependencies = [
+ "intelligence-audit-tap-adapter",
+]
 
 [[package]]
 name = "intelligence-authz-cedar-adapter"
@@ -4954,6 +4946,40 @@ name = "intelligence-autonomy-ceiling-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "intelligence-backbone-workload-live-app"
+version = "0.1.0"
+dependencies = [
+ "comms-mail-mailbox-api",
+ "comms-mail-mailbox-postgres",
+ "comms-mail-mailbox-usecase",
+ "comms-messenger-stream-api",
+ "comms-messenger-stream-postgres",
+ "comms-messenger-stream-usecase",
+ "oya-community-post-store-adapter-postgres",
+ "oya-community-post-store-api",
+ "oya-community-post-store-domain",
+ "oya-community-post-store-usecase",
+ "oya-community-social-post-composition-adapter-postgres",
+ "oya-community-social-post-composition-api",
+ "oya-community-social-post-composition-usecase",
+ "oya-shared-postgres-command-adapter-sqlx",
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-protocol-parity-kernel",
+ "oya-shared-transactional-outbox-adapter-sqlx",
+ "oya-shared-transactional-outbox-kernel",
+ "sqlx",
+ "tokio",
+]
+
+[[package]]
+name = "intelligence-bypass-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "intelligence-bypass-ledger-kernel"
 version = "0.1.0"
 
@@ -4962,6 +4988,21 @@ name = "intelligence-capability-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-capability-registry-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-registry-domain",
+ "intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "intelligence-capability-registry-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-registry-kernel",
 ]
 
 [[package]]
@@ -4984,7 +5025,7 @@ name = "intelligence-claude-agent-sdk"
 version = "0.1.0"
 dependencies = [
  "futures",
- "http 1.5.0",
+ "http",
  "reqwest 0.12.28",
  "serde",
  "serde_json",
@@ -5005,15 +5046,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-codeview-cli"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "chrono",
+ "clap",
+ "regex",
+ "serde",
+ "serde_json",
+ "walkdir",
+]
+
+[[package]]
 name = "intelligence-codex-adapter"
 version = "0.1.0"
 dependencies = [
  "bytes",
  "futures-core",
  "futures-util",
- "httpmock",
  "intelligence-kernel",
  "reqwest 0.13.4",
+ "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -5028,6 +5082,174 @@ dependencies = [
  "serde_json",
  "tempfile",
  "tokio",
+]
+
+[[package]]
+name = "intelligence-collab-crdt-portability-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-collab-runtime-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-context-aware-retrieval-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-context-aware-retrieval-usecase",
+]
+
+[[package]]
+name = "intelligence-context-aware-retrieval-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-context-aware-retrieval-kernel",
+]
+
+[[package]]
+name = "intelligence-context-aware-retrieval-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-context-aware-retrieval-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-context-aware-retrieval-domain",
+]
+
+[[package]]
+name = "intelligence-context-aware-retrieval-worker"
+version = "0.1.0"
+dependencies = [
+ "intelligence-context-aware-retrieval-adapter",
+ "intelligence-context-aware-retrieval-usecase",
+]
+
+[[package]]
+name = "intelligence-credential-resolver-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "intelligence-credential-resolver-domain",
+ "intelligence-credential-resolver-usecase",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-credential-resolver-domain"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-credential-resolver-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-credential-resolver-domain",
+]
+
+[[package]]
+name = "intelligence-dashboard-api"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-domain",
+ "intelligence-dashboard-kernel",
+]
+
+[[package]]
+name = "intelligence-dashboard-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-domain",
+ "intelligence-dashboard-kernel",
+]
+
+[[package]]
+name = "intelligence-dashboard-dry-run-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-domain",
+ "intelligence-dashboard-kernel",
+]
+
+[[package]]
+name = "intelligence-dashboard-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-domain",
+]
+
+[[package]]
+name = "intelligence-dispatch-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-guardrails-domain",
+ "intelligence-model-routing-domain",
+]
+
+[[package]]
+name = "intelligence-document-format-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-collab-runtime-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-eval-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-eval-usecase",
+]
+
+[[package]]
+name = "intelligence-eval-app"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "intelligence-eval-adapter",
+ "intelligence-eval-domain",
+ "intelligence-eval-kernel",
+ "intelligence-eval-usecase",
+ "intelligence-eval-worker",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
+name = "intelligence-eval-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-eval-kernel",
+]
+
+[[package]]
+name = "intelligence-eval-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-eval-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-eval-domain",
+]
+
+[[package]]
+name = "intelligence-eval-worker"
+version = "0.1.0"
+dependencies = [
+ "intelligence-eval-adapter",
+ "intelligence-eval-usecase",
 ]
 
 [[package]]
@@ -5054,6 +5276,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-evidence-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-evidence-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-evidence-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "intelligence-gemini-adapter"
 version = "0.1.0"
 dependencies = [
@@ -5066,6 +5303,24 @@ dependencies = [
  "serde_json",
  "tokio",
  "tracing",
+]
+
+[[package]]
+name = "intelligence-guardrails-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-guardrails-kernel",
+]
+
+[[package]]
+name = "intelligence-guardrails-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-guardrails-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-guardrails-domain",
 ]
 
 [[package]]
@@ -5088,6 +5343,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-mcp-gateway-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "intelligence-mdbook-domain"
 version = "0.1.0"
 
@@ -5096,10 +5359,64 @@ name = "intelligence-mdbook-kernel"
 version = "0.1.0"
 
 [[package]]
+name = "intelligence-model-routing-domain"
+version = "0.1.0"
+dependencies = [
+ "intelligence-model-routing-kernel",
+]
+
+[[package]]
+name = "intelligence-model-routing-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "intelligence-model-routing-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-model-routing-domain",
+]
+
+[[package]]
+name = "intelligence-mutation-domain"
+version = "0.1.0"
+dependencies = [
+ "audit-chain-domain",
+ "intelligence-capability-domain",
+ "intelligence-policy-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "intelligence-oauth-subscription-kernel"
 version = "0.1.0"
 dependencies = [
  "intelligence-account-kernel",
+]
+
+[[package]]
+name = "intelligence-openai-compat-api"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-kernel",
+ "intelligence-provider-pool-kernel",
+ "oya-http-router-kernel",
+ "oya-http-sse-kernel",
+]
+
+[[package]]
+name = "intelligence-openai-subscription-adapter"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "intelligence-account-domain",
+ "intelligence-account-kernel",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -5113,12 +5430,13 @@ dependencies = [
 name = "intelligence-openbao-adapter"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "bytes",
- "httpmock",
+ "futures",
  "intelligence-kernel",
  "intelligence-rest",
  "reqwest 0.13.4",
+ "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -5134,11 +5452,53 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-policy-api"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "intelligence-policy-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "intelligence-policy-domain"
 version = "0.1.0"
 dependencies = [
  "intelligence-capability-domain",
  "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-pr-review-dispatcher-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-kernel",
+ "intelligence-subagent-runtime-kernel",
+ "intelligence-subagent-runtime-usecase",
+ "tempfile",
+]
+
+[[package]]
+name = "intelligence-provider-pool-app"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "futures-util",
+ "http-body-util",
+ "hyper",
+ "hyper-util",
+ "intelligence-account-kernel",
+ "intelligence-anthropic-compat-api",
+ "intelligence-openai-compat-api",
+ "intelligence-provider-pool-kernel",
+ "oya-http-middleware-kernel",
+ "oya-http-router-kernel",
+ "oya-http-runtime-hyper-adapter",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -5149,10 +5509,50 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-providers-adapter-openai"
+version = "0.1.0"
+dependencies = [
+ "intelligence-dispatch-usecase",
+ "intelligence-model-routing-domain",
+]
+
+[[package]]
+name = "intelligence-rag-api"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-rag-endpoint-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-registry-kernel",
+ "intelligence-rag-endpoint-domain",
+ "intelligence-rag-endpoint-kernel",
+]
+
+[[package]]
 name = "intelligence-rag-endpoint-domain"
 version = "0.1.0"
 dependencies = [
  "intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "intelligence-rag-endpoint-kernel"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-registry-kernel",
+]
+
+[[package]]
+name = "intelligence-registry-api"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "oya-data-boundary-kernel",
+ "oya-governance-eval-domain",
 ]
 
 [[package]]
@@ -5163,11 +5563,11 @@ dependencies = [
  "bytes",
  "futures",
  "http-body-util",
- "httpmock",
  "intelligence-codex-adapter",
  "intelligence-gemini-adapter",
  "intelligence-kernel",
  "reqwest 0.13.4",
+ "scripted-http-server",
  "serde",
  "serde_json",
  "tokio",
@@ -5191,6 +5591,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-run-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-capability-domain",
+ "intelligence-run-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "intelligence-settings-template-adapter"
 version = "0.1.0"
 dependencies = [
@@ -5210,6 +5619,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-shuffle-sharding"
+version = "0.1.0"
+
+[[package]]
 name = "intelligence-step-domain"
 version = "0.1.0"
 dependencies = [
@@ -5217,10 +5630,54 @@ dependencies = [
 ]
 
 [[package]]
+name = "intelligence-step-file-adapter"
+version = "0.1.0"
+dependencies = [
+ "intelligence-step-domain",
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "intelligence-subagent-runtime-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-kernel",
+ "intelligence-subagent-runtime-kernel",
+ "intelligence-subagent-runtime-usecase",
+ "tempfile",
+]
+
+[[package]]
 name = "intelligence-subagent-runtime-kernel"
 version = "0.1.0"
 dependencies = [
  "intelligence-account-kernel",
+]
+
+[[package]]
+name = "intelligence-subagent-runtime-usecase"
+version = "0.1.0"
+dependencies = [
+ "intelligence-subagent-runtime-kernel",
+]
+
+[[package]]
+name = "intelligence-supervisor-app"
+version = "0.1.0"
+dependencies = [
+ "intelligence-account-adapter-inmemory",
+ "intelligence-account-domain",
+ "intelligence-autonomy-ceiling-domain",
+ "intelligence-cli-session-driver",
+ "intelligence-jsonl-supervisor-adapter",
+ "intelligence-route-policy-kernel",
+ "intelligence-settings-template-adapter",
+ "intelligence-settings-template-kernel",
+ "intelligence-supervisor-kernel",
+ "intelligence-supervisor-security-adapter",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -5246,7 +5703,6 @@ dependencies = [
 name = "intelligence-third-party-test-deps"
 version = "0.1.0"
 dependencies = [
- "httpmock",
  "proptest",
 ]
 
@@ -5319,15 +5775,6 @@ name = "is_terminal_polyfill"
 version = "1.70.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
-
-[[package]]
-name = "itertools"
-version = "0.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b1c173a5686ce8bfa551b3563d0c2170bf24ca44da99c7ca4bfdab5418c3fe57"
-dependencies = [
- "either",
-]
 
 [[package]]
 name = "itertools"
@@ -5631,7 +6078,7 @@ version = "0.27.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "51b326f5219dd55872a72c1b6ddd1b830b8334996c667449c29391d657d78d5e"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "jiff",
  "serde",
  "serde_json",
@@ -5774,14 +6221,14 @@ version = "3.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fcaf2d1f1a91e1805d4cd82e8333c022767ae8ffd65909bbef6802733a7dd40"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "bytes",
  "either",
  "futures",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "hyper-rustls",
  "hyper-timeout",
  "hyper-util",
@@ -5811,7 +6258,7 @@ checksum = "f126d2db7a8b532ec1d839ece2a71e2485dc3bbca6cc3c3f929becaa810e719e"
 dependencies = [
  "derive_more",
  "form_urlencoded",
- "http 1.5.0",
+ "http",
  "jiff",
  "json-patch",
  "k8s-openapi",
@@ -5849,65 +6296,25 @@ dependencies = [
 ]
 
 [[package]]
-name = "kv-log-macro"
-version = "1.0.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0de8b303297635ad57c9f5059fd9cee7a47f8e8daa09df0fcd07dd39fb22977f"
-dependencies = [
- "log",
-]
-
-[[package]]
-name = "lalrpop"
-version = "0.20.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "55cb077ad656299f160924eb2912aa147d7339ea7d69e1b5517326fdcec3c1ca"
-dependencies = [
- "ascii-canvas 3.0.0",
- "bit-set 0.5.3",
- "ena",
- "itertools 0.11.0",
- "lalrpop-util 0.20.2",
- "petgraph 0.6.5",
- "pico-args",
- "regex",
- "regex-syntax",
- "string_cache",
- "term 0.7.0",
- "tiny-keccak",
- "unicode-xid",
- "walkdir",
-]
-
-[[package]]
 name = "lalrpop"
 version = "0.22.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba4ebbd48ce411c1d10fb35185f5a51a7bfa3d8b24b4e330d30c9e3a34129501"
 dependencies = [
- "ascii-canvas 4.0.0",
- "bit-set 0.8.0",
+ "ascii-canvas",
+ "bit-set",
  "ena",
  "itertools 0.14.0",
- "lalrpop-util 0.22.2",
+ "lalrpop-util",
  "petgraph 0.7.1",
  "pico-args",
  "regex",
  "regex-syntax",
  "sha3",
  "string_cache",
- "term 1.2.1",
+ "term",
  "unicode-xid",
  "walkdir",
-]
-
-[[package]]
-name = "lalrpop-util"
-version = "0.20.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "507460a910eb7b32ee961886ff48539633b788a36b65692b95f225b844c82553"
-dependencies = [
- "regex-automata",
 ]
 
 [[package]]
@@ -5933,7 +6340,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "efa3982e7fe36c1de68f91f3c9083124f389a975523881f3d7e3363362feda41"
 dependencies = [
  "any_spawner",
- "base64 0.22.1",
+ "base64",
  "cfg-if",
  "either_of",
  "futures",
@@ -6135,7 +6542,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "da974775c5ccbb6bd64be7f53f75e8321542e28f21563a416574dbe4d5447eae"
 dependencies = [
  "any_spawner",
- "base64 0.22.1",
+ "base64",
  "codee",
  "futures",
  "hydration_context",
@@ -6147,12 +6554,6 @@ dependencies = [
  "server_fn",
  "tachys",
 ]
-
-[[package]]
-name = "levenshtein"
-version = "1.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "db13adb97ab515a3691f56e4dbab09283d0b86cb45abd991d8634a9d6f501760"
 
 [[package]]
 name = "libc"
@@ -6216,9 +6617,6 @@ name = "log"
 version = "0.4.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
-dependencies = [
- "value-bag",
-]
 
 [[package]]
 name = "logos"
@@ -6309,7 +6707,6 @@ dependencies = [
  "audit-file-adapter",
  "check-a11y-discipline",
  "check-active-artifact-contract",
- "check-adr-citation",
  "check-aspirational-enforcement",
  "check-audit-chain-seal-coverage",
  "check-authority-cohesion",
@@ -6342,8 +6739,6 @@ dependencies = [
  "check-otel-trace-propagation",
  "check-perf-budget",
  "check-placeholder-debt",
- "check-pr-traceability",
- "check-pre-push",
  "check-protection-context-match",
  "check-quality-lane",
  "check-raci-coverage",
@@ -6356,7 +6751,6 @@ dependencies = [
  "check-shardability",
  "check-slsa-l3-evidence-grounded",
  "check-statelessness",
- "check-supply-chain",
  "check-tenant-cost-labels-coverage",
  "check-typescript-workspace",
  "check-vector-store-discipline",
@@ -6364,13 +6758,19 @@ dependencies = [
  "check-vendor-recency",
  "check-wasm-runtime-discipline",
  "ci-generated-artifact-freshness",
+ "ci-planning-projection",
  "intelligence-api-semver-domain",
+ "intelligence-architecture-map-app",
+ "intelligence-bypass-domain",
  "intelligence-cargo-prefix-domain",
  "intelligence-catalog-domain",
+ "intelligence-evidence-file-adapter",
  "intelligence-mdbook-domain",
  "intelligence-openapi-domain",
  "intelligence-run-domain",
+ "intelligence-run-file-adapter",
  "intelligence-step-domain",
+ "intelligence-step-file-adapter",
  "messaging-domain",
  "messaging-file-adapter",
  "oya-application-app",
@@ -6388,11 +6788,6 @@ dependencies = [
  "oya-data-boundary-kernel",
  "oya-governance-banned-primitives-kernel",
  "oya-governance-gate-catalog-domain",
- "oya-intelligence-architecture-map-app",
- "oya-intelligence-bypass-domain",
- "oya-intelligence-evidence-file-adapter",
- "oya-intelligence-run-file-adapter",
- "oya-intelligence-step-file-adapter",
  "oya-workspace-members-kernel",
  "secrets-domain",
  "secrets-file",
@@ -6544,7 +6939,7 @@ dependencies = [
  "bytes",
  "encoding_rs",
  "futures-util",
- "http 1.5.0",
+ "http",
  "httparse",
  "memchr",
  "mime",
@@ -6812,7 +7207,7 @@ checksum = "5683015d09e2df236ef005b17f6f196f0d5f6313c4fa43a7b6a53b52776e4331"
 dependencies = [
  "async-trait",
  "bytes",
- "http 1.5.0",
+ "http",
  "opentelemetry",
  "reqwest 0.13.4",
 ]
@@ -6823,7 +7218,7 @@ version = "0.32.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9966929966d17620d7c316c643ba62631826e10021409357772d5eea84f62c35"
 dependencies = [
- "http 1.5.0",
+ "http",
  "opentelemetry",
  "opentelemetry-http",
  "opentelemetry-proto",
@@ -6897,6 +7292,14 @@ name = "os-archiver-domain"
 version = "0.1.0"
 dependencies = [
  "os-kernel",
+]
+
+[[package]]
+name = "os-attestation-relying-party"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -7126,6 +7529,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "os-oci-executor-oracle"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+ "sha2",
+]
+
+[[package]]
 name = "os-perf-domain"
 version = "0.1.0"
 dependencies = [
@@ -7237,7 +7649,10 @@ dependencies = [
  "iam-identity-domain",
  "iam-policy-cedar-domain",
  "intelligence-adapter-kernel",
+ "intelligence-bypass-domain",
  "intelligence-capability-domain",
+ "intelligence-evidence-domain",
+ "intelligence-mcp-gateway-domain",
  "intelligence-policy-domain",
  "intelligence-run-domain",
  "intelligence-step-domain",
@@ -7248,9 +7663,6 @@ dependencies = [
  "oya-check-cost-budget",
  "oya-data-boundary-kernel",
  "oya-governance-eval-domain",
- "oya-intelligence-bypass-domain",
- "oya-intelligence-evidence-domain",
- "oya-intelligence-mcp-gateway-domain",
  "secrets-domain",
  "tenancy-domain",
  "tracing",
@@ -7263,9 +7675,9 @@ version = "0.1.0"
 dependencies = [
  "any_spawner",
  "axum",
- "console_error_panic_hook",
  "leptos",
  "leptos_axum",
+ "oya-application-shell-frontend",
  "oya-shared-oidc-client-kernel",
  "oya-shared-platform-contracts-kernel",
  "serde",
@@ -7280,7 +7692,9 @@ dependencies = [
 name = "oya-architecture-graph-generator-app"
 version = "0.1.0"
 dependencies = [
+ "ci-generated-artifact-freshness",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -7430,60 +7844,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-ci-controller-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "futures",
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "oya-ci-controller-github-adapter",
- "oya-ci-controller-k8s-adapter",
- "oya-ci-controller-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-ci-controller-github-adapter"
-version = "0.1.0"
-dependencies = [
- "httpmock",
- "oya-ci-controller-kernel",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-controller-k8s-adapter"
-version = "0.1.0"
-dependencies = [
- "k8s-openapi",
- "kube",
- "kube-runtime",
- "oya-ci-controller-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-ci-controller-kernel"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
 name = "oya-ci-gate-contract"
 version = "0.1.0"
 dependencies = [
@@ -7539,9 +7899,9 @@ dependencies = [
 name = "oya-ci-webhook-gateway-github-adapter"
 version = "0.1.0"
 dependencies = [
- "httpmock",
  "oya-ci-webhook-gateway-kernel",
  "reqwest 0.13.4",
+ "scripted-http-server",
  "serde",
  "serde_json",
 ]
@@ -7555,65 +7915,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-cloud-os-cluster-mgmt-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-kubernetes-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
- "os-runtime-cri-domain",
- "oya-cloud-os-secrets-domain",
-]
-
-[[package]]
-name = "oya-cloud-os-secrets-domain"
-version = "0.1.0"
-dependencies = [
- "os-kernel",
-]
-
-[[package]]
-name = "oya-cloud-os-trustd-domain"
-version = "0.1.0"
-dependencies = [
- "aws-lc-rs",
- "os-kernel",
- "rcgen",
- "time",
- "x509-parser",
-]
-
-[[package]]
 name = "oya-cloud-surface-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-codeview-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "chrono",
- "clap",
- "regex",
- "serde",
- "serde_json",
- "walkdir",
-]
-
-[[package]]
-name = "oya-collab-crdt-portability-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-collab-runtime-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
@@ -7749,18 +8051,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-contract-lifecycle-management-contract-obligation-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "oya-crate-registrar-app"
 version = "0.1.0"
 dependencies = [
@@ -7773,25 +8063,6 @@ dependencies = [
 [[package]]
 name = "oya-crate-registrar-kernel"
 version = "0.1.0"
-
-[[package]]
-name = "oya-crm-customer-engagement-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-crm-revenue-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "oya-data-boundary-kernel"
@@ -7836,17 +8107,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-design-collaboration-creative-artifact-service"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "oya-docs-domain"
 version = "0.1.0"
 dependencies = [
@@ -7854,28 +8114,8 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-document-format-domain"
-version = "0.1.0"
-dependencies = [
- "oya-collab-runtime-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
 name = "oya-fabric-loop-state-app"
 version = "0.1.0"
-
-[[package]]
-name = "oya-financial-planning-forecast-scenario-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
 
 [[package]]
 name = "oya-friction-ledger-merge-driver-app"
@@ -7932,6 +8172,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "serde",
+ "serde_json",
  "serde_yaml",
  "walkdir",
 ]
@@ -7965,7 +8206,6 @@ dependencies = [
  "anyhow",
  "serde",
  "serde_json",
- "serde_yaml",
  "walkdir",
 ]
 
@@ -7979,7 +8219,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "serde",
- "serde_yaml",
  "walkdir",
 ]
 
@@ -8059,17 +8298,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-governance-no-template-stamping"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "serde",
- "serde_json",
- "serde_yaml",
- "walkdir",
-]
-
-[[package]]
 name = "oya-governance-orphan-detection-kernel"
 version = "0.1.0"
 
@@ -8079,8 +8307,6 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "serde",
- "serde_yaml",
- "walkdir",
 ]
 
 [[package]]
@@ -8147,7 +8373,6 @@ dependencies = [
  "anyhow",
  "serde",
  "serde_json",
- "serde_yaml",
  "walkdir",
 ]
 
@@ -8254,7 +8479,7 @@ version = "0.1.0"
 dependencies = [
  "bytes",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "hyper-rustls",
  "hyper-util",
  "oya-http-middleware-kernel",
@@ -8290,701 +8515,11 @@ name = "oya-http-wide-event-middleware-infrastructure"
 version = "0.1.0"
 dependencies = [
  "futures-util",
- "http 1.5.0",
+ "http",
  "oya-shared-hyperscaler-metrics-kernel",
  "serde",
  "serde_json",
  "tower 0.5.3",
-]
-
-[[package]]
-name = "oya-incident-management-sre-incident-command-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-anthropic-compat-api"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
- "intelligence-provider-pool-kernel",
- "oya-http-router-kernel",
- "oya-http-sse-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-anthropic-subscription-adapter"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "futures-util",
- "http-body-util",
- "hyper 1.11.0",
- "hyper-util",
- "intelligence-account-domain",
- "intelligence-account-kernel",
- "intelligence-oauth-subscription-kernel",
- "oya-http-runtime-hyper-adapter",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-openai-compat-api"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
- "intelligence-provider-pool-kernel",
- "oya-http-router-kernel",
- "oya-http-sse-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-adapter-openai-subscription-adapter"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "http-body-util",
- "hyper 1.11.0",
- "hyper-util",
- "intelligence-account-domain",
- "intelligence-account-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-intelligence-api"
-version = "0.1.0"
-dependencies = [
- "oya-application-app",
-]
-
-[[package]]
-name = "oya-intelligence-api-rest-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-api-sse-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-api-rest-kernel",
- "oya-intelligence-api-sse-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-api-sse-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-api-websocket-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-api-rest-kernel",
- "oya-intelligence-api-websocket-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-api-websocket-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-api-rest-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-architecture-map-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-architecture-map-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-assist-draft-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-assist-draft-usecase",
-]
-
-[[package]]
-name = "oya-intelligence-assist-draft-api"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-assist-draft-adapter",
-]
-
-[[package]]
-name = "oya-intelligence-assist-draft-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-assist-draft-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-assist-draft-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-assist-draft-rest"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-assist-draft-api",
-]
-
-[[package]]
-name = "oya-intelligence-assist-draft-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-assist-draft-domain",
-]
-
-[[package]]
-name = "oya-intelligence-assist-draft-worker"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-assist-draft-adapter",
-]
-
-[[package]]
-name = "oya-intelligence-attribution-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-attribution-usecase",
-]
-
-[[package]]
-name = "oya-intelligence-attribution-app"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "futures-util",
- "oya-intelligence-attribution-adapter",
- "oya-intelligence-attribution-domain",
- "oya-intelligence-attribution-kernel",
- "oya-intelligence-attribution-usecase",
- "oya-intelligence-attribution-worker",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-intelligence-attribution-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-attribution-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-attribution-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-attribution-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-attribution-domain",
-]
-
-[[package]]
-name = "oya-intelligence-attribution-worker"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-attribution-adapter",
- "oya-intelligence-attribution-usecase",
-]
-
-[[package]]
-name = "oya-intelligence-audit-tap-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-audit-tap-usecase",
-]
-
-[[package]]
-name = "oya-intelligence-audit-tap-usecase"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-audit-tap-worker"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-audit-tap-adapter",
-]
-
-[[package]]
-name = "oya-intelligence-backbone-workload-live-app"
-version = "0.1.0"
-dependencies = [
- "comms-mail-mailbox-api",
- "comms-mail-mailbox-postgres",
- "comms-mail-mailbox-usecase",
- "comms-messenger-stream-api",
- "comms-messenger-stream-postgres",
- "comms-messenger-stream-usecase",
- "oya-community-post-store-adapter-postgres",
- "oya-community-post-store-api",
- "oya-community-post-store-domain",
- "oya-community-post-store-usecase",
- "oya-community-social-post-composition-adapter-postgres",
- "oya-community-social-post-composition-api",
- "oya-community-social-post-composition-usecase",
- "oya-shared-postgres-command-adapter-sqlx",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-transactional-outbox-adapter-sqlx",
- "oya-shared-transactional-outbox-kernel",
- "sqlx",
- "tokio",
-]
-
-[[package]]
-name = "oya-intelligence-bypass-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-capability-registry-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-registry-kernel",
- "oya-intelligence-capability-registry-domain",
-]
-
-[[package]]
-name = "oya-intelligence-capability-registry-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-registry-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-cloud-mutation-domain"
-version = "0.1.0"
-dependencies = [
- "audit-chain-domain",
- "intelligence-capability-domain",
- "intelligence-policy-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-context-aware-retrieval-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-context-aware-retrieval-usecase",
-]
-
-[[package]]
-name = "oya-intelligence-context-aware-retrieval-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-context-aware-retrieval-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-context-aware-retrieval-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-context-aware-retrieval-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-context-aware-retrieval-domain",
-]
-
-[[package]]
-name = "oya-intelligence-context-aware-retrieval-worker"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-context-aware-retrieval-adapter",
- "oya-intelligence-context-aware-retrieval-usecase",
-]
-
-[[package]]
-name = "oya-intelligence-credential-resolver-adapter"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "http-body-util",
- "hyper 1.11.0",
- "hyper-util",
- "oya-intelligence-credential-resolver-domain",
- "oya-intelligence-credential-resolver-usecase",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-intelligence-credential-resolver-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-credential-resolver-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-credential-resolver-domain",
-]
-
-[[package]]
-name = "oya-intelligence-dashboard-api"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "oya-intelligence-dashboard-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-dashboard-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "oya-intelligence-dashboard-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-dashboard-dry-run-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
- "oya-intelligence-dashboard-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-dashboard-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-domain",
-]
-
-[[package]]
-name = "oya-intelligence-dispatch-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-guardrails-domain",
- "oya-intelligence-model-routing-domain",
-]
-
-[[package]]
-name = "oya-intelligence-eval-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-eval-usecase",
-]
-
-[[package]]
-name = "oya-intelligence-eval-app"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "futures-util",
- "oya-intelligence-eval-adapter",
- "oya-intelligence-eval-domain",
- "oya-intelligence-eval-kernel",
- "oya-intelligence-eval-usecase",
- "oya-intelligence-eval-worker",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "oya-intelligence-eval-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-eval-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-eval-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-eval-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-eval-domain",
-]
-
-[[package]]
-name = "oya-intelligence-eval-worker"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-eval-adapter",
- "oya-intelligence-eval-usecase",
-]
-
-[[package]]
-name = "oya-intelligence-evidence-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-evidence-file-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
- "oya-intelligence-evidence-domain",
-]
-
-[[package]]
-name = "oya-intelligence-guardrails-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-guardrails-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-guardrails-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-guardrails-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-guardrails-domain",
-]
-
-[[package]]
-name = "oya-intelligence-mcp-gateway-domain"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-model-routing-domain"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-model-routing-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-model-routing-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-intelligence-model-routing-usecase"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-model-routing-domain",
-]
-
-[[package]]
-name = "oya-intelligence-policy-api"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "intelligence-policy-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-pr-review-dispatcher-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
- "intelligence-subagent-runtime-kernel",
- "oya-intelligence-subagent-runtime-usecase",
- "tempfile",
-]
-
-[[package]]
-name = "oya-intelligence-provider-pool-app"
-version = "0.1.0"
-dependencies = [
- "bytes",
- "futures-util",
- "http-body-util",
- "hyper 1.11.0",
- "hyper-util",
- "intelligence-account-kernel",
- "intelligence-provider-pool-kernel",
- "oya-http-middleware-kernel",
- "oya-http-router-kernel",
- "oya-http-runtime-hyper-adapter",
- "oya-intelligence-adapter-anthropic-compat-api",
- "oya-intelligence-adapter-openai-compat-api",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-intelligence-providers-adapter-openai"
-version = "0.1.0"
-dependencies = [
- "oya-intelligence-dispatch-usecase",
- "oya-intelligence-model-routing-domain",
-]
-
-[[package]]
-name = "oya-intelligence-rag-api"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-rag-endpoint-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-registry-kernel",
- "intelligence-rag-endpoint-domain",
- "oya-intelligence-rag-endpoint-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-rag-endpoint-kernel"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-registry-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-registry-api"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "oya-data-boundary-kernel",
- "oya-governance-eval-domain",
-]
-
-[[package]]
-name = "oya-intelligence-run-file-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-capability-domain",
- "intelligence-run-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-step-file-adapter"
-version = "0.1.0"
-dependencies = [
- "intelligence-step-domain",
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-subagent-runtime-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-kernel",
- "intelligence-subagent-runtime-kernel",
- "oya-intelligence-subagent-runtime-usecase",
- "tempfile",
-]
-
-[[package]]
-name = "oya-intelligence-subagent-runtime-usecase"
-version = "0.1.0"
-dependencies = [
- "intelligence-subagent-runtime-kernel",
-]
-
-[[package]]
-name = "oya-intelligence-supervisor-app"
-version = "0.1.0"
-dependencies = [
- "intelligence-account-adapter-inmemory",
- "intelligence-account-domain",
- "intelligence-autonomy-ceiling-domain",
- "intelligence-cli-session-driver",
- "intelligence-jsonl-supervisor-adapter",
- "intelligence-route-policy-kernel",
- "intelligence-settings-template-adapter",
- "intelligence-settings-template-kernel",
- "intelligence-supervisor-kernel",
- "intelligence-supervisor-security-adapter",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-itsm-escalation-policy"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-itsm-incident-room"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-itsm-on-call-schedule"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-itsm-postmortem"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-itsm-service-management-service"
-version = "0.1.0"
-dependencies = [
- "oya-itsm-escalation-policy",
- "oya-itsm-incident-room",
- "oya-itsm-on-call-schedule",
- "oya-itsm-postmortem",
- "oya-itsm-status-update",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-itsm-status-update"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
 ]
 
 [[package]]
@@ -9003,176 +8538,11 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-learning-management-course-progress-service"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-marketing-automation-campaign-journey-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "oya-notes-domain"
 version = "0.1.0"
 dependencies = [
- "oya-collab-runtime-domain",
+ "intelligence-collab-runtime-domain",
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-office-api-app"
-version = "0.1.0"
-
-[[package]]
-name = "oya-office-authz-domain"
-version = "0.1.0"
-dependencies = [
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-collab-domain"
-version = "0.1.0"
-dependencies = [
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-collab-gateway-app"
-version = "0.1.0"
-
-[[package]]
-name = "oya-office-doc-domain"
-version = "0.1.0"
-dependencies = [
- "oya-office-drive-domain",
- "oya-office-format-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-drive-api"
-version = "0.1.0"
-dependencies = [
- "oya-office-authz-domain",
- "oya-office-drive-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-drive-api-app"
-version = "0.1.0"
-dependencies = [
- "oya-office-drive-api",
- "oya-office-drive-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-drive-domain"
-version = "0.1.0"
-dependencies = [
- "oya-office-authz-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-drive-worker"
-version = "0.1.0"
-dependencies = [
- "oya-office-drive-api",
- "oya-office-drive-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-format-domain"
-version = "0.1.0"
-dependencies = [
- "oya-office-drive-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-format-worker"
-version = "0.1.0"
-dependencies = [
- "oya-office-drive-domain",
- "oya-office-format-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-office-search-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-sheet-domain"
-version = "0.1.0"
-dependencies = [
- "oya-office-drive-domain",
- "oya-office-format-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-sheets-api"
-version = "0.1.0"
-dependencies = [
- "oya-office-kernel",
- "oya-office-sheet-domain",
-]
-
-[[package]]
-name = "oya-office-slide-domain"
-version = "0.1.0"
-dependencies = [
- "oya-office-drive-domain",
- "oya-office-format-domain",
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-storage-kernel"
-version = "0.1.0"
-dependencies = [
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-tenant-domain"
-version = "0.1.0"
-dependencies = [
- "oya-office-kernel",
-]
-
-[[package]]
-name = "oya-office-web-app"
-version = "0.1.0"
-dependencies = [
- "oya-office-drive-api",
- "oya-office-kernel",
 ]
 
 [[package]]
@@ -9219,100 +8589,6 @@ version = "0.1.0"
 dependencies = [
  "oya-payroll-run-app",
  "oya-payroll-run-domain",
-]
-
-[[package]]
-name = "oya-performance-management-review-calibration-service"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-plant-maintenance-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-plant-maintenance-work-order-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-procurement-source-to-pay-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-production-planning-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-production-planning-mrp-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-quality-management-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-quality-management-inspection-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-real-estate-lease-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-real-estate-portfolio-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
 ]
 
 [[package]]
@@ -9701,19 +8977,15 @@ version = "0.1.0"
 name = "oya-sheets-domain"
 version = "0.1.0"
 dependencies = [
- "oya-collab-runtime-domain",
+ "intelligence-collab-runtime-domain",
  "oya-data-boundary-kernel",
 ]
-
-[[package]]
-name = "oya-shuffle-sharding"
-version = "0.1.0"
 
 [[package]]
 name = "oya-sites-domain"
 version = "0.1.0"
 dependencies = [
- "oya-collab-runtime-domain",
+ "intelligence-collab-runtime-domain",
  "oya-data-boundary-kernel",
 ]
 
@@ -9721,28 +8993,9 @@ dependencies = [
 name = "oya-slides-domain"
 version = "0.1.0"
 dependencies = [
- "oya-collab-runtime-domain",
+ "intelligence-collab-runtime-domain",
+ "intelligence-document-format-domain",
  "oya-data-boundary-kernel",
- "oya-document-format-domain",
-]
-
-[[package]]
-name = "oya-supply-chain-planning-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-supply-chain-planning-network-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -9757,61 +9010,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "oya-treasury-cash-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-treasury-cash-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-warehouse-fulfillment-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-warehouse-inventory-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-whiteboard-canvas-collaboration-app"
-version = "0.1.0"
-dependencies = [
- "clap",
- "serde",
- "serde_json",
- "toml 0.8.23",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "oya-workflow-safe-metadata-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-workplace-integration-doc-set-scaffold"
 version = "0.1.0"
 
 [[package]]
@@ -9850,6 +9049,7 @@ dependencies = [
 name = "oya-workspace-members-kernel"
 version = "0.1.0"
 dependencies = [
+ "serde_json",
  "toml 0.8.23",
 ]
 
@@ -9913,7 +9113,7 @@ version = "3.0.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d30c53c26bc5b31a98cd02d20f25a7c8567146caf63ed593a9d87b2775291be"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "serde_core",
 ]
 
@@ -9967,21 +9167,11 @@ dependencies = [
 
 [[package]]
 name = "petgraph"
-version = "0.6.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b4c5cc86750666a3ed20bdaf5ca2a0344f9c67674cae0515bec2da16fbaa47db"
-dependencies = [
- "fixedbitset 0.4.2",
- "indexmap 2.14.0",
-]
-
-[[package]]
-name = "petgraph"
 version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3672b37090dbd86368a4145bc067582552b29c27377cad4e0a306c97f9bd7772"
 dependencies = [
- "fixedbitset 0.5.7",
+ "fixedbitset",
  "indexmap 2.14.0",
 ]
 
@@ -9991,7 +9181,7 @@ version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8701b58ea97060d5e5b155d383a69952a60943f0e6dfe30b04c287beb0b27455"
 dependencies = [
- "fixedbitset 0.5.7",
+ "fixedbitset",
  "hashbrown 0.15.5",
  "indexmap 2.14.0",
 ]
@@ -10038,23 +9228,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a89322df9ebe1c1578d689c92318e070967d1042b512afbe49518723f4e6d5cd"
 
 [[package]]
-name = "pin-utils"
-version = "0.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8b870d8c151b6f2fb93e84a13146138f05d02ed11c7e7c54f8826aaaf7c9f184"
-
-[[package]]
-name = "piper"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c835479a4443ded371d6c535cbfd8d31ad92c5d23ae9770a61bc155e4992a3c1"
-dependencies = [
- "atomic-waker",
- "fastrand",
- "futures-io",
-]
-
-[[package]]
 name = "pkcs8"
 version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10077,17 +9250,10 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4596b6d070b27117e987119b4dac604f3c58cfb0b191112e24771b2faeac1a6"
 
 [[package]]
-name = "polling"
-version = "3.11.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d0e4f59085d47d8241c88ead0f274e8a0cb551f3625263c05eb8dd897c34218"
+name = "port-engine-analysis"
+version = "0.1.0"
 dependencies = [
- "cfg-if",
- "concurrent-queue",
- "hermit-abi",
- "pin-project-lite",
- "rustix",
- "windows-sys 0.61.2",
+ "port-engine-api",
 ]
 
 [[package]]
@@ -10097,22 +9263,118 @@ version = "0.1.0"
 [[package]]
 name = "port-engine-app"
 version = "0.1.0"
+dependencies = [
+ "port-engine-analysis",
+ "port-engine-api",
+ "port-engine-emit",
+ "port-engine-frontend-go",
+ "port-engine-hash",
+ "port-engine-identity",
+ "port-engine-kernel",
+ "port-engine-rulepack",
+ "port-engine-rust-ir",
+ "port-engine-snapshot",
+ "port-engine-source-pin",
+ "port-engine-toolchain",
+ "port-engine-transform",
+]
+
+[[package]]
+name = "port-engine-emit"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
 
 [[package]]
 name = "port-engine-frontend-go"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "port-engine-hash"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "sha2",
+]
+
+[[package]]
+name = "port-engine-identity"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
 
 [[package]]
 name = "port-engine-kernel"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+]
+
+[[package]]
+name = "port-engine-rulepack"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+ "port-engine-kernel",
+ "serde",
+ "serde_json",
+]
 
 [[package]]
 name = "port-engine-rust-ir"
 version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "prettyplease",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "port-engine-snapshot"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-frontend-go",
+ "port-engine-hash",
+ "port-engine-source-pin",
+]
 
 [[package]]
 name = "port-engine-source-pin"
 version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "port-engine-toolchain"
+version = "0.1.0"
+dependencies = [
+ "port-engine-api",
+ "port-engine-hash",
+]
+
+[[package]]
+name = "port-engine-transform"
+version = "0.1.0"
+dependencies = [
+ "port-engine-analysis",
+ "port-engine-api",
+ "port-engine-rust-ir",
+]
 
 [[package]]
 name = "portable-atomic"
@@ -10255,7 +9517,7 @@ version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4b45fcc2344c680f5025fe57779faef368840d0bd1f42f216291f0dc4ace4744"
 dependencies = [
- "bit-set 0.8.0",
+ "bit-set",
  "bit-vec 0.8.0",
  "bitflags 2.13.1",
  "num-traits",
@@ -10434,7 +9696,7 @@ dependencies = [
  "quinn-udp",
  "rustc-hash",
  "rustls",
- "socket2 0.6.5",
+ "socket2",
  "thiserror 2.0.20",
  "tokio",
  "tracing",
@@ -10473,7 +9735,7 @@ dependencies = [
  "cfg_aliases",
  "libc",
  "once_cell",
- "socket2 0.6.5",
+ "socket2",
  "tracing",
  "windows-sys 0.61.2",
 ]
@@ -10724,17 +9986,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "redox_users"
-version = "0.4.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ba009ff324d1fc1b900bd1fdb31564febe58a8ccc8a6fdbb93b543d33b13ca43"
-dependencies = [
- "getrandom 0.2.17",
- "libredox",
- "thiserror 1.0.69",
-]
-
-[[package]]
 name = "ref-cast"
 version = "1.0.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10795,14 +10046,14 @@ version = "0.12.28"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "eddd3ca559203180a307f12d114c268abf583f59b03cb906fd0b3ff8646c1147"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "bytes",
  "futures-core",
  "futures-util",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "hyper-rustls",
  "hyper-util",
  "js-sys",
@@ -10836,15 +10087,15 @@ version = "0.13.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "219c5811de6525e5416c7d5d53bb656d3afdbc6c5af816e0802bcfa42dbdc1c3"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "bytes",
  "futures-channel",
  "futures-core",
  "futures-util",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "hyper-rustls",
  "hyper-util",
  "js-sys",
@@ -11115,6 +10366,16 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "94143f37725109f92c262ed2cf5e59bce7498c01bcc1502d7b9afe439a4e9f49"
 
 [[package]]
+name = "scripted-http-server"
+version = "0.1.0"
+dependencies = [
+ "futures",
+ "reqwest 0.13.4",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "sealed"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11192,7 +10453,7 @@ dependencies = [
 name = "secrets-kms-openbao"
 version = "0.1.0"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "oya-data-boundary-kernel",
  "secrets-kms-domain",
  "secrets-kms-enclave",
@@ -11363,16 +10624,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "serde_regex"
-version = "1.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bafc8d0c5330cecff10f16b459b479fd9acaa5b4acd7167301414e21b0057012"
-dependencies = [
- "regex",
- "serde",
-]
-
-[[package]]
 name = "serde_spanned"
 version = "0.6.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11408,7 +10659,7 @@ version = "3.22.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee78f1fbe43ac4a0e47aadb3dbd357b69eb0d3793e948624cd03dd2750ab1c0a"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "bs58",
  "chrono",
  "hex",
@@ -11455,15 +10706,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "be8559dd05af1b5b7e363a150616589d5a88af5187273f7f331ba0dae8922812"
 dependencies = [
  "axum",
- "base64 0.22.1",
+ "base64",
  "bytes",
  "const-str",
  "const_format",
  "futures",
  "gloo-net",
- "http 1.5.0",
+ "http",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "inventory",
  "js-sys",
  "or_poisoned",
@@ -11596,12 +10847,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e3a9fe34e3e7a50316060351f37187a3f546bce95496156754b601a5fa71b76e"
 
 [[package]]
-name = "similar"
-version = "2.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bbbb5d9659141646ae647b42fe094daf6c6192d1620870b449d9557f748b2daa"
-
-[[package]]
 name = "siphasher"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11639,16 +10884,6 @@ checksum = "4aaa7368fcf4852a4c2dd92df0cace6a71f2091ca0a23391ce7f3a31833f1523"
 dependencies = [
  "borsh",
  "serde_core",
-]
-
-[[package]]
-name = "socket2"
-version = "0.5.10"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e22376abed350d73dd1cd119b57ffccad95b4e585a7cda43e286245ce23c0678"
-dependencies = [
- "libc",
- "windows-sys 0.52.0",
 ]
 
 [[package]]
@@ -11694,12 +10929,12 @@ version = "0.8.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ee6798b1838b6a0f69c007c133b8df5866302197e404e8b6ee8ed3e3a5e68dc6"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "bytes",
  "crc",
  "crossbeam-queue",
  "either",
- "event-listener 5.4.2",
+ "event-listener",
  "futures-core",
  "futures-intrusive",
  "futures-io",
@@ -11767,7 +11002,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "db58fcd5a53cf07c184b154801ff91347e4c30d17a3562a635ff028ad5deda46"
 dependencies = [
  "atoi",
- "base64 0.22.1",
+ "base64",
  "bitflags 2.13.1",
  "byteorder",
  "crc",
@@ -11925,17 +11160,6 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
-
-[[package]]
-name = "syn"
-version = "1.0.109"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "72b64191b275b66ffe2469e8af2c1cfe3bafa67b529ead792a6d0160888b4237"
-dependencies = [
- "proc-macro2",
- "quote",
- "unicode-ident",
-]
 
 [[package]]
 name = "syn"
@@ -12203,17 +11427,6 @@ dependencies = [
 
 [[package]]
 name = "term"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c59df8ac95d96ff9bede18eb7300b0fda5e5d8d90960e76f8e14ae765eedbf1f"
-dependencies = [
- "dirs-next",
- "rustversion",
- "winapi",
-]
-
-[[package]]
-name = "term"
 version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d8c27177b12a6399ffc08b98f76f7c9a1f4fe9fc967c784c5a071fa8d93cf7e1"
@@ -12310,15 +11523,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "tiny-keccak"
-version = "2.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2c9d3793400a45f954c52e73d068316d76b6f4e36977e3fcebb13a2721e80237"
-dependencies = [
- "crunchy",
-]
-
-[[package]]
 name = "tinystr"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -12354,7 +11558,7 @@ dependencies = [
  "mio",
  "pin-project-lite",
  "signal-hook-registry",
- "socket2 0.6.5",
+ "socket2",
  "tokio-macros",
  "windows-sys 0.61.2",
 ]
@@ -12514,18 +11718,18 @@ checksum = "ac2a5518c70fa84342385732db33fb3f44bc4cc748936eb5833d2df34d6445ef"
 dependencies = [
  "async-trait",
  "axum",
- "base64 0.22.1",
+ "base64",
  "bytes",
  "h2",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "http-body-util",
- "hyper 1.11.0",
+ "hyper",
  "hyper-timeout",
  "hyper-util",
  "percent-encoding",
  "pin-project",
- "socket2 0.6.5",
+ "socket2",
  "sync_wrapper",
  "tokio",
  "tokio-stream",
@@ -12613,13 +11817,13 @@ version = "0.6.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4cfcf7e2740e6fc6d4d688b4ef00650406bb94adf4731e43c096c3a19fe40840"
 dependencies = [
- "base64 0.22.1",
+ "base64",
  "bitflags 2.13.1",
  "bytes",
  "futures-core",
  "futures-util",
- "http 1.5.0",
- "http-body 1.1.0",
+ "http",
+ "http-body",
  "http-body-util",
  "http-range-header",
  "httpdate",
@@ -12737,7 +11941,7 @@ checksum = "eadc29d668c91fcc564941132e17b28a7ceb2f3ebf0b9dae3e03fd7a6748eb0d"
 dependencies = [
  "bytes",
  "data-encoding",
- "http 1.5.0",
+ "http",
  "httparse",
  "log",
  "rand 0.9.5",
@@ -12756,7 +11960,7 @@ checksum = "6c01152af293afb9c7c2a57e4b559c5620b421f6d133261c60dd2d0cdb38e6b8"
 dependencies = [
  "bytes",
  "data-encoding",
- "http 1.5.0",
+ "http",
  "httparse",
  "log",
  "rand 0.9.5",
@@ -12945,12 +12149,6 @@ name = "valuable"
 version = "0.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ba73ea9cf16a25df0c8caa16c51acb937d5712a8429db78a3ee29d5dcacd3a65"
-
-[[package]]
-name = "value-bag"
-version = "1.13.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "068e763e8279de7ab94b6afebded2cb701678af094feb1c12ccb061b4783c1be"
 
 [[package]]
 name = "version_check"
@@ -13168,22 +12366,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "winapi"
-version = "0.3.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c839a674fcd7a98952e593242ea400abe93992746761e38641405d28b00f419"
-dependencies = [
- "winapi-i686-pc-windows-gnu",
- "winapi-x86_64-pc-windows-gnu",
-]
-
-[[package]]
-name = "winapi-i686-pc-windows-gnu"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ac3b87c63620426dd9b991e5ce0329eff545bccbbb34f3be09ff6fb6ab51b7b6"
-
-[[package]]
 name = "winapi-util"
 version = "0.1.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -13191,12 +12373,6 @@ checksum = "c2a7b1c03c876122aa43f3020e6c3c3ee5c05081c9a00739faf7503aeba10d22"
 dependencies = [
  "windows-sys 0.61.2",
 ]
-
-[[package]]
-name = "winapi-x86_64-pc-windows-gnu"
-version = "0.4.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "712e227841d057c1ee1cd2fb22fa7e5a5461ae8e48fa2ca79ec42cfc1931183f"
 
 [[package]]
 name = "windows-core"

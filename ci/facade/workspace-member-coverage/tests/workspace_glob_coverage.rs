@@ -3,6 +3,7 @@
 // findings. ADR-0083 Tier-3: integration tests assert with unwrap/expect.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -28,11 +29,7 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -43,8 +40,7 @@ fn producer_binary_env_is_required_for_hermetic_gate() {
 }
 
 fn run_producer_face(root: &Path, face: &str) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)
@@ -66,6 +62,20 @@ fn run_producer_face(root: &Path, face: &str) -> Value {
     serde_json::from_slice(&output.stdout).expect("producer face stdout is valid JSON")
 }
 
+/// Assert two enumerated sets are equal, naming exactly which keys are missing/extra on
+/// mismatch. A SET, never a count: a count is unattributable, a set is a reviewable diff of
+/// named keys, and only a set can tell "the corpus shrank" apart from "the producer stopped
+/// seeing most of it".
+fn assert_set_equals(label: &str, face: &BTreeSet<String>, census: &BTreeSet<String>) {
+    let missing_from_face: Vec<&String> = census.difference(face).collect();
+    let extra_in_face: Vec<&String> = face.difference(census).collect();
+    assert!(
+        missing_from_face.is_empty() && extra_in_face.is_empty(),
+        "{label} SET MISMATCH — missing_from_face={missing_from_face:?} \
+         extra_in_face={extra_in_face:?}"
+    );
+}
+
 #[test]
 fn workspace_glob_coverage_verdict_matches_the_live_corpus() {
     let root = repo_root();
@@ -73,24 +83,130 @@ fn workspace_glob_coverage_verdict_matches_the_live_corpus() {
     let rows = face["rows"]
         .as_array()
         .expect("workspace-glob-coverage face rows");
-    assert!(
-        rows.len() > 500,
-        "workspace-glob-coverage should enumerate root members + crate dirs, got {}",
-        rows.len()
-    );
+
+    // INDEPENDENT DYNAMIC CENSUS, not a magnitude floor. The producer derives every one of its
+    // faces from ONE `tracked_paths` vector, so a single narrowing there (an over-broad
+    // exclusion rule, a lost scan root, a truncated SCM face) shrinks this face with no other
+    // signal — measured: a 43% producer-side narrowing left this gate GREEN behind
+    // `rows.len() > 500`. Re-derive both halves of the face from the canonical resolver and
+    // assert EXACT set equality, so a producer that silently drops even ONE member is caught
+    // as a named set difference. Both assertions strictly imply the magnitude floor they
+    // replace. Self-adjusting: the census moves in lockstep with the corpus, never needs a bump.
+    //
+    // The `[workspace].members` entries the face echoes back must be exactly the ones the root
+    // manifest declares — this is the half that proves the face read the real manifest.
+    let face_entries: BTreeSet<String> = rows
+        .iter()
+        .filter_map(|row| row.get("member_entry").and_then(Value::as_str))
+        .map(str::to_owned)
+        .collect();
+    let declared_entries: BTreeSet<String> =
+        oya_workspace_members_kernel::read_workspace_manifest_entries(&root)
+            .expect("read the live root workspace manifest entries")
+            .members
+            .into_iter()
+            .collect();
+    assert_set_equals("member_entry", &face_entries, &declared_entries);
+
+    // Every crate dir a workspace glob COVERS must be exactly a canonically resolved member.
+    // The uncovered remainder is the debt this gate exists to report, so it is deliberately
+    // outside this equality — but the covered majority (887 of 888 rows today) is now pinned
+    // by name rather than by magnitude.
+    let face_covered: BTreeSet<String> = rows
+        .iter()
+        .filter(|row| row.get("covered").and_then(Value::as_bool) == Some(true))
+        .map(|row| {
+            row["crate_dir"]
+                .as_str()
+                .expect("covered row crate_dir")
+                .to_owned()
+        })
+        .collect();
+    let resolved_members: BTreeSet<String> =
+        oya_workspace_members_kernel::resolve_member_dirs(&root)
+            .expect("resolve_member_dirs must resolve the live root workspace Cargo.toml")
+            .into_iter()
+            .collect();
+    assert_set_equals("covered crate_dir", &face_covered, &resolved_members);
 
     let findings = evaluate_keyed(&face);
     let verdict = evaluate(&face).verdict;
     eprintln!(
-        "BORN-BLOCKING workspace-glob-coverage: rows={} total_findings={} verdict={:?}",
+        "workspace-glob-coverage: rows={} total_findings={} verdict={:?}",
         rows.len(),
         findings.len(),
         verdict
     );
 
+    // The kernel's findings and verdict must agree. This is a real property, but it is a
+    // property of the KERNEL, not of the tree — it holds whether the tree has 0 findings or
+    // 800. On its own it was the whole assertion, which is why this gate printed
+    // "BORN-BLOCKING ... verdict=Red" and exited 0 with seven live violations standing.
     if findings.is_empty() {
         assert_eq!(verdict, Verdict::Green, "no findings must mean GREEN");
     } else {
         assert_eq!(verdict, Verdict::Red, "findings present must mean RED");
     }
+
+    // The assertion that is actually about the tree.
+    let baseline = load_baseline(&root);
+    let live: BTreeSet<String> = findings
+        .iter()
+        .map(|finding| format!("{}::{}", finding.code, finding.key))
+        .collect();
+
+    let unbaselined: Vec<&String> = live.difference(&baseline).collect();
+    assert!(
+        unbaselined.is_empty(),
+        "{} workspace-glob-coverage violation(s) not in {}: {:#?}\n\
+         Each is a crate manifest outside the resolved member set, a non-glob members entry, \
+         or a malformed row. A crate that is not a workspace member is not compiled by \
+         `cargo nextest run --workspace`, so it is invisible to EVERY gate at once.",
+        unbaselined.len(),
+        BASELINE_REL,
+        unbaselined,
+    );
+
+    // Two-sided. A frozen key that stopped being produced is either debt genuinely paid off
+    // or a scan that collapsed, and a one-sided rule cannot tell those apart — so the burn-down
+    // must be re-frozen in the same change, as a reviewable diff of named keys.
+    let disappeared: Vec<&String> = baseline.difference(&live).collect();
+    assert!(
+        disappeared.is_empty(),
+        "{} baselined violation(s) are no longer produced: {:#?}\n\
+         If they were fixed, delete them from {} in this same change. If the scan narrowed \
+         instead, that is the regression this assertion exists to catch.",
+        disappeared.len(),
+        disappeared,
+        BASELINE_REL,
+    );
+}
+
+const BASELINE_REL: &str =
+    "ci/facade/workspace-member-coverage/workspace-glob-coverage-baseline.json";
+
+fn load_baseline(root: &Path) -> BTreeSet<String> {
+    let path = root.join(BASELINE_REL);
+    let raw = std::fs::read_to_string(&path)
+        .unwrap_or_else(|error| panic!("read {}: {error}", path.display()));
+    let parsed: Value = serde_json::from_str(&raw)
+        .unwrap_or_else(|error| panic!("parse {}: {error}", path.display()));
+    let frozen = parsed["frozen"]
+        .as_array()
+        .unwrap_or_else(|| panic!("{} must carry a `frozen` array", path.display()));
+    assert!(
+        !frozen.is_empty(),
+        "{} has an empty `frozen` array. That is legal only when the tree is genuinely clean; \
+         if it was emptied to silence this gate, restore it.",
+        path.display()
+    );
+    frozen
+        .iter()
+        .map(|entry| {
+            entry
+                .as_str()
+                .unwrap_or_else(|| panic!("{} frozen entries must be strings", path.display()))
+                .to_owned()
+        })
+        .collect()
 }

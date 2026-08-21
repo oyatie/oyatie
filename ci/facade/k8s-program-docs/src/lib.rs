@@ -454,8 +454,11 @@ pub fn evaluate(corpus: &Corpus) -> Evaluation {
         .iter()
         .filter(|leaf| leaf.starts_with("os/"))
         .count();
-    if (declared.k8s_leaves, declared.os_leaves, declared.total_leaves)
-        != (k8s_leaves, os_leaves, corpus.crate_leaves.len())
+    if (
+        declared.k8s_leaves,
+        declared.os_leaves,
+        declared.total_leaves,
+    ) != (k8s_leaves, os_leaves, corpus.crate_leaves.len())
     {
         findings.push(finding(
             FindingCode::UnclassifiedCrateLeaf,
@@ -641,10 +644,9 @@ fn scan_crate_leaves(repo_root: &Path) -> Result<Vec<String>, LoadError> {
 /// `os/` or `k8s/` (e.g. DER certs in `testdata/`) must not trip `R-DOC-SEAM-MANIFEST-UNREADABLE`.
 fn scan_cross_seam_edges(repo_root: &Path) -> Result<Vec<CrossSeamEdge>, LoadError> {
     let mut edges = Vec::new();
-    for (capability, forbidden_prefix, forbidden_buck_root) in [
-        ("os", "k8s-", "//k8s/"),
-        ("k8s", "os-", "//os/"),
-    ] {
+    for (capability, forbidden_prefix, forbidden_buck_root) in
+        [("os", "k8s-", "//k8s/"), ("k8s", "os-", "//os/")]
+    {
         let root = repo_root.join(capability);
         if !root.is_dir() {
             continue;
@@ -718,23 +720,23 @@ pub fn forbidden_package_deps(contents: &str, forbidden_prefix: &str) -> Vec<Str
         }
         match section {
             DepSection::Table => {
-                if let Some(package) = dependency_key(trimmed) {
-                    if package.starts_with(forbidden_prefix) {
-                        hits.push(package);
-                    }
+                if let Some(package) = dependency_key(trimmed)
+                    && package.starts_with(forbidden_prefix)
+                {
+                    hits.push(package);
                 }
                 // Rename evasion: `local = { package = "k8s-foo", path = "…" }`.
-                if let Some(package) = package_rename_value(trimmed) {
-                    if package.starts_with(forbidden_prefix) {
-                        hits.push(package);
-                    }
+                if let Some(package) = package_rename_value(trimmed)
+                    && package.starts_with(forbidden_prefix)
+                {
+                    hits.push(package);
                 }
             }
             DepSection::NamedPackage => {
-                if let Some(package) = package_rename_value(trimmed) {
-                    if package.starts_with(forbidden_prefix) {
-                        hits.push(package);
-                    }
+                if let Some(package) = package_rename_value(trimmed)
+                    && package.starts_with(forbidden_prefix)
+                {
+                    hits.push(package);
                 }
             }
             DepSection::Inactive => {}
@@ -782,9 +784,7 @@ fn classify_dependency_header(inner: &str) -> Option<Option<String>> {
     if lower == "patch" || lower.starts_with("patch.") {
         return Some(None);
     }
-    let Some(index) = lower.rfind("dependencies") else {
-        return None;
-    };
+    let index = lower.rfind("dependencies")?;
     let after = &inner[index + "dependencies".len()..];
     if after.is_empty() {
         return Some(None);
@@ -829,7 +829,9 @@ fn toml_bare_or_quoted_key(raw: &str) -> Option<String> {
 fn package_rename_value(line: &str) -> Option<String> {
     for (index, _) in line.match_indices("package") {
         let before_ok = index == 0
-            || !line.as_bytes()[index - 1].is_ascii_alphanumeric() && line.as_bytes()[index - 1] != b'_' && line.as_bytes()[index - 1] != b'-';
+            || !line.as_bytes()[index - 1].is_ascii_alphanumeric()
+                && line.as_bytes()[index - 1] != b'_'
+                && line.as_bytes()[index - 1] != b'-';
         let after = &line[index + "package".len()..];
         if !before_ok || !after.starts_with(|c: char| c == '=' || c.is_whitespace()) {
             continue;
@@ -873,7 +875,11 @@ fn load_declared_leaves(repo_root: &Path) -> Result<DeclaredLeaves, LoadError> {
         .pointer("/origin_classification/leaves")
         .and_then(Value::as_array)
         .ok_or_else(|| {
-            load_error(CODE, &path, "`origin_classification.leaves` must be an array")
+            load_error(
+                CODE,
+                &path,
+                "`origin_classification.leaves` must be an array",
+            )
         })?;
     // A `Vec`, never a `BTreeSet`: duplicates must survive, because the row-count comparison in
     // `evaluate` is what catches a deletion or a rename that a per-leaf presence check cannot see.
@@ -977,9 +983,9 @@ fn load_validated_regions(
             "`regions` must be present (use `[]` while no producer exists)",
         ));
     };
-    let regions = regions_value.as_array().ok_or_else(|| {
-        load_error(code, path, "`regions` must be an array")
-    })?;
+    let regions = regions_value
+        .as_array()
+        .ok_or_else(|| load_error(code, path, "`regions` must be an array"))?;
     let mut prefixes: Vec<String> = Vec::with_capacity(regions.len());
     for (index, region) in regions.iter().enumerate() {
         let region_id = region
@@ -1027,19 +1033,22 @@ fn load_validated_regions(
                 return Err(load_error(
                     code,
                     path,
-                    &format!(
-                        "region `{region_id}` producer must be a non-empty string or object"
-                    ),
+                    &format!("region `{region_id}` producer must be a non-empty string or object"),
                 ));
             }
         }
-        let receipt = region.get("receipt").and_then(Value::as_object).ok_or_else(|| {
-            load_error(
-                code,
-                path,
-                &format!("region `{region_id}` must carry an object `receipt` with all six axes"),
-            )
-        })?;
+        let receipt = region
+            .get("receipt")
+            .and_then(Value::as_object)
+            .ok_or_else(|| {
+                load_error(
+                    code,
+                    path,
+                    &format!(
+                        "region `{region_id}` must carry an object `receipt` with all six axes"
+                    ),
+                )
+            })?;
         for axis in REGION_RECEIPT_AXES {
             match receipt.get(*axis) {
                 Some(Value::String(value)) if !value.is_empty() => {}
@@ -1137,7 +1146,6 @@ fn is_scannable_line(line: &str) -> bool {
     !line.trim_start().starts_with("//")
 }
 
-
 /// One apiVersion value per INV-3 emit line (same filter as [`upstream_emit_sites`]).
 fn upstream_emit_identity_values(contents: &str) -> Vec<String> {
     contents
@@ -1234,7 +1242,10 @@ fn api_version_values(line: &str) -> Vec<&str> {
         rest = strip_quote(rest);
         let end = rest
             .find(|character: char| {
-                character == '"' || character == '\'' || character == '\\' || character.is_whitespace()
+                character == '"'
+                    || character == '\''
+                    || character == '\\'
+                    || character.is_whitespace()
             })
             .unwrap_or(rest.len());
         let value = &rest[..end];
@@ -1912,8 +1923,12 @@ mod tests {
         // backlink stayed invisible until the wave eventually completed.
         let root = std::env::temp_dir().join("r-doc-incomplete-wave-journal-fixture");
         let registry = root.join(WAVE_REGISTRY);
-        fs::create_dir_all(registry.parent().expect("the registry has a parent directory"))
-            .expect("the fixture tree is creatable");
+        fs::create_dir_all(
+            registry
+                .parent()
+                .expect("the registry has a parent directory"),
+        )
+        .expect("the fixture tree is creatable");
         fs::write(
             &registry,
             "version=1\nwave=W0-A;ordinal=0;completed=false;operations_entries=absent.md;no_extraction_rationale=\n",
@@ -2131,10 +2146,12 @@ mod tests {
         corpus.declared_leaves.total_leaves = 3;
         let evaluation = evaluate(&corpus);
         assert!(has_code(&evaluation, FindingCode::UnclassifiedCrateLeaf));
-        assert!(evaluation
-            .findings
-            .iter()
-            .any(|finding| finding.path == "k8s/core/newborn"));
+        assert!(
+            evaluation
+                .findings
+                .iter()
+                .any(|finding| finding.path == "k8s/core/newborn")
+        );
 
         // A leaf is deleted and its row is left behind. Presence alone is blind here — every
         // surviving leaf still has a row — so the row count is what reds.
@@ -2168,7 +2185,10 @@ mod tests {
         );
         assert_eq!(upstream_emit_sites(comments), 0);
         // ...and the skip is narrow: the same text as code still counts.
-        assert_eq!(upstream_emit_sites("writeln!(out, \"apiVersion: apps/v1\")?;\n"), 1);
+        assert_eq!(
+            upstream_emit_sites("writeln!(out, \"apiVersion: apps/v1\")?;\n"),
+            1
+        );
     }
 
     #[test]
@@ -2202,7 +2222,10 @@ mod tests {
             1
         );
         // Bare identifier is not an emission.
-        assert_eq!(dynamic_api_version_sites("let field = \"apiVersion\";\n"), 0);
+        assert_eq!(
+            dynamic_api_version_sites("let field = \"apiVersion\";\n"),
+            0
+        );
 
         let mut corpus = live_fixture();
         assert!(!has_code(
@@ -2246,8 +2269,11 @@ mod tests {
         // in `evaluate` able to see the relocation.
         let root = std::env::temp_dir().join("r-doc-regions-navigation-fixture");
         let path = root.join(REGENERABLE_REGIONS);
-        fs::create_dir_all(path.parent().expect("the declaration has a parent directory"))
-            .expect("the fixture tree is creatable");
+        fs::create_dir_all(
+            path.parent()
+                .expect("the declaration has a parent directory"),
+        )
+        .expect("the fixture tree is creatable");
         fs::write(
             &path,
             r#"{"regions": [],
@@ -2268,8 +2294,11 @@ mod tests {
     fn a_malformed_declaration_is_a_load_error_not_an_empty_census() {
         let root = std::env::temp_dir().join("r-doc-regions-malformed-fixture");
         let path = root.join(REGENERABLE_REGIONS);
-        fs::create_dir_all(path.parent().expect("the declaration has a parent directory"))
-            .expect("the fixture tree is creatable");
+        fs::create_dir_all(
+            path.parent()
+                .expect("the declaration has a parent directory"),
+        )
+        .expect("the fixture tree is creatable");
         fs::write(&path, r#"{"origin_classification": {"leaves": []}}"#)
             .expect("the fixture declaration is writable");
         let result = load_declared_leaves(&root);
@@ -2277,7 +2306,9 @@ mod tests {
         // Missing `regions` (and/or census) must NOT degrade to an empty Ok census: a clean
         // partition over a corpus the gate never opened is the false green this loader refuses.
         assert_eq!(
-            result.expect_err("a malformed regenerable-regions declaration fails closed").code,
+            result
+                .expect_err("a malformed regenerable-regions declaration fails closed")
+                .code,
             "R-DOC-K8S-PORT-REGIONS-MALFORMED"
         );
     }
@@ -2300,10 +2331,16 @@ mod tests {
     #[test]
     fn cross_seam_deps_catch_inline_named_table_and_workspace_spellings() {
         let inline = "[dependencies]\nk8s-foo = { path = \"../../k8s/ports/foo\" }\n";
-        assert_eq!(forbidden_package_deps(inline, "k8s-"), vec!["k8s-foo".to_owned()]);
+        assert_eq!(
+            forbidden_package_deps(inline, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
 
         let named = "[dependencies.k8s-foo]\npath = \"../../k8s/ports/foo\"\n";
-        assert_eq!(forbidden_package_deps(named, "k8s-"), vec!["k8s-foo".to_owned()]);
+        assert_eq!(
+            forbidden_package_deps(named, "k8s-"),
+            vec!["k8s-foo".to_owned()]
+        );
 
         let workspace = "[dependencies]\nk8s-foo.workspace = true\n";
         assert_eq!(
@@ -2311,7 +2348,8 @@ mod tests {
             vec!["k8s-foo".to_owned()]
         );
 
-        let renamed = "[dependencies]\nlocal = { package = \"k8s-foo\", path = \"../../k8s/ports/foo\" }\n";
+        let renamed =
+            "[dependencies]\nlocal = { package = \"k8s-foo\", path = \"../../k8s/ports/foo\" }\n";
         assert_eq!(
             forbidden_package_deps(renamed, "k8s-"),
             vec!["k8s-foo".to_owned()]
@@ -2351,7 +2389,8 @@ mod tests {
             vec!["k8s-foo".to_owned()]
         );
 
-        let clean = "[dependencies]\nserde = { workspace = true }\nos-kernel = { path = \"../kernel\" }\n";
+        let clean =
+            "[dependencies]\nserde = { workspace = true }\nos-kernel = { path = \"../kernel\" }\n";
         assert!(forbidden_package_deps(clean, "k8s-").is_empty());
 
         assert_eq!(
@@ -2375,24 +2414,28 @@ mod tests {
 
     #[test]
     fn scan_cross_seam_edges_reads_buck_v2_and_skips_binary_fixtures() {
-        let root = std::env::temp_dir().join(format!(
-            "r-doc-seam-buck-v2-binary-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("r-doc-seam-buck-v2-binary-{}", std::process::id()));
         let _ = fs::remove_dir_all(&root);
         let crate_dir = root.join("os/core/fixture-domain");
         fs::create_dir_all(crate_dir.join("testdata")).expect("fixture dirs");
         // Legitimate binary fixture must not force UTF-8 decode of the whole tree.
-        fs::write(crate_dir.join("testdata/cert.der"), [0xff, 0xfe, 0x00, 0x80])
-            .expect("binary fixture");
+        fs::write(
+            crate_dir.join("testdata/cert.der"),
+            [0xff, 0xfe, 0x00, 0x80],
+        )
+        .expect("binary fixture");
         fs::write(
             crate_dir.join("Cargo.toml"),
             "[package]\nname = \"fixture-domain\"\nversion = \"0.0.0\"\nedition = \"2021\"\n",
         )
         .expect("cargo");
         // Clean BUCK shadowed by a BUCK.v2 that crosses the seam — INV-1 must see BUCK.v2.
-        fs::write(crate_dir.join("BUCK"), "rust_library(name = \"ok\", deps = [])\n")
-            .expect("buck");
+        fs::write(
+            crate_dir.join("BUCK"),
+            "rust_library(name = \"ok\", deps = [])\n",
+        )
+        .expect("buck");
         fs::write(
             crate_dir.join("BUCK.v2"),
             "rust_library(\n    name = \"fixture\",\n    deps = [\"//k8s/ports/foo:k8s-foo\"],\n)\n",
@@ -2413,8 +2456,11 @@ mod tests {
     fn a_generated_leaf_without_a_registered_region_fails_closed() {
         let root = std::env::temp_dir().join("r-doc-generated-without-region-fixture");
         let path = root.join(REGENERABLE_REGIONS);
-        fs::create_dir_all(path.parent().expect("the declaration has a parent directory"))
-            .expect("the fixture tree is creatable");
+        fs::create_dir_all(
+            path.parent()
+                .expect("the declaration has a parent directory"),
+        )
+        .expect("the fixture tree is creatable");
         fs::write(
             &path,
             r#"{
@@ -2429,7 +2475,9 @@ mod tests {
         let result = load_declared_leaves(&root);
         fs::remove_dir_all(&root).ok();
         assert_eq!(
-            result.expect_err("generated without a region is malformed").code,
+            result
+                .expect_err("generated without a region is malformed")
+                .code,
             "R-DOC-K8S-PORT-REGIONS-MALFORMED"
         );
     }
@@ -2437,10 +2485,7 @@ mod tests {
     #[test]
     fn a_leaf_origin_outside_the_closed_vocabulary_fails_closed() {
         // #1643: origin is a closed enum; an unknown token must not classify as either pole.
-        let root = std::env::temp_dir().join(format!(
-            "r-doc-closed-origin-{}",
-            std::process::id()
-        ));
+        let root = std::env::temp_dir().join(format!("r-doc-closed-origin-{}", std::process::id()));
         let path = root.join(REGENERABLE_REGIONS);
         fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
         fs::write(
@@ -2470,7 +2515,8 @@ mod tests {
         // Inline `local = { package = "k8s-foo" }` is covered elsewhere; the named-table spelling
         // `[dependencies.local]\npackage = "k8s-foo"` is the rename evasion that lands in
         // DepSection::NamedPackage.
-        let named_rename = "[dependencies.local]\npackage = \"k8s-foo\"\npath = \"../../k8s/ports/foo\"\n";
+        let named_rename =
+            "[dependencies.local]\npackage = \"k8s-foo\"\npath = \"../../k8s/ports/foo\"\n";
         assert_eq!(
             forbidden_package_deps(named_rename, "k8s-"),
             vec!["k8s-foo".to_owned()]
@@ -2479,10 +2525,8 @@ mod tests {
 
     #[test]
     fn regions_are_validated_even_when_every_leaf_is_first_party() {
-        let root = std::env::temp_dir().join(format!(
-            "r-doc-regions-independent-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("r-doc-regions-independent-{}", std::process::id()));
         let path = root.join(REGENERABLE_REGIONS);
         fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
         // Region covers a first-party leaf, has no producer, incomplete receipt, and would
@@ -2532,10 +2576,8 @@ mod tests {
 
     #[test]
     fn overlapping_region_prefixes_fail_closed() {
-        let root = std::env::temp_dir().join(format!(
-            "r-doc-regions-overlap-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("r-doc-regions-overlap-{}", std::process::id()));
         let path = root.join(REGENERABLE_REGIONS);
         fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
         fs::write(
@@ -2636,10 +2678,8 @@ mod tests {
 
     #[test]
     fn empty_or_non_string_receipt_axes_fail_closed() {
-        let root = std::env::temp_dir().join(format!(
-            "r-doc-empty-receipt-axes-{}",
-            std::process::id()
-        ));
+        let root =
+            std::env::temp_dir().join(format!("r-doc-empty-receipt-axes-{}", std::process::id()));
         let path = root.join(REGENERABLE_REGIONS);
         fs::create_dir_all(path.parent().expect("parent")).expect("dirs");
         // All six keys present, but empty strings / non-string placeholders bind nothing.

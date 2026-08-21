@@ -6,7 +6,7 @@ related_adrs: [ADR-0515, ADR-0560, ADR-0630]
 
 # Hosted multi-arch CI + lab CAS (agent fleet)
 
-**Status:** Accepted direction (idea-refine 2026-08-05) — **W1–W2 shipping with multi-arch posture**.  
+**Status:** Accepted direction (idea-refine 2026-08-05); **ARC overflow RETIRED 2026-08-11**. Soft multi-arch stays GitHub-hosted. Lab CAS = founder **laptop** NativeLink (+ tunnel) — sibling CAS track owns bring-up; this doc owns ARC retirement prose.  
 **Related:** [buck2#183](https://github.com/facebook/buck2/issues/183), [njaremko/quokka](https://github.com/njaremko/quokka), NativeLink ADR-0560, #1541 secret posture.  
 **Runner labels (source):** [GitHub-hosted runners reference](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
 
@@ -16,11 +16,11 @@ How might we give a multi-agent fleet **merge-ready CI without self-hosted babys
 
 ## Is `oya-arm64` the best choice?
 
-**No — not for merge authority.**
+**No — and the label is RETIRED.** Custom ARC is not merge authority and is no longer lab overflow.
 
 | Option | Role | Verdict |
 |--------|------|---------|
-| **Lab ARC `oya-arm64`** | Optional overflow / CAS-adjacent debug | **Not** binding. Single AZ, ops tax, arm-only, queue under maxRunners. |
+| **Lab ARC `oya-arm64` (RETIRED)** | — | **Retired 2026-08-11.** Tip `maxRunners: 0`; remove Argo apps after drain. Do not resurrect. |
 | **`ubuntu-latest` (linux/amd64)** | **Binding merge plane** | **Yes.** Standard hosted unit, widest package support, private-repo default. |
 | **`ubuntu-24.04-arm` (linux/arm64)** | Soft platform smoke | **Yes as soft.** Hosted arm without babysitting; may be plan-gated on private. |
 | **`windows-latest`** | Soft platform smoke | **Yes as soft.** Unlocks cfg(windows) / MSVC reality; minutes cost. |
@@ -33,7 +33,7 @@ How might we give a multi-agent fleet **merge-ready CI without self-hosted babys
 
 1. **Binding merge CI** on **GitHub-hosted linux/amd64** (`ubuntu-latest`). Full suite (`buck2`, affected-set, freshness, …) stays here.
 2. **Multi-arch smoke** (soft, `continue-on-error`) on the lightweight `gate` matrix: linux-arm64, windows-amd64, macos-arm64 — same scm-facts receipt, no 4× full suite.
-3. **CAS on lab** with mTLS client mounts on ARC when used as overflow; **W3** tunnel before hosted workers dial lab CAS. Never public unauthenticated gRPC.
+3. **CAS on founder laptop** (NativeLink cache-only + Cloudflare Tunnel / Access). Hosted workers dial laptop CAS after canary — **not** ARC. Never public unauthenticated gRPC. Warm CAS flip is sibling track; do not couple to ARC teardown.
 4. **Any hit metric counts** first (GHA actions/cache + Buck AC). RE/quokka only after measured AC.
 5. **Public prep** now; human-only visibility flip. Forks never get lab CAS credentials.
 
@@ -44,7 +44,7 @@ How might we give a multi-agent fleet **merge-ready CI without self-hosted babys
 | **T0 binding** | `ubuntu-latest` | producer, buck2, affected-set, freshness, drift, firewall, live-postgres, fan-in | Required green |
 | **T1 soft smoke** | `ubuntu-24.04-arm`, `windows-latest`, `macos-latest` | `gate` matrix only | Soft red does not block |
 | **T2 promote later** | windows-11-arm, macos-intel, larger runners | when product needs them | After T1 green history |
-| **Lab overflow** | ARC `oya-arm64` / live-postgres cell | optional | Not branch protection |
+| **Lab overflow** | ~~ARC `oya-arm64` / live-postgres~~ **RETIRED** | — | Soft multi-arch = hosted only; lab CAS = laptop |
 
 Promote a soft platform to binding only when: (a) green for N consecutive PR days, (b) product ships that OS/arch, (c) minute budget accepted.
 
@@ -53,8 +53,8 @@ Promote a soft platform to binding only when: (a) green for N consecutive PR day
 | Wave | In | Out |
 |------|----|-----|
 | **W1** | Hosted linux-amd64 binding; multi-arch soft gate matrix; hosted Postgres services; rustup via `install-buck2.sh`; multi-OS buck2 pins (linux/darwin/windows × amd64/arm64) | Auto-public; 4× full suite |
-| **W2** | ARC client cert mounts + `OYA_CACHE_TLS_*`; ops PEM sync note | Tunnel to GHA |
-| **W3** | Secure tunnel hosted→lab CAS | Public CAS |
+| **W2** | ~~ARC client cert mounts~~ **RETIRED with ARC** | — |
+| **W3** | Secure tunnel hosted→**laptop** CAS | Public CAS; ARC overflow gone |
 | **W4** | Public readiness + secret scan | Auto visibility flip |
 | **W5** | RE / quokka if measured | RE workers in MVP |
 
@@ -64,13 +64,14 @@ Promote a soft platform to binding only when: (a) green for N consecutive PR day
 - [x] `gate` multi-arch soft matrix (arm/win/mac)
 - [x] live-postgres → GH `postgres:16` services + dual bootstrap
 - [x] `install-buck2.sh`: rustup bootstrap + Darwin/Windows arm pins
-- [x] ARC mTLS client mount + env paths
+- [x] ARC mTLS client mount + env paths (**historical** — ARC retired)
 - [x] This one-pager (multi-arch decision recorded)
-- [ ] Live ops: PEM copy oya-ci → arc-runners; clear forced `oya-arm64` repo labels
+- [x] ARC overflow retired in tip (`maxRunners: 0` + workflow path-filter strip)
+- [ ] Founder live ops: sync scale-to-zero → drain Pods/PVCs → remove Argo apps; clear forced `oya-arm64` / `oya-live-postgres-arm64` labels (see `infra/arc/README.md`)
 
 ## Not Doing (and Why)
 
-- **ARC as primary merge path** — ops tax > benefit for agent fleet; wrong arch monopoly.
+- **ARC as primary merge path or overflow** — **RETIRED**; ops tax > benefit; hosted + laptop CAS instead.
 - **Full suite × 4 platforms** — constant-work / FinOps; soft smoke first.
 - **RE before working CAS** — action cache first industry order.
 - **Public unauthenticated CAS** — zero-trust / #1541.
@@ -88,9 +89,9 @@ Promote a soft platform to binding only when: (a) green for N consecutive PR day
 
 Buck2 does not cache test results by default ([#183](https://github.com/facebook/buck2/issues/183)). quokka is deferred until compile AC hit rate is non-zero and wall-clock is still test-bound.
 
-## Ops: ARC client certs (W2 live)
+## Ops: ARC client certs — RETIRED
 
-See comments in `infra/arc/nativelink-client-certs.k8s.yaml` (kubectl copy oya-ci → arc-runners PEMs; reconcile scale set). Warm license stays false until canary green.
+ARC runner mounts are retired with the scale sets. Laptop CAS trust uses Cloudflare Access / mTLS + CAS keys (#1541) on the tunnel path — sibling CAS track. Warm license stays false until integrity-canary green (do not flip in this retirement).
 
 ## Lessons from [asterinas/asterinas Actions](https://github.com/asterinas/asterinas/actions)
 
@@ -107,7 +108,7 @@ Public open-source OS project; heavy free-tier GHA use; multi-arch test surface.
 | **Matrix by concern, fail-fast: false** | lint/compile/usermode/ktest; boot variants | Keep; never fail-fast across platforms (isolate signal). |
 | **Hermetic pinned container** | `asterinas/asterinas:0.18.0-…` | We already pin Buck2 digest + rust-toolchain; optional later: public container for contributor parity (not required for W1). |
 | **Composite actions** | `./.github/actions/test`, `benchmark` | Prefer shared steps when we add platforms so install-buck2 / materialize stay one path (already `infra/ci/install-buck2.sh`). |
-| **Self-hosted only for expensive continuous work** | Benchmarks on `self-hosted` + cron | Lab ARC / NativeLink = cache & heavy canaries; **not** PR merge authority. Matches our “oya-arm64 is overflow.” |
+| **Self-hosted only for expensive continuous work** | Benchmarks on `self-hosted` + cron | Laptop NativeLink = durable cache; soft multi-arch = hosted; **not** PR merge authority. ARC overflow retired. |
 | **Publish path-filtered + multi-arch images** | `platforms: linux/amd64,linux/arm64` | When publishing images post-public: dual-arch manifests; never single-arch “works on my lab.” |
 | **Free-tier disk hygiene** | rm android/dotnet/gcloud; `free-disk-space` action | On public free GHA, add disk reclaim **on heavy jobs only** (we already have runner-disk-reclaim policy for hosted). |
 | **Cancel superseded PR runs** | Newer synchronize cancels older | Keep `concurrency: cancel-in-progress` (already). |
@@ -173,7 +174,7 @@ Free linux-arm64 hosted runners and higher free concurrency become real. Sequenc
 ### Platform tokens (explicit, no slang)
 
 Use: `linux-amd64`, `linux-arm64`, `windows-amd64`, `windows-arm64`, `macos-arm64`, `macos-amd64`.  
-Avoid: `x64` alone, `arm` alone, `oya-arm64` in **public** check titles (lab label stays infra-only).
+Avoid: `x64` alone, `arm` alone, `oya-arm64` in **public** check titles (label **retired** — do not reintroduce).
 
 ### Current → target mapping (incremental; no big-bang rename)
 
@@ -204,6 +205,6 @@ Rename **check titles** before **workflow filenames**; filenames last (history +
 3. **Tier platforms** — don’t tax every PR with every OS.  
 4. **Measure before RE / before soft→binding.**  
 5. **Lab = one AZ**, not the global fleet.  
-6. **Question every runs-on** — “is oya-arm64 best?” → no for merge.  
+6. **Question every runs-on** — “is oya-arm64 best?” → no; **retired**. Soft multi-arch stays hosted.  
 7. **Name for operators** — verb + platform + concern; one stable admission context.  
 8. **Public free tier is a product** — disk hygiene, cancel-in-progress, fork fail-closed.

@@ -1,0 +1,23 @@
+rust_library(
+    name = "intelligence-architecture-map-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_architecture_map_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/architecture-map-kernel:intelligence-architecture-map-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+    ],
+)
+
+rust_test(
+    name = "intelligence-architecture-map-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_architecture_map_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//intelligence/core/architecture-map-kernel:intelligence-architecture-map-kernel",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+    ],
+)

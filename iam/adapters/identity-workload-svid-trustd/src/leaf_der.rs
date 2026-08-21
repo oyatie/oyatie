@@ -205,9 +205,11 @@ mod tests {
         (ca, signer)
     }
 
-    fn issue(ca: &mut CertificateAuthority<EcdsaP256Signer>, ca_signer: &EcdsaP256Signer, uri: &str)
-        -> (Vec<u8>, Vec<u8>)
-    {
+    fn issue(
+        ca: &mut CertificateAuthority<EcdsaP256Signer>,
+        ca_signer: &EcdsaP256Signer,
+        uri: &str,
+    ) -> (Vec<u8>, Vec<u8>) {
         let wl = EcdsaP256Signer::generate().unwrap();
         let wl_key = KeyPair::new(wl.private_key_der(), wl.public_key_spki_der());
         let csr = CertificateSigningRequest::for_workload("wl", uri, &wl_key, 3_600);
@@ -280,18 +282,22 @@ mod tests {
         // carrying a valid SPIFFE URI SAN, must NOT authenticate as a workload —
         // defence in depth: a CA must never act as a caller.
         use os_trustd_domain::certificate::{CertUsage, Certificate};
-        use os_trustd_domain::x509::{
-            DistinguishedName, SubjectAltNames, Validity,
-        };
+        use os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
         let (ca, sgn) = real_ca();
         let leaf_signer = EcdsaP256Signer::generate().unwrap();
         let ca_leaf = Certificate {
             serial: 42,
             subject: DistinguishedName::common("rogue-sub-ca"),
             issuer: DistinguishedName::common("oyatie-cell-7-ca"),
-            validity: Validity { not_before: 1_000, not_after: 9_000 },
+            validity: Validity {
+                not_before: 1_000,
+                not_after: 9_000,
+            },
             usage: CertUsage::CertificateAuthority,
-            sans: SubjectAltNames { uris: vec![URI.to_string()], ..Default::default() },
+            sans: SubjectAltNames {
+                uris: vec![URI.to_string()],
+                ..Default::default()
+            },
             public_key_der: leaf_signer.public_key_spki_der(),
             signature: vec![0x01],
         };
@@ -309,18 +315,22 @@ mod tests {
         // A serverAuth-only leaf (for_node ServerAuth ⇒ no clientAuth EKU) from the
         // TRUSTED CA, carrying a SPIFFE URI SAN, must NOT authenticate as a caller.
         use os_trustd_domain::certificate::{CertUsage, Certificate};
-        use os_trustd_domain::x509::{
-            DistinguishedName, SubjectAltNames, Validity,
-        };
+        use os_trustd_domain::x509::{DistinguishedName, SubjectAltNames, Validity};
         let (ca, sgn) = real_ca();
         let leaf_signer = EcdsaP256Signer::generate().unwrap();
         let server_leaf = Certificate {
             serial: 43,
             subject: DistinguishedName::common("oya-cloud-iam-pdp"),
             issuer: DistinguishedName::common("oyatie-cell-7-ca"),
-            validity: Validity { not_before: 1_000, not_after: 9_000 },
+            validity: Validity {
+                not_before: 1_000,
+                not_after: 9_000,
+            },
             usage: CertUsage::ServerAuth,
-            sans: SubjectAltNames { uris: vec![URI.to_string()], ..Default::default() },
+            sans: SubjectAltNames {
+                uris: vec![URI.to_string()],
+                ..Default::default()
+            },
             public_key_der: leaf_signer.public_key_spki_der(),
             signature: vec![0x01],
         };
@@ -354,8 +364,9 @@ mod tests {
         use os_trustd_domain::certificate::CertUsage;
         let wl = EcdsaP256Signer::generate().unwrap();
         let wl_key = KeyPair::new(wl.private_key_der(), wl.public_key_spki_der());
-        let csr = CertificateSigningRequest::for_node("node-1", &wl_key, CertUsage::ClientAuth, 3_600)
-            .with_dns("node-1.cluster.local");
+        let csr =
+            CertificateSigningRequest::for_node("node-1", &wl_key, CertUsage::ClientAuth, 3_600)
+                .with_dns("node-1.cluster.local");
         let leaf = ca.sign_csr(&csr, 2_000).unwrap();
         let der_bytes = der::encode_leaf_der(&leaf, &wl, ca.certificate(), &sgn).unwrap();
         let ca_spki = ca.certificate().public_key_der.clone();

@@ -29,11 +29,11 @@
 //!  • Confluent Schema Registry FORWARD/BACKWARD compat: field removal forbidden.
 //!  • Monotonic schema-version gating (Confluent compatibility level enforcement).
 
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 use data_ontology_kernel::{
     EntityTypeDefinition, EntityTypeId, EntityTypePropertyDefinition, OntologyEngine,
     OntologyEngineError, PropertyTier,
 };
+use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 // ---------------------------------------------------------------------------
 // Shared helpers
@@ -102,17 +102,18 @@ fn additive_new_property_with_higher_revision_is_accepted() {
     let mut engine = OntologyEngine::default();
     engine.evolve_entity_type(base_def(1, vec![])).unwrap();
 
-    let v2 = base_def(
-        2,
-        vec![prop("email", PropertyTier::Scalar, pii(), false)],
-    );
+    let v2 = base_def(2, vec![prop("email", PropertyTier::Scalar, pii(), false)]);
     let id = engine
         .evolve_entity_type(v2)
         .expect("additive evolution with higher revision must be accepted");
 
     let stored = engine.entity_type("ten_test", &id).unwrap();
     assert_eq!(stored.revision, 2, "stored revision must advance to 2");
-    assert_eq!(stored.properties.len(), 2, "both properties must be present");
+    assert_eq!(
+        stored.properties.len(),
+        2,
+        "both properties must be present"
+    );
     assert!(
         stored.properties.iter().any(|p| p.name == "email"),
         "new 'email' property must be persisted"
@@ -303,16 +304,16 @@ fn monotonic_additive_evolution_accepted_updates_stored_revision() {
     let mut engine = OntologyEngine::default();
     engine.evolve_entity_type(base_def(1, vec![])).unwrap();
 
-    let v2 = base_def(
-        2,
-        vec![prop("email", PropertyTier::Scalar, pii(), false)],
-    );
+    let v2 = base_def(2, vec![prop("email", PropertyTier::Scalar, pii(), false)]);
     let id = engine
         .evolve_entity_type(v2)
         .expect("monotonic additive evolution must be accepted");
 
     let stored = engine.entity_type("ten_test", &id).unwrap();
-    assert_eq!(stored.revision, 2, "stored revision must be 2 after evolution");
+    assert_eq!(
+        stored.revision, 2,
+        "stored revision must be 2 after evolution"
+    );
     assert_eq!(
         stored.properties.len(),
         2,
@@ -478,7 +479,10 @@ fn tenant_isolation_evolve_does_not_see_other_tenant_registration() {
     // ten_other definition must be unaffected.
     let other_id = EntityTypeId::new("ety_thing").unwrap();
     let other_stored = engine.entity_type("ten_other", &other_id).unwrap();
-    assert_eq!(other_stored.revision, 5, "ten_other definition must be unchanged");
+    assert_eq!(
+        other_stored.revision, 5,
+        "ten_other definition must be unchanged"
+    );
 }
 
 /// The revision field of the stored definition must be readable via the
@@ -506,5 +510,9 @@ fn entity_type_accessor_reflects_latest_revision_after_evolution() {
     let id = EntityTypeId::new("ety_thing").unwrap();
     let stored = engine.entity_type("ten_test", &id).unwrap();
     assert_eq!(stored.revision, 3, "accessor must return latest revision");
-    assert_eq!(stored.properties.len(), 3, "all three properties must be present");
+    assert_eq!(
+        stored.properties.len(),
+        3,
+        "all three properties must be present"
+    );
 }

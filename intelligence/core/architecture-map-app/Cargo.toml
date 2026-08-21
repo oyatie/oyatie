@@ -1,0 +1,20 @@
+[package]
+name = "intelligence-architecture-map-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+intelligence-architecture-map-kernel = { path = "../architecture-map-kernel" }
+
+
+[lib]
+name = "intelligence_architecture_map_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

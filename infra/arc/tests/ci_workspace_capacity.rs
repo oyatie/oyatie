@@ -1,11 +1,9 @@
 // #1504 repository-side capacity contract. Source declarations are parsed structurally; rollout,
 // CNI enforcement, and cold-concurrency evidence remain external acceptance steps.
 //
-// Dual-worker general (CI-heavy): maxRunners may exceed 1 when (a) distinct nodes admit one
-// claim each (≥ maxRunners), (b) a single physical volume stacks max_runners*request+reserve,
-// or (c) distributed stack: every admitting node holds ceil(max/n)*request+reserve AND hard
-// hostname topology spread. This slice uses two 120Gi general volumes (≤2×44Gi+reserve each)
-// with maxRunners=4. Live-postgres stays maxRunners=1 on worker-2.
+// RETIRED (2026-08-11): live scale sets tip-declare maxRunners=0. Synthetic packing
+// cases below still exercise the evaluator. Historical: dual-worker general used
+// distributed stack with maxRunners=4; live-postgres was maxRunners=1 on worker-2.
 #![allow(clippy::expect_used, clippy::panic)]
 
 use serde::Deserialize;
@@ -19,8 +17,8 @@ const LIVE_POSTGRES_VALUES: &str = "infra/arc/runner-scale-set-live-postgres-arm
 const QEMU_CILIUM_PATCH: &str = "infra/talos/qemu-cilium.patch.yaml";
 const LOCAL_PATH_STORAGE: &str = "infra/gitops/local-path-storage.yaml";
 const GENERAL_WORKERS: [&str; 2] = ["oya-talos-worker-1", "oya-talos-worker-2"];
-/// Hard ceiling for this declaration slice; raising past 4 needs a new capacity plan.
-const MAX_GENERAL_RUNNERS_THIS_SLICE: u64 = 4;
+/// Tip-declared retirement: both scale sets scale-to-zero (ARC fleet retired 2026-08-11).
+const MAX_GENERAL_RUNNERS_THIS_SLICE: u64 = 0;
 /// Spare GiB required when stacking multiple claims on one physical volume.
 const STACK_RESERVE_GIB: u64 = 4;
 /// General user volume size declared in Talos patches (fits 2×44Gi + reserve).
@@ -287,11 +285,10 @@ fn validate_capacity_contract(
             }
         }
 
+        // Scale-to-zero is the retired/decommissioned state (ARC fleet tip 2026-08-11).
+        // Skip packing checks; storage/path isolation still validates above.
         if runner.max_runners == 0 {
-            return Err(format!(
-                "{} maxRunners must be at least 1 in the capacity contract",
-                runner.storage_class
-            ));
+            continue;
         }
 
         if runner.max_runners == 1 {
@@ -470,49 +467,18 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
     let general = &runners[0];
     let live = &runners[1];
 
-    // Dual-worker general cell (CI-heavy maxRunners=4 with distributed stack).
+    // RETIRED: both scale sets tip-declare maxRunners=0 (scale-to-zero).
     assert_eq!(general.max_runners, MAX_GENERAL_RUNNERS_THIS_SLICE);
+    assert_eq!(live.max_runners, 0);
     assert_eq!(general.storage_class, "oya-ci-workspace-general");
+    assert_eq!(live.storage_class, "oya-ci-workspace-live-postgres");
+    // Historical topology / hostname pins may remain in the YAML tombstone; packing
+    // is skipped when maxRunners=0 (see validate_capacity_contract).
     assert!(
         general.hostname_pin.is_none(),
         "general dual-worker must not pin kubernetes.io/hostname"
     );
-    assert!(
-        general.spreads_across_hostnames,
-        "general maxRunners>1 requires required hostname anti-affinity or DoNotSchedule topology spread"
-    );
-    // Structural check: hard topology spread on hostname (DoNotSchedule maxSkew=1).
-    let spreads = at(
-        &general_values,
-        &["template", "spec", "topologySpreadConstraints"],
-    )
-    .as_sequence()
-    .expect("topologySpreadConstraints sequence");
-    assert!(!spreads.is_empty());
-    assert_eq!(
-        string_at(&spreads[0], &["topologyKey"]),
-        "kubernetes.io/hostname"
-    );
-    assert_eq!(
-        string_at(&spreads[0], &["whenUnsatisfiable"]),
-        "DoNotSchedule"
-    );
-    assert_eq!(u64_at(&spreads[0], &["maxSkew"]), 1);
-    assert_eq!(
-        string_at(
-            &spreads[0],
-            &["labelSelector", "matchLabels", "oya.io/ci-cell"]
-        ),
-        "general"
-    );
-
-    // Live-postgres remains single-runner on worker-2.
-    assert_eq!(live.max_runners, 1);
-    assert_eq!(
-        live.hostname_pin.as_deref(),
-        Some("oya-talos-worker-2")
-    );
-    assert_eq!(live.storage_class, "oya-ci-workspace-live-postgres");
+    assert_eq!(live.hostname_pin.as_deref(), Some("oya-talos-worker-2"));
 
     for runner in &runners {
         assert_eq!(runner.mount_path, "/home/runner/_work");
@@ -554,10 +520,7 @@ fn two_scale_sets_are_structurally_bound_to_distinct_physical_filesystems() {
         serde_json::from_str(&string_at(config_map, &["data", "config.json"]))
             .expect("parse local-path config.json");
     let mut path_nodes: PathNodes = BTreeMap::new();
-    for mapping in config["nodePathMap"]
-        .as_array()
-        .expect("nodePathMap")
-    {
+    for mapping in config["nodePathMap"].as_array().expect("nodePathMap") {
         let node = mapping["node"].as_str().expect("node string").to_owned();
         for path in mapping["paths"].as_array().expect("node paths") {
             let path = path.as_str().expect("node path string").to_owned();
@@ -872,10 +835,7 @@ fn capacity_evaluator_rejects_overcommit_shared_paths_and_missing_physical_bound
     ]);
     assert!(
         validate_capacity_contract(
-            &[
-                general(1, Some("oya-talos-worker-2"), false),
-                live(1)
-            ],
+            &[general(1, Some("oya-talos-worker-2"), false), live(1)],
             &dual_worker_paths,
             &live_only_on_worker_2,
             &single_node_fs
@@ -1253,18 +1213,11 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
             .unwrap()
             .contains("re-client")
     );
-    for (role, workflow, policy) in [
-        (
-            "github-cas-writer-dev-push.json",
-            "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
-            "ci-cas-writer",
-        ),
-        (
-            "github-cas-reader-integrity-canary.json",
-            "jason931225/oyatie/.github/workflows/cache-integrity-canary-schedule.yml@refs/heads/dev",
-            "ci-cas-reader",
-        ),
-    ] {
+    for (role, workflow, policy) in [(
+        "github-cas-writer-dev-push.json",
+        "jason931225/oyatie/.github/workflows/oya-ci-required.yml@refs/heads/dev",
+        "ci-cas-writer",
+    )] {
         let payload: serde_json::Value = serde_json::from_str(
             data.get(role)
                 .and_then(Value::as_str)
@@ -1274,13 +1227,10 @@ fn openbao_tls_and_github_identity_migration_is_exact_and_secret_free() {
         assert_eq!(payload["bound_audiences"][0], "oya-openbao");
         assert_eq!(payload["user_claim"], "workflow_ref");
         assert_eq!(payload["bound_claims"]["workflow_ref"], workflow);
-        assert_eq!(
-            payload["bound_claims"]["job_workflow_ref"],
-            "jason931225/oyatie/.github/workflows/cache-integrity-canary.yml@refs/heads/dev"
-        );
+        assert_eq!(payload["bound_claims"]["job_workflow_ref"], workflow);
         assert_eq!(payload["bound_claims"]["repository_id"], "1236575706");
         assert_eq!(payload["bound_claims"]["repository_owner_id"], "56489493");
-        assert_eq!(payload["bound_claims"]["repository_visibility"], "private");
+        assert_eq!(payload["bound_claims"]["repository_visibility"], "public");
         assert_eq!(payload["bound_claims"]["runner_environment"], "self-hosted");
         assert_eq!(
             payload["bound_claims"]["sub"],

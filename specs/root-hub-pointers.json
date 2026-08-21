@@ -124,6 +124,36 @@
       "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. This entry exists so the proposal is discoverable, not so it can be acted on. Until ADR-0710 is Accepted the admission clauses of ADR-0183, ADR-0379 and ADR-0338 REMAIN IN FORCE and are NOT replaced; an agent implementing against this entry today is implementing unratified law. What it proposes: the Kubernetes admission substrate is the API SERVER rather than a policy webhook — ValidatingAdmissionPolicy + CEL for validation, Pod Security Admission for the pod-security baseline, MutatingAdmissionPolicy for mutation where the running version supports it, with Kyverno, Kubewarden and Gatekeeper/OPA as adapters only; resource generation as a controller concern, never admission; cross-resource data projected into a paramKind resource rather than fetched; image provenance moved to CI signing plus a CI-issued verified-digest allowlist that admission checks (digest pinning ALONE is explicitly not sufficient); and the owned Cedar-compatible + Zanzibar ReBAC PDP kept OUT of the admission path on shape and coupling grounds. It stays Proposed because clause D-8 (tenant isolation comes from topology, not policy) awaits WORKLOAD-boundary evidence — whether two tenants can share a node, hypervisor or physical host — which control-plane separation does not supply. ADR-0338's tier MODEL is unaffected under either outcome.",
       "target_path_after_md_retirement": "same"
     },
+    "adr_0712_node_kernel_pool_matrix": {
+      "current_path": "docs/decisions/ADR-0712-node-kernel-pool-matrix.md",
+      "kind": "doc",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1(a) founder pause-and-pair (MPV2-0053): Linux-pools primary; Asterinas soak until A1 green; co-SKU matrix gated on A1 4-surface ABI matrix evidence; attestation-capable pools required for private-kernel-attested; named fallback G5. Prior draft number vacated for PR #1644 Swarm Delivery Law. Not implement authority while Proposed.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_0713_node_substrate_architecture": {
+      "current_path": "docs/decisions/ADR-0713-node-substrate-architecture.md",
+      "kind": "doc",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1 Node Substrate Architecture (MPV2-0054): severable Accept (a) owned runtime — PID1 stub + restartable NON-PID1 supervisor child, CRI compatibility profile v1, recovery DoD + kill-9/upgrade tests — and Accept (b) os/-layer retirement encode after D-3 preconditions including machine-config harvest. Merges former owned-runtime + os-retirement packages. Not implement authority while Proposed.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_0714_isolation_property_tier_names": {
+      "current_path": "docs/decisions/ADR-0714-isolation-property-runtime-tier-names.md",
+      "kind": "doc",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1(c) founder pause-and-pair (MPV2-0055): rename RuntimeClass mechanism names to shared-kernel / private-kernel / private-kernel-attested; deterministic pod_runtime_tier→axes migration table; one-wave alias for kata-cloud-hypervisor; Kyverno→VAP re-home BEFORE rename; ADR-0338 archived — only ADR-0701 amendable. Not implement authority while Proposed.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_0715_f1_admission_adr_0710_d8_gate": {
+      "current_path": "docs/decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md",
+      "kind": "doc",
+      "purpose": "PROPOSED — NON-AUTHORITATIVE DESIGN CONTEXT, NOT A RULE. F1 Admission package / F1(d) (MPV2-0056): ADR-0710 Accept/Reject blocked until D-8 evidence; MAY resolve as explicit Reject when hosted topology self-fails D-8 under a dated timebox; live admission law remains ADR-0701 carried gist until then. Does not Accept ADR-0710. Not implement authority while Proposed.",
+      "target_path_after_md_retirement": "same"
+    },
+    "adr_0716_cargo_merge_path": {
+      "current_path": "docs/decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md",
+      "kind": "decision",
+      "purpose": "Cargo is the CI merge path; buck2 is local hermeticity plus a weekly non-blocking smoke. Retires the cache-integrity canary trust chain, slims PR paperwork, debrands CI job/step names, and gives the rust-first automation ratchet a reviewed replacement window.",
+      "target_path_after_md_retirement": "same until ADR projection retirement"
+    },
     "adr_census_epoch_control_plane": {
       "current_path": "/registry/adr-census-epoch/control-plane.json",
       "kind": "registry",
@@ -631,13 +661,6 @@
       "kind": "ledger",
       "migration_phase": "complete (seed; per-row migration tracked over time)",
       "purpose": "Per-file rows tracking each Markdown retirement event (source_md_path / target_json_path / status / migration_date).",
-      "target_path_after_md_retirement": "same"
-    },
-    "markdown_retirement_policy": {
-      "current_path": "/specs/markdown-retirement-policy.json",
-      "kind": "spec",
-      "migration_phase": "complete",
-      "purpose": "Migration policy per the 'we don't need markdown' directive, rebaselined against the 2026-07-13 tracked corpus and MPV2-0003. Historical deadlines are not completion claims.",
       "target_path_after_md_retirement": "same"
     },
     "master_plan_sequencing": {
@@ -1484,6 +1507,12 @@
       "migration_phase": "w1-interface-lock",
       "purpose": "W1 machine-readable contract for the single content-addressed work-area hash from ADR-0517/ADR-0520: canonical inputs from WorkAreaTree/scm-facts and byte-identical outputs for SCM change id, buck2/RBE key, and CD artifact hash. Metadata-only; no SCM/RBE/CD runtime claim.",
       "target_path_after_md_retirement": "same (machine-readable W1 hash/id contract)"
+    },
+    "adr_0717_corpus_budget_ratchet": {
+      "current_path": "docs/decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md",
+      "kind": "decision",
+      "purpose": "Corpus-budget sprawl ratchet in the repo-root-hygiene gate: policy-driven class matchers + frozen ceilings, born-blocking growth, fail-closed absence, and reduction-preserving merge-base check.",
+      "target_path_after_md_retirement": "same until ADR projection retirement"
     }
   },
   "specs_directory_audit_2026_05_20": {

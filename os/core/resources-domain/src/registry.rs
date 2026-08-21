@@ -9,8 +9,8 @@
 use crate::aliases::AliasTable;
 use crate::definition::ResourceDefinition;
 use crate::namespaces::{self, Namespace};
-use std::collections::BTreeMap;
 use os_kernel::error::{Error, Result};
+use std::collections::BTreeMap;
 
 /// A registry of resource definitions keyed by canonical type name, plus the
 /// set of registered namespaces and a derived alias index.

@@ -43,6 +43,71 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
    ADR-0515 / ADR-0363 / ADR-0562 / ADR-0615 / ADR-0635 / ADR-0637–0639 when applicable.
 4. **Activation-sensitive** items (warm CAS, RE workers) remain fail-closed until explicit go-gate.
 
+## Decision D-6 — Dependency admission: stdlib first, justify the closure, else write our own (2026-08-19)
+
+Founder doctrine, recorded as three rules and one consequence. It governs whether a third-party
+crate may exist here at all — a question distinct from, and upstream of, whether its licence is
+acceptable (`deny.toml`, ADR-0706 D-5).
+
+**Rule 1 — stdlib where it will do.** A dependency whose function the standard library already
+covers is refused. A rationale that says "could use std" is not a rationale: the record must name
+the `std` API and the Rust version that stabilised it. `OnceLock`/`LazyLock`,
+`available_parallelism`, and the `std::net` primitives already used by this repo's own
+`scripted_http_server` test helper are the recurring cases.
+
+**Rule 2 — anything dragged in must be justified and clear the quality bar.** The bar is
+"foundational, broadly adopted, maintained by an organisation or a serious multi-maintainer
+community — the kind of thing a hyperscaler adopts rather than writes." **"Dragged in" is the
+load-bearing phrase: the bar applies to the transitive CLOSURE, not to the named crate.** A crate
+that clears the bar itself while dragging a deprecated runtime behind it has not cleared the bar.
+The measured instance at the time of writing: `httpmock`, a dev-dependency, is the sole parent of
+**49 of 651 third-party packages** — including the discontinued `async-std` runtime, `winapi
+0.3.9`, `hyper 0.14`, and `syn 1.0.109` — and removing it alone takes the multi-version crate
+count from 57 to 44. An admission record that scores the crate and not its closure scores the
+wrong thing.
+
+**Rule 3 — a crate that fails the bar is a candidate to write ourselves.** With the corollary that
+makes the rule real: **substituting one failing crate for another is not compliance.**
+`governance/corpus/yaml-kernel` documents rejecting `serde_yaml` as "0.9.34+deprecated,
+unmaintained, `unsafe`-heavy" — and then depends on `saphyr 0.0.11`, a 0.0.x pre-release, as the
+sole parser for a governance kernel. Rule 3 is discharged by owning the code or by adopting
+something that clears the bar, never by rotating the failure.
+
+### The artifact already exists, and nothing reads it
+
+`registry/dependency-blessed-allowlist.json` is the data surface this doctrine describes: 37
+blessed crates, each carrying a `layer_seam`, a `rationale`, and a `policy_ref` to this ADR. It
+is not enforced. Its own description names a consumer on the `oya-dev-cli` surface, which this
+repository has retirement-marked, and no gate id in `oya-ci.toml` corresponds to it. It covers 37
+of the **77** crates named directly in a first-party `[dependencies]`, `[dev-dependencies]` or
+`[build-dependencies]` table, so **40 direct dependencies are unblessed and nothing observes
+that**.
+
+This is the failure mode the doctrine must be designed against, not a footnote to it: `ci/facade/`
+holds **60 gate-shaped crates while `oya-ci.toml` registers 15**. Authoring a new gate is
+therefore the least valuable move available; **registration is the scarce step**, and the
+recommended template for cloning (`ci/facade/graphql-usage-policy`, ~3,000 lines with tests) is
+itself unregistered.
+
+### How this is enforced
+
+1. The blessed allowlist is completed to cover every direct dependency. Each row carries an
+   owner-written rationale — rationales are not generated, because an invented justification is
+   the cargo-culting this doctrine exists to stop, and is worse than a visible blank.
+2. Each row additionally records its **closure cost**: the count of third-party packages for
+   which this crate is the sole parent. Rule 2 is unenforceable without it.
+3. The gate is **registered in `oya-ci.toml` and report-only on day one**, per the ADR-0092 D14
+   report-only contract the allowlist already cites. Report-only-and-wired beats blocking-and-
+   unwired: the first reports truthfully, the second reports nothing.
+
+### Not claimed
+
+That the current dependency set complies. It does not: 6 of the 77 fail the bar on the audit of
+2026-08-19 (`httpmock`, `serde_yaml`, `saphyr`, `console_error_panic_hook`, `any_spawner`,
+`protoc-bin-vendored`), and a stricter reading of Rule 1 — "would a hyperscaler adopt this rather
+than write it" — puts roughly twenty more small utility crates in scope for review. This clause
+records the rule; the corpus is brought to it by separate, evidenced changes.
+
 ## Preserved member gists
 
 - **ADR-3** (ADR-0003-audit-chain-and-evidence-emission): We adopt a single **append-only, hash-chained audit-event log** as the tamper-evident record-keeping surface for every regulated event in every axis. The kernel is `crates/oya-audit-chain-kernel`; the application layer is `crates/oya-audit-chain-app`; per-tenant shards live behind `crates/oya-audit-chain-adapter-postgres-*` with optional cold-tier 
@@ -87,10 +152,10 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 - **ADR-147** (ADR-0147-container-sandboxing-runtime-ladder): oyatie adopts a **workload-class-tiered container sandboxing runtime ladder**. The canonical mapping below replaces the universal-gVisor default: | Workload class | Default runtime | Sovereign-tenant override | |--------------------------------------------------------|------------------------------------------------------------------|--------------
 - **ADR-149** (ADR-0149-idempotency-keys-canonical): Adopt the canonical `Idempotency-Key` header as MANDATORY on every state-changing REST operation in every oyatie microservice. 1. The canonical specification is `docs/standards/idempotency-keys-canonical.md`. 2. The trait surface lives in `crates/oya-shared-idempotency-key-kernel/`. 3. Every µservice OpenAPI 3.2.0 document declares the canonical `I
 - **ADR-150** (ADR-0150-cursor-pagination-canonical): Adopt opaque cursor pagination as MANDATORY on every list endpoint in every µservice; offset pagination is BANNED. 1. The canonical spec is `docs/standards/cursor-pagination-canonical.md`. 2. The trait surface lives in `crates/oya-shared-cursor-pagination-kernel/`. 3. Every µservice OpenAPI 3.2.0 list path declares `cursor` + `page_size` parameters
-- **ADR-151** (ADR-0151-request-id-propagation): Adopt the canonical `X-Request-Id` header (ULID) propagated alongside OpenTelemetry `traceparent` on every inter-µservice call. 1. The canonical spec is `docs/standards/request-id-canonical.md`. 2. Every µservice's edge middleware GENERATES a fresh ULID if the header is absent, and PROPAGATES it on every outbound call. 3. Every µservice's outbound 
+- **ADR-151** (ADR-0151-request-id-propagation): Adopt the canonical `X-Request-Id` header (**UUIDv7**; ADR-0151 originally specified ULID and D-1 below supersedes it — the enumerated ULID surface that still ships is declared in `governance/check/id-discipline/id-discipline-policy.json`) propagated alongside OpenTelemetry `traceparent` on every inter-µservice call. 1. The canonical spec is `docs/standards/request-id-canonical.md`. 2. Every µservice's edge middleware GENERATES a fresh UUIDv7 if the header is absent, and PROPAGATES it on every outbound call. 3. Every µservice's outbound 
 - **ADR-152** (ADR-0152-rpo-rto-canonical): Adopt a five-tier RTO model declared per-µservice and aggregated in `specs/microservices/rpo-rto-targets.json`. | Tier | Name | RTO | RPO | |------|----------------|-----------|---------| | R0 | realtime | < 5 min | 0 s | | R1 | hot | < 1 h | 5 min | | R2 | warm | < 4 h | 15 min | | R3 | cold | < 24 h | 1 h | | R4 | best-effort | best-eff | 24 h | 
 - **ADR-153** (ADR-0153: Outbox Pattern): Adopt the transactional outbox pattern as the ONLY canonical way for a µservice to emit an event accompanying a state change. 1. The canonical spec is `docs/standards/outbox-pattern-canonical.md`. 2. The trait surface lives in `crates/oya-shared-outbox-pattern-kernel/`. 3. Every µservice with event-emission requirements creates one outbox table per
-- **ADR-154** (ADR-0154-event-schema-versioning): Adopt explicit per-event `version` field as MANDATORY on every event emitted across every channel (WebSocket, AMQP, NATS, Kafka). 1. The canonical spec is `docs/standards/event-schema-versioning-canonical.md`. 2. Every AsyncAPI 3.1.0 message envelope MUST declare the `version` header and `event_id` (ULID per ADR-0156). 3. Backward-compatibility rul
+- **ADR-154** (ADR-0154-event-schema-versioning): Adopt explicit per-event `version` field as MANDATORY on every event emitted across every channel (WebSocket, AMQP, NATS, Kafka). 1. The canonical spec is `docs/standards/event-schema-versioning-canonical.md`. 2. Every AsyncAPI 3.1.0 message envelope MUST declare the `version` header and `event_id` (**UUIDv7** per D-1 below, which names event IDs explicitly; the original ADR-0154 said ULID and cited ADR-0156, which is the PII registry decision and says nothing about identifiers). 3. Backward-compatibility rul
 - **ADR-156** (ADR-0156-pii-registry-canonical): Adopt a cross-cutting PII registry consolidating per-µservice data-class processing. 1. Every µservice's `manifest.json` gains a top-level `data_classes_processed` array (the UNION of per-BC `data_classes_owned`). 2. `specs/microservices/pii-registry.json` aggregates the per-µservice `data_classes_processed` into a cross-µservice index by data-clas
 - **ADR-161** (ADR-0161-csi-storage-class-canonical): Oyatie adopts a canonical StorageClass naming scheme `oya-<kind>-<tier>` where: - `<kind>` ∈ `{pg, s3, redis, object}` — the storage primitive: - `pg` = PostgreSQL-backing block storage (RWO, filesystem ext4). - `s3` = S3-compatible object storage (no native StorageClass; mapped via CSI for `s3fs` workloads OR via direct S3-API for cloud-native pat
 - **ADR-164** (ADR-0164-sovereign-cloud-air-gapped): Each sovereign pack declares `air_gap: true|false` in its pack manifest. When true, the following overlay applies: ### (a) On-prem container registry - Each cell deploys Harbor 2.x (CNCF graduated) as its in-cell container registry. - Image pull policy: `imagePullPolicy: IfNotPresent` + image references are rewritten to `registry.{cell}.svc.cluster
@@ -379,7 +444,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-154 residual
 
-**ADR-0154-event-schema-versioning** — Adopt explicit per-event `version` field as MANDATORY on every event emitted across every channel (WebSocket, AMQP, NATS, Kafka). 1. The canonical spec is `docs/standards/event-schema-versioning-canonical.md`. 2. Every AsyncAPI 3.1.0 message envelope MUST declare the `version` header and `event_id` (ULID per ADR-0156). 3. Backward-compatibility rules follow SemVer: - MINOR — additive (consumers to
+**ADR-0154-event-schema-versioning** — Adopt explicit per-event `version` field as MANDATORY on every event emitted across every channel (WebSocket, AMQP, NATS, Kafka). 1. The canonical spec is `docs/standards/event-schema-versioning-canonical.md`. 2. Every AsyncAPI 3.1.0 message envelope MUST declare the `version` header and `event_id` (**UUIDv7** per D-1 below, which names event IDs explicitly; the original ADR-0154 said ULID and cited ADR-0156, which is the PII registry decision and says nothing about identifiers). 3. Backward-compatibility rules follow SemVer: - MINOR — additive (consumers to
 
 ### ADR-318 residual
 
@@ -603,7 +668,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-151 residual
 
-**ADR-0151-request-id-propagation** — Adopt the canonical `X-Request-Id` header (ULID) propagated alongside OpenTelemetry `traceparent` on every inter-µservice call. 1. The canonical spec is `docs/standards/request-id-canonical.md`. 2. Every µservice's edge middleware GENERATES a fresh ULID if the header is absent, and PROPAGATES it on every outbound call. 3. Every µservice's outbound HTTP/gRPC client adapter INJECTS the request-id on
+**ADR-0151-request-id-propagation** — Adopt the canonical `X-Request-Id` header (**UUIDv7**; ADR-0151 originally specified ULID and D-1 below supersedes it — the enumerated ULID surface that still ships is declared in `governance/check/id-discipline/id-discipline-policy.json`) propagated alongside OpenTelemetry `traceparent` on every inter-µservice call. 1. The canonical spec is `docs/standards/request-id-canonical.md`. 2. Every µservice's edge middleware GENERATES a fresh UUIDv7 if the header is absent, and PROPAGATES it on every outbound call. 3. Every µservice's outbound HTTP/gRPC client adapter INJECTS the request-id on
 
 ### ADR-478 residual
 

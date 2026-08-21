@@ -6,7 +6,9 @@
 mod idea_archive_transition;
 
 use std::collections::{BTreeMap, BTreeSet};
+use std::ffi::OsStr;
 use std::fs;
+use std::io::ErrorKind;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 use std::sync::OnceLock;
@@ -22,10 +24,22 @@ use ci_cross_artifact_agreement::{
     evaluate_masterplan_v2_plan_evidence_drift, evaluate_masterplan_v2_preplanning_candidate_facts,
     evaluate_masterplan_v2_program_coverage, evaluate_masterplan_v2_projection_freshness,
     evaluate_masterplan_v2_ratification_digest, evaluate_masterplan_v2_read_contract_archives,
-    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync, ratchet,
+    evaluate_masterplan_v2_sequencing, evaluate_registry_derived_policy_sync,
+    normalize_closure_evidence_ref, ratchet,
 };
 use serde_json::Value;
 use sha2::{Digest, Sha256};
+
+const BUCK: &str = include_str!("../BUCK");
+const CARGO_CONFIG: &str = include_str!("../../../../.cargo/config.toml");
+const ADR_INDEX_PRODUCER_ENV: &str = "OYA_ADR_INDEX_PRODUCER_BIN";
+const ADR_INDEX_CARGO_BINDING: &str = "cargo-test-binary:oya";
+const HISTORY_ONLY_FACTS_ENV: &str = "OYA_HISTORY_ONLY_RETIREMENT_FACTS";
+const HISTORY_ONLY_FACTS_PATH: &str =
+    "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json";
+const SCM_FACTS_EMITTER_ENV: &str = "OYA_CI_EMITTER_BIN";
+const RETIRED_MASTERPLAN_GATES_CI_WIRING_EVIDENCE: &str =
+    "evidence/goals/masterplan-gates-ci-wiring-20260702.json";
 
 /// Walk up to the repo root (the dir holding specs/root-hub-pointers.json), matching the
 /// existing kernel-test convention.
@@ -48,15 +62,76 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
+}
+
+fn required_declared_binary(root: &Path, variable: &str) -> Result<PathBuf, String> {
+    let value = std::env::var_os(variable)
+        .filter(|value| !value.is_empty())
+        .ok_or_else(|| format!("FAIL-CLOSED: missing required {variable}"))?;
+    resolve_declared_binary(root, variable, &value)
+}
+
+fn resolve_declared_binary(root: &Path, variable: &str, value: &OsStr) -> Result<PathBuf, String> {
+    let path = ci_path_resolver_adapters::resolve_cargo_test_binary(root, value)?;
+    let metadata = fs::symlink_metadata(&path)
+        .map_err(|error| format!("inspect {variable} {}: {error}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "{variable} must bind a regular non-symlink file, got {}",
+            path.display()
+        ));
+    }
+    Ok(path)
+}
+
+fn assert_cargo_buck_generated_resource_parity() {
+    assert!(
+        BUCK.contains(
+            "\"OYA_ADR_INDEX_PRODUCER_BIN\": \"$(exe //marketplace/facade/dev-cli:oya)\""
+        ),
+        "Buck must retain the sanctioned ADR-index producer binding"
+    );
+    let cargo_adr = format!(
+        "{ADR_INDEX_PRODUCER_ENV} = {{ value = \"{ADR_INDEX_CARGO_BINDING}\", force = false }}"
+    );
+    assert!(
+        CARGO_CONFIG.lines().any(|line| line == cargo_adr),
+        "Cargo must mirror the ADR-index producer with a portable logical binary"
+    );
+
+    let buck_history = format!("\"{HISTORY_ONLY_FACTS_ENV}\": \"{HISTORY_ONLY_FACTS_PATH}\"");
+    assert!(
+        BUCK.contains(&buck_history),
+        "Buck must bind the exact canonical history-only facts token"
+    );
+    let cargo_history = format!(
+        "{HISTORY_ONLY_FACTS_ENV} = {{ value = \"{HISTORY_ONLY_FACTS_PATH}\", force = false }}"
+    );
+    assert!(
+        CARGO_CONFIG.lines().any(|line| line == cargo_history),
+        "Cargo must export the same plain repo-relative token without config-relative rewriting"
+    );
+    assert!(
+        CARGO_CONFIG.lines().all(|line| {
+            !line.starts_with(&format!("{HISTORY_ONLY_FACTS_ENV} ="))
+                || !line.contains("relative = true")
+        }),
+        "the canonical history-only token must not be rewritten to an absolute Cargo path"
+    );
+    assert!(
+        CARGO_CONFIG.lines().any(|line| {
+            line == format!(
+                "{SCM_FACTS_EMITTER_ENV} = \"cargo-test-binary:oya-cloud-ci-scm-facts-emitter-app\""
+            )
+        }),
+        "clean Cargo fallback must use the existing owned Rust SCM facts emitter"
+    );
 }
 
 #[test]
 fn producer_binary_env_is_required_for_hermetic_gate() {
+    assert_cargo_buck_generated_resource_parity();
     let err = producer_binary(Path::new("/repo"), None)
         .expect_err("missing OYA_CI_PRODUCER_BIN must fail closed");
     assert!(err.contains("OYA_CI_PRODUCER_BIN"));
@@ -69,6 +144,138 @@ fn fixture_dir() -> PathBuf {
 fn load_json(path: &PathBuf) -> Value {
     let text = fs::read_to_string(path).unwrap_or_else(|e| panic!("read {}: {e}", path.display()));
     serde_json::from_str(&text).unwrap_or_else(|e| panic!("parse {}: {e}", path.display()))
+}
+
+fn run_checked(command: &mut Command, label: &str) -> Result<Vec<u8>, String> {
+    let output = command
+        .output()
+        .map_err(|error| format!("{label}: {error}"))?;
+    if !output.status.success() {
+        return Err(format!(
+            "{label} failed with status {:?}: stdout={} stderr={}",
+            output.status.code(),
+            String::from_utf8_lossy(&output.stdout),
+            String::from_utf8_lossy(&output.stderr)
+        ));
+    }
+    Ok(output.stdout)
+}
+
+fn exact_head_oid(root: &Path) -> Result<String, String> {
+    let output = run_checked(
+        Command::new("git")
+            .arg("-C")
+            .arg(root)
+            .args(["rev-parse", "--verify", "HEAD^{commit}"]),
+        "resolve exact test HEAD",
+    )?;
+    let oid = String::from_utf8(output)
+        .map_err(|error| format!("exact test HEAD is not UTF-8: {error}"))?
+        .trim()
+        .to_owned();
+    if oid.len() != 40 || !oid.bytes().all(|byte| byte.is_ascii_hexdigit()) {
+        return Err(format!(
+            "exact test HEAD is not a canonical SHA-1 OID: {oid:?}"
+        ));
+    }
+    Ok(oid)
+}
+
+fn read_regular_non_symlink(path: &Path, label: &str) -> Result<Vec<u8>, String> {
+    let metadata = fs::symlink_metadata(path)
+        .map_err(|error| format!("inspect {label} {}: {error}", path.display()))?;
+    if metadata.file_type().is_symlink() || !metadata.is_file() {
+        return Err(format!(
+            "{label} must be a regular non-symlink file, got {}",
+            path.display()
+        ));
+    }
+    fs::read(path).map_err(|error| format!("read {label} {}: {error}", path.display()))
+}
+
+fn materialize_history_only_facts_in_temporary_clone(root: &Path) -> Result<Vec<u8>, String> {
+    let emitter = required_declared_binary(root, SCM_FACTS_EMITTER_ENV)?;
+    let head = exact_head_oid(root)?;
+    let storage = tempfile::tempdir()
+        .map_err(|error| format!("create history-only materializer storage: {error}"))?;
+    let clone = storage.path().join("repo");
+
+    run_checked(
+        Command::new("git")
+            .args(["clone", "--quiet", "--shared", "--no-checkout"])
+            .arg(root)
+            .arg(&clone),
+        "create temporary shared history-only materializer clone",
+    )?;
+    run_checked(
+        Command::new("git")
+            .arg("-C")
+            .arg(&clone)
+            .args(["sparse-checkout", "init", "--no-cone"]),
+        "initialize temporary history-only sparse checkout",
+    )?;
+    run_checked(
+        Command::new("git").arg("-C").arg(&clone).args([
+            "sparse-checkout",
+            "set",
+            "--no-cone",
+            ".gitignore",
+        ]),
+        "bind temporary history-only checkout ignore policy",
+    )?;
+    run_checked(
+        Command::new("git")
+            .arg("-C")
+            .arg(&clone)
+            .args(["checkout", "--quiet", "--detach", &head]),
+        "checkout exact history-only materializer HEAD",
+    )?;
+    for parent in [
+        "ci/facade/artifact-inventory-registry",
+        "ci/facade/scm-facts-snapshot",
+    ] {
+        fs::create_dir_all(clone.join(parent)).map_err(|error| {
+            format!("create temporary history-only output parent {parent}: {error}")
+        })?;
+    }
+
+    run_checked(
+        Command::new(emitter)
+            .args(["--repo-root"])
+            .arg(&clone)
+            .args(["--historical-dev-push", &head]),
+        "run owned Rust history-only facts materializer in temporary storage",
+    )?;
+    read_regular_non_symlink(
+        &clone.join(HISTORY_ONLY_FACTS_PATH),
+        "temporarily materialized history-only facts",
+    )
+}
+
+fn read_or_materialize_history_only_facts(
+    root: &Path,
+    declared: &str,
+    materialize_missing: impl FnOnce() -> Result<Vec<u8>, String>,
+) -> Result<Vec<u8>, String> {
+    if declared != HISTORY_ONLY_FACTS_PATH {
+        return Err(format!(
+            "{HISTORY_ONLY_FACTS_ENV} must equal the exact canonical repo-relative token {HISTORY_ONLY_FACTS_PATH:?}, got {declared:?}"
+        ));
+    }
+    let path = root.join(declared);
+    match fs::symlink_metadata(&path) {
+        Ok(metadata) => {
+            if metadata.file_type().is_symlink() || !metadata.is_file() {
+                return Err(format!(
+                    "declared history-only facts must be a regular non-symlink file, got {}",
+                    path.display()
+                ));
+            }
+            fs::read(&path).map_err(|error| format!("read declared {}: {error}", path.display()))
+        }
+        Err(error) if error.kind() == ErrorKind::NotFound => materialize_missing(),
+        Err(error) => Err(format!("inspect declared {}: {error}", path.display())),
+    }
 }
 
 fn named_workflow_step<'a>(workflow: &'a str, name: &str) -> &'a str {
@@ -312,10 +519,8 @@ fn protected_scm_context_excludes_candidate_authored_facts() {
 #[test]
 fn retirement_sources_do_not_silently_amend_accepted_adr_0613() {
     let root = repo_root();
-    let adr = fs::read_to_string(root.join(
-        "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-    ))
-    .expect("read accepted ADR-0613");
+    let adr = fs::read_to_string(root.join("docs/decisions/ADR-0700-ci-admission-live-apex.md"))
+        .expect("read accepted ADR-0613");
     assert!(
         !adr.contains("### E7 history-only retirement facts"),
         "implementation provenance must not silently widen an Accepted ADR"
@@ -518,9 +723,10 @@ fn normalizes_to_public_grpc_contradiction(text: &str) -> bool {
 #[test]
 fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     let root = repo_root();
-    let documentation =
-        fs::read_to_string(root.join("docs/adr-archive/ADR-0203-documentation-engine-three-tier.md"))
-            .expect("read ADR-0203");
+    let documentation = fs::read_to_string(
+        root.join("docs/adr-archive/ADR-0203-documentation-engine-three-tier.md"),
+    )
+    .expect("read ADR-0203");
     let versioning =
         fs::read_to_string(root.join("docs/adr-archive/ADR-0258-api-versioning-model.md"))
             .expect("read ADR-0258");
@@ -535,9 +741,11 @@ fn public_protocol_authority_keeps_grpc_and_proto_internal() {
     // Historical protocol ADRs may be Superseded by apex; authority text + reciprocal
     // related edges remain the binding corpus check (live apex is ADR-0705/0709).
     assert!(
-        (documentation.contains("- Status: Accepted") || documentation.contains("status: Superseded"))
+        (documentation.contains("- Status: Accepted")
+            || documentation.contains("status: Superseded"))
             && documentation.contains("ADR-0258 (API versioning model)")
-            && (versioning.contains("status: Accepted") || versioning.contains("status: Superseded"))
+            && (versioning.contains("status: Accepted")
+                || versioning.contains("status: Superseded"))
             && versioning.contains("ADR-0203")
             && versioning.contains("## ADR-0203 public-contract reconciliation"),
         "ADR-0203 and ADR-0258 must stay related and explicitly reconciled (Accepted or Superseded historical)"
@@ -1063,30 +1271,48 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
         assert_occurs_exactly_once(&workflow, key);
         assert_occurs_exactly_once(&workflow, binding);
     }
-    let producer = named_workflow_step(&workflow, "Materialize cloud-ci generated faces");
+    let test_job = workflow_job(&workflow, "test");
+    let producer = named_job_step(test_job, "Materialize generated faces");
     assert_occurs_exactly_once(producer, "--github-event");
-    for command in [
-        "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --github-event",
-        "\"${freshness_bin}\" --repo-root . --github-event",
-        "\"${materializer_bin}\" --repo-root . --github-event",
-    ] {
-        assert!(
-            workflow.contains(command),
-            "missing event-bound candidate command {command:?}"
-        );
-    }
+    assert!(
+        producer.contains(
+            "cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event"
+        ),
+        "the cargo materializer must own provider-tuple interpretation"
+    );
+    let workspace_tests = named_job_step(test_job, "Workspace tests");
+    // ADR-0718-D3: assert the PROPERTY (the whole workspace runs under one LOCKED cargo
+    // invocation), not the spelling. nextest is an interchangeable runner; pinning the literal
+    // would make a runner swap look like the gate fleet had stopped running.
+    let runs_locked_workspace = ["cargo test", "cargo nextest run"].iter().any(|runner| {
+        workspace_tests.split_once(runner).is_some_and(|(_, args)| {
+            let tokens: Vec<&str> = args.split_whitespace().collect();
+            tokens.contains(&"--locked") && tokens.contains(&"--workspace")
+        })
+    });
+    assert!(
+        runs_locked_workspace,
+        "the gate fleet, scm-facts census receipt included, must run under a locked cargo \
+         workspace test invocation (cargo test or cargo nextest run); found: {workspace_tests:?}"
+    );
+    assert_absent(
+        &workflow,
+        "matrix.crate",
+        "the buck2 gate matrix is retired; no buck2 test step may survive in the merge path",
+    );
     let candidate_materializer_lines = workflow
         .lines()
         .filter(|line| {
-            line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+            (line.contains("oya-cloud-ci-materialize-generated-faces-bin -- --repo-root .")
+                || line.contains("oya-cloud-ci-materialize-generated-faces -- --repo-root ."))
                 && !line.contains("--help")
                 && !line.contains("historical_retirement_args")
         })
         .collect::<Vec<_>>();
     assert_eq!(
         candidate_materializer_lines.len(),
-        5,
-        "all live candidate materializer invocations must be enumerated"
+        2,
+        "test job and cross-platform smoke must both materialize faces; extra unbound invocations must be enumerated"
     );
     for line in candidate_materializer_lines {
         assert!(
@@ -1094,14 +1320,6 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
             "candidate materializer must be provider-event-bound: {line}"
         );
     }
-    let census_gate = named_workflow_step(&workflow, "buck2 test ${{ matrix.crate }}");
-    assert!(
-        census_gate.contains("if (\"${{ matrix.crate }}\" -eq \"scm-facts-snapshot\")")
-            && census_gate.contains(
-                "buck2 run //ci/facade/scm-facts-snapshot:adr-census-epoch-receipt-gate-bin -- --repo-root . --github-event"
-            ),
-        "the scm-facts matrix leg must independently validate the event-bound census receipt without adding a second workflow shell surface"
-    );
     for legacy_binding in [
         "EVENT_PROTECTED_SHA:",
         "EVENT_SUBJECT_SHA:",
@@ -1130,184 +1348,83 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
 fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_base_historical() {
     let workflow = fs::read_to_string(repo_root().join(".github/workflows/oya-ci-required.yml"))
         .expect("read oya-ci-required workflow");
-    let download_commit = "actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c";
-    let producer = workflow_job(&workflow, "producer-regen");
-    let upload = named_job_step(producer, "Upload regenerated faces");
-    assert_occurs_exactly_once(upload, "name: generated-faces");
-    for path in [
-        "ci/facade/artifact-inventory-registry/*.generated.json",
-        "ci/facade/scm-facts-snapshot/scm-volatile-facts.generated.json",
-        "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
-        "ci/facade/scm-facts-snapshot/adr-census-parent-receipt.generated.json",
-        "registry/graph/active-artifact-contract-edges.json",
-    ] {
-        assert_occurs_exactly_once(upload, path);
-    }
 
-    // THE INVARIANT: a broad consumer must HOLD the generated faces before it tests. That is
-    // unchanged. What changed (#1467) is that the three consumers no longer satisfy it the same
-    // way, so asserting one mechanism for all three would pin an architecture the repo has left.
-    //
-    //   `gate`      — a MERE READER. It never materializes, so it must RECEIVE the faces:
-    //                 `needs: producer-regen` plus the download, before its broad step.
-    //   `buck2` and `gate-affected-target-set` — SELF-MATERIALIZERS. Each runs the materializer
-    //                 with the same argv the producer runs, overwriting every downloaded byte, so
-    //                 the download was dead weight behind a serial barrier. #1467 removed both the
-    //                 download and the `needs:` edge, which is what makes these two lanes immune
-    //                 to an artifact-storage-quota outage.
-    //
-    // Both sides are pinned. A future edge re-added to a self-materializer, or a download dropped
-    // from the mere reader, fails here.
-    let download_step_name =
-        "Download regenerated faces (producer-regen artifact, ADR-0556 D5 QW-1)";
-    let materialize_step_name = "Materialize cloud-ci generated faces (out-of-graph boundary)";
-
-    let gate = workflow_job(&workflow, "gate");
-    assert_occurs_exactly_once(gate, "needs: producer-regen");
-    assert_occurs_exactly_once(gate, download_step_name);
-    let download = named_job_step(gate, download_step_name);
-    assert_occurs_exactly_once(download, download_commit);
-    assert_occurs_exactly_once(download, "name: generated-faces");
-    assert_occurs_exactly_once(download, "path: .");
-    assert!(
-        gate.find(download_step_name) < gate.find("buck2 test ${{ matrix.crate }}"),
-        "gate must download producer faces before its broad test"
+    // THE INVARIANT: a broad consumer must HOLD the generated faces before it tests.
+    // ADR-0716 retired producer-regen / artifact download; every remaining consumer
+    // self-materializes in-job. The affected-set historical merge-base lane retired
+    // with that job (`cargo test --workspace` is the affected set).
+    assert_absent(
+        &workflow,
+        "  producer-regen:",
+        "producer-regen is retired; consumers self-materialize instead of downloading faces",
+    );
+    assert_absent(
+        &workflow,
+        "Download regenerated faces",
+        "artifact hop is retired; downloading faces a job immediately overwrites is dead weight",
+    );
+    assert_absent(
+        &workflow,
+        "  gate-affected-target-set:",
+        "the affected-set lane is retired; cargo test --workspace is the affected set (ADR-0716)",
+    );
+    assert_absent(
+        &workflow,
+        "--historical-merge-base",
+        "historical merge-base materialization lived on the retired affected-set lane",
     );
 
+    let materialize_step_name = "Materialize generated faces";
+    let cargo_materializer = "cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event";
     for (job_name, broad_step) in [
-        ("buck2", "buck2 build + test (//ci/..., hermetic — binding)"),
-        (
-            "gate-affected-target-set",
-            "Binding affected-set build + test (cone-binding; FULL tier = build-health ratchet)",
-        ),
+        ("test", "Workspace tests"),
+        ("cross-platform-smoke", "Cross-platform smoke tests"),
     ] {
         let job = workflow_job(&workflow, job_name);
-        assert_absent(
-            job,
-            "needs: producer-regen",
-            "this lane materializes its own faces; the edge only serialized it behind the \
-             producer and let a failed artifact upload skip it entirely",
-        );
-        assert_absent(
-            job,
-            download_step_name,
-            "downloading faces this job immediately overwrites is dead weight",
-        );
-        assert_occurs_exactly_once(job, materialize_step_name);
+        assert_occurs_exactly_once(job, &format!("- name: {materialize_step_name}"));
         assert!(
             job.find(materialize_step_name) < job.find(broad_step),
             "{job_name} must materialize the faces before its broad test"
         );
-    }
-
-    let affected = workflow_job(&workflow, "gate-affected-target-set");
-    let baseline = named_job_step(
-        affected,
-        "Materialize merge-base build + test baselines when affected-set needs FULL",
-    );
-    let help_status = "historical_help_status=0";
-    let help_probe = "historical_help=\"$(buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --help 2>&1)\" || historical_help_status=$?";
-    let help_status_guard = "(( historical_help_status == 0 || historical_help_status == 2 )) || { echo \"historical materializer capability probe failed: status=${historical_help_status}\"; exit 1; }";
-    let usage_guard = "grep -Fq \"usage: oya-cloud-ci-materialize-generated-faces\" <<<\"${historical_help}\" || { echo \"historical materializer capability probe returned no usage contract\"; exit 1; }";
-    let compatibility_mode = "historical_retirement_args=()";
-    let capability_guard =
-        "if grep -Fq -- \"--historical-merge-base <oid>\" <<<\"${historical_help}\"; then";
-    let historical_mode = "historical_retirement_args=(--historical-merge-base \"${merge_base}\")";
-    let materialize = "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . \"${historical_retirement_args[@]}\"";
-    let capability_presence = "(( ${#historical_retirement_args[@]} == 0 )) || [[ -f ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo \"historical materializer capability emitted no regular retirement facts\"; exit 1; }";
-    let capability_parse = "(( ${#historical_retirement_args[@]} == 0 )) || jq -e 'type == \"object\" and (.receipts | type == \"array\") and (.scm_facts | type == \"object\")' ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json >/dev/null || { echo \"historical materializer capability emitted malformed retirement facts\"; exit 1; }";
-    let legacy_absence = "(( ${#historical_retirement_args[@]} != 0 )) || [[ ! -e ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json && ! -L ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json ]] || { echo \"legacy historical materializer unexpectedly emitted retirement facts\"; exit 1; }";
-    for contract in [
-        help_status,
-        help_probe,
-        help_status_guard,
-        usage_guard,
-        compatibility_mode,
-        capability_guard,
-        historical_mode,
-        materialize,
-        capability_presence,
-        capability_parse,
-        legacy_absence,
-    ] {
-        assert_eq!(
-            baseline
-                .lines()
-                .filter(|line| line.trim() == contract)
-                .count(),
-            1,
-            "{contract:?} must be an exact line exactly once in the producer step"
-        );
-    }
-    assert!(
-        baseline.find(help_status) < baseline.find(help_probe)
-            && baseline.find(help_probe) < baseline.find(help_status_guard)
-            && baseline.find(help_status_guard) < baseline.find(usage_guard)
-            && baseline.find(usage_guard) < baseline.find(compatibility_mode)
-            && baseline.find(compatibility_mode) < baseline.find(capability_guard)
-            && baseline.find(capability_guard) < baseline.find(historical_mode)
-            && baseline.find(historical_mode) < baseline.find(materialize)
-            && baseline.find(materialize) < baseline.find(capability_presence)
-            && baseline.find(capability_presence) < baseline.find(capability_parse)
-            && baseline.find(capability_parse) < baseline.find(legacy_absence),
-        "the merge-base materializer must dispatch from the historical executable's actual CLI capability, never from candidate-era path assumptions"
-    );
-    let materialize_line = baseline
-        .lines()
-        .find(|line| line.contains(materialize))
-        .expect("the merge-base materializer command must remain present");
-    assert!(
-        !materialize_line.contains("|| true")
-            && !baseline.contains(
-            "buck2 run //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin -- --repo-root . --historical-merge-base \"${merge_base}\""
-        ),
-        "capability probing must not swallow a materialization failure or invoke a candidate-only flag unconditionally"
-    );
-    for legacy_topology_shell in [
-        "git cat-file",
-        "git rev-list",
-        "git rev-parse",
-        "HEAD^1",
-        "read -r -a",
-        "set -- ${merge_base_parents}",
-        "merge_base_parents",
-        "merge_base_protected_base",
-        "--retirement-control-plane",
-        "--retirement-facts-out",
-        "--protected-base-commit",
-        "--evaluated-commit",
-        "--scm-event-name",
-        "--scm-event-ref",
-        "--scm-event-base-ref",
-        "--subject-commit",
-    ] {
+        let materialize = named_job_step(job, materialize_step_name);
         assert!(
-            !baseline.contains(legacy_topology_shell),
-            "historical materialization must delegate topology and event identity to Rust, not retain shell authority {legacy_topology_shell:?}"
+            materialize.contains(cargo_materializer),
+            "{job_name} materializer must be provider-event-bound"
         );
+        for legacy_topology_shell in [
+            "git cat-file",
+            "git rev-list",
+            "git rev-parse",
+            "HEAD^1",
+            "--retirement-control-plane",
+            "--retirement-facts-out",
+            "--protected-base-commit",
+            "--evaluated-commit",
+            "--scm-event-name",
+            "--scm-event-ref",
+            "--scm-event-base-ref",
+            "--subject-commit",
+        ] {
+            assert!(
+                !materialize.contains(legacy_topology_shell),
+                "materialization must delegate topology and event identity to Rust, not retain shell authority {legacy_topology_shell:?}"
+            );
+        }
     }
-    assert!(
-        !baseline.contains("accounting-faces")
-            && !baseline.contains("cp ci/facade")
-            && !baseline.contains("set -- ${merge_base_parents}"),
-        "the clean merge-base worktree must never receive candidate faces or split Git identity through shell globbing"
-    );
 }
 
 #[test]
 fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane() {
     let root = repo_root();
-    let relative_path = std::env::var("OYA_HISTORY_ONLY_RETIREMENT_FACTS")
-        .expect("FAIL-CLOSED: OYA_HISTORY_ONLY_RETIREMENT_FACTS must name the materialized face");
-    assert_eq!(
-        relative_path, "ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
-        "history-only retirement facts must use the canonical controller-owned path"
-    );
-    let facts_path = root.join(&relative_path);
-    let facts_bytes = fs::read(&facts_path)
-        .unwrap_or_else(|error| panic!("read materialized {}: {error}", facts_path.display()));
+    let relative_path = std::env::var(HISTORY_ONLY_FACTS_ENV).unwrap_or_else(|error| {
+        panic!("FAIL-CLOSED: {HISTORY_ONLY_FACTS_ENV} must name the materialized face: {error}")
+    });
+    let facts_bytes = read_or_materialize_history_only_facts(&root, &relative_path, || {
+        materialize_history_only_facts_in_temporary_clone(&root)
+    })
+    .unwrap_or_else(|error| panic!("load controller-owned history-only facts: {error}"));
     let facts: Value = serde_json::from_slice(&facts_bytes)
-        .unwrap_or_else(|error| panic!("parse materialized {}: {error}", facts_path.display()));
+        .unwrap_or_else(|error| panic!("parse controller-owned history-only facts: {error}"));
     let control_plane_path = root.join("registry/history-only-retirement/control-plane.json");
     let control_plane_bytes = fs::read(&control_plane_path)
         .unwrap_or_else(|error| panic!("read {}: {error}", control_plane_path.display()));
@@ -1338,6 +1455,63 @@ fn live_history_only_retirement_facts_are_bound_to_the_controller_control_plane(
             .is_empty(),
         "dormant live facts must not project a closure"
     );
+}
+
+#[test]
+fn declared_history_only_input_is_never_replaced_or_path_rewritten() {
+    let root = tempfile::tempdir().expect("create history-only declared-input fixture");
+    let path = root.path().join(HISTORY_ONLY_FACTS_PATH);
+    fs::create_dir_all(path.parent().expect("history-only facts parent"))
+        .expect("create history-only facts parent");
+    fs::write(&path, b"{malformed-existing-face")
+        .expect("write malformed declared history-only face");
+
+    let fallback_called = std::cell::Cell::new(false);
+    let bytes =
+        read_or_materialize_history_only_facts(root.path(), HISTORY_ONLY_FACTS_PATH, || {
+            fallback_called.set(true);
+            Ok(br#"{"silently":"replaced"}"#.to_vec())
+        })
+        .expect("existing regular face must be returned verbatim");
+    assert!(!fallback_called.get());
+    assert_eq!(bytes, b"{malformed-existing-face");
+    assert!(
+        serde_json::from_slice::<Value>(&bytes).is_err(),
+        "malformed declared bytes must remain malformed rather than being laundered"
+    );
+
+    let wrong_token = read_or_materialize_history_only_facts(
+        root.path(),
+        "./ci/facade/scm-facts-snapshot/history-only-retirement-facts.generated.json",
+        || Ok(Vec::new()),
+    )
+    .expect_err("noncanonical token must fail closed");
+    assert!(wrong_token.contains("exact canonical repo-relative token"));
+
+    fs::remove_file(&path).expect("remove malformed face fixture");
+    fs::create_dir(&path).expect("create non-file face fixture");
+    let non_file =
+        read_or_materialize_history_only_facts(root.path(), HISTORY_ONLY_FACTS_PATH, || {
+            Ok(Vec::new())
+        })
+        .expect_err("non-file declared face must fail closed");
+    assert!(non_file.contains("regular non-symlink file"));
+
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::symlink;
+
+        fs::remove_dir(&path).expect("remove non-file face fixture");
+        let target = root.path().join("poisoned-history-only-face");
+        fs::write(&target, b"{}").expect("write symlink target fixture");
+        symlink(&target, &path).expect("create history-only face symlink fixture");
+        let linked =
+            read_or_materialize_history_only_facts(root.path(), HISTORY_ONLY_FACTS_PATH, || {
+                Ok(Vec::new())
+            })
+            .expect_err("symlink declared face must fail closed");
+        assert!(linked.contains("regular non-symlink file"));
+    }
 }
 
 fn expected_violations(fixture: &Value) -> BTreeSet<String> {
@@ -1618,6 +1792,23 @@ fn masterplan_v2_current_preplanning_candidate_matches_cited_evidence() {
 }
 
 #[test]
+fn closed_planning_entry_preserves_the_historical_open_candidate_receipt() {
+    let (mut masterplan, evidence) = live_preplanning_candidate_fixture();
+    let contract = &mut masterplan["masterplan_v2"]["planning_entry_contract"];
+    contract["state"] = serde_json::json!("closed");
+    contract["binding_plan_approval_allowed"] = serde_json::json!(true);
+    contract["dispatch_allowed"] = serde_json::json!(true);
+    contract["closure_evidence"] = serde_json::json!({});
+
+    let findings = evaluate_masterplan_v2_preplanning_candidate_facts(&masterplan, &evidence);
+    assert!(
+        findings.is_empty(),
+        "the closure transition closes through its separate closure-evidence chain \
+         without rewriting the digest-pinned historical candidate receipt: {findings:?}"
+    );
+}
+
+#[test]
 fn preplanning_candidate_paired_missing_fields_fail_closed() {
     let (mut masterplan, mut evidence) = live_preplanning_candidate_fixture();
     masterplan["masterplan_v2"]["planning_entry_contract"]["current_pr_candidate_state"]
@@ -1645,7 +1836,8 @@ fn preplanning_candidate_wrong_field_types_fail_closed() {
 #[test]
 fn preplanning_candidate_contract_field_drift_has_a_keyed_reason() {
     let (mut masterplan, evidence) = live_preplanning_candidate_fixture();
-    masterplan["masterplan_v2"]["planning_entry_contract"]["state"] = serde_json::json!("closed");
+    masterplan["masterplan_v2"]["planning_entry_contract"]["state"] =
+        serde_json::json!("unsupported");
 
     assert_preplanning_candidate_drift_reason(&masterplan, &evidence, "field_mismatch");
 }
@@ -1846,6 +2038,35 @@ fn masterplan_plan_evidence_crosscheck_gate_is_green_on_live_tree() {
         .get("tracked_paths")
         .cloned()
         .expect("committed scm-facts face must carry tracked_paths");
+
+    // Commit 35cc96f54 retired the packet while preserving Git history and the immutable run
+    // records. Pin both sides of that boundary: neither the deleted packet nor a live-plan
+    // reference to it may be revived. Historical ADR prose may continue to cite the old path.
+    assert!(
+        tracked_paths.as_array().is_some_and(|paths| {
+            paths
+                .iter()
+                .all(|path| path.as_str() != Some(RETIRED_MASTERPLAN_GATES_CI_WIRING_EVIDENCE))
+        }),
+        "retired masterplan gate-wiring evidence packet must stay absent from the tracked tree"
+    );
+    let gate_suite = masterplan["masterplan_v2"]["work_items"]
+        .as_array()
+        .and_then(|items| {
+            items
+                .iter()
+                .find(|item| item["id"].as_str() == Some("MPV2-0004"))
+        })
+        .expect("masterplan v2 must retain MPV2-0004");
+    assert!(
+        gate_suite["evidence_refs"]
+            .as_array()
+            .is_some_and(|refs| refs.iter().all(|evidence_ref| {
+                evidence_ref.as_str() != Some(RETIRED_MASTERPLAN_GATES_CI_WIRING_EVIDENCE)
+            })),
+        "MPV2-0004 must not revive its retired local evidence-packet reference"
+    );
+
     let corpus = serde_json::json!({ "tracked_paths": tracked_paths });
 
     let findings = evaluate_masterplan_plan_evidence_crosscheck(&masterplan, &corpus);
@@ -2517,23 +2738,78 @@ fn adr_0624_is_explicitly_nonbinding_and_preserves_preplanning_hold() {
     );
 
     assert_eq!(control_plane["active_epoch"].as_str(), Some("P2"));
-    assert_eq!(contract["state"].as_str(), Some("open"));
-    assert_eq!(
-        contract["binding_plan_approval_allowed"].as_bool(),
-        Some(false)
-    );
-    assert_eq!(contract["dispatch_allowed"].as_bool(), Some(false));
-    assert_eq!(dispatch["state"].as_str(), Some("blocked"));
-    assert_eq!(
-        dispatch["blocked_reason"].as_str(),
-        Some("preplanning_authority_closure")
-    );
-    assert!(
-        dispatch["dispatched_waves"]
-            .as_array()
-            .is_some_and(|waves| waves.is_empty()),
-        "no execution wave may dispatch while HOLD(Planning) remains open"
-    );
+    assert_lawful_planning_entry_state(contract, dispatch);
+}
+
+/// The planning-entry contract has exactly TWO lawful shapes:
+/// - the OPEN hold: both authority flags false, dispatch structurally blocked on
+///   `preplanning_authority_closure`, zero dispatched waves; or
+/// - the fully-evidenced CLOSED transition: both flags true plus a
+///   `closure_evidence` chain whose refs resolve to durable, parseable `evidence/**`
+///   records that the pure evaluator accepts.
+///
+/// Anything else is a hard failure. The live tree stays green only in the open
+/// hold; a live closed planning contract panics here until a trusted
+/// exact-pull-request/head review-admission packet is supplied.
+fn assert_lawful_planning_entry_state(contract: &Value, dispatch: &Value) {
+    match contract["state"].as_str() {
+        Some("open") => {
+            assert_eq!(
+                contract["binding_plan_approval_allowed"].as_bool(),
+                Some(false),
+                "open hold must keep binding plan approval locked"
+            );
+            assert_eq!(
+                contract["dispatch_allowed"].as_bool(),
+                Some(false),
+                "open hold must keep dispatch locked"
+            );
+            assert_eq!(dispatch["state"].as_str(), Some("blocked"));
+            assert_eq!(
+                dispatch["blocked_reason"].as_str(),
+                Some("preplanning_authority_closure")
+            );
+            assert!(
+                dispatch["dispatched_waves"]
+                    .as_array()
+                    .is_some_and(|waves| waves.is_empty()),
+                "no execution wave may dispatch while HOLD(Planning) remains open"
+            );
+        }
+        Some("closed") => {
+            panic!(
+                "the live planning-entry contract cannot close until the blocking gate receives \
+                 a trusted review-admission packet bound to the exact pull request and head"
+            );
+        }
+        other => {
+            panic!("planning_entry_contract.state must be exactly open or closed, got {other:?}")
+        }
+    }
+}
+
+#[test]
+fn closure_evidence_refs_use_one_canonical_path_for_validation_and_loading() {
+    let normalized = normalize_closure_evidence_ref(Some(&serde_json::json!(
+        "  ././evidence/goals/receipt.json  "
+    )));
+    assert_eq!(normalized.as_deref(), Some("evidence/goals/receipt.json"));
+
+    for rejected in [
+        "/evidence/goals/receipt.json",
+        "~/evidence/goals/receipt.json",
+        "evidence/../goals/receipt.json",
+        ".gjc/receipt.json",
+        ".omc/receipt.json",
+        ".omx/receipt.json",
+        "specs/receipt.json",
+    ] {
+        assert_eq!(
+            normalize_closure_evidence_ref(Some(&serde_json::json!(rejected))),
+            None,
+            "{rejected:?} must not carry closure authority"
+        );
+    }
 }
 
 /// Productized false-green guard: planning closure is an architecture authority, so the
@@ -2657,8 +2933,7 @@ fn gate1_is_born_blocking_on_the_live_corpus() {
     // (Superseded) while live crosswalk rows are apex-only. Phantom resolution still
     // knows the archive id (known_ids), so citations must not reappear as phantoms.
     assert!(
-        root
-            .join("docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md")
+        root.join("docs/adr-archive/ADR-0397-pulsar-oxia-canonical-event-bus.md")
             .is_file(),
         "ADR-0397 reconstruction record must remain on disk under the historical archive"
     );
@@ -2775,9 +3050,13 @@ fn read_governed_citation_corpus(root: &Path) -> String {
     let mut paths: Vec<PathBuf> = Vec::new();
     for rel in ["docs/decisions", "docs/adr-archive"] {
         let dir = root.join(rel);
-        if !dir.is_dir() {
-            continue;
-        }
+        assert!(
+            dir.is_dir(),
+            "declared governed-citation root {rel} does not resolve under {} — a corpus root \
+             that silently `continue`s away narrows this scan without any signal; repoint the \
+             root in the same change that moves it",
+            root.display()
+        );
         paths.extend(
             fs::read_dir(&dir)
                 .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
@@ -2870,9 +3149,13 @@ fn decision_md_paths_under(root: &Path, rel_dirs: &[&str]) -> Vec<String> {
     let mut names: Vec<String> = Vec::new();
     for rel in rel_dirs {
         let dir = root.join(rel);
-        if !dir.is_dir() {
-            continue;
-        }
+        assert!(
+            dir.is_dir(),
+            "declared decision-corpus root {rel} does not resolve under {} — enumerating zero \
+             ADRs from a missing root reads as \"no decisions to check\"; repoint the root in \
+             the same change that moves it",
+            root.display()
+        );
         for entry in fs::read_dir(&dir)
             .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
             .filter_map(Result::ok)
@@ -2972,7 +3255,7 @@ fn adr_prose_frontmatter_status_agreement_is_advisory_clean_on_live_tree() {
 
 fn live_registry_policy_corpus(root: &Path) -> Value {
     serde_json::json!({
-        "registry": load_json(&root.join("specs/capability-registry.json")),
+        "registry": load_json(&root.join("governance/capability-registry.json")),
         "policies": {
             "module_membership": {
                 "path": "ci/facade/module-membership/capability-membership-policy.json",
@@ -2997,7 +3280,7 @@ fn live_registry_policy_corpus(root: &Path) -> Value {
 }
 
 /// Sub-check 2/3 born-advisory over the live tree: every capability root in
-/// specs/capability-registry.json is present in the three derived gate policies
+/// governance/capability-registry.json is present in the three derived gate policies
 /// (#1327 defect class (c): a registered capability root missing from a derived
 /// policy). Enforces no-regression vs the frozen baseline.
 #[test]
@@ -3062,31 +3345,30 @@ fn source_derived_adr_records(root: &Path) -> Vec<AdrDecisionRecord> {
     static RECORDS: OnceLock<Vec<AdrDecisionRecord>> = OnceLock::new();
     RECORDS
         .get_or_init(|| {
-            let producer = std::env::var("OYA_ADR_INDEX_PRODUCER_BIN")
-                .expect("Buck2 must provide the sanctioned ADR-index producer binary");
+            let producer = required_declared_binary(root, ADR_INDEX_PRODUCER_ENV)
+                .unwrap_or_else(|error| panic!("{error}"));
             let temp = tempfile::tempdir().expect("create ADR-index projection tempdir");
             let index = temp.path().join("ADR-INDEX.md");
             let machine = temp.path().join("decisions.json");
-            let output =
-                Command::new(producer_binary(root, Some(&producer)).expect("ADR producer path"))
-                    .current_dir(root)
-                    .args([
-                        "doc",
-                        "adr-index",
-                        "--decisions-dir",
-                        root.join("docs/decisions")
-                            .to_str()
-                            .expect("UTF-8 decisions path"),
-                        "--index",
-                        index.to_str().expect("UTF-8 index path"),
-                        "--machine",
-                        machine.to_str().expect("UTF-8 machine path"),
-                        "--write",
-                        "--format",
-                        "json",
-                    ])
-                    .output()
-                    .expect("run sanctioned ADR-index producer");
+            let output = Command::new(producer)
+                .current_dir(root)
+                .args([
+                    "doc",
+                    "adr-index",
+                    "--decisions-dir",
+                    root.join("docs/decisions")
+                        .to_str()
+                        .expect("UTF-8 decisions path"),
+                    "--index",
+                    index.to_str().expect("UTF-8 index path"),
+                    "--machine",
+                    machine.to_str().expect("UTF-8 machine path"),
+                    "--write",
+                    "--format",
+                    "json",
+                ])
+                .output()
+                .expect("run sanctioned ADR-index producer");
             assert!(
                 output.status.success(),
                 "ADR-index producer failed: stdout={} stderr={}",
@@ -3097,7 +3379,6 @@ fn source_derived_adr_records(root: &Path) -> Vec<AdrDecisionRecord> {
         })
         .clone()
 }
-
 
 fn disk_adr_records_for_relation_guards(root: &Path) -> Vec<AdrDecisionRecord> {
     let mut records = Vec::new();
@@ -3133,9 +3414,7 @@ fn disk_adr_records_for_relation_guards(root: &Path) -> Vec<AdrDecisionRecord> {
 }
 
 fn front_matter_field_value(contents: &str, field: &str) -> Option<String> {
-    let Some(rest) = contents.strip_prefix("---\n") else {
-        return None;
-    };
+    let rest = contents.strip_prefix("---\n")?;
     let end = rest.find("\n---")?;
     let frontmatter = &rest[..end];
     frontmatter.lines().find_map(|line| {

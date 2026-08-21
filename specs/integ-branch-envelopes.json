@@ -6,14 +6,14 @@
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-INTEG-BRANCH-ENVELOPES",
-    "version": "1.16.21",
+    "version": "1.16.24",
     "status": "Accepted",
     "owner_team": "council-architecture",
     "created_at": "2026-08-10T00:00:00Z",
     "authority_adr": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md",
     "self_owner_branch": "integ/specs",
     "primary_consumer": "governance/check/integ-envelope + .claude/workflows/deliver.js Claim",
-    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit deferred to .grok/ (Rust-first; no tools/swarm birth on #1644), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
+    "purpose": "Policy-as-data for envelope containment, hub sole-owner, adjunct claims, concurrent-safe exemptions, process-kit forever ci/process-kit (Rust-first; no tools/swarm birth on #1644; BAN agent-dotdirs forever homes), hyperscaler monorepo patterns, Amendment B ternary layout + Pattern-First taxonomy + 16-lens judgment (volatile judgments live under governance/check/integ-envelope/judgments/), Amendment C operating-patterns catalog, Amendment D anti-drift INV-DOC-1…9 + Claim↔diff bind, merge_windows, mechanical Claim packet, and process-meta / forward-declared roots under Swarm Delivery Law, daemon_hotset + perimeter northstar, rules-with-why / adr-rename-overturn.",
     "prior_version": "1.16.20"
   },
   "admission": {
@@ -103,12 +103,6 @@
       "branch": "integ/ci",
       "envelope_globs": [
         "ci/**"
-      ]
-    },
-    "cloud": {
-      "branch": "integ/cloud",
-      "envelope_globs": [
-        "cloud/**"
       ]
     },
     "comms": {
@@ -217,7 +211,7 @@
       "envelope_globs": [
         ".grok/**"
       ],
-      "note": "PROCESS_KIT forever home for mm-delivery / swarm process shims. Birth directly under .grok/ as Rust-first (automation-language-policy forbids new shell/Python under tools/). Forward-declared until .grok/ judgment closes; destination_owns_reorg_now absorb owner for rows targeting .grok/. Peer to planes.process_meta PROCESS_KIT paths on integ/ci.",
+      "note": "Residual agent-dotdir envelope for ephemeral / transitional .grok/ surfaces (mm-runs, memory, non-forever harness). Founder OVERRULE: BAN agent-dotdirs as forever homes — Rust process-kit forever is ci/process-kit/** (Buck //ci/process-kit:…); daemon-hotset + perimeter forever are ci/facade/harness/** under roots.ci. Do not birth new forever policy under .grok/.",
       "forward_declared": true
     },
     "hr": {
@@ -652,7 +646,7 @@
     "sole_owner_per_wave": true,
     "paths": [
       "specs/masterplan.json",
-      "specs/capability-registry.json",
+      "governance/capability-registry.json",
       "specs/root-hub-pointers.json",
       "docs/ADR-INDEX.md",
       "docs/DOC-CATALOG.md",
@@ -857,7 +851,7 @@
       "parsers": [
         ".claude/workflows/deliver.js#parseClaimPacket"
       ],
-      "push_check": "deferred: .grok/ process-kit claim-push (Rust-first); until then Land uses deliver.js merge-tree preflight only"
+      "push_check": "deferred: ci/process-kit claim-push (Rust-first); until then Land uses deliver.js merge-tree preflight only"
     },
     "encoded_in": [
       ".claude/workflows/deliver.js#Claim",
@@ -903,7 +897,7 @@
       "commit --no-verify/-n",
       "push --no-verify"
     ],
-    "enforcement": "deferred: .grok/ git-shim / toolguard (Rust-first); doctrine in PORTABLE-SWARM-CONTRACT + ADR-0711 D-9; no shell birth under tools/ on #1644"
+    "enforcement": "deferred: ci/process-kit git-shim / toolguard (Rust-first); doctrine in PORTABLE-SWARM-CONTRACT + ADR-0711 D-9; no shell birth under tools/ on #1644"
   },
   "worktree_topology": {
     "main_checkout": "orchestrator + check-daemon only (durable writes)",
@@ -922,7 +916,7 @@
     "cites": [
       "ADR-0119 (flat cross-cutting specs/ hub; product colocation via ADR-0131 amendment)",
       "ADR-0131 (service colocation + product-owned specs; superseded as live apex by ADR-0701)",
-      "ADR-0515 (single oya-ci-required; live restatement ADR-0700)",
+      "ADR-0515 (single merge-admission-required (retired brand oya-ci-required); live restatement ADR-0700)",
       "ADR-0541 (g3doc-style owner-colocated docs / corpus liveness)",
       "ADR-0554 (binding affected-set / selective testing)",
       "ADR-0562 (capability-first faces; live apex ADR-0701)",
@@ -934,7 +928,7 @@
       "clean_architecture_per_capability_core_ports_adapters_facade",
       "central_docs_specs_are_cross_cutting_hubs_only_prefer_owner_colocation",
       "trunk_based_scoped_parallel_lanes_serialize_only_at_trunk_and_hub_contention",
-      "hermetic_policy_as_data_gates_under_single_oya_ci_required",
+      "hermetic_policy_as_data_gates_under_single_merge_admission_required",
       "selective_affected_testing_no_full_monorepo_rebuild_in_worker_lanes",
       "owner_colocated_docs_g3doc_hubs_sole_owned_by_integ_docs_or_integ_specs",
       "concurrent_safe_paths_registry_for_true_concurrent_writers",
@@ -1080,7 +1074,7 @@
     "claim_exemption_marker": "reorg-move-out",
     "one_shot_exceptions": [],
     "judgment_gate": "See reorg_debt_freeze.evaluation_gate — path changes require judgment_status=done",
-    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit lands later under .grok/ as Rust."
+    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit forever home: ci/process-kit (Rust)."
   },
   "reorg_debt_freeze": {
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-B",
@@ -1198,13 +1192,13 @@
       "docs/harness/": "delete_permanently",
       "docs/implementation-plans/": "reorg_now",
       "specs/": "keep_forever",
-      "specs/capability-registry.json": "keep_forever",
+      "governance/capability-registry.json": "keep_forever",
       "specs/root-hub-pointers.json": "keep_forever",
       "specs/masterplan.json": "keep_forever",
       "specs/integ-branch-envelopes.json": "keep_forever",
       "specs/naming-taxonomy.json": "keep_forever",
       "specs/agentic-operating-patterns.json": "keep_forever",
-      "specs/markdown-retirement-policy.json": "keep_forever",
+      "ci/facade/cross-artifact-agreement/idea-archive-policy.json": "keep_forever",
       "specs/reorg/": "keep_forever",
       "specs/microservices/": "reorg_now",
       "specs/products/": "reorg_now",
@@ -1814,14 +1808,30 @@
         "destination": "specs/"
       },
       {
-        "path": "specs/capability-registry.json",
+        "path": "governance/capability-registry.json",
         "action": "keep_forever",
-        "greenfield_destination": "specs/capability-registry.json",
-        "shape": "closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)",
+        "greenfield_destination": "governance/capability-registry.json",
+        "shape": "closed registry (landed at governance/ on 2026-08-14 — its ADR-0562 §2 destined home; keep SSOT)",
         "redesign": "none",
-        "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/capability-registry.json` → `specs/capability-registry.json` (closed registry (eventual governance/ copy is same hub move later if desired; keep SSOT)). Full 7-point judgment still pending before structural change.",
-        "destination": "specs/capability-registry.json"
+        "judgment_status": "done",
+        "disposition": "keep-as-is",
+        "name_now": "specs/capability-registry.json",
+        "name_forever": "governance/capability-registry.json",
+        "kind": "plane-hub",
+        "grammar_compliant": true,
+        "lenses_applied": "all-16",
+        "challenges": [
+          "cartesian_doubt: is the registry still the layout authority after the move? Yes — same schema, same closed set, same bytes; only the governed home changed, and every consumer re-pointed in the same change",
+          "chestertons_fence: governance/ was ratified as the registry's destination (ADR-0562 §2, 2026-06-14) precisely so the move could be a pure relocation with no redesign",
+          "essentialism_yagni: a git mv with zero content change — no rewrite, no split; one SSOT at one path",
+          "pragmatism: one canonical path beats dual-home copies; the BUCK export rode the move so no label can silently re-resolve",
+          "systems_thinking: fan-in is the whole ci/facade gate set + workspace prose — all re-pointed; reachability row updated to the landed prefix",
+          "opportunity_cost: leaving the registry at specs/ would keep the ADR-0562 §2 strangler item open and fork consumer pointers",
+          "blast_radius_cell: pure policy-data relocation — no crate, no code behavior change",
+          "zero_trust: the export moved with the file; a stale //specs:capability-registry.json label fails closed rather than silently resolving"
+        ],
+        "rationale": "1) The CLOSED capability registry is the single source of truth for the capability-first repo organization (ADR-0562 §2/§6): the closed capability set, per-crate mappings, frozen-unmapped baseline, and app-product table. 2) Registry/meta/plane authority belongs under the governance/ meta-dir (ADR-0562 §2 ratified 2026-06-14), not the specs/ data plane. 3) Provide the ADR-0562 deterministic placement rule + the §6 membership lint their SSOT. 4) Must exist at governance/capability-registry.json; must not be duplicated at specs/. 5) Fit: governance/ is the registered meta-dir; the BUCK export moved with the file; 32 consumers re-pointed in the same change. 6) keep-as-is (evolve in place): pure git mv, no content change. 7) Forever: governance/capability-registry.json (landed 2026-08-14). lenses_applied=all-16; challenges record the landed-move verification.",
+        "destination": "governance/capability-registry.json"
       },
       {
         "path": "specs/root-hub-pointers.json",
@@ -1903,14 +1913,14 @@
         "destination": "specs/agentic-operating-patterns.json"
       },
       {
-        "path": "specs/markdown-retirement-policy.json",
+        "path": "ci/facade/cross-artifact-agreement/idea-archive-policy.json",
         "action": "keep_forever",
-        "greenfield_destination": "specs/markdown-retirement-policy.json",
+        "greenfield_destination": "ci/facade/cross-artifact-agreement/idea-archive-policy.json",
         "shape": "docs lifecycle policy",
         "redesign": "none",
         "judgment_status": "pending",
-        "rationale": "PROVISIONAL keep_forever: registry/meta/plane home `specs/markdown-retirement-policy.json` → `specs/markdown-retirement-policy.json` (docs lifecycle policy). Full 7-point judgment still pending before structural change.",
-        "destination": "specs/markdown-retirement-policy.json"
+        "rationale": "keep_forever, RESOLVED: the executable idea-archive clause was rehomed beside the gate that reads it; the 204 lines of overdue migration phases around it were retired (docs lifecycle policy). Full 7-point judgment still pending before structural change.",
+        "destination": "ci/facade/cross-artifact-agreement/idea-archive-policy.json"
       },
       {
         "path": "specs/reorg/",
@@ -2466,7 +2476,7 @@
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/payments | wc -l → 102; Cargo.toml count → 0 (zero-crate)",
           "oya/payments/AUDIT-FINDINGS-2026-05-20.json present — scout 1f761030 classifies delete_permanently (closed receipt)",
-          "specs/capability-registry.json app_products.current_dirs includes oya/payments → forever app/payments/",
+          "governance/capability-registry.json app_products.current_dirs includes oya/payments → forever app/payments/",
           "billing/ is keep_forever registered capability (metering/tax) — NOT payments forever dest",
           "envelopes roots.payments forward_declared integ/payments → app/payments/** (1.14.0)",
           "scout seat-B packet 1f761030"
@@ -2512,7 +2522,7 @@
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/office | grep 'Cargo.toml$' | wc -l → 19",
           "flat layout oya/office/oya-office-{kernel,tenant-domain,authz-domain,storage-kernel,search-kernel,drive-*,format-*,doc/sheet/slide-domain,sheets-api,collab-*,web-app}",
-          "specs/capability-registry.json app_products.current_dirs includes oya/office → forever app/office/",
+          "governance/capability-registry.json app_products.current_dirs includes oya/office → forever app/office/",
           "envelopes roots.office forward_declared integ/office → app/office/** (1.14.0)",
           "scout seat-B packet 85736b89"
         ],
@@ -2557,7 +2567,7 @@
         "evidence": [
           "git ls-tree -r --name-only origin/dev -- oya/crm | wc -l → 136; crates: oya-crm-customer-engagement-domain, oya-crm-revenue-app, oya-procurement-source-to-pay-domain",
           "specs/microservices/procurement.json owns source-to-pay; crate misplaced under oya/crm/crates/",
-          "specs/capability-registry.json app_products.current_dirs includes oya/crm → forever app/crm/",
+          "governance/capability-registry.json app_products.current_dirs includes oya/crm → forever app/crm/",
           "envelopes roots.crm forward_declared integ/crm → app/crm/** (1.14.0)",
           "scout seat-B packet 72c00210"
         ],
@@ -2647,7 +2657,7 @@
           "crates: oya-itsm-{on-call-schedule,escalation-policy,incident-room,status-update,postmortem,service-management-service}",
           "catalog/: 13 oya-itsm-service-management-*.yaml stubs vs single umbrella crate — phantom service-management surface",
           "oya/incident-management: 134 files + oya-incident-management-sre-incident-command-app — PagerDuty-class overlap with ITSM incident crates",
-          "specs/capability-registry.json app_products.current_dirs includes oya/itsm → forever app/itsm/",
+          "governance/capability-registry.json app_products.current_dirs includes oya/itsm → forever app/itsm/",
           "envelopes roots.itsm forward_declared integ/itsm → app/itsm/** (1.14.0); NOT integ/oya",
           "scout seat-B packet 160229d2"
         ],
@@ -2702,7 +2712,7 @@
         "rationale": "OVERRULE delete_permanently→reorg_now. 1) 86-file zero-crate product scaffold (manifest/contracts/slos/runbooks/iac/catalog/cedar) under oya/calendar — same class as payments. 2) Brand oya/ nest vs ADR-0562 app product forever home. 3) Registered app_products.current_dirs includes oya/calendar; fixtures + cedar baselines live. 4) Must exist at app/calendar/; must not delete. 5) Fit: forward-declare integ/calendar → app/calendar/** (rule 3d). 6) rewrite-into-durable-shape on destination tip; source shrink only after absorb. 7) Forever: app/calendar/.",
         "evidence": [
           "git ls-tree -r 4bebc4766^ -- oya/calendar → 86 files; Cargo.toml count 0; manifest+contracts+slos+runbooks+iac present",
-          "specs/capability-registry.json app_products.current_dirs includes oya/calendar",
+          "governance/capability-registry.json app_products.current_dirs includes oya/calendar",
           "evidence/reorg/rr-oya-orphan-scaffold-batch1-20260806.json disposition=defer forever app/calendar",
           "peer payments row: identical zero-crate scaffold → reorg_now app/payments/",
           "scout 6544bb51 scaffold-vs-dump: calendar OVERRULE; governance KEEP delete"
@@ -3871,7 +3881,7 @@
         "destination": ".grok/ + ci/facade/ + delete remainder",
         "disposition": "rewrite-into-durable-shape",
         "name_now": "tools/",
-        "name_forever": "(none — process kit under .grok/; gates under ci/facade)",
+        "name_forever": "(none — process kit under ci/process-kit; gates under ci/facade)",
         "kind": "process-kit",
         "grammar_compliant": false,
         "lenses_applied": "all-16",
@@ -3886,7 +3896,7 @@
           "contrarian: REJECT scout silence on tools root — parent must close with swarm leaf",
           "zero_trust: no new tools/* unit roots without reorg-move-out",
           "red_team: worktree-only .grok/ process-kit copies masquerading as main forever home",
-          "operability_day2: operators find process kit under .grok/, not tools/",
+          "operability_day2: operators find process kit under ci/process-kit/, not tools/",
           "finops_unit_cost: one process-kit tree",
           "shared_nothing: .grok/ owns swarm process; ci/facade owns gates",
           "constant_work: judgment now; path port after #1644",
@@ -3901,7 +3911,7 @@
           "#1644 aborted tools/swarm birth (automation-language ceiling)"
         ],
         "destination_integ": "integ/tools",
-        "land_when": "Shrink-only on integ/tools after child leaf drains (.grok/ process-kit birth on integ/ci (no tools/swarm intermediate), governance apps→integ/ci); parent tools/ is never absorb owner",
+        "land_when": "Shrink-only on integ/tools after child leaf drains (ci/process-kit birth on integ/ci (no tools/swarm intermediate), governance apps→integ/ci); parent tools/ is never absorb owner",
         "land_status": "shrink_only_after_leaf_drains",
         "shrink_source_integ": "integ/tools"
       },
@@ -3932,11 +3942,11 @@
           "deliver.js#parseClaimPacket owns Claim mechanical on #1644"
         ],
         "destination_integ": "integ/ci",
-        "land_when": "No tools/swarm birth on #1644. Later: integ/ci births Rust process-kit under .grok/** (destination_owns_reorg_now); tools/ stays shrink-only.",
+        "land_when": "No tools/swarm birth on #1644. Encoded: integ/ci owns ci/process-kit/** + ci/facade/harness/**; tools/ stays shrink-only.",
         "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
         "wave": "W-tools-swarm-to-grok",
         "shrink_source_integ": "integ/tools",
-        "forever_name": "(never; .grok/ process-kit instead)"
+        "forever_name": "(never; ci/process-kit instead)"
       },
       {
         "path": "tools/oya-governance-adapter-with-no-importer-app/",
@@ -5418,8 +5428,8 @@
         "land_status": "absorb_on_integ_ci_then_shrink_integ_tools",
         "shrink_source_integ": "integ/tools",
         "status": "judgment_closed_tools_swarm_to_grok",
-        "note": "absorb owner integ/ci via roots.grok (.grok/**); integ/specs is envelopes hub only — not forever-path absorb owner (#1644 automation-language abort)",
-        "two_phase_note": "Aborted: do not birth tools/swarm. Birth Rust process-kit under .grok/ on integ/ci when ready.",
+        "note": "absorb owner integ/ci via roots.ci (ci/process-kit/** + ci/facade/harness/**); residual roots.grok for ephemeral .grok/**; integ/specs is envelopes hub only — not forever-path absorb owner (#1644 automation-language abort)",
+        "two_phase_note": "Aborted: do not birth tools/swarm. Birth Rust process-kit under ci/process-kit on integ/ci (done encode).",
         "disposition": "delete_permanently"
       },
       {
@@ -6096,7 +6106,7 @@
       "process_kit": {
         "tools/swarm/": {
           "destination_integ": "integ/ci",
-          "forever": ".grok/**",
+          "forever": "ci/process-kit/**",
           "shrink_source_integ": "integ/tools",
           "envelope_root": "roots.grok"
         }
@@ -6330,7 +6340,7 @@
         "accepted": [
           "scripts/tests/*.py rewrite→ci Rust then delete",
           "scripts/ci/regen-third-party.sh → ci/facade",
-          "tools/swarm → .grok/ (skip tools/swarm birth; land Rust under .grok/ directly)",
+          "tools/swarm → ci/process-kit (skip tools/swarm birth; land Rust under ci/process-kit)",
           "toolchains/ keep",
           "templates/foundry-supervisor delete",
           "docs/templates dual-home kill into templates/"
@@ -6446,7 +6456,7 @@
         ]
       }
     ],
-    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit lands later under .grok/ as Rust."
+    "one_shot_exceptions_note": "#1644 aborted tools/swarm/** one-shot birth: automation-language-policy forbids new non-Rust under tools/ vs immutable merge-base ceiling. Process kit forever home: ci/process-kit (Rust)."
   },
   "anti_drift": {
     "anti_drift_doctrine_version": "1.1.0",
@@ -6537,8 +6547,8 @@
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
     "status": "binding",
-    "process_kit_mirror": ".grok/harness/daemon-hotset.v1.json",
-    "process_kit_owner": "roots.grok → integ/ci (birth harness on owning integ; do not dual-home SSOT here)",
+    "process_kit_mirror": "ci/facade/harness/daemon-hotset.v1.json",
+    "process_kit_owner": "roots.ci → integ/ci (forever: ci/process-kit + ci/facade/harness; BAN agent-dotdirs as forever homes)",
     "achieves": "Early buck2 [check] feedback on at most hot_set_max restackable integ stations without worker-lane builds or cargo revival.",
     "origin": "16-lens northstar R9 (northstar-daemon-hotset); founder 2026-05-29 no-cargo; ADR-0711 A-2.",
     "rule": {
@@ -6567,7 +6577,7 @@
     "ensure": [
       "specs/integ-branch-envelopes.json#daemon_hotset is SSOT for doctrine",
       "cite merge_windows.hot_set_max (do not re-state a second max)",
-      "process-kit harness mirror MAY exist under .grok/harness/ on owning integ",
+      "process-kit harness mirror lives under ci/facade/harness/ on integ/ci",
       "LSP read-only ≠ buck2 [check] ≠ oya-ci-required"
     ],
     "overturn_when": [
@@ -6586,8 +6596,8 @@
     "authority": "docs/decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md#Amendment-E",
     "portable_contract": ".grok/programs/delivery-fabric/evidence/PORTABLE-SWARM-CONTRACT.md#Northstar-daemon-hotset--advisory-perimeter",
     "status": "binding",
-    "process_kit_mirror": ".grok/harness/perimeter.v1.json",
-    "process_kit_owner": "roots.grok → integ/ci (birth harness on owning integ; do not dual-home SSOT here)",
+    "process_kit_mirror": "ci/facade/harness/perimeter.v1.json",
+    "process_kit_owner": "roots.ci → integ/ci (forever: ci/process-kit + ci/facade/harness; BAN agent-dotdirs as forever homes)",
     "achieves": "Close the prose-only backdoor where advisory channels write the main checkout; keep hotfix/* from becoming an ungoverned trunk escape.",
     "origin": "16-lens northstar R10 (northstar-perimeter); model-routing optional advisory channels.",
     "rule": {
@@ -6618,7 +6628,7 @@
       "specs/integ-branch-envelopes.json#perimeter is SSOT for doctrine",
       "advisory channels scratch-only; never main-checkout durable writes",
       "hotfix/* requires founder ack OR incident evidence before Phase B admits",
-      "process-kit harness mirror MAY exist under .grok/harness/ on owning integ"
+      "process-kit harness mirror lives under ci/facade/harness/ on integ/ci"
     ],
     "overturn_when": [
       "founder retires advisory channels",
@@ -6630,5 +6640,50 @@
       "advisory_as_merge_authority",
       "hotfix_without_founder_or_incident_evidence"
     ]
+  },
+  "path_ownership": {
+    "law": "envelope_prefix_ownership",
+    "live_public_merge_status": "oya-ci-required",
+    "forever_public_merge_status": "merge-admission-required",
+    "public_merge_status": "oya-ci-required",
+    "status_ladder": {
+      "LOCAL_GREEN": "domain.<envelope>.stabilize green — fence + graph-affected tests for touched scope under owned prefixes. MUST NOT require hub edits (specs/**, ci/**) or premature product-protocol expected_total bumps.",
+      "ADMIT_READY": "LOCAL_GREEN + hub contracts current on trunk (or co-shipped hub PR in same ship window). Sole protected check today: oya-ci-required (forever name merge-admission-required after protection cutover).",
+      "SHIP": "scope-aware merge to trunk; trunk.postsubmit feeds trunk.health. Shared trunk green preserved."
+    },
+    "team_equals_integ_envelope_root": true,
+    "path_exclusivity": "one open PR per integ/<root>; changed paths MUST ⊆ that root's envelope_globs (longest-match-wins), OR an approved claimed adjunct / hubs.active_waivers row / concurrent-safe-paths allow — exclusivity is envelope ∪ authorized exceptions, not absolute subset alone.",
+    "prefix_allow": {
+      "rule": "New files under an owned envelope_glob (e.g. compute/** on integ/compute, iac/** on integ/iac) are in-domain. Once admission.policy on trunk consumes envelopes, path-ownership MUST allow them without per-file tip-free / reachability registration.",
+      "examples": [
+        "compute/manifest.json and compute/stale-path-hygiene-note.md on integ/compute (#1660)",
+        "iac/governance/** on integ/iac (#1680) — tip-free tax REJECTED as forever shape"
+      ],
+      "transitional": "Until integ/ci lands admission.policy envelope-prefix on trunk (#1646), tip-free / reachability-registry rows remain required for newly unreachable paths. After that land: admission.policy consumes roots.*.envelope_globs as prefix allow (source tag envelope-prefix-ownership); per-file tip-free rows are OPTIONAL redundancy for in-envelope paths. Hub MAY still register exact paths or dir prefixes for out-of-envelope / transitional cases. Prefer dir prefix over per-file. BAN tip-encode F1 Accept; BAN plan sprawl (amend living SSOT only).",
+      "new_root_or_transfer": "New top-level root birth or ownership transfer → rare integ/specs envelope amend (LSC-style)."
+    },
+    "manifest_inventory": {
+      "rule": "North-star: protocol/manifest counts derive from envelopes/live manifests. While product-protocol-policy still uses static governed_roots/expected_total, census bumps MUST co-ship with the manifest-adding PR (hub consolidate same ship window) — do not leave either PR independently red.",
+      "forbidden": "Stabilize agents MUST NOT delete capability manifests OR premature-bump expected_total to paint admission green when no matching manifest exists (BAN merge-red no-op)."
+    },
+    "observation_is_not_approve": true,
+    "ban_tip_encode_f1_accept": true,
+    "ban_plan_sprawl": true,
+    "ci_status_names": {
+      "merge_authority_live": "oya-ci-required",
+      "merge_authority": "merge-admission-required",
+      "domain_stabilize": "domain.<envelope>.stabilize",
+      "trunk_postsubmit": "trunk.postsubmit",
+      "trunk_health": "trunk.health",
+      "admission_subjobs": "admission.* (English roles only; e.g. admission.policy, admission.graph-affected, admission.manifest-inventory)",
+      "retired_brands": [
+        "oya-ci-required",
+        "firewall",
+        "cloud-ci-firewall",
+        "product-protocol-policy-gate"
+      ],
+      "identifier_law": "ADR numbers, F-PR/ticket refs MUST NOT appear in workflow/job/gate/env/Rust/JSON-API identifiers — comments/docs/evidence only."
+    },
+    "phase1_note": "Live protected context remains oya-ci-required until PAUSE-AND-PAIR. integ/ci carries forever filename merge-admission-required.yml + domain-stabilize.yml (workflow_call) + dual-emit title; event triggers stay on oya-ci-required.yml until quiet cutover (BAN double CI). admission.policy envelope_globs wiring ships on integ/ci (#1646)."
   }
 }

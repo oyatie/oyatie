@@ -13,11 +13,11 @@
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
-use ci_crypto_backend_policy::{
-    Verdict, collect_activated_backends, evaluate, evaluate_keyed,
-};
+use ci_corpus_census_adapters::{assert_census_covers, independent_member_dirs};
+use ci_crypto_backend_policy::{Verdict, collect_activated_backends, evaluate, evaluate_keyed};
 use serde_json::{Value, json};
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -58,7 +58,12 @@ fn live_workspace_is_born_blocking_green_zero_ring_activation() {
         .expect("read-only Buck graph collection should succeed on the live tree");
 
     // The package census floor must be met (a wrong repo root would otherwise be a silent
-    // false-green).
+    // false-green). This is the crude backstop and it is nearly useless on its own: the policy
+    // floor is `min_expected_workspace_packages: 1` against a live tree of ~900 manifests, so a
+    // 99.9% scan collapse — every manifest but one — clears it. Raising the number is not the
+    // fix; a magic-number floor is the thing that rots, and it cannot say WHICH manifests went
+    // missing. It stays only as the fail-closed check the EVALUATOR itself performs
+    // (`CBP-EMPTY-SCAN`), which has no census to compare against.
     let census = observed["workspace_packages_found"]
         .as_u64()
         .expect("census");
@@ -68,6 +73,39 @@ fn live_workspace_is_born_blocking_green_zero_ring_activation() {
     assert!(
         census >= floor,
         "the live workspace should carry at least the policy package floor ({floor}); got {census}"
+    );
+
+    // The assertion that is actually about the tree, and the reason the floor above can stay at
+    // its useless value: an INDEPENDENT derivation of the corpus, compared as a SET.
+    //
+    // `ci/adapters/corpus-census` resolves the live workspace members through the canonical
+    // `oya_workspace_members_kernel` with its own from-scratch manifest parse — nothing in common
+    // with this gate's `visit_files` walk, so a bug in that walk cannot hide behind the census
+    // reusing it. Every workspace member holds a `Cargo.toml`, so every member directory MUST
+    // appear in the walk; if one stops appearing, the walk collapsed and the diagnostic names it.
+    //
+    // CONTAINMENT, not equality, and deliberately so: the walk legitimately sees manifests that
+    // are not workspace members (nested-workspace roots such as `kernel/Cargo.toml`, and
+    // directories no member glob matches). Asserting equality would red on a correct fact. The
+    // unchecked direction — a manifest in the tree that is NOT a member, and is therefore
+    // compiled by nothing and invisible to every gate at once — is
+    // `ci/facade/workspace-member-coverage`'s subject, not this gate's.
+    let walked: BTreeSet<String> = observed["workspace_package_dirs"]
+        .as_array()
+        .expect("collector must emit workspace_package_dirs")
+        .iter()
+        .map(|entry| entry.as_str().expect("dir entries are strings").to_owned())
+        .collect();
+    assert_eq!(
+        walked.len() as u64,
+        census,
+        "workspace_packages_found must be the size of workspace_package_dirs, or the number and \
+         the set can disagree about the same walk"
+    );
+    assert_census_covers(
+        &walked,
+        &independent_member_dirs(&root),
+        "the crypto-backend-purity Cargo.toml walk",
     );
 
     let findings = evaluate_keyed(&policy, &observed);
@@ -91,7 +129,10 @@ fn live_workspace_is_born_blocking_green_zero_ring_activation() {
         "the live Cargo.lock is expected to retain the unactivated optional-dep ring phantom; if this changed (the reqwest->hyper true-purge landed), update this assertion and the friction"
     );
     eprintln!(
-        "CRYPTO-BACKEND-PURITY live: packages={census} activated-ring=0 (born-blocking green; Cargo.lock ring phantom present but absent from Buck graph — ADR-0506)"
+        "CRYPTO-BACKEND-PURITY live: packages={census} policy_floor={floor} \
+         independent_member_census={} activated-ring=0 (born-blocking green; Cargo.lock ring \
+         phantom present but absent from Buck graph — ADR-0506)",
+        independent_member_dirs(&root).len()
     );
 }
 

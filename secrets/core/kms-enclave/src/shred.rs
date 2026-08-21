@@ -21,13 +21,13 @@
 use std::collections::BTreeSet;
 use std::num::NonZeroU32;
 
-use secrets_kms_domain::envelope_keys::KekId;
 use secrets_kms_domain::KeyDestructionRequest;
+use secrets_kms_domain::envelope_keys::KekId;
 
+use crate::EnclaveError;
 use crate::chain::KekVersionChain;
 use crate::material::DekMaterial;
 use crate::token::WrappedDek;
-use crate::EnclaveError;
 
 /// Cedar authorization decision evidence for a shred-lifecycle action.
 /// Carried into the destruction proof so every shred chains to the policy
@@ -123,8 +123,13 @@ impl std::fmt::Display for ShredError {
             Self::QuorumNotReached { have, need } => {
                 write!(f, "shred: quorum not reached ({have}/{need})")
             }
-            Self::WindowNotElapsed { earliest_at_epoch_seconds } => {
-                write!(f, "shred: waiting window runs until {earliest_at_epoch_seconds}")
+            Self::WindowNotElapsed {
+                earliest_at_epoch_seconds,
+            } => {
+                write!(
+                    f,
+                    "shred: waiting window runs until {earliest_at_epoch_seconds}"
+                )
             }
             Self::DuplicateApprover => f.write_str("shred: approver already counted"),
             Self::RequesterCannotApprove => f.write_str("shred: requester cannot self-approve"),
@@ -170,7 +175,11 @@ impl PendingDeletionChain {
 
 impl std::fmt::Debug for PendingDeletionChain {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "PendingDeletionChain {{ kek_id: {}, keys: [REDACTED] }}", self.kek_id())
+        write!(
+            f,
+            "PendingDeletionChain {{ kek_id: {}, keys: [REDACTED] }}",
+            self.kek_id()
+        )
     }
 }
 
@@ -263,7 +272,9 @@ impl ScheduledKeyDeletion {
         if waiting_window_seconds < MIN_WAITING_WINDOW_SECONDS {
             return Err((
                 chain,
-                ShredError::WindowTooShort { floor_seconds: MIN_WAITING_WINDOW_SECONDS },
+                ShredError::WindowTooShort {
+                    floor_seconds: MIN_WAITING_WINDOW_SECONDS,
+                },
             ));
         }
         let request = ShredAuthorizationRequest {
@@ -285,9 +296,7 @@ impl ScheduledKeyDeletion {
                 earliest_shred_at_epoch_seconds: now_epoch_seconds
                     .saturating_add(waiting_window_seconds),
             }),
-            ShredDecision::Deny(evidence) => {
-                Err((chain, ShredError::NotPermitted { evidence }))
-            }
+            ShredDecision::Deny(evidence) => Err((chain, ShredError::NotPermitted { evidence })),
         }
     }
 
@@ -345,9 +354,7 @@ impl ScheduledKeyDeletion {
                 };
                 Ok((self.pending.chain, evidence))
             }
-            ShredDecision::Deny(evidence) => {
-                Err((self, ShredError::NotPermitted { evidence }))
-            }
+            ShredDecision::Deny(evidence) => Err((self, ShredError::NotPermitted { evidence })),
         }
     }
 
@@ -364,7 +371,12 @@ impl ScheduledKeyDeletion {
         }
         if now_epoch_seconds < self.earliest_shred_at_epoch_seconds {
             let earliest_at_epoch_seconds = self.earliest_shred_at_epoch_seconds;
-            return Err((self, ShredError::WindowNotElapsed { earliest_at_epoch_seconds }));
+            return Err((
+                self,
+                ShredError::WindowNotElapsed {
+                    earliest_at_epoch_seconds,
+                },
+            ));
         }
         let chain = self.pending.chain;
         let versions_destroyed = 1 + chain.retired_versions().count() as u64;

@@ -188,7 +188,10 @@ Every agent + automation invocation declares its blast radius. The CI pipeline e
 | `regulatory-impact` | Touches a regulator-bound surface | requires `ops-compliance` review |
 | `data-class-impact` | Changes a `data_class` annotation | requires `council-privacy` review |
 
-The classification is auto-detected by `oya-governance-blast-radius` from the diff and emitted as a PR label. The PR-merge-review gate (per `scripts/hooks/guard-pr-merge-review.mjs`) verifies the right reviewers approved per blast class.
+The classification is auto-detected by `oya-governance-blast-radius` from the
+diff and emitted as a PR label. One author-distinct reviewer agent applies the
+relevant blast-class lenses on the exact PR head; affected teams are notified
+for non-binding input, not counted as a reviewer quorum.
 
 #### 3.0.5.4 Foundry capabilities for the pipeline
 

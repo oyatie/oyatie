@@ -27,7 +27,7 @@ Per v4 §C.13a-d, the end-to-end `tick_once()` call must complete within the fol
 
 ```bash
 # Run with 200 iterations (v6 BLOCKER-2)
-cargo bench -p oya-intelligence-supervisor-app -- heartbeat
+cargo bench -p intelligence-supervisor-app -- heartbeat
 
 # Output file
 .omc/state/benchmark-results/heartbeat-p95.jsonl
@@ -110,7 +110,7 @@ To identify hot paths:
 
 ```bash
 # Generate flamegraph (requires flamegraph installed)
-cargo flamegraph -p oya-intelligence-supervisor-app --bench heartbeat -- --profile-time 30
+cargo flamegraph -p intelligence-supervisor-app --bench heartbeat -- --profile-time 30
 
 # Opens flamegraph.svg in browser
 ```
@@ -157,5 +157,5 @@ The CI lane `lean-settings-drift` (part of the larger `oya-governance-*` suite) 
 
 - **v4 Plan § C.13a-d:** Performance budgets
 - **v6 Amendments § BLOCKER-2:** Multi-sample p95 methodology
-- **Benchmark harness:** `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs`
+- **Benchmark harness:** `intelligence/core/supervisor-app/benches/heartbeat.rs`
 - **Hardware baseline:** Measured on arm64-darwin Apple silicon (MacBook Air class)

@@ -33,9 +33,7 @@ use std::path::{Path, PathBuf};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use ci_graphql_usage_policy::{
-    Verdict, collect_graphql_artifacts, evaluate, evaluate_keyed,
-};
+use ci_graphql_usage_policy::{Verdict, collect_graphql_artifacts, evaluate, evaluate_keyed};
 use serde_json::Value;
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -132,7 +130,6 @@ fn live_owned_stack_has_no_active_graphql_layer_vocabulary() {
         "marketplace/observability/slos",
         "marketplace",
         "data/ontology/decisions/ADR-ONT-001-rdf-shape-vs-property-graph-storage.md",
-        "oya/workplace-integration",
     ];
     let forbidden_needles = [
         "Layer::Graphql",

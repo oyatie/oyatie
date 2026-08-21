@@ -151,7 +151,9 @@ pub fn lex(text: &str) -> Result<LexOutput, LexError> {
         // Number (kept raw; we never evaluate arithmetic).
         if b.is_ascii_digit() {
             let start = i;
-            while i < len && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_' || bytes[i] == b'.') {
+            while i < len
+                && (bytes[i].is_ascii_alphanumeric() || bytes[i] == b'_' || bytes[i] == b'.')
+            {
                 i += 1;
             }
             tokens.push(Token {

@@ -297,26 +297,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        (Some("validate"), Some("adr-citation")) => {
-            match crate::parse_adr_citation_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_adr_citation_gate(args) {
-                    Ok((documents, citations, allowed_pack_adrs)) => {
-                        println!(
-                            "ADR citation validation passed: {documents} documents, {citations} citations, {allowed_pack_adrs} allowed ADRs"
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("ADR citation validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
         (Some("validate"), Some("brand-residue")) => {
             match crate::parse_brand_residue_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_brand_residue_gate(args) {
@@ -377,73 +357,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        (Some("validate"), Some("supply-chain")) => {
-            match crate::parse_supply_chain_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_supply_chain_gate(args) {
-                    Ok((records, source_only)) => {
-                        println!(
-                            "supply chain validation passed: {records} catalog records, {source_only} source-only attestations"
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("supply chain validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
-        (Some("validate"), Some("image-promotion")) => {
-            match crate::parse_image_promotion_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_image_promotion_gate(args) {
-                    Ok(report) => {
-                        println!(
-                            "image promotion validation passed: {} artifacts, {} promotion records, {} kubewarden verifier records, {} kyverno verifier records",
-                            report.artifacts,
-                            report.promotion_records,
-                            report.kubewarden_verifier_records,
-                            report.kyverno_verifier_records
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("image promotion validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
-        (Some("validate"), Some("release-supply-chain")) => {
-            match crate::parse_release_supply_chain_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_release_supply_chain_gate(args) {
-                    Ok(report) => {
-                        let artifacts = report.artifacts;
-                        let evidence = report.evidence;
-                        let phase = crate::release_supply_chain_phase_name(report.phase);
-                        println!(
-                            "release supply chain validation passed: {artifacts} artifacts, {evidence} evidence records, phase={phase}"
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("release supply chain validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
         (Some("validate"), Some("release-evidence-pack")) => {
             match crate::parse_release_evidence_pack_validate_args(args.collect()) {
                 Ok(args) => match crate::validate_release_evidence_pack_gate(args) {
@@ -475,26 +388,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     }
                     Err(message) => {
                         eprintln!("typescript workspace validation failed: {message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
-        (Some("validate"), Some("pr-traceability")) => {
-            match crate::parse_pr_traceability_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_pr_traceability_gate(args) {
-                    Ok((sections, code_review_present)) => {
-                        println!(
-                            "PR traceability validation passed: {sections} required sections, code_review_present={code_review_present}"
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("PR traceability validation failed: {message}");
                         ExitCode::FAILURE
                     }
                 },
@@ -2250,33 +2143,6 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                     }
                     Err(message) => {
                         eprintln!("protection-context-match validation failed:\n{message}");
-                        ExitCode::FAILURE
-                    }
-                },
-                Err(message) => {
-                    eprintln!("{message}");
-                    ExitCode::from(2)
-                }
-            }
-        }
-        // pre-push-contract: enforces the canonical `oya verify`
-        // local-developer entry point is wired consistently across
-        // Done-Definition, dev-CLI dispatch source, and the local
-        // pre-push git hook. Lane id: `oya-governance-pre-push`.
-        // Kernel: `check-pre-push` (port-in-kernel, ADR-0056).
-        (Some("validate"), Some("pre-push-contract")) => {
-            match crate::parse_pre_push_contract_validate_args(args.collect()) {
-                Ok(args) => match crate::validate_pre_push_contract_gate(args) {
-                    Ok(report) => {
-                        println!(
-                            "pre-push-contract validation passed: command={}, \
-                             native-verify-dispatch-token={}, verify-subcommand=wired, hook=wired",
-                            report.canonical_command, report.native_verify_dispatch_token
-                        );
-                        ExitCode::SUCCESS
-                    }
-                    Err(message) => {
-                        eprintln!("pre-push-contract validation failed: {message}");
                         ExitCode::FAILURE
                     }
                 },

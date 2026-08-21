@@ -31,11 +31,7 @@ fn producer_binary(root: &Path, producer_bin: Option<&str>) -> Result<PathBuf, S
             "FAIL-CLOSED: missing OYA_CI_PRODUCER_BIN; Cargo fallback is forbidden".to_owned(),
         );
     };
-    Ok(if Path::new(bin).is_absolute() {
-        PathBuf::from(bin)
-    } else {
-        root.join(bin)
-    })
+    ci_path_resolver_adapters::resolve_cargo_test_binary(root, std::ffi::OsStr::new(bin))
 }
 
 #[test]
@@ -134,6 +130,102 @@ fn total_accounting_fixtures_execute_red_green_cases() {
 /// - the oya-governance-* crates broadly `unreachable`
 ///
 /// Counts are MEASURED, not hardcoded (the plan's 780/57 were not re-derived this session).
+#[test]
+fn move_plan_conformance_is_wired_on_the_live_corpus() {
+    // ANTI-VACUITY. The two conformance codes compare the registry's derived `disposition`
+    // against the committed `specs/reorg/*-move-plan.json` set. If either side ever stops being
+    // produced — the `disposition` field dropped, `planned_move_paths` empty, the plan glob
+    // moved — the comparison silently returns nothing and the gate certifies agreement it never
+    // checked. That is the false-green this test exists to prevent.
+    //
+    // It proves the comparison is WIRED, never that it currently finds disagreement. The two
+    // directions are proven to fire by dedicated unit fixtures over synthetic input
+    // (`a_derived_move_with_no_committed_plan_is_reported` and
+    // `a_planned_move_the_registry_says_should_stay_is_reported`), which is where an
+    // does-it-detect assertion belongs — it holds no matter what the live corpus contains.
+    //
+    // Asserting a non-zero live finding count instead, as this test originally did, is a
+    // self-defeating ratchet: both counts exist to be burned down, so the gate would go red
+    // at exactly the moment the burn-down succeeded. It did — executing the intelligence
+    // move plan drove `move_planned_not_derived` to zero and turned a completed migration
+    // into a CI failure.
+    let root = repo_root();
+    let registry = run_producer_stdout(&root);
+
+    let planned = registry["planned_move_paths"]
+        .as_array()
+        .expect("the face must carry planned_move_paths");
+
+    // Discovery is checked against an INDEPENDENT enumeration of the plan glob, not against a
+    // constant. RR-MOVEPLAN-SINGLETON allows AT MOST one live plan, so zero is a legitimate
+    // state between rehomes -- the previous `!planned.is_empty()` made finishing a rehome and
+    // retiring its spent plan fail this gate, which is the same shape as the finding-count
+    // assertions removed earlier: an anti-vacuity check that punishes the work completing.
+    //
+    // What still must hold is AGREEMENT: if a live plan is committed, the producer must have
+    // found it. Counting the glob here rather than reusing the producer's own discovery is the
+    // point -- a broken glob shows up as disagreement, which a self-consistent count cannot see.
+    let live_plans: Vec<String> = fs::read_dir(root.join("specs/reorg"))
+        .expect("specs/reorg must exist")
+        .filter_map(Result::ok)
+        .filter_map(|entry| entry.file_name().into_string().ok())
+        .filter(|name| {
+            name.ends_with("-move-plan.json")
+                && !name.contains(".PARKED.")
+                && !name.contains(".BLOCKED.")
+        })
+        .collect();
+    assert!(
+        live_plans.len() <= 1,
+        "RR-MOVEPLAN-SINGLETON allows at most one live move plan; found {live_plans:?}"
+    );
+    assert_eq!(
+        live_plans.is_empty(),
+        planned.is_empty(),
+        "committed live plans {live_plans:?} disagree with the face's planned_move_paths \
+         ({} entries) -- the plan glob and the producer's discovery have diverged",
+        planned.len()
+    );
+
+    // The derived half: every accounting row must carry a `disposition`, drawn from the closed
+    // vocabulary. Dropping or emptying the field is the failure this catches — a row set that
+    // silently lost its disposition compares equal to a corpus in perfect agreement.
+    let rows = registry["rows"]
+        .as_array()
+        .expect("the face must carry accounting rows");
+    assert!(
+        !rows.is_empty(),
+        "the live corpus must produce accounting records"
+    );
+
+    let mut missing = Vec::new();
+    let mut seen = BTreeSet::new();
+    for row in rows {
+        match row["disposition"].as_str() {
+            Some(value) if !value.is_empty() => {
+                seen.insert(value.to_owned());
+            }
+            _ => {
+                if missing.len() < 5 {
+                    missing.push(row["path"].as_str().unwrap_or("<no path>").to_owned());
+                }
+            }
+        }
+    }
+    assert!(
+        missing.is_empty(),
+        "every accounting row must carry a non-empty disposition, else the derived half of \
+         move-plan conformance is comparing against nothing; first offenders: {missing:?}"
+    );
+
+    // A single-valued disposition column is the other way this silently goes vacuous: if the
+    // deriver collapses to one verdict, the comparison still runs and still agrees with itself.
+    assert!(
+        seen.len() > 1,
+        "disposition collapsed to a single value {seen:?}; the deriver is no longer classifying"
+    );
+}
+
 #[test]
 fn gate2_is_born_blocking_on_the_live_corpus() {
     let root = repo_root();
@@ -270,14 +362,27 @@ fn owners_files_are_accounted_by_construction_on_the_live_corpus() {
     );
 
     // The exhibit (PR #1473). Named explicitly: nobody hand-wrote a row for it.
+    // justification_ref stays owners-schema (OWNERS floor). reachable_from may also
+    // carry envelope-prefix-ownership once Phase1 prefix allows cover os/** — the floor
+    // only fills an empty reachable_from, so envelope coverage replaces the sole
+    // owners-schema stamp without changing by-construction justification.
     let os_owners = rows
         .iter()
         .find(|row| row["path"] == "os/OWNERS")
         .expect("os/OWNERS must be in the live registry");
     assert_eq!(os_owners["justification_ref"], "owners-schema");
-    assert_eq!(
-        os_owners["reachable_from"],
-        serde_json::json!(["owners-schema"])
+    let os_reachable = os_owners["reachable_from"]
+        .as_array()
+        .expect("os/OWNERS reachable_from must be an array");
+    assert!(
+        !os_reachable.is_empty(),
+        "os/OWNERS must be reachable (owners-schema floor and/or envelope-prefix)"
+    );
+    assert!(
+        os_reachable.iter().any(|v| {
+            v.as_str() == Some("owners-schema") || v.as_str() == Some("envelope-prefix-ownership")
+        }),
+        "os/OWNERS reachable_from must include owners-schema or envelope-prefix-ownership, got {os_reachable:?}"
     );
 
     // ...and the gate agrees: no per-path finding is keyed to ANY OWNERS file.
@@ -309,9 +414,7 @@ fn owners_files_are_accounted_by_construction_on_the_live_corpus() {
 #[test]
 fn owners_files_are_never_registered_in_the_reachability_registry() {
     let registry: Value = load_json(&repo_root().join("specs/reachability-registry.json"));
-    let registered = registry["registered"]
-        .as_array()
-        .expect("registered array");
+    let registered = registry["registered"].as_array().expect("registered array");
     // Non-vacuity: the file still carries its legitimate non-OWNERS registrations.
     assert!(
         registered.len() > 20,
@@ -334,8 +437,7 @@ fn owners_files_are_never_registered_in_the_reachability_registry() {
 /// provided by `OYA_CI_PRODUCER_BIN`; missing env fails closed so tests cannot silently fall back to
 /// Cargo. The producer reads the materialized scm-facts face (a declared input); it never calls git.
 fn run_producer_stdout(root: &Path) -> Value {
-    let scm_facts = root
-        .join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+    let scm_facts = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
     let producer_bin = std::env::var("OYA_CI_PRODUCER_BIN").ok();
     let bin = producer_binary(root, producer_bin.as_deref()).unwrap_or_else(|e| panic!("{e}"));
     let output = Command::new(bin)

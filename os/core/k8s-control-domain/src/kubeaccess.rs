@@ -11,8 +11,8 @@
 //! the policy decision (`authorize`) plus the endpoint config validation.
 
 use crate::error::{ControlError, Result};
-use std::collections::BTreeSet;
 use os_kernel::Role;
+use std::collections::BTreeSet;
 
 /// The kube-apiserver kubeaccess endpoint configuration.
 ///

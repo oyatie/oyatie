@@ -11,7 +11,7 @@
 //!
 //! The unit of operation is a [`MovePlan`]: an explicit, total list of crate-move tuples
 //! `(old_path, new_path, old_cargo_name, new_cargo_name)`. The strangler derives one plan
-//! per capability from `specs/capability-registry.json`; this tool APPLIES a plan
+//! per capability from `governance/capability-registry.json`; this tool APPLIES a plan
 //! deterministically. Keeping the plan explicit means the per-crate FACE classification
 //! (which sub-fold a crate lands in) stays the strangler's decision and out of this engine,
 //! so the engine is a pure, testable transform.
@@ -76,7 +76,7 @@ pub use manifest::{
     select_move_plan,
 };
 pub use model::{
-    move_manifest_value, CodemodError, CrateMove, Mapping, MappingRow, MovePlan,
-    REORG_MOVE_MANIFEST_SCHEMA,
+    CodemodError, CrateMove, Mapping, MappingRow, MovePlan, REORG_MOVE_MANIFEST_SCHEMA,
+    move_manifest_value,
 };
-pub use plan::{apply_plan, ApplyOptions, ApplyOutcome};
+pub use plan::{ApplyOptions, ApplyOutcome, apply_plan};

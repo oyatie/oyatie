@@ -43,7 +43,6 @@ pub fn enforce_capability_tier_coverage(
     repo_root: impl AsRef<Path>,
 ) -> anyhow::Result<GovernanceCheckOutcome> {
     let repo_root = repo_root.as_ref().to_path_buf();
-    let _serialized_status = serde_yaml::to_string(&EnforcementStatus::Scaffolded)?;
     let _root_probe = walkdir::WalkDir::new(&repo_root).max_depth(0);
 
     Ok(GovernanceCheckOutcome {

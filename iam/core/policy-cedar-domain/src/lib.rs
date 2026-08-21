@@ -505,7 +505,9 @@ pub struct PolicyLintReport {
 impl PolicyLintReport {
     /// Returns `true` if any finding has `LintSeverity::Error`.
     pub fn has_blocking(&self) -> bool {
-        self.findings.iter().any(|f| f.severity == LintSeverity::Error)
+        self.findings
+            .iter()
+            .any(|f| f.severity == LintSeverity::Error)
     }
 
     /// Returns `true` if there are no findings at all.
@@ -1338,8 +1340,14 @@ mod tests {
         let report_with_error = PolicyLintReport {
             findings: vec![error_finding.clone()],
         };
-        assert!(report_with_error.has_blocking(), "report with Error finding must be blocking");
-        assert!(!report_with_error.is_clean(), "report with Error finding must not be clean");
+        assert!(
+            report_with_error.has_blocking(),
+            "report with Error finding must be blocking"
+        );
+        assert!(
+            !report_with_error.is_clean(),
+            "report with Error finding must not be clean"
+        );
 
         // Round-trip through serde_json.
         let json = serde_json::to_string(&report_with_error).expect("PolicyLintReport serializes");
@@ -1357,17 +1365,26 @@ mod tests {
         let report_warning_only = PolicyLintReport {
             findings: vec![warning_finding],
         };
-        assert!(!report_warning_only.has_blocking(), "Warning-only report must not be blocking");
-        assert!(!report_warning_only.is_clean(), "Warning-only report must not be clean");
+        assert!(
+            !report_warning_only.has_blocking(),
+            "Warning-only report must not be blocking"
+        );
+        assert!(
+            !report_warning_only.is_clean(),
+            "Warning-only report must not be clean"
+        );
 
         // An empty report is clean and not blocking.
         let empty_report = PolicyLintReport { findings: vec![] };
         assert!(empty_report.is_clean(), "empty report must be clean");
-        assert!(!empty_report.has_blocking(), "empty report must not be blocking");
+        assert!(
+            !empty_report.has_blocking(),
+            "empty report must not be blocking"
+        );
 
         // LintSeverity serde: "Error" and "Warning" PascalCase wire values.
-        let error_json = serde_json::to_string(&LintSeverity::Error)
-            .expect("LintSeverity::Error serializes");
+        let error_json =
+            serde_json::to_string(&LintSeverity::Error).expect("LintSeverity::Error serializes");
         assert_eq!(error_json, "\"Error\"");
         let warning_json = serde_json::to_string(&LintSeverity::Warning)
             .expect("LintSeverity::Warning serializes");
@@ -1411,7 +1428,11 @@ mod tests {
             .iter()
             .filter(|f| f.severity == LintSeverity::Error)
             .collect();
-        assert_eq!(errors.len(), 1, "expected exactly one Error finding for Allow/Deny conflict");
+        assert_eq!(
+            errors.len(),
+            1,
+            "expected exactly one Error finding for Allow/Deny conflict"
+        );
         assert_eq!(
             errors[0].rule_indices,
             vec![0usize, 1],
@@ -1455,7 +1476,11 @@ mod tests {
             .iter()
             .filter(|f| f.severity == LintSeverity::Error)
             .collect();
-        assert_eq!(errors.len(), 1, "expected one Error for attr-matching conflict");
+        assert_eq!(
+            errors.len(),
+            1,
+            "expected one Error for attr-matching conflict"
+        );
         assert_eq!(errors[0].rule_indices, vec![0usize, 1]);
     }
 
@@ -1484,7 +1509,11 @@ mod tests {
             .iter()
             .filter(|f| f.severity == LintSeverity::Error)
             .collect();
-        assert_eq!(errors.len(), 1, "expected exactly one Error finding for duplicate rules");
+        assert_eq!(
+            errors.len(),
+            1,
+            "expected exactly one Error finding for duplicate rules"
+        );
         assert_eq!(errors[0].rule_indices, vec![0usize, 1]);
     }
 
@@ -1517,7 +1546,10 @@ mod tests {
             ],
         };
         let report = lint_policy_version(&version);
-        assert!(report.is_clean(), "clean policy must yield is_clean() == true");
+        assert!(
+            report.is_clean(),
+            "clean policy must yield is_clean() == true"
+        );
         assert!(!report.has_blocking());
         assert!(report.findings.is_empty());
     }
@@ -1561,7 +1593,11 @@ mod tests {
             .iter()
             .filter(|f| f.severity == LintSeverity::Warning)
             .collect();
-        assert_eq!(warnings.len(), 1, "expected exactly one Warning for shadowed rule");
+        assert_eq!(
+            warnings.len(),
+            1,
+            "expected exactly one Warning for shadowed rule"
+        );
         assert_eq!(
             warnings[0].rule_indices,
             vec![0usize, 1],

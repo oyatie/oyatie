@@ -1,0 +1,2779 @@
+{
+  "schema_version": 2,
+  "language": "go",
+  "snapshot_digest": "sha256:d78e47ea01fb87a27463baa92ef3cec112e6e8a7454cf040c58a04f111b4dc03",
+  "packages": [
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/basic",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Add",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Add returns the sum of a and b."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "a",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "param",
+              "name": "b",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "+"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "a",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "b",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "named",
+          "name": "Celsius",
+          "type": {
+            "kind": "basic",
+            "name": "float64"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Celsius is a temperature in degrees Celsius."
+          }
+        },
+        {
+          "kind": "const",
+          "name": "DefaultName",
+          "type": {
+            "kind": "basic",
+            "name": "string"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "DefaultName is the fallback identity for an unnamed record.",
+            "value": "\"anonymous\""
+          }
+        },
+        {
+          "kind": "var",
+          "name": "Enabled",
+          "type": {
+            "kind": "basic",
+            "name": "bool"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Enabled reports whether the fixture feature is on by default."
+          }
+        },
+        {
+          "kind": "alias",
+          "name": "ID",
+          "type": {
+            "kind": "basic",
+            "name": "string"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "ID is an alias for the underlying identity spelling."
+          }
+        },
+        {
+          "kind": "func",
+          "name": "Label",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Label renders a display name for the given identity."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "id",
+              "type": {
+                "kind": "named",
+                "name": "ID",
+                "package": "oyatie.example/portengine-fixture/corpus/basic"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "param",
+              "name": "fallback",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "id",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "fallback",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "id",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "const",
+          "name": "MaxRetries",
+          "type": {
+            "kind": "basic",
+            "name": "int"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "MaxRetries bounds the retry loop.",
+            "value": "3"
+          }
+        },
+        {
+          "kind": "func",
+          "name": "Scale",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Scale multiplies value by factor."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "value",
+              "type": {
+                "kind": "basic",
+                "name": "float64"
+              }
+            },
+            {
+              "kind": "param",
+              "name": "factor",
+              "type": {
+                "kind": "basic",
+                "name": "float64"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "float64"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "*"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "value",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "factor",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Threshold",
+          "type": {
+            "kind": "basic",
+            "name": "float64"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Threshold is the default cutoff."
+          }
+        },
+        {
+          "kind": "func",
+          "name": "unexported",
+          "attrs": {
+            "doc": "unexported is not part of the fixture's public surface."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "n",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "n",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/composite",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "interface",
+          "name": "Describer",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Describer is anything that can describe itself."
+          },
+          "children": [
+            {
+              "kind": "method",
+              "name": "Describe",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Describe renders a description.",
+                "receiver": "shared"
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Driver",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Driver embeds an Engine and gains its methods."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "Engine",
+              "type": {
+                "kind": "named",
+                "name": "Engine",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "flags": [
+                "embedded",
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Engine is embedded, so Driver's method set includes Run without declaring it."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "label describes this driver."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Describe",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Describe renders a description."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "label",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "d",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "promoted",
+              "name": "Run",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Run performs one unit of work and reports the running count.\n\nMUTATING, which is what makes the promoted method interesting: the forwarding method's receiver\nis decided by what the method it forwards to does, and there is no body on the outer type to\nobserve.",
+                "via": "Engine"
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Describer",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "attrs": {
+                "site": "assertion"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Describe",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "shared"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Job",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "attrs": {
+                "site": "assertion"
+              }
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Runner",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              },
+              "attrs": {
+                "site": "assertion"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Run",
+                  "flags": [
+                    "exported"
+                  ],
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "int"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Engine",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Engine counts the work it has done."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "calls",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "attrs": {
+                "doc": "calls is how many times Run has been called."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Run",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Run performs one unit of work and reports the running count.\n\nMUTATING, which is what makes the promoted method interesting: the forwarding method's receiver\nis decided by what the method it forwards to does, and there is no body on the outer type to\nobserve."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "assign",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "calls",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "e",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "calls",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "e",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "1"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "calls",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "e",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "interface",
+          "name": "Job",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Job is anything that runs and describes itself.\n\nEmbeds two interfaces and declares no method of its own, which is the shape 87.3% of embedding\ninterfaces have — and the shape whose emitted trait says nothing at all unless the supertraits\nare carried."
+          },
+          "children": [
+            {
+              "kind": "embeds",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Runner",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              }
+            },
+            {
+              "kind": "embeds",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Describer",
+                "package": "oyatie.example/portengine-fixture/corpus/composite"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "interface",
+          "name": "Runner",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Runner is anything that can run."
+          },
+          "children": [
+            {
+              "kind": "method",
+              "name": "Run",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Run performs one unit of work and reports the running count."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/fallible",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Check",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Check reports whether s is usable, returning only a failure.\n\nThe no-value shape: `error` alone. The target has to invent the success value here, because a\nfunction that returns only a failure still has to say it succeeded."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "errors.New"
+                              },
+                              "children": [
+                                {
+                                  "kind": "selector",
+                                  "name": "New",
+                                  "type": {
+                                    "kind": "func",
+                                    "args": [
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "string"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "named_interface",
+                                            "name": "error"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "ident",
+                                      "name": "errors",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"empty\""
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Length",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Length reports the length of s, failing on the empty string.\n\nThe one-value-and-a-failure shape: `(int, error)`, which is what most of a real package looks\nlike."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "=="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "STRING",
+                                "value": "\"\""
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            },
+                            {
+                              "kind": "call",
+                              "name": "",
+                              "attrs": {
+                                "callee": "errors.New"
+                              },
+                              "children": [
+                                {
+                                  "kind": "selector",
+                                  "name": "New",
+                                  "type": {
+                                    "kind": "func",
+                                    "args": [
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "basic",
+                                            "name": "string"
+                                          }
+                                        ]
+                                      },
+                                      {
+                                        "kind": "tuple",
+                                        "args": [
+                                          {
+                                            "kind": "named_interface",
+                                            "name": "error"
+                                          }
+                                        ]
+                                      }
+                                    ]
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "ident",
+                                      "name": "errors",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                },
+                                {
+                                  "kind": "literal",
+                                  "name": "",
+                                  "attrs": {
+                                    "lit_kind": "STRING",
+                                    "value": "\"empty\""
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "len"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "len",
+                          "attrs": {
+                            "ref": "builtin"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Twice",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Twice returns the length of s doubled.\n\nThe PROPAGATION shape, and the point of the whole exercise: `n, err := Length(s)` followed by\n`if err != nil { return 0, err }` is two statements the caller could simply not have written.\nThe target spells it as one operator on a value that cannot be used without addressing the\nfailure."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let_tuple",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "bind",
+                      "name": "n"
+                    },
+                    {
+                      "kind": "bind",
+                      "name": "err"
+                    },
+                    {
+                      "kind": "value",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "call",
+                          "name": "",
+                          "attrs": {
+                            "callee": "oyatie.example/portengine-fixture/corpus/fallible.Length"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "Length",
+                              "attrs": {
+                                "ref": "func"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "s",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "!="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "err",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "nil",
+                              "attrs": {
+                                "ref": "nil"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "literal",
+                              "name": "",
+                              "attrs": {
+                                "lit_kind": "INT",
+                                "value": "0"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "err",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "binary",
+                      "name": "",
+                      "attrs": {
+                        "op": "+"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "n",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Validate",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Validate checks s and reports nothing else.\n\nPropagation with NO value bound: the call is run for its failure alone, so there is nothing to\nname and the target keeps it as a statement."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "s",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "flags": [
+                "effect_unknown"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "error"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "let",
+                  "name": "err",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "oyatie.example/portengine-fixture/corpus/fallible.Check"
+                      },
+                      "children": [
+                        {
+                          "kind": "ident",
+                          "name": "Check",
+                          "attrs": {
+                            "ref": "func"
+                          }
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "s",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "if",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "cond",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "!="
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "err",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "nil",
+                              "attrs": {
+                                "ref": "nil"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    },
+                    {
+                      "kind": "then",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "return",
+                          "name": "",
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "err",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                },
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "nil",
+                      "attrs": {
+                        "ref": "nil"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/geometry",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "struct",
+          "name": "Bounds",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Bounds is a rectangle described by two points from another package."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "Min",
+              "type": {
+                "kind": "named",
+                "name": "Point",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Min is the lower corner."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "Max",
+              "type": {
+                "kind": "named",
+                "name": "Point",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Max is the upper corner."
+              }
+            }
+          ]
+        },
+        {
+          "kind": "func",
+          "name": "Lookup",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Lookup returns a count for a label, falling back when the table has none.\n\nThe map is in the SIGNATURE rather than the body on purpose: indexing is not in the translated\nstatement subset yet and refuses by name, and this package's job is to prove type resolution\nrather than to smuggle an untranslated construct into the green corpus."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "table",
+              "type": {
+                "kind": "map",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "string"
+                  },
+                  {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "param",
+              "name": "fallback",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "fallback",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "alias",
+          "name": "Origin",
+          "type": {
+            "kind": "named",
+            "name": "Point",
+            "package": "oyatie.example/portengine-fixture/corpus/shapes"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Origin is the zero point, referred to across a package boundary."
+          }
+        },
+        {
+          "kind": "func",
+          "name": "Widths",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Widths returns the horizontal extents of several rectangles.\n\nThe slice is the point: a composite type resolves by CONSTRUCTOR now, so one `slice` entry in\nthe pack answers this and every other slice, where a spelling table needed a row per element."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "counts",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                ]
+              },
+              "flags": [
+                "escapes"
+              ]
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "slice",
+                "args": [
+                  {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                ]
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "ident",
+                      "name": "counts",
+                      "attrs": {
+                        "ref": "local"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/naming",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "func",
+          "name": "Describe",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Describe renders anything that can name itself.\n\nThe parameter is the one interface position with an unambiguous target form: the caller keeps\nthe value and the callee only reads it, so a borrow is right and no ownership question arises."
+          },
+          "children": [
+            {
+              "kind": "param",
+              "name": "named",
+              "type": {
+                "kind": "named_interface",
+                "name": "Named",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              }
+            },
+            {
+              "kind": "result",
+              "name": "",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              }
+            },
+            {
+              "kind": "body",
+              "name": "",
+              "children": [
+                {
+                  "kind": "return",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "call",
+                      "name": "",
+                      "attrs": {
+                        "callee": "",
+                        "callee_kind": "method"
+                      },
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "Name",
+                          "type": {
+                            "kind": "func",
+                            "args": [
+                              {
+                                "kind": "tuple"
+                              },
+                              {
+                                "kind": "tuple",
+                                "args": [
+                                  {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                ]
+                              }
+                            ]
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "named",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Label",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Label is a display name that can rename itself."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "text",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "text is the current display name."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Name",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Name returns the display name.\n\nRead-only, which is what makes the derived trait receiver interesting: a rule that assumed every\ntrait method is exclusive would put `\u0026mut self` on a getter."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "text",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "l",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Rename",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Rename replaces the display name.\n\nMutating, and one mutating implementor is enough to make the whole trait method exclusive: a\ntrait fixes one signature for everyone."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "next",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "assign",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "text",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "l",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "ident",
+                          "name": "next",
+                          "attrs": {
+                            "ref": "local"
+                          }
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Named",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "attrs": {
+                "site": "assertion"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Name",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "shared"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "method",
+                  "name": "Rename",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "exclusive"
+                  },
+                  "children": [
+                    {
+                      "kind": "param",
+                      "name": "next",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "struct",
+          "name": "Tag",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Tag is a display name that never changes."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "text",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "text is the fixed display name."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Name",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Name returns the display name."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "text",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "t",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Rename",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Rename does nothing: a tag's name is fixed.\n\nA no-op rather than a mutation, so the derived receiver has to come from the UNION over\nimplementors — a second implementor that does not mutate proves the union does not simply take\nthe last answer."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "next",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": ""
+                }
+              ]
+            },
+            {
+              "kind": "implements",
+              "name": "",
+              "type": {
+                "kind": "named_interface",
+                "name": "Named",
+                "package": "oyatie.example/portengine-fixture/corpus/shapes"
+              },
+              "attrs": {
+                "site": "assertion"
+              },
+              "children": [
+                {
+                  "kind": "method",
+                  "name": "Name",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "shared"
+                  },
+                  "children": [
+                    {
+                      "kind": "result",
+                      "name": "",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                },
+                {
+                  "kind": "method",
+                  "name": "Rename",
+                  "flags": [
+                    "exported"
+                  ],
+                  "attrs": {
+                    "receiver": "exclusive"
+                  },
+                  "children": [
+                    {
+                      "kind": "param",
+                      "name": "next",
+                      "type": {
+                        "kind": "basic",
+                        "name": "string"
+                      }
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/pointers",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "struct",
+          "name": "Counter",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Counter accumulates a total."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "total",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "attrs": {
+                "doc": "total is the running sum."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "label names the counter."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Add",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Add adds n to the counter.\n\nMUTATED, does not escape: the body assigns through the receiver and nothing outlives the call."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "n",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "assign",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "total",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "c",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "total",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "c",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "ident",
+                              "name": "n",
+                              "attrs": {
+                                "ref": "local"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Label",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Label reports the counter's name, by value receiver.\n\nNo pointer at all — the receiver is a copy, so no disposition question arises."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "label",
+                          "type": {
+                            "kind": "basic",
+                            "name": "string"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "c",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Merge",
+              "flags": [
+                "exported",
+                "mutated",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Merge folds other into the receiver.\n\nThe receiver is mutated; `other` is read-only. Two pointers in one signature, with different\nanswers — a rule that keys on the type rather than on the facts gives them the same one."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "other",
+                  "type": {
+                    "kind": "pointer",
+                    "args": [
+                      {
+                        "kind": "named",
+                        "name": "Counter",
+                        "package": "oyatie.example/portengine-fixture/corpus/pointers"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "assign",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "total",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "c",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        },
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "+"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "total",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "c",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "selector",
+                              "name": "total",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "other",
+                                  "attrs": {
+                                    "ref": "local"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Total",
+              "flags": [
+                "exported",
+                "pointer_receiver"
+              ],
+              "attrs": {
+                "doc": "Total reports the accumulated value.\n\nNeither mutated nor escaping: a read-only borrow is enough."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "selector",
+                          "name": "total",
+                          "type": {
+                            "kind": "basic",
+                            "name": "int"
+                          },
+                          "children": [
+                            {
+                              "kind": "ident",
+                              "name": "c",
+                              "attrs": {
+                                "ref": "receiver"
+                              }
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "unit_id": "oyatie.example/portengine-fixture/corpus/shapes",
+      "producer": "bootstrap-go-packages-go-types",
+      "declarations": [
+        {
+          "kind": "interface",
+          "name": "Named",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Named is anything that can render its own name."
+          },
+          "children": [
+            {
+              "kind": "method",
+              "name": "Name",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Name returns the display name.",
+                "receiver": "shared"
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Rename",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Rename replaces the display name.",
+                "receiver": "exclusive"
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "next",
+                  "type": {
+                    "kind": "basic",
+                    "name": "string"
+                  }
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "kind": "var",
+          "name": "Origin",
+          "type": {
+            "kind": "named",
+            "name": "Point",
+            "package": "oyatie.example/portengine-fixture/corpus/shapes"
+          },
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Origin is the zero point."
+          }
+        },
+        {
+          "kind": "struct",
+          "name": "Point",
+          "flags": [
+            "exported"
+          ],
+          "attrs": {
+            "doc": "Point is a location in two dimensions."
+          },
+          "children": [
+            {
+              "kind": "field",
+              "name": "X",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "X is the horizontal coordinate."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "Y",
+              "type": {
+                "kind": "basic",
+                "name": "int"
+              },
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Y is the vertical coordinate."
+              }
+            },
+            {
+              "kind": "field",
+              "name": "label",
+              "type": {
+                "kind": "basic",
+                "name": "string"
+              },
+              "attrs": {
+                "doc": "label is unexported and must survive extraction as such."
+              }
+            },
+            {
+              "kind": "method",
+              "name": "Area",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Area reports the rectangle area between the origin and p."
+              },
+              "children": [
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "binary",
+                          "name": "",
+                          "attrs": {
+                            "op": "*"
+                          },
+                          "children": [
+                            {
+                              "kind": "selector",
+                              "name": "X",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "p",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "selector",
+                              "name": "Y",
+                              "type": {
+                                "kind": "basic",
+                                "name": "int"
+                              },
+                              "children": [
+                                {
+                                  "kind": "ident",
+                                  "name": "p",
+                                  "attrs": {
+                                    "ref": "receiver"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "kind": "method",
+              "name": "Shift",
+              "flags": [
+                "exported"
+              ],
+              "attrs": {
+                "doc": "Shift returns a Point moved by the given deltas."
+              },
+              "children": [
+                {
+                  "kind": "param",
+                  "name": "dx",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "param",
+                  "name": "dy",
+                  "type": {
+                    "kind": "basic",
+                    "name": "int"
+                  }
+                },
+                {
+                  "kind": "result",
+                  "name": "",
+                  "type": {
+                    "kind": "named",
+                    "name": "Point",
+                    "package": "oyatie.example/portengine-fixture/corpus/shapes"
+                  }
+                },
+                {
+                  "kind": "body",
+                  "name": "",
+                  "children": [
+                    {
+                      "kind": "return",
+                      "name": "",
+                      "children": [
+                        {
+                          "kind": "composite",
+                          "name": "",
+                          "type": {
+                            "kind": "named",
+                            "name": "Point",
+                            "package": "oyatie.example/portengine-fixture/corpus/shapes"
+                          },
+                          "children": [
+                            {
+                              "kind": "keyed",
+                              "name": "X",
+                              "children": [
+                                {
+                                  "kind": "binary",
+                                  "name": "",
+                                  "attrs": {
+                                    "op": "+"
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "selector",
+                                      "name": "X",
+                                      "type": {
+                                        "kind": "basic",
+                                        "name": "int"
+                                      },
+                                      "children": [
+                                        {
+                                          "kind": "ident",
+                                          "name": "p",
+                                          "attrs": {
+                                            "ref": "receiver"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "kind": "ident",
+                                      "name": "dx",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "keyed",
+                              "name": "Y",
+                              "children": [
+                                {
+                                  "kind": "binary",
+                                  "name": "",
+                                  "attrs": {
+                                    "op": "+"
+                                  },
+                                  "children": [
+                                    {
+                                      "kind": "selector",
+                                      "name": "Y",
+                                      "type": {
+                                        "kind": "basic",
+                                        "name": "int"
+                                      },
+                                      "children": [
+                                        {
+                                          "kind": "ident",
+                                          "name": "p",
+                                          "attrs": {
+                                            "ref": "receiver"
+                                          }
+                                        }
+                                      ]
+                                    },
+                                    {
+                                      "kind": "ident",
+                                      "name": "dy",
+                                      "attrs": {
+                                        "ref": "local"
+                                      }
+                                    }
+                                  ]
+                                }
+                              ]
+                            },
+                            {
+                              "kind": "keyed",
+                              "name": "label",
+                              "children": [
+                                {
+                                  "kind": "zero",
+                                  "name": "label",
+                                  "type": {
+                                    "kind": "basic",
+                                    "name": "string"
+                                  }
+                                }
+                              ]
+                            }
+                          ]
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

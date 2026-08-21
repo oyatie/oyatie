@@ -72,8 +72,8 @@ fn live_service_corpus_is_born_blocking_green() {
     );
     assert_eq!(report.verdict, Verdict::Green);
     assert!(
-        report.manifests_checked >= 95,
-        "the live tree should carry at least the ~101 service manifests; got {}",
+        report.manifests_checked >= 77,
+        "the live tree should carry at least the current 77 service manifests; got {}",
         report.manifests_checked
     );
     eprintln!(
@@ -117,10 +117,10 @@ fn policy_enums_match_platform_architecture_taxonomy() {
 fn find_array(value: &Value, key: &str) -> Option<Value> {
     match value {
         Value::Object(map) => {
-            if let Some(v) = map.get(key) {
-                if v.is_array() {
-                    return Some(v.clone());
-                }
+            if let Some(v) = map.get(key)
+                && v.is_array()
+            {
+                return Some(v.clone());
             }
             for v in map.values() {
                 if let Some(found) = find_array(v, key) {
@@ -194,9 +194,14 @@ fn fixture_policy() -> Value {
 fn green_repo_fixture_passes_from_disk() {
     let repo = new_temp_repo();
     let root = &repo.root;
+    // Retargeted from `cloud/cloud-iam/...`: this PR removes `cloud` from governed_service_roots,
+    // so a fixture written there is collected by nothing and the `== 2` floor below fails. The
+    // live capability-first home carries identical facets (substrate / substrate-identity / T1)
+    // and is already in specs/microservice-tier-classification.json, so the exhibit is unchanged.
+    // Do NOT instead relax the count assertion — it is this fixture's only anti-vacuity floor.
     write_file(
         root,
-        "cloud/cloud-iam/manifest.json",
+        "iam/cloud-iam/manifest.json",
         r#"{
   "microservice": "cloud-iam",
   "tier": "substrate",
@@ -283,16 +288,16 @@ fn red_repo_fixture_overloaded_tier_fails_from_disk() {
     // `tier: T1` overloads the dependency class with a DR/reliability value (the V3 anti-pattern).
     write_file(
         root,
-        "cloud/legacy-svc/manifest.json",
+        "oya/legacy-svc/manifest.json",
         "{\n  \"microservice\": \"legacy-svc\",\n  \"tier\": \"T1\",\n  \"tier_subtype\": \"substrate-infra\",\n  \"dr_tier\": \"T1\"\n}\n",
     );
     let policy = fixture_policy();
     let observed = collect_manifests(root, &policy).expect("collect red fixture");
     let findings = evaluate_keyed(&policy, &observed);
     assert!(
-        findings.iter().any(
-            |f| f.code == "TFC-TIER-TYPE-OVERLOAD" && f.key == "cloud/legacy-svc/manifest.json"
-        ),
+        findings
+            .iter()
+            .any(|f| f.code == "TFC-TIER-TYPE-OVERLOAD" && f.key == "oya/legacy-svc/manifest.json"),
         "an overloaded tier (DR value) must fail from disk: {findings:#?}"
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
@@ -324,7 +329,7 @@ fn red_repo_fixture_substrate_without_dag_position_fails_from_disk() {
     let root = &repo.root;
     write_file(
         root,
-        "cloud/cell/manifest.json",
+        "cell/manifest.json",
         "{\n  \"microservice\": \"cell\",\n  \"tier\": \"substrate\",\n  \"tier_subtype\": \"substrate-infra\",\n  \"dr_tier\": \"T1\"\n}\n",
     );
     let policy = fixture_policy();

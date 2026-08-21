@@ -32,7 +32,8 @@ SessionTicket (kernel)
 Settings templates declare secrets via `sref://` references:
 
 ```toml
-# templates/foundry-supervisor/claude.toml
+# Illustrative settings-template fragment (templates/foundry-supervisor/ deleted —
+# hooks pointed at missing tools/foundry-supervisor-* binaries).
 [[mcp_servers]]
 name = "oya-mcp-gateway"
 env_secret_refs = [

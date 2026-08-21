@@ -1,5 +1,5 @@
 use std::fs;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use oya_governance_audit_event_emission::{
     ENFORCED_RULE, EnforcementStatus, FindingKind, RULE_ID, enforce_audit_event_emission,
@@ -15,7 +15,7 @@ fn temp_repo(name: &str) -> PathBuf {
     root
 }
 
-fn write(root: &PathBuf, relative: &str, content: &str) {
+fn write(root: &Path, relative: &str, content: &str) {
     let path = root.join(relative);
     fs::create_dir_all(path.parent().expect("parent dir")).expect("create parent dir");
     fs::write(path, content).expect("write fixture");
@@ -240,4 +240,61 @@ paths:
         FindingKind::MissingEndpointIdentifier
     );
     assert!(outcome.findings[0].hint.contains("POST /widgets"));
+}
+
+#[test]
+fn accepts_registered_audit_event_from_json_lines_evidence() {
+    let root = temp_repo("json-lines-audit-chain");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.yaml",
+        r#"openapi: 3.0.0
+paths:
+  /widgets:
+    post:
+      operationId: CreateWidget
+"#,
+    );
+    // JSON Lines: one JSON document per line, and the emitter sits on the second
+    // line so a whole-file single-document parse cannot satisfy this test.
+    write(
+        &root,
+        "evidence/audit-chain.jsonl",
+        "{\"_meta\":\"audit chain header\",\"epoch\":2}\n{\"event_type\":\"audit_event_registered\",\"payload\":{\"emitted_by\":\"CreateWidget\"}}\n",
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Passed);
+    assert_eq!(outcome.mutating_endpoint_identifiers, vec!["CreateWidget"]);
+    assert_eq!(outcome.audit_evidence_files.len(), 1);
+    assert!(outcome.findings.is_empty(), "{outcome:?}");
+}
+
+#[test]
+fn ignores_non_json_lines_in_json_lines_audit_evidence() {
+    let root = temp_repo("json-lines-non-json");
+    write(
+        &root,
+        "contracts/openapi/widgets.openapi.yaml",
+        r#"openapi: 3.0.0
+paths:
+  /widgets:
+    post:
+      operationId: CreateWidget
+"#,
+    );
+    // A bare YAML mapping is not a JSON document, so audit-chain.jsonl registers
+    // no emitter for it.
+    write(
+        &root,
+        "evidence/audit-chain.jsonl",
+        "emitted_by: CreateWidget\n",
+    );
+
+    let outcome = enforce_audit_event_emission(&root).expect("check should run");
+
+    assert_eq!(outcome.status, EnforcementStatus::Failed);
+    assert_eq!(outcome.findings.len(), 1);
+    assert_eq!(outcome.findings[0].kind, FindingKind::MissingAuditEvent);
 }

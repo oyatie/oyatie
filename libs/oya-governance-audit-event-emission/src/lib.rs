@@ -188,14 +188,23 @@ fn extract_proto_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
 fn extract_openapi_like_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
     match extract_openapi_value_mutations(path, raw) {
         Some(parsed) => parsed,
-        None if is_structured_openapi_file(path) => ParsedEndpoints {
+        // A file the walker admitted but could not be parsed is a FINDING, never a silent
+        // downgrade. This arm used to apply only to `*.openapi.*` names — 9 of the 130 endpoint
+        // files — and everything else fell through to a hand-rolled line scanner. That fallback
+        // was silent, and silence here is indistinguishable from a pass: under-reporting
+        // endpoints produces zero findings, which is exactly what a green run looks like.
+        //
+        // It was not theoretical. `k8s/contracts/openapi/cloud-k8s.yaml` carried a DUPLICATE
+        // `paths` key, so serde_yaml refused the document and the gate quietly scanned it by
+        // line instead of reporting anything. tests/endpoint_files_parse.rs now proves every
+        // admitted file parses, which is what makes this arm safe to widen.
+        None => ParsedEndpoints {
             endpoints: Vec::new(),
             missing_identifier_findings: vec![missing_identifier(
                 path,
                 "parseable OpenAPI document with `paths`",
             )],
         },
-        None => extract_openapi_line_mutations(path, raw),
     }
 }
 
@@ -243,54 +252,6 @@ fn extract_openapi_value_mutations(path: &Path, raw: &str) -> Option<ParsedEndpo
     })
 }
 
-fn extract_openapi_line_mutations(path: &Path, raw: &str) -> ParsedEndpoints {
-    let mut endpoints = Vec::new();
-    let mut missing_identifier_findings = Vec::new();
-    let mut current_path: Option<String> = None;
-    let mut pending_operation: Option<String> = None;
-
-    for line in raw.lines() {
-        let trimmed = line.trim();
-        if let Some(api_path) = yaml_path_key(trimmed) {
-            if let Some(pending) = pending_operation.take() {
-                missing_identifier_findings.push(missing_identifier(path, &pending));
-            }
-            current_path = Some(api_path.to_string());
-            continue;
-        }
-
-        if let Some(method) = http_method_key(trimmed) {
-            if let Some(pending) = pending_operation.take() {
-                missing_identifier_findings.push(missing_identifier(path, &pending));
-            }
-            if is_mutating_method(method)
-                && let Some(api_path) = &current_path
-            {
-                pending_operation = Some(format!("{} {}", method.to_uppercase(), api_path));
-            }
-            continue;
-        }
-
-        if let Some(identifier) = scalar_value(trimmed, "operationId")
-            && let Some(_pending) = pending_operation.take()
-        {
-            endpoints.push(Endpoint {
-                source_file: path.to_path_buf(),
-                identifier,
-            });
-        }
-    }
-
-    if let Some(pending) = pending_operation.take() {
-        missing_identifier_findings.push(missing_identifier(path, &pending));
-    }
-
-    ParsedEndpoints {
-        endpoints,
-        missing_identifier_findings,
-    }
-}
-
 fn missing_identifier(path: &Path, operation: &str) -> AuditFinding {
     AuditFinding {
         kind: FindingKind::MissingEndpointIdentifier,
@@ -302,39 +263,11 @@ fn missing_identifier(path: &Path, operation: &str) -> AuditFinding {
     }
 }
 
-fn yaml_path_key(trimmed: &str) -> Option<&str> {
-    let without_quote = trimmed.trim_matches('"').trim_matches('\'');
-    if !without_quote.starts_with('/') {
-        return None;
-    }
-    without_quote
-        .split_once(':')
-        .map(|(path, _)| path.trim().trim_matches('"').trim_matches('\''))
-        .filter(|path| path.starts_with('/'))
-}
-
-fn http_method_key(trimmed: &str) -> Option<&'static str> {
-    const METHODS: &[&str] = &[
-        "get", "put", "post", "delete", "patch", "head", "options", "trace",
-    ];
-    METHODS.iter().copied().find(|method| {
-        trimmed
-            .strip_prefix(*method)
-            .is_some_and(|rest| rest.trim_start().starts_with(':'))
-    })
-}
-
-fn scalar_value(trimmed: &str, key: &str) -> Option<String> {
-    let rest = trimmed.strip_prefix(key)?.trim_start();
-    let rest = rest.strip_prefix(':')?.trim();
-    let value = rest.trim_matches('"').trim_matches('\'').trim();
-    (!value.is_empty()).then(|| value.to_string())
-}
 fn mapping_field<'a>(value: &'a serde_yaml::Value, field: &str) -> Option<&'a serde_yaml::Value> {
     let serde_yaml::Value::Mapping(map) = value else {
         return None;
     };
-    map.get(&serde_yaml::Value::String(field.to_string()))
+    map.get(serde_yaml::Value::String(field.to_string()))
 }
 
 fn mapping_string_field(value: &serde_yaml::Value, field: &str) -> Option<String> {
@@ -347,16 +280,6 @@ fn mapping_string_field(value: &serde_yaml::Value, field: &str) -> Option<String
 
 fn is_mutating_method(method: &str) -> bool {
     matches!(method, "post" | "put" | "patch" | "delete")
-}
-
-fn is_structured_openapi_file(path: &Path) -> bool {
-    let file = path
-        .file_name()
-        .map(|value| value.to_string_lossy().to_ascii_lowercase())
-        .unwrap_or_default();
-    file.ends_with(".openapi.yaml")
-        || file.ends_with(".openapi.yml")
-        || file.ends_with(".openapi.json")
 }
 
 fn is_mutating_identifier(identifier: &str) -> bool {
@@ -451,38 +374,90 @@ fn registered_audit_emitters(evidence_files: &[PathBuf]) -> anyhow::Result<BTree
     for path in evidence_files {
         let raw = fs::read_to_string(path)?;
         if path.file_name().and_then(|name| name.to_str()) == Some("audit-chain.jsonl") {
+            // `audit-chain.jsonl` is JSON Lines: one JSON document per line. It is read
+            // with a JSON parser, not a YAML one, because JSON is the format it is in.
             for line in raw.lines().map(str::trim).filter(|line| !line.is_empty()) {
-                if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(line) {
+                if let Ok(value) = serde_json::from_str::<serde_json::Value>(line) {
                     collect_audit_emitters(&value, &mut emitters);
                 }
             }
         } else if let Ok(value) = serde_yaml::from_str::<serde_yaml::Value>(&raw) {
+            // `registry/audit-events/**` and `evidence/audit/**` hold hand-authored YAML.
             collect_audit_emitters(&value, &mut emitters);
         }
     }
     Ok(emitters)
 }
 
-fn collect_audit_emitters(value: &serde_yaml::Value, emitters: &mut BTreeSet<String>) {
-    match value {
-        serde_yaml::Value::Mapping(map) => {
-            for (key, value) in map {
-                if let Some(key) = key.as_str()
-                    && is_audit_emitter_key(key)
-                    && let Some(emitter) = value.as_str().map(str::trim)
-                    && !emitter.is_empty()
-                {
-                    emitters.insert(emitter.to_string());
-                }
-                collect_audit_emitters(value, emitters);
+/// Read-only tree view shared by the YAML and JSON audit-evidence walkers so both
+/// formats resolve registered emitters through exactly one set of rules.
+trait AuditEvidenceNode: Sized {
+    /// String keys and their values when this node is a mapping.
+    fn entries(&self) -> Option<impl Iterator<Item = (&str, &Self)>>;
+    /// Elements when this node is a sequence.
+    fn items(&self) -> Option<impl Iterator<Item = &Self>>;
+    /// Scalar text when this node is a string.
+    fn text(&self) -> Option<&str>;
+}
+
+impl AuditEvidenceNode for serde_yaml::Value {
+    fn entries(&self) -> Option<impl Iterator<Item = (&str, &Self)>> {
+        let Self::Mapping(map) = self else {
+            return None;
+        };
+        Some(
+            map.iter()
+                .filter_map(|(key, value)| Some((key.as_str()?, value))),
+        )
+    }
+
+    fn items(&self) -> Option<impl Iterator<Item = &Self>> {
+        let Self::Sequence(items) = self else {
+            return None;
+        };
+        Some(items.iter())
+    }
+
+    fn text(&self) -> Option<&str> {
+        self.as_str()
+    }
+}
+
+impl AuditEvidenceNode for serde_json::Value {
+    fn entries(&self) -> Option<impl Iterator<Item = (&str, &Self)>> {
+        let Self::Object(map) = self else {
+            return None;
+        };
+        Some(map.iter().map(|(key, value)| (key.as_str(), value)))
+    }
+
+    fn items(&self) -> Option<impl Iterator<Item = &Self>> {
+        let Self::Array(items) = self else {
+            return None;
+        };
+        Some(items.iter())
+    }
+
+    fn text(&self) -> Option<&str> {
+        self.as_str()
+    }
+}
+
+fn collect_audit_emitters<T: AuditEvidenceNode>(value: &T, emitters: &mut BTreeSet<String>) {
+    if let Some(entries) = value.entries() {
+        for (key, value) in entries {
+            if is_audit_emitter_key(key)
+                && let Some(emitter) = value.text().map(str::trim)
+                && !emitter.is_empty()
+            {
+                emitters.insert(emitter.to_string());
             }
+            collect_audit_emitters(value, emitters);
         }
-        serde_yaml::Value::Sequence(items) => {
-            for item in items {
-                collect_audit_emitters(item, emitters);
-            }
+    } else if let Some(items) = value.items() {
+        for item in items {
+            collect_audit_emitters(item, emitters);
         }
-        _ => {}
     }
 }
 

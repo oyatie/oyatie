@@ -9,7 +9,7 @@ First-wave concern: pipeline runs, lineage, replay, ELT, and iPaaS ownership.
 Binding authorities: docs/standards/documentation-rigor.md sections 1.1, 1.2, 2, 3.2.1, 3.2.3, 3.2.5; ADR-0321; ADR-0131; ADR-0105; ADR-0253-amendment; ADR-0314.
 
 ## Scope and non-goals
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - scope-and-non-goals 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - scope-and-non-goals 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -21,7 +21,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - scope-and-non-goals 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Principals and tenant scope
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - principals-and-tenant-scope 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - principals-and-tenant-scope 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -33,7 +33,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - principals-and-tenant-scope 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Cedar gates and default deny
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - cedar-gates-and-default-deny 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - cedar-gates-and-default-deny 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -45,7 +45,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - cedar-gates-and-default-deny 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Data model and ontology projection
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - data-model-and-ontology-projection 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - data-model-and-ontology-projection 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -57,7 +57,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - data-model-and-ontology-projection 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Workflow and replay semantics
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - workflow-and-replay-semantics 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - workflow-and-replay-semantics 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -69,7 +69,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - workflow-and-replay-semantics 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Contracts and versioning
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - contracts-and-versioning 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - contracts-and-versioning 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -81,7 +81,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - contracts-and-versioning 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Transport and cryptography
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - transport-and-cryptography 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - transport-and-cryptography 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -93,7 +93,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - transport-and-cryptography 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Abuse defence and emergency bypass
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - abuse-defence-and-emergency-bypass 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - abuse-defence-and-emergency-bypass 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -105,7 +105,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - abuse-defence-and-emergency-bypass 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Marketplace settlement binding
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - marketplace-settlement-binding 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - marketplace-settlement-binding 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -117,7 +117,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - marketplace-settlement-binding 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Observability and audit events
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - observability-and-audit-events 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - observability-and-audit-events 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -129,7 +129,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - observability-and-audit-events 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Capacity and cost controls
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - capacity-and-cost-controls 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - capacity-and-cost-controls 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -141,7 +141,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - capacity-and-cost-controls 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Failure modes and rollback
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - failure-modes-and-rollback 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - failure-modes-and-rollback 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -153,7 +153,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - failure-modes-and-rollback 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Regional packs and residency
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - regional-packs-and-residency 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - regional-packs-and-residency 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
@@ -165,7 +165,7 @@ The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, Asyn
 - regional-packs-and-residency 008: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=transformation_job, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.
 
 ## Acceptance evidence
-The data-pipeline entrypoint surface is owned inside microservices/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
+The data-pipeline entrypoint surface is owned inside data/data-pipeline/ under the flat layout. It does not create a suite folder, anonymous path, or vendor-named boundary.
 The primitive set uses BNF v4.1 names, ADR-0105 layer slugs, OpenAPI 3.2.0, AsyncAPI 3.1.0, proto3, and Cedar v4.2 LTS default-deny fragments.
 - acceptance-evidence 001: Data Pipeline binds connector-run-start to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=connector_run, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Fivetran plus Airbyte.
 - acceptance-evidence 002: Data Pipeline binds lineage-edge-record to tenant_id, principal_id, audience_type=DATA_PIPELINE_OPERATOR, data_class=lineage_edge, marketplace DealSet settlement per ADR-0314, HTTP/3 h3-alt-svc plus ECH/PQC per ADR-0253-amendment, and benchmark parity against Airbyte plus Workato.

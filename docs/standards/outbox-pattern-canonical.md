@@ -33,7 +33,7 @@ table per bounded context:
 
 ```sql
 CREATE TABLE <bc>_outbox (
-    outbox_id        UUID PRIMARY KEY,            -- ULID per ADR-0156
+    outbox_id        UUID PRIMARY KEY,            -- UUIDv7 per ADR-0709 D-1
     aggregate_id     UUID NOT NULL,
     aggregate_kind   TEXT NOT NULL,
     event_kind       TEXT NOT NULL,

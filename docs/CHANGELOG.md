@@ -1,9 +1,127 @@
+- 2026-08-11 — Phase0 merge-admission-required + domain green / path_ownership cite (SSOT absorb); bead oyatie-dxz docs-governance.
 ---
 purpose: Oyatie — Canonical Docs Changelog
 doc_status: published
 ---
 
 # Changelog
+
+## 2026-08-19 — ADR-0710 Accepted, D-8 severed (admission substrate)
+
+- Promoted **ADR-0710** from Proposed → **Accepted** (founder), with **D-8 SEVERED**: D-1..D-7
+  and D-9 onward carry; D-8 stays open on its own evidence under the ADR-0715 D-1 gate, whose
+  2026-09-10 timebox now scopes to D-8 alone. D-8's own body records that its first conjunct
+  self-fails on today's shared-substrate hosted default, so an unqualified Accept would have
+  asserted an unverified tenant-isolation posture.
+- Live law for the admission substrate is now the API server itself — ValidatingAdmissionPolicy
+  + CEL, with Pod Security Admission for the pod-security baseline, and no policy webhook in the
+  base overlay. **ADR-0701**'s carried ADR-0379 gist is annotated superseded-in-part at both
+  sites; `amended_by: [ADR-0710]`.
+- **The Accept authorizes no removal.** D-1's PSA presence half is unmet (27 Namespace files, 18
+  labelled, 9 not; 0 of 95 kustomizations compose `namespace-restricted-profile` — all mention it
+  only in a `# Canonical-base:` comment), so the Kyverno ClusterPolicy
+  `cloud-k8s-require-restricted-runtime` and the three Kubewarden Applications stay until it closes.
+- Regenerated `docs/ADR-INDEX.md` + `docs/machine-readable/decisions.json` together with
+  `oya doc adr-index --write` (Accepted 14 → 15, Proposed 5 → 4).
+
+## 2026-08-17 — Canonical JSON fixed point restored
+
+- Ran the owned canonical-JSON fixer over the three drifted active specs, restoring literal
+  UTF-8 and trailing-newline policy without changing their parsed JSON values.
+
+## 2026-08-17 — Cargo test-resource parity and retired cloud corpus
+
+- Mirrored the product-protocol and reset-eligibility Buck committed-file resources into
+  portable, non-forcing Cargo bindings, with code-owned parity regressions.
+- Removed the deleted `cloud/` root's two stale product-protocol manifest projections and
+  re-froze the measured corpus from 96 to 94 without changing the remaining governed roots.
+
+## 2026-08-17 — ADR-0716 PR-traceability retirement completed
+
+- Removed the stale active `traceability-validator` row, its exact CI-lane
+  mirror, and the phantom run-all command binding left after ADR-0716 deleted
+  the validator and dispatcher.
+- Aligned current contributor, PR-template, checklist, decision-rights, and
+  lane-catalog surfaces with the four-section PR body, independent reviewer
+  approval, and protected `oya-ci-required` context.
+- Added a fail-closed registration test that rejects active, planned, or
+  catalog-only revival of the retired local validator.
+
+## 2026-08-17 — Hook mirror and review-admission boundary corrected
+
+- Removed the retired Cargo-blocking hook from the active-hook mirror and aligned the
+  security guide with ADR-0716's Cargo merge path.
+- Recorded PR #964 as the concrete evidence that repository-local reviewer evidence is
+  not yet a cloud-enforced admission gate while F-PR5-06 remains open.
+
+## 2026-08-17 — Supersession closure and citation ceiling repair
+
+- Corrected the archived cache decision's successor to the accepted Cargo merge-path
+  authority and removed the conflicting successor claim from the older admission apex.
+- Re-froze the citation-closure mismatch and dangling-path ceilings downward to the
+  independently measured live values; no finding ceiling was raised.
+
+## 2026-08-14 — Cargo merge path + slim PR paperwork (ADR-0716)
+
+- The required CI executes the Cargo workspace graph (`cargo fmt` differential, clippy,
+  `cargo test --workspace`, live-postgres lanes, cross-platform smoke); buck2 becomes local
+  hermeticity plus a weekly non-blocking smoke. Canonical docs touched: `README.md`,
+  `AGENTS.md`, `CLAUDE.md`, `docs/AGENTS.md`, `templates/pull-request-template.md`,
+  `docs/templates/pull-request-template.md`, `.github/PULL_REQUEST_TEMPLATE.md`.
+
+## 2026-08-12 — Masterplan stale inline sequencing digest removed
+
+- Normalized the one `masterplan_v2.planning_entry_contract.no_dispatch_stop_conditions`
+  entry in [`specs/masterplan.json`](../specs/masterplan.json) that pinned a stale inline
+  sequencing-digest literal (`sha256:a6ddc2a8…`): the stop condition now references the
+  founder-ratification record mechanism
+  (`masterplan_v2.sequencing.founder_ratification` + its `decision_ref` evidence record,
+  enforced by `evaluate_masterplan_v2_ratification_digest`) — no inline digest literal is
+  authoritative there. Contract state stays `open` until a fully evidenced
+  closure transition. Companion change: the cross-artifact evaluator gains the
+  closed-state planning-entry proof contract
+  (`ci/facade/cross-artifact-agreement`).
+
+## 2026-08-11 — Cloud provider + full ecosystem north-star (INV-DOC-9)
+
+- Survived product spine in operating contract
+  [`docs/AGENTS.md`](AGENTS.md) § Doctrine survival → *Cloud provider + full ecosystem*
+  plus architecture pointer
+  [`docs/architecture/cloud-provider-full-ecosystem-north-star.md`](architecture/cloud-provider-full-ecosystem-north-star.md).
+- Locks: **not compute-only** — full CSP capacity (hyperscaler-parity+) **and** curated
+  ecosystem broader than hyperscalers; EU/SECA named as aligned digital north-star;
+  **BAN** personal-data sovereignty UX theater; SECA-capable Rust + smooth entry/exit.
+- Glossary: disambiguate **SECA** (cloud API vs tax acronym).
+- Programme phase Done-when remains in living N=1 tracker — **BAN** second architecture plan.
+
+## 2026-08-11 — Custom ARC runner fleets retired
+
+- Declared **ARC overflow RETIRED**: `oya-arm64` / `oya-live-postgres-arm64` tip
+  `maxRunners: 0`; soft multi-arch remains GitHub-hosted; lab CAS = founder laptop
+  (sibling CAS track). Idea update:
+  [`docs/ideas/hosted-ci-lab-cas-agent-fleet.md`](ideas/hosted-ci-lab-cas-agent-fleet.md).
+  Live cluster drain checklist: `infra/arc/README.md` (lands on integ/ci tip).
+
+## 2026-08-11 — Live Postgres law folded into ADR-0700
+
+- Restated binding **Live Postgres law** on `docs/decisions/ADR-0700-ci-admission-live-apex.md`
+  (hard norm §8): mocks default; live PG for durable truth only; path-optional PR arming;
+  **touched surface (+ dependents)** inside an armed job — **BAN** broad PG suite as default
+  PR tax; full estate on trunk / `merge_group` / nightly / ship. Transitional coarse
+  adapter/facade cones remain until workflow touched-target select lands.
+
+## 2026-08-11 — Portable doctrine + Automations ritual + ADR-rename overturn (docs)
+
+- Landed **portable Swarm doctrine** single source
+  [`templates/portable-swarm-doctrine.md`](../templates/portable-swarm-doctrine.md)
+  (`portable_doctrine_version` **1.0.0**) plus new-repo
+  [`templates/README-doctrine-pointer.md`](../templates/README-doctrine-pointer.md).
+- Added short **Cursor Automations** (advisory-only) subsection to
+  [`templates/checklists/swarm-agent-ritual.md`](../templates/checklists/swarm-agent-ritual.md);
+  do not recreate `docs/checklists/` dual-home.
+- Documented **adr-rename-overturn** challenge on `docs/AGENTS.md` (cite ADR-0711 E-1;
+  MUST NOT mass-rename `ADR-NNNN-<topic>` for taxonomy optics).
+- Same-wave operating-contract pointers under Doctrine survival + canonical doc map.
 
 ## 2026-08-11 — ADR-0711 Cargo.lock sole-owner amend
 
@@ -535,11 +653,11 @@ collision, Bominal-ADR-0119 disambiguation, ADR-0019 self-amendment).
 
 - 64 fitness-lane catalogue specs lifted from `.omc/governance-lanes/` to `docs/governance-lanes/` (64 lane files + INDEX). Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added. ADR-0053 cited in lanes enforcing sanctioned-primitive rules (adapter-kernel, banned-primitives, bypass, cloud-mutation, cutover-bootstrap-window, direct-tool-invocation-audit, provider-agnostic); ADR-0052 cited in portfolio-citation (inventory); ADR-0054 cited in agent-completion-checklist, claim-ceiling, scaffold-claim-pattern. Kernel implementations deferred to Stage 3.
 
-## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + docs/checklists/ (25 files)
+## 2026-05-12 — Stage 1 Wave 2: templates + checklists lifted to docs/templates/ + templates/checklists/ (25 files)
 
-- **doc.templates-index** (Tier 2): 13 template files lifted from `/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `/templates/checklists/` to `docs/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
+- **doc.templates-index** (Tier 2): 13 template files lifted from `/templates/` to `docs/templates/` (INDEX + 12 templates); 12 checklist files lifted from `/templates/checklists/` to `templates/checklists/`. Status set to `Accepted`; `lift_target:` field removed; `date: 2026-05-12` added; ADR-0052 + ADR-0053 + ADR-0054 cited in every file's frontmatter and body prose where sanctioned primitives, inventory ledger, and scaffold-claim are referenced.
 - 4 templates renamed to `-v2` due to conflicts with existing `docs/templates/` files: `pull-request-template-v2.md`, `adr-template-v2.md`, `runbook-template-v2.md`, `capability-record-template-v2.yaml`. Each carries `header_note: "Supersedes prior docs/templates/<name>.md once reviewed."` and `supersedes:` frontmatter field.
-- 0 checklist conflicts (all 12 checklists are new additions; existing `docs/checklists/cross-axis-contract-change.md` preserved; new `cross-axis-contract-change-checklist.md` carries `extends:` pointer to the prior file).
+- 0 checklist conflicts (all 12 checklists are new additions; existing `templates/checklists/cross-axis-contract-change.md` preserved; new `cross-axis-contract-change-checklist.md` carries `extends:` pointer to the prior file).
 - Existing `docs/templates/` files preserved as-is: `migration-runbook-template.md`, `dpia-template.md`, `team-charter-template.md`, `threat-model-template.md`, `incident-postmortem-template.md`, and others out of scope of this delivery.
   - Authors: jason931225
   - ADRs cited: ADR-0052, ADR-0053, ADR-0054

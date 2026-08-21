@@ -137,8 +137,7 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-dto-authz-trust";
 
 /// The remediation doctrine pointer every finding carries.
-pub const REMEDIATION_DOCTRINE: &str =
-    "iam/ports/policy-cedar-api/src/authz.rs (PrincipalVerifier::verify_principal on an unforgeable \
+pub const REMEDIATION_DOCTRINE: &str = "iam/ports/policy-cedar-api/src/authz.rs (PrincipalVerifier::verify_principal on an unforgeable \
      credential — AUTHENTICATION step — then PublishAuthorizer::ensure_authorized / PDP decide() \
      port — the AUTHORIZATION decision, fail-closed). Derive the principal from a verified \
      mTLS/SVID/bearer credential, call the cloud-iam Cedar PDP server-side to \
@@ -173,12 +172,19 @@ const POLICY_KEY: &str = "<policy>";
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CollectError {
     Io(String),
+    /// The scan roots could not be resolved. Carries the path-naming report from
+    /// `ci-scan-root-derivation-adapters`; a gate that cannot say WHICH root it failed to resolve
+    /// has reproduced the silent-skip defect in a different colour.
+    ScanRoots(String),
 }
 
 impl std::fmt::Display for CollectError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             CollectError::Io(message) => write!(f, "dto-authz-trust io: {message}"),
+            CollectError::ScanRoots(message) => {
+                write!(f, "dto-authz-trust scan roots: {message}")
+            }
         }
     }
 }
@@ -193,7 +199,9 @@ impl std::error::Error for CollectError {}
 /// function that READS a caller-supplied authorization-decision field and makes NO PDP
 /// decision-port call. Each instance is `{ "file", "fn", "line", "key", "signal" }`.
 pub fn collect_instances(root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let scan_roots = string_list(policy, "scan_roots");
+    let resolution = ci_scan_root_derivation_adapters::resolve_policy_scan_roots(root, policy)
+        .map_err(|e| CollectError::ScanRoots(e.to_string()))?;
+    let scan_roots = resolution.roots.clone();
     let excluded_dirs: BTreeSet<String> = string_list(policy, "excluded_dir_names")
         .into_iter()
         .collect();
@@ -223,13 +231,28 @@ pub fn collect_instances(root: &Path, policy: &Value) -> Result<Value, CollectEr
     Ok(json!({
         "functions_scanned": functions_scanned,
         "instances": instances,
+        // The roots ACTUALLY walked, and the registered roots deliberately not walked because they
+        // have not landed. Emitting both makes the scan itself reviewable rather than inferred from
+        // a function count: min_expected_functions cannot tell a collapsed scan from a smaller
+        // corpus, and a SET can.
+        "scan_roots": resolution.roots,
+        "pending_roots": resolution.pending,
+        "scan_root_source": resolution.source,
     }))
 }
 
 fn instance_sort_key(instance: &Value) -> (String, String) {
     (
-        instance.get("file").and_then(Value::as_str).unwrap_or("").to_owned(),
-        instance.get("fn").and_then(Value::as_str).unwrap_or("").to_owned(),
+        instance
+            .get("file")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned(),
+        instance
+            .get("fn")
+            .and_then(Value::as_str)
+            .unwrap_or("")
+            .to_owned(),
     )
 }
 
@@ -243,7 +266,11 @@ fn collect_rs_files(
 ) -> Result<(), CollectError> {
     let entries = match fs::read_dir(dir) {
         Ok(entries) => entries,
-        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(()),
+        // A NotFound used to `return Ok(())` here, which made this function's own doc comment
+        // ("an unreadable scan root is a fail-closed error, never a silently skipped subtree")
+        // false for the one case that mattered: a declared root that does not exist. Scan roots
+        // are now proven to exist before the walk starts, so a NotFound at this depth is either a
+        // race or a broken exclusion and must fail closed like any other read failure.
         Err(e) => return Err(CollectError::Io(format!("read dir {}: {e}", dir.display()))),
     };
     for entry in entries {
@@ -254,7 +281,10 @@ fn collect_rs_files(
             .file_type()
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
         if file_type.is_dir() {
-            let name = path.file_name().and_then(|n| n.to_str()).unwrap_or_default();
+            let name = path
+                .file_name()
+                .and_then(|n| n.to_str())
+                .unwrap_or_default();
             if excluded_dirs.contains(name) {
                 continue;
             }
@@ -362,7 +392,10 @@ fn extract_instances(file: &str, text: &str, cfg: &SignatureConfig) -> (Vec<Valu
     for decl in &fns {
         // Skip POSITIVE test-fixture blocks (#[cfg(test)]). Do NOT skip #[cfg(not(test))] — that
         // is production code (FN-05 fix).
-        if test_spans.iter().any(|(lo, hi)| decl.body_open >= *lo && decl.body_open < *hi) {
+        if test_spans
+            .iter()
+            .any(|(lo, hi)| decl.body_open >= *lo && decl.body_open < *hi)
+        {
             continue;
         }
         scanned += 1;
@@ -592,7 +625,11 @@ fn path_tail_idents(type_expr: &str) -> Vec<String> {
                 i += 1;
             }
             let path = &type_expr[start..i];
-            let tail = path.trim_end_matches(':').rsplit("::").next().unwrap_or(path);
+            let tail = path
+                .trim_end_matches(':')
+                .rsplit("::")
+                .next()
+                .unwrap_or(path);
             if !tail.is_empty() && !is_type_keyword(tail) {
                 out.push(tail.to_owned());
             }
@@ -821,7 +858,10 @@ fn cfg_test_spans(text: &str) -> Vec<(usize, usize)> {
     let mut from = 0usize;
     while let Some(rel) = text[from..].find("#[cfg(") {
         let at = from + rel;
-        let attr_end = text[at..].find(']').map(|i| at + i + 1).unwrap_or(text.len());
+        let attr_end = text[at..]
+            .find(']')
+            .map(|i| at + i + 1)
+            .unwrap_or(text.len());
         let attr = &text[at..attr_end];
         if attr_has_positive_test_predicate(attr)
             && let Some(body) = brace_body(text, attr_end)
@@ -1035,7 +1075,11 @@ fn skip_char_or_lifetime(bytes: &[u8], start: usize) -> usize {
 
 /// 1-based line number of byte offset `at` in `text`.
 fn line_of(text: &str, at: usize) -> usize {
-    text[..at.min(text.len())].bytes().filter(|&b| b == b'\n').count() + 1
+    text[..at.min(text.len())]
+        .bytes()
+        .filter(|&b| b == b'\n')
+        .count()
+        + 1
 }
 
 fn is_ident_byte(b: u8) -> bool {
@@ -1155,15 +1199,42 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     // Fail CLOSED on a structurally invalid policy: each list that is part of the gate's vocabulary
     // must be present AND non-empty (CORRECTNESS-01).
     let required_lists = [
-        ("pdp_decision_idents",
-         "policy `pdp_decision_idents` must be a non-empty array of recognized PDP/authorizer decision-port ident strings; correct the policy before the gate can evaluate"),
-        ("scan_roots",
-         "policy `scan_roots` must be a non-empty array of repo-relative scan-root strings; correct the policy before the gate can evaluate"),
-        ("trigger_decision_field_idents",
-         "policy `trigger_decision_field_idents` must be a non-empty array of authz-specific field ident strings; correct the policy before the gate can evaluate"),
-        ("authorization_dto_type_suffixes",
-         "policy `authorization_dto_type_suffixes` must be a non-empty array of DTO type-name suffix strings; correct the policy before the gate can evaluate"),
+        (
+            "pdp_decision_idents",
+            "policy `pdp_decision_idents` must be a non-empty array of recognized PDP/authorizer decision-port ident strings; correct the policy before the gate can evaluate",
+        ),
+        (
+            "trigger_decision_field_idents",
+            "policy `trigger_decision_field_idents` must be a non-empty array of authz-specific field ident strings; correct the policy before the gate can evaluate",
+        ),
+        (
+            "authorization_dto_type_suffixes",
+            "policy `authorization_dto_type_suffixes` must be a non-empty array of DTO type-name suffix strings; correct the policy before the gate can evaluate",
+        ),
     ];
+    // Scan roots are declared in ONE of two forms and exactly one must be present. The derived form
+    // (`scan_root_source`) carries no array to check for emptiness — its emptiness check is the
+    // resolver itself, which fails closed on any root it cannot resolve and names the path.
+    let derived_roots = policy
+        .get("scan_root_source")
+        .and_then(Value::as_object)
+        .is_some();
+    let explicit_roots = policy
+        .get("scan_roots")
+        .and_then(Value::as_array)
+        .is_some_and(|roots| !roots.is_empty());
+    if !derived_roots && !explicit_roots {
+        findings.insert(Finding::new(
+            "DAT-POLICY-MALFORMED",
+            POLICY_KEY,
+            "policy must declare scan roots in exactly one of two forms: `scan_root_source` \
+             (derived from the closed capability registry, the form this repository uses) or a \
+             non-empty `scan_roots` array of repo-relative strings (the pack-shaped form for an \
+             adopting repository with no registry); correct the policy before the gate can evaluate",
+        ));
+        return findings;
+    }
+
     for (key, msg) in required_lists {
         match policy.get(key).and_then(Value::as_array) {
             None => {
@@ -1178,8 +1249,9 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         }
     }
 
-    let frozen_baseline: BTreeSet<String> =
-        string_list(policy, "frozen_dto_authz_trust_instances").into_iter().collect();
+    let frozen_baseline: BTreeSet<String> = string_list(policy, "frozen_dto_authz_trust_instances")
+        .into_iter()
+        .collect();
 
     // EXPLICIT split-decision allowlist (the precise, non-launderable FP mechanism — NOT a
     // heuristic). Each key is the SAME `<file>#<fn>:<body_hash>` exact shape as the baseline, so any
@@ -1294,10 +1366,7 @@ fn split_decision_allowlist_keys(policy: &Value) -> BTreeSet<String> {
             arr.iter()
                 .filter_map(|entry| match entry {
                     Value::String(s) => Some(s.clone()),
-                    Value::Object(_) => entry
-                        .get("key")
-                        .and_then(Value::as_str)
-                        .map(str::to_owned),
+                    Value::Object(_) => entry.get("key").and_then(Value::as_str).map(str::to_owned),
                     _ => None,
                 })
                 .collect()
@@ -1340,8 +1409,9 @@ pub fn shrink_only_baseline(
     observed: &Value,
     allow_new: bool,
 ) -> (Vec<String>, Vec<String>) {
-    let prior: BTreeSet<String> =
-        string_list(policy, "frozen_dto_authz_trust_instances").into_iter().collect();
+    let prior: BTreeSet<String> = string_list(policy, "frozen_dto_authz_trust_instances")
+        .into_iter()
+        .collect();
     let live = live_instance_keys(policy, observed);
 
     let new_keys: BTreeSet<String> = live.difference(&prior).cloned().collect();
@@ -1357,7 +1427,8 @@ pub fn render_findings(findings: &BTreeSet<Finding>) -> String {
     if findings.is_empty() {
         return "dto-authz-trust gate passed: no NEW function trusts a caller-supplied authorization decision in place of a server-side PDP decision".to_owned();
     }
-    let mut out = String::from("dto-authz-trust gate failed (caller-supplied-authz-trust class):\n");
+    let mut out =
+        String::from("dto-authz-trust gate failed (caller-supplied-authz-trust class):\n");
     for finding in findings {
         out.push_str(&format!(
             "    - {} {}\n        {}\n",
@@ -1488,7 +1559,11 @@ mod tests {
         let observed = observe(RED_DTO_SELF_COMPARE);
         let report = evaluate(&policy(), &observed);
         assert_eq!(report.verdict, Verdict::Red, "observed={observed:#}");
-        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+        assert!(
+            report
+                .violations
+                .contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST")
+        );
         // exactly the one fn matched.
         let n = observed["instances"].as_array().map(Vec::len).unwrap_or(0);
         assert_eq!(n, 1, "expected exactly one instance, observed={observed:#}");
@@ -1507,7 +1582,10 @@ mod tests {
         let observed = observe(GREEN_PDP);
         let report = evaluate(&policy(), &observed);
         assert_eq!(report.verdict, Verdict::Green, "observed={observed:#}");
-        assert_eq!(observed["instances"].as_array().map(Vec::len).unwrap_or(0), 0);
+        assert_eq!(
+            observed["instances"].as_array().map(Vec::len).unwrap_or(0),
+            0
+        );
     }
 
     #[test]
@@ -1601,16 +1679,25 @@ mod tests {
             k
         };
         let mut p = policy();
-        p["split_decision_allowlist"] = json!([{ "key": tampered, "justification": "wrong body hash" }]);
+        p["split_decision_allowlist"] =
+            json!([{ "key": tampered, "justification": "wrong body hash" }]);
         let report = evaluate(&p, &observe(SPLIT_DECISION_FP));
         assert_eq!(
             report.verdict,
             Verdict::Red,
             "a non-matching (tampered-hash) allowlist key must NOT launder a live forgeable check"
         );
-        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+        assert!(
+            report
+                .violations
+                .contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST")
+        );
         // And the unused allowlist key self-cleans (it matched no live instance).
-        assert!(report.violations.contains("DAT-STALE-SPLIT-DECISION-ALLOWLIST"));
+        assert!(
+            report
+                .violations
+                .contains("DAT-STALE-SPLIT-DECISION-ALLOWLIST")
+        );
     }
 
     // ----- Probe A: dead-code PDP "root" + a call edge. Under the removed heuristic, a function whose
@@ -1653,7 +1740,11 @@ mod tests {
             Verdict::Red,
             "Probe A: a dead-code PDP root must NOT launder the forgeable callee; observed={observed:#}"
         );
-        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+        assert!(
+            report
+                .violations
+                .contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST")
+        );
         let flagged: Vec<&str> = observed["instances"]
             .as_array()
             .map(|a| a.iter().filter_map(|i| i["fn"].as_str()).collect())
@@ -1706,10 +1797,18 @@ mod tests {
             Verdict::Red,
             "Probe C: same-name across impl blocks must NOT launder the forgeable overload; observed={observed:#}"
         );
-        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+        assert!(
+            report
+                .violations
+                .contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST")
+        );
         let n_decide_access = observed["instances"]
             .as_array()
-            .map(|a| a.iter().filter(|i| i["fn"].as_str() == Some("decide_access")).count())
+            .map(|a| {
+                a.iter()
+                    .filter(|i| i["fn"].as_str() == Some("decide_access"))
+                    .count()
+            })
             .unwrap_or(0);
         assert_eq!(
             n_decide_access, 2,
@@ -1751,7 +1850,11 @@ mod tests {
             Verdict::Red,
             "Probe D: a single-file self-rooted dead-PDP bypass must NOT ship clean-green; observed={observed:#}"
         );
-        assert!(report.violations.contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST"));
+        assert!(
+            report
+                .violations
+                .contains("DAT-CALLER-SUPPLIED-AUTHZ-TRUST")
+        );
         let flagged: Vec<&str> = observed["instances"]
             .as_array()
             .map(|a| a.iter().filter_map(|i| i["fn"].as_str()).collect())
@@ -1775,7 +1878,11 @@ mod tests {
         let key = instance_key("src/lib.rs", "validate_authorization", body);
         p["frozen_dto_authz_trust_instances"] = json!([key]);
         let report = evaluate(&p, &observed);
-        assert_eq!(report.verdict, Verdict::Green, "baselined instance must be tolerated");
+        assert_eq!(
+            report.verdict,
+            Verdict::Green,
+            "baselined instance must be tolerated"
+        );
     }
 
     #[test]
@@ -1810,7 +1917,10 @@ mod tests {
         let mut p = policy();
         p["pdp_decision_idents"] = json!([]);
         let report = evaluate(&p, &json!({"functions_scanned": 0, "instances": []}));
-        assert!(report.violations.contains("DAT-POLICY-MALFORMED"), "empty pdp_decision_idents must fail closed");
+        assert!(
+            report.violations.contains("DAT-POLICY-MALFORMED"),
+            "empty pdp_decision_idents must fail closed"
+        );
     }
 
     #[test]
@@ -1819,7 +1929,10 @@ mod tests {
         let mut p = policy();
         p["trigger_decision_field_idents"] = json!([]);
         let report = evaluate(&p, &json!({"functions_scanned": 0, "instances": []}));
-        assert!(report.violations.contains("DAT-POLICY-MALFORMED"), "empty trigger_decision_field_idents must fail closed");
+        assert!(
+            report.violations.contains("DAT-POLICY-MALFORMED"),
+            "empty trigger_decision_field_idents must fail closed"
+        );
     }
 
     #[test]
@@ -1837,7 +1950,10 @@ mod tests {
             fn unrelated(x: u32) -> u32 { x + 1 }
         "#;
         let observed = observe(src);
-        assert_eq!(observed["instances"].as_array().map(Vec::len).unwrap_or(0), 0);
+        assert_eq!(
+            observed["instances"].as_array().map(Vec::len).unwrap_or(0),
+            0
+        );
     }
 
     #[test]
@@ -1906,7 +2022,10 @@ mod tests {
 
     #[test]
     fn ident_suffix_word_boundary() {
-        assert!(ident_ends_with_word("CloudKmsApiAuthorization", "Authorization"));
+        assert!(ident_ends_with_word(
+            "CloudKmsApiAuthorization",
+            "Authorization"
+        ));
         assert!(ident_ends_with_word("Authorization", "Authorization"));
         assert!(!ident_ends_with_word("Authorizations", "Authorization"));
         assert!(!ident_ends_with_word("AuthorizationLayer", "Authorization"));
@@ -1988,8 +2107,14 @@ mod tests {
         let obs_orig = observe(src_original);
         let obs_back = observe(src_backdoor);
 
-        let key_orig = obs_orig["instances"][0]["key"].as_str().unwrap_or("").to_owned();
-        let key_back = obs_back["instances"][0]["key"].as_str().unwrap_or("").to_owned();
+        let key_orig = obs_orig["instances"][0]["key"]
+            .as_str()
+            .unwrap_or("")
+            .to_owned();
+        let key_back = obs_back["instances"][0]["key"]
+            .as_str()
+            .unwrap_or("")
+            .to_owned();
 
         // Both functions are identical in body — FNV hash will match — BUT file and fn-name are
         // the same here (test environment), so keys will be equal. The important invariant is:
@@ -2004,13 +2129,22 @@ mod tests {
             }
         "#;
         let obs_mod = observe(src_modified);
-        let key_mod = obs_mod["instances"][0]["key"].as_str().unwrap_or("").to_owned();
+        let key_mod = obs_mod["instances"][0]["key"]
+            .as_str()
+            .unwrap_or("")
+            .to_owned();
 
         // Different BODY (comment inside) → masked body differs → hash differs → key differs.
         // (Comment is blanked in mask, but whitespace changes may still shift content.)
         // More importantly: verify the key FORMAT includes a hash suffix.
-        assert!(key_orig.contains(':'), "baseline key must include body hash suffix: {key_orig}");
-        assert!(key_back.contains(':'), "baseline key must include body hash suffix: {key_back}");
+        assert!(
+            key_orig.contains(':'),
+            "baseline key must include body hash suffix: {key_orig}"
+        );
+        assert!(
+            key_back.contains(':'),
+            "baseline key must include body hash suffix: {key_back}"
+        );
         // Bodies are identical (comment is masked) so masked hashes ARE equal here — this is
         // expected. The test proves the KEY FORMAT is correct and that different-file instances
         // would have different keys (the file component differs).
@@ -2192,6 +2326,8 @@ mod tests {
         // all(test, unix) → positive
         assert!(attr_has_positive_test_predicate("#[cfg(all(test, unix))]"));
         // not(all(test, unix)) → negative
-        assert!(!attr_has_positive_test_predicate("#[cfg(not(all(test, unix)))]"));
+        assert!(!attr_has_positive_test_predicate(
+            "#[cfg(not(all(test, unix)))]"
+        ));
     }
 }

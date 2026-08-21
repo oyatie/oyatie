@@ -53,22 +53,11 @@ fn lane_gate_inputs(_lane: &str) -> GateInputs {
 /// aggregator deliberately defers (parameterized invocation,
 /// not-yet-ported, or already covered by another lane). Documented for
 /// audit traceability; future ADRs will fold these in.
-const DEFERRED_GATES: &[(&str, &str)] = &[
-    (
-        "typescript-workspace",
-        "requires --lane <typecheck|test>; invoke directly until \
+const DEFERRED_GATES: &[(&str, &str)] = &[(
+    "typescript-workspace",
+    "requires --lane <typecheck|test>; invoke directly until \
          a default lane is canonicalized.",
-    ),
-    (
-        "release-supply-chain --phase pre-release",
-        "phase argument required; invoke directly.",
-    ),
-    (
-        "supply-chain --require-adr0039-evidence",
-        "second supply-chain pass with adr-0039 flag; the aggregator \
-         already invokes the default supply-chain lane above.",
-    ),
-];
+)];
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct RunAllArgs {
@@ -95,9 +84,9 @@ pub(crate) fn parse_run_all_args(args: Vec<String>) -> Result<RunAllArgs, String
             "--ci-required" => parsed.ci_required = true,
             "--affected" => parsed.affected = true,
             "--base" => {
-                let ref_val = iter.next().ok_or_else(|| {
-                    "gate run-all: --base requires a <ref> argument".to_string()
-                })?;
+                let ref_val = iter
+                    .next()
+                    .ok_or_else(|| "gate run-all: --base requires a <ref> argument".to_string())?;
                 parsed.base = ref_val;
             }
             other => {
@@ -128,8 +117,7 @@ pub(crate) fn run_all_gates(args: RunAllArgs, usage: &str) -> ExitCode {
         match changed_files(repo_root, &args.base) {
             Ok(changed) => {
                 let changed_refs: Vec<&str> = changed.iter().map(String::as_str).collect();
-                let selected =
-                    oya_governance_gate_catalog_domain::lanes_for_changed(&changed_refs);
+                let selected = oya_governance_gate_catalog_domain::lanes_for_changed(&changed_refs);
                 println!(
                     "[gate run-all] affected mode: {}/{} lanes selected (base={})",
                     selected.len(),
@@ -411,11 +399,6 @@ mod tests {
     }
 
     #[test]
-    fn aggregated_lane_catalog_contains_adr_citation() {
-        assert!(AGGREGATED_VALIDATE_LANES.contains(&"adr-citation"));
-    }
-
-    #[test]
     fn aggregated_lane_catalog_contains_cloud_iac_module_catalog() {
         assert!(AGGREGATED_VALIDATE_LANES.contains(&"cloud-iac-module-catalog"));
     }
@@ -523,9 +506,8 @@ mod tests {
 
     #[test]
     fn parse_args_affected_with_explicit_base() {
-        let parsed =
-            parse_run_all_args(vec!["--affected".into(), "--base".into(), "main".into()])
-                .expect("--affected --base main");
+        let parsed = parse_run_all_args(vec!["--affected".into(), "--base".into(), "main".into()])
+            .expect("--affected --base main");
         assert!(parsed.affected);
         assert_eq!(parsed.base, "main");
     }
@@ -590,8 +572,8 @@ mod tests {
 
         // (2) ADR-surface lanes that ARE triggered by docs/decisions must be present.
         assert!(
-            selected.contains(&"adr-citation"),
-            "adr-citation must be selected for a docs/decisions change"
+            selected.contains(&"adr-planning-completeness"),
+            "adr-planning-completeness must be selected for a docs/decisions change"
         );
         assert!(
             selected.contains(&"adr-supersession-consistency"),

@@ -45,10 +45,10 @@
 //! ## Violation codes (the contract — literal strings the gate emits)
 //! - `embedded_asset_policy_gate_id_mismatch` — policy `gate_id` != [`GATE_ID`].
 //! - `embedded_asset_unmapped_include`        — a resolved include-relative sandbox path is NOT among
-//!                                              the owning target's `srcs`/`mapped_srcs` destinations.
+//!   the owning target's `srcs`/`mapped_srcs` destinations.
 //! - `embedded_asset_no_target`               — a `.rs` with an include site has no bindable BUCK target.
 //! - `embedded_asset_unparseable_skip`        — the include literal or the owning target's
-//!                                              `srcs`/`mapped_srcs` is not statically resolvable.
+//!   `srcs`/`mapped_srcs` is not statically resolvable.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic; `#![forbid(unsafe_code)]`.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -99,8 +99,15 @@ const POLICY_KEY: &str = "<policy>";
 /// the caller (CI / a controller) decides how to surface them.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CollectError {
-    /// `scan_roots` policy field is missing or not a non-empty array of strings.
+    /// Neither `scan_root_source` nor a non-empty `scan_roots` array is present in the policy.
     MissingScanRoots,
+    /// A DECLARED scan root does not exist on disk. Never a silent skip: a root that is declared and
+    /// absent means the gate scans less than it claims and reports GREEN over the gap — the exact
+    /// defect that let a dangling embedded asset in `comms/` pass while `comms` was undeclared.
+    AbsentScanRoot(String),
+    /// Registry-derived scan-root resolution failed. Carries the rendered, path-naming report from
+    /// `ci-scan-root-derivation-adapters`.
+    ScanRootDerivation(String),
     /// A filesystem read failed.
     Io(String),
 }
@@ -111,9 +118,17 @@ impl std::fmt::Display for CollectError {
             CollectError::MissingScanRoots => {
                 write!(
                     f,
-                    "policy `scan_roots` must be a non-empty array of strings"
+                    "policy must carry either `scan_root_source` (registry-derived) or a non-empty \
+                     `scan_roots` array of strings"
                 )
             }
+            CollectError::AbsentScanRoot(path) => write!(
+                f,
+                "declared scan root `{path}` does not exist — the gate would report GREEN over a \
+                 root it never walked. Remove the declaration or restore the path; absence is never \
+                 a skip."
+            ),
+            CollectError::ScanRootDerivation(report) => write!(f, "{report}"),
             CollectError::Io(message) => write!(f, "embedded-asset scan io: {message}"),
         }
     }
@@ -836,16 +851,60 @@ pub fn resolve_mapped_var(
 // Collection (the only I/O — read-only)
 // ---------------------------------------------------------------------------
 
-/// Collect every Rust include site under the policy `scan_roots`, bind each to its owning BUCK
+/// The resolved scan-root set for one collection run.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct ScanRootResolution {
+    /// Roots to walk, sorted. Every one is proven to exist.
+    pub roots: Vec<String>,
+    /// Registered roots that have not materialized yet, sorted. Not walked; reported so the caller
+    /// can freeze the set two-sided.
+    pub pending: Vec<String>,
+    /// `"capability-registry"` or `"policy-explicit"`.
+    pub source: &'static str,
+}
+
+/// Resolve the roots this gate walks.
+///
+/// TWO MODES, and the DEFAULT is derivation. When the policy carries `scan_root_source.kind ==
+/// "capability_registry_derived"` the roots come from `governance/capability-registry.json` via
+/// `ci-scan-root-derivation-adapters`: every materialized capability, every landed meta directory,
+/// and the shared legacy list. Nothing is enumerated per gate, so a capability that materializes is
+/// scanned BY CONSTRUCTION — the same move the root `Cargo.toml` made when it replaced 24
+/// per-capability member globs with four shape globs.
+///
+/// The explicit `scan_roots` array remains supported because this gate is born pack-shaped: an
+/// adopting repository with no capability registry repoints the policy at a literal list. In THAT
+/// mode a declared root that is absent is an [`CollectError::AbsentScanRoot`] error, not a skip —
+/// the drift has to be loud in both modes or the fix only holds in one of them.
+///
+/// # Errors
+///
+/// [`CollectError::MissingScanRoots`] when the policy declares neither form,
+/// [`CollectError::ScanRootDerivation`] when the registry cannot be resolved, and
+/// [`CollectError::AbsentScanRoot`] when an explicitly declared root is absent.
+pub fn resolve_scan_roots(root: &Path, policy: &Value) -> Result<ScanRootResolution, CollectError> {
+    use ci_scan_root_derivation_adapters::ResolveError;
+
+    match ci_scan_root_derivation_adapters::resolve_policy_scan_roots(root, policy) {
+        Ok(resolution) => Ok(ScanRootResolution {
+            roots: resolution.roots,
+            pending: resolution.pending,
+            source: resolution.source,
+        }),
+        Err(ResolveError::NoScanRootsDeclared) => Err(CollectError::MissingScanRoots),
+        Err(ResolveError::DeclaredRootAbsent(path)) => Err(CollectError::AbsentScanRoot(path)),
+        Err(other) => Err(CollectError::ScanRootDerivation(other.to_string())),
+    }
+}
+
+/// Collect every Rust include site under the resolved scan roots, bind each to its owning BUCK
 /// target, resolve the include literal against that target's sandbox destination set, and record the
 /// outcome. Read-only; writes no temp files. Output shape:
 /// `{ "sites": [ { "key":.., "rs":.., "macro":.., "literal":.., "resolved":.., "target":..,
 ///   "status":"resolved"|"unmapped"|"no_target"|"unparseable"|"out_of_scope", "detail":.. } ] }`.
 pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectError> {
-    let scan_roots = str_array(policy, "scan_roots");
-    if scan_roots.is_empty() {
-        return Err(CollectError::MissingScanRoots);
-    }
+    let resolution = resolve_scan_roots(root, policy)?;
+    let scan_roots = resolution.roots.clone();
     let excludes = str_array(policy, "exclude_path_substrings");
     let rust_ext = policy
         .get("rust_extension")
@@ -859,13 +918,12 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
     let oos_prefixes = str_array(policy, "out_of_scope_path_prefixes");
 
     // 1. Enumerate Rust source files under the scan roots.
+    // Every root here is already proven to exist: `resolve_scan_roots` raises AbsentScanRoot rather
+    // than skipping. The `if !base.exists() { continue; }` that used to sit in this loop is the
+    // whole defect this gate was audited for — it turned a drifted root list into a silent GREEN.
     let mut rust_files: Vec<PathBuf> = Vec::new();
     for scan in &scan_roots {
-        let base = root.join(scan);
-        if !base.exists() {
-            continue;
-        }
-        walk_rust(&base, &rust_ext, &excludes, &mut rust_files)?;
+        walk_rust(&root.join(scan), &rust_ext, &excludes, &mut rust_files)?;
     }
     rust_files.sort();
 
@@ -916,10 +974,10 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
         // skipped instead of resolved.
         let crate_prefix = format!("{crate_dir_rel}/");
         for t in &mut targets {
-            if let Some(root) = &t.crate_root {
-                if let Some(stripped) = root.strip_prefix(&crate_prefix) {
-                    t.crate_root = Some(stripped.to_owned());
-                }
+            if let Some(root) = &t.crate_root
+                && let Some(stripped) = root.strip_prefix(&crate_prefix)
+            {
+                t.crate_root = Some(stripped.to_owned());
             }
         }
 
@@ -1049,7 +1107,16 @@ pub fn collect_observed(root: &Path, policy: &Value) -> Result<Value, CollectErr
         }
     }
 
-    Ok(json!({ "sites": sites_out }))
+    Ok(json!({
+        "sites": sites_out,
+        // The roots ACTUALLY walked, and the registered roots deliberately not walked because they
+        // have not landed. Emitting both makes the scan itself reviewable: the live-corpus test
+        // pins the walked SET against the registry derivation and freezes `pending` two-sided, so a
+        // collapsed scan is caught structurally rather than inferred from a site count.
+        "scan_roots": resolution.roots,
+        "pending_roots": resolution.pending,
+        "scan_root_source": resolution.source,
+    }))
 }
 
 /// The sandbox destination of the including file `F` inside target `T`'s `__srcs` tree. buck2 places
@@ -1103,10 +1170,10 @@ fn covering_targets(
 
 fn globs_via_crate_root(t: &BuckTarget, rs_in_crate: &str, _crate_files: &[String]) -> bool {
     // A library whose crate_root is src/lib.rs implicitly owns src/**.rs in the common layout.
-    if let Some(root) = &t.crate_root {
-        if let Some(dir) = root.rsplit_once('/').map(|(d, _)| d) {
-            return rs_in_crate.starts_with(&format!("{dir}/"));
-        }
+    if let Some(root) = &t.crate_root
+        && let Some(dir) = root.rsplit_once('/').map(|(d, _)| d)
+    {
+        return rs_in_crate.starts_with(&format!("{dir}/"));
     }
     false
 }
@@ -1191,10 +1258,10 @@ fn walk_all(base: &Path, dir: &Path, out: &mut Vec<String>) -> Result<(), Collec
             .map_err(|e| CollectError::Io(format!("file_type {}: {e}", path.display())))?;
         if file_type.is_dir() {
             walk_all(base, &path, out)?;
-        } else if file_type.is_file() {
-            if let Ok(rel) = path.strip_prefix(base) {
-                out.push(rel.to_string_lossy().replace('\\', "/"));
-            }
+        } else if file_type.is_file()
+            && let Ok(rel) = path.strip_prefix(base)
+        {
+            out.push(rel.to_string_lossy().replace('\\', "/"));
         }
     }
     Ok(())
@@ -1210,10 +1277,7 @@ fn nearest_buck_dir(root: &Path, rs_abs: &Path) -> Option<PathBuf> {
         if dir == root {
             return None;
         }
-        match dir.parent() {
-            Some(p) => dir = p,
-            None => return None,
-        }
+        dir = dir.parent()?;
     }
 }
 
@@ -2242,7 +2306,6 @@ rust_library(name = "t", srcs = [], crate_root = ROOT + "/src/lib.rs", mapped_sr
 
     #[test]
     fn comprehension_rewrite_refuses_non_library_targets() {
-        let buck = "rust_binary(\n    name = \"b\",\n    srcs = glob([\"src/**/*.rs\"]),\n    crate_root = \"src/main.rs\",\n)\n";
         let rem = Remediation {
             buck_path: "p/BUCK".to_owned(),
             target: "b".to_owned(),

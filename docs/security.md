@@ -76,10 +76,9 @@ from being used to circumvent the permission model.
 
 ## Hooks (advisory/monitoring only)
 
-Hooks are **not** the security gate. They provide:
+Hooks are **not** the security gate. The former Cargo-blocking hook was retired by
+ADR-0716 when Cargo became the merge path. The remaining hooks provide:
 
-- `no-cargo-enforcer.sh` (PreToolUse:Bash) — blocks `cargo build/test/clippy/run`
-  (Buck2 takeover); allows `cargo metadata/install/vendor`.
 - `injection-content-scanner.sh` (PostToolUse) — advisory OWASP LLM01 scanner;
   always exits 0, never blocks.
 

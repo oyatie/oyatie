@@ -23,13 +23,6 @@
 use std::collections::BTreeSet;
 use std::fmt;
 
-/// Execution mode for the statelessness check lane.
-///
-/// `ReportOnly` prints violations but always returns success (exit 0) so early
-/// substrate phases can track drift without blocking CI.  `Blocker` causes the
-/// check to return a non-zero exit code when any violation is found; P22 flips
-/// the lane to this mode once all known violations are resolved.
-
 /// Layer values where statelessness is required (outer ring + entry points).
 /// Inner-ring crates (`kernel`, `domain`) are exempt because they typically
 /// contain only types + pure logic; if they do violate, they need a separate
@@ -288,9 +281,6 @@ mod tests {
         let err = check(&[node("x", "app", "", "")]).unwrap_err();
         assert!(matches!(err, Error::EmptyPath { .. }));
     }
-
-
-
 
     #[test]
     fn line_numbers_are_one_indexed() {

@@ -3356,42 +3356,6 @@ cargo.rust_library(
     ],
 )
 
-alias(
-    name = "console_error_panic_hook",
-    actual = ":console_error_panic_hook-0.1",
-    visibility = ["PUBLIC"],
-)
-
-http_archive(
-    name = "console_error_panic_hook-0.1.7.crate",
-    sha256 = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc",
-    strip_prefix = "console_error_panic_hook-0.1.7",
-    urls = ["https://static.crates.io/crates/console_error_panic_hook/0.1.7/download"],
-    visibility = [],
-)
-
-cargo.rust_library(
-    name = "console_error_panic_hook-0.1",
-    srcs = [":console_error_panic_hook-0.1.7.crate"],
-    crate = "console_error_panic_hook",
-    crate_root = "console_error_panic_hook-0.1.7.crate/src/lib.rs",
-    edition = "2015",
-    env = {
-        "CARGO_MANIFEST_DIR": "console_error_panic_hook-0.1.7.crate",
-        "CARGO_PKG_NAME": "console_error_panic_hook",
-        "CARGO_PKG_VERSION": "0.1.7",
-        "CARGO_PKG_VERSION_MAJOR": "0",
-        "CARGO_PKG_VERSION_MINOR": "1",
-        "CARGO_PKG_VERSION_PATCH": "7",
-        "CARGO_PKG_VERSION_PRE": "",
-    },
-    visibility = [],
-    deps = [
-        ":cfg-if-1",
-        ":wasm-bindgen-0.2",
-    ],
-)
-
 http_archive(
     name = "const-str-1.1.0.crate",
     sha256 = "18f12cc9948ed9604230cdddc7c86e270f9401ccbe3c2e98a4378c5e7632212f",

@@ -8,8 +8,8 @@
 
 use crate::container::Config;
 use crate::yaml::{self, Yaml};
-use std::net::IpAddr;
 use os_kernel::error::{Error, Result};
+use std::net::IpAddr;
 
 /// Canonical Talos document kind.
 pub const RESOLVER_CONFIG_KIND: &str = "ResolverConfig";

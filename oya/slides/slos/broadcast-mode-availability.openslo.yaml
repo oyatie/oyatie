@@ -41,14 +41,14 @@ spec:
     - kind: AlertPolicy
       metadata: { name: broadcast-availability-burn-rate-high }
       spec:
-        notificationTargets: [{ target: grafana-oncall:slides-sev2 }]
+        notificationTargets: [{ target: "grafana-oncall:slides-sev2" }]
         conditions:
           - kind: AlertCondition
             spec: { op: lt, threshold: 0.995, lookbackWindow: 1h, alertAfter: 0m }
     - kind: AlertPolicy
       metadata: { name: broadcast-availability-sev1 }
       spec:
-        notificationTargets: [{ target: grafana-oncall:slides-sev1 }]
+        notificationTargets: [{ target: "grafana-oncall:slides-sev1" }]
         conditions:
           - kind: AlertCondition
             spec: { op: lt, threshold: 0.95, lookbackWindow: 15m, alertAfter: 0m }

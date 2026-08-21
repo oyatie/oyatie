@@ -1,0 +1,23 @@
+[package]
+name = "port-engine-toolchain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Dual-home toolchain corpus → receipt `toolchain_digest` (W0-B Slice 9).
+# Hermetic mirrors of build/toolchains/**; .buckconfig cell remap remains PARKED.
+# No Cargo.lock absorb this tip.
+
+[dependencies]
+port-engine-api = { path = "../../ports/api" }
+port-engine-hash = { path = "../hash" }
+
+[lib]
+name = "port_engine_toolchain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

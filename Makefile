@@ -8,7 +8,7 @@ CARGO ?= cargo
 # infra/gitops (ADR-0375, supersedes the OCI/on-prem deployment model of ADR-0120/0121).
 CLOUDFLARE_DIR := infra/cloudflare
 
-.PHONY: help bootstrap install plan apply tofu-init tofu-fmt-check verify verify-deploy-contract ops fleet check-tofu
+.PHONY: help bootstrap install plan apply tofu-init tofu-fmt-check verify-deploy verify-deploy-contract ops fleet check-tofu
 
 help:
 	@printf '%s\n' 'Oyatie deployment entrypoints (OpenTofu edge + CAPI/Talos fleet; no SSH troubleshooting)'
@@ -19,7 +19,12 @@ help:
 	@printf '%s\n' '  make apply                  Apply Cloudflare edge changes'
 	@printf '%s\n' '  make fleet                  Show the Talos/CAPI fleet bring-up entrypoints'
 	@printf '%s\n' '  make ops                    Show day-2 ops surface'
-	@printf '%s\n' '  make verify                 Run deployment contract gate + OpenTofu fmt check'
+	@printf '%s\n' '  make verify-deploy          Run deployment contract gate + OpenTofu fmt check'
+	@printf '%s\n' ''
+	@printf '%s\n' '  cargo verify is NOT a Make target. Merge-path verify is:'
+	@printf '%s\n' '    cargo fmt --all --check'
+	@printf '%s\n' '    cargo clippy --workspace --all-targets -- -D warnings'
+	@printf '%s\n' '    cargo test --workspace'
 
 bootstrap: verify-deploy-contract check-tofu tofu-init
 
@@ -37,7 +42,8 @@ tofu-init: check-tofu
 tofu-fmt-check: check-tofu
 	$(TOFU) -chdir=$(CLOUDFLARE_DIR) fmt -check -recursive
 
-verify: verify-deploy-contract tofu-fmt-check
+# Named verify-deploy so it cannot be mistaken for README/AGENTS cargo verify (ADR-0716).
+verify-deploy: verify-deploy-contract tofu-fmt-check
 
 verify-deploy-contract:
 	$(CARGO) run -p marketplace-dev-cli -- gate validate deployment-ops-contract

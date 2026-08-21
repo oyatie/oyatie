@@ -26,7 +26,7 @@
           "hits_total": 3
         },
         {
-          "file": "microservices/workflow-engine/PRD.md",
+          "file": "workflow/workflow-engine/PRD.md",
           "hits": [
             {
               "line": 117,
@@ -186,7 +186,7 @@
             },
             {
               "line": 20,
-              "excerpt": "Author Helm + Kustomize manifests for the full Layer-A stack (Postgres + Citus / Valkey Sentinel HA / ClickHouse / workflow-runtime deployment) under `microservices/workflow-engine/iac/helm/`. Deploys "
+              "excerpt": "Author Helm + Kustomize manifests for the full Layer-A stack (Postgres + Citus / Valkey Sentinel HA / ClickHouse / workflow-runtime deployment) under `workflow/workflow-engine/iac/helm/`. Deploys "
             },
             {
               "line": 24,
@@ -234,7 +234,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/runbooks/event-bus-replay.md",
+          "file": "workflow/workflow-engine/runbooks/event-bus-replay.md",
           "hits": [
             {
               "line": 37,
@@ -244,7 +244,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/runbooks/valkey-failover.md",
+          "file": "workflow/workflow-engine/runbooks/valkey-failover.md",
           "hits": [
             {
               "line": 3,
@@ -262,7 +262,7 @@
           "hits_total": 22
         },
         {
-          "file": "microservices/workflow-engine/runbooks/stuck-workflow-recovery.md",
+          "file": "workflow/workflow-engine/runbooks/stuck-workflow-recovery.md",
           "hits": [
             {
               "line": 76,
@@ -280,7 +280,7 @@
           "hits_total": 3
         },
         {
-          "file": "microservices/workflow-engine/runbooks/durable-execution-restart.md",
+          "file": "workflow/workflow-engine/runbooks/durable-execution-restart.md",
           "hits": [
             {
               "line": 35,
@@ -300,7 +300,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/capabilities/workflow-execute.yaml",
+          "file": "workflow/workflow-engine/capabilities/workflow-execute.yaml",
           "hits": [
             {
               "line": 87,
@@ -310,7 +310,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/catalog/oya-workflow-engine-event-bus-worker.yaml",
+          "file": "workflow/workflow-engine/catalog/oya-workflow-engine-event-bus-worker.yaml",
           "hits": [
             {
               "line": 11,
@@ -320,7 +320,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-adapter-valkey.yaml",
+          "file": "workflow/workflow-engine/catalog/oya-workflow-engine-execution-engine-adapter-valkey.yaml",
           "hits": [
             {
               "line": 11,
@@ -330,7 +330,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/catalog/oya-workflow-engine-execution-engine-worker.yaml",
+          "file": "workflow/workflow-engine/catalog/oya-workflow-engine-execution-engine-worker.yaml",
           "hits": [
             {
               "line": 11,
@@ -350,7 +350,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/iac/helm/valkey/Chart.yaml",
+          "file": "workflow/workflow-engine/iac/helm/valkey/Chart.yaml",
           "hits": [
             {
               "line": 4,
@@ -364,7 +364,7 @@
           "hits_total": 2
         },
         {
-          "file": "microservices/workflow-engine/iac/helm/workflow-runtime/values.yaml",
+          "file": "workflow/workflow-engine/iac/helm/workflow-runtime/values.yaml",
           "hits": [
             {
               "line": 49,
@@ -374,7 +374,7 @@
           "hits_total": 1
         },
         {
-          "file": "microservices/workflow-engine/manifest.json",
+          "file": "workflow/workflow-engine/manifest.json",
           "hits": [
             {
               "line": 140,

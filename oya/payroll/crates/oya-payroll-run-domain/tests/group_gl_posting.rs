@@ -52,8 +52,16 @@ fn test_two_balanced_entities_produces_correct_batch() {
         rollup_id: "pgrp_2026_01".to_owned(),
         tenant_id: "ten_acme".to_owned(),
         entries: vec![
-            balanced_entry("jrn_le_kr_001_2026_01", "prun_le_kr_001_2026_01", "le_kr_001"),
-            balanced_entry("jrn_le_kr_002_2026_01", "prun_le_kr_002_2026_01", "le_kr_002"),
+            balanced_entry(
+                "jrn_le_kr_001_2026_01",
+                "prun_le_kr_001_2026_01",
+                "le_kr_001",
+            ),
+            balanced_entry(
+                "jrn_le_kr_002_2026_01",
+                "prun_le_kr_002_2026_01",
+                "le_kr_002",
+            ),
         ],
         group_idempotency_key: "pgrp_2026_01:ten_acme:gl-batch".to_owned(),
     };
@@ -65,7 +73,10 @@ fn test_two_balanced_entities_produces_correct_batch() {
     assert_eq!(batch.total_debit_minor.value, 2_000_000);
     assert_eq!(batch.total_credit_minor.value, 2_000_000);
     // Group debit == group credit (balanced).
-    assert_eq!(batch.total_debit_minor.value, batch.total_credit_minor.value);
+    assert_eq!(
+        batch.total_debit_minor.value,
+        batch.total_credit_minor.value
+    );
     // Idempotency key is preserved verbatim.
     assert_eq!(
         batch.idempotency_key.value,
@@ -77,7 +88,11 @@ fn test_two_balanced_entities_produces_correct_batch() {
 
 #[test]
 fn test_unbalanced_entity_propagates_error() {
-    let mut unbalanced = balanced_entry("jrn_le_kr_001_2026_01", "prun_le_kr_001_2026_01", "le_kr_001");
+    let mut unbalanced = balanced_entry(
+        "jrn_le_kr_001_2026_01",
+        "prun_le_kr_001_2026_01",
+        "le_kr_001",
+    );
     // Break balance on the second entry only.
     unbalanced.lines[1].credit_minor = 999;
 
@@ -85,7 +100,11 @@ fn test_unbalanced_entity_propagates_error() {
         rollup_id: "pgrp_2026_02".to_owned(),
         tenant_id: "ten_acme".to_owned(),
         entries: vec![
-            balanced_entry("jrn_le_kr_002_2026_01", "prun_le_kr_002_2026_01", "le_kr_002"),
+            balanced_entry(
+                "jrn_le_kr_002_2026_01",
+                "prun_le_kr_002_2026_01",
+                "le_kr_002",
+            ),
             unbalanced,
         ],
         group_idempotency_key: "pgrp_2026_02:ten_acme:gl-batch".to_owned(),

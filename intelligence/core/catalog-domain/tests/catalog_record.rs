@@ -2,11 +2,11 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
 use intelligence_catalog_domain::{
     ApiStability, CatalogError, CatalogIndex, CatalogRecordInput, CatalogRole, SecurityReview,
     SupplyChainAttestation,
 };
+use oya_data_boundary_kernel::{DataClass, OperationalDataClass, privacy_data_classes_from};
 
 #[test]
 fn catalog_record_validates_existing_registry_shape() {
@@ -181,7 +181,10 @@ fn catalog_index_rejects_duplicates_and_missing_workspace_records() {
     let index = CatalogIndex::from_records(vec![first]).expect("index is valid");
     assert!(index.lookup("oya-intelligence-capability-kernel").is_some());
     assert_eq!(
-        index.validate_required_crates(["oya-intelligence-capability-kernel", "oya-intelligence-run-kernel"]),
+        index.validate_required_crates([
+            "oya-intelligence-capability-kernel",
+            "oya-intelligence-run-kernel"
+        ]),
         Err(CatalogError::MissingCrateRecord {
             crate_id: "oya-intelligence-run-kernel".into(),
         })

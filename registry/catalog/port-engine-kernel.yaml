@@ -9,10 +9,10 @@ api_stability: preview
 security_review: unreviewed
 supply_chain: source-only
 traceability:
-  source_crate: build/port-engine/core/port-engine-kernel/Cargo.toml
+  source_crate: build/port-engine/core/kernel/Cargo.toml
 non_claims:
   - W0 SEAMS ONLY (ADR-0637 D4); no source-language front end, no rule data, no corpus, no generated output exists or is claimed
-  - defines NO capability; build/ is a meta directory that owns zero capability crates (ADR-0637 D1, specs/capability-registry.json build/ owns_crates=false). The `capability` field above is this catalog's naming slot, not a capability-registry claim
+  - defines NO capability; build/ is a meta directory that owns zero capability crates (ADR-0637 D1, governance/capability-registry.json build/ owns_crates=false). The `capability` field above is this catalog's naming slot, not a capability-registry claim
   - one of the six crates the admission plan fixes; the neutral seam TYPES it assigns to the ports face still live here and move to ports/port-engine-api when that crate is authored
   - neutrality is enforced at COMPILE time over src/lib.rs and tests/seams.rs; the same const rule refuses, as WHOLE IDENTIFIERS rather than substrings, the two keywords that could put kernel code in an unscanned file, so the one-file scan is complete rather than partial. The keyword rule over tests/seams.rs is a test rather than a const assertion (rustc long_running_const_eval budget, measured), backed by that file's Buck target naming exactly one source
   - language neutrality is structural (LanguagePair is data) and NOT scanned; the ADR-0637 language-neutrality amendment is filed and not ratified

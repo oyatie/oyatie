@@ -107,9 +107,10 @@ apps:
     values: { installCRDs: true }
     syncWave: "1"
 
-  # ARC controller — reconciles AutoscalingRunnerSet CRs into ephemeral runner
-  # pods. Holds no GitHub credential itself; each scale set references its own
-  # githubConfigSecret. ADR-0630.
+  # RETIRED (2026-08-11): ARC controller kept listed only so a final sync can
+  # observe scale-set maxRunners:0. Founder removes these Applications after
+  # runner Pods/PVCs drain (infra/arc/README.md § Founder live-ops checklist).
+  # ADR-0630 is archive; merge CI is GitHub-hosted ubuntu-latest.
   - name: arc
     type: chart
     repoURL: ghcr.io/actions/actions-runner-controller-charts
@@ -119,9 +120,7 @@ apps:
     valueFiles: [infra/arc/controller-values.yaml]
     syncWave: "1"
 
-  # Owned CI runner fleet, ONE SCALE SET PER ARCHITECTURE (ADR-0630 D2). An
-  # amd64 box joining the cluster adds a sibling entry + values file; it never
-  # edits a workflow. Depends on the controller above, hence the later syncWave.
+  # RETIRED: oya-arm64 scale set — tip values maxRunners:0. Remove after drain.
   - name: oya-arm64
     type: chart
     repoURL: ghcr.io/actions/actions-runner-controller-charts
@@ -131,9 +130,7 @@ apps:
     valueFiles: [infra/arc/runner-scale-set-arm64-values.yaml]
     syncWave: "2"
 
-  # Dedicated one-job/one-PostgreSQL-Pod cell for required live-data tests.
-  # It deliberately does not inherit the general runner's environment and has
-  # no Secret or hostname reference to the shared CNPG data plane.
+  # RETIRED: oya-live-postgres-arm64 — live-PG gates use GH service containers.
   - name: oya-live-postgres-arm64
     type: chart
     repoURL: ghcr.io/actions/actions-runner-controller-charts
@@ -143,19 +140,16 @@ apps:
     valueFiles: [infra/arc/runner-scale-set-live-postgres-arm64-values.yaml]
     syncWave: "2"
 
+  # RETIRED with oya-live-postgres-arm64 — remove after runner drain.
   - name: oya-live-postgres-network-policy
     type: path
     path: infra/arc
     include: live-postgres-runner-network-policy.yaml
     namespace: arc-runners
-    # Establish both ingress and shared-data egress boundaries before either
-    # wave-2 runner scale set can create newly labelled Pods.
     syncWave: "1"
 
-  # Disposable ARC workspace storage. This is a distinct provisioner and two
-  # path-bound classes rooted on separate Talos user volumes; it never repoints the default
-  # local-path class used by stateful services. The provisioner precedes the
-  # general runner scale set through wave ordering.
+  # HISTORICAL ARC workspace storage (fleet retired). Keep until scale sets /
+  # PVCs are gone; then remove with founder live-ops checklist.
   - name: oya-ci-workspace-storage
     type: path
     path: infra/arc

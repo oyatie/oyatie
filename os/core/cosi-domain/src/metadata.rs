@@ -2,8 +2,8 @@
 //! finalizers and labels. Mirrors `cosi-project/runtime` `resource.Metadata`.
 
 use core::fmt;
-use std::collections::BTreeMap;
 use os_kernel::ResourceId;
+use std::collections::BTreeMap;
 
 /// Lifecycle phase of a resource.
 ///

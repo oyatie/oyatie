@@ -127,7 +127,10 @@ fn drift_progressing_health_status_yields_degraded_health_verdict() {
     let report = reconcile_gitops_drift(&desired, &observed);
 
     assert_eq!(report.verdict, GitOpsDriftVerdict::DegradedHealth);
-    assert_eq!(report.observed_health_status, GitOpsHealthStatus::Progressing);
+    assert_eq!(
+        report.observed_health_status,
+        GitOpsHealthStatus::Progressing
+    );
 }
 
 #[test]
@@ -210,8 +213,8 @@ fn drift_commit_beats_sync_status_drift_when_both_present() {
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
         "cloud-iac-foundation",
-        SHA_B,                          // commit mismatch
-        GitOpsSyncStatus::OutOfSync,    // also out-of-sync
+        SHA_B,                       // commit mismatch
+        GitOpsSyncStatus::OutOfSync, // also out-of-sync
         GitOpsHealthStatus::Healthy,
         "observed/commit-beats-sync",
     );
@@ -241,9 +244,9 @@ fn drift_commit_beats_degraded_health_when_both_present() {
         "ten_alpha",
         "cell-kr-seoul-1-a-001",
         "cloud-iac-foundation",
-        SHA_B,                          // commit mismatch
+        SHA_B, // commit mismatch
         GitOpsSyncStatus::Synced,
-        GitOpsHealthStatus::Degraded,   // also degraded
+        GitOpsHealthStatus::Degraded, // also degraded
         "observed/commit-beats-health",
     );
 
@@ -276,8 +279,8 @@ fn drift_sync_status_beats_degraded_health_when_both_present() {
         "cell-kr-seoul-1-a-001",
         "cloud-iac-foundation",
         SHA_A,
-        GitOpsSyncStatus::OutOfSync,    // sync drift
-        GitOpsHealthStatus::Degraded,   // also degraded
+        GitOpsSyncStatus::OutOfSync,  // sync drift
+        GitOpsHealthStatus::Degraded, // also degraded
         "observed/sync-beats-health",
     );
 
@@ -306,7 +309,7 @@ fn drift_identity_mismatch_on_tenant_id() {
     );
     let observed = make_evidence(
         GitOpsController::ArgoCd,
-        "ten_beta",                     // different tenant
+        "ten_beta", // different tenant
         "cell-kr-seoul-1-a-001",
         "cloud-iac-foundation",
         SHA_A,
@@ -337,7 +340,7 @@ fn drift_identity_mismatch_on_cell_id() {
     let observed = make_evidence(
         GitOpsController::ArgoCd,
         "ten_alpha",
-        "cell-kr-seoul-1-a-002",        // different cell
+        "cell-kr-seoul-1-a-002", // different cell
         "cloud-iac-foundation",
         SHA_A,
         GitOpsSyncStatus::Synced,
@@ -387,10 +390,22 @@ fn drift_verdict_derives_clone_debug_eq_partial_eq() {
     let debug = format!("{v1:?}");
     assert!(!debug.is_empty());
 
-    assert_ne!(GitOpsDriftVerdict::InSync, GitOpsDriftVerdict::DriftedCommit);
-    assert_ne!(GitOpsDriftVerdict::DriftedCommit, GitOpsDriftVerdict::DriftedSyncStatus);
-    assert_ne!(GitOpsDriftVerdict::DriftedSyncStatus, GitOpsDriftVerdict::DegradedHealth);
-    assert_ne!(GitOpsDriftVerdict::DegradedHealth, GitOpsDriftVerdict::IdentityMismatch);
+    assert_ne!(
+        GitOpsDriftVerdict::InSync,
+        GitOpsDriftVerdict::DriftedCommit
+    );
+    assert_ne!(
+        GitOpsDriftVerdict::DriftedCommit,
+        GitOpsDriftVerdict::DriftedSyncStatus
+    );
+    assert_ne!(
+        GitOpsDriftVerdict::DriftedSyncStatus,
+        GitOpsDriftVerdict::DegradedHealth
+    );
+    assert_ne!(
+        GitOpsDriftVerdict::DegradedHealth,
+        GitOpsDriftVerdict::IdentityMismatch
+    );
 }
 
 #[test]

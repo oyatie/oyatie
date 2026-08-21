@@ -41,10 +41,10 @@ doc_status: published
 
 ## Supply-chain (SLSA L2+)
 
-- [ ] **RR11** Every shipped binary has Cosign keyless OIDC signature with Rekor transparency. *Lane:* `cloud-ci-supply-chain-audit`; *policy:* `infra/kyverno/policies/verify-image-signed.yaml`.
-- [ ] **RR12** Every shipped binary has a CycloneDX SBOM attestation. *Lane:* `cloud-ci-supply-chain-audit`; *policy:* `infra/kyverno/policies/verify-image-signed.yaml`.
-- [ ] **RR13** SLSA L2+ provenance attestation present and admitted by keyless Sigstore policy. *Lane:* `cloud-ci-supply-chain-audit`; *policy:* `infra/kyverno/policies/verify-image-signed.yaml`.
-- [ ] **RR14** Dependency/advisory review is enforced by the owned RustSec mirror gate; `cargo-vet` is not live readiness authority until maintained inputs are restored. *Lane:* `cloud-ci-supply-chain-audit`.
+- [ ] **RR11** Every shipped binary has Cosign keyless OIDC signature. *Lane:* `oya-governance-supply-chain`.
+- [ ] **RR12** Every shipped binary has Syft / CycloneDX SBOM artifact. *Lane:* `oya-governance-supply-chain`.
+- [ ] **RR13** SLSA L2+ provenance attestation present + Rekor log index recorded. *Lane:* `oya-governance-supply-chain`.
+- [ ] **RR14** Dependency/advisory posture green via `cloud-ci-supply-chain-audit` (owned RustSec advisory scan over vendored mirror; `cargo-vet` retired until maintained inputs). *Lane:* `cloud-ci-supply-chain-audit`. *Evidence:* `oya-ci-required` supply-chain packet or `buck2 test //ci/facade/supply-chain-audit:ci-supply-chain-audit-gate`.
 
 ## SRE / observability
 
@@ -71,17 +71,16 @@ doc_status: published
 
 - [ ] **RR27** Release notes drafted (customer-facing), or release-governance / no-user-facing-change no-op recorded. Release Please is required only when a live repo config/workflow exists.
 - [ ] **RR28** Trust-portal page prepared (for surfaces with regulatory disclosure).
-- [ ] **RR29** Internal Slack `#oya-masterplan-status` notified.
+- [ ] **RR29** Internal Slack `#oyatie-masterplan-status` notified.
 - [ ] **RR30** Founder + Council-Architecture sign-off recorded.
 
 ## Post-gate
 
-- [ ] **RR31** `EVT-WAVE-GATE-PASSED` emitted with milestone ID + gate name + sign-off list. *Lane:* `oya-governance-audit-emission`. Inventory entry per ADR-0052.
+- [ ] **RR31** `EVT-WAVE-GATE-PASSED` emitted with milestone ID + gate name + sign-off list. *Lane:* `oya-governance-audit-emission`.
 - [ ] **RR32** `docs/CHANGELOG.md` "wave-gate-passed" row appended.
 - [ ] **RR33** Next milestone phases unblocked: their `gates_on:` rows mark this milestone `merged`.
-- [ ] **RR34** Every release-bound merged PR has a post-merge product-completion
-  packet: promoted SHA `oya-ci-required`, rollout verification, rollback note,
-  observability check, browser UX/user-story evidence, and release-governance /
-  release-note impact (Release Please only when repo config proves it).
+- [ ] **RR34** Release-scoped rollout, rollback, observability, user-story, and
+  release-note evidence is attached to the release record when applicable;
+  ADR-0716 requires no generic packet for every merged PR.
 
 If any row is unchecked, the wave-gate is not passed. Loop back; do not declare release readiness.

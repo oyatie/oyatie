@@ -4,7 +4,7 @@ checklist_id: CHK-IP
 status: pending approval
 purpose: |
   IP-internal verification. Walked before flipping an IP `status:` from `in-progress` to `merged` and before the worker agent runs `grit done`.
-lift_target: oyatie/docs/checklists/per-implementation-plan.md
+lift_target: oyatie/templates/checklists/per-implementation-plan.md
 enforcing_fitness_lane: oya-governance-plan-hierarchy
 owner_team: council-architecture
 related:
@@ -39,7 +39,7 @@ related:
 
 ## Audit + rollback
 
-- [ ] **IP11** Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Evidence`. *Lane:* `oya-governance-audit-emission`.
+- [ ] **IP11** Audit-chain `EVT-<topic>` emitted; ID pasted in PR `## Verification` when required. *Lane:* `oya-governance-audit-emission`.
 - [ ] **IP12** Rollback procedure (IP `§Rollback procedure`) was dry-run validated (where safe) or has a runbook reference. *(advisory; required for migration-class IPs — Lane:* `oya-governance-schema-migration`).
 - [ ] **IP13** IP `§Icm-store-payload` was emitted verbatim. *Command:* `icm store -t context-<project> …`.
 

@@ -168,8 +168,8 @@ mod tests {
     use super::*;
     use backend::{LocalBackend, RemoteBackend};
     use machine_service::MachineMethod;
-    use request::Request;
     use os_kernel::role::Role;
+    use request::Request;
 
     fn server() -> ApidServer {
         let mut srv = ApidServer::new("10.0.0.1");

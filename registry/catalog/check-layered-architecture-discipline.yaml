@@ -3,7 +3,6 @@ role: worker
 capability: check-layered-architecture-discipline
 slo: preview-control-plane
 plane: control
-slo: preview-control-plane
 data_classes_owned: [INTERNAL_ONLY]
 operational_classes_owned: []
 api_stability: preview

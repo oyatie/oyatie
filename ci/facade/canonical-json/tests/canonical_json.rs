@@ -9,9 +9,7 @@
 
 use std::path::{Path, PathBuf};
 
-use ci_canonical_json::{
-    GATE_ID, POLICY_PATH, Verdict, collect_observed, evaluate, load_policy,
-};
+use ci_canonical_json::{GATE_ID, POLICY_PATH, Verdict, collect_observed, evaluate, load_policy};
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");
@@ -86,7 +84,7 @@ fn exclusions_keep_generated_faces_and_fixtures_out_of_scope() {
             file.path
         );
         assert!(
-            file.path.starts_with("specs/"),
+            file.path.starts_with("specs/") || file.path.starts_with("governance/"),
             "only governed roots are collected: {}",
             file.path
         );

@@ -13,9 +13,10 @@
 //!    `registry-drift` test can byte-diff a fresh run against the committed face.
 //! 2. Total coverage — `set(rows.path) == set(git ls-files) − ephemeral` (ephemeral
 //!    carve-out rows are excluded by CLASS, resolved from the DATA table, never by row).
-//! 3. Carve-outs (vendor/generated/ephemeral/...) live as DATA in `unit-class-policy.json`
-//!    and `ttl-policy.json`, never as scanner branches (Linus: the exception lives in the
-//!    table). The classifier walks the table; it has zero hard-coded special cases.
+//! 3. Carve-outs (vendor/generated/ephemeral/...) live as DATA in the bundled
+//!    oya-ci-config unit-class + ttl tables (`Policy::from_config`), never as scanner
+//!    branches (Linus: the exception lives in the table). The classifier walks the
+//!    table; it has zero hard-coded special cases.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -25,11 +26,6 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use serde::{Deserialize, Serialize};
 use serde_json::{Map, Value};
-
-/// The carve-out classification policy (DATA, not code).
-pub const UNIT_CLASS_POLICY_JSON: &str = include_str!("unit-class-policy.json");
-/// The TTL policy (DATA, not code).
-pub const TTL_POLICY_JSON: &str = include_str!("ttl-policy.json");
 
 /// The buck2 target that produces the registry — recorded in `_provenance`.
 pub const PRODUCER_TARGET: &str =
@@ -126,6 +122,14 @@ pub struct RepoInputs {
     pub reachability: BTreeMap<String, Vec<String>>,
     /// path -> canonical path it duplicates (drives the MERGE verdict). Absent ⇒ not a dup.
     pub dup_of: BTreeMap<String, String>,
+    /// Every `old_path` named by a COMMITTED `specs/reorg/<capability>-move-plan.json`, as
+    /// discovered by the codemod's own `discover_committed_move_plans`. Empty ⇒ no capability
+    /// has a committed plan, so every derived `move` is unplanned — which is the honest reading,
+    /// not a reason to stay silent.
+    pub planned_move_paths: BTreeSet<String>,
+    /// The DECLARED placement authority, parsed from `governance/capability-registry.json`.
+    /// Empty ⇒ every destination is `None` ⇒ every disposition is `unclassified` (fail-closed).
+    pub placement: CapabilityPlacement,
     /// The OWNERS files (repo-relative) that PARSE against the ADR-0555 schema — the
     /// `valid_files` half of [`resolve_owners`]'s outcome. Membership here is the ONLY
     /// signal `build_registry` accepts for the [`OWNERS_SCHEMA_ANCHOR`] accounting floor,
@@ -142,15 +146,16 @@ pub struct Policy {
 }
 
 impl Policy {
-    /// Parse the bundled DATA tables. Returns an error rather than panicking on malformed data.
+    /// Parse the bundled DATA tables from oya-ci-config (SSOT). Returns an error rather
+    /// than panicking on malformed data.
     pub fn from_bundled() -> Result<Self, ProducerError> {
-        Self::from_strs(UNIT_CLASS_POLICY_JSON, TTL_POLICY_JSON)
+        Self::from_config(&oya_ci_config_kernel::OyaCiConfig::bundled_default())
     }
 
     /// Parse the carve-out + TTL tables from the oya-ci config (OYA-CI-CONFORMANCE-FLOOR-PLAN
     /// §3.3). The config carries these two tables as DATA (the `[unit_class]` + `[ttl]`
-    /// sections); the bundled default reproduces today's JSON byte-for-byte, so this is
-    /// equivalent to [`Policy::from_bundled`] under the default config.
+    /// sections); the bundled default is the SSOT, so this is equivalent to
+    /// [`Policy::from_bundled`] under the default config.
     pub fn from_config(cfg: &oya_ci_config_kernel::OyaCiConfig) -> Result<Self, ProducerError> {
         Self::from_strs(cfg.unit_class_policy_json(), cfg.ttl_policy_json())
     }
@@ -262,6 +267,18 @@ pub struct AccountingRecord {
     pub ttl: TtlRecord,
     pub tracked: bool,
     pub verdict: String,
+    /// Where this path BELONGS, from the closed capability registry (or the owner root).
+    /// `None` ⇒ no declared home; the disposition is then `unclassified` and blocks.
+    pub destination: Option<String>,
+    /// How this path TERMINATES. Derivable TODAY from row facts alone:
+    /// `retain | move | generate | externalize | delete | unclassified`.
+    ///
+    /// `refactor` and `rewrite` are deliberately NOT emitted: distinguishing "move it" from
+    /// "rewrite it on arrival" needs a CONTENT signal (e.g. the 216 `docs/runbooks/` files that
+    /// are `Stub` templates carrying `TODO — fill at …`), and [`derive_disposition`] is pure
+    /// over the row. Emitting a variant no rule can produce would be a lie in the schema, so
+    /// they wait for the content pass rather than being declared and never reached.
+    pub disposition: String,
     pub dup_of: Option<String>,
     #[serde(rename = "_provenance")]
     pub provenance: RecordProvenance,
@@ -310,6 +327,202 @@ fn derive_verdict(
         return "ARCHIVE".into();
     }
     "KEEP".into()
+}
+
+/// The DECLARED placement authority: `governance/capability-registry.json` (ADR-0562 as
+/// amended by ADR-0615). This is a closed registry — capability roots, the five faces, and the
+/// meta directories are enumerated there, so destination is a LOOKUP over declared data and
+/// never a heuristic over path shape.
+///
+/// Deliberately NOT a new DATA table. An earlier draft of this work proposed seeding a
+/// destination table from `specs/integ-branch-envelopes.json#reorg_debt_freeze`; that would
+/// have added a file under `libs/` (which ADR-0562 dissolves) to restate a mapping the
+/// capability registry already declares — and `reorg_debt_freeze` still carries 90 of 171 rows
+/// at `judgment_status: pending`, so it is a worse source than the registry it was derived from.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct CapabilityPlacement {
+    /// current dir prefix -> capability name. From `capabilities[].absorbs_current_dirs`.
+    /// Longest-prefix wins, so `iam/cloud-iam` beats `iam`.
+    pub absorbs: BTreeMap<String, String>,
+    /// Meta directories that are their own destination (`kernel/`, `governance/`, `app/`, ...).
+    pub meta_dirs: Vec<String>,
+}
+
+impl CapabilityPlacement {
+    /// Parse the closed registry. A malformed or absent registry yields an EMPTY placement,
+    /// which makes every destination `None` and therefore every disposition `unclassified` —
+    /// fail-closed, never a silent fallback to "looks fine where it is".
+    pub fn from_registry_value(value: &Value) -> Self {
+        let mut absorbs = BTreeMap::new();
+        if let Some(caps) = value.get("capabilities").and_then(Value::as_array) {
+            for cap in caps {
+                let Some(name) = cap.get("name").and_then(Value::as_str) else {
+                    continue;
+                };
+                for dir in cap
+                    .get("absorbs_current_dirs")
+                    .and_then(Value::as_array)
+                    .into_iter()
+                    .flatten()
+                    .filter_map(Value::as_str)
+                {
+                    let key = dir.trim_end_matches('/').to_owned();
+                    if !key.is_empty() {
+                        absorbs.insert(key, name.to_owned());
+                    }
+                }
+            }
+        }
+        // `pending_relocations` RETRACTS an absorbs claim the layout authority has already
+        // overruled. ADR-0615 §2 Q13 says verbatim "Do NOT fold `oya/governance` into
+        // `compliance`", and the registry records that as
+        // `compliance.absorbs_current_dirs[oya/governance]` -> pending. The absorb entry stays
+        // in place so the membership lint does not orphan the path, so reading
+        // `absorbs_current_dirs` alone makes the deriver assert a destination the authority
+        // forbids -- on 147 paths, every tracked file under oya/governance.
+        //
+        // A retracted claim yields NO destination, which lands the path in `unclassified`
+        // rather than inventing a home. That is the honest state: the registry says where it
+        // must NOT go and defers where it DOES go to a Batch-5 move plan that does not exist
+        // yet. Claiming the forbidden destination and claiming a correct one are both worse
+        // than admitting the answer is not yet decided.
+        for entry in value
+            .get("pending_relocations")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+        {
+            if entry.get("pending_relocation").and_then(Value::as_bool) != Some(true) {
+                continue;
+            }
+            let Some(from) = entry.get("from").and_then(Value::as_str) else {
+                continue;
+            };
+            // Shape: `<capability>.absorbs_current_dirs[<dir>]`
+            let Some((capability, rest)) = from.split_once(".absorbs_current_dirs[") else {
+                continue;
+            };
+            let Some(dir) = rest.strip_suffix(']') else {
+                continue;
+            };
+            let key = dir.trim_end_matches('/').to_owned();
+            // Retract only if this capability is the one currently claiming the dir, so a stale
+            // or mistyped row cannot silently delete another capability's live claim.
+            if absorbs.get(&key).map(String::as_str) == Some(capability) {
+                absorbs.remove(&key);
+            }
+        }
+
+        let meta_dirs = value
+            .get("meta_directories")
+            .and_then(Value::as_array)
+            .into_iter()
+            .flatten()
+            .filter_map(|m| m.get("dir").and_then(Value::as_str))
+            .map(|d| d.trim_end_matches('/').to_owned())
+            .filter(|d| !d.is_empty())
+            .collect();
+        Self { absorbs, meta_dirs }
+    }
+
+    /// Longest declared prefix that owns `path`, if any.
+    fn capability_for(&self, path: &str) -> Option<&str> {
+        let mut best: Option<(usize, &str)> = None;
+        for (dir, name) in &self.absorbs {
+            let owns = path == dir || path.starts_with(&format!("{dir}/"));
+            if owns && best.is_none_or(|(len, _)| dir.len() > len) {
+                best = Some((dir.len(), name.as_str()));
+            }
+        }
+        best.map(|(_, name)| name)
+    }
+
+    fn meta_dir_for(&self, path: &str) -> Option<&str> {
+        self.meta_dirs
+            .iter()
+            .find(|d| path.starts_with(&format!("{d}/")))
+            .map(String::as_str)
+    }
+}
+
+/// Where this path BELONGS, derived from declared authority only.
+///
+/// Order is load-bearing and mirrors the authority chain: a meta directory is its own
+/// destination (it is enumerated in the registry as such); otherwise the capability that
+/// declares it absorbed; otherwise the owner's root, because an owned tree has a defined home
+/// even when the capability registry has not yet absorbed it. A path with none of the three has
+/// NO derivable destination and must not be given one by guessing.
+fn derive_destination(
+    path: &str,
+    placement: &CapabilityPlacement,
+    owner: &Option<String>,
+) -> Option<String> {
+    if let Some(meta) = placement.meta_dir_for(path) {
+        return Some(format!("{meta}/"));
+    }
+    if let Some(capability) = placement.capability_for(path) {
+        return Some(format!("{capability}/"));
+    }
+    // The owner root is a weaker but still DECLARED signal: `resolve_owners` resolved it from a
+    // schema-valid OWNERS file, so the tree has an accountable home.
+    owner
+        .as_deref()
+        .and_then(|o| o.strip_prefix("OWNERS:"))
+        .filter(|root| !root.is_empty())
+        .map(|root| format!("{}/", root.trim_end_matches('/')))
+}
+
+/// How this path TERMINATES. Total and order-sensitive, exactly like [`derive_verdict`], and
+/// PURE over facts the row already carries — no file reads, no clock.
+///
+/// `unclassified` is the fail-closed outcome and BLOCKS its domain's cutover. It is never a
+/// silent default: every other arm requires a positive signal.
+///
+/// Measured on the live tree at the time of writing (16,643 rows):
+/// `retain 10,276 · unclassified 5,401 · move 940 · generate 26`. `delete` and `externalize`
+/// have rules here but do not fire on this corpus — `dup_of` is empty in the producer path and
+/// `third-party/` is excluded from the registry by config — so they are reachable by
+/// construction, not dead. `refactor`/`rewrite` have NO rule and are not emitted; see the
+/// `disposition` field doc for why.
+fn derive_disposition(
+    verdict: &str,
+    unit_class: &str,
+    destination: &Option<String>,
+    path: &str,
+    dup_of: &Option<String>,
+) -> String {
+    // A duplicate terminates by merging into its canonical twin, whatever else is true of it.
+    if dup_of.is_some() {
+        return "delete".into();
+    }
+    // Generated output is not authored and not moved: it terminates by being regenerated at its
+    // declared path. Its class already proves a producer owns it.
+    if unit_class == "generated" {
+        return "generate".into();
+    }
+    // Vendored code is owned elsewhere by definition.
+    if unit_class == "vendor" {
+        return "externalize".into();
+    }
+    // Scratch has a delete TTL by class; nothing is extracted from it.
+    if unit_class == "scratch" {
+        return "delete".into();
+    }
+    // Reached by nothing and justified by nothing. The tree does not know why this exists, so
+    // no destination can be honest about where it should go.
+    if verdict == "RED" {
+        return "unclassified".into();
+    }
+    let Some(destination) = destination else {
+        // Owned or reached, but no declared home. This is the NEEDS-OWNER / unabsorbed
+        // population; it blocks rather than defaulting to "leave it".
+        return "unclassified".into();
+    };
+    // Already inside its declared destination ⇒ it stays.
+    if path.starts_with(destination.as_str()) {
+        return "retain".into();
+    }
+    "move".into()
 }
 
 /// Build the full registry (rows + provenance) from repo inputs + policy.
@@ -392,6 +605,8 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
         let dup_of = inputs.dup_of.get(path).cloned();
 
         let verdict = derive_verdict(&owner, &justification_ref, &reachable_from, &ttl, &dup_of);
+        let destination = derive_destination(path, &inputs.placement, &owner);
+        let disposition = derive_disposition(&verdict, &unit_class, &destination, path, &dup_of);
 
         records.push(AccountingRecord {
             path: path.clone(),
@@ -402,6 +617,8 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
             ttl,
             tracked: true,
             verdict,
+            destination,
+            disposition,
             dup_of,
             provenance: RecordProvenance {
                 producer_target: PRODUCER_TARGET.into(),
@@ -432,6 +649,18 @@ pub fn build_registry(inputs: &RepoInputs, policy: &Policy) -> Result<Value, Pro
             "source_inputs_digest": source_inputs_digest,
             "row_count": records.len(),
         }),
+    );
+    // The committed move plans, carried as DATA so the conformance gate stays a pure evaluator
+    // (it must never glob the tree itself). Sorted, so the face is byte-stable.
+    root.insert(
+        "planned_move_paths".into(),
+        Value::Array(
+            inputs
+                .planned_move_paths
+                .iter()
+                .map(|p| Value::String(p.clone()))
+                .collect(),
+        ),
     );
     root.insert("rows".into(), rows);
     Ok(Value::Object(root))
@@ -1441,6 +1670,94 @@ pub fn registration_matches(path: &str, prefix: &str) -> bool {
     }
 }
 
+/// Envelope policy SSOT (cite; do not re-list roots in this crate).
+/// Authority: `specs/integ-branch-envelopes.json#path_ownership` + `#roots.*.envelope_globs`.
+pub const ENVELOPES_RELPATH: &str = "specs/integ-branch-envelopes.json";
+
+/// Reachability source tag when a path is covered by an envelope `envelope_globs` prefix.
+/// Forever admission.policy consumes these so in-domain adds need no per-file tip-free row.
+pub const ENVELOPE_PREFIX_OWNERSHIP_SOURCE: &str = "envelope-prefix-ownership";
+
+/// Convert one envelope glob (`compute/**`) into a reachability prefix (`compute/`).
+///
+/// Only the live envelope shape `dir/**` is accepted (measured: all 74 roots use it).
+/// Other glob shapes return `None` (fail-closed — never invent a silent broad allow).
+pub fn envelope_glob_to_prefix(glob: &str) -> Option<String> {
+    let glob = glob.trim();
+    if let Some(stem) = glob.strip_suffix("/**") {
+        if stem.is_empty() || stem.contains('*') || stem.starts_with('/') || stem.contains("..") {
+            return None;
+        }
+        return Some(format!("{stem}/"));
+    }
+    None
+}
+
+/// Load prefix allows from `roots.*.envelope_globs` (path ownership law).
+///
+/// Missing file ⇒ empty (zero-config fixtures). Present but missing/non-object `roots`
+/// ⇒ hard error (fail-loud). Duplicate prefixes collapse.
+pub fn load_envelope_prefix_allows(
+    path: &std::path::Path,
+) -> Result<Vec<ReachabilityRegistration>, ProducerError> {
+    let text = match std::fs::read_to_string(path) {
+        Ok(text) => text,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => return Err(ProducerError::Io(format!("{}: {e}", path.display()))),
+    };
+    let value: Value = serde_json::from_str(&text)
+        .map_err(|e| ProducerError::Validation(format!("{}: parse: {e}", path.display())))?;
+    let roots = value
+        .get("roots")
+        .and_then(Value::as_object)
+        .ok_or_else(|| {
+            ProducerError::Validation(format!(
+                "{}: missing object 'roots' (fail-loud: envelope prefix allow requires \
+             roots.*.envelope_globs)",
+                path.display()
+            ))
+        })?;
+
+    let mut by_prefix: BTreeMap<String, String> = BTreeMap::new();
+    for (root_id, root) in roots {
+        let Some(globs) = root.get("envelope_globs").and_then(Value::as_array) else {
+            continue;
+        };
+        let branch = root
+            .get("branch")
+            .and_then(Value::as_str)
+            .unwrap_or(root_id);
+        for (index, glob_value) in globs.iter().enumerate() {
+            let Some(glob) = glob_value.as_str() else {
+                return Err(ProducerError::Validation(format!(
+                    "{}: roots.{root_id}.envelope_globs[{index}] must be a string",
+                    path.display()
+                )));
+            };
+            let Some(prefix) = envelope_glob_to_prefix(glob) else {
+                return Err(ProducerError::Validation(format!(
+                    "{}: roots.{root_id}.envelope_globs[{index}]={glob:?} is not a supported \
+                     envelope prefix glob (expected 'dir/**')",
+                    path.display()
+                )));
+            };
+            by_prefix.entry(prefix).or_insert_with(|| {
+                format!(
+                    "Envelope prefix ownership ({branch} → {glob}): in-domain path allow from \
+                     {ENVELOPES_RELPATH}#roots.{root_id}.envelope_globs (path_ownership law). \
+                     Per-file tip-free / reachability-registry rows are NOT required for paths \
+                     under this prefix."
+                )
+            });
+        }
+    }
+
+    Ok(by_prefix
+        .into_iter()
+        .map(|(prefix, anchor)| ReachabilityRegistration { prefix, anchor })
+        .collect())
+}
+
 /// `fix-owners <dir>=<owner>` — the TRANSITIONAL ownership-registration bridge
 /// (ADR-0555; cli_surface_policy: local bridge only, never merge authority; successor =
 /// the ADR-0548 D3 reconcilers). The OWNER is the human design decision supplied as input;
@@ -1645,8 +1962,145 @@ pub fn fix_reachability(
 }
 
 #[cfg(test)]
+mod pending_relocation_tests;
+
+#[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A placement fixture mirroring the real registry's shape: one capability that absorbs a
+    /// legacy dir, and one meta directory.
+    fn sample_placement() -> CapabilityPlacement {
+        CapabilityPlacement::from_registry_value(&serde_json::json!({
+            "capabilities": [
+                {"name": "iam", "absorbs_current_dirs": ["iam", "iam/cloud-iam", "oya/identity"]},
+                {"name": "data", "absorbs_current_dirs": ["data"]}
+            ],
+            "meta_directories": [{"dir": "governance/"}, {"dir": "app/"}]
+        }))
+    }
+
+    #[test]
+    fn destination_prefers_the_longest_declared_absorb() {
+        let placement = sample_placement();
+        // `iam/cloud-iam` and `iam` both match; the longer declaration wins, so a path is never
+        // credited to a broader capability than the one that actually declared it.
+        assert_eq!(
+            derive_destination("iam/cloud-iam/src/lib.rs", &placement, &None).as_deref(),
+            Some("iam/")
+        );
+        assert_eq!(
+            derive_destination("oya/identity/src/lib.rs", &placement, &None).as_deref(),
+            Some("iam/"),
+            "a legacy dir absorbed by a capability resolves to that capability, not to oya/"
+        );
+    }
+
+    #[test]
+    fn destination_falls_back_to_the_owner_root_then_to_none() {
+        let placement = sample_placement();
+        assert_eq!(
+            derive_destination(
+                "tools/thing/src/lib.rs",
+                &placement,
+                &Some("OWNERS:tools".into())
+            )
+            .as_deref(),
+            Some("tools/"),
+            "an owned tree has a declared home even before its capability absorbs it"
+        );
+        assert_eq!(
+            derive_destination("nowhere/thing.md", &placement, &None),
+            None,
+            "no meta dir, no absorb, no owner ⇒ NO destination may be invented"
+        );
+    }
+
+    #[test]
+    fn disposition_is_unclassified_without_a_declared_home() {
+        // This is the fail-closed property the whole design rests on: a path the tree cannot
+        // place must BLOCK its domain, never default to `retain` (leave it) or `delete`.
+        assert_eq!(
+            derive_disposition("KEEP", "doc", &None, "nowhere/thing.md", &None),
+            "unclassified"
+        );
+        assert_eq!(
+            derive_disposition("RED", "doc", &Some("docs/".into()), "docs/x.md", &None),
+            "unclassified",
+            "RED means the tree does not know why this exists; no destination can be honest"
+        );
+    }
+
+    #[test]
+    fn disposition_separates_staying_from_moving() {
+        assert_eq!(
+            derive_disposition("KEEP", "doc", &Some("iam/".into()), "iam/docs/x.md", &None),
+            "retain"
+        );
+        assert_eq!(
+            derive_disposition(
+                "KEEP",
+                "doc",
+                &Some("iam/".into()),
+                "oya/identity/x.md",
+                &None
+            ),
+            "move"
+        );
+    }
+
+    #[test]
+    fn disposition_terminals_come_from_class_and_duplication() {
+        assert_eq!(
+            derive_disposition(
+                "KEEP",
+                "generated",
+                &Some("ci/".into()),
+                "ci/x.generated.json",
+                &None
+            ),
+            "generate",
+            "generated output terminates by regeneration, not by being moved"
+        );
+        assert_eq!(
+            derive_disposition(
+                "KEEP",
+                "vendor",
+                &Some("third-party/".into()),
+                "third-party/x.rs",
+                &None
+            ),
+            "externalize"
+        );
+        assert_eq!(
+            derive_disposition("KEEP", "scratch", &Some("x/".into()), "x/tmp.txt", &None),
+            "delete"
+        );
+        assert_eq!(
+            derive_disposition(
+                "MERGE",
+                "doc",
+                &Some("iam/".into()),
+                "iam/dup.md",
+                &Some("iam/canon.md".into())
+            ),
+            "delete",
+            "a duplicate terminates into its canonical twin whatever else is true of it"
+        );
+    }
+
+    #[test]
+    fn an_absent_or_malformed_registry_fails_closed() {
+        // The registry cannot be silently ignored into a permissive result: an empty placement
+        // must yield NO destinations, hence `unclassified`, hence a blocked domain.
+        let empty = CapabilityPlacement::default();
+        assert_eq!(derive_destination("iam/src/lib.rs", &empty, &None), None);
+        let garbage = CapabilityPlacement::from_registry_value(&serde_json::json!({"nope": 1}));
+        assert_eq!(
+            garbage, empty,
+            "a registry missing its keys yields an empty placement"
+        );
+    }
 
     fn sample_inputs() -> RepoInputs {
         let mut owners = BTreeMap::new();
@@ -1672,6 +2126,8 @@ mod tests {
             reachability,
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::new(),
+            placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         }
     }
 
@@ -1683,7 +2139,11 @@ mod tests {
         assert_eq!(policy.classify("third-party/foo/lib.rs"), "vendor");
         assert_eq!(policy.classify("docs/foo.generated.json"), "generated");
         assert_eq!(policy.classify("specs/masterplan.json"), "spec");
-        assert_eq!(policy.classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"), "doc");
+        assert_eq!(
+            policy
+                .classify("docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"),
+            "doc"
+        );
         assert_eq!(policy.classify("oya/x/src/lib.rs"), "code");
         assert_eq!(policy.classify("some/unknown/blob"), "husk");
     }
@@ -2114,7 +2574,8 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
+        let scm =
+            tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
         let message = fix_owners(&root, &cfg, &scm, "docs/adr-archive=council-architecture")
             .expect("fix applies");
         assert!(message.contains("1 tracked path(s)"), "{message}");
@@ -2186,7 +2647,8 @@ mod tests {
         let root = unique_temp_repo();
         std::fs::create_dir_all(root.join("docs/adr-archive")).expect("create dir");
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let scm = tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
+        let scm =
+            tracked(&["docs/adr-archive/ADR-0001-cohesion-thesis-one-product-flat-catalog.md"]);
 
         // A principal the resolver would reject must be refused BEFORE writing.
         for hostile in ["Team Evil", "EVIL", "evil!", "a@b.example", "-x"] {
@@ -2266,12 +2728,7 @@ mod tests {
         std::fs::write(root.join("bad/thing.rs"), "fn main() {}\n").expect("write covered");
 
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let paths = tracked(&[
-            "bad/OWNERS",
-            "bad/thing.rs",
-            "good/OWNERS",
-            "good/thing.rs",
-        ]);
+        let paths = tracked(&["bad/OWNERS", "bad/thing.rs", "good/OWNERS", "good/thing.rs"]);
         let resolution = resolve_owners(&root, &paths, &cfg);
         assert_eq!(
             resolution.valid_files,
@@ -2292,6 +2749,8 @@ mod tests {
             reachability: BTreeMap::new(),
             dup_of: BTreeMap::new(),
             valid_owners_files: resolution.valid_files,
+            placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = |path: &str| -> Value {
@@ -2311,12 +2770,11 @@ mod tests {
             good["reachable_from"],
             serde_json::json!([OWNERS_SCHEMA_ANCHOR])
         );
-        let good_findings: BTreeSet<String> =
-            ci_artifact_accountability::evaluate_keyed(&registry)
-                .into_iter()
-                .filter(|f| f.key == "good/OWNERS")
-                .map(|f| f.code)
-                .collect();
+        let good_findings: BTreeSet<String> = ci_artifact_accountability::evaluate_keyed(&registry)
+            .into_iter()
+            .filter(|f| f.key == "good/OWNERS")
+            .map(|f| f.code)
+            .collect();
         assert!(
             good_findings.is_empty(),
             "a schema-valid OWNERS file must raise NO accounting violation, got {good_findings:?}"
@@ -2357,20 +2815,16 @@ mod tests {
         let policy = Policy::from_bundled().expect("policy");
         let inputs = RepoInputs {
             tracked_paths: tracked(&["cloud/x/OWNERS"]),
-            owners: BTreeMap::from([(
-                "cloud/x/OWNERS".to_owned(),
-                "OWNERS:cloud/x".to_owned(),
-            )]),
-            justifications: BTreeMap::from([(
-                "cloud/x/OWNERS".to_owned(),
-                "ADR-0543".to_owned(),
-            )]),
+            owners: BTreeMap::from([("cloud/x/OWNERS".to_owned(), "OWNERS:cloud/x".to_owned())]),
+            justifications: BTreeMap::from([("cloud/x/OWNERS".to_owned(), "ADR-0543".to_owned())]),
             reachability: BTreeMap::from([(
                 "cloud/x/OWNERS".to_owned(),
                 vec!["cargo-members".to_owned()],
             )]),
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
+            placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = &registry["rows"].as_array().expect("rows")[0];
@@ -2400,6 +2854,8 @@ mod tests {
             )]),
             dup_of: BTreeMap::new(),
             valid_owners_files: BTreeSet::from(["cloud/x/OWNERS".to_owned()]),
+            placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         };
         let registry = build_registry(&inputs, &policy).expect("registry");
         let row = &registry["rows"].as_array().expect("rows")[0];
@@ -2560,5 +3016,83 @@ mod tests {
                 "{invalid:?} must be rejected"
             );
         }
+    }
+
+    #[test]
+    fn envelope_glob_to_prefix_accepts_dir_star_star_only() {
+        assert_eq!(
+            envelope_glob_to_prefix("compute/**").as_deref(),
+            Some("compute/")
+        );
+        assert_eq!(
+            envelope_glob_to_prefix("app/payments/**").as_deref(),
+            Some("app/payments/")
+        );
+        assert_eq!(envelope_glob_to_prefix("compute/"), None);
+        assert_eq!(envelope_glob_to_prefix("compute/*"), None);
+        assert_eq!(envelope_glob_to_prefix("**/evil"), None);
+        assert_eq!(envelope_glob_to_prefix("/**"), None);
+        assert_eq!(envelope_glob_to_prefix("../escape/**"), None);
+    }
+
+    #[test]
+    fn load_envelope_prefix_allows_covers_owned_prefix_without_tip_free() {
+        let root = std::env::temp_dir().join(format!(
+            "oya-envelope-prefix-{}-{}",
+            std::process::id(),
+            std::time::SystemTime::now()
+                .duration_since(std::time::UNIX_EPOCH)
+                .expect("clock")
+                .as_nanos()
+        ));
+        std::fs::create_dir_all(root.join("specs")).expect("specs dir");
+        let envelopes = root.join(ENVELOPES_RELPATH);
+        std::fs::write(
+            &envelopes,
+            r#"{
+              "roots": {
+                "compute": {
+                  "branch": "integ/compute",
+                  "envelope_globs": ["compute/**"]
+                },
+                "iac": {
+                  "branch": "integ/iac",
+                  "envelope_globs": ["iac/**"]
+                }
+              }
+            }"#,
+        )
+        .expect("write envelopes");
+
+        let allows = load_envelope_prefix_allows(&envelopes).expect("load");
+        assert_eq!(allows.len(), 2);
+        assert!(allows.iter().any(|e| e.prefix == "compute/"));
+        assert!(allows.iter().any(|e| e.prefix == "iac/"));
+        assert!(registration_matches(
+            "compute/manifest.json",
+            &allows
+                .iter()
+                .find(|e| e.prefix == "compute/")
+                .unwrap()
+                .prefix
+        ));
+        assert!(registration_matches(
+            "iac/governance/note.md",
+            &allows.iter().find(|e| e.prefix == "iac/").unwrap().prefix
+        ));
+        assert!(!registration_matches("compute-evil/x.rs", "compute/"));
+
+        // missing file ⇒ empty (fixture zero-config)
+        std::fs::remove_file(&envelopes).expect("remove");
+        assert!(
+            load_envelope_prefix_allows(&envelopes)
+                .expect("missing ok")
+                .is_empty()
+        );
+        // present without roots ⇒ fail-loud
+        std::fs::write(&envelopes, "{}").expect("write empty");
+        assert!(load_envelope_prefix_allows(&envelopes).is_err());
+
+        let _ = std::fs::remove_dir_all(root);
     }
 }

@@ -110,7 +110,10 @@ where
     pub fn rebalance_queue(&self, envelope: CommandEnvelope) -> Result<CommandReceipt> {
         ensure_command(
             &envelope,
-            matches!(envelope.command, ContactCenterCommand::RebalanceQueue { .. }),
+            matches!(
+                envelope.command,
+                ContactCenterCommand::RebalanceQueue { .. }
+            ),
             "RebalanceQueue",
         )?;
         self.handle(envelope)
@@ -128,20 +131,30 @@ where
     pub fn sync_agent_state(&self, envelope: CommandEnvelope) -> Result<CommandReceipt> {
         ensure_command(
             &envelope,
-            matches!(envelope.command, ContactCenterCommand::SyncAgentState { .. }),
+            matches!(
+                envelope.command,
+                ContactCenterCommand::SyncAgentState { .. }
+            ),
             "SyncAgentState",
         )?;
         self.handle(envelope)
     }
 }
 
-fn ensure_command(envelope: &CommandEnvelope, matches_expected: bool, expected: &str) -> Result<()> {
+fn ensure_command(
+    envelope: &CommandEnvelope,
+    matches_expected: bool,
+    expected: &str,
+) -> Result<()> {
     if matches_expected {
         Ok(())
     } else {
         Err(ServiceError::validation(
             "command",
-            format!("expected {expected}, got {:?}", envelope.command.capability()),
+            format!(
+                "expected {expected}, got {:?}",
+                envelope.command.capability()
+            ),
         ))
     }
 }
@@ -173,10 +186,12 @@ fn event_for(envelope: &CommandEnvelope) -> ContactCenterEvent {
                 tenant_id,
             }
         }
-        ContactCenterCommand::ScheduleCallback { route_id } => ContactCenterEvent::CallbackScheduled {
-            route_id: route_id.clone(),
-            tenant_id,
-        },
+        ContactCenterCommand::ScheduleCallback { route_id } => {
+            ContactCenterEvent::CallbackScheduled {
+                route_id: route_id.clone(),
+                tenant_id,
+            }
+        }
         ContactCenterCommand::EmergencyCallerBypass { route_id } => {
             ContactCenterEvent::EmergencyCallerBypassHeld {
                 route_id: route_id.clone(),

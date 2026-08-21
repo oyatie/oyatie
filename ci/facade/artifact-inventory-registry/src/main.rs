@@ -42,11 +42,12 @@ use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
 use ci_artifact_inventory_registry::{
-    CrosswalkInputs, DecisionCrosswalkRow, EnforcementInputs, EnforcementRow, GateInputs,
-    OwnersIntegrity, Policy, ProducerError, RepoInputs, adr_id_from_filename, allocate_next_adr_id,
+    CapabilityPlacement, CrosswalkInputs, DecisionCrosswalkRow, ENVELOPE_PREFIX_OWNERSHIP_SOURCE,
+    ENVELOPES_RELPATH, EnforcementInputs, EnforcementRow, GateInputs, OwnersIntegrity, Policy,
+    ProducerError, RepoInputs, adr_id_from_filename, allocate_next_adr_id,
     build_decision_crosswalk, build_enforcement_inventory, build_gate_baseline, build_registry,
-    fix_owners, fix_reachability, front_matter_field, load_reachability_registry,
-    registration_matches, resolve_owners, to_canonical_json,
+    fix_owners, fix_reachability, front_matter_field, load_envelope_prefix_allows,
+    load_reachability_registry, registration_matches, resolve_owners, to_canonical_json,
 };
 use oya_check_brand_residue::forbidden_vocab::{
     CensusDocument, VocabPolicy, census_findings_with, is_path_carved_out_with,
@@ -885,10 +886,10 @@ fn collect_bnf_layer_suffix(
         if is_path_excluded(path, cfg) {
             continue;
         }
-        if let Some(name) = parse_package_name(&read_text(&repo_root.join(path))) {
-            if name.starts_with(prefix) {
-                names.insert(name);
-            }
+        if let Some(name) = parse_package_name(&read_text(&repo_root.join(path)))
+            && name.starts_with(prefix)
+        {
+            names.insert(name);
         }
     }
     let rows: Vec<Value> = names
@@ -1013,6 +1014,8 @@ fn collect_license_policy(
     Ok(json!({ "rows": rows }))
 }
 
+type SloCoverageRecord = (String, String, Option<String>, bool, Option<String>);
+
 /// Enumerate SLO catalog rows from the config-declared `[slo_coverage].catalog_record_globs`.
 /// This replaces the legacy dev-cli's implicit `registry/catalog` walk with a portable, closed-
 /// schema input contract. The current default still mirrors Oyatie's catalog source
@@ -1027,7 +1030,7 @@ fn collect_slo_coverage(
     // not enough if the catalog record itself is silently stale. Resolve the live crate-id
     // universe IN-PROCESS (no shell-out) so each row carries is_live + marker alongside slo.
     let live = live_workspace_crate_ids(repo_root)?;
-    let mut records: Vec<(String, String, Option<String>, bool, Option<String>)> = Vec::new();
+    let mut records: Vec<SloCoverageRecord> = Vec::new();
     for path in tracked_paths {
         if is_path_excluded(path, cfg) {
             continue;
@@ -1146,10 +1149,10 @@ fn catalog_non_claims_declares_no_crate(contents: &str) -> bool {
 /// value wins; otherwise a `non_claims` no-crate declaration yields the synthetic
 /// `non-claims-no-crate` marker. A LIVE record needs no marker (the gate checks live OR marked).
 fn catalog_non_live_marker(contents: &str) -> Option<String> {
-    if let Some(status) = parse_catalog_status(contents) {
-        if NON_LIVE_STATUS_MARKERS.contains(&status.as_str()) {
-            return Some(status);
-        }
+    if let Some(status) = parse_catalog_status(contents)
+        && NON_LIVE_STATUS_MARKERS.contains(&status.as_str())
+    {
+        return Some(status);
     }
     if catalog_non_claims_declares_no_crate(contents) {
         return Some("non-claims-no-crate".to_owned());
@@ -1260,6 +1263,8 @@ fn catalog_exemption_for_member(
         })
 }
 
+type CatalogLivenessRecord = (String, String, bool, Option<String>, Option<String>, bool);
+
 /// Enumerate catalog-liveness rows from the config-declared `[catalog_liveness]` policy. The face
 /// is bidirectional:
 ///   - `rows`: catalog record -> live/marked/source-path facts;
@@ -1272,7 +1277,7 @@ fn collect_catalog_liveness(
     let live = live_workspace_crates(repo_root)?;
     let live_ids: BTreeSet<String> = live.iter().map(|row| row.crate_id.clone()).collect();
     let tracked: BTreeSet<&str> = tracked_paths.iter().map(String::as_str).collect();
-    let mut records: Vec<(String, String, bool, Option<String>, Option<String>, bool)> = Vec::new();
+    let mut records: Vec<CatalogLivenessRecord> = Vec::new();
     for path in tracked_paths {
         if is_path_excluded(path, cfg) {
             continue;
@@ -1631,7 +1636,7 @@ fn collect_command_values(value: &Value, refs: &mut BTreeSet<String>) {
 }
 
 fn normalize_hook_command(command: &str) -> Option<String> {
-    let first = command.trim().split_whitespace().next()?;
+    let first = command.split_whitespace().next()?;
     let path = first.strip_prefix("./").unwrap_or(first);
     if is_top_level_hook_script(path) {
         Some(path.to_owned())
@@ -1756,6 +1761,7 @@ fn parse_catalog_slo(contents: &str) -> Option<String> {
 mod tests {
     use super::*;
     use std::fs;
+    use std::process::Command;
     use std::sync::atomic::{AtomicU64, Ordering};
     use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -1964,20 +1970,53 @@ mod tests {
     }
 
     fn load_live_test_scm_facts(root: &Path) -> ScmFacts {
-        let face = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
-        // Same class as the repo-root-hygiene / generated-artifact-policy gates: this face is the
-        // ADR-0604 de-commit class, so it is absent in ANY clean worktree and this live-corpus
-        // test cannot run. "run the producer-regen/materialization boundary" named no command,
-        // which left an author with a red gate and nothing to do about it.
+        let declared = root.join("ci/facade/artifact-inventory-registry/scm-facts.generated.json");
+        if declared.is_file() {
+            return load_scm_facts(&declared).expect("declared scm-facts face loads");
+        }
+
+        // ADR-0604 deliberately de-committed this face. The required workflow materializes it
+        // before Cargo, while a direct workspace test receives the exact Rust emitter as a Cargo
+        // test resource. Keep that boundary intact: this test never derives Git facts itself and
+        // never writes a generated face into the checkout.
+        let emitter = required_cargo_test_binary(root, "OYA_CI_CARGO_TEST_SCM_FACTS_EMITTER_BIN");
+
+        let temporary = unique_temp_repo();
+        let stable = temporary.join("scm-facts.generated.json");
+        let volatile = temporary.join("scm-volatile-facts.generated.json");
+        let output = Command::new(&emitter)
+            .arg("--repo-root")
+            .arg(root)
+            .arg("--out")
+            .arg(&stable)
+            .arg("--volatile-out")
+            .arg(&volatile)
+            .output()
+            .unwrap_or_else(|error| panic!("run SCM facts emitter {}: {error}", emitter.display()));
         assert!(
-            face.is_file(),
-            "missing materialized scm-facts face at {}.\n\nIt is generated (ADR-0604 de-commit \
-             class), not tracked in git. Materialize it, then re-run:\n\n    buck2 run \
-             //ci/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin \
-             -- --repo-root .\n",
-            face.display()
+            output.status.success(),
+            "SCM facts emitter failed: {}",
+            String::from_utf8_lossy(&output.stderr)
         );
-        load_scm_facts(&face).expect("materialized scm-facts face loads")
+        let facts = load_scm_facts(&stable).expect("Cargo-materialized scm-facts face loads");
+        fs::remove_dir_all(temporary).expect("remove temporary SCM facts");
+        facts
+    }
+
+    fn required_cargo_test_binary(root: &Path, variable: &str) -> PathBuf {
+        let value = std::env::var_os(variable)
+            .filter(|value| !value.is_empty())
+            .unwrap_or_else(|| panic!("missing Cargo-bound {variable}"));
+        let path = ci_path_resolver_adapters::resolve_cargo_test_binary(root, &value)
+            .unwrap_or_else(|error| panic!("resolve {variable}: {error}"));
+        let metadata = fs::symlink_metadata(&path)
+            .unwrap_or_else(|error| panic!("inspect {variable} {}: {error}", path.display()));
+        assert!(
+            metadata.is_file() && !metadata.file_type().is_symlink(),
+            "{variable} must resolve to a regular non-symlink file: {}",
+            path.display()
+        );
+        path
     }
 
     #[test]
@@ -2491,6 +2530,8 @@ value = "legacy-marker"
             reachability: resolve_reachability(&root, &paths, &cfg).expect("reachability"),
             dup_of: BTreeMap::new(),
             valid_owners_files: resolve_owners(&root, &paths, &cfg).valid_files,
+            placement: CapabilityPlacement::default(),
+            planned_move_paths: BTreeSet::new(),
         };
         let registry = build_registry(&inputs, &policy).expect("build registry");
         let mut producer: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -3289,6 +3330,47 @@ status: Accepted
         fs::remove_dir_all(root).expect("remove temp repo");
     }
 
+    #[test]
+    fn resolve_reachability_allows_envelope_prefix_without_tip_free() {
+        let root = unique_temp_repo();
+        fs::create_dir_all(root.join("specs")).expect("create specs");
+        // Empty tip-free registry on purpose — envelope prefixes must be sufficient.
+        fs::write(
+            root.join("specs/reachability-registry.json"),
+            r#"{"registered":[]}"#,
+        )
+        .expect("write empty registry");
+        fs::write(
+            root.join(ENVELOPES_RELPATH),
+            r#"{
+              "roots": {
+                "compute": {
+                  "branch": "integ/compute",
+                  "envelope_globs": ["compute/**"]
+                }
+              }
+            }"#,
+        )
+        .expect("write envelopes");
+        let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
+        let paths = vec![
+            "compute/manifest.json".to_owned(),
+            "compute/stale-path-hygiene-note.md".to_owned(),
+            "foreign/not-owned.rs".to_owned(),
+        ];
+        let map = resolve_reachability(&root, &paths, &cfg).expect("resolve");
+        assert_eq!(
+            map.get("compute/manifest.json"),
+            Some(&vec![ENVELOPE_PREFIX_OWNERSHIP_SOURCE.to_owned()])
+        );
+        assert_eq!(
+            map.get("compute/stale-path-hygiene-note.md"),
+            Some(&vec![ENVELOPE_PREFIX_OWNERSHIP_SOURCE.to_owned()])
+        );
+        assert!(!map.contains_key("foreign/not-owned.rs"));
+        fs::remove_dir_all(root).expect("remove temp repo");
+    }
+
     /// A text registry reaches a path when it NAMES the path — not when the path's characters
     /// occur somewhere inside it.
     ///
@@ -3567,14 +3649,13 @@ fn parse_package_name(contents: &str) -> Option<String> {
             in_package = trimmed == "[package]";
             continue;
         }
-        if in_package {
-            if let Some(rest) = trimmed.strip_prefix("name") {
-                if let Some(rest) = rest.trim_start().strip_prefix('=') {
-                    let value = rest.trim().trim_matches('"');
-                    if !value.is_empty() {
-                        return Some(value.to_owned());
-                    }
-                }
+        if in_package
+            && let Some(rest) = trimmed.strip_prefix("name")
+            && let Some(rest) = rest.trim_start().strip_prefix('=')
+        {
+            let value = rest.trim().trim_matches('"');
+            if !value.is_empty() {
+                return Some(value.to_owned());
             }
         }
     }
@@ -3706,10 +3787,10 @@ fn parse_manifest_flags(contents: &str) -> ManifestFlags {
                     f.lints_workspace = true;
                 }
             }
-            "lib" => {
-                if line.starts_with("doctest") && line.contains('=') && line.contains("false") {
-                    f.lib_doctest_false = true;
-                }
+            "lib"
+                if line.starts_with("doctest") && line.contains('=') && line.contains("false") =>
+            {
+                f.lib_doctest_false = true;
             }
             _ => {}
         }
@@ -3753,7 +3834,7 @@ const GRANDFATHERED_PHANTOM_DECISION_IDS: [&str; 62] = [
     "ADR-0420", "ADR-0421", "ADR-0423", "ADR-0428", "ADR-0429", "ADR-0434", "ADR-0436", "ADR-0441",
     "ADR-0443", "ADR-0448", "ADR-0449", "ADR-0450", "ADR-0451", "ADR-0454", "ADR-0457", "ADR-0458",
     "ADR-0459", "ADR-0460", "ADR-0461", "ADR-0462", "ADR-0466", "ADR-0468", "ADR-0472", "ADR-0473",
-    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488"
+    "ADR-0474", "ADR-0475", "ADR-0477", "ADR-0483", "ADR-0484", "ADR-0488",
 ];
 
 /// Every `ADR-NNNN` token in a text (exactly four digits, not followed by a fifth digit).
@@ -4497,6 +4578,64 @@ fn front_matter_lines(body: &str) -> Vec<&str> {
 /// Fallible because the reachability registry is fail-loud (ADR-0555): a malformed
 /// registration file must never silently degrade to "everything unreachable" nor "nothing
 /// registered".
+/// Every `old_path` named by a committed `specs/reorg/<capability>-move-plan.json`.
+///
+/// Reuses the codemod's OWN discovery + selection rather than re-globbing: `select_move_plan`
+/// is what makes more than one committed plan a HARD ERROR instead of an arbitrary pick, and
+/// duplicating the glob here would quietly reintroduce exactly that non-determinism.
+///
+/// Discovery failure yields an EMPTY set, which reads every derived `move` as unplanned. That is
+/// the honest direction to fail: it over-reports disagreement rather than certifying agreement
+/// the tree cannot support.
+fn load_planned_move_paths(repo_root: &Path) -> BTreeSet<String> {
+    let mut planned = BTreeSet::new();
+    let Ok(plans) = oya_reorg_codemod_app::discover_committed_move_plans(repo_root) else {
+        return planned;
+    };
+    for plan_path in plans {
+        let Ok(text) = std::fs::read_to_string(&plan_path) else {
+            continue;
+        };
+        let Ok(value) = serde_json::from_str::<Value>(&text) else {
+            continue;
+        };
+        for group in ["moves", "artifacts"] {
+            for entry in value
+                .get(group)
+                .and_then(Value::as_array)
+                .into_iter()
+                .flatten()
+            {
+                if let Some(old) = entry.get("old_path").and_then(Value::as_str) {
+                    planned.insert(old.to_owned());
+                }
+            }
+        }
+    }
+    planned
+}
+
+/// Repo-relative path of the closed placement authority (ADR-0562 as amended by ADR-0615).
+const CAPABILITY_REGISTRY_PATH: &str = "governance/capability-registry.json";
+
+/// Load the declared placement authority. Absent or malformed yields an EMPTY placement, which
+/// makes every destination `None` and every disposition `unclassified` — the registry cannot be
+/// silently ignored into a permissive result.
+///
+/// Cheap enough to run on the author-side partial-set path too: unlike owner resolution (which
+/// is full-tree and unsound on a subset), this is one whole-file read, so the pre-push check
+/// stays byte-identical to CI.
+fn load_capability_placement(repo_root: &Path) -> CapabilityPlacement {
+    let path = repo_root.join(CAPABILITY_REGISTRY_PATH);
+    let Ok(text) = std::fs::read_to_string(&path) else {
+        return CapabilityPlacement::default();
+    };
+    match serde_json::from_str::<Value>(&text) {
+        Ok(value) => CapabilityPlacement::from_registry_value(&value),
+        Err(_) => CapabilityPlacement::default(),
+    }
+}
+
 fn collect_repo_inputs(
     repo_root: &Path,
     cfg: &oya_ci_config_kernel::OyaCiConfig,
@@ -4520,6 +4659,8 @@ fn collect_repo_inputs(
             reachability,
             dup_of: BTreeMap::new(),
             valid_owners_files: owners_resolution.valid_files,
+            placement: load_capability_placement(repo_root),
+            planned_move_paths: load_planned_move_paths(repo_root),
         },
         owners_resolution.integrity,
     ))
@@ -4527,8 +4668,13 @@ fn collect_repo_inputs(
 
 /// Reachability: a path is reachable if a live registry points at it. We resolve the
 /// real registries (masterplan.json / root-hub-pointers.json / Cargo.toml members /
-/// DOC-CATALOG / the reviewed reachability registry) and mark each tracked path with the
-/// registries that mention it.
+/// DOC-CATALOG / the reviewed reachability registry / envelope `envelope_globs` prefixes)
+/// and mark each tracked path with the registries that mention it.
+///
+/// Envelope prefix ownership (admission.policy / path_ownership law): paths under an owned
+/// `roots.*.envelope_globs` prefix (e.g. `compute/**` → `compute/`) are in-domain — they MUST
+/// NOT require per-file tip-free / reachability-registry rows. Source tag:
+/// [`ENVELOPE_PREFIX_OWNERSHIP_SOURCE`].
 ///
 /// The three TEXT registries are matched by whole path token, NOT by substring. A registry
 /// reaches a path when it NAMES the path; `masterplan.contains("OWNERS")` is also true of
@@ -4549,6 +4695,7 @@ fn resolve_reachability(
     let doc_catalog = mentioned_path_index(&doc_catalog);
     let cargo_members = read_cargo_member_prefixes(repo_root)?;
     let registrations = load_reachability_registry(&repo_root.join(&cfg.reachability.registry))?;
+    let envelope_prefixes = load_envelope_prefix_allows(&repo_root.join(ENVELOPES_RELPATH))?;
 
     let mut map: BTreeMap<String, Vec<String>> = BTreeMap::new();
     for path in paths {
@@ -4570,6 +4717,12 @@ fn resolve_reachability(
             .any(|entry| registration_matches(path, &entry.prefix))
         {
             reach.push("reachability-registry".into());
+        }
+        if envelope_prefixes
+            .iter()
+            .any(|entry| registration_matches(path, &entry.prefix))
+        {
+            reach.push(ENVELOPE_PREFIX_OWNERSHIP_SOURCE.into());
         }
         if !reach.is_empty() {
             map.insert(path.clone(), reach);
@@ -4609,7 +4762,7 @@ fn path_like_tokens(body: &str) -> impl Iterator<Item = &str> {
 /// 2. A `#fragment` suffix is cut. `masterplan.json` names most of its evidence anchors as
 ///    `<path>#<symbol>` — `/infra/branch-protection/dev.json#required_status_checks`,
 ///    `ci/facade/cross-artifact-agreement/src/lib.rs#evaluate_masterplan_v2_projection_freshness`,
-///    `specs/capability-registry.json#meta_directories[kernel/]`. Those ARE references to the
+///    `governance/capability-registry.json#meta_directories[kernel/]`. Those ARE references to the
 ///    file; only the deep link is extra.
 ///
 /// The old substring test matched both shapes by accident. An exact test has to normalize them
@@ -4619,7 +4772,9 @@ fn mentioned_path_index(body: &str) -> BTreeSet<&str> {
     path_like_tokens(body)
         .map(|token| {
             let token = token.trim_start_matches('/');
-            token.split_once('#').map_or(token, |(path, _fragment)| path)
+            token
+                .split_once('#')
+                .map_or(token, |(path, _fragment)| path)
         })
         .filter(|token| !token.is_empty())
         .collect()
@@ -4650,14 +4805,6 @@ fn read_cargo_member_prefixes(repo_root: &Path) -> Result<Vec<String>, CliError>
         .collect())
 }
 
-/// Justification: a path traces to a decision if an ADR mentions it (front-matter
-/// `affected_surfaces` / body refs) or it lives under a decision-owned tree. Resolved
-/// from the real ADR corpus.
-///
-/// Built as a single pass over the ADR corpus (NOT O(paths x ADRs)): each ADR body is
-/// tokenized once into the repo-relative path-like tokens it references, populating a
-/// `token -> first ADR id` index. Per-path lookup is then an O(1) map hit.
-
 /// Live decisions dir plus the historical ADR archive (when present).
 /// Archive is outside the P3 direct-child census root but still supplies
 /// path-justification tokens and known decision ids for phantom resolution.
@@ -4670,6 +4817,13 @@ fn adr_corpus_dirs(repo_root: &Path, cfg: &oya_ci_config_kernel::OyaCiConfig) ->
     dirs
 }
 
+/// Justification: a path traces to a decision if an ADR mentions it (front-matter
+/// `affected_surfaces` / body refs) or it lives under a decision-owned tree. Resolved
+/// from the real ADR corpus.
+///
+/// Built as a single pass over the ADR corpus (NOT O(paths x ADRs)): each ADR body is
+/// tokenized once into the repo-relative path-like tokens it references, populating a
+/// `token -> first ADR id` index. Per-path lookup is then an O(1) map hit.
 fn resolve_justifications(
     repo_root: &Path,
     paths: &[String],
@@ -4819,6 +4973,8 @@ fn check_added_paths(
         reachability: reachability.clone(),
         dup_of: BTreeMap::new(),
         valid_owners_files,
+        placement: load_capability_placement(repo_root),
+        planned_move_paths: load_planned_move_paths(repo_root),
     };
     let registry = build_registry(&inputs, policy)?;
     let mut codes_by_key: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
@@ -4869,14 +5025,13 @@ fn check_added_paths(
         .iter()
         .map(|path| {
             let excluded = is_path_excluded(path, cfg);
-            let (justification, reachable_from) = row_accounting.get(path).cloned().unwrap_or_else(
-                || {
+            let (justification, reachable_from) =
+                row_accounting.get(path).cloned().unwrap_or_else(|| {
                     (
                         justifications.get(path).cloned(),
                         reachability.get(path).cloned().unwrap_or_default(),
                     )
-                },
-            );
+                });
             AddedPathVerdict {
                 unit_class: policy.classify(path).to_owned(),
                 justification,
@@ -4901,11 +5056,13 @@ fn check_added_paths(
 fn unjustified_remediation(path: &str) -> String {
     format!(
         "register `{path}` in a live reachability registry (masterplan / root-hub-pointers / \
-         DOC-CATALOG / the reviewed reachability-registry), or land it under a workspace Cargo \
-         member — a reached path is justified by the registry that reaches it, so this clears \
-         `unreachable` too. Only if NO live registry can reach it, add the exact path token \
-         `{path}` to the governing ADR under docs/decisions/ — precedent: ADR-0515 for ci/ gate \
-         surfaces, ADR-0251 for compliance artifacts"
+         DOC-CATALOG / the reviewed reachability-registry / an owned envelope_globs prefix in \
+         {ENVELOPES_RELPATH}), or land it under a workspace Cargo member — a reached path is \
+         justified by the registry that reaches it, so this clears `unreachable` too. In-domain \
+         paths under envelope prefixes need no per-file tip-free row. Only if NO live registry \
+         can reach it, add the exact path token `{path}` to the governing ADR under \
+         docs/decisions/ — precedent: ADR-0515 for ci/ gate surfaces, ADR-0251 for compliance \
+         artifacts"
     )
 }
 
@@ -4957,8 +5114,9 @@ fn report_check(verdicts: &[AddedPathVerdict]) -> bool {
         if verdict.blocking_codes.contains("unreachable") {
             println!(
                 "    fix (unreachable): register `{}` in a live reachability registry (masterplan / \
-                 root-hub-pointers / DOC-CATALOG / the reviewed reachability-registry), or land it \
-                 under a workspace Cargo member",
+                 root-hub-pointers / DOC-CATALOG / the reviewed reachability-registry), land it \
+                 under a workspace Cargo member, OR place it under an owned envelope_globs \
+                 prefix in {ENVELOPES_RELPATH} (in-domain — no per-file tip-free required)",
                 verdict.path
             );
         }

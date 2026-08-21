@@ -51,9 +51,7 @@ fn fixtures_dir() -> PathBuf {
     for _ in 0..16 {
         for cand in [
             dir.join("tests/fixtures"),
-            dir.join(
-                "ci/facade/layer-dependency-acyclicity/tests/fixtures",
-            ),
+            dir.join("ci/facade/layer-dependency-acyclicity/tests/fixtures"),
         ] {
             if cand.is_dir() {
                 return cand;
@@ -86,7 +84,10 @@ fn live_tree_is_green_zero_regressions() {
             .collect::<Vec<_>>()
             .join("\n")
     );
-    assert_eq!(report.regressions, 0, "born-advisory: zero regressions at birth");
+    assert_eq!(
+        report.regressions, 0,
+        "born-advisory: zero regressions at birth"
+    );
     assert!(
         report.crates_checked > 700,
         "the scan must cover the real corpus (got {})",
@@ -127,26 +128,33 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
     );
     assert_eq!(
         baseline.keys.len(),
-        34,
-        "the frozen baseline holds 34 rows: 8 SUBSTRATE-UPWARD + 9 S-RANK-INVERSION edges, plus 17 \
-         UNCLASSIFIED-ROOT-NOT-META roots.\n\
+        33,
+        "the frozen baseline holds 33 rows: 9 S-RANK-INVERSION edges + 8 \
+         SUBSTRATE-UPWARD edges + 16 UNCLASSIFIED-ROOT-NOT-META roots.\n\
          \n\
-         The root rows dropped 21 -> 17 when messaging/ci/storage were tier-declared (ADR-0631 \
-         floor test) and `policy` was removed as a ROOT. Three of those four are real burn-down; \
-         `policy` is a bookkeeping deletion, not a fix — the capability keeps its live \
-         policy-engine DAG node, but it owns ZERO crates (the nine Cedar/PDP crates stay \
-         iam-mapped per ADR-0615 to avoid a membership double-map), so `policy/*/*` matched \
-         nothing and the exemption governed nothing. Re-homing those crates into `policy/` is a \
-         MOVE, filed separately; it will need this root back.\n\
+         The 8 SUBSTRATE-UPWARD rows are intelligence's substrate->product debt, PRESERVED and \
+         relabeled after the G024 intelligence-remainder move (2026-08-14): the 78 crates left the \
+         tier'd oya/intelligence tree for the registered intelligence/ root. The root is now a \
+         tier-CLASSIFIED capability root (substrate S4, declared in the closed capability registry), \
+         so the tier rules RUN on its edges again — the substrate-upward edges are live, baselined \
+         known-debt, not burn-down. They will leave the baseline only when the upward dependency is \
+         actually removed, never by relocating an endpoint into an unenforced root.\n\
+         \n\
+         The root rows dropped 21 -> 16 when messaging/ci/storage were tier-declared (ADR-0631 \
+         floor test), `policy` was removed as a ROOT, and `intelligence` moved to capability_roots. \
+         Three of the first four are real burn-down; `policy` is a bookkeeping deletion, not a fix — \
+         the capability keeps its live policy-engine DAG node, but it owns ZERO crates (the nine \
+         Cedar/PDP crates stay iam-mapped per ADR-0615 to avoid a membership double-map), so \
+         `policy/*/*` matched nothing and the exemption governed nothing. Re-homing those crates \
+         into `policy/` is a MOVE, filed separately; it will need this root back.\n\
          \n\
          The S-RANK-INVERSION count did NOT move (9, unchanged): declaring the three surfaced \
          ZERO new inversions. That is a fact about the neighbourhood, not a clean bill of health \
          — messaging's and storage's ranked neighbours (audit/cell/network/secrets) are already \
-         classified and they sit legally, while every one of ci's neighbours (libs, intelligence, \
-         governance) is STILL unclassified, so ci's S5 constrains no live edge yet. Verified by \
-         perturbation: forcing messaging to S1 or storage to S1 each REDs one inversion, but \
-         forcing ci to S1 REDs nothing. ci's S4 floor becomes real when `intelligence` moves to \
-         capability_roots.\n\
+         classified and they sit legally, while ci's neighbours (libs, governance) are STILL \
+         unclassified, so ci's S5 constrains no live edge yet. Verified by perturbation: forcing \
+         messaging to S1 or storage to S1 each REDs one inversion, but forcing ci to S1 REDs \
+         nothing. ci's S4 floor became real when `intelligence` moved to capability_roots.\n\
          \n\
          The 9 S-RANK-INVERSIONs are the point of the capability_roots change. This assertion \
          previously read 8 and explained the drop from 12 as 'burned down by ADR-0562 move-19: \
@@ -156,7 +164,7 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
          network/ (with cell/observability/secrets/audit) brings them back, which is why this \
          number went UP: the gate now sees inversions it had been structurally blind to.\n\
          \n\
-         The 21 root rows are the capability roots still exempt; each burns down as its root moves \
+         The 16 root rows are the capability roots still exempt; each burns down as its root moves \
          to capability_roots. --emit-baseline never MINTS one (see the baseline _comment), so a \
          structural exemption cannot be laundered by re-running the tool; it does carry the rows \
          already committed here forward, filtered to those still live, so a re-emit does not \
@@ -186,8 +194,8 @@ fn red_fixture_substrate_to_product_fails_closed() {
     // Evaluate the synthetic RED corpus against an EMPTY baseline → the wrong-tier edge is a
     // regression and the gate fails closed.
     let empty_baseline = serde_json::json!({ "gate_id": GATE_ID, "violations": [] });
-    let observed = load_json(&fixtures_dir_root(), "red-substrate-to-product.json")
-        .expect("load RED fixture");
+    let observed =
+        load_json(&fixtures_dir_root(), "red-substrate-to-product.json").expect("load RED fixture");
     let report = evaluate(&policy, &empty_baseline, &observed);
     assert_eq!(
         report.verdict,
@@ -216,11 +224,19 @@ fn burn_down_fixture_stays_green() {
             }
         ]
     });
-    let observed = load_json(&fixtures_dir_root(), "burn-down.json").expect("load burn-down fixture");
+    let observed =
+        load_json(&fixtures_dir_root(), "burn-down.json").expect("load burn-down fixture");
     let report = evaluate(&policy, &baseline, &observed);
-    assert_eq!(report.verdict, Verdict::Green, "burning down a baselined violation is allowed");
+    assert_eq!(
+        report.verdict,
+        Verdict::Green,
+        "burning down a baselined violation is allowed"
+    );
     assert_eq!(report.regressions, 0);
-    assert_eq!(report.burned_down, 1, "the fixed baselined edge counts as burned down");
+    assert_eq!(
+        report.burned_down, 1,
+        "the fixed baselined edge counts as burned down"
+    );
 }
 
 #[test]
@@ -277,7 +293,10 @@ fn baseline_with_all_subjects_present_is_not_stale() {
     let observed = load_json(&fixtures_dir_root(), "burn-down.json").expect("load fixture corpus");
     let report = evaluate(&policy, &baseline, &observed);
     assert!(
-        !report.findings.iter().any(|f| f.code == "TDA-STALE-BASELINE"),
+        !report
+            .findings
+            .iter()
+            .any(|f| f.code == "TDA-STALE-BASELINE"),
         "all baseline subjects present -> no phantom rows: {:?}",
         report.findings
     );
@@ -452,8 +471,16 @@ fn every_governed_glob_root_is_declared_in_the_policy() {
         .as_array()
         .expect("service_roots")
         .iter()
-        .chain(policy["capability_roots"].as_array().expect("capability_roots"))
-        .chain(policy["unclassified_roots"].as_array().expect("unclassified_roots"))
+        .chain(
+            policy["capability_roots"]
+                .as_array()
+                .expect("capability_roots"),
+        )
+        .chain(
+            policy["unclassified_roots"]
+                .as_array()
+                .expect("unclassified_roots"),
+        )
         .map(|v| v.as_str().expect("root is a string"))
         .collect();
 

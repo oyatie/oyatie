@@ -1,3 +1,11 @@
+# Exported for the intelligence-app boundary-conformance test, which greps this adapter's
+# source as a declared resource rather than a cwd-relative guess.
+export_file(
+    name = "intelligence-rest-source",
+    src = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
 rust_library(
     name = "intelligence-rest",
     srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
@@ -86,7 +94,7 @@ rust_test(
         "third-party//:axum",
         "third-party//:bytes",
         "third-party//:http-body-util",
-        "third-party//:httpmock",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
         "third-party//:tokio",
         "third-party//:tower",
@@ -126,7 +134,7 @@ rust_test(
     deps = [
         ":intelligence-rest",
         "//intelligence/core/kernel:intelligence-kernel",
-        "third-party//:httpmock",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
         "third-party//:tokio",
     ],
@@ -140,8 +148,9 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":intelligence-rest",
-        "third-party//:httpmock",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
+        "third-party//:serde_json",
         "third-party//:tokio",
     ],
 )
@@ -158,7 +167,7 @@ rust_test(
         "third-party//:axum",
         "third-party//:bytes",
         "third-party//:futures",
-        "third-party//:httpmock",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
         "third-party//:tokio",
         "third-party//:tower",
@@ -174,7 +183,7 @@ rust_test(
     deps = [
         ":intelligence-rest",
         "//intelligence/core/kernel:intelligence-kernel",
-        "third-party//:httpmock",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
         "third-party//:reqwest",
         "third-party//:tokio",
     ],

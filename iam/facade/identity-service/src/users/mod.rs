@@ -175,7 +175,7 @@ fn authorize_scim<R, D, A, S, U, G>(
     state: &ScimSurfaceState<R, D, A, S, U, G>,
     headers: &HeaderMap,
     tenant: &str,
-) -> Result<(), Response>
+) -> Result<(), Box<Response>>
 where
     R: WorkloadPrincipalRepository + Send + 'static,
     D: RevocationDenylist + Send + 'static,
@@ -261,8 +261,8 @@ where
     }
 }
 
-fn scim_refusal(status: StatusCode, detail: &str) -> Response {
-    (status, Json(ScimError::new(status.as_u16(), None, detail))).into_response()
+fn scim_refusal(status: StatusCode, detail: &str) -> Box<Response> {
+    Box::new((status, Json(ScimError::new(status.as_u16(), None, detail))).into_response())
 }
 
 fn scim_error_response(error: ScimError) -> Response {
@@ -306,7 +306,7 @@ fn page_query(uri: &Uri) -> ListQuery {
 macro_rules! guard {
     ($state:expr, $headers:expr, $tenant:expr) => {
         if let Err(refusal) = authorize_scim(&$state, &$headers, &$tenant) {
-            return refusal;
+            return *refusal;
         }
     };
 }

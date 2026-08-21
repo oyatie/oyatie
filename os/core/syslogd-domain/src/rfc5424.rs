@@ -12,8 +12,8 @@
 //! modern logging clients.
 
 use crate::parser::{Format, SyslogMessage, split_pri};
-use std::collections::BTreeMap;
 use os_kernel::{Error, Result};
+use std::collections::BTreeMap;
 
 /// A parsed RFC5424 message with its structured-data section preserved.
 #[derive(Debug, Clone, PartialEq, Eq)]

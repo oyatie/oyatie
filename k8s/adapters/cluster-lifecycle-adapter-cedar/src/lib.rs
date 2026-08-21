@@ -164,10 +164,8 @@ fn deny_cross_tenant_without_platform_scope(
 }
 
 fn cluster_resource(target_tenant_id: &str) -> Resource {
-    Resource::new(CLUSTER_RESOURCE_TYPE, target_tenant_id).with_attribute(
-        "tenant_id",
-        ClaimValue::Text(target_tenant_id.to_string()),
-    )
+    Resource::new(CLUSTER_RESOURCE_TYPE, target_tenant_id)
+        .with_attribute("tenant_id", ClaimValue::Text(target_tenant_id.to_string()))
 }
 
 #[cfg(test)]
@@ -176,8 +174,9 @@ mod tests {
     use iam_identity_workload_domain::{Effect, WorkloadState};
 
     fn active_principal(tenant: &str, scope: &str) -> WorkloadPrincipal {
-        let mut p = WorkloadPrincipal::provision(tenant, "wl_admin_01", "cap.k8s.cluster-lifecycle")
-            .expect("provision");
+        let mut p =
+            WorkloadPrincipal::provision(tenant, "wl_admin_01", "cap.k8s.cluster-lifecycle")
+                .expect("provision");
         p.transition_to(WorkloadState::Active).expect("activate");
         p.with_scope(scope).expect("scope")
     }
@@ -186,28 +185,44 @@ mod tests {
     fn tenant_admin_can_create_own_cluster() {
         let authz = ClusterLifecycleRbacAuthorizer::new_with_default_policies().unwrap();
         let principal = active_principal("ten_acme", "cluster:write");
-        assert!(authz.authorize_cluster_create(&principal, "ten_acme").is_ok());
+        assert!(
+            authz
+                .authorize_cluster_create(&principal, "ten_acme")
+                .is_ok()
+        );
     }
 
     #[test]
     fn tenant_admin_cannot_create_other_tenant_cluster() {
         let authz = ClusterLifecycleRbacAuthorizer::new_with_default_policies().unwrap();
         let principal = active_principal("ten_acme", "cluster:write");
-        assert!(authz.authorize_cluster_create(&principal, "ten_globex").is_err());
+        assert!(
+            authz
+                .authorize_cluster_create(&principal, "ten_globex")
+                .is_err()
+        );
     }
 
     #[test]
     fn platform_operator_can_create_any_tenant_cluster() {
         let authz = ClusterLifecycleRbacAuthorizer::new_with_default_policies().unwrap();
         let principal = active_principal("ten_platform", "cluster:platform:write");
-        assert!(authz.authorize_cluster_create(&principal, "ten_acme").is_ok());
+        assert!(
+            authz
+                .authorize_cluster_create(&principal, "ten_acme")
+                .is_ok()
+        );
     }
 
     #[test]
     fn principal_without_scope_denied() {
         let authz = ClusterLifecycleRbacAuthorizer::new_with_default_policies().unwrap();
         let principal = active_principal("ten_acme", "other:scope");
-        assert!(authz.authorize_cluster_create(&principal, "ten_acme").is_err());
+        assert!(
+            authz
+                .authorize_cluster_create(&principal, "ten_acme")
+                .is_err()
+        );
     }
 
     #[test]

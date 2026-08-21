@@ -454,7 +454,8 @@ For KR terms with English equivalents, both are acceptable in docs; use whicheve
 | SCADA | Supervisory Control and Data Acquisition | §7 |
 | SCIM | Cross-domain identity provisioning | §4 |
 | SDK | Software Development Kit | (engineering) |
-| SECA | Self-Employment Contributions Act | §7 / tax journeys |
+| SECA (cloud) | Sovereign European Cloud API — open declarative cloud infrastructure API (EuroStack / IPCEI-CIS); oyatie SECA-capable contracts are Rust-first | [architecture/cloud-provider-full-ecosystem-north-star.md](architecture/cloud-provider-full-ecosystem-north-star.md) · [spec.secapi.cloud](https://spec.secapi.cloud/) |
+| SECA (tax) | Self-Employment Contributions Act | §7 / tax journeys |
 | SERP | Search Engine Results Page | §6 |
 | SES | Simple Email Service | §7 / email communications |
 | SLO / SLI / SLA | Service Level Objective / Indicator / Agreement | §2 |
@@ -524,11 +525,12 @@ Per ADR-0105 + ADR-0106 + ADR-0565: `oya-<context>-<role>[-<capability>]`. Canon
 | `Closes #N` | Will auto-close on merge |
 | `Blocks #N` | This blocks the linked issue |
 | `Blocked-by #N` | Cannot proceed until linked issue resolves |
-| `# review-bypass: <reason>` | Skips the agent review gate (per `guard-pr-merge-review.mjs`); always logged |
 
 ### 12.4 PR sections (PR template)
 
-Mandatory H2s (per CLAUDE.md): `## Issue`, `## Summary`, `## Verification`, `## Traceability`, `## Evidence`. Lead-only optional `## Code Review`. Worker PRs MUST NOT add `## Code Review`.
+Mandatory H2s (per CLAUDE.md): `## Issue`, `## Summary`, `## Verification`,
+and `## Code Review`. The author leaves review pending; one author-distinct
+reviewer agent records the binding verdict on the exact PR head.
 
 ### 12.5 Date format
 

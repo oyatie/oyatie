@@ -15,6 +15,7 @@
 //! ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
+use std::collections::BTreeSet;
 use std::path::{Path, PathBuf};
 
 use ci_caller_supplied_authorization::{
@@ -37,8 +38,7 @@ fn repo_root() -> PathBuf {
     panic!("failed to locate repo root from test current_dir");
 }
 
-const POLICY_REL: &str =
-    "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
+const POLICY_REL: &str = "ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json";
 
 fn load_committed_policy(root: &Path) -> Value {
     let path = root.join(POLICY_REL);
@@ -100,6 +100,265 @@ fn live_tree_is_green_against_the_frozen_baseline() {
     );
 }
 
+// ---------------------------------------------------------------------------
+// Scan-root derivation: the coverage the gate CLAIMS must be the coverage it HAS.
+// ---------------------------------------------------------------------------
+
+/// Recompute the expected scan-root set straight from the capability registry, independently of
+/// `ci-scan-root-derivation-adapters`. An independent reading here is the review-visible contract:
+/// if the resolver and this test ever disagree about what the registry means, that disagreement is
+/// the finding.
+fn expected_roots_from_registry(root: &Path) -> (BTreeSet<String>, BTreeSet<String>) {
+    let text = std::fs::read_to_string(root.join("governance/capability-registry.json"))
+        .expect("read capability registry");
+    let registry: Value = serde_json::from_str(&text).expect("parse capability registry");
+    let mut scanned: BTreeSet<String> = BTreeSet::new();
+    let mut pending: BTreeSet<String> = BTreeSet::new();
+
+    for capability in registry["capabilities"].as_array().expect("capabilities") {
+        let name = capability["name"]
+            .as_str()
+            .expect("capability name")
+            .to_owned();
+        let materialized = capability["absorbs_current_dirs"]
+            .as_array()
+            .is_some_and(|dirs| !dirs.is_empty());
+        let on_disk = root.join(&name).is_dir();
+        assert_eq!(
+            materialized, on_disk,
+            "capability `{name}`: the registry's materialization record and the tree disagree — \
+             either the registry row is stale or the directory was deleted without retiring it"
+        );
+        if on_disk {
+            scanned.insert(name);
+        } else {
+            pending.insert(name);
+        }
+    }
+
+    for meta in registry["meta_directories"]
+        .as_array()
+        .expect("meta_directories")
+    {
+        let dir = meta["dir"]
+            .as_str()
+            .expect("meta dir")
+            .trim_end_matches('/');
+        // third-party/ holds reindeer-vendored UPSTREAM sources; a first-party authorization gate
+        // must not report findings nobody in this repository can fix.
+        if dir == "third-party" {
+            continue;
+        }
+        if root.join(dir).is_dir() {
+            scanned.insert(dir.to_owned());
+        } else {
+            pending.insert(dir.to_owned());
+        }
+    }
+
+    // Legacy roots are NOT in the closed registry and cannot be derived. They are enumerated once
+    // for the whole fleet in ci/adapters/scan-root-derivation, each with a written deletion
+    // condition, and shrink to nothing as the ADR-0562 moves drain them.
+    for legacy in ["oya", "libs", "tools", "infra"] {
+        assert!(
+            root.join(legacy).is_dir(),
+            "legacy root `{legacy}/` has drained — delete its LEGACY_ROOTS entry in \
+             ci/adapters/scan-root-derivation (the resolver already fails closed on this)"
+        );
+        scanned.insert(legacy.to_owned());
+    }
+
+    (scanned, pending)
+}
+
+/// The structural broken-scan guard, and a SET rather than a count. `min_expected_functions` cannot
+/// tell a collapsed scan from a legitimately smaller corpus; this can, and it names the root.
+#[test]
+fn walked_roots_are_exactly_the_registry_derived_set() {
+    let root = repo_root();
+    let policy = load_committed_policy(&root);
+    let observed = collect_instances(&root, &policy).expect("collect over live tree");
+
+    let walked: BTreeSet<String> = observed["scan_roots"]
+        .as_array()
+        .expect("observed scan_roots")
+        .iter()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect();
+    eprintln!(
+        "{GATE_ID}: walked {} roots, {} functions scanned",
+        walked.len(),
+        observed["functions_scanned"].as_u64().unwrap_or_default()
+    );
+    let (expected, _) = expected_roots_from_registry(&root);
+
+    assert_eq!(
+        walked, expected,
+        "the roots this gate WALKED must equal the roots the capability registry says exist. A \
+         capability missing from the left side is a blind spot the gate would report GREEN over; a \
+         root missing from the right side means the derivation drifted from the registry."
+    );
+    assert_eq!(
+        observed["scan_root_source"].as_str(),
+        Some("capability-registry"),
+        "the live gate must run in derived mode; the explicit-array mode exists only for adopting \
+         repositories with no capability registry"
+    );
+}
+
+/// EVERY registered capability is either scanned or frozen as pending. Nothing in the closed
+/// registry may be silently outside this gate's reach.
+#[test]
+fn no_registered_capability_is_unaccounted_for() {
+    let root = repo_root();
+    let policy = load_committed_policy(&root);
+    let observed = collect_instances(&root, &policy).expect("collect over live tree");
+    let text = std::fs::read_to_string(root.join("governance/capability-registry.json"))
+        .expect("read capability registry");
+    let registry: Value = serde_json::from_str(&text).expect("parse capability registry");
+
+    let covered: BTreeSet<String> = observed["scan_roots"]
+        .as_array()
+        .into_iter()
+        .chain(observed["pending_roots"].as_array())
+        .flatten()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect();
+
+    let unaccounted: Vec<String> = registry["capabilities"]
+        .as_array()
+        .expect("capabilities")
+        .iter()
+        .filter_map(|c| c["name"].as_str())
+        .filter(|name| !covered.contains(*name))
+        .map(str::to_owned)
+        .collect();
+
+    assert!(
+        unaccounted.is_empty(),
+        "registered capabilities neither scanned nor frozen pending: {unaccounted:?}"
+    );
+}
+
+/// Pending roots are frozen TWO-SIDED. A newly registered capability with no directory is
+/// born-blocking (it is not in the frozen set); a pending root that LANDS is blocking until it is
+/// struck from the frozen set in the same change that makes it real.
+#[test]
+fn pending_roots_equal_the_frozen_set_exactly() {
+    let root = repo_root();
+    let policy = load_committed_policy(&root);
+    let observed = collect_instances(&root, &policy).expect("collect over live tree");
+
+    let measured: BTreeSet<String> = observed["pending_roots"]
+        .as_array()
+        .expect("observed pending_roots")
+        .iter()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect();
+    let frozen: BTreeSet<String> = policy["_pending_scan_roots"]
+        .as_array()
+        .expect("policy _pending_scan_roots")
+        .iter()
+        .filter_map(Value::as_str)
+        .map(str::to_owned)
+        .collect();
+
+    assert_eq!(
+        measured, frozen,
+        "pending scan roots must equal the frozen set EXACTLY. A key only on the left is a newly \
+         registered capability with no directory — freeze it deliberately. A key only on the right \
+         has LANDED and is now scanned — strike it from _pending_scan_roots in this change."
+    );
+
+    let (_, expected_pending) = expected_roots_from_registry(&root);
+    assert_eq!(
+        measured, expected_pending,
+        "the resolver and this test's independent registry reading must agree on what is pending"
+    );
+}
+
+/// The rule, on the real tree: a DECLARED root that is ABSENT is an error naming the path, never
+/// the `Err(NotFound) => Ok(())` that used to sit in the directory walk.
+#[test]
+fn red_declared_but_absent_root_fails_closed_naming_the_path() {
+    let root = repo_root();
+    let mut policy = fixture_policy("ci");
+    policy["scan_roots"] = json!(["ci", "a-root-that-does-not-exist"]);
+    let error = collect_instances(&root, &policy).expect_err("an absent declared root must fail");
+    assert!(
+        error.to_string().contains("a-root-that-does-not-exist"),
+        "the error must NAME the path: {error}"
+    );
+}
+
+/// The pre-change policy declared `base`, `cloud` and `policy`, none of which exist, and omitted the
+/// legacy root `infra/` entirely. Pin that this shape is rejected today so the drift cannot return.
+#[test]
+fn red_the_pre_change_declared_root_list_is_rejected_today() {
+    let root = repo_root();
+    let mut policy = fixture_policy("ci");
+    policy["scan_roots"] = json!([
+        "app",
+        "audit",
+        "base",
+        "billing",
+        "build",
+        "cell",
+        "ci",
+        "cloud",
+        "comms",
+        "compliance",
+        "compute",
+        "console",
+        "data",
+        "flags",
+        "gateway",
+        "governance",
+        "iac",
+        "iam",
+        "intelligence",
+        "k8s",
+        "kernel",
+        "libs",
+        "marketplace",
+        "messaging",
+        "network",
+        "observability",
+        "os",
+        "oya",
+        "policy",
+        "secrets",
+        "storage",
+        "tenancy",
+        "tools",
+        "workflow"
+    ]);
+    let error = collect_instances(&root, &policy).expect_err("three of these roots are dead");
+    let message = error.to_string();
+    assert!(
+        ["base", "cloud", "policy"]
+            .iter()
+            .any(|dead| message.contains(&format!("`{dead}`"))),
+        "expected one of the three dead roots to be named; got {message}"
+    );
+}
+
+/// A policy declaring NEITHER form is malformed — the two forms are exclusive alternatives, not an
+/// optional field that can quietly resolve to an empty scan.
+#[test]
+fn a_policy_declaring_no_scan_roots_at_all_is_malformed() {
+    let mut policy = fixture_policy("ci");
+    policy.as_object_mut().expect("object").remove("scan_roots");
+    let findings = evaluate_keyed(&policy, &json!({ "functions_scanned": 0, "instances": [] }));
+    assert!(
+        findings.iter().any(|f| f.code == "DAT-POLICY-MALFORMED"),
+        "a policy with no scan-root declaration must fail closed"
+    );
+}
+
 #[test]
 fn baseline_is_nonempty_and_covers_a_known_instance() {
     let root = repo_root();
@@ -137,6 +396,70 @@ fn baseline_is_nonempty_and_covers_a_known_instance() {
         assert!(
             baseline.iter().any(|k| k.starts_with(expected_prefix)),
             "expected confirmed instance with prefix `{expected_prefix}` in the frozen baseline"
+        );
+    }
+}
+
+/// `publish_handler` is a split-decision false positive, not frozen authz debt: its private
+/// router-only path reaches the required PDP through `enforce_publish_authz` before any mutation.
+/// Keep the exact audited body in the curated allowlist so a later `--allow-new` run cannot quietly
+/// re-grandfather it as unresolved caller-supplied authorization trust.
+#[test]
+fn pdp_dominated_publish_handler_is_curated_not_frozen() {
+    const PREFIX: &str = "iam/ports/policy-cedar-api/src/rest/mod.rs#publish_handler:";
+    const AUDITED_KEY: &str = "iam/ports/policy-cedar-api/src/rest/mod.rs#publish_handler:5bc02232";
+
+    let root = repo_root();
+    let policy = load_committed_policy(&root);
+    let frozen = policy
+        .get("frozen_dto_authz_trust_instances")
+        .and_then(Value::as_array)
+        .expect("frozen baseline array");
+    assert!(
+        frozen
+            .iter()
+            .filter_map(Value::as_str)
+            .all(|key| !key.starts_with(PREFIX)),
+        "the PDP-dominated publish handler must never return to the frozen debt baseline"
+    );
+
+    let curated = policy
+        .get("split_decision_allowlist")
+        .and_then(Value::as_array)
+        .expect("curated split-decision array");
+    let matching = curated
+        .iter()
+        .filter(|entry| {
+            entry
+                .get("key")
+                .and_then(Value::as_str)
+                .is_some_and(|key| key.starts_with(PREFIX))
+        })
+        .collect::<Vec<_>>();
+    assert_eq!(
+        matching.len(),
+        1,
+        "publish_handler must have one exact, non-launderable split-decision audit entry"
+    );
+    assert_eq!(
+        matching[0].get("key").and_then(Value::as_str),
+        Some(AUDITED_KEY),
+        "a body-hash change requires a fresh call-graph audit"
+    );
+
+    let justification = matching[0]
+        .get("justification")
+        .and_then(Value::as_str)
+        .expect("split-decision justification");
+    for required_proof in [
+        "enforce_publish_authz",
+        "ensure_authorized",
+        "before mutation",
+        "cannot convert a PDP deny into allow",
+    ] {
+        assert!(
+            justification.contains(required_proof),
+            "publish_handler justification must preserve proof token {required_proof:?}"
         );
     }
 }

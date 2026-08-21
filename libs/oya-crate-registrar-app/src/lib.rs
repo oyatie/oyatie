@@ -9,7 +9,7 @@
 //!
 //! ## The four writers
 //! - [`capability_mapping`] — [`Edit::CapabilityMapping`](oya_crate_registrar_kernel::Edit::CapabilityMapping):
-//!   upsert `<crate_dir>` into the matching `globs` list of `specs/capability-registry.json`'s
+//!   upsert `<crate_dir>` into the matching `globs` list of `governance/capability-registry.json`'s
 //!   `membership_lint_coverage.absorbs_current_crate_globs` (closed-set validated — an unknown
 //!   capability/meta-dir slug is refused), re-serialized with the repo's canonical-JSON form so the
 //!   registry stays byte-stable.
@@ -56,7 +56,7 @@ use serde_json::Value;
 /// (`ci/facade/canonical-json/canonical-json-policy.json`, ADR-0546): "sort_keys=false because the
 /// defect is rewrite nondeterminism, not key-order ambiguity, and sorting would churn 1452 repo
 /// files and destroy intentional order on the agent entry surface". The file this writer edits —
-/// `specs/capability-registry.json` — is HAND-AUTHORED governance data whose key order is a design
+/// `governance/capability-registry.json` — is HAND-AUTHORED governance data whose key order is a design
 /// act, so a recursive sort here would silently reorder the whole registry on the next
 /// `register_crate` and hang that diff on whoever's PR happened to trigger it.
 ///
@@ -85,7 +85,7 @@ pub fn to_canonical_json(value: &Value) -> Result<String, WriterError> {
 /// yields a typed error, never a partial/silent write.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum WriterError {
-    /// The current `specs/capability-registry.json` could not be parsed as JSON.
+    /// The current `governance/capability-registry.json` could not be parsed as JSON.
     RegistryParse(String),
     /// The registry JSON did not have the expected
     /// `membership_lint_coverage.absorbs_current_crate_globs` array shape.
@@ -150,7 +150,10 @@ impl std::fmt::Display for WriterError {
                 )
             }
             WriterError::MissingCatalogField(field) => {
-                write!(f, "catalog field is required and must not be empty: {field}")
+                write!(
+                    f,
+                    "catalog field is required and must not be empty: {field}"
+                )
             }
             WriterError::InvalidCatalogField(field) => {
                 write!(
@@ -187,9 +190,9 @@ pub mod capability_mapping {
     use super::{Path, Value, WriterError, fs, to_canonical_json};
 
     /// The repo-relative path of the closed capability registry.
-    pub const REGISTRY_PATH: &str = "specs/capability-registry.json";
+    pub const REGISTRY_PATH: &str = "governance/capability-registry.json";
 
-    /// Compute the new `specs/capability-registry.json` content for upserting `crate_dir` into the
+    /// Compute the new `governance/capability-registry.json` content for upserting `crate_dir` into the
     /// `globs` list of the group whose `meta_dir` OR `capability` equals `slug`. PURE — no I/O.
     ///
     /// Idempotent upsert: if `crate_dir` is already in the matching group's `globs`, the returned
@@ -201,8 +204,8 @@ pub mod capability_mapping {
     /// [`WriterError::RegistryParse`]/[`RegistryShape`](WriterError::RegistryShape)/
     /// [`UnknownCapability`](WriterError::UnknownCapability)/[`Serialize`](WriterError::Serialize).
     pub fn compute(current: &str, crate_dir: &str, slug: &str) -> Result<String, WriterError> {
-        let mut root: Value = serde_json::from_str(current)
-            .map_err(|e| WriterError::RegistryParse(e.to_string()))?;
+        let mut root: Value =
+            serde_json::from_str(current).map_err(|e| WriterError::RegistryParse(e.to_string()))?;
 
         let groups = root
             .get_mut("membership_lint_coverage")
@@ -230,9 +233,7 @@ pub mod capability_mapping {
                 })?;
             // Upsert: insert only if absent, then keep the list sorted + deduped so the output is
             // canonical regardless of insertion order (byte-stable re-apply).
-            let already = globs
-                .iter()
-                .any(|g| g.as_str() == Some(crate_dir));
+            let already = globs.iter().any(|g| g.as_str() == Some(crate_dir));
             if !already {
                 globs.push(Value::String(crate_dir.to_owned()));
             }
@@ -266,7 +267,7 @@ pub mod capability_mapping {
         *array = strings.into_iter().map(Value::String).collect();
     }
 
-    /// Apply the capability mapping to `specs/capability-registry.json` under `repo_root`. Reads the
+    /// Apply the capability mapping to `governance/capability-registry.json` under `repo_root`. Reads the
     /// registry, computes the upserted canonical content, and writes ONLY if the bytes changed.
     /// Returns `true` if the file was rewritten, `false` if it was already correct (idempotent).
     ///
@@ -280,7 +281,8 @@ pub mod capability_mapping {
         if next == current {
             return Ok(false);
         }
-        fs::write(&abs, &next).map_err(|e| WriterError::Io(format!("write {REGISTRY_PATH}: {e}")))?;
+        fs::write(&abs, &next)
+            .map_err(|e| WriterError::Io(format!("write {REGISTRY_PATH}: {e}")))?;
         Ok(true)
     }
 }
@@ -372,7 +374,8 @@ pub mod adr_governed_paths {
 
         match locate_section(current) {
             Some(section) => {
-                let mut out = String::with_capacity(current.len() + block_body.len() + fenced.len());
+                let mut out =
+                    String::with_capacity(current.len() + block_body.len() + fenced.len());
                 match section.fence {
                     Some((open_start, close_end)) => {
                         // Rewrite the existing fenced block in place; preserve everything outside it
@@ -466,9 +469,9 @@ pub mod adr_governed_paths {
             let line_start = offset;
             let line_end = offset + line.len();
             offset = line_end;
-            let content = line.strip_suffix('\n').map_or(line, |l| {
-                l.strip_suffix('\r').unwrap_or(l)
-            });
+            let content = line
+                .strip_suffix('\n')
+                .map_or(line, |l| l.strip_suffix('\r').unwrap_or(l));
 
             if heading_line_end.is_none() {
                 if is_governed_heading(content) {
@@ -569,8 +572,11 @@ pub mod catalog_yaml {
     /// Compute the `registry/catalog/<leaf>.yaml` content for `crate_dir` with the given `plane` and
     /// `slo`. PURE — no I/O. The record is schema-driven (the practical catalog-record shape the
     /// `cloud-ci-slo-coverage` / `cloud-ci-catalog-liveness` gates parse: a top-level `slo:` scalar
-    /// plus the human-decision `plane:` field). Both `plane` and `slo` are REQUIRED — an empty value
-    /// is a [`WriterError::MissingCatalogField`] (never silently defaulted, per ADR-0548 D2).
+    /// plus the human-decision `plane:` field, plus the `api_stability:` tier the
+    /// `cloud-ci-lifecycle-status` api-stability-tier lane requires of every row). Both `plane` and
+    /// `slo` are REQUIRED — an empty value is a [`WriterError::MissingCatalogField`] (never
+    /// silently defaulted, per ADR-0548 D2). `api_stability` is not a parameter: see the inline
+    /// note on why it is forced to `preview`.
     ///
     /// Deterministic: the same inputs always render byte-identical content (idempotent re-apply).
     ///
@@ -598,8 +604,21 @@ pub mod catalog_yaml {
         // slo-coverage / catalog-liveness contract) plus the human-supplied `plane:` and the
         // capability slug derived from the crate leaf. Rendered as canonical YAML (one
         // `key: value` per line, trailing newline) so re-rendering is byte-stable.
+        //
+        // `api_stability` is NOT decoration and NOT a human decision: the ci/facade/lifecycle-status
+        // api-stability-tier lane is rooted on `registry/catalog/*.yaml` with `stage_field:
+        // api_stability` and carries NO frozen violation row, so an absent (lane, kind) pair is
+        // born-blocking and a row rendered without this key reds that required context as a
+        // `stage_not_declared` unbaselined_violation the moment the next crate is registered.
+        // The value is FORCED to `preview` rather than parameterised: it is the first tier of the
+        // canonical [preview, stable, GA] ladder, and marketplace/facade/dev-cli/src/
+        // governance_gates.rs validate_claim_ceiling_gate runs
+        // FoundationClaimCeiling::preview_foundation().validate_catalog() over this exact
+        // directory, which REJECTS any record declaring above Preview. A newly scaffolded crate
+        // has no evidence for a higher tier, so any other default would be a claim the ceiling
+        // gate rejects on sight. Promotion is a deliberate later edit to the row.
         Ok(format!(
-            "capability: {capability}\nplane: {plane}\nslo: {slo}\n"
+            "capability: {capability}\nplane: {plane}\nslo: {slo}\napi_stability: preview\n"
         ))
     }
 

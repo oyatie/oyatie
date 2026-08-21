@@ -167,9 +167,10 @@ impl LogSink for FanOut {
         let mut first_err = None;
         for sink in &mut self.sinks {
             if let Err(e) = sink.forward(msg)
-                && first_err.is_none() {
-                    first_err = Some(e);
-                }
+                && first_err.is_none()
+            {
+                first_err = Some(e);
+            }
         }
         match first_err {
             Some(e) => Err(e),

@@ -11,10 +11,10 @@ doc_status: published
 
 ## At-a-glance
 
-- **Total ADRs:** 12
-- **Numbering:** contiguous ADR-0700..ADR-0711 (gap-free)
-- **Next ADR number:** 0712
-- **Status counts:** Accepted 11, Proposed 1
+- **Total ADRs:** 19
+- **Numbering:** contiguous ADR-0700..ADR-0718 (gap-free)
+- **Next ADR number:** 0719
+- **Status counts:** Accepted 15, Proposed 4
 - **Legacy retirement:** see [`ADR-LEGACY-REGRESSION-MAPPING.md`](ADR-LEGACY-REGRESSION-MAPPING.md).
 
 ## Full table (one row per ADR, sorted by ADR number)
@@ -31,18 +31,25 @@ doc_status: published
 | ADR-0707 | Accepted | Live trust, safety, and resilience substrate doctrines | council-architecture | [`ADR-0707-trust-safety-live-apex.md`](decisions/ADR-0707-trust-safety-live-apex.md) |
 | ADR-0708 | Accepted | Live platform foundations: cells, residency, workflow, plugins, search | council-architecture | [`ADR-0708-platform-foundations-live-apex.md`](decisions/ADR-0708-platform-foundations-live-apex.md) |
 | ADR-0709 | Accepted | Live general architecture and remaining accepted doctrine | council-architecture | [`ADR-0709-general-live-apex.md`](decisions/ADR-0709-general-live-apex.md) |
-| ADR-0710 | Proposed | Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook | council-architecture | [`ADR-0710-kubernetes-admission-substrate-is-the-api-server.md`](decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md) |
+| ADR-0710 | Accepted | Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook | council-architecture | [`ADR-0710-kubernetes-admission-substrate-is-the-api-server.md`](decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md) |
 | ADR-0711 | Accepted | Swarm Delivery Law — integration branch topology and command discipline | council-architecture | [`ADR-0711-swarm-delivery-law-integ-branch-topology.md`](decisions/ADR-0711-swarm-delivery-law-integ-branch-topology.md) |
+| ADR-0712 | Proposed | Node kernel + pool matrix — Linux primary; Asterinas soak until A1 | council-architecture | [`ADR-0712-node-kernel-pool-matrix.md`](decisions/ADR-0712-node-kernel-pool-matrix.md) |
+| ADR-0713 | Proposed | Node Substrate Architecture — PID1 stub + restartable supervisor; severable Accept | council-architecture | [`ADR-0713-node-substrate-architecture.md`](decisions/ADR-0713-node-substrate-architecture.md) |
+| ADR-0714 | Proposed | Isolation-property RuntimeClass names with orthogonal placement axis | council-architecture | [`ADR-0714-isolation-property-runtime-tier-names.md`](decisions/ADR-0714-isolation-property-runtime-tier-names.md) |
+| ADR-0715 | Proposed | F1 Admission package — ADR-0710 Accept/Reject blocked on D-8 | council-architecture | [`ADR-0715-f1-admission-adr-0710-d8-gate.md`](decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md) |
+| ADR-0716 | Accepted | Cargo is the CI merge path; buck2 is local hermeticity plus a weekly smoke | council-architecture | [`ADR-0716-cargo-merge-path-buck2-local-hermeticity.md`](decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md) |
+| ADR-0717 | Accepted | Corpus-budget sprawl ratchet | council-architecture | [`ADR-0717-corpus-budget-shrink-only-ratchet.md`](decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md) |
+| ADR-0718 | Accepted | CI lane split and five-minute wall clock: fast format lane, parallel clippy, and nextest | council-architecture | [`ADR-0718-ci-lane-split-five-minute-wall-clock.md`](decisions/ADR-0718-ci-lane-split-five-minute-wall-clock.md) |
 
 ## Update protocol
 
 - Per-event + monthly per `doc.adr_index` row in [`DOC-CATALOG.md`](DOC-CATALOG.md).
-- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0712), unless an explicit reserved-number ADR is being filled.
+- New ADRs land via [`templates/adr-template.md`](templates/adr-template.md) and use the next available number (0719), unless an explicit reserved-number ADR is being filled.
 - Per-ADR amendments preserve the original ADR number; the amended ADR cites its original date and links to the amending PR.
 - Supersession is recorded in the per-ADR header and mirrored here on regeneration.
 
 ## Sources scanned
 
-- `decisions/` directory listing — 12 ADR files (sorted ascending)
+- `decisions/` directory listing — 19 ADR files (sorted ascending)
 - [`machine-readable/decisions.json`](machine-readable/decisions.json) — generated machine mirror
 - [`DOC-CATALOG.md`](DOC-CATALOG.md) — owner / cadence / dependent docs / validation checks

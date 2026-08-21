@@ -53,7 +53,11 @@ pub struct Finding {
 }
 
 impl Finding {
-    fn new(code: FindingCode, artifact_id: impl Into<ArtifactId>, detail: impl Into<String>) -> Self {
+    fn new(
+        code: FindingCode,
+        artifact_id: impl Into<ArtifactId>,
+        detail: impl Into<String>,
+    ) -> Self {
         Self {
             code,
             artifact_id: artifact_id.into(),
@@ -180,8 +184,13 @@ mod tests {
     use crate::model::ControlPlane;
 
     fn simple_manifest(is_decommit: bool) -> ControlPlane {
-        let mode = if is_decommit { "not-tracked-in-git" } else { "merge-candidate" };
-        let json = format!(r#"{{
+        let mode = if is_decommit {
+            "not-tracked-in-git"
+        } else {
+            "merge-candidate"
+        };
+        let json = format!(
+            r#"{{
           "schema_version": 2,
           "runner_registry": [],
           "artifacts": [{{
@@ -195,7 +204,8 @@ mod tests {
               "output_mode": "stdout-json"
             }}
           }}]
-        }}"#);
+        }}"#
+        );
         ControlPlane::from_json(&json).unwrap()
     }
 
@@ -207,7 +217,10 @@ mod tests {
         let pass_b = vec![("face-a".to_owned(), "bytes-v2-different".to_owned())];
         let result = evaluate(&pass_a, &pass_b, &[], &manifest);
         assert!(!result.is_green());
-        assert_eq!(result.findings[0].code, FindingCode::GeneratedArtifactNondeterministic);
+        assert_eq!(
+            result.findings[0].code,
+            FindingCode::GeneratedArtifactNondeterministic
+        );
     }
 
     #[test]
@@ -244,6 +257,9 @@ mod tests {
         // No regeneration result for face-a.
         let result = evaluate(&[], &[], &[], &manifest);
         assert!(!result.is_green());
-        assert_eq!(result.findings[0].code, FindingCode::DecommitArtifactMissing);
+        assert_eq!(
+            result.findings[0].code,
+            FindingCode::DecommitArtifactMissing
+        );
     }
 }

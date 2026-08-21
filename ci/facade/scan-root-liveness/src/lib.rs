@@ -49,6 +49,16 @@ pub const CODE_DEAD_SCAN_ROOT: &str = "dead_scan_root";
 /// A forward declaration whose path now EXISTS. The declaration has served its
 /// purpose and must be retired, or it silently becomes an unaudited permanent entry.
 pub const CODE_FORWARD_DECLARATION_LANDED: &str = "forward_declaration_landed";
+/// A gate crate ships an evaluator and tests, and NONE of those tests reads the real
+/// repository. Its kernel is proven correct on hand-written inputs and proves nothing
+/// about this tree, so it reports green on every run while measuring nothing. This is
+/// the same blind spot as a dead scan root, reached from the other side: a dead root
+/// scans a directory that is empty, and this scans no directory at all.
+pub const CODE_GATE_WITHOUT_LIVE_CORPUS_TEST: &str = "gate_without_live_corpus_test";
+/// A gate crate baselined as dark now HAS a live-corpus test. The win must be recorded
+/// by removing it from the baseline in the same change, or the baseline silently
+/// re-licenses going dark again later.
+pub const CODE_STALE_DARK_GATE_BASELINE: &str = "stale_dark_gate_baseline";
 /// A gate policy file declares coverage-bearing roots but is not registered with this
 /// gate. Without this, a new gate escapes liveness checking silently — the exact way
 /// a fleet-wide checker goes vacuous.
@@ -56,11 +66,13 @@ pub const CODE_UNREGISTERED_POLICY_FILE: &str = "unregistered_policy_file";
 /// The observed corpus is implausibly small — a collector bug must not read as clean.
 pub const CODE_IMPLAUSIBLE_CORPUS: &str = "scan_root_liveness_implausible_corpus";
 
-pub const VIOLATION_CODES: [&str; 4] = [
+pub const VIOLATION_CODES: [&str; 6] = [
     CODE_DEAD_SCAN_ROOT,
     CODE_FORWARD_DECLARATION_LANDED,
     CODE_UNREGISTERED_POLICY_FILE,
     CODE_IMPLAUSIBLE_CORPUS,
+    CODE_GATE_WITHOUT_LIVE_CORPUS_TEST,
+    CODE_STALE_DARK_GATE_BASELINE,
 ];
 
 #[derive(Clone, Debug, Eq, Ord, PartialEq, PartialOrd)]
@@ -93,6 +105,9 @@ pub struct Observed {
     pub roots: Vec<DeclaredRoot>,
     /// Every policy file the collector saw declaring coverage-bearing keys.
     pub policy_files_with_roots: BTreeSet<String>,
+    /// Every gate crate the collector saw, mapped to whether ANY of its tests reads the
+    /// real repository. False means the crate's whole suite runs on fixtures.
+    pub gate_crates: BTreeMap<String, bool>,
 }
 
 /// A path declared before it exists, on purpose.
@@ -116,6 +131,16 @@ pub struct Policy {
     pub baselined_dead_roots: BTreeSet<String>,
     /// False-green floor on the number of declared roots collected.
     pub min_expected_roots: usize,
+    /// Frozen, shrink-only debt: gate crates with no live-corpus test, tolerated today.
+    pub baselined_dark_gate_crates: BTreeSet<String>,
+    /// Crates inside the gate-crate prefixes that are NOT gates, with a reason each. The
+    /// prefixes are a cheap universe, not a definition: `ci/facade/` also holds pure
+    /// libraries that a controller drives, and demanding a live-corpus test of a library
+    /// that deliberately takes no filesystem input would be noise, not enforcement.
+    pub exempt_gate_crates: BTreeMap<String, String>,
+    /// False-green floor on the number of gate crates collected. Without it, a collector
+    /// that stops finding gate crates reports zero dark gates and passes.
+    pub min_expected_gate_crates: usize,
 }
 
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -156,10 +181,80 @@ pub fn evaluate(observed: &Observed, policy: &Policy) -> Report {
         });
     }
 
+    // ANTI-VACUITY on the gate-crate census itself. A collector that stops finding gate
+    // crates would report zero dark gates and pass, which is the failure this whole gate
+    // exists to detect, committed by the gate.
+    if observed.gate_crates.len() < policy.min_expected_gate_crates {
+        findings.push(Finding {
+            code: CODE_IMPLAUSIBLE_CORPUS.to_owned(),
+            subject: format!("{} gate crates", observed.gate_crates.len()),
+            detail: format!(
+                "collected {} gate crates, below the floor of {}; the crate walk is broken or the \
+                 gate-crate prefixes stopped matching — this is a gate failure, never coverage",
+                observed.gate_crates.len(),
+                policy.min_expected_gate_crates
+            ),
+        });
+    }
+
+    // A gate crate whose entire suite runs on fixtures measures nothing about this tree.
+    // Existing debt is grandfathered so the check can land without demanding 101 crates be
+    // rewritten first — refusing to run until the corpus is clean is exactly what kept this
+    // blind spot open.
+    for (krate, has_live_test) in &observed.gate_crates {
+        // A BLANK reason is not an exemption. Without this, `"some-crate": ""` silently
+        // removes any gate from coverage, which would make the exemption list a laundering
+        // path straight through the check -- the same shape as an unexplained forward
+        // declaration, which this gate already refuses for scan roots.
+        let exempt = policy
+            .exempt_gate_crates
+            .get(krate)
+            .is_some_and(|reason| !reason.trim().is_empty());
+        if *has_live_test || policy.baselined_dark_gate_crates.contains(krate) || exempt {
+            continue;
+        }
+        findings.push(Finding {
+            code: CODE_GATE_WITHOUT_LIVE_CORPUS_TEST.to_owned(),
+            subject: krate.clone(),
+            detail: format!(
+                "{krate} ships an evaluator and tests, and none of its tests reads the real \
+                 repository — every case runs on hand-written fixtures. It will report green on \
+                 every run while measuring nothing. Add a test that evaluates the live tree, or \
+                 baseline it with the rest of the known-dark fleet."
+            ),
+        });
+    }
+
+    // A baselined crate that has since gained a live test must leave the baseline in the same
+    // change, so the burn-down is recorded and cannot silently reverse.
+    for krate in &policy.baselined_dark_gate_crates {
+        match observed.gate_crates.get(krate) {
+            Some(true) => findings.push(Finding {
+                code: CODE_STALE_DARK_GATE_BASELINE.to_owned(),
+                subject: krate.clone(),
+                detail: format!(
+                    "{krate} now has a live-corpus test but is still baselined as dark. Remove it \
+                     from baselined_dark_gate_crates in this same change so the win is recorded."
+                ),
+            }),
+            None => findings.push(Finding {
+                code: CODE_STALE_DARK_GATE_BASELINE.to_owned(),
+                subject: krate.clone(),
+                detail: format!(
+                    "{krate} is baselined as dark but no longer exists as a gate crate. Remove the \
+                     entry in the same change that removed the crate."
+                ),
+            }),
+            Some(false) => {}
+        }
+    }
+
     // COMPLETENESS: a policy file declaring roots must be registered or exempt,
     // otherwise a newly-added gate silently escapes liveness checking.
     for file in &observed.policy_files_with_roots {
-        if policy.registered_policy_files.contains(file) || policy.exempt_policy_files.contains_key(file) {
+        if policy.registered_policy_files.contains(file)
+            || policy.exempt_policy_files.contains_key(file)
+        {
             continue;
         }
         findings.push(Finding {
@@ -249,6 +344,7 @@ mod tests {
         Observed {
             roots,
             policy_files_with_roots: files,
+            ..Default::default()
         }
     }
 
@@ -322,7 +418,8 @@ mod tests {
     fn baselined_dead_root_is_tolerated_and_counted() {
         let o = observed(vec![root("p.json", "roots", "bin", false)]);
         let mut p = policy(&["p.json"]);
-        p.baselined_dead_roots.insert("p.json::roots::bin".to_owned());
+        p.baselined_dead_roots
+            .insert("p.json::roots::bin".to_owned());
         let r = evaluate(&o, &p);
         assert_eq!(r.verdict, Verdict::Green);
         assert_eq!(r.dead_tolerated, 1);
@@ -342,8 +439,10 @@ mod tests {
     fn exempt_policy_file_with_reason_is_accepted() {
         let o = observed(vec![root("fixture.json", "roots", "nowhere", false)]);
         let mut p = policy(&[]);
-        p.exempt_policy_files
-            .insert("fixture.json".to_owned(), "test fixture, not a live gate".to_owned());
+        p.exempt_policy_files.insert(
+            "fixture.json".to_owned(),
+            "test fixture, not a live gate".to_owned(),
+        );
         // Exempt from COMPLETENESS, but its roots are still evaluated — exemption is
         // about registration, not about licensing dead roots.
         let r = evaluate(&o, &p);
@@ -360,7 +459,8 @@ mod tests {
             root("b.json", "roots", "gone", false),
         ]);
         let mut p = policy(&["a.json", "b.json"]);
-        p.baselined_dead_roots.insert("a.json::roots::gone".to_owned());
+        p.baselined_dead_roots
+            .insert("a.json::roots::gone".to_owned());
         let r = evaluate(&o, &p);
         assert_eq!(r.verdict, Verdict::Red);
         assert_eq!(r.findings.len(), 1);
@@ -390,7 +490,7 @@ mod tests {
 
     #[test]
     fn every_emitted_code_is_registered() {
-        let o = Observed {
+        let mut o = Observed {
             roots: vec![
                 root("p.json", "roots", "dead", false),
                 root("p.json", "roots", "landed", true),
@@ -398,6 +498,7 @@ mod tests {
             policy_files_with_roots: ["p.json".to_owned(), "unregistered.json".to_owned()]
                 .into_iter()
                 .collect(),
+            ..Default::default()
         };
         let mut p = policy(&["p.json"]);
         p.min_expected_roots = 100;
@@ -408,11 +509,27 @@ mod tests {
                 reason: "x".to_owned(),
             },
         );
+        // A gate crate with no live-corpus test, and a baselined crate that has since gained
+        // one, so both new codes are reachable from this fixture too.
+        o.gate_crates.insert("check-fixture-dark".to_owned(), false);
+        o.gate_crates
+            .insert("check-fixture-now-live".to_owned(), true);
+        p.baselined_dark_gate_crates
+            .insert("check-fixture-now-live".to_owned());
+
         let r = evaluate(&o, &p);
         for f in &r.findings {
-            assert!(VIOLATION_CODES.contains(&f.code.as_str()), "unregistered {}", f.code);
+            assert!(
+                VIOLATION_CODES.contains(&f.code.as_str()),
+                "unregistered {}",
+                f.code
+            );
         }
         let codes: BTreeSet<&str> = r.findings.iter().map(|f| f.code.as_str()).collect();
-        assert_eq!(codes.len(), VIOLATION_CODES.len(), "all codes reachable: {codes:?}");
+        assert_eq!(
+            codes.len(),
+            VIOLATION_CODES.len(),
+            "all codes reachable: {codes:?}"
+        );
     }
 }

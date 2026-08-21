@@ -38,9 +38,9 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-package-manifest-hygiene",
+        "//ci/adapters/corpus-census:ci-corpus-census-adapters",
+        "//ci/adapters/path-resolver:ci-path-resolver-adapters",
         "//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry",
-        "//libs/oya-ci-config:oya-ci-config-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
         "third-party//:serde_json",
     ],
 )

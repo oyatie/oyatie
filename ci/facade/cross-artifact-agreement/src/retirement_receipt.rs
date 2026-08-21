@@ -1330,10 +1330,17 @@ pub fn evaluate_history_only_retirement_receipt_coverage(
             .get("protected_base_is_ancestor_of_evaluated")
             .and_then(Value::as_bool)
             != Some(true)
+        // Deliberately NOT required to be true. For a pull_request the evaluated merge ref is
+        // regenerated against the live base tip, so its first parent is routinely a DESCENDANT of
+        // the recorded base rather than the base itself -- real base history, not drift. The
+        // producer now reports which case held instead of asserting the strict one, so this
+        // consumer must accept either. What still must hold is that the base is an ancestor of
+        // the evaluated commit, which is checked immediately above and is the property that
+        // actually prevents a doctored tree.
         || protected_context
             .get("protected_base_is_evaluated_first_parent")
             .and_then(Value::as_bool)
-            != Some(true)
+            .is_none()
         || protected_context
             .get("predecessor_commit_exists")
             .and_then(Value::as_bool)
@@ -2984,7 +2991,7 @@ mod tests {
                 })
             })
             .collect::<Vec<_>>();
-        let mut context = if state == "prepared-new" {
+        let context = if state == "prepared-new" {
             protected_scm_context()
         } else {
             protected_scm_context_with_preparation(ADR_0388_PREPARATION_PATH, BLOB)
@@ -3620,7 +3627,7 @@ mod tests {
             PREPARATION_PATH,
             PREPARATION_BLOB,
         );
-        let mut corpus = json!({
+        let corpus = json!({
             "receipts": [{"receipt_path": CLOSURE_PATH, "receipt": closure}],
             "scm_facts": {
                 "retirement_receipt_coverage": {
@@ -3851,7 +3858,7 @@ mod tests {
             "baseline_commit_oid":OLD,
             "baseline_tree_oid":OLD_TREE,
         }]);
-        let mut corpus = json!({"receipts":[{"receipt_path":RECEIPT_PATH,"receipt":receipt}],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[RECEIPT_PATH],"candidate_receipt_paths":[RECEIPT_PATH],"carried_receipt_paths":[RECEIPT_PATH],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[fact],"protected_scm_context":context,"retirement_control_plane_context":retirement_control_plane_context(true)}});
+        let corpus = json!({"receipts":[{"receipt_path":RECEIPT_PATH,"receipt":receipt}],"scm_facts":{"retirement_receipt_coverage":{"protected_base_ref":"origin/dev","protected_receipt_paths":[RECEIPT_PATH],"candidate_receipt_paths":[RECEIPT_PATH],"carried_receipt_paths":[RECEIPT_PATH],"new_receipt_paths":[],"scopes":[{"scope_ref":"ADR-0363","scope_type":"amended-agentic-vcs-retirement","selectors":[selector],"required_retired_paths":[".omc/legacy-a.md"]}],"required_retired_paths":[".omc/legacy-a.md"]},"retirement_receipt_object_facts":[fact],"protected_scm_context":context,"retirement_control_plane_context":retirement_control_plane_context(true)}});
         let corpus_findings = evaluate_history_only_retirement_receipts(&corpus);
         assert!(corpus_findings.is_empty(), "{corpus_findings:?}");
         let mut candidate_predecessor = corpus.clone();
@@ -4502,32 +4509,29 @@ mod tests {
 
     #[test]
     fn active_bootstrap_contradictions_fail_closed_through_both_entry_points() {
-        for (pointer, value) in [(
-            "/scm_facts/retirement_control_plane_context/bootstrap",
-            json!(true),
-        )] {
-            let mut corpus = exact_adr_0388_corpus("closure-new");
-            *corpus.pointer_mut(pointer).expect("fixture pointer") = value.clone();
-            assert!(
-                evaluate_and_project_history_only_retirement_closures(&corpus)
-                    .projection
-                    .is_none(),
-                "{pointer}={value} must not project from the receipt corpus"
-            );
+        let pointer = "/scm_facts/retirement_control_plane_context/bootstrap";
+        let value = json!(true);
+        let mut corpus = exact_adr_0388_corpus("closure-new");
+        *corpus.pointer_mut(pointer).expect("fixture pointer") = value.clone();
+        assert!(
+            evaluate_and_project_history_only_retirement_closures(&corpus)
+                .projection
+                .is_none(),
+            "{pointer}={value} must not project from the receipt corpus"
+        );
 
-            let (mut facts, bytes) = canonical_facts_and_raw("closure-new");
-            *facts.pointer_mut(pointer).expect("fixture pointer") = value;
-            let raw = RawHistoryOnlyRetirementReceipt {
-                receipt_path: ADR_0388_CLOSURE_PATH,
-                bytes: &bytes,
-            };
-            assert!(
-                evaluate_and_project_history_only_retirement_facts(&facts, &[raw])
-                    .projection
-                    .is_none(),
-                "{pointer} must not project from facts plus raw bytes"
-            );
-        }
+        let (mut facts, bytes) = canonical_facts_and_raw("closure-new");
+        *facts.pointer_mut(pointer).expect("fixture pointer") = value;
+        let raw = RawHistoryOnlyRetirementReceipt {
+            receipt_path: ADR_0388_CLOSURE_PATH,
+            bytes: &bytes,
+        };
+        assert!(
+            evaluate_and_project_history_only_retirement_facts(&facts, &[raw])
+                .projection
+                .is_none(),
+            "{pointer} must not project from facts plus raw bytes"
+        );
     }
 
     #[test]
@@ -4586,8 +4590,10 @@ mod tests {
                 json!(NEW)
             };
             *drifted.pointer_mut(pointer).expect("fixture pointer") = replacement;
-            let evaluation =
-                evaluate_and_project_history_only_retirement_facts(&drifted, &[raw.clone()]);
+            let evaluation = evaluate_and_project_history_only_retirement_facts(
+                &drifted,
+                std::slice::from_ref(&raw),
+            );
             assert!(
                 !evaluation.findings.is_empty(),
                 "{pointer} drift was accepted"
@@ -4600,7 +4606,7 @@ mod tests {
             json!("sha256:0000000000000000000000000000000000000000000000000000000000000000");
         let evaluation = evaluate_and_project_history_only_retirement_facts(
             &drifted_fact_digest,
-            &[raw.clone()],
+            std::slice::from_ref(&raw),
         );
         assert!(
             !evaluation.findings.is_empty(),

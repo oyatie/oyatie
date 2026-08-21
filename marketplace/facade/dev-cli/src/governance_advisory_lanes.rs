@@ -27,38 +27,30 @@ use std::path::{Path, PathBuf};
 
 use serde_json::Value;
 
-/// Canonical service roots scanned when discovering manifests.
-const SERVICE_ROOTS: &[&str] = &["cloud", "oya", "microservices"];
-
-/// Scan all canonical service roots for `*/manifest.json` paths.
+/// Scan every service root for `manifest.json` paths.
 ///
-/// Common helper: every advisory walker uses the same enumeration. Scans
-/// `cloud/*/manifest.json`, `oya/*/manifest.json`, and
-/// `microservices/*/manifest.json`. Returns the path list sorted for
-/// deterministic gate output. Roots that are absent are silently skipped.
+/// Common helper: every advisory walker uses the same enumeration. Roots
+/// come from `crate::service_roots` (derived from the closed capability
+/// registry), and BOTH layout shapes are enumerated —
+/// `<root>/manifest.json` and `<root>/<service>/manifest.json`. Returns the
+/// path list sorted for deterministic gate output.
+///
+/// Roots that are absent are an ERROR, not a silent skip. The previous
+/// version hardcoded `["cloud", "oya", "microservices"]` and documented
+/// that absent roots "are silently skipped"; two of those three roots were
+/// then removed from the tree, and the advisory lanes went on reporting
+/// success over what was left.
 fn discover_microservice_manifests() -> Result<Vec<PathBuf>, String> {
     let mut manifests = Vec::new();
-    for root_str in SERVICE_ROOTS {
-        let root = Path::new(root_str);
-        if !root.exists() {
-            continue;
-        }
-        let entries = fs::read_dir(root)
-            .map_err(|error| format!("unable to read {root_str}/: {error}"))?;
-        for entry in entries {
-            let entry =
-                entry.map_err(|error| format!("unable to walk {root_str}/: {error}"))?;
-            let path = entry.path();
-            if !path.is_dir() {
-                continue;
-            }
-            let manifest = path.join("manifest.json");
-            if manifest.exists() {
-                manifests.push(manifest);
-            }
-        }
+    for root in crate::service_roots::default_service_roots()? {
+        manifests.extend(
+            crate::service_roots::list_service_files(&root, "manifest.json")
+                .into_iter()
+                .map(|found| found.path),
+        );
     }
     manifests.sort();
+    manifests.dedup();
     Ok(manifests)
 }
 
@@ -132,10 +124,8 @@ pub(crate) fn validate_authz_tier_discipline_gate(
                     Ok(text) => text,
                     Err(_) => continue,
                 };
-                let report = check_authz_tier_discipline::scan_cedar(
-                    &cedar.display().to_string(),
-                    &body,
-                );
+                let report =
+                    check_authz_tier_discipline::scan_cedar(&cedar.display().to_string(), &body);
                 total_findings += report.findings.len();
                 cedar_files_scanned += 1;
             }

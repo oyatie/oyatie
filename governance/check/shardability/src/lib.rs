@@ -281,7 +281,4 @@ mod tests {
         let err = check(&[mf("a.sql", ""), mf("a.sql", "")]).unwrap_err();
         assert!(matches!(err, Error::DuplicatePath { .. }));
     }
-
-
-
 }

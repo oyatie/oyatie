@@ -1,0 +1,74 @@
+rust_library(
+    name = "port-engine-rulepack",
+    srcs = glob(["src/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_rulepack",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+# Loading a well-formed pack: the fixture gate, the digest, and the seams.
+rust_test(
+    name = "port-engine-rulepack-load",
+    srcs = glob(["tests/load.rs", "tests/common/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_rulepack_load",
+    crate_root = "tests/load.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
+        ":port-engine-rulepack",
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/ports/api:port-engine-api",
+        "//build/port-engine/core/kernel:port-engine-kernel",
+    ],
+)
+
+# Everything the loader refuses, including every once-dropped field.
+rust_test(
+    name = "port-engine-rulepack-refusals",
+    srcs = glob(["tests/refusals.rs", "tests/common/**/*.rs", "src/**/*.json"]),
+    crate = "port_engine_rulepack_refusals",
+    crate_root = "tests/refusals.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
+        ":port-engine-rulepack",
+        "//build/port-engine/adapters/hash:port-engine-hash",
+        "//build/port-engine/ports/api:port-engine-api",
+    ],
+)
+
+# Architecture fence. `srcs` carries the library sources because the fence READS them with
+# include_str! — they are inputs to compiling this test, never modules of it.
+rust_test(
+    name = "port-engine-rulepack-neutrality",
+    srcs = glob(["tests/neutrality.rs", "src/**/*.rs"]),
+    crate = "port_engine_rulepack_neutrality",
+    crate_root = "tests/neutrality.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
+        ":port-engine-rulepack",
+    ],
+)
+
+rust_test(
+    name = "port-engine-rulepack-readiness",
+    srcs = glob(["tests/readiness.rs"]),
+    crate = "port_engine_rulepack_readiness",
+    crate_root = "tests/readiness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+        "third-party//:serde",
+        ":port-engine-rulepack",
+    ],
+)

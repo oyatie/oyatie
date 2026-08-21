@@ -84,7 +84,6 @@
       "audit",
       "billing",
       "cell",
-      "cloud",
       "comms",
       "compliance",
       "console",
@@ -104,8 +103,8 @@
       "tenancy",
       "workflow"
     ],
-    "expected_total": 96,
-    "expected_live_v1_total": 58,
+    "expected_total": 77,
+    "expected_live_v1_total": 56,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
       "comms/comms-email/manifest.json",
@@ -117,24 +116,7 @@
       "data/data-warehouse/manifest.json",
       "observability/diagnostics/manifest.json",
       "oya/ci-webhook-gateway/manifest.json",
-      "oya/contract-lifecycle-management/manifest.json",
-      "oya/crm/manifest.json",
-      "oya/design-collaboration/manifest.json",
-      "oya/financial-planning/manifest.json",
       "oya/global-trade/manifest.json",
-      "oya/incident-management/manifest.json",
-      "oya/itsm/manifest.json",
-      "oya/learning-management/manifest.json",
-      "oya/marketing-automation/manifest.json",
-      "oya/performance-management/manifest.json",
-      "oya/plant-maintenance/manifest.json",
-      "oya/production-planning/manifest.json",
-      "oya/quality-management/manifest.json",
-      "oya/real-estate/manifest.json",
-      "oya/supply-chain-planning/manifest.json",
-      "oya/treasury/manifest.json",
-      "oya/warehouse/manifest.json",
-      "oya/whiteboard/manifest.json",
       "storage/imaging/manifest.json"
     ],
     "reviewed_overlay_manifests": [
@@ -151,7 +133,7 @@
     ],
     "legacy_review_rule": "Named legacy manifests remain migration inventory only. They receive no protocol exemption: shape-independent checks still reject internal gRPC outside HTTP/2 and FlatBuffers without the benchmark-gated derived-adapter posture.",
     "public_proto_posture": "No public_surface_files.proto carrier is permitted, including in legacy manifests. Every Buck-corpus Proto is internal-only and marker-classified; live Proto service contracts must also be declared through contracts.internal_grpc. Named reviewed-legacy service contracts remain migration inventory, receive no content exemption, and do not imply runtime readiness.",
-    "_comment": "2026-08-08 (PR #1620): 97 -> 96. The governed-manifest walk now skips tests/ directories, removing exactly one entry - cell/core/regional-pack/tests/fixtures/kr/manifest.json - which entered the corpus when governed_roots widened to 22 and is a FIXTURE, not a service. The delta is one file and it is named. This is an accounted re-freeze, not a floor lowered to match a coverage loss: no service left the corpus."
+    "_comment": "2026-08-17 retirement reconciliation: cloud/cloud-kernel/manifest.json and cloud/cloud-os/manifest.json left the governed corpus when the cloud/ source root was deleted, so expected_total moves exactly 96 -> 94 and the dead //cloud Buck corpus resources are removed in the same change. HOLD for destination capability-root PRs (#1651\u2013#1655 / cell|comms|data|iam|workflow): expected_live_v1_total stays 58 until those five `<root>/manifest.json` files land on the merge base. PRIOR ENTRY retained below in spirit \u2014 2026-08-08 (PR #1620): 97 -> 96 via tests/ skip."
   },
   "rules": [
     {

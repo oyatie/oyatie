@@ -6,13 +6,13 @@
   },
   "_metadata": {
     "source": "docs/decisions",
-    "total_adrs": 12,
-    "numbering": "contiguous ADR-0700..ADR-0711 (gap-free)",
+    "total_adrs": 19,
+    "numbering": "contiguous ADR-0700..ADR-0718 (gap-free)",
     "gaps": [],
-    "next_adr": "ADR-0712",
+    "next_adr": "ADR-0719",
     "status_counts": {
-      "Accepted": 11,
-      "Proposed": 1
+      "Accepted": 15,
+      "Proposed": 4
     }
   },
   "decisions": [
@@ -140,7 +140,7 @@
       "adr": "ADR-0710",
       "number": 710,
       "title": "Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook",
-      "status": "Proposed",
+      "status": "Accepted",
       "owner": "council-architecture",
       "date": "2026-08-08",
       "path": "decisions/ADR-0710-kubernetes-admission-substrate-is-the-api-server.md",
@@ -159,6 +159,90 @@
       "supersedes": [],
       "superseded_by": [],
       "related": ["ADR-0111", "ADR-0119", "ADR-0131", "ADR-0363", "ADR-0366", "ADR-0515", "ADR-0541", "ADR-0554", "ADR-0562"]
+    },
+    {
+      "adr": "ADR-0712",
+      "number": 712,
+      "title": "Node kernel + pool matrix — Linux primary; Asterinas soak until A1",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-08-10",
+      "path": "decisions/ADR-0712-node-kernel-pool-matrix.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0611", "ADR-0704", "ADR-0714"]
+    },
+    {
+      "adr": "ADR-0713",
+      "number": 713,
+      "title": "Node Substrate Architecture — PID1 stub + restartable supervisor; severable Accept",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-08-10",
+      "path": "decisions/ADR-0713-node-substrate-architecture.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0520", "ADR-0637", "ADR-0638", "ADR-0704", "ADR-0712"]
+    },
+    {
+      "adr": "ADR-0714",
+      "number": 714,
+      "title": "Isolation-property RuntimeClass names with orthogonal placement axis",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-08-10",
+      "path": "decisions/ADR-0714-isolation-property-runtime-tier-names.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0338", "ADR-0710", "ADR-0712", "ADR-0715"]
+    },
+    {
+      "adr": "ADR-0715",
+      "number": 715,
+      "title": "F1 Admission package — ADR-0710 Accept/Reject blocked on D-8",
+      "status": "Proposed",
+      "owner": "council-architecture",
+      "date": "2026-08-10",
+      "path": "decisions/ADR-0715-f1-admission-adr-0710-d8-gate.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0701", "ADR-0710", "ADR-0338", "ADR-0379", "ADR-0714"]
+    },
+    {
+      "adr": "ADR-0716",
+      "number": 716,
+      "title": "Cargo is the CI merge path; buck2 is local hermeticity plus a weekly smoke",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-14",
+      "path": "decisions/ADR-0716-cargo-merge-path-buck2-local-hermeticity.md",
+      "supersedes": ["ADR-0560"],
+      "superseded_by": [],
+      "related": ["ADR-0515", "ADR-0532", "ADR-0613"]
+    },
+    {
+      "adr": "ADR-0717",
+      "number": 717,
+      "title": "Corpus-budget sprawl ratchet",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-14",
+      "path": "decisions/ADR-0717-corpus-budget-shrink-only-ratchet.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0711"]
+    },
+    {
+      "adr": "ADR-0718",
+      "number": 718,
+      "title": "CI lane split and five-minute wall clock: fast format lane, parallel clippy, and nextest",
+      "status": "Accepted",
+      "owner": "council-architecture",
+      "date": "2026-08-18",
+      "path": "decisions/ADR-0718-ci-lane-split-five-minute-wall-clock.md",
+      "supersedes": [],
+      "superseded_by": [],
+      "related": ["ADR-0554", "ADR-0700"]
     }
   ]
 }

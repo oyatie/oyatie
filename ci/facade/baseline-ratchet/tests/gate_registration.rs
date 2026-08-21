@@ -56,10 +56,11 @@ use serde_json::Value;
 /// job runs their `-unittest` targets, and planning-projection's library code additionally runs
 /// inside the bespoke `gate-generated-artifact-freshness` lane that depends on it.
 const PRODUCER_CRATE: &str = "artifact-inventory-registry";
-const NON_GATE_CRATES: [&str; 3] = [
+const NON_GATE_CRATES: [&str; 4] = [
     "artifact-inventory-registry",
     "crate-registration",
     "planning-projection",
+    "rust-toolchain-bump-proposer",
 ];
 
 /// Walk up from the test's working directory to the repo root (the dir holding the canonical
@@ -144,8 +145,10 @@ fn bundled_gate_disposition_path(root: &Path) -> PathBuf {
 /// SEMANTICALLY (e.g. cloud-ci-total-accounting -> artifact-accountability), so there is no
 /// textual prefix-strip from the gate id to the lane — the move-plan is the only authority.
 fn ci_move_new_dir(root: &Path, old_cargo_name: &str) -> Option<String> {
-    let plan: Value =
-        serde_json::from_str(&read_to_string(&root.join("specs/reorg/ci-keystone-rename-map.json"))).ok()?;
+    let plan: Value = serde_json::from_str(&read_to_string(
+        &root.join("specs/reorg/ci-keystone-rename-map.json"),
+    ))
+    .ok()?;
     if let Some(moves) = plan.get("moves").and_then(Value::as_array) {
         for m in moves {
             if m.get("old_cargo_name").and_then(Value::as_str) == Some(old_cargo_name) {
@@ -216,6 +219,12 @@ fn fan_in_block(workflow: &str) -> &str {
         .find(fan_in_anchor)
         .expect("fan-in job `oya-ci-required:` not found in workflow");
     &workflow[idx..]
+}
+
+fn workflow_has_job(workflow: &str, job_name: &str) -> bool {
+    workflow
+        .lines()
+        .any(|line| line == format!("  {job_name}:"))
 }
 
 fn workflow_job(workflow: &str, job_name: &str) -> String {
@@ -323,8 +332,7 @@ const WINDOWS_RESOLVER_DIFFERENTIAL_TARGET: &str =
 /// Hosted-safe Buck2 hermetic test env for rustup home.
 /// Prefer runner `RUSTUP_HOME` (ARC `/opt/rust/rustup`); fall back to `~/.rustup` on
 /// GitHub-hosted images where the var is unset under `set -u`.
-const RUSTUP_HOME_BUCK2_TEST_ENV: &str =
-    "-- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"";
+const RUSTUP_HOME_BUCK2_TEST_ENV: &str = "-- --env \"RUSTUP_HOME=${RUSTUP_HOME:-${HOME}/.rustup}\"";
 
 /// True when a command line forwards the owned/hosted-safe RUSTUP_HOME into Buck2's
 /// hermetic test executor. Rejects bare `${RUSTUP_HOME}` (unbound on public GHA under `set -u`).
@@ -338,6 +346,10 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
     // The portable Cargo differential still binds on the required buck2 lane with the
     // owned rustup home forwarded through Buck2's hermetic test executor. Windows remains
     // dormant (cfg) until real Windows capacity exists — no windows-latest runner.
+    // ADR-0716 retired the buck2 merge-path job; live topology uses `workspace_tests_executed`.
+    if !workflow_has_job(workflow, "buck2") {
+        return false;
+    }
     let buck2_job = workflow_job(workflow, "buck2");
     let executed = executed_patterns_by_job(workflow);
     let buck2_patterns = executed.get("buck2");
@@ -358,9 +370,10 @@ fn workspace_resolver_differential_is_self_hosted_and_binding(workflow: &str) ->
             patterns.contains("//ci/...") && patterns.contains(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET)
         })
         && differential_forwards_rustup
-        && !workflow.lines().map(str::trim).any(|line| {
-            line.starts_with("runs-on:") && line.contains("windows-latest")
-        })
+        && !workflow
+            .lines()
+            .map(str::trim)
+            .any(|line| line.starts_with("runs-on:") && line.contains("windows-latest"))
 }
 
 /// The fan-in's success CONDITIONAL — the `if [ … ] && [ … ]; then` line, with shell
@@ -398,18 +411,21 @@ fn fan_in_mentions_job(fan_in_block: &str, job: &str) -> bool {
 
 fn live_postgres_split_fan_in_is_complete(workflow: &str) -> bool {
     let block = fan_in_block(workflow);
-    fan_in_mentions_job(block, "gate-live-postgres-adapters")
-        && fan_in_mentions_job(block, "gate-live-postgres-facades")
+    block.contains("[ \"${{ needs.live-postgres-adapters.result }}\" = \"success\" ]")
+        && block.contains("[ \"${{ needs.live-postgres-facades.result }}\" = \"success\" ]")
         && !block.contains("needs.gate-live-postgres.result")
+        && !block.contains("needs.live-postgres.result")
 }
 
 fn live_postgres_job_uses_isolated_arc_cell(job: &str) -> bool {
     // W1: merge path is GitHub-hosted + service container (replaces oya-live-postgres-arm64
     // ARC sidecar as primary). Credentials prefer env defaults for hosted, with optional
     // /run/oya-ci-postgres/* file fallback when the ARC cell is used as overflow.
-    let on_hosted_with_service = job.lines().map(str::trim).any(|line| {
-        line.starts_with("runs-on:") && line.contains("ubuntu-latest")
-    }) && job.lines().any(|line| line.trim() == "services:")
+    let on_hosted_with_service = job
+        .lines()
+        .map(str::trim)
+        .any(|line| line.starts_with("runs-on:") && line.contains("ubuntu-latest"))
+        && job.lines().any(|line| line.trim() == "services:")
         && job.contains("postgres:")
         && job.contains("image: postgres:16");
     let on_arc_sidecar = job.contains("runs-on: oya-live-postgres-arm64")
@@ -432,8 +448,16 @@ fn general_arc_runner_has_no_database_admin_projection(values: &str) -> bool {
 fn live_postgres_arc_cell_is_ephemeral_and_isolated(values: &str) -> bool {
     const POSTGRES_16_DIGEST: &str = "mirror.gcr.io/library/postgres:16@sha256:33f923b05f64ca54ac4401c01126a6b92afe839a0aa0a52bc5aeb5cc958e5f20";
 
+    // maxRunners:1 was the live overflow cell; maxRunners:0 is the tip-declared
+    // retirement (hosted postgres:16 services own merge gates). Tombstone values
+    // must keep the isolation shape until the Argo app is removed.
+    let max_runners_ok = values.lines().any(|line| {
+        let bare = line.split('#').next().unwrap_or("").trim();
+        bare == "maxRunners: 1" || bare == "maxRunners: 0"
+    });
+
     values.contains("runnerScaleSetName: oya-live-postgres-arm64")
-        && values.contains("maxRunners: 1")
+        && max_runners_ok
         && values.contains("name: arc-gha-rs-controller")
         && values.contains("oya.io/ci-cell: live-postgres")
         && values.contains("name: generate-postgres-credentials")
@@ -519,6 +543,9 @@ fn affected_set_long_step_telemetry_is_wired(workflow: &str) -> bool {
 }
 
 fn merge_base_test_health_forwards_the_owned_rustup_home(workflow: &str) -> bool {
+    if !workflow_has_job(workflow, "gate-affected-target-set") {
+        return false;
+    }
     let job = workflow_job(workflow, "gate-affected-target-set");
     let Some(step) = workflow_steps(&job).into_iter().find(|step| {
         step.iter().any(|line| {
@@ -638,6 +665,31 @@ fn executed_buck2_test_patterns(workflow: &str) -> BTreeSet<String> {
 
 /// True iff a Buck2 target pattern executes the targets of repo-relative package `pkg`.
 /// `//ci/...` (and `//...`) recurse; `//ci/facade/x:tgt` names one package.
+/// ADR-0716: the Cargo merge path executes the whole workspace with `cargo test --workspace`;
+/// a fan-in-reachable executable line of that shape covers EVERY workspace-member gate crate.
+fn workspace_tests_executed(workflow: &str) -> bool {
+    workflow.lines().any(|line| {
+        let trimmed = line.trim();
+        if trimmed.starts_with('#')
+            || trimmed.contains("--keep-going")
+            || trimmed.contains("|| true")
+        {
+            return false;
+        }
+        // ADR-0718-D3: accept either runner. The property this asserts is "the whole workspace
+        // runs under one blocking invocation", not the spelling of the command; pinning the
+        // literal would make a runner swap look like the census-epoch validator had stopped
+        // running. The advisory escapes above stay rejected either way.
+        let Some((_, args)) = trimmed
+            .split_once("cargo nextest run ")
+            .or_else(|| trimmed.split_once("cargo test "))
+        else {
+            return false;
+        };
+        args.split_whitespace().any(|token| token == "--workspace")
+    })
+}
+
 fn pattern_covers_package(pattern: &str, pkg: &str) -> bool {
     let body = pattern.strip_prefix("//").unwrap_or(pattern);
     match body.strip_suffix("...") {
@@ -756,8 +808,14 @@ jobs:
     // Pattern coverage semantics: recursive patterns recurse, exact patterns do not.
     assert!(pattern_covers_package("//ci/...", "ci/facade/x"));
     assert!(pattern_covers_package("//...", "ci/facade/x"));
-    assert!(pattern_covers_package("//ci/facade/x:ci-x-gate", "ci/facade/x"));
-    assert!(!pattern_covers_package("//ci/facade/x:ci-x-gate", "ci/facade/y"));
+    assert!(pattern_covers_package(
+        "//ci/facade/x:ci-x-gate",
+        "ci/facade/x"
+    ));
+    assert!(!pattern_covers_package(
+        "//ci/facade/x:ci-x-gate",
+        "ci/facade/y"
+    ));
     // Prefix matching must respect path segments: `//cider/...` must not cover `ci/facade/x`.
     assert!(!pattern_covers_package("//cider/...", "ci/facade/x"));
 
@@ -768,7 +826,9 @@ jobs:
         &root.join("ci/facade/baseline-ratchet/BUCK")
     ));
     assert!(!buck_declares_a_test_rule(&root.join("toolchains/BUCK")));
-    assert!(!buck_declares_a_test_rule(&root.join("does/not/exist/BUCK")));
+    assert!(!buck_declares_a_test_rule(
+        &root.join("does/not/exist/BUCK")
+    ));
 }
 
 /// RED proof for `fan_in_mentions_job`, and the reason this rework exists.
@@ -845,11 +905,14 @@ fn fan_in_membership_requires_a_checked_result_not_an_echo() {
 
     // The LIVE workflow must satisfy the strengthened form for the lane the collapse makes
     // load-bearing. Without this, the fixtures above could pass while dev regressed.
+    // ADR-0716: cargo `test` plus both live-postgres lanes are the blocking fan-in members.
     let workflow = read_to_string(&workflow_path(&repo_root()));
     let block = fan_in_block(&workflow);
-    for job in ["buck2", "gate", "gate-baseline-ratchet"] {
+    for job in ["test", "live-postgres-adapters", "live-postgres-facades"] {
         assert!(
-            fan_in_mentions_job(block, job),
+            block.contains(&format!(
+                "[ \"${{{{ needs.{job}.result }}}}\" = \"success\" ]"
+            )),
             "live fan-in must both depend on and compare `needs.{job}.result`"
         );
     }
@@ -1147,10 +1210,11 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
     // crate's package, from an executable (non-comment, non-`--keep-going`, non-`|| true`) line,
     // AND the crate's BUCK declares a test rule for that pattern to match.
     let executed = executed_buck2_test_patterns(&workflow);
+    let workspace_executed = workspace_tests_executed(&workflow);
     assert!(
-        !executed.is_empty(),
-        "no fan-in-reachable job in {} executes any `buck2 test <//pattern>` — the gate fleet has \
-         no binding execution at all",
+        !executed.is_empty() || workspace_executed,
+        "no fan-in-reachable job in {} executes any `buck2 test <//pattern>` or \
+         `cargo test --workspace` — the gate fleet has no binding execution at all",
         wf.display()
     );
 
@@ -1162,12 +1226,17 @@ fn every_gate_crate_is_registered_in_oya_ci_required_workflow() {
             continue;
         }
         let pkg = format!("ci/facade/{crate_dir}");
-        if !executed
+        let buck_covered = executed
             .iter()
-            .any(|pattern| pattern_covers_package(pattern, &pkg))
-        {
+            .any(|pattern| pattern_covers_package(pattern, &pkg));
+        if !buck_covered && !workspace_executed {
             uncovered.push(crate_dir.clone());
-        } else if !buck_declares_a_test_rule(&root.join(&pkg).join("BUCK")) {
+        } else if buck_covered
+            && !workspace_executed
+            && !buck_declares_a_test_rule(&root.join(&pkg).join("BUCK"))
+        {
+            // The BUCK test-rule requirement applies to buck2-pattern coverage only; the
+            // Cargo merge path's workspace membership is enforced by workspace-member-coverage.
             no_test_rule.push(crate_dir.clone());
         }
     }
@@ -1250,28 +1319,32 @@ fn non_gate_exclusions_are_falsifiable_against_the_build_graph() {
 fn census_epoch_receipt_is_a_buck_live_face_gate_not_a_cargo_only_false_green() {
     let root = repo_root();
     let workflow = read_to_string(&workflow_path(&root));
-    let buck = read_to_string(&root.join("ci/facade/scm-facts-snapshot/BUCK"));
-    let gate_matrix_entry = "crate: scm-facts-snapshot,";
-    let download_step = workflow
-        .find("Download regenerated faces")
-        .expect("gate matrix must download controller-generated faces");
-    let test_step = workflow
-        .find("buck2 test ${{ matrix.crate }}")
-        .expect("gate matrix must execute Buck tests");
+    let test_job = workflow_job(&workflow, "test");
+    let materialize_step = "Materialize generated faces";
+    let workspace_step = "Workspace tests";
+    let materialize = test_job
+        .find(materialize_step)
+        .expect("test job must materialize generated faces before validation");
+    let workspace_tests = test_job
+        .find(workspace_step)
+        .expect("test job must execute cargo workspace tests");
 
-    assert!(workflow.contains(gate_matrix_entry));
     assert!(
-        download_step < test_step,
-        "the live face must be downloaded before validation"
+        materialize < workspace_tests,
+        "the live face must be materialized before cargo workspace validation"
     );
     assert!(
-        buck.contains("name = \"ci-scm-facts-snapshot-gate\"")
-            && buck.contains("src/bin/adr-census-epoch-receipt-gate.rs"),
-        "the matrix target must execute the census-epoch receipt live validator under Buck"
+        workspace_tests_executed(&workflow),
+        "the census-epoch receipt live validator must run under cargo test --workspace, which is required-CI authority (ADR-0716)"
+    );
+    let snapshot_manifest = read_to_string(&root.join("ci/facade/scm-facts-snapshot/Cargo.toml"));
+    let census_gate = read_to_string(
+        &root.join("ci/facade/scm-facts-snapshot/src/bin/adr-census-epoch-receipt-gate.rs"),
     );
     assert!(
-        workflow.contains("//ci/facade/${{ matrix.crate }}:ci-${{ matrix.crate }}-gate"),
-        "a Cargo-only test command is not required-CI authority"
+        snapshot_manifest.contains("name = \"ci-scm-facts-snapshot\"")
+            && census_gate.contains("validate_adr_census_epoch_receipt_for_event"),
+        "the workspace member must still own the census-epoch receipt live validator"
     );
 }
 
@@ -1402,6 +1475,7 @@ fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
 
     let mut missing_workflow_authority = Vec::new();
     let executed = executed_buck2_test_patterns(&workflow);
+    let workspace_executed = workspace_tests_executed(&workflow);
     for (gate_id, input_kind) in configured {
         let has_required_lane = match input_kind.as_str() {
             // Resolve the gate id to its NEW de-branded ci/facade dir via the committed move-plan
@@ -1409,23 +1483,27 @@ fn oya_ci_configured_gates_have_disposition_and_required_workflow_authority() {
             // dir's package to be covered by a pattern a fan-in-reachable job actually executes.
             //
             // This used to be `workflow.contains("crate: {dir},")` — a matrix line. The 48->2
-            // collapse (2026-08-01) removed those lines; the gates are now executed by
-            // `buck2 test //ci/...` in the `buck2` lane. Asserting execution rather than a matrix
-            // line is also what this check always MEANT by "required workflow authority".
-            "producer-face" => ci_move_new_dir(&root, &format!("oya-{gate_id}-app")).is_some_and(
-                |dir| {
-                    let pkg = format!("ci/facade/{dir}");
-                    executed
-                        .iter()
-                        .any(|pattern| pattern_covers_package(pattern, &pkg))
-                },
-            ),
+            // collapse (2026-08-01) removed those lines; the gates were then executed by
+            // `buck2 test //ci/...` in the `buck2` lane. ADR-0716 replaced that lane with
+            // `cargo test --workspace`, which covers every workspace-member gate crate.
+            "producer-face" => {
+                workspace_executed
+                    || ci_move_new_dir(&root, &format!("oya-{gate_id}-app")).is_some_and(|dir| {
+                        let pkg = format!("ci/facade/{dir}");
+                        executed
+                            .iter()
+                            .any(|pattern| pattern_covers_package(pattern, &pkg))
+                    })
+            }
             "raw-corpus-collector" => {
-                workflow.contains("producer-regen") && workflow.contains("gate-baseline-ratchet")
+                workspace_executed
+                    || (workflow.contains("producer-regen")
+                        && workflow.contains("gate-baseline-ratchet"))
             }
             "frozen-empty-meta" => {
-                gate_id == "cloud-ci-freshness"
-                    && workflow.contains("gate-generated-artifact-freshness")
+                workspace_executed
+                    || (gate_id == "cloud-ci-freshness"
+                        && workflow.contains("gate-generated-artifact-freshness"))
             }
             other => panic!("unknown gate input_kind `{other}` for {gate_id} in oya-ci.toml"),
         };
@@ -1476,6 +1554,10 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
     // the block — including a comment — and was matrix-shaped besides.
     let crates = gate_crate_dirs(&gates);
     let by_job = executed_patterns_by_job(&workflow);
+    // ADR-0716 fan-in uses an inline `needs: [...]` list plus a `[ needs.<job>.result = success ]`
+    // chain, not the retired YAML list + `if; then` shape `fan_in_mentions_job` still reads.
+    let workspace_checked = workspace_tests_executed(&workflow)
+        && fan_in_block.contains("[ \"${{ needs.test.result }}\" = \"success\" ]");
     let mut missing: Vec<String> = Vec::new();
     for crate_dir in &crates {
         if NON_GATE_CRATES.contains(&crate_dir.as_str()) {
@@ -1492,7 +1574,7 @@ fn every_gate_lane_is_a_dependency_of_the_fan_in_job() {
             .map(|(job, _)| job)
             .filter(|job| fan_in_mentions_job(fan_in_block, job))
             .collect();
-        if checked_by.is_empty() {
+        if checked_by.is_empty() && !workspace_checked {
             missing.push(crate_dir.clone());
         }
     }
@@ -1519,14 +1601,13 @@ fn live_postgres_split_lanes_are_both_required_by_fan_in() {
         "fan-in must require both split live-postgres jobs and must not keep the retired monolithic needs token"
     );
 
-    let without_adapters =
-        workflow.replace("      - gate-live-postgres-adapters", "      # removed");
+    let without_adapters = workflow.replace("live-postgres-adapters", "removed-adapters");
     assert!(
         !live_postgres_split_fan_in_is_complete(&without_adapters),
         "missing adapter sublane must be detected as fan-in incomplete"
     );
 
-    let without_facades = workflow.replace("      - gate-live-postgres-facades", "      # removed");
+    let without_facades = workflow.replace("live-postgres-facades", "removed-facades");
     assert!(
         !live_postgres_split_fan_in_is_complete(&without_facades),
         "missing facade sublane must be detected as fan-in incomplete"
@@ -1540,7 +1621,7 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
     let workflow =
         fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
-    for job_name in ["gate-live-postgres-adapters", "gate-live-postgres-facades"] {
+    for job_name in ["live-postgres-adapters", "live-postgres-facades"] {
         let job = workflow_job(&workflow, job_name);
         assert!(
             live_postgres_job_uses_isolated_arc_cell(&job),
@@ -1578,7 +1659,7 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
         .unwrap_or_else(|e| panic!("read {}: {e}", live_values_path.display()));
     assert!(
         live_postgres_arc_cell_is_ephemeral_and_isolated(&live_values),
-        "dedicated live-Postgres ARC values must declare a pinned native sidecar, memory-backed per-pod state and credentials, readiness, and no shared Secret/CNPG reference"
+        "dedicated live-Postgres ARC values must keep the ephemeral isolation shape (maxRunners 1 live or 0 retired) with pinned native sidecar, memory-backed per-pod state/credentials, readiness, and no shared Secret/CNPG reference"
     );
 
     let policy_path = live_postgres_network_policy_path(&root);
@@ -1627,16 +1708,18 @@ fn live_postgres_lanes_use_a_dedicated_ephemeral_arc_sidecar_cell() {
         .as_array()
         .expect("bootstrap rollback_json_patch must be an array");
     assert!(rollback.iter().any(|op| {
-        op["op"] == "replace"
-            && op["path"] == "/spec/source/targetRevision"
-            && op["value"] == "dev"
+        op["op"] == "replace" && op["path"] == "/spec/source/targetRevision" && op["value"] == "dev"
     }));
-    assert!(bootstrap["required_readback"]
-        .as_array()
-        .is_some_and(|items| items.len() >= 6));
-    assert!(bootstrap["rollback_readback"]
-        .as_array()
-        .is_some_and(|items| items.len() >= 4));
+    assert!(
+        bootstrap["required_readback"]
+            .as_array()
+            .is_some_and(|items| items.len() >= 6)
+    );
+    assert!(
+        bootstrap["rollback_readback"]
+            .as_array()
+            .is_some_and(|items| items.len() >= 4)
+    );
 }
 
 #[test]
@@ -1645,8 +1728,12 @@ fn workspace_resolver_differential_is_a_self_hosted_buck2_binding() {
     let workflow = read_to_string(&workflow_path(&root));
 
     assert!(
-        workspace_resolver_differential_is_self_hosted_and_binding(&workflow),
-        "the portable Cargo differential must run beside //ci/... on the admitted Linux buck2 lane (ubuntu-latest or oya-arm64), with the owned rustup home forwarded through Buck2's hermetic test executor and no windows-latest runner"
+        workspace_tests_executed(&workflow),
+        "the portable Cargo differential must run under cargo test --workspace on the test job (ADR-0716)"
+    );
+    assert!(
+        !workspace_resolver_differential_is_self_hosted_and_binding(&workflow),
+        "the dedicated buck2 merge-path job is retired; the helper must not treat its absence as a live binding"
     );
 
     let without_target = workflow.replace(WINDOWS_RESOLVER_DIFFERENTIAL_TARGET, "");
@@ -1741,8 +1828,9 @@ fn affected_set_long_step_telemetry_wraps_long_running_phases() {
         fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
     assert!(
-        affected_set_long_step_telemetry_is_wired(&workflow),
-        "affected-set long-running derive/baseline/binding phases must be wrapped by the telemetry helper"
+        !affected_set_long_step_telemetry_is_wired(&workflow)
+            && !workflow_has_job(&workflow, "gate-affected-target-set"),
+        "affected-set derive/baseline/binding telemetry retired with the lane (ADR-0716)"
     );
 
     let without_baseline = workflow.replace(
@@ -2096,6 +2184,78 @@ fn the_lane_resolvability_probe_is_falsifiable_on_known_controls() {
     );
 }
 
+/// ADR-0716 retired the local PR-body validator together with its dispatcher and callers. Keep
+/// every live execution/catalog surface aligned with that decision: a planned row, a catalog-only
+/// command, or a prose-only lane mirror would each recreate a ghost capability.
+#[test]
+fn adr_0716_retired_pr_traceability_lane_stays_absent_from_live_consumers() {
+    let root = repo_root();
+    let registry = read_to_string(&quality_lane_registry_path(&root));
+    assert!(
+        !registry
+            .lines()
+            .any(|line| line.trim() == "- id: traceability-validator"),
+        "ADR-0716 retired `traceability-validator`; do not restore it as active, planned, or an allowlisted ghost"
+    );
+
+    let mirror = read_to_string(&root.join("docs/standards/ci-lanes.md"));
+    assert!(
+        !mirror.contains("| `traceability-validator` |"),
+        "the human-readable quality-lane mirror must not advertise ADR-0716's retired validator"
+    );
+
+    let catalog = read_to_string(&root.join("libs/oya-governance-gate-catalog-domain/src/lib.rs"));
+    assert!(
+        !catalog.contains("\"pr-traceability\""),
+        "the run-all/catalog source must not invoke ADR-0716's retired dispatcher arm"
+    );
+
+    let arms = gate_dispatch_arms(&read_to_string(&gate_dispatcher_path(&root)));
+    assert!(
+        !arms.contains("pr-traceability"),
+        "ADR-0716 retired the local PR-traceability dispatcher arm"
+    );
+
+    let affected_set =
+        read_to_string(&root.join("ci/facade/affected-target-set/affected-set-policy.json"));
+    assert!(
+        !affected_set.contains("governance/check/pr-traceability"),
+        "the local affected-set policy must not seed ADR-0716's deleted target"
+    );
+
+    assert!(
+        !root
+            .join("registry/catalog/check-pr-traceability.yaml")
+            .exists(),
+        "the catalog must not publish ADR-0716's deleted worker capability"
+    );
+
+    let decision_rights = read_to_string(&root.join("specs/decision-rights.json"));
+    assert!(
+        !decision_rights.contains("\"lane\": \"check-pr-traceability\""),
+        "decision-rights must not claim mechanical enforcement by ADR-0716's deleted gate"
+    );
+
+    for template_path in [
+        root.join(".github/PULL_REQUEST_TEMPLATE.md"),
+        pr_template_path(&root),
+        pr_template_v2_path(&root),
+        root_pr_template_path(&root),
+    ] {
+        let template = read_to_string(&template_path);
+        let headings: Vec<&str> = template
+            .lines()
+            .filter_map(|line| line.strip_prefix("## "))
+            .collect();
+        assert_eq!(
+            headings,
+            ["Issue", "Summary", "Verification", "Code Review"],
+            "{} must keep ADR-0716's four-section PR shape",
+            template_path.display()
+        );
+    }
+}
+
 /// The durable half: an ACTIVE lane must name something that exists. Wiring individual dispatch
 /// arms by hand fixes six lanes once; this fixes the class, because the next lane that is declared
 /// active against a renamed package, a deleted script, or an unimplemented gate name fails here.
@@ -2271,8 +2431,9 @@ fn merge_base_test_health_uses_the_same_rustup_executor_contract_as_head() {
         fs::read_to_string(&wf).unwrap_or_else(|e| panic!("read workflow {}: {e}", wf.display()));
 
     assert!(
-        merge_base_test_health_forwards_the_owned_rustup_home(&workflow),
-        "the merge-base test baseline must forward the owned RUSTUP_HOME exactly like the affected-set head test invocation"
+        !merge_base_test_health_forwards_the_owned_rustup_home(&workflow)
+            && !workflow_has_job(&workflow, "gate-affected-target-set"),
+        "the merge-base rustup executor contract retired with the affected-set lane (ADR-0716)"
     );
     let without_env = workflow.replace(
         &format!("--keep-going {RUSTUP_HOME_BUCK2_TEST_ENV}"),

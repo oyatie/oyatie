@@ -19,21 +19,32 @@ path = "src/main.rs"
 
 [features]
 default = ["csr"]
-csr = ["dep:console_error_panic_hook", "dep:wasm-bindgen", "leptos/csr"]
-hydrate = ["dep:console_error_panic_hook", "dep:wasm-bindgen", "leptos/hydrate"]
+csr = ["dep:wasm-bindgen", "leptos/csr"]
+hydrate = ["dep:wasm-bindgen", "leptos/hydrate"]
 ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "leptos/ssr"]
 
 [dependencies]
-console_error_panic_hook = { version = "=0.1.7", optional = true }
 leptos = { version = "=0.8.19", default-features = false }
 oya-shared-oidc-client-kernel = { path = "../../../../libs/oya-shared-oidc-client-kernel" }
 oya-shared-platform-contracts-kernel = { path = "../../../../libs/oya-shared-platform-contracts-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 axum = { workspace = true, optional = true }
-any_spawner = { workspace = true, optional = true }
+# `server::router_for_package_root` calls `any_spawner::Executor::init_tokio`, which is gated
+# behind any_spawner's `tokio` feature. Declare the feature here rather than inheriting it from
+# `leptos_axum`'s own dependency edge: feature unification makes that work today, but it would
+# vanish silently if leptos_axum changed its features, leaving a confusing missing-function error.
+any_spawner = { workspace = true, optional = true, features = ["tokio"] }
 tokio = { workspace = true, features = ["fs", "sync"], optional = true }
 wasm-bindgen = { version = "=0.2.121", optional = true }
+
+# Integration tests compile this library without `cfg(test)`, so the server
+# modules remain disabled under the default `csr` feature. Enable the crate's
+# explicit `ssr` contract for its test target without broadening production
+# defaults, and add only the Tokio I/O capability used by the live server.
+[dev-dependencies]
+oya-application-shell-frontend = { path = ".", default-features = false, features = ["ssr"] }
+tokio = { workspace = true, features = ["io-util"] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 leptos_axum = { workspace = true }
@@ -53,6 +64,7 @@ web-sys = { version = "=0.3.98", features = [
     "Node",
     "Response",
     "Window",
+    "console",
 ] }
 
 [package.metadata.leptos]

@@ -20,7 +20,9 @@
 
 use std::process::ExitCode;
 
-use fixup_ledger_merge_driver_app::{MergeError, MergeErrorKind, merge_ledgers, whole_file_conflict};
+use fixup_ledger_merge_driver_app::{
+    MergeError, MergeErrorKind, merge_ledgers, whole_file_conflict,
+};
 
 fn main() -> ExitCode {
     match run() {

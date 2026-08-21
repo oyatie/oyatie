@@ -3,7 +3,7 @@ doc_class: TemplateIndex
 status: Accepted
 date: 2026-05-12
 purpose: |
-  Catalog of canonical templates and checklists for oyatie that lift to docs/templates/ and docs/checklists/ on approval. Single navigation point for human authors, agent capabilities, and fitness lanes that enforce template shape.
+  Catalog of canonical templates and checklists for oyatie that lift to docs/templates/ and templates/checklists/ on approval. Single navigation point for human authors, agent capabilities, and fitness lanes that enforce template shape.
 authority_chain_declaration: |
   docs/CONSTITUTION.md > docs/AGENTS.md > docs/DOC-CATALOG.md > docs/STANDARDS-AND-TEMPLATES.md > docs/templates/INDEX.md (this file)
 related:
@@ -29,7 +29,7 @@ doc_status: published
 
 | ID | File | Purpose (1-line) | Owner (per `docs/RACI-OWNERSHIP.md`) | Enforcing fitness lane |
 |---|---|---|---|---|
-| TPL-PR | `pull-request-template.md` | 5-section PR body + `oya-ci-required` verification + reviewer evidence (`F-PR5-06` bounded until trusted producer is live). | `platform-governance` + `council-architecture` | `oya-governance-pr-shape` (`traceability-validator`) |
+| TPL-PR | `pull-request-template.md` | Four-section PR body + `oya-ci-required` verification + independent reviewer evidence (`F-PR5-06` bounded until trusted producer is live). | `platform-governance` + `council-architecture` | Local validator retired; merge contract requires `oya-ci-required` plus reviewer approval |
 | TPL-ADR | `adr-template-v2.md` | Architecture Decision Record with autogen-friendly frontmatter. | `crew-adr-promotion` | `oya-governance-adr-shape` |
 | TPL-IP | `implementation-plan-template.md` | Per-IP plan under `milestones/M*/phases/P*/`. | `council-architecture` (cross-axis) | `oya-governance-plan-hierarchy` |
 | TPL-PHASE | `phase-index-template.md` | Phase INDEX (≤50 lines). | `council-architecture` | `oya-governance-plan-hierarchy` |
@@ -42,11 +42,11 @@ doc_status: published
 | TPL-DD | `design-doc-template.md` | Google-style design doc (problem/goals/non-goals/detailed design/alternatives). | `council-architecture` | `oya-governance-design-doc-shape` (advisory at draft; lane on lift) |
 | TPL-PRFAQ | `prfaq-template.md` | Amazon Working-Backwards PRFAQ. | `council-architecture` + `gtm-marketing` | `(advisory)` for drafts; PRD-level adoption gates by Founder + Council. |
 
-## Checklists (`docs/checklists/*.md`)
+## Checklists (`templates/checklists/*.md`)
 
 | ID | File | Purpose | Owner | Verification path |
 |---|---|---|---|---|
-| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D19 with per-change-class variants. | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
+| CHK-DONE | `done-definition-checklist.md` | Extends `docs/AGENTS.md` D1-D18 with per-change-class variants. | `platform-governance` + `council-architecture` | `oya-ci-required` + per-lane CI status |
 | CHK-PRE | `pre-flight-checklist.md` | Per-change-class preconditions. | `council-architecture` | `oya-governance-pr-shape` |
 | CHK-PHASE | `per-phase-completion-checklist.md` | Phase-internal verification. | `council-architecture` | `oya-governance-plan-hierarchy` |
 | CHK-IP | `per-implementation-plan-checklist.md` | IP-internal verification. | `council-architecture` | `oya-governance-plan-hierarchy` |
@@ -56,6 +56,7 @@ doc_status: published
 | CHK-INV | `inventory-update-checklist.md` | Every cutover/migration phase inventory ledger update (ADR-0052). | `axis-foundry` | `oya-governance-inventory-tracker` |
 | CHK-XAXIS | `cross-axis-contract-change-checklist.md` | Cross-axis contract change cascade. | `council-architecture` | `oya-governance-cross-axis-notify` |
 | CHK-ESC | `escalation-checklist.md` | When agent halts and emits `BLOCKED_ON_HUMAN_ORCHESTRATOR`. | `council-architecture` | `oya-governance-banned-primitives` (audits halt events) |
+| CHK-SWARM-RITUAL | `swarm-agent-ritual.md` | Per-dispatch Tier-2 ritual (diagram + digraph + role-scaled receipt). Forever home under `/templates/checklists/`. | `platform-governance` | INV-DOC-9 / process_meta session rule (`integ/ci`) |
 
 ## Canonical Templates (2026-05-13 — BNF v4.1 + Workflow Studio + Clean-Arch)
 
@@ -83,7 +84,7 @@ Glossary enforced in all 7 templates:
 
 - `pull-request-template.md` is the canonical PR template. The older `pull-request-template-v2.md` remains a compatibility copy that points back to it.
 - `docs/templates/migration-runbook-template.md`, `docs/templates/dpia-template.md`, and `docs/templates/team-charter-template.md` are out of scope of this delivery; preserved as-is.
-- No checklist conflicts: all 12 checklists are new additions to `docs/checklists/`.
+- No checklist conflicts: all 12 checklists are new additions to `templates/checklists/`.
 
 ## ADR citations
 

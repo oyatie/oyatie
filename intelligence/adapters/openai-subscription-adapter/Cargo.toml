@@ -1,0 +1,30 @@
+[package]
+name = "intelligence-openai-subscription-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "intelligence_openai_subscription_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+intelligence-account-domain = { path = "../../core/account-domain" }
+intelligence-account-kernel = { path = "../../core/account-kernel" }
+tokio = { workspace = true, features = ["sync", "time", "net"] }
+hyper = { workspace = true }
+hyper-util = { workspace = true }
+http-body-util = { workspace = true }
+bytes = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+tracing = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true, features = ["rt-multi-thread", "macros", "time", "net", "sync"] }
+
+[lints]
+workspace = true

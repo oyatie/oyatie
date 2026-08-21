@@ -135,3 +135,245 @@ fn freshness_shellout_exception_has_cutover_note() {
                 .unwrap_or(false)
     }));
 }
+
+// ---------------------------------------------------------------------------
+// Skip-on-missing firewall.
+//
+// A live-corpus test that opens with `if !path.is_file() { eprintln!("skip…"); return; }` turns a
+// renamed or relocated input into a PASSING test: the gate stops reading its subject and reports
+// green over nothing. Three such tests in //ci/facade/affected-target-set were mutation-proven —
+// `mv specs/integ-branch-envelopes.json` left 13 tests passing across 3 suites, in the gate that
+// decides which targets CI runs — and all three carried the tell in their own names
+// (`…_when_present`), which made the fail-open read as deliberate.
+//
+// The checks below are SET equalities, never counts or minimums, so a failure is a reviewable
+// diff of named keys rather than a number to bump:
+//
+//   1. ADMITTED_EARLY_RETURN_TESTS freezes, two-sided, the exact set of ci/facade tests that may
+//      return early. A NEW early-returning test is blocking (justify it here, or make the absence
+//      RED). A listed test that stops returning early is ALSO blocking until its row is removed
+//      in the same change — a one-sided ceiling cannot tell debt-paid-off from a collapsed scan.
+//   2. No test may encode a fail-open in its NAME. The frozen expectation is the empty set: an
+//      equality, not a minimum, so paying this debt down can never turn the check red.
+// ---------------------------------------------------------------------------
+
+/// `<test file>::<fn>` -> why the early return is a real tolerance rather than a silent skip.
+/// Every row was read and classified; none of them lets an ABSENT input read as success.
+const ADMITTED_EARLY_RETURN_TESTS: [(&str, &str); 7] = [
+    (
+        "ci/facade/automation-language-policy/tests/rust_first_automation_hygiene.rs::replacement_window_adr_must_exist_and_be_accepted",
+        "Optional POLICY block, not a filesystem input: with no active replacement_window there \
+         is no window ADR to validate, and the shrink-only ceiling still binds. When the block IS \
+         present the ADR path is asserted, never skipped.",
+    ),
+    (
+        "ci/facade/baseline-ratchet/tests/firewall.rs::firewall_is_green_on_the_live_corpus_with_the_baseline",
+        "Bootstrap window (frozen.missing_at_merge_base): substitutes a committed-blob check at \
+         HEAD plus a zero-unsigned-growth check against the pre-decommit parent, so the absence \
+         is replaced by stricter assertions rather than waved through.",
+    ),
+    (
+        "ci/facade/baseline-ratchet/tests/firewall.rs::frozen_snapshot_provenance_matches_ratchet_policy",
+        "Same bootstrap window, and it asserts `git cat-file -e HEAD:<face_path>` succeeds before \
+         returning — an absent merge-base face is distinguished from an emitter bug by proof, not \
+         assumed benign.",
+    ),
+    (
+        "ci/facade/inventory-registry-drift/tests/registry_drift.rs::scm_facts_regenerates_deterministically",
+        "Git-boundary gate, not an input check: the regenerate-twice canary needs a real `.git`, \
+         which a hermetic buck2 action deliberately does not have. It runs on every cargo and CI \
+         regen invocation; the hermetic producer-faces drift check covers the action graph.",
+    ),
+    (
+        "ci/facade/inventory-registry-drift/tests/registry_drift.rs::move_manifest_regenerates_deterministically",
+        "Same git-boundary gate as the scm-facts canary above, for the codemod move-manifest face.",
+    ),
+    (
+        "ci/facade/repo-root-hygiene/tests/root_workspace_hygiene.rs::corpus_budget_reductions_must_lower_the_frozen_ceiling",
+        "Merge-base availability, not corpus absence: with no origin/dev ref (shallow clone), or \
+         no protected corpus_budget block yet, there is nothing to compare against. The live-tree \
+         ceiling check runs through evaluate_keyed either way.",
+    ),
+    (
+        "ci/facade/scm-facts-snapshot/tests/snapshot_integration.rs::status_only_command_probe_helper",
+        "Not a corpus test: a self-re-exec child helper that only does work when the harness sets \
+         OYA_CI_COMMAND_PROBE_MODE, so the parent test can drive it as a subprocess.",
+    ),
+];
+
+/// One `#[test]` fn plus the facts this scan needs about it.
+struct ScannedTest {
+    key: String,
+    name: String,
+    returns_early: bool,
+}
+
+/// Collect every `#[test]` / `#[tokio::test]` fn under `ci/facade/*/tests/`.
+///
+/// Deliberately line-oriented rather than brace-matching: the corpus is rustfmt-normalized, so a
+/// top-level item always closes with `}` in column zero, and an early return always trims to
+/// exactly `return;`. `return Ok(())`, `return false` and friends are not early returns of the
+/// test body, and a commented-out `// return;` does not trim to `return;`.
+fn scan_facade_tests(root: &Path) -> Vec<ScannedTest> {
+    let mut files = Vec::new();
+    for gate in sorted_child_dirs(&root.join("ci/facade")) {
+        let tests_dir = gate.join("tests");
+        if tests_dir.is_dir() {
+            collect_rs_files(&tests_dir, &mut files);
+        }
+    }
+    files.sort();
+
+    let mut out: Vec<ScannedTest> = Vec::new();
+    for file in files {
+        let rel = file
+            .strip_prefix(root)
+            .unwrap_or(&file)
+            .to_string_lossy()
+            .replace('\\', "/");
+        let text = fs::read_to_string(&file).unwrap_or_else(|e| panic!("read {rel}: {e}"));
+        let mut pending_attribute = false;
+        let mut current: Option<usize> = None;
+        for line in text.lines() {
+            let trimmed = line.trim();
+            if trimmed == "#[test]" || trimmed == "#[tokio::test]" {
+                pending_attribute = true;
+                continue;
+            }
+            if pending_attribute {
+                if let Some(name) = test_fn_name(trimmed) {
+                    pending_attribute = false;
+                    current = Some(out.len());
+                    out.push(ScannedTest {
+                        key: format!("{rel}::{name}"),
+                        name,
+                        returns_early: false,
+                    });
+                }
+                continue;
+            }
+            if line == "}" {
+                current = None;
+                continue;
+            }
+            if let Some(index) = current
+                && (trimmed == "return;" || trimmed.starts_with("return; "))
+            {
+                out[index].returns_early = true;
+            }
+        }
+    }
+    out
+}
+
+/// `fn foo(` / `pub fn foo(` / `async fn foo(` -> `foo`, for an already-trimmed line.
+fn test_fn_name(trimmed: &str) -> Option<String> {
+    let mut rest = trimmed;
+    for prefix in ["pub ", "async "] {
+        rest = rest.strip_prefix(prefix).unwrap_or(rest);
+    }
+    let rest = rest.strip_prefix("fn ")?;
+    let name: String = rest
+        .chars()
+        .take_while(|c| c.is_ascii_alphanumeric() || *c == '_')
+        .collect();
+    if name.is_empty() { None } else { Some(name) }
+}
+
+fn sorted_child_dirs(dir: &Path) -> Vec<PathBuf> {
+    let mut out: Vec<PathBuf> = fs::read_dir(dir)
+        .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
+        .map(|entry| entry.expect("dir entry").path())
+        .filter(|path| path.is_dir())
+        .collect();
+    out.sort();
+    out
+}
+
+fn collect_rs_files(dir: &Path, out: &mut Vec<PathBuf>) {
+    for entry in fs::read_dir(dir).unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display())) {
+        let path = entry.expect("dir entry").path();
+        if path.is_dir() {
+            collect_rs_files(&path, out);
+        } else if path.extension().and_then(|ext| ext.to_str()) == Some("rs") {
+            out.push(path);
+        }
+    }
+}
+
+/// Gate directory name from a `ci/facade/<gate>/tests/...` key.
+fn gate_of(key: &str) -> Option<&str> {
+    key.split('/').nth(2)
+}
+
+#[test]
+fn early_returning_facade_tests_equal_the_admitted_set() {
+    let root = repo_root();
+    let scanned = scan_facade_tests(&root);
+
+    // Structural non-vacuity, expressed as a SET so that paying debt down never reds it and a
+    // collapsed walk cannot hide behind a count that merely got smaller: every gate crate that
+    // ships a tests/ directory must have contributed at least one `#[test]`.
+    let gates_with_tests: BTreeSet<String> = sorted_child_dirs(&root.join("ci/facade"))
+        .into_iter()
+        .filter(|gate| gate.join("tests").is_dir())
+        .map(|gate| {
+            gate.file_name()
+                .and_then(|name| name.to_str())
+                .expect("gate dir name")
+                .to_owned()
+        })
+        .collect();
+    let gates_scanned: BTreeSet<String> = scanned
+        .iter()
+        .filter_map(|test| gate_of(&test.key).map(str::to_owned))
+        .collect();
+    assert_eq!(
+        gates_scanned, gates_with_tests,
+        "the skip-on-missing scan must reach every ci/facade gate that ships tests; a gate on \
+         only one side means the walk stopped seeing it"
+    );
+
+    let observed: BTreeSet<&str> = scanned
+        .iter()
+        .filter(|test| test.returns_early)
+        .map(|test| test.key.as_str())
+        .collect();
+    let admitted: BTreeSet<&str> = ADMITTED_EARLY_RETURN_TESTS
+        .iter()
+        .map(|(key, _)| *key)
+        .collect();
+
+    let born_blocking: Vec<&&str> = observed.difference(&admitted).collect();
+    assert!(
+        born_blocking.is_empty(),
+        "new early-returning ci/facade test(s) {born_blocking:?} — an early `return` in a \
+         live-corpus test makes an ABSENT input read as success. Make the absence RED and name \
+         the missing path (//ci/facade/graphql-usage-policy's dead-scan-root assertion is the \
+         shape to copy). If the return really is a tolerance and not a skip, add it to \
+         ADMITTED_EARLY_RETURN_TESTS with the reason it cannot hide an absence."
+    );
+    let stale: Vec<&&str> = admitted.difference(&observed).collect();
+    assert!(
+        stale.is_empty(),
+        "ADMITTED_EARLY_RETURN_TESTS row(s) {stale:?} no longer early-return — this freeze is \
+         TWO-SIDED on purpose: remove the row in the SAME change that removes the return, so a \
+         collapsed or renamed scan can never be mistaken for debt that was paid off"
+    );
+}
+
+#[test]
+fn no_facade_test_encodes_a_fail_open_in_its_name() {
+    let root = repo_root();
+    let named: Vec<String> = scan_facade_tests(&root)
+        .into_iter()
+        .filter(|test| test.name.contains("_when_present") || test.name.contains("_if_present"))
+        .map(|test| test.key)
+        .collect();
+    assert!(
+        named.is_empty(),
+        "test name(s) {named:?} encode a conditional bind in the NAME, which is how the \
+         //ci/facade/affected-target-set fail-opens read as intentional for as long as they did. \
+         A live-corpus test binds its subject or goes red; it does not bind it 'when present'"
+    );
+}

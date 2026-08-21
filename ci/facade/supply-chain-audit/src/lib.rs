@@ -360,7 +360,6 @@ pub fn collect(repo_root: &Path, policy: &Value) -> Result<Value, CollectError> 
         .map(|row| row.as_provenance_record())
         .collect::<Vec<_>>();
 
-    let mut locked = locked;
     locked.sort_by_key(locked_sort_key);
     locked.dedup_by_key(|row| (row.name.clone(), row.version.clone()));
     let locked = locked
@@ -617,10 +616,7 @@ fn validate_workspace_manifest(text: &str, source: &str) -> Result<(), CollectEr
 }
 
 /// Parse one `Cargo.lock`'s `[[package]]` tables; [`collect`] sorts and deduplicates the union.
-fn parse_locked(
-    lock_text: &str,
-    source: &str,
-) -> Result<Vec<LockfilePackageRow>, CollectError> {
+fn parse_locked(lock_text: &str, source: &str) -> Result<Vec<LockfilePackageRow>, CollectError> {
     let doc: toml::Value =
         toml::from_str(lock_text).map_err(|e| CollectError::Parse(format!("{source}: {e}")))?;
     let packages = doc
@@ -692,7 +688,11 @@ fn observed_locked_rows(policy: &Value, observed: &Value) -> (Vec<LockfilePackag
         if !observed_rows.is_empty() {
             return (
                 observed_rows,
-                if policy.get("lockfile_corpus").and_then(Value::as_array).is_some() {
+                if policy
+                    .get("lockfile_corpus")
+                    .and_then(Value::as_array)
+                    .is_some()
+                {
                     sources.len() > 1
                 } else if policy
                     .get("lockfile_path")

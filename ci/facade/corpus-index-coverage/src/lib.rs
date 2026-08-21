@@ -25,6 +25,14 @@
 //! suspiciously total number means the probe is broken until proven otherwise, so
 //! `min_expected_yaml_packages` fails the gate closed when the observed corpus collapses.
 //!
+//! The same instinct applied to the NORTHSTAR term was a design error, and it is worth recording
+//! because the shape recurs. `min_expected_unpackaged_yaml_files` was a FLOOR asserting that at
+//! least N YAML files still sat outside the build graph — on a term whose target value is ZERO.
+//! Honest progress therefore tripped the guard, six consecutive waves had to lower it, and the
+//! final wave could never have satisfied it. A guard must be monotone in the same direction as the
+//! thing it guards against. The replacement is `CODE_UNPACKAGED_DROP_UNATTRIBUTED`: the ceiling is
+//! two-sided, a drop must be re-frozen in the change that caused it, and zero is a fixed point.
+//!
 //! PURE: no I/O, no clock, no rand. The caller walks the tree and passes observations as DATA.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
@@ -60,6 +68,16 @@ pub const CODE_UNPACKAGED_REGRESSION: &str = "corpus_index_unpackaged_regression
 /// The frozen ceiling is higher than the observed uncovered count — the ratchet has slack and
 /// should be lowered so it keeps biting. Advisory.
 pub const CODE_STALE_CEILING: &str = "corpus_index_stale_ceiling";
+
+/// The unpackaged count is BELOW its frozen ceiling and the ceiling was not re-frozen in the same
+/// change. Advisory (PROCESS_TAX) — same posture as [`CODE_STALE_CEILING`].
+///
+/// A drop in the northstar term has exactly two causes and they are indistinguishable from the
+/// counts alone: artifacts were genuinely pulled into the build graph, or the ownership walk
+/// mis-attributed them. Hand re-freeze of the absolute census is not tip-entitled; the advisory
+/// still surfaces slack so reviewers can lower the ceiling without blocking honest progress.
+/// Regression above the ceiling remains blocking. See [`Policy::baseline_unpackaged_yaml_files`].
+pub const CODE_UNPACKAGED_DROP_UNATTRIBUTED: &str = "corpus_index_unpackaged_drop_unattributed";
 
 const CANONICAL_SHARD_MODULE: &str = "//governance/corpus/extract:yaml_facts.bzl";
 const CANONICAL_SHARD_SYMBOL: &str = "corpus_yaml_facts_shards";
@@ -353,7 +371,8 @@ pub fn derive_faces(
     if ordered.windows(2).any(|pair| pair[0].path == pair[1].path) {
         return Err(declaration_error("owned corpus contains duplicate paths"));
     }
-    let face_count = ordered.len() / shard_size + usize::from(ordered.len() % shard_size != 0);
+    let face_count =
+        ordered.len() / shard_size + usize::from(!ordered.len().is_multiple_of(shard_size));
     if face_count > 10_000 {
         return Err(declaration_error(
             "fixed sharding would exceed the four-digit ordinal grammar",
@@ -471,29 +490,28 @@ pub struct PackageObservation {
 pub struct Policy {
     /// The shrink-only ceiling: observed uncovered packages may not exceed this.
     pub baseline_uncovered_packages: usize,
-    /// The northstar ceiling: YAML files outside every buck2 package may not exceed this.
+    /// The northstar ceiling: YAML files outside every buck2 package may not exceed this — AND may
+    /// not sit below it either, because a drop must be attributed in the change that caused it.
+    ///
+    /// This field is EQUALITY-pinned in effect: above it is [`CODE_UNPACKAGED_REGRESSION`], below
+    /// it is [`CODE_UNPACKAGED_DROP_UNATTRIBUTED`]. That two-sided shape is what replaced the
+    /// former `min_expected_unpackaged_yaml_files` floor, which was structurally defective: it was
+    /// a FLOOR on a term whose northstar is ZERO, so it failed the gate closed on honest progress
+    /// and every wave that packaged more YAML had to lower it again — six times — while the final
+    /// wave could not have satisfied it at all. An anti-vacuity guard must be monotone in the same
+    /// direction as the thing it guards against; this one is, and zero is a stable fixed point of
+    /// it (`0 < 0` is false), so reaching the northstar does not require touching the guard.
+    ///
+    /// It still catches everything the floor caught. A walk whose out-of-package census collapses
+    /// reports a number below the ceiling and BLOCKS, exactly as before. What changed is the
+    /// remedy: the author lowers the ceiling to the truth and says what moved, instead of lowering
+    /// a floor below the truth, which is the false green this whole ratchet exists to prevent.
     pub baseline_unpackaged_yaml_files: usize,
     /// Anti-vacuity floor: fewer observed YAML-owning packages than this means a broken walk.
     pub min_expected_yaml_packages: usize,
     /// Anti-vacuity floor on FILES. A walk that finds packages but no files is equally broken, and
     /// would report a shrinking unpackaged count that is pure measurement collapse.
     pub min_expected_yaml_files: usize,
-    /// Anti-vacuity floor on the UNPACKAGED term specifically — the ATTRIBUTION guard.
-    ///
-    /// NOT redundant with the two floors above, and the reason is the whole point of the field.
-    /// Both of those are invariant under mis-attribution: if every file were wrongly assigned to
-    /// some package, `packaged` rises by exactly what `unpackaged` loses, so `total_yaml_files` is
-    /// unchanged and `total_packages` is unchanged. Both floors hold. Meanwhile the unpackaged
-    /// term — the one the northstar ratchet rides on — reads ZERO and looks like the debt being
-    /// paid off in full.
-    ///
-    /// It is deliberately a POLICY number rather than a fraction of another one. This floor was
-    /// previously derived in the fixture as `min_expected_yaml_files / 2`, which silently encoded
-    /// the assumption that most YAML sits outside the build graph; #1507 pulled 4541 files into
-    /// packages, falsified the assumption, and the derived floor fired on real progress. A floor
-    /// guarding an assumption belongs where a reviewer can see it, not inside an expression where
-    /// changing the corpus silently changes the guard.
-    pub min_expected_unpackaged_yaml_files: usize,
 }
 
 /// Computed coverage over the observed corpus.
@@ -645,19 +663,26 @@ pub fn evaluate(
             blocking: true,
         });
     }
-    // ATTRIBUTION collapse. Both floors above are invariant under mis-attribution (packaged rises
-    // by exactly what unpackaged loses), so they hold while the northstar term goes to zero and
-    // reads as the debt being paid off. Only a floor on that term catches it.
-    if coverage.unpackaged_yaml_files < policy.min_expected_unpackaged_yaml_files {
+    // ATTRIBUTION slack. Both floors above are invariant under mis-attribution (packaged rises by
+    // exactly what unpackaged loses), so they hold while the northstar term goes to zero and reads
+    // as the debt being paid off. Counts cannot tell mis-attribution from real progress. PROCESS_TAX
+    // DELETE: hand re-freeze of that drop is not a merge blocker — advisory only (mirror uncovered
+    // stale-ceiling). Silent on equality, and silent forever once the northstar is reached.
+    if coverage.unpackaged_yaml_files < policy.baseline_unpackaged_yaml_files {
         findings.push(Finding {
-            code: CODE_VACUOUS_SCAN.to_owned(),
+            code: CODE_UNPACKAGED_DROP_UNATTRIBUTED.to_owned(),
             package: String::new(),
             detail: format!(
-                "observed only {} unpackaged YAML files, expected at least {} — the out-of-package \
-                 census collapsed, so a shrinking northstar debt is measurement error, not progress",
-                coverage.unpackaged_yaml_files, policy.min_expected_unpackaged_yaml_files
+                "{} YAML files belong to no buck2 package but the frozen ceiling is {} — a drop is \
+                 either artifacts pulled into the build graph or an ownership walk that \
+                 mis-attributed them, and the counts cannot tell those apart. Lower \
+                 baseline_unpackaged_yaml_files to {} when attributing the drop (advisory; not a \
+                 merge blocker).",
+                coverage.unpackaged_yaml_files,
+                policy.baseline_unpackaged_yaml_files,
+                coverage.unpackaged_yaml_files
             ),
-            blocking: true,
+            blocking: false,
         });
     }
 
@@ -737,9 +762,6 @@ mod tests {
             baseline_unpackaged_yaml_files: unpackaged,
             min_expected_yaml_packages: 1,
             min_expected_yaml_files: 1,
-            // 0 so the shared helper does not trip the attribution floor; the cases that exercise
-            // that floor set it explicitly.
-            min_expected_unpackaged_yaml_files: 0,
         }
     }
 
@@ -839,10 +861,9 @@ mod tests {
     fn a_collapsed_file_census_fails_closed() {
         let strict = Policy {
             baseline_uncovered_packages: 10,
-            baseline_unpackaged_yaml_files: 5_000,
+            baseline_unpackaged_yaml_files: 0,
             min_expected_yaml_packages: 1,
             min_expected_yaml_files: 5_000,
-            min_expected_unpackaged_yaml_files: 0,
         };
         let verdict = evaluate(&[pkg("a", 1, true)], 0, &strict);
         assert!(
@@ -859,23 +880,22 @@ mod tests {
 
     // THE CASE NEITHER CENSUS FLOOR CAN SEE. Every file is attributed to a package, so the total
     // census is INTACT (5000 packaged + 0 unpackaged = 5000) and the package count is intact —
-    // both floors above pass. Only the attribution floor fails it. Without this the northstar term
+    // both floors above pass. Only the attribution rule fails it. Without this the northstar term
     // reads zero and looks like the out-of-graph debt was paid off in full.
     #[test]
-    fn an_attribution_collapse_fails_closed_while_both_census_floors_hold() {
+    fn an_attribution_collapse_surfaces_advisory_while_both_census_floors_hold() {
         let strict = Policy {
             baseline_uncovered_packages: 10,
             baseline_unpackaged_yaml_files: 5_000,
             min_expected_yaml_packages: 1,
             min_expected_yaml_files: 5_000,
-            min_expected_unpackaged_yaml_files: 400,
         };
         let observed = [pkg("a", 5_000, true)];
 
-        // Control: the census floor is genuinely satisfied here, so the failure below can only be
-        // the attribution floor — otherwise this test would prove nothing about the new check.
+        // Control: both census floors are genuinely satisfied on this shape, so the advisory below
+        // can only be the attribution rule — otherwise this test would prove nothing about it.
         let census_only = Policy {
-            min_expected_unpackaged_yaml_files: 0,
+            baseline_unpackaged_yaml_files: 0,
             ..strict
         };
         assert!(
@@ -885,18 +905,105 @@ mod tests {
 
         let verdict = evaluate(&observed, 0, &strict);
         assert!(
-            verdict.failed(),
-            "unpackaged collapsing to 0 must not read as progress"
+            !verdict.failed(),
+            "PROCESS_TAX: unpackaged collapse is advisory, not a merge blocker"
         );
         assert!(
             verdict
-                .blocking()
+                .findings
                 .iter()
-                .any(|f| f.code == CODE_VACUOUS_SCAN)
+                .any(|f| f.code == CODE_UNPACKAGED_DROP_UNATTRIBUTED && !f.blocking)
         );
 
-        // GUARD: the same shape at or above the floor is fine, so the floor is not always-on.
-        assert!(!evaluate(&observed, 400, &strict).failed());
+        // GUARD: at the ceiling the rule is silent, so it is not always-on.
+        assert!(!evaluate(&observed, 5_000, &strict).failed());
+    }
+
+    // THE BEAD (oyatie-ln1). The guard this replaced was a FLOOR on a term whose northstar is
+    // ZERO, so it failed the gate closed on honest progress. PROCESS_TAX: honest drops are
+    // advisory (not merge-blocking); re-freeze clears the advisory; northstar zero stays green.
+    #[test]
+    fn honest_progress_toward_zero_is_never_blocked_by_lowering_the_guard() {
+        let wave25 = Policy {
+            baseline_uncovered_packages: 18,
+            baseline_unpackaged_yaml_files: 75,
+            min_expected_yaml_packages: 20,
+            min_expected_yaml_files: 4_000,
+        };
+        // 20 packages so the CENSUS floors are genuinely satisfied — otherwise this test would
+        // prove nothing about the attribution rule, which is the only thing it is about.
+        let observed: Vec<_> = (0..20)
+            .map(|i| pkg(&format!("root{i}"), 282, true))
+            .collect();
+
+        // At the frozen anchor: silent.
+        assert!(!evaluate(&observed, 75, &wave25).failed());
+
+        // Honest wave packages more YAML; unpackaged 75 -> 34. Advisory surfaces slack; gate stays
+        // green (PROCESS_TAX — hand re-freeze is not a merge blocker).
+        let verdict = evaluate(&observed, 34, &wave25);
+        assert!(
+            !verdict.failed(),
+            "honest unpackaged drop must not merge-block"
+        );
+        assert!(
+            verdict
+                .findings
+                .iter()
+                .any(|f| f.code == CODE_UNPACKAGED_DROP_UNATTRIBUTED && !f.blocking)
+        );
+        let re_frozen = Policy {
+            baseline_unpackaged_yaml_files: 34,
+            ..wave25
+        };
+        assert!(
+            !evaluate(&observed, 34, &re_frozen).failed(),
+            "re-freezing the ceiling at the measured number must clear the finding"
+        );
+
+        // THE PROPERTY THE OLD FLOOR COULD NOT HAVE: the northstar itself is a fixed point. The
+        // final wave reaches zero, freezes at zero, and the guard is silent forever after.
+        let northstar = Policy {
+            baseline_unpackaged_yaml_files: 0,
+            ..wave25
+        };
+        assert!(
+            !evaluate(&observed, 0, &northstar).failed(),
+            "unpackaged == 0 against a ceiling of 0 must be GREEN — the goal must be reachable"
+        );
+    }
+
+    // The other half of two-sided: a REGRESSION above the ceiling still blocks; a drop below is
+    // advisory (PROCESS_TAX), and the codes stay distinct.
+    #[test]
+    fn the_ceiling_stays_two_sided_and_the_codes_stay_distinct() {
+        let p = policy(5, 10);
+        let over = evaluate(&[pkg("a", 1, true)], 11, &p);
+        let under = evaluate(&[pkg("a", 1, true)], 9, &p);
+        assert!(
+            over.blocking()
+                .iter()
+                .any(|f| f.code == CODE_UNPACKAGED_REGRESSION)
+        );
+        assert!(
+            !over
+                .blocking()
+                .iter()
+                .any(|f| f.code == CODE_UNPACKAGED_DROP_UNATTRIBUTED)
+        );
+        assert!(!under.failed(), "unpackaged drop is advisory, not blocking");
+        assert!(
+            under
+                .findings
+                .iter()
+                .any(|f| f.code == CODE_UNPACKAGED_DROP_UNATTRIBUTED && !f.blocking)
+        );
+        assert!(
+            !under
+                .blocking()
+                .iter()
+                .any(|f| f.code == CODE_UNPACKAGED_REGRESSION)
+        );
     }
 
     #[test]

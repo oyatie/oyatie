@@ -31,7 +31,7 @@ spec:
     burnRate:
       - threshold: 14
         lookback: 1h
-        runbook: microservices/ontology/runbooks/ontology-read-library-fallback.md
+        runbook: data/ontology/runbooks/ontology-read-library-fallback.md
       - threshold: 6
         lookback: 6h
-        runbook: microservices/ontology/runbooks/ontology-read-library-fallback.md
+        runbook: data/ontology/runbooks/ontology-read-library-fallback.md

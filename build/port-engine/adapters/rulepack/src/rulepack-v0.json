@@ -1,0 +1,48 @@
+{
+  "pair": {
+    "source": "go",
+    "target": "rust"
+  },
+  "rules": [
+    {
+      "id": "identity",
+      "version": "0",
+      "precondition": "unit_present",
+      "captures": [],
+      "construction": "pass_through",
+      "precedence": 0,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "identity-selects-example-a",
+          "unit": "example.com/a",
+          "selects": true
+        }
+      ]
+    },
+    {
+      "id": "canary_empty_unit",
+      "version": "0",
+      "precondition": "unit_present",
+      "captures": [],
+      "construction": "empty_canary",
+      "precedence": 10,
+      "conflict": "refuse",
+      "required_diagnostics": [],
+      "proof_obligations": [],
+      "selecting_fixtures": [
+        {
+          "id": "canary-selects-example-b",
+          "unit": "example.com/b",
+          "selects": true
+        }
+      ]
+    }
+  ],
+  "applies": {
+    "example.com/a": ["identity"],
+    "example.com/b": ["identity", "canary_empty_unit"]
+  }
+}

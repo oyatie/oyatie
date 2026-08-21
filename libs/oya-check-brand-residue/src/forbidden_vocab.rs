@@ -110,10 +110,22 @@ pub struct ForbiddenStem {
 /// stem here widens the boundary — its current occurrences are baselined on the next regen,
 /// and every later occurrence beyond the baseline is RED.
 pub const FORBIDDEN_VOCAB_STEMS: &[ForbiddenStem] = &[
-    ForbiddenStem { stem: "foundry", code: "forbidden_foundry" },
-    ForbiddenStem { stem: "forgejo", code: "forbidden_forgejo" },
-    ForbiddenStem { stem: "jenkins", code: "forbidden_jenkins" },
-    ForbiddenStem { stem: "oya-vcs", code: "forbidden_oya-vcs" },
+    ForbiddenStem {
+        stem: "foundry",
+        code: "forbidden_foundry",
+    },
+    ForbiddenStem {
+        stem: "forgejo",
+        code: "forbidden_forgejo",
+    },
+    ForbiddenStem {
+        stem: "jenkins",
+        code: "forbidden_jenkins",
+    },
+    ForbiddenStem {
+        stem: "oya-vcs",
+        code: "forbidden_oya-vcs",
+    },
 ];
 
 /// A carve-out rule (DATA, not a scanner branch). The census walks this table; matching the
@@ -151,6 +163,36 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         reason: "the deny-list patterns themselves are not residue",
     },
     CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "ci/facade/cloud-name-ratchet/cloud-name-baseline.json",
+        exempt_stems: &[],
+        reason: "the frozen cloud-/oya- rename baseline ENUMERATES the identifiers still to be renamed; some of those identifiers contain a forbidden stem, so listing them is the census, not residue (same rationale as oya-check-brand-residue's own source). A file that names the debt is not the debt.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/event-schema-versioning/event-schema-versioning-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen unversioned-AsyncAPI baseline ENUMERATES the contract paths still owing an ADR-0154 event version header, and two of those tracked paths carry a forbidden stem in their own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by renaming the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/idempotency-key-coverage/idempotency-key-coverage-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen uncovered-operation baseline ENUMERATES the OpenAPI operations still owing an ADR-0149 Idempotency-Key, keyed by their tracked document path; some of those paths carry a forbidden stem in their own filename. Same rationale as the sibling entry above.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/cursor-pagination-coverage/cursor-pagination-coverage-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen missing-cursor baseline ENUMERATES the OpenAPI operations still owing ADR-0150 cursor pagination, keyed by their tracked document path; four of those tracked paths carry a forbidden stem in their own filename. Listing the debt is the census, not the debt — identical rationale to cloud-name-baseline.json above. The gate CANNOT be repaired by rewording the entry: the key must equal the tracked path the walk observes, or the ratchet stops matching the corpus it governs.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/benchmark/benchmark-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen competitive-benchmark violation set NAMES real tracked PRD paths -- one of them is docs/products/foundry/PRD.md, a real product PRD, not brand residue. A file that names the debt (a missing benchmark section) is not the debt (same rationale as cloud-name-baseline.json below).",
+    },
+    CarveOutRule {
         kind: CarveOutKind::PathPrefix,
         value: "libs/oya-ci-config/",
         exempt_stems: &[],
@@ -179,6 +221,18 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
         value: "marketplace/facade/dev-cli/tests/",
         exempt_stems: &[],
         reason: "integration test fixtures that reference live repo contracts/openapi/foundry/ paths and fixture data strings — these are structural references to real contract paths, not brand residue; the file was moved from oya/developer-sdk/crates/oya-dev-cli/tests/ where it was already baselined",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/ontology-projection-coverage/ontology-projection-coverage-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen owner-to-manifest binding ENUMERATES which tracked manifest declares each canonical-entity owner, and one of those owners IS a forbidden stem (`foundry`, declared by oya/intelligence/_legacy-foundry/manifest.json). Listing the debt is the census, not the debt. The gate CANNOT be repaired by renaming the entry: the key must equal the owner name in CANONICAL_ENTITY_OWNERS and the path `git ls-files` observes, or the ratchet stops matching the corpus it governs.",
+    },
+    CarveOutRule {
+        kind: CarveOutKind::PathExact,
+        value: "governance/check/active-artifact-contract/active-artifact-contract-policy.json",
+        exempt_stems: &[],
+        reason: "the frozen unknown-artifact-profile baseline ENUMERATES the registry rows naming a profile outside the kernel's closed enum, keyed by their own artifact_id; three of those ids carry a forbidden stem. Same rationale as the sibling entry above.",
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,
@@ -242,7 +296,11 @@ impl VocabPolicy {
                 .map(|c| OwnedCarveOut {
                     kind: c.kind,
                     value: c.value.to_owned(),
-                    exempt_stems: c.exempt_stems.iter().map(|stem| (*stem).to_owned()).collect(),
+                    exempt_stems: c
+                        .exempt_stems
+                        .iter()
+                        .map(|stem| (*stem).to_owned())
+                        .collect(),
                 })
                 .collect(),
         }
@@ -271,11 +329,7 @@ pub fn is_path_carved_out(path: &str) -> bool {
 }
 
 /// Whether an INJECTED line-level rule exempts this exact `stem` on `line_lower`.
-pub fn is_line_stem_carved_out_with(
-    line_lower: &str,
-    stem: &str,
-    policy: &VocabPolicy,
-) -> bool {
+pub fn is_line_stem_carved_out_with(line_lower: &str, stem: &str, policy: &VocabPolicy) -> bool {
     policy.carve_outs.iter().any(|rule| {
         rule.kind == CarveOutKind::LineContainsCi
             && line_lower.contains(rule.value.as_str())
@@ -490,7 +544,10 @@ mod tests {
     #[test]
     fn census_keys_per_stem_per_file() {
         let findings = census_findings([
-            doc("docs/a.md", "We dropped the foundry idea.\nForgejo was also dropped."),
+            doc(
+                "docs/a.md",
+                "We dropped the foundry idea.\nForgejo was also dropped.",
+            ),
             doc("docs/b.md", "Jenkins farm re-establishment."),
         ]);
         // a.md carries foundry + forgejo; b.md carries jenkins.
@@ -512,10 +569,7 @@ mod tests {
     #[test]
     fn one_key_per_file_even_with_many_lines() {
         // Many foundry lines in ONE file => ONE key (per-file granularity, churn-free).
-        let findings = census_findings([doc(
-            "docs/big.md",
-            "foundry\nfoundry\nfoundry\nfoundry",
-        )]);
+        let findings = census_findings([doc("docs/big.md", "foundry\nfoundry\nfoundry\nfoundry")]);
         assert_eq!(findings.len(), 1);
         assert_eq!(
             census_counts([doc("docs/big.md", "foundry\nfoundry")])["forbidden_foundry"],
@@ -545,7 +599,9 @@ mod tests {
 
     #[test]
     fn legacy_foundry_archive_is_carved_out() {
-        assert!(is_path_carved_out("oya/intelligence/_legacy-foundry/README.md"));
+        assert!(is_path_carved_out(
+            "oya/intelligence/_legacy-foundry/README.md"
+        ));
     }
 
     #[test]
@@ -591,9 +647,16 @@ mod tests {
             code: "forbidden_foundry".into(),
             key: path.into(),
         }));
-        for code in ["forbidden_forgejo", "forbidden_jenkins", "forbidden_oya-vcs"] {
+        for code in [
+            "forbidden_forgejo",
+            "forbidden_jenkins",
+            "forbidden_oya-vcs",
+        ] {
             assert!(
-                findings.contains(&Finding { code: code.into(), key: path.into() }),
+                findings.contains(&Finding {
+                    code: code.into(),
+                    key: path.into()
+                }),
                 "Palantir must not suppress unrelated {code}"
             );
         }
@@ -621,7 +684,10 @@ mod tests {
                 ("oya-vcs", "forbidden_oya-vcs"),
             ] {
                 assert!(
-                    findings.contains(&Finding { code: code.into(), key: path.into() }),
+                    findings.contains(&Finding {
+                        code: code.into(),
+                        key: path.into()
+                    }),
                     "marker {marker:?} must not suppress unrelated {code}"
                 );
                 assert!(
@@ -681,9 +747,14 @@ mod tests {
     fn occurrences_subset_holds_for_pure_move_and_breaks_on_added_residue() {
         let policy = VocabPolicy::bundled_default();
         // A pure move: identical foundry line at old and new path => NEW ⊆ OLD (equal).
-        let old = matched_line_occurrences_with("old/lib.rs", "let x = \"foundry\";", "foundry", &policy);
-        let new = matched_line_occurrences_with("new/lib.rs", "let x = \"foundry\";", "foundry", &policy);
-        assert!(new.is_subset(&old) && old.is_subset(&new), "pure move keeps the set");
+        let old =
+            matched_line_occurrences_with("old/lib.rs", "let x = \"foundry\";", "foundry", &policy);
+        let new =
+            matched_line_occurrences_with("new/lib.rs", "let x = \"foundry\";", "foundry", &policy);
+        assert!(
+            new.is_subset(&old) && old.is_subset(&new),
+            "pure move keeps the set"
+        );
         // A move that ADDS a distinct foundry line => NEW ⊄ OLD (subset breaks).
         let new_grown = matched_line_occurrences_with(
             "new/lib.rs",
@@ -691,7 +762,10 @@ mod tests {
             "foundry",
             &policy,
         );
-        assert!(!new_grown.is_subset(&old), "an added residue line breaks the subset");
+        assert!(
+            !new_grown.is_subset(&old),
+            "an added residue line breaks the subset"
+        );
     }
 
     #[test]
@@ -704,7 +778,11 @@ mod tests {
             "foundry",
             &policy,
         );
-        assert_eq!(occ.len(), 1, "only the non-palantir foundry line counts: {occ:?}");
+        assert_eq!(
+            occ.len(),
+            1,
+            "only the non-palantir foundry line counts: {occ:?}"
+        );
         assert!(occ.contains("our dropped foundry name."));
     }
 
@@ -719,7 +797,10 @@ mod tests {
             "foundry",
             &policy,
         );
-        assert!(occ.is_empty(), "path-carved files contribute no occurrences");
+        assert!(
+            occ.is_empty(),
+            "path-carved files contribute no occurrences"
+        );
     }
 
     #[test]
@@ -731,8 +812,14 @@ mod tests {
         let occ_foundry = matched_line_occurrences_with("x.md", contents, "foundry", &policy);
         let occ_jenkins = matched_line_occurrences_with("x.md", contents, "jenkins", &policy);
         let findings = census_findings_with([doc("x.md", contents)], &policy);
-        let flagged_foundry = findings.contains(&Finding { code: "forbidden_foundry".into(), key: "x.md".into() });
-        let flagged_jenkins = findings.contains(&Finding { code: "forbidden_jenkins".into(), key: "x.md".into() });
+        let flagged_foundry = findings.contains(&Finding {
+            code: "forbidden_foundry".into(),
+            key: "x.md".into(),
+        });
+        let flagged_jenkins = findings.contains(&Finding {
+            code: "forbidden_jenkins".into(),
+            key: "x.md".into(),
+        });
         assert_eq!(occ_foundry.is_empty(), !flagged_foundry);
         assert_eq!(occ_jenkins.is_empty(), !flagged_jenkins);
     }

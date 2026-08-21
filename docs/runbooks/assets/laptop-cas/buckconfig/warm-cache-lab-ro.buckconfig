@@ -1,0 +1,16 @@
+# LAB opt-in WARM READ-ONLY overlay — laptop NativeLink CAS reader listener.
+# For canary warm-probe / local read proofs only. Fleet cache_read stays fail-closed.
+
+[buck2_re_client]
+  engine_address = grpcs://127.0.0.1:50052
+  cas_address = grpcs://127.0.0.1:50052
+  action_cache_address = grpcs://127.0.0.1:50052
+  instance_name = main
+  tls = true
+
+[oya_cache]
+  remote_cache_enabled = true
+  allow_cache_uploads = false
+
+[build]
+  execution_platforms = toolchains//cache:cache-platform

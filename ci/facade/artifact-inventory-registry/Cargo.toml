@@ -9,8 +9,9 @@ license = "Apache-2.0"
 # The buck2 rust_binary producer of accounting-registry.generated.json + the 3
 # companion generated faces (PHASE-0-FIREWALL-PLAN §5.1; D-DOCTRINE total-accounting).
 # Register #20: this is a Rust gate binary, NOT an `oya` CLI subcommand. Carve-outs
-# (vendor/generated/ephemeral/...) live as DATA in unit-class-policy.json + ttl-policy.json,
-# never as scanner code. Owned by GATE-2 cloud-ci-total-accounting.
+# (vendor/generated/ephemeral/...) live as DATA in the bundled oya-ci-config unit-class
+# + ttl tables (`Policy::from_config`), never as scanner code. Owned by GATE-2
+# cloud-ci-total-accounting.
 
 [lib]
 name = "ci_artifact_inventory_registry"
@@ -21,7 +22,16 @@ doctest = false
 name = "oya-cloud-ci-accounting-registry-app"
 path = "src/main.rs"
 
+# Cargo-only test-resource adapter. This is not a production or admission CLI: it supplies the
+# same emitter -> declared snapshot -> producer ordering that the required workflow materializer
+# owns when `cargo test --workspace` is run without workflow pre-steps.
+[[bin]]
+name = "oya-cloud-ci-cargo-test-producer-adapter"
+path = "src/bin/oya-cloud-ci-cargo-test-producer-adapter.rs"
+
 [dependencies]
+oya-reorg-codemod-app = { path = "../../../tools/oya-reorg-codemod-app" }
+ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }

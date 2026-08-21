@@ -1,5 +1,5 @@
 {
-  "_comment": "Per-service tier classification projection (Phase-0 capability-first reorg). The generated PROJECTION of the per-service manifest dependency-class facets (tier/tier_subtype/dr_tier, + substrate_dag_position for substrates), derived deterministically from each service's manifest.json under cloud/ + oya/. AUTHORITY: the per-manifest facet is the source of truth (ADR-0245 tier-as-facet); this file is its read-only roll-up, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref. Tier derivation: specs/capability-registry.json (service dir -> capability; ADR-0562 closed registry) x ADR-0536 (capability -> substrate-or-not) x the landed DAG (stratum). Enum authority: platform-architecture.json microservice_taxonomy tier_enum + tier_subtype_enum. Coverage + enum validity + no-type-overload are enforced born-blocking by oya-cloud-ci-tier-field-coverage-app. DATA, not code: canonical-json governed, reachability-registered (anchor: ADR-0536/0245/0562), council-architecture owned. Held as a hand-materialized projection (NOT a *.generated.json face) because the referenced path in platform-architecture.json carries no .generated suffix and the generated-output-diff-policy gate rejects hand-added generated faces on PRs; regenerate by re-projecting the manifests.",
+  "_comment": "Per-service tier classification projection (Phase-0 capability-first reorg). The generated PROJECTION of the per-service manifest dependency-class facets (tier/tier_subtype/dr_tier, + substrate_dag_position for substrates), derived deterministically from each service's manifest.json under the product-protocol governed roots. AUTHORITY: the per-manifest facet is the source of truth (ADR-0245 tier-as-facet); this file is its read-only roll-up, referenced by specs/platform-architecture.json microservice_taxonomy.tier_classification_table_ref. Tier derivation: governance/capability-registry.json (service dir -> capability; ADR-0562 closed registry) x ADR-0536 (capability -> substrate-or-not) x the landed DAG (stratum). Enum authority: platform-architecture.json microservice_taxonomy tier_enum + tier_subtype_enum. Coverage + enum validity + no-type-overload are enforced born-blocking by oya-cloud-ci-tier-field-coverage-app. DATA, not code: canonical-json governed, reachability-registered (anchor: ADR-0536/0245/0562), council-architecture owned. Held as a hand-materialized projection (NOT a *.generated.json face) because the referenced path in platform-architecture.json carries no .generated suffix and the generated-output-diff-policy gate rejects hand-added generated faces on PRs; regenerate by re-projecting the manifests.",
   "schema_version": "1.0.0",
   "doctrine_adrs": [
     "ADR-0562",
@@ -8,17 +8,17 @@
     "ADR-0280"
   ],
   "_provenance": {
-    "derivation": "per-service manifest.json (tier/tier_subtype/dr_tier/substrate_dag_position) under cloud/ + oya/",
-    "source": "specs/capability-registry.json x ADR-0536 x specs/substrate-dependency-dag.json x specs/platform-architecture.json microservice_taxonomy enums",
+    "derivation": "per-service manifest.json (tier/tier_subtype/dr_tier/substrate_dag_position) under the product-protocol governed roots",
+    "source": "governance/capability-registry.json x ADR-0536 x specs/substrate-dependency-dag.json x specs/platform-architecture.json microservice_taxonomy enums",
     "enforced_by": "oya-cloud-ci-tier-field-coverage-app (born-blocking coverage + enum validity + no type-overload)"
   },
   "tier_distribution": {
-    "substrate": 55,
-    "product": 41,
+    "substrate": 54,
+    "product": 23,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 96,
+  "service_count": 77,
   "services": {
     "audit/manifest.json": {
       "service": "audit",
@@ -128,235 +128,6 @@
           "ontology",
           "policy-engine",
           "tenancy",
-          "workflow-engine"
-        ]
-      }
-    },
-    "intelligence/manifest.json": {
-      "service": "intelligence",
-      "manifest": "intelligence/manifest.json",
-      "capability": "intelligence",
-      "tier": "substrate",
-      "tier_subtype": "substrate-ai",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "workflow-engine"
-        ]
-      }
-    },
-    "k8s/manifest.json": {
-      "service": "k8s",
-      "manifest": "k8s/manifest.json",
-      "capability": "k8s",
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "cloud/cloud-kernel/manifest.json": {
-      "service": "cloud/cloud-kernel",
-      "manifest": "cloud/cloud-kernel/manifest.json",
-      "capability": null,
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "secrets/kms/manifest.json": {
-      "service": "secrets/kms",
-      "manifest": "secrets/kms/manifest.json",
-      "capability": "secrets",
-      "tier": "substrate",
-      "tier_subtype": "substrate-secrets",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S0",
-        "depends_on": [
-          "cell"
-        ],
-        "consumed_by_substrates": [
-          "audit-chain",
-          "intelligence",
-          "observability",
-          "ontology",
-          "workflow-engine"
-        ]
-      }
-    },
-    "network/dns/manifest.json": {
-      "service": "network/dns",
-      "manifest": "network/dns/manifest.json",
-      "capability": "network",
-      "tier": "substrate",
-      "tier_subtype": "substrate-network",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "network/manifest.json": {
-      "service": "network",
-      "manifest": "network/manifest.json",
-      "capability": "network",
-      "tier": "substrate",
-      "tier_subtype": "substrate-network",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "cloud/cloud-os/manifest.json": {
-      "service": "cloud/cloud-os",
-      "manifest": "cloud/cloud-os/manifest.json",
-      "capability": null,
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "secrets/manifest.json": {
-      "service": "secrets",
-      "manifest": "secrets/manifest.json",
-      "capability": "secrets",
-      "tier": "substrate",
-      "tier_subtype": "substrate-secrets",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S0",
-        "depends_on": [
-          "cell"
-        ],
-        "consumed_by_substrates": [
-          "audit-chain",
-          "intelligence",
-          "observability",
-          "ontology",
-          "workflow-engine"
-        ]
-      }
-    },
-    "storage/manifest.json": {
-      "service": "storage",
-      "manifest": "storage/manifest.json",
-      "capability": "storage",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "k8s/managed-cluster-lifecycle/manifest.json": {
-      "service": "k8s/managed-cluster-lifecycle",
-      "manifest": "k8s/managed-cluster-lifecycle/manifest.json",
-      "capability": "k8s",
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "k8s/managed-control-plane-host/manifest.json": {
-      "service": "k8s/managed-control-plane-host",
-      "manifest": "k8s/managed-control-plane-host/manifest.json",
-      "capability": "k8s",
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "k8s/managed-sla-observability/manifest.json": {
-      "service": "k8s/managed-sla-observability",
-      "manifest": "k8s/managed-sla-observability/manifest.json",
-      "capability": "k8s",
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "k8s/managed-tenant-quota/manifest.json": {
-      "service": "k8s/managed-tenant-quota",
-      "manifest": "k8s/managed-tenant-quota/manifest.json",
-      "capability": "k8s",
-      "tier": "substrate",
-      "tier_subtype": "substrate-infra",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "tenancy/manifest.json": {
-      "service": "tenancy",
-      "manifest": "tenancy/manifest.json",
-      "capability": "tenancy",
-      "tier": "substrate",
-      "tier_subtype": "substrate-tenancy",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S2",
-        "depends_on": [
-          "cell",
-          "identity"
-        ],
-        "consumed_by_substrates": [
-          "audit-chain",
-          "intelligence",
-          "observability",
-          "ontology",
-          "policy-engine",
           "workflow-engine"
         ]
       }
@@ -686,67 +457,28 @@
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
-    "oya/application/manifest.json": {
-      "service": "oya/application",
-      "manifest": "oya/application/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-developer-application-shell",
-      "dr_tier": "T1"
-    },
-    "oya/calendar/manifest.json": {
-      "service": "oya/calendar",
-      "manifest": "oya/calendar/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-calendar",
-      "dr_tier": "T0"
-    },
-    "oya/ci-webhook-gateway/manifest.json": {
-      "service": "oya/ci-webhook-gateway",
-      "manifest": "oya/ci-webhook-gateway/manifest.json",
-      "capability": "ci",
+    "iam/identity/manifest.json": {
+      "service": "iam/identity",
+      "manifest": "iam/identity/manifest.json",
+      "capability": "iam",
       "tier": "substrate",
-      "tier_subtype": "substrate-meta",
+      "tier_subtype": "substrate-identity",
       "dr_tier": "T1",
       "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+        "stratum": "S1",
+        "depends_on": [
+          "cell"
+        ],
+        "consumed_by_substrates": [
+          "audit-chain",
+          "intelligence",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy",
+          "workflow-engine"
+        ]
       }
-    },
-    "oya/community/manifest.json": {
-      "service": "oya/community",
-      "manifest": "oya/community/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-community",
-      "dr_tier": "T1"
-    },
-    "oya/contract-lifecycle-management/manifest.json": {
-      "service": "oya/contract-lifecycle-management",
-      "manifest": "oya/contract-lifecycle-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
-    "oya/crm/manifest.json": {
-      "service": "oya/crm",
-      "manifest": "oya/crm/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "oya/design-collaboration/manifest.json": {
-      "service": "oya/design-collaboration",
-      "manifest": "oya/design-collaboration/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
     },
     "intelligence/detection/manifest.json": {
       "service": "intelligence/detection",
@@ -770,6 +502,100 @@
         "consumed_by_substrates": [
           "workflow-engine"
         ]
+      }
+    },
+    "intelligence/manifest.json": {
+      "service": "intelligence",
+      "manifest": "intelligence/manifest.json",
+      "capability": "intelligence",
+      "tier": "substrate",
+      "tier_subtype": "substrate-ai",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S4",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "workflow-engine"
+        ]
+      }
+    },
+    "k8s/managed-cluster-lifecycle/manifest.json": {
+      "service": "k8s/managed-cluster-lifecycle",
+      "manifest": "k8s/managed-cluster-lifecycle/manifest.json",
+      "capability": "k8s",
+      "tier": "substrate",
+      "tier_subtype": "substrate-infra",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "k8s/managed-control-plane-host/manifest.json": {
+      "service": "k8s/managed-control-plane-host",
+      "manifest": "k8s/managed-control-plane-host/manifest.json",
+      "capability": "k8s",
+      "tier": "substrate",
+      "tier_subtype": "substrate-infra",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "k8s/managed-sla-observability/manifest.json": {
+      "service": "k8s/managed-sla-observability",
+      "manifest": "k8s/managed-sla-observability/manifest.json",
+      "capability": "k8s",
+      "tier": "substrate",
+      "tier_subtype": "substrate-infra",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "k8s/managed-tenant-quota/manifest.json": {
+      "service": "k8s/managed-tenant-quota",
+      "manifest": "k8s/managed-tenant-quota/manifest.json",
+      "capability": "k8s",
+      "tier": "substrate",
+      "tier_subtype": "substrate-infra",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "k8s/manifest.json": {
+      "service": "k8s",
+      "manifest": "k8s/manifest.json",
+      "capability": "k8s",
+      "tier": "substrate",
+      "tier_subtype": "substrate-infra",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
     },
     "marketplace/developer-sdk/manifest.json": {
@@ -820,222 +646,6 @@
       "tier_subtype": "product-developer-sdk",
       "dr_tier": "T2"
     },
-    "observability/diagnostics/manifest.json": {
-      "service": "observability/diagnostics",
-      "manifest": "observability/diagnostics/manifest.json",
-      "capability": "observability",
-      "tier": "substrate",
-      "tier_subtype": "substrate-observability",
-      "dr_tier": "T3",
-      "substrate_dag_position": {
-        "stratum": "S0",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "intelligence",
-          "ontology",
-          "workflow-engine"
-        ]
-      }
-    },
-    "oya/docs/manifest.json": {
-      "service": "oya/docs",
-      "manifest": "oya/docs/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-docs",
-      "dr_tier": "T1"
-    },
-    "storage/drive/manifest.json": {
-      "service": "storage/drive",
-      "manifest": "storage/drive/manifest.json",
-      "capability": "storage",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "oya/financial-planning/manifest.json": {
-      "service": "oya/financial-planning",
-      "manifest": "oya/financial-planning/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
-    "workflow/forms/manifest.json": {
-      "service": "workflow/forms",
-      "manifest": "workflow/forms/manifest.json",
-      "capability": "workflow",
-      "tier": "substrate",
-      "tier_subtype": "substrate-orchestration",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "intelligence",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": []
-      }
-    },
-    "oya/global-trade/manifest.json": {
-      "service": "oya/global-trade",
-      "manifest": "oya/global-trade/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
-    "oya/governance/manifest.json": {
-      "service": "oya/governance",
-      "manifest": "oya/governance/manifest.json",
-      "capability": "compliance",
-      "tier": "substrate",
-      "tier_subtype": "substrate-compliance",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
-      }
-    },
-    "iam/identity/manifest.json": {
-      "service": "iam/identity",
-      "manifest": "iam/identity/manifest.json",
-      "capability": "iam",
-      "tier": "substrate",
-      "tier_subtype": "substrate-identity",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S1",
-        "depends_on": [
-          "cell"
-        ],
-        "consumed_by_substrates": [
-          "audit-chain",
-          "intelligence",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy",
-          "workflow-engine"
-        ]
-      }
-    },
-    "storage/imaging/manifest.json": {
-      "service": "storage/imaging",
-      "manifest": "storage/imaging/manifest.json",
-      "capability": "storage",
-      "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "forward-declared",
-        "depends_on": [],
-        "consumed_by_substrates": [],
-        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
-      }
-    },
-    "oya/incident-management/manifest.json": {
-      "service": "oya/incident-management",
-      "manifest": "oya/incident-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
-    "oya/intelligence/_legacy-foundry/manifest.json": {
-      "service": "oya/intelligence",
-      "manifest": "oya/intelligence/_legacy-foundry/manifest.json",
-      "capability": "intelligence",
-      "tier": "substrate",
-      "tier_subtype": "substrate-ai",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "workflow-engine"
-        ]
-      }
-    },
-    "oya/intelligence/manifest.json": {
-      "service": "oya/intelligence",
-      "manifest": "oya/intelligence/manifest.json",
-      "capability": "intelligence",
-      "tier": "substrate",
-      "tier_subtype": "substrate-ai",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S4",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "observability",
-          "ontology",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "workflow-engine"
-        ]
-      }
-    },
-    "oya/itsm/manifest.json": {
-      "service": "oya/itsm",
-      "manifest": "oya/itsm/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
-    "oya/learning-management/manifest.json": {
-      "service": "oya/learning-management",
-      "manifest": "oya/learning-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "oya/marketing-automation/manifest.json": {
-      "service": "oya/marketing-automation",
-      "manifest": "oya/marketing-automation/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
     "marketplace/manifest.json": {
       "service": "marketplace",
       "manifest": "marketplace/manifest.json",
@@ -1049,62 +659,6 @@
         "consumed_by_substrates": [],
         "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
-    },
-    "oya/notes/manifest.json": {
-      "service": "oya/notes",
-      "manifest": "oya/notes/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-notes",
-      "dr_tier": "T0"
-    },
-    "observability/manifest.json": {
-      "service": "observability",
-      "manifest": "observability/manifest.json",
-      "capability": "observability",
-      "tier": "substrate",
-      "tier_subtype": "substrate-observability",
-      "dr_tier": "T1",
-      "substrate_dag_position": {
-        "stratum": "S0",
-        "depends_on": [
-          "audit-chain",
-          "cell",
-          "cloud-secrets",
-          "identity",
-          "policy-engine",
-          "tenancy"
-        ],
-        "consumed_by_substrates": [
-          "intelligence",
-          "ontology",
-          "workflow-engine"
-        ]
-      }
-    },
-    "oya/payments/manifest.json": {
-      "service": "oya/payments",
-      "manifest": "oya/payments/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
-    "oya/performance-management/manifest.json": {
-      "service": "oya/performance-management",
-      "manifest": "oya/performance-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
-    "oya/plant-maintenance/manifest.json": {
-      "service": "oya/plant-maintenance",
-      "manifest": "oya/plant-maintenance/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
     },
     "marketplace/plugin-app-store/manifest.json": {
       "service": "marketplace/plugin-app-store",
@@ -1154,43 +708,213 @@
       "tier_subtype": "product-developer-plugin-store",
       "dr_tier": "T2"
     },
-    "oya/production-planning/manifest.json": {
-      "service": "oya/production-planning",
-      "manifest": "oya/production-planning/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "oya/quality-management/manifest.json": {
-      "service": "oya/quality-management",
-      "manifest": "oya/quality-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
-    "oya/real-estate/manifest.json": {
-      "service": "oya/real-estate",
-      "manifest": "oya/real-estate/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "storage/recordings/manifest.json": {
-      "service": "storage/recordings",
-      "manifest": "storage/recordings/manifest.json",
-      "capability": "storage",
+    "network/dns/manifest.json": {
+      "service": "network/dns",
+      "manifest": "network/dns/manifest.json",
+      "capability": "network",
       "tier": "substrate",
-      "tier_subtype": "substrate-data",
-      "dr_tier": "T0",
+      "tier_subtype": "substrate-network",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "network/manifest.json": {
+      "service": "network",
+      "manifest": "network/manifest.json",
+      "capability": "network",
+      "tier": "substrate",
+      "tier_subtype": "substrate-network",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S1",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "observability/diagnostics/manifest.json": {
+      "service": "observability/diagnostics",
+      "manifest": "observability/diagnostics/manifest.json",
+      "capability": "observability",
+      "tier": "substrate",
+      "tier_subtype": "substrate-observability",
+      "dr_tier": "T3",
+      "substrate_dag_position": {
+        "stratum": "S0",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "intelligence",
+          "ontology",
+          "workflow-engine"
+        ]
+      }
+    },
+    "observability/manifest.json": {
+      "service": "observability",
+      "manifest": "observability/manifest.json",
+      "capability": "observability",
+      "tier": "substrate",
+      "tier_subtype": "substrate-observability",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S0",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "intelligence",
+          "ontology",
+          "workflow-engine"
+        ]
+      }
+    },
+    "oya/application/manifest.json": {
+      "service": "oya/application",
+      "manifest": "oya/application/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-developer-application-shell",
+      "dr_tier": "T1"
+    },
+    "oya/calendar/manifest.json": {
+      "service": "oya/calendar",
+      "manifest": "oya/calendar/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-consumer-calendar",
+      "dr_tier": "T0"
+    },
+    "oya/ci-webhook-gateway/manifest.json": {
+      "service": "oya/ci-webhook-gateway",
+      "manifest": "oya/ci-webhook-gateway/manifest.json",
+      "capability": "ci",
+      "tier": "substrate",
+      "tier_subtype": "substrate-meta",
+      "dr_tier": "T1",
       "substrate_dag_position": {
         "stratum": "forward-declared",
         "depends_on": [],
         "consumed_by_substrates": [],
         "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
       }
+    },
+    "oya/community/manifest.json": {
+      "service": "oya/community",
+      "manifest": "oya/community/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-consumer-community",
+      "dr_tier": "T1"
+    },
+    "oya/docs/manifest.json": {
+      "service": "oya/docs",
+      "manifest": "oya/docs/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-consumer-docs",
+      "dr_tier": "T1"
+    },
+    "oya/global-trade/manifest.json": {
+      "service": "oya/global-trade",
+      "manifest": "oya/global-trade/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-consumer",
+      "dr_tier": "T2"
+    },
+    "oya/governance/manifest.json": {
+      "service": "oya/governance",
+      "manifest": "oya/governance/manifest.json",
+      "capability": "compliance",
+      "tier": "substrate",
+      "tier_subtype": "substrate-compliance",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S4",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
+      }
+    },
+    "oya/intelligence/_legacy-foundry/manifest.json": {
+      "service": "oya/intelligence",
+      "manifest": "oya/intelligence/_legacy-foundry/manifest.json",
+      "capability": "intelligence",
+      "tier": "substrate",
+      "tier_subtype": "substrate-ai",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S4",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "workflow-engine"
+        ]
+      }
+    },
+    "oya/intelligence/manifest.json": {
+      "service": "oya/intelligence",
+      "manifest": "oya/intelligence/manifest.json",
+      "capability": "intelligence",
+      "tier": "substrate",
+      "tier_subtype": "substrate-ai",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S4",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [
+          "workflow-engine"
+        ]
+      }
+    },
+    "oya/notes/manifest.json": {
+      "service": "oya/notes",
+      "manifest": "oya/notes/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-consumer-notes",
+      "dr_tier": "T0"
+    },
+    "oya/payments/manifest.json": {
+      "service": "oya/payments",
+      "manifest": "oya/payments/manifest.json",
+      "capability": null,
+      "tier": "product",
+      "tier_subtype": "product-consumer",
+      "dr_tier": "T1"
     },
     "oya/sheets/manifest.json": {
       "service": "oya/sheets",
@@ -1216,13 +940,181 @@
       "tier_subtype": "product-consumer-slides",
       "dr_tier": "T2"
     },
-    "oya/supply-chain-planning/manifest.json": {
-      "service": "oya/supply-chain-planning",
-      "manifest": "oya/supply-chain-planning/manifest.json",
+    "oya/translate/manifest.json": {
+      "service": "oya/translate",
+      "manifest": "oya/translate/manifest.json",
       "capability": null,
       "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
+      "tier_subtype": "product-consumer-translate",
+      "dr_tier": "T0"
+    },
+    "secrets/kms/manifest.json": {
+      "service": "secrets/kms",
+      "manifest": "secrets/kms/manifest.json",
+      "capability": "secrets",
+      "tier": "substrate",
+      "tier_subtype": "substrate-secrets",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S0",
+        "depends_on": [
+          "cell"
+        ],
+        "consumed_by_substrates": [
+          "audit-chain",
+          "intelligence",
+          "observability",
+          "ontology",
+          "workflow-engine"
+        ]
+      }
+    },
+    "secrets/manifest.json": {
+      "service": "secrets",
+      "manifest": "secrets/manifest.json",
+      "capability": "secrets",
+      "tier": "substrate",
+      "tier_subtype": "substrate-secrets",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S0",
+        "depends_on": [
+          "cell"
+        ],
+        "consumed_by_substrates": [
+          "audit-chain",
+          "intelligence",
+          "observability",
+          "ontology",
+          "workflow-engine"
+        ]
+      }
+    },
+    "storage/drive/manifest.json": {
+      "service": "storage/drive",
+      "manifest": "storage/drive/manifest.json",
+      "capability": "storage",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "storage/imaging/manifest.json": {
+      "service": "storage/imaging",
+      "manifest": "storage/imaging/manifest.json",
+      "capability": "storage",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "storage/manifest.json": {
+      "service": "storage",
+      "manifest": "storage/manifest.json",
+      "capability": "storage",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "storage/recordings/manifest.json": {
+      "service": "storage/recordings",
+      "manifest": "storage/recordings/manifest.json",
+      "capability": "storage",
+      "tier": "substrate",
+      "tier_subtype": "substrate-data",
+      "dr_tier": "T0",
+      "substrate_dag_position": {
+        "stratum": "forward-declared",
+        "depends_on": [],
+        "consumed_by_substrates": [],
+        "_note": "capability has no ADR-0280 §D-1 DAG node yet; forward-declared (Appendix C class)"
+      }
+    },
+    "tenancy/manifest.json": {
+      "service": "tenancy",
+      "manifest": "tenancy/manifest.json",
+      "capability": "tenancy",
+      "tier": "substrate",
+      "tier_subtype": "substrate-tenancy",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S2",
+        "depends_on": [
+          "cell",
+          "identity"
+        ],
+        "consumed_by_substrates": [
+          "audit-chain",
+          "intelligence",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "workflow-engine"
+        ]
+      }
+    },
+    "workflow/forms/manifest.json": {
+      "service": "workflow/forms",
+      "manifest": "workflow/forms/manifest.json",
+      "capability": "workflow",
+      "tier": "substrate",
+      "tier_subtype": "substrate-orchestration",
+      "dr_tier": "T1",
+      "substrate_dag_position": {
+        "stratum": "S4",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "intelligence",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": []
+      }
+    },
+    "workflow/manifest.json": {
+      "service": "workflow",
+      "manifest": "workflow/manifest.json",
+      "capability": "workflow",
+      "tier": "substrate",
+      "tier_subtype": "substrate-orchestration",
+      "dr_tier": "T0",
+      "substrate_dag_position": {
+        "stratum": "S4",
+        "depends_on": [
+          "audit-chain",
+          "cell",
+          "cloud-secrets",
+          "identity",
+          "intelligence",
+          "observability",
+          "ontology",
+          "policy-engine",
+          "tenancy"
+        ],
+        "consumed_by_substrates": [],
+        "_note": "ADR-0562 capability-registry declares workflow tier=substrate stratum=S4. depends_on is the UNION of the absorbed service manifests, all four of which declare the identical set. It was empty, which erased every workflow substrate edge for any DAG projection or operational ordering that reads the capability root instead of the per-service manifests — the root is strictly more depended-upon than its parts, never less."
+      }
     },
     "workflow/tasks/manifest.json": {
       "service": "workflow/tasks",
@@ -1246,38 +1138,6 @@
         ],
         "consumed_by_substrates": []
       }
-    },
-    "oya/translate/manifest.json": {
-      "service": "oya/translate",
-      "manifest": "oya/translate/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-translate",
-      "dr_tier": "T0"
-    },
-    "oya/treasury/manifest.json": {
-      "service": "oya/treasury",
-      "manifest": "oya/treasury/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
-    "oya/warehouse/manifest.json": {
-      "service": "oya/warehouse",
-      "manifest": "oya/warehouse/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "oya/whiteboard/manifest.json": {
-      "service": "oya/whiteboard",
-      "manifest": "oya/whiteboard/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
     },
     "workflow/workflow-engine/manifest.json": {
       "service": "workflow/workflow-engine",
@@ -1324,14 +1184,6 @@
         ],
         "consumed_by_substrates": []
       }
-    },
-    "oya/workplace-integration/manifest.json": {
-      "service": "oya/workplace-integration",
-      "manifest": "oya/workplace-integration/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
     }
   }
 }

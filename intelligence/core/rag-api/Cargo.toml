@@ -1,0 +1,17 @@
+[package]
+name = "intelligence-rag-api"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+
+[lib]
+name = "intelligence_rag_api"
+doctest = false
+
+[lints]
+workspace = true

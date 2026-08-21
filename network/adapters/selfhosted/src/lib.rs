@@ -408,8 +408,8 @@ mod tests {
         RouteCreate, RouteDestination, RouteNextHopKind, RouteTableCreate, RuleDirection,
         SecurityGroupCreate, SecurityRule, VpcCreate, VpcState,
     };
-    use oya_data_boundary_kernel::DataClass;
     use network_residency::ResidencyClass;
+    use oya_data_boundary_kernel::DataClass;
 
     const SITE_REF: &str = "kr-seoul-colo-a";
     const CELL_REF: &str = "cell-kr-seoul-a";

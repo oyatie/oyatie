@@ -1,8 +1,4 @@
 export_file(
-    name = "markdown-retirement-policy.json",
-    visibility = ["PUBLIC"],
-)
-export_file(
     name = "adr-census-epoch-control-plane.schema.json",
     visibility = ["PUBLIC"],
 )
@@ -28,11 +24,6 @@ export_file(
 
 export_file(
     name = "substrate-dependency-dag.schema.json",
-    visibility = ["PUBLIC"],
-)
-
-export_file(
-    name = "capability-registry.json",
     visibility = ["PUBLIC"],
 )
 

@@ -8,9 +8,9 @@
 //! `CertSANs` resource and the helper that folds all of those inputs into a
 //! deduplicated, deterministically-ordered list.
 
-use std::collections::{BTreeMap, BTreeSet};
 use os_kernel::NodeAddress;
 use os_kernel::error::{Error, Result};
+use std::collections::{BTreeMap, BTreeSet};
 
 /// A single SAN entry. Talos distinguishes DNS names from IP addresses on the
 /// wire (they land in different ASN.1 fields); we keep that distinction so the

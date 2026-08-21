@@ -58,23 +58,23 @@ impl std::fmt::Display for ThreadTransitionError {
 /// 1. `In-Reply-To` — first `<…>` message-id token.
 /// 2. `References`  — last `<…>` message-id token.
 /// 3. `Subject`     — strip Re:/Fwd:/FW: prefixes (case-insensitive, repeated),
-///                    collapse whitespace, ASCII-lowercase.
+///    collapse whitespace, ASCII-lowercase.
 pub fn group_into_thread(headers: &[(&str, &str)]) -> ThreadAssignment {
     // --- 1. In-Reply-To ---
     for (name, value) in headers {
-        if name.eq_ignore_ascii_case("In-Reply-To") {
-            if let Some(mid) = first_message_id(value) {
-                return ThreadAssignment::ExistingThread(mid);
-            }
+        if name.eq_ignore_ascii_case("In-Reply-To")
+            && let Some(mid) = first_message_id(value)
+        {
+            return ThreadAssignment::ExistingThread(mid);
         }
     }
 
     // --- 2. References ---
     for (name, value) in headers {
-        if name.eq_ignore_ascii_case("References") {
-            if let Some(mid) = last_message_id(value) {
-                return ThreadAssignment::ExistingThread(mid);
-            }
+        if name.eq_ignore_ascii_case("References")
+            && let Some(mid) = last_message_id(value)
+        {
+            return ThreadAssignment::ExistingThread(mid);
         }
     }
 
@@ -177,7 +177,9 @@ fn normalize_subject(value: &str) -> String {
         }
         // Re-trim the *original* casing at same offset, then continue.
         let offset = s.len() - lower.len() + stripped.len();
-        s = s[s.len() - lower.len()..][..stripped.len()].trim_start().to_string();
+        s = s[s.len() - lower.len()..][..stripped.len()]
+            .trim_start()
+            .to_string();
         let _ = offset; // unused after rewrite below — see corrected logic
     }
     // Redo with a cleaner loop that works on the lowercased copy throughout.
@@ -348,10 +350,7 @@ mod tests {
 
     #[test]
     fn empty_in_reply_to_falls_through_to_references() {
-        let headers = [
-            ("In-Reply-To", "  "),
-            ("References", "<ref@x>"),
-        ];
+        let headers = [("In-Reply-To", "  "), ("References", "<ref@x>")];
         assert_eq!(
             group_into_thread(&headers),
             ThreadAssignment::ExistingThread("ref@x".into())
