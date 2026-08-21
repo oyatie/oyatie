@@ -14,7 +14,7 @@
 //! 1. **Primary**: `delivery_id` when it is non-empty and not the sentinel
 //!    `"unknown"` (the value injected by the handler when the header is absent).
 //! 2. **Fallback**: `(head_sha, pr_number, CiAction)` — all three fields
-//!    present on [`ci_webhook_gateway_kernel::CiTriggerEvent`] at the
+//!    present on [`ci_webhook_gateway_ports::CiTriggerEvent`] at the
 //!    wiring point (after Step 4 route, before Step 5 jenkins.trigger).
 //!
 //! Using `Option`-based detection of the absent-header case ensures the
@@ -47,7 +47,7 @@
 //! (multiple pods) cannot share state via this module; replays routed to a
 //! different pod bypass the guard.  See task #62.
 
-use ci_webhook_gateway_kernel::CiAction;
+use ci_webhook_gateway_ports::CiAction;
 use std::collections::HashMap;
 
 /// Map `CiAction` to a stable `u8` discriminant for use as a `Hash`-able key.
@@ -181,7 +181,7 @@ impl DeliveryGuard {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use ci_webhook_gateway_kernel::CiAction;
+    use ci_webhook_gateway_ports::CiAction;
 
     fn key_id(id: &str) -> DeliveryKey {
         DeliveryKey::DeliveryId(id.to_owned())

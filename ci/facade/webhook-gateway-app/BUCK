@@ -8,7 +8,7 @@ rust_library(
         "//ci/adapters/webhook-gateway-authz-cedar:ci-webhook-gateway-authz-cedar",
         "//ci/adapters/webhook-gateway-ed25519:ci-webhook-gateway-ed25519",
         "//ci/adapters/webhook-gateway-github:ci-webhook-gateway-github",
-        "//ci/core/webhook-gateway-kernel:ci-webhook-gateway-kernel",
+        "//ci/ports/webhook-gateway:ci-webhook-gateway-ports",
         "third-party//:axum",
         "third-party//:axum",
         "third-party//:bytes",
@@ -35,7 +35,7 @@ rust_test(
         "//ci/adapters/webhook-gateway-authz-cedar:ci-webhook-gateway-authz-cedar",
         "//ci/adapters/webhook-gateway-ed25519:ci-webhook-gateway-ed25519",
         "//ci/adapters/webhook-gateway-github:ci-webhook-gateway-github",
-        "//ci/core/webhook-gateway-kernel:ci-webhook-gateway-kernel",
+        "//ci/ports/webhook-gateway:ci-webhook-gateway-ports",
         "third-party//:axum",
         "third-party//:bytes",
         "third-party//:ed25519-dalek",
@@ -45,6 +45,23 @@ rust_test(
         "third-party//:tower",
         "third-party//:tracing",
         "third-party//:tracing-subscriber",
+    ],
+)
+
+rust_test(
+    name = "ci-webhook-gateway-app-integration-webhook-flow-test",
+    srcs = glob(["tests/integration_webhook_flow.rs"]),
+    crate = "ci_webhook_gateway_app_integration_webhook_flow_test",
+    crate_root = "tests/integration_webhook_flow.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-webhook-gateway-app",
+        "//ci/ports/webhook-gateway:ci-webhook-gateway-ports",
+        "third-party//:axum",
+        "third-party//:bytes",
+        "third-party//:serde_json",
+        "third-party//:tokio",
+        "third-party//:tower",
     ],
 )
 
@@ -58,7 +75,7 @@ rust_binary(
         "//ci/adapters/webhook-gateway-authz-cedar:ci-webhook-gateway-authz-cedar",
         "//ci/adapters/webhook-gateway-ed25519:ci-webhook-gateway-ed25519",
         "//ci/adapters/webhook-gateway-github:ci-webhook-gateway-github",
-        "//ci/core/webhook-gateway-kernel:ci-webhook-gateway-kernel",
+        "//ci/ports/webhook-gateway:ci-webhook-gateway-ports",
         "third-party//:axum",
         "third-party//:axum",
         "third-party//:bytes",

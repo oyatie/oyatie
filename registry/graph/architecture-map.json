@@ -719,6 +719,7 @@
     { "id": "ci/adapters/webhook-gateway-ed25519", "kind": "crate", "label": "ci-webhook-gateway-ed25519" },
     { "id": "ci/adapters/webhook-gateway-github", "kind": "crate", "label": "ci-webhook-gateway-github" },
     { "id": "ci/core/webhook-gateway-kernel", "kind": "crate", "label": "ci-webhook-gateway-kernel" },
+    { "id": "ci/ports/webhook-gateway", "kind": "crate", "label": "ci-webhook-gateway-ports" },
     { "id": "app/community/adapters/post-store-postgres", "kind": "crate", "label": "community-post-store-postgres" },
     { "id": "app/community/ports/post-store-api", "kind": "crate", "label": "community-post-store-api" },
     { "id": "app/community/facade/post-store-app", "kind": "crate", "label": "community-post-store-app" },

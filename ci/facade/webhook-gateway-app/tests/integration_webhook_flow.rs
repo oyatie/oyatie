@@ -11,7 +11,7 @@ use axum::{
 };
 use bytes::Bytes;
 use ci_webhook_gateway_app::{AppState, build_router, replay::DeliveryGuard};
-use ci_webhook_gateway_kernel::{
+use ci_webhook_gateway_ports::{
     AuthzDecision, GitHubStatusRequest, KernelError, MockSignatureVerifier, Result,
     WebhookAuthzGate, WebhookAuthzRequest,
 };
@@ -53,7 +53,7 @@ impl RecordingStatusPoster {
     }
 }
 
-impl ci_webhook_gateway_kernel::CommitStatusPoster for RecordingStatusPoster {
+impl ci_webhook_gateway_ports::CommitStatusPoster for RecordingStatusPoster {
     fn post(&self, req: &GitHubStatusRequest) -> Result<()> {
         let entry = format!("{}:{}", req.context.as_str(), req.state.as_str());
         self.calls.lock().unwrap().push(entry);
@@ -62,14 +62,14 @@ impl ci_webhook_gateway_kernel::CommitStatusPoster for RecordingStatusPoster {
 }
 
 struct NoopStatusPoster;
-impl ci_webhook_gateway_kernel::CommitStatusPoster for NoopStatusPoster {
+impl ci_webhook_gateway_ports::CommitStatusPoster for NoopStatusPoster {
     fn post(&self, _: &GitHubStatusRequest) -> Result<()> {
         Ok(())
     }
 }
 
 struct FailingStatusPoster;
-impl ci_webhook_gateway_kernel::CommitStatusPoster for FailingStatusPoster {
+impl ci_webhook_gateway_ports::CommitStatusPoster for FailingStatusPoster {
     fn post(&self, _: &GitHubStatusRequest) -> Result<()> {
         Err(KernelError::DownstreamTransport(
             "github unreachable".into(),
@@ -95,7 +95,7 @@ fn github_pr_payload(sha: &str) -> serde_json::Value {
 }
 
 fn make_state(
-    poster: Arc<dyn ci_webhook_gateway_kernel::CommitStatusPoster + Send + Sync>,
+    poster: Arc<dyn ci_webhook_gateway_ports::CommitStatusPoster + Send + Sync>,
 ) -> AppState {
     AppState {
         verifier: Arc::new(MockSignatureVerifier { verdict: Ok(()) }),

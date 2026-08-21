@@ -21,7 +21,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-ci-webhook-gateway-kernel = { path = "../../core/webhook-gateway-kernel" }
+ci-webhook-gateway-ports = { path = "../../ports/webhook-gateway" }
 ci-webhook-gateway-ed25519 = { path = "../../adapters/webhook-gateway-ed25519" }
 ci-webhook-gateway-github = { path = "../../adapters/webhook-gateway-github" }
 ci-webhook-gateway-authz-cedar = { path = "../../adapters/webhook-gateway-authz-cedar" }

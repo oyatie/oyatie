@@ -35,7 +35,7 @@ use axum::{
     response::IntoResponse,
     routing::{get, post},
 };
-use ci_webhook_gateway_kernel::{
+use ci_webhook_gateway_ports::{
     CommitStatusPoster, JobStatus, RouteOutcome, SignatureVerifier, WebhookAuthzGate,
     WebhookAuthzRequest, WebhookSignature, route_github_event,
 };
@@ -142,7 +142,7 @@ async fn handle_github_webhook(
     };
     if matches!(
         state.authz.decide(&authz_req),
-        ci_webhook_gateway_kernel::AuthzDecision::Forbid
+        ci_webhook_gateway_ports::AuthzDecision::Forbid
     ) {
         warn!(delivery_id, "Cedar authz denied webhook trigger");
         return (StatusCode::FORBIDDEN, "forbidden by policy").into_response();

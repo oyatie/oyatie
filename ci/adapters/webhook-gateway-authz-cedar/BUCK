@@ -21,3 +21,15 @@ rust_library(
         "third-party//:cedar-policy",
     ],
 )
+
+rust_test(
+    name = "ci-webhook-gateway-authz-cedar-d6-cedar-authz-test",
+    srcs = glob(["tests/d6_cedar_authz.rs"]),
+    crate = "ci_webhook_gateway_authz_cedar_d6_cedar_authz_test",
+    crate_root = "tests/d6_cedar_authz.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-webhook-gateway-authz-cedar",
+        "//ci/core/webhook-gateway-kernel:ci-webhook-gateway-kernel",
+    ],
+)
