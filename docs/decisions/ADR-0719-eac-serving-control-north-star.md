@@ -41,8 +41,12 @@ deliverables:
     exit_criteria: "This ADR defines those cadences; new workflows use those names; oya-ci-required remains a rename target with branch protection in the same follow-through change."
     verified_by: "presubmit"
   - id: ADR-0719-D11
-    description: "Cloud-provider placement: the registered capabilities ARE the cloud. Repo root holds only directory names plus meta (kernel/os/base/build/third-party) and app/. Each capability owns one engine (core), ports, adapters, facade. 2+ capabilities compose in app/. No cloud/ folder. No packing the cloud into specs/ or a root IaaS dump."
+    description: "Cloud-provider placement: the registered capabilities ARE the cloud. Repo root holds only directory names plus meta (build/third-party; base/ only when admitted) and app/. No kernel/ or os/ rungs — node is upstream Talos/Linux; port-engine regenerates a port when we own the node. Each capability owns one engine (core), ports, adapters, facade. 2+ compose in app/. No cloud/ folder."
     exit_criteria: "This table is the placement reading; new engines go in an existing cap or a §7 registry split, not a new root dump; app/ is composition only."
+    verified_by: "presubmit"
+  - id: ADR-0719-D13
+    description: "Node is upstream Linux + Talos (Sidero). Delete in-tree kernel/ (Asterinas eval) and os/ (generated Talos port). Keep build/port-engine; regenerate a port only when we own the node. No empty kernel/os scaffolds. A higher Accepted ADR overrides an earlier one only with explicit amends or supersedes."
+    exit_criteria: "kernel/ and os/ are absent from the tree and from the capability-registry meta_directories; AGENTS.md/CLAUDE.md no longer list them as production rungs; port-engine remains under build/."
     verified_by: "presubmit"
 ---
 
@@ -198,9 +202,13 @@ the audit log. Do not invent a destination for leftovers; many must **not exist*
 **Repo root (closed).** Workspace: `Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`,
 `rustfmt.toml`, `deny.toml`, `reindeer.toml`, `.buckconfig`, `.buckroot`, `.cargo/`.
 GitHub: `.github/`, `.gitignore`, `.gitattributes`. Hubs: `README.md`, `LICENSE`,
-`OWNERS`, `AGENTS.md`, `CLAUDE.md`, founder-thin `HANDOFF.md`. Meta: `kernel/`, `os/`,
-`base/` (≥3 caps and strictly below them, else it is not `base/`), `build/`,
-`third-party/`. `governance/` is a **capability** (checks + `capability-registry.json`).
+`OWNERS`, `AGENTS.md`, `CLAUDE.md`. Meta: `build/`, `third-party/`. `base/` is **not**
+pre-created; it appears only when the first crate admitted under the ≥3-caps-below-all
+rule. `governance/` is a **capability** (checks + `capability-registry.json`).
+**No `kernel/` and no `os/` rungs.** Node is **upstream Linux + Talos (Sidero)**.
+Asterinas evaluation is **removed**. In-tree Talos/Asterinas port output is **deleted**;
+`build/port-engine` remains so a port can be **regenerated when we own the node**, not
+kept as a second OS in git. `os/ports/kernel-abi` dies with `os/`.
 Composition: `app/`. One directory per **registered** capability (including `policy/`
 the **engine**). Jurisdiction: `packs/<id>/` one versioned bundle the engines load.
 `docs/` = ADRs + operating contract. **No catch-all `specs/`.** Machine contracts live
@@ -213,7 +221,7 @@ withdrawn); it was a redirect, not law.
 agent dirs; `evidence/` dumps; `benchmarks/`; `scripts/`; `tasks/`/`plan/` as required
 corpora; `catalog.yaml` trees; root `contracts/` YAML as IDL; root `registry/`;
 root `specs/` as a JSON law corpus (delete with the gates that load contradicting
-files; do not scatter into cap/app). `HANDOFF.md`.
+files; do not scatter into cap/app). `HANDOFF.md`. `kernel/`. `os/`.
 
 **Capability root and `app/<product>/` (closed children):** `core/`, `ports/`,
 `adapters/`, `facade/`, `cedar/` (**.cedar unique to this cap** — schema and resource
@@ -257,6 +265,65 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 - `policy/` extraction and IR proto are implementation follow-through, not optional sketch.
 - Admission remains ADR-0710 (VAP/CEL+PSA); this ADR does not re-open ADR-0710's D-8.
 - Merge-blocking CI is **presubmit**. Pair with **merge-admission**. See D-10.
+- Node OS/kernel: D-13. Do not re-create `kernel/` or `os/` as empty rungs.
+
+### D-13 — Node is upstream Talos/Linux; generated ports are not kept
+
+**Decision.** Production node = **upstream Linux via Talos (Sidero)**. There is **one**
+kernel story.
+
+- **Delete `kernel/`.** Asterinas evaluation is removed. Upstream is pre-release; we
+  **vendor into `third-party/` when we need it**, not a rung-0 theater.
+- **Delete `os/`.** The in-tree Talos-shaped domain farm is **port-engine output** (or
+  a shadow of Sidero). Keeping it is a second OS. The generator stays at
+  `build/port-engine`. We **run the port engine again** when we own the node OS, not
+  merge a permanent generated tree.
+- **`os/ports/kernel-abi` is deleted with `os/`.** A kernel-ABI seam is created when
+  we own a kernel, not as a vacant port.
+- Consume Talos as **upstream** through `k8s/` / `iac/` **adapters**, not a parallel
+  `os/` engine.
+- **`k8s/` stays** as the owned Kubernetes port destination (ADR-0704). That is the
+  control-plane product, not a second node OS.
+
+**Destinations (so delete is not an orphan):** nothing in `infra/` **needs** `os/`.
+`infra/talos/` is **upstream Talos machine state** — it moves with the `infra/`
+`reorg_now` burn into **`k8s/adapters`** (cluster consume) / **`iac/`** (desired
+state), not into an `os/` keep.
+
+| In `os/` today | Outside consumers | Destination |
+|---|---|---|
+| Talos domain farm (`machined`, `siderolink`, `kubelet-domain`, …) | none (self-only) | **Delete.** Port-engine regenerates if we own the node. |
+| `os-trustd-domain` | `iam` SVID adapters + `iam/facade/cloud-pdp-app` | **`secrets/`** (trustd = SPIFFE issuance). Rehome those three crates’ deps **in the same change as `os/` delete**. |
+| `os/core/kubernetes-domain` templates (PSA/namespace emit) | `governance/psa-exception-registry.json` | **`k8s/`** (it is apiserver/namespace law, not an OS). |
+| `os/ports/kernel-abi` | none worth keeping | **Delete** with `os/`. |
+| `os/harness/*` | workspace glob | **Delete** with `os/` or fold into `k8s/` only if it tests k8s, not Talos-port. |
+| `infra/talos/**` | local cluster bring-up | **`k8s/adapters` / `iac/`** when `infra/` burns. Not a reason to keep `os/`. |
+| `kernel/**` Asterinas | nested workspace only | **Delete.** Vendor to `third-party/` if we ever need the pin. |
+
+Census JSON (`registry/graph`, manifests) **regenerates or dies** with the dirs. It is
+not a destination.
+
+**MUST (one kernel story)**
+
+- **achieves:** no dual kernel/OS in git; no empty rungs; no generated-output debt.
+- **origin:** kuberos deleted; Asterinas pin + Talos port farm remained as two more
+  OS stories while production already runs upstream Talos.
+- **rule:** in-tree `kernel/` and `os/` are gone; node is upstream Talos/Linux;
+  port-engine may regenerate a port later; no empty scaffolds.
+- **ensure:** registry `meta_directories` has no `kernel/` or `os/`; tree has no
+  those dirs; AGENTS.md/CLAUDE.md match.
+- **overturn_when:** we own a node kernel/OS and land it as port-engine output in a
+  new rung with five fields same-wave.
+
+**MUST (ADR override)**
+
+- **achieves:** agents cannot treat a higher number as silent OVERRULE.
+- **origin:** `HANDOFF.md` carried this; the file is deleted.
+- **rule:** a newer ADR controls an earlier Accepted ADR only when it is Accepted
+  and carries explicit `amends` or `supersedes` (reciprocal lifecycle edge).
+- **ensure:** 0701/this ADR `amends` edges exist; number-only citations are not
+  implement authority.
+- **overturn_when:** a replacement lifecycle ADR with five fields lands same-wave.
 
 ### D-10 — Pipeline cadences (names, not brand)
 
