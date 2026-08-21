@@ -291,6 +291,10 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 false => Ok(quote! { #start..#end }),
             }
         }
+        RustExpr::AsyncBlock(body) => {
+            let body = crate::lower_body::lower_block(body)?;
+            Ok(quote! { async move { #body } })
+        }
         RustExpr::Await(inner) => {
             let inner = lower_postfix_base(inner)?;
             Ok(quote! { #inner.await })

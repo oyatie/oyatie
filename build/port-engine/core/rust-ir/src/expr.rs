@@ -218,6 +218,12 @@ pub enum RustExpr {
         /// test is most often wrong and least often noticed.
         inclusive: bool,
     },
+    /// `async move { .. }` — a body that runs later, owning what it names.
+    ///
+    /// `move` is not optional here and so is not a field: what a spawned body captures has to
+    /// outlive the frame that spawned it, and borrowing the caller's locals is exactly what the
+    /// target refuses. A block that could borrow is a different construct and this is not it.
+    AsyncBlock(Vec<RustStmt>),
     /// `<inner>.await` — the point a task may yield to its executor.
     ///
     /// Its own node rather than a method call named `await`, because it is not one: the target
@@ -294,6 +300,7 @@ impl RustExpr {
             | Self::TupleIndex { .. }
             | Self::Call { .. }
             | Self::Await(_)
+            | Self::AsyncBlock(_)
             | Self::MethodCall { .. }
             | Self::MacroCall { .. }
             | Self::VecRepeat { .. }

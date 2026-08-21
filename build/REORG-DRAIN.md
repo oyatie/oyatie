@@ -7918,3 +7918,63 @@ CLOSED channel yields the zero value and keeps going, and `recv()` yields `None`
 is `recv().await.unwrap_or_default()` and the comma-ok form is the `Option` itself, and a `select`
 arm over a closed channel fires forever in the source and is disabled in the target. That is three
 different answers and none of them is written yet.
+
+## R5m — the whole scheduler surface, compiling
+
+    pub async fn produce(out: tokio::sync::mpsc::Sender<i64>, values: &[i64]) {
+        for value in values.iter().copied() {
+            out.send(value).await.expect("send on a closed channel");
+        }
+    }
+
+    pub async fn consume(mut source: tokio::sync::mpsc::Receiver<i64>, c: &mut Counter) {
+        loop {
+            tokio::select! {
+                value = source.recv() => { let value = value.unwrap_or_default(); c.add(value); }
+            }
+        }
+    }
+
+    pub fn start(out: tokio::sync::mpsc::Sender<i64>, values: Vec<i64>) {
+        tokio::spawn(async move { produce(out, &values).await; });
+    }
+
+Four of four declarations translate, and the crate builds against real `tokio` with no errors and no
+warnings under `#![forbid(unsafe_code)]`. That is the operator's canonical checklist for phase 3:
+`chan T` to `tokio::sync::mpsc`, `select` to `tokio::select!`, and `go` to
+`tokio::spawn(async move { .. })`.
+
+### Four facts the source does not state, each read rather than assumed
+
+WHICH END. The source's channel is one value carrying both; the target's is a pair. A parameter the
+body only sends on is a sender, only receives from is a receiver, both is neither — and a channel
+the body merely HANDS ONWARD holds whichever end its callee holds, which the signature table now
+carries per parameter position. `Start` neither sends nor receives; it is a sender because `Produce`
+is.
+
+THE ZERO ON CLOSE. A select arm binds the whole answer and takes the zero inside the body, rather
+than matching `Some`. A refutable pattern DISABLES the arm when the channel closes; the source's arm
+keeps firing with the element's zero. Binding is what makes those the same statement.
+
+WHAT A RECEIVE WRITES. `recv` takes an exclusive borrow, so a receiving parameter is `mut`. The
+source says none of this — its channel value is one thing and receiving does not look like a write.
+
+WHAT A SPAWN OWNS. A task outlives the frame that started it, so a name handed to one cannot be
+borrowed by the signature that receives it: `Start`'s `values` is a `Vec`, not a slice, and that is
+forced by the `go` three lines below it. The engine emitted the borrow first and the target refused
+it — "borrowed data escapes outside of function" — which is the borrow checker doing exactly the job
+the operator described.
+
+### Refused on purpose
+
+A `default` arm, and the reason is not that the target lacks one: the target's `else` runs when every
+branch is DISABLED and the source's `default` runs when no arm is READY. A select over an open,
+empty channel has neither a ready arm nor a disabled branch — so the source takes its default there
+and the target waits. Same program, two behaviours.
+
+A send arm, and a bare receive arm: neither is answered yet and both say so.
+
+### Known cost, recorded
+
+`prettyplease` does not format inside a macro, so a select arm with more than one statement wraps
+awkwardly. The code is correct and the shape is not the engine's to fix from here.

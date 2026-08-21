@@ -15,6 +15,16 @@ pub(crate) fn parse_type(ty: &RustType) -> Result<syn::Type, PortError> {
     })
 }
 
+/// A macro's PATH, which is several identifiers and not one.
+///
+/// `tokio::select` is not an identifier and `parse_ident` refuses it, exactly as it refuses the
+/// blank and a tuple pattern -- a path is a path.
+pub(crate) fn parse_path(source: &str) -> Result<syn::Path, PortError> {
+    syn::parse_str(source.trim_end_matches('!')).map_err(|err| PortError::Render {
+        detail: format!("`{source}` is not a valid target macro path: {err}"),
+    })
+}
+
 pub(crate) fn parse_ident(name: &str) -> Result<syn::Ident, PortError> {
     syn::parse_str(name).map_err(|err| PortError::Render {
         detail: format!("`{name}` is not a valid target identifier: {err}"),

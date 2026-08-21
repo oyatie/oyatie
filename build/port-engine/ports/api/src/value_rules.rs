@@ -39,6 +39,15 @@ pub struct ChannelForms {
     pub receive: String, // data_class: INTERNAL_ONLY
     /// Running `{0}` concurrently with what follows it.
     pub spawn: String, // data_class: INTERNAL_ONLY
+    /// The macro that waits on several communications and takes the first ready.
+    pub select: String, // data_class: INTERNAL_ONLY
+    /// What a receive yields once the far end is gone: `{0}` is the option the receive answers with.
+    ///
+    /// The source's receive on a CLOSED channel hands back that type's zero and keeps going. The
+    /// target's hands back nothing. This is the form that makes those the same statement, and it is
+    /// why a select arm here binds the option rather than matching `Some` -- a refutable pattern
+    /// DISABLES the arm when the channel closes, where the source's arm keeps firing.
+    pub zero_on_close: String, // data_class: INTERNAL_ONLY
     /// Why these forms and not the others the target offers.
     pub reason: String, // data_class: INTERNAL_ONLY
 }

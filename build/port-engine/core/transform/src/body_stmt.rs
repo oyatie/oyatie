@@ -269,22 +269,9 @@ pub(crate) fn statement(
         // THE CONCURRENCY TRIO, refused by name and with what each is waiting on. The front end
         // models all three now; what is missing is not the shape but the DECISIONS below, and a
         // reader deciding whether to hand-write a subsystem needs to know which.
-        "go" => Err(TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: "a goroutine has no target form yet, and the two things it waits on are not \
-                     the spawn. FIRST, colour: the source's goroutine may block anywhere, and the \
-                     target's task may only block at an `.await` — so every callee reachable from \
-                     here that blocks has to become an async function, and that is a property of \
-                     the whole call graph rather than of this statement. A spawn whose body blocks \
-                     the executor compiles and stalls every other task, which is worse than not \
-                     emitting it. SECOND, ownership: the target's spawn requires what it captures \
-                     to be owned AND sendable, where the source shares the enclosing frame's \
-                     variables — the destination is recorded, and the sendability is not proven"
-                .to_owned(),
-        }),
-        // `ch <- v`. The source's send does not complete until a receiver takes the value, which
-        // the target's bounded sender also promises, and it PANICS when the far end is gone, which
-        // is what `expect` does. Both halves are the pack's to spell.
+        // `go f(x)`. The call runs concurrently with what follows, which is the whole of what
+        // the source says here.
+        "go" => crate::channels::spawned(node, cx),
         "send" => {
             let forms = cx.resolver.channel;
             if forms.send.is_empty() {
@@ -302,17 +289,8 @@ pub(crate) fn statement(
                 cx,
             )?))
         }
-        "select" => Err(TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: "a `select` has no target form yet. The shape maps — the target has a macro \
-                     that waits on several futures and takes the first ready — but two things do \
-                     not follow from the shape. The source chooses UNIFORMLY AT RANDOM among ready \
-                     arms and the target's macro is biased unless told otherwise, which changes \
-                     which arm starves; and an arm that is not chosen must not have consumed \
-                     anything, which holds only for cancellation-safe operations and is a property \
-                     of each arm's callee rather than of the select"
-                .to_owned(),
-        }),
+        // `select { case ... }`. Every arm is a COMMUNICATION and the first ready one runs.
+        "select" => crate::channels::selected(node, cx),
         other => Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),
             detail: format!("statement kind `{other}` has no translation"),

@@ -86,6 +86,17 @@ pub enum RustStmt {
         /// The loop body.
         body: Vec<RustStmt>,
     },
+    /// A macro that waits on several communications and runs the body of the first ready.
+    ///
+    /// Not a [`RustExpr::MacroCall`]: its arms are `pattern = future => body`, which is neither a
+    /// template nor an argument list, and spelling it as text would put a construct downstream
+    /// rules cannot read into the tree.
+    Select {
+        /// The macro's path, which the pack names.
+        path: String, // data_class: INTERNAL_ONLY
+        /// The arms, in the order the source wrote them.
+        arms: Vec<SelectArm>,
+    },
     /// `break;`, or `break 'label;` when it must leave a labelled construct.
     ///
     /// The label is what makes a `break` written inside a labelled BLOCK still leave the LOOP: a
@@ -160,4 +171,19 @@ pub enum ForBinding {
         /// The item name.
         item: String, // data_class: INTERNAL_ONLY
     },
+}
+
+/// One arm of a communication select: `<binding> = <future> => { <body> }`.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct SelectArm {
+    /// What the arm binds the communication's result to.
+    ///
+    /// An IRREFUTABLE name, deliberately. A refutable pattern -- `Some(v)` -- disables the arm when
+    /// the channel closes, and the source's arm keeps firing with the element's zero. Binding the
+    /// whole answer and taking the zero inside the body is what makes those the same statement.
+    pub binding: String, // data_class: INTERNAL_ONLY
+    /// The communication awaited.
+    pub future: RustExpr,
+    /// What runs when this arm is chosen.
+    pub body: Vec<RustStmt>,
 }

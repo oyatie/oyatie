@@ -268,6 +268,8 @@ impl LoadedRulePack {
                     send: rule.send,
                     receive: rule.receive,
                     spawn: rule.spawn,
+                    select: rule.select,
+                    zero_on_close: rule.zero_on_close,
                     reason: rule.reason,
                 })
                 .unwrap_or_default(),
