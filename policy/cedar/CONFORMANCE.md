@@ -112,12 +112,39 @@ reaches is a forbid nothing tests. This run injects a fixture of deliberately *b
 each omitting a bound the shipped permits carry, which is precisely the authoring mistake the forbids
 exist to survive:
 
+The fixture in full. It is reproduced here rather than shipped as a `.cedar` file on purpose: it is a
+deliberately-insecure permit set, and a loadable `.cedar` inside this capability is precisely the
+hazard `policy/cedar/README.md` documents. Save it to a scratch path and pass it as the harness's
+third argument.
+
 ```cedar
-// tenant-blind AND token-blind                       // soak-blind activate
+// DELIBERATELY BOUND-BLIND PERMITS — test fixture only, never shipped.
+// Each omits a bound the shipped permits carry, so that the corresponding forbid becomes the only
+// thing standing between the request and an Allow. That is what makes the forbids testable.
+
+// tenant-blind AND token-blind
 permit (principal, action == OyaPolicy::Action::"AuthorPolicy", resource)
 when { principal in OyaPolicy::Role::"tenant-policy-admin" };
-// ... likewise freshness/signature-blind Evaluate, ReadRebacTuple, DistributeSnapshot,
-//     and a step-up-blind WriteRebacTuple
+
+// freshness-blind and signature-blind evaluate
+permit (principal, action == OyaPolicy::Action::"EvaluateAgainstSnapshot", resource)
+when { principal in OyaPolicy::Role::"pep-workload" && principal in resource.owner_tenant };
+
+// freshness-blind and signature-blind tuple read
+permit (principal, action == OyaPolicy::Action::"ReadRebacTuple", resource)
+when { principal in OyaPolicy::Role::"pep-workload" && principal in resource.owner_tenant };
+
+// freshness-blind distribute
+permit (principal, action == OyaPolicy::Action::"DistributeSnapshot", resource)
+when { principal in OyaPolicy::Role::"policy-distributor" && principal in resource.owner_tenant };
+
+// soak-blind activate (reaches F7)
+permit (principal, action == OyaPolicy::Action::"ActivatePolicy", resource)
+when { principal in OyaPolicy::Role::"tenant-policy-admin" && principal in resource.owner_tenant && resource.signed };
+
+// step-up-blind tuple write (reaches F12)
+permit (principal, action == OyaPolicy::Action::"WriteRebacTuple", resource)
+when { principal in OyaPolicy::Role::"tenant-policy-admin" && principal in resource.owner_tenant };
 ```
 
 ```
