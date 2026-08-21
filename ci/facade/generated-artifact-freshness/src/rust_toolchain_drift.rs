@@ -37,7 +37,7 @@ const ACTIVE_TEXT_PATHS: [&str; 8] = [
     "docs/plans/",
     "docs/standards/",
     "specs/oss-stewardship-registry.json",
-    "toolchains/",
+    "build/toolchains/",
 ];
 
 pub fn read_pinned_rust_toolchain(repo_root: &Path) -> Result<String, FreshnessError> {
@@ -73,7 +73,7 @@ pub fn evaluate_rust_toolchain_drift(repo_root: &Path) -> Result<Vec<Finding>, F
         } else if is_dockerfile_path(&rel) {
             let text = read_to_string(repo_root, &rel)?;
             check_docker_text(&rel, &text, &want, &mut findings);
-        } else if rel.starts_with(".github/workflows/") || rel.starts_with("toolchains/") {
+        } else if rel.starts_with(".github/workflows/") || rel.starts_with("build/toolchains/") {
             let text = read_to_string(repo_root, &rel)?;
             check_ci_text(&rel, &text, &want, &mut findings);
         }
@@ -162,7 +162,7 @@ fn relevant_to_rust_toolchain_drift(path: &str) -> bool {
         || path.ends_with("supported-oses.json")
         || is_dockerfile_path(path)
         || path.starts_with(".github/workflows/")
-        || path.starts_with("toolchains/")
+        || path.starts_with("build/toolchains/")
         || active_text_path(path)
 }
 
@@ -333,7 +333,7 @@ fn check_ci_text(rel: &str, text: &str, want: &str, findings: &mut BTreeSet<Find
             ));
         }
     }
-    if rel.starts_with("toolchains/") {
+    if rel.starts_with("build/toolchains/") {
         for version in explicit_rust_versions(text) {
             if version != want {
                 findings.insert(drift_finding(

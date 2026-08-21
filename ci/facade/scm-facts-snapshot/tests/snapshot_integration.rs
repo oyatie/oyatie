@@ -521,7 +521,7 @@ fn p3_identity_fixture(label: &str) -> PathBuf {
         b"[toolchain]\nchannel = \"stable\"\n",
     );
     write_fixture_file(&root, "third-party/BUCK", b"# third-party\n");
-    write_fixture_file(&root, "toolchains/BUCK", b"# toolchains\n");
+    write_fixture_file(&root, "build/toolchains/BUCK", b"# toolchains\n");
     configure_ignored_epoch_receipt(&root);
     commit_all(&root, "seed P3 identity fixture");
     root
