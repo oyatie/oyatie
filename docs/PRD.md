@@ -1,6 +1,6 @@
 ---
 purpose: Discover-only 7-axis ecosystem thesis. Not the live product lock.
-doc_status: discover-draft
+doc_status: drafted
 live_product_authority: docs/products/LOCK.md
 ---
 
