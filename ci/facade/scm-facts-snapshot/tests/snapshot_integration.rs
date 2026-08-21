@@ -192,21 +192,21 @@ fn captured_stderr_reaches_the_caller_when_a_nested_child_times_out() {
 
 #[test]
 fn status_only_command_probe_helper() {
-    if std::env::var("OYA_CI_COMMAND_PROBE_MODE").as_deref() != Ok("sustained-output") {
-        return;
+    if std::env::var("OYA_CI_COMMAND_PROBE_MODE").as_deref() == Ok("sustained-output") {
+        let executable =
+            std::env::current_exe().expect("resolve current integration-test executable");
+        let mut command = Command::new(executable);
+        command
+            .args(["--exact", "status_only_command_child_helper", "--nocapture"])
+            .env("OYA_CI_COMMAND_CHILD_MODE", "sustained-output");
+        let status = command_status_with_timeout(
+            command,
+            Duration::from_secs(5),
+            "test sustained-output child",
+        )
+        .expect("sustained-output child must complete without storage or backpressure");
+        assert!(status.success());
     }
-    let executable = std::env::current_exe().expect("resolve current integration-test executable");
-    let mut command = Command::new(executable);
-    command
-        .args(["--exact", "status_only_command_child_helper", "--nocapture"])
-        .env("OYA_CI_COMMAND_CHILD_MODE", "sustained-output");
-    let status = command_status_with_timeout(
-        command,
-        Duration::from_secs(5),
-        "test sustained-output child",
-    )
-    .expect("sustained-output child must complete without storage or backpressure");
-    assert!(status.success());
 }
 
 #[test]

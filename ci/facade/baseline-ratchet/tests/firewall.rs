@@ -712,55 +712,54 @@ fn firewall_is_green_on_the_live_corpus_with_the_baseline() {
              zero new growth vs pre-decommit parent {} confirmed.",
             frozen.merge_base, parent_ref
         );
-        return;
-    }
-
-    assert!(
-        failing.is_empty(),
-        "GO-LIVE: firewall must be GREEN on today's corpus (no NEW debt vs the merge-base), \
+    } else {
+        assert!(
+            failing.is_empty(),
+            "GO-LIVE: firewall must be GREEN on today's corpus (no NEW debt vs the merge-base), \
          but these codes FAIL: {failing:?};\n{}",
-        regression_detail.join("\n")
-    );
-    let growth_detail: Vec<String> = report
-        .ratchet_growth
-        .iter()
-        .map(|(gate, code, key)| {
-            let remediation = proposed
-                .gates
-                .get(gate)
-                .and_then(|codes| codes.get(code))
-                .and_then(|cb| cb.remediation.as_deref())
-                .unwrap_or("(no remediation stamped — fix the disposition DATA)");
-            format!("[{gate}] {code} grew {key}\n  REGISTRATION REQUIRED: {remediation}")
-        })
-        .collect();
-    assert!(
-        report.ratchet_growth.is_empty(),
-        "GO-LIVE: blocking baseline keys must shrink (or pass the sign-off door) relative \
+            regression_detail.join("\n")
+        );
+        let growth_detail: Vec<String> = report
+            .ratchet_growth
+            .iter()
+            .map(|(gate, code, key)| {
+                let remediation = proposed
+                    .gates
+                    .get(gate)
+                    .and_then(|codes| codes.get(code))
+                    .and_then(|cb| cb.remediation.as_deref())
+                    .unwrap_or("(no remediation stamped — fix the disposition DATA)");
+                format!("[{gate}] {code} grew {key}\n  REGISTRATION REQUIRED: {remediation}")
+            })
+            .collect();
+        assert!(
+            report.ratchet_growth.is_empty(),
+            "GO-LIVE: blocking baseline keys must shrink (or pass the sign-off door) relative \
          to the merge-base, got growth:\n{}",
-        growth_detail.join("\n")
-    );
-    assert!(
-        report.inert_signoff.is_empty(),
-        "GO-LIVE: every sign-off door entry must exempt a key the CANDIDATE tree still \
+            growth_detail.join("\n")
+        );
+        assert!(
+            report.inert_signoff.is_empty(),
+            "GO-LIVE: every sign-off door entry must exempt a key the CANDIDATE tree still \
          carries (current or proposed) — an entry the candidate has orphaned is a standing \
          re-introduction ticket (FRIC-1781460000: read against the candidate, not the \
          merge-base frozen face, so PR-tier and push-tier agree). \
          Remediation (auto-derives + applies the retirement): {SIGNOFF_FIXER_COMMAND} \
          Inert: {:?}",
-        report.inert_signoff
-    );
-    assert!(
-        report.is_green(),
-        "firewall must be GREEN with the merge-base frozen reference"
-    );
+            report.inert_signoff
+        );
+        assert!(
+            report.is_green(),
+            "firewall must be GREEN with the merge-base frozen reference"
+        );
 
-    // Sanity: the baseline is NON-trivial (the frozen pre-existing corpus debt is real).
-    let total_baselined: usize = report.codes.iter().map(|r| r.baseline).sum();
-    assert!(
-        total_baselined > 0,
-        "the baseline must freeze the real pre-existing corpus debt"
-    );
+        // Sanity: the baseline is NON-trivial (the frozen pre-existing corpus debt is real).
+        let total_baselined: usize = report.codes.iter().map(|r| r.baseline).sum();
+        assert!(
+            total_baselined > 0,
+            "the baseline must freeze the real pre-existing corpus debt"
+        );
+    }
 }
 
 /// THE ADR-0555 CONVERSION PROOF (FRIC-1781330000), against the LIVE corpus + LIVE
@@ -986,16 +985,14 @@ fn frozen_snapshot_provenance_matches_ratchet_policy() {
         // Case (b) confirmed: bootstrap window for the re-introduction PR.  No further
         // assertion needed here — firewall_is_green_on_the_live_corpus_with_the_baseline
         // enforces committed-blob + zero unsigned ratchet growth.
-        return;
-    }
-    // Normal steady-state path: gate-baseline exists at the merge-base.
-    // (This assertion is structurally redundant after the early-return above, but kept as
-    // an explicit invariant statement for readability.)
-    assert!(
-        !frozen.missing_at_merge_base,
-        "this repo's gate-baseline face exists at the merge-base; a missing-face snapshot \
+    } else {
+        // Normal steady-state path: gate-baseline exists at the merge-base.
+        assert!(
+            !frozen.missing_at_merge_base,
+            "this repo's gate-baseline face exists at the merge-base; a missing-face snapshot \
          here means the emitter extracted the wrong path"
-    );
+        );
+    }
 }
 
 /// THE F1 PIN (defense-in-depth on top of frozen-policy-wins, never instead of it): the
