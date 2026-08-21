@@ -17,13 +17,12 @@ use ci_corpus_index_coverage::{
 
 const POLICY_PATH: &str = "ci/facade/corpus-index-coverage/corpus-index-coverage-policy.json";
 const MAX_YAML_SOURCE_BYTES: u64 = 1_048_576;
-// The nested-ownership proof needs a package that sits INSIDE oya/ and declares its own extraction
-// target, so the two tests below can show its YAML is attributed to it and not to the oya/ root
-// package. It named oya/oya-authn-device-firmware + oya/oya-identity until wave 25 rehomed both
-// under iam/, where they are outside the oya census these tests evaluate; oya/ci-webhook-gateway is
-// the surviving nested subject and carries 11 YAML in a single literal face.
-const NESTED_REPAIR_PACKAGES: [&str; 1] = ["oya/ci-webhook-gateway"];
-const NESTED_REPAIR_FACE_PATHS: [usize; 1] = [11];
+// Nested oya/ YAML owners (authn-device-firmware, identity, then ci-webhook-gateway) were
+// rehomed out of oya/. After the leftover-husk drain there is no nested oya/ extraction
+// package; the oya census is the root oya/BUCK glob only. Parser unit tests below still
+// prove literal nearest-package extraction against ci/webhook-gateway.
+const NESTED_REPAIR_PACKAGES: [&str; 0] = [];
+const NESTED_REPAIR_FACE_PATHS: [usize; 0] = [];
 
 struct LiveObservation {
     packages: Vec<PackageObservation>,
@@ -419,34 +418,20 @@ fn live_faces_have_zero_missing_duplicate_empty() {
 }
 
 #[test]
-fn pre_repair_missing_ten_blocks() {
+fn nested_repair_faces_are_absent_after_husk_drain() {
     let root = repo_root();
     let live = observe(&root).unwrap();
-    let (_, policy) = load_policy(&root);
-    let pre_repair: Vec<_> = live
+    let nested: Vec<_> = live
         .oya_faces
         .iter()
-        .filter(|face| !NESTED_REPAIR_PACKAGES.contains(&face.package.as_str()))
-        .cloned()
+        .filter(|face| face.package != "oya")
         .collect();
-    assert!(evaluate_face_coverage(&live.oya_inputs, &pre_repair, policy.face_limits()).is_err());
-}
-
-#[test]
-fn nested_repair_faces_use_nearest_package_ownership() {
-    let root = repo_root();
-    let live = observe(&root).unwrap();
-    let counts: BTreeMap<_, _> = live
-        .oya_faces
-        .iter()
-        .filter(|face| NESTED_REPAIR_PACKAGES.contains(&face.package.as_str()))
-        .map(|face| (face.package.as_str(), face.paths.len()))
-        .collect();
-    assert_eq!(
-        counts.values().copied().collect::<Vec<_>>(),
-        NESTED_REPAIR_FACE_PATHS
+    assert!(
+        nested.is_empty(),
+        "nested oya YAML owners were drained; remaining faces must belong to oya/: {nested:?}"
     );
-    assert_eq!(counts.len(), NESTED_REPAIR_PACKAGES.len());
+    assert_eq!(NESTED_REPAIR_PACKAGES.len(), 0);
+    assert_eq!(NESTED_REPAIR_FACE_PATHS.len(), 0);
 }
 
 #[test]

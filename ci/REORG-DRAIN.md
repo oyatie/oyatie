@@ -16,7 +16,7 @@
    fail). Documented in workflow headers; wire job `if:` in a follow-on commit.
 2. **Facade wiring** — register `ci/controller` in Buck graph + generated faces.
 3. **Shrink-only burn** — delete `oya/ci-controller/**` on `integ/oya` after verify.
-4. **Webhook gateway crates** — absorbed into `ci/{core,adapters,facade}/webhook-gateway-*`. Leftover `oya/ci-webhook-gateway` (manifest, iac, policy, contracts, slos) is Phase-2 source-rail drain. Move plan is PARKED until the HR singleton frees.
+4. **Webhook gateway leftover husk** — crates already live in `ci/{core,adapters,facade,ports}/webhook-gateway-*`. Product metadata (manifest, iac, policy, contracts, slos) drained to `ci/webhook-gateway/` (not a new `ci/facade` gate). `oya/ci-webhook-gateway/` is gone.
 5. **Residual `.grok/` harness** (lenses, model-routing, drive, …) — judge forever
    homes separately; do not mass-delete `.grok/` in the process-kit wave.
 
