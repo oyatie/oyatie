@@ -19,19 +19,23 @@ deliverables:
   - id: ADR-0719-D1
     description: "Record serving-path vs control-path split as live law: 10^8-class user/Check traffic is in-cell RAM snapshots; writes, IR apply, packs, and cluster objects are a journaled control plane. etcd is fenced to cell cluster objects behind k8s/ports. Product records, tuples, and IR are never etcd/CRDs."
     exit_criteria: "This ADR is Accepted; CLAUDE.md live apex list cites it; no implement PR treats etcd or a Kubernetes object store as the Check/IR/tuple store."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0719-D2
     description: "Record EaC as one protobuf IR plus per-plane reconcilers behind one gateway. No wrap language (CUE/Timoni/Haskell/Helm-as-source). JSON is not a product codec."
     exit_criteria: "New public product surfaces and IR apply/preview/watch are authored from the Rust/proto contract SSOT; Helm/Tofu/CUE are not sources of desired state."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0719-D3
     description: "Record compliance as jurisdiction packs. EU is not the world baseline. KR (and others) are not GDPR subsets. ReBAC and snapshots stay in the certified cell."
     exit_criteria: "Pack overlays are the only place jurisdiction law is specialized; no implement PR assumes EU-only identity, retention, or global ACL replication."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
   - id: ADR-0719-D8
     description: "Closed directory set for repo root and capability/app/<product>/ roots. A name exists only if a compiler, test, PDP, SLO controller, or reconciler loads it (or it is OWNERS/README/BUCK/app PRD). Census files and wrap languages are not children."
     exit_criteria: "ADR-0701 Status cites this D-8; new cap/app children outside the set are born-blocking without grandfathering catalog.yaml or dual cedar+policy; layout-allowlist PRs match this set."
-    verified_by: "oya-ci-required"
+    verified_by: "presubmit"
+  - id: ADR-0719-D9
+    description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oya- prefix. Today's oya-ci-required string is a rename target, not the destination name."
+    exit_criteria: "This ADR uses presubmit as verified_by; no new ADR or workflow is named oya-ci-*; the live GitHub required context rename is a follow-through PR that updates branch protection in the same change."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -242,6 +246,9 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 - Implementers read this plus ADR-0701/0702/0704/0705/0615. Do not re-derive from chat.
 - `policy/` extraction and IR proto are implementation follow-through, not optional sketch.
 - Admission remains ADR-0710 (VAP/CEL+PSA); this ADR does not re-open ADR-0710's D-8.
+- Merge-blocking CI is **presubmit** (one admission context, graph-aware work). Do not
+  name it `oya-ci-required` in new law. Pair with `merge-admission` for queue
+  admission. Per-capability required GitHub checks stay forbidden.
 
 ## Rejected alternatives
 
@@ -259,3 +266,4 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 - Hand-authored OpenSLO (clones or “unique”) as SLO source of truth.
 - Standing REST/JSON transcode “until SDK is ready” (that is dual-stack debt).
 - Hand-authored OpenSLO as a W0 source of truth.
+- Branding the merge-blocking CI `oya-ci-*` or adding one required check per capability.
