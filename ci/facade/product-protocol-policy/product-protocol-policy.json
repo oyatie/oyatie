@@ -103,7 +103,7 @@
       "tenancy",
       "workflow"
     ],
-    "expected_total": 77,
+    "expected_total": 76,
     "expected_live_v1_total": 56,
     "canonical_schema_version": "1.0",
     "reviewed_legacy_service_manifests": [
