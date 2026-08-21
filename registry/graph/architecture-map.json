@@ -741,7 +741,7 @@
     { "id": "oya/design-collaboration/crates/oya-design-collaboration-creative-artifact-service", "kind": "crate", "label": "oya-design-collaboration-creative-artifact-service" },
     { "id": "oya/docs/crates/oya-docs-domain", "kind": "crate", "label": "oya-docs-domain" },
     { "id": "oya/financial-planning/crates/oya-financial-planning-forecast-scenario-app", "kind": "crate", "label": "oya-financial-planning-forecast-scenario-app" },
-    { "id": "oya/global-trade/crates/oya-global-trade-compliance-domain", "kind": "crate", "label": "oya-global-trade-compliance-domain" },
+    { "id": "app/global-trade/core/compliance-domain", "kind": "crate", "label": "global-trade-compliance-domain" },
     { "id": "oya/hr/crates/oya-hr-employment-api", "kind": "crate", "label": "oya-hr-employment-api" },
     { "id": "oya/hr/crates/oya-hr-employment-app", "kind": "crate", "label": "oya-hr-employment-app" },
     { "id": "oya/hr/crates/oya-hr-employment-domain", "kind": "crate", "label": "oya-hr-employment-domain" },

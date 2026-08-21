@@ -149,7 +149,13 @@ fn d41_office_suite_and_translate_are_not_app_products() {
         );
         assert!(root.join(keep).is_dir(), "{keep} must remain on disk");
     }
-    for gone in ["oya/notes", "oya/slides", "oya/sites", "oya/translate", "oya/office"] {
+    for gone in [
+        "oya/notes",
+        "oya/slides",
+        "oya/sites",
+        "oya/translate",
+        "oya/office",
+    ] {
         assert!(
             !retired_dirs.contains(&gone),
             "{gone} trees are deleted; retired_v1_products.current_dirs lists only live paths: {retired_dirs:?}"
