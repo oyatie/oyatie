@@ -1,9 +1,11 @@
 //! Audit-chain verification API: verdict DTOs with structured failure reasons.
 //!
-//! Wave 15-IMPL-truth-up scaffold (2026-05-21). Full schema in IP-011.
+//! Verdict DTOs with structured failure reasons. The verifier that produces
+//! these verdicts lives in `audit/core/verification-domain`.
 #![allow(dead_code)]
 
-/// Reason taxonomy for failed verification. Closed set extended in IP-011.
+/// Reason taxonomy for failed verification. Closed set; every variant is driven
+/// by a test in `audit/core/verification-domain`.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum VerificationFailureReason {
     KeyEpochMismatch,

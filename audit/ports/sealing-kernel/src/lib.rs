@@ -1,8 +1,9 @@
 //! Audit-chain sealing kernel: signer/publisher port traits and key epoch types.
 //!
-//! Wave 15-IMPL-truth-up scaffold (2026-05-21). Full extraction tracked under
-//! IP-006. Kernel must remain free of PKCS#11, S3, Postgres, Mimir, and HTTP
-//! imports per policy/seal-integrity.md SI-06 through SI-13.
+//! Signer/publisher port traits and key-epoch types. The kernel must remain free
+//! of PKCS#11, S3, Postgres, Mimir and HTTP imports — it is a pure boundary.
+//! `audit/core/sealing-domain` implements the rules over these types, against the
+//! RFC 6962 Merkle tree in `audit/core/chain-domain`.
 #![allow(dead_code)]
 
 /// Reference to a signing key handle held inside an HSM.
@@ -11,7 +12,8 @@ pub struct SigningKeyRef {
     pub key_id: String, // data_class: INTERNAL_ONLY
 }
 
-/// Pack-scoped key epoch covering a half-open period range. Full schema in IP-006.
+/// Pack-scoped key epoch covering the half-open period range `[period_lo, period_hi)`.
+/// Coverage is checked by `audit/core/sealing-domain`.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PackEpoch {
     pub pack: String,                        // data_class: PUBLIC
@@ -22,7 +24,8 @@ pub struct PackEpoch {
     pub retiring_key: Option<SigningKeyRef>, // data_class: INTERNAL_ONLY
 }
 
-/// Lifecycle status of a SealRecord. Full enum in IP-006.
+/// Lifecycle status of a SealRecord. Legal transitions are enforced by
+/// `audit/core/sealing-domain`.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SealStatus {
     Accepted,

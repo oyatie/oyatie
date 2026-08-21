@@ -14,8 +14,8 @@ related_adrs: [ADR-0028, ADR-0003, ADR-0131]
 related_specs: [/specs/audit-chain-merkle-ed25519.json]
 related_artifacts:
   - microservices/audit-chain/PRD.md
-  - microservices/audit-chain/contracts/openapi/audit-chain.yaml
-  - microservices/audit-chain/policy/tenant-scope.cedar
+  - audit/contracts/openapi/audit-chain.yaml
+  - audit/policy/tenant-scope.cedar
 
 autonomy_tier: T2
 # T2: writes durable state; emits chain event.
@@ -90,8 +90,8 @@ cost_profile:
     - Idempotency dedup check (≤ 1ms)
 
 cedar_policy_fragments:
-  - microservices/audit-chain/policy/tenant-scope.cedar
-  - microservices/audit-chain/policy/ci-scope.cedar
+  - audit/policy/tenant-scope.cedar
+  - audit/policy/ci-scope.cedar
 
 eval_set:
   golden_inputs_path: microservices/audit-chain/capabilities/eval/audit-emit-golden.jsonl

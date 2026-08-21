@@ -8,7 +8,7 @@ info:
     Internal mesh callers authenticate via mTLS + SPIFFE; tenant + auditor
     callers via OIDC bearer + Cedar policy authorisation. All endpoints are
     tenant-scoped via X-Scope-OrgID convention from
-    `microservices/audit-chain/policy/tenant-scope.cedar`.
+    `audit/policy/tenant-scope.cedar`.
 
     Cross-cutting: OIDC bearer in `Authorization: Bearer <jwt>` (external).
     SPIFFE-bound mTLS for internal callers. X-Scope-OrgID for both.

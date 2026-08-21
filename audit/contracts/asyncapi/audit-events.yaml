@@ -8,7 +8,7 @@ info:
 
     Per Bominal ADR-0028 + ADR-0003 and `/specs/audit-chain-merkle-ed25519.json` §`events`.
     Audit-chain-local emitted event classes are registered in
-    `microservices/audit-chain/audit-event-class-registry.json`; root cross-µservice
+    `audit/audit-event-class-registry.json`; root cross-µservice
     classes remain bound to ADR-0263.
 
     Consumers:

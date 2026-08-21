@@ -1,6 +1,7 @@
 //! Audit-chain query kernel: repository, export, and engagement ports.
 //!
-//! Wave 15-IMPL-truth-up scaffold (2026-05-21). Full surface in IP-012.
+//! Repository, export and auditor-engagement ports for audit query. Pure traits;
+//! the rules applied over them live in `audit/core/query-domain`.
 #![allow(dead_code)]
 
 /// Repository port for tenant-scoped audit queries.

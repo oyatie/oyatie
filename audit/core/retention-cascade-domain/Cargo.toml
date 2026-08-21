@@ -6,8 +6,8 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Wave 15-IMPL-truth-up scaffold (2026-05-21):
-# Retention rules per IP-013.
+# Pure retention-window, DSR-cascade and redaction-token rules for
+# audit-chain. Rule authority: audit/policy/retention-matrix.yaml.
 
 [dependencies]
 audit-retention-cascade-api = { path = "../../ports/retention-cascade-api" }
