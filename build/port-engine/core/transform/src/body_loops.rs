@@ -111,10 +111,22 @@ fn while_with_post(
     let mut translated = translate(&body.children, cx, TailPosition::No)?;
     if stepped {
         relabel(&mut translated, labelled);
-        translated = vec![RustStmt::Labelled {
-            label: STEP.to_owned(),
-            body: translated,
-        }];
+        // THE BLOCK IS ONLY WORTH ITS NOISE IF IT SKIPS SOMETHING. `break 'step` leaves the block
+        // and lands on the post-statement; falling off the end of the block lands there too. So
+        // where every step-break is already the last thing on its path, the block and the breaks
+        // say exactly what plain fall-through says, and a reviewer reading `'step: { .. }` around a
+        // match whose arms all diverge is reading scaffolding rather than logic.
+        //
+        // A reviewer named this on the first package it appeared in, and was right.
+        match skips_nothing(&translated) {
+            true => drop_step_breaks(&mut translated),
+            false => {
+                translated = vec![RustStmt::Labelled {
+                    label: STEP.to_owned(),
+                    body: translated,
+                }];
+            }
+        }
     }
     translated.push(crate::body_stmt::statement(
         one_child(post, cx, "post")?,
@@ -133,6 +145,103 @@ fn while_with_post(
             crate::body_stmt::statement(one_child(init, cx, "init")?, cx, false)?,
             looped,
         ])),
+    }
+}
+
+/// Whether every `break 'step` in these statements is already the last thing on its path.
+///
+/// The block exists to skip the rest of an iteration. Where there is no rest to skip -- the break
+/// is the final statement of the block, or the final statement of a branch that is itself final --
+/// leaving the block and falling out of it are the same, and the label is scaffolding.
+fn skips_nothing(statements: &[RustStmt]) -> bool {
+    let Some((last, earlier)) = statements.split_last() else {
+        return true;
+    };
+    // A break anywhere but the end HAS something after it, which is the whole reason for the block.
+    if earlier.iter().any(mentions_step) {
+        return false;
+    }
+    tail_skips_nothing(last)
+}
+
+/// The same question of one statement standing in tail position.
+fn tail_skips_nothing(statement: &RustStmt) -> bool {
+    match statement {
+        RustStmt::Break(Some(label)) => label == STEP,
+        RustStmt::Block(body) | RustStmt::Labelled { body, .. } => skips_nothing(body),
+        RustStmt::Semi(expr) | RustStmt::Tail(expr) => match expr {
+            RustExpr::Match { arms, .. } => arms.iter().all(|arm| skips_nothing(&arm.body)),
+            RustExpr::If { then, otherwise, .. } => {
+                skips_nothing(then)
+                    && otherwise
+                        .as_deref()
+                        .is_none_or(|other| tail_skips_nothing(&RustStmt::Semi(other.clone())))
+            }
+            RustExpr::Block(body) => skips_nothing(body),
+            _ => true,
+        },
+        // A nested loop owns its own jumps, so nothing inside it is this block's business.
+        RustStmt::While { .. } | RustStmt::Loop(_) | RustStmt::ForIn { .. } => true,
+        _ => true,
+    }
+}
+
+/// Whether a `break 'step` appears anywhere in this statement, including inside a nested loop --
+/// where it would still be this block's, because a label crosses a loop boundary.
+fn mentions_step(statement: &RustStmt) -> bool {
+    match statement {
+        RustStmt::Break(Some(label)) => label == STEP,
+        RustStmt::Block(body)
+        | RustStmt::Labelled { body, .. }
+        | RustStmt::While { body, .. }
+        | RustStmt::Loop(body)
+        | RustStmt::ForIn { body, .. } => body.iter().any(mentions_step),
+        RustStmt::Semi(expr) | RustStmt::Tail(expr) => mentions_step_in(expr),
+        _ => false,
+    }
+}
+
+/// The same, through the expressions that carry statements.
+fn mentions_step_in(expr: &RustExpr) -> bool {
+    match expr {
+        RustExpr::Block(body) => body.iter().any(mentions_step),
+        RustExpr::If { then, otherwise, .. } => {
+            then.iter().any(mentions_step)
+                || otherwise.as_deref().is_some_and(mentions_step_in)
+        }
+        RustExpr::Match { arms, .. } => arms.iter().any(|arm| arm.body.iter().any(mentions_step)),
+        _ => false,
+    }
+}
+
+/// Remove every `break 'step`, which falling out of the block now does instead.
+fn drop_step_breaks(statements: &mut Vec<RustStmt>) {
+    statements.retain(|statement| !matches!(statement, RustStmt::Break(Some(label)) if label == STEP));
+    for statement in statements {
+        match statement {
+            RustStmt::Block(body) | RustStmt::Labelled { body, .. } => drop_step_breaks(body),
+            RustStmt::Semi(expr) | RustStmt::Tail(expr) => drop_step_breaks_in(expr),
+            _ => {}
+        }
+    }
+}
+
+/// The same, through the expressions that carry statements.
+fn drop_step_breaks_in(expr: &mut RustExpr) {
+    match expr {
+        RustExpr::Block(body) => drop_step_breaks(body),
+        RustExpr::If { then, otherwise, .. } => {
+            drop_step_breaks(then);
+            if let Some(other) = otherwise.as_deref_mut() {
+                drop_step_breaks_in(other);
+            }
+        }
+        RustExpr::Match { arms, .. } => {
+            for arm in arms {
+                drop_step_breaks(&mut arm.body);
+            }
+        }
+        _ => {}
     }
 }
 

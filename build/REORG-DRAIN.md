@@ -7461,3 +7461,68 @@ Not run here, and that is a scope decision rather than an omission — the regen
 eighteen-thousand-line file shared by the whole repository, this lane is scoped to
 `build/port-engine/`, and ADR-0716 makes cargo the CI merge path with buck2 a local smoke. The
 cargo suite is green and covers the same crates.
+
+## R5a — review round 9, and the scaffolding my own rule was emitting
+
+    round 8   blind DO_NOT_MERGE (9)   go-aware MERGE_WITH_CHANGES (9)
+    round 9   blind DO_NOT_MERGE (10)  go-aware MERGE_WITH_CHANGES (9)
+
+The Go-aware reviewer scored the previous round's six complaints as "roughly two fixed, three still
+live, one too coarse", which is the first time either gate has acknowledged movement — and the
+"too coarse" is worth more than the credit.
+
+### What a reviewer caught that I had built
+
+> `'step: { ... break 'step; }` is a no-op — the block ends immediately before `i += 1`, so
+> `break 'step` and falling off the end are identical.
+
+True, and it was my own rule producing it. R4u wraps an iteration in a labelled block so a
+`continue` lands on the post-statement instead of jumping past it. That block earns its noise only
+where there is something to SKIP. Where every step-break is already the last thing on its path,
+leaving the block and falling out of it are the same, and a reader gets scaffolding instead of
+logic.
+
+    while i < data.len() as i64 {
+        match data[i as usize] {
+            b' ' | b'\t' | b'\n' | b'\r' => {}
+            b':' => return (i.wrapping_add(1), true),
+            _ => return (i, false),
+        }
+        i += 1;
+    }
+
+The block survives where it is doing work — `if digit { break 'step } break 'counted` genuinely
+skips the loop-break — and three of six sites kept it.
+
+### Where the two reviewers DISAGREE, and the Go-aware one is right
+
+The blind reviewer verified a panic in `validnumber` — `i -= 1` at `i == 0` indexes at
+`usize::MAX` — and called it a blocking defect. The Go-aware reviewer checked the upstream and
+recorded the opposite: "validnumber's opening `i -= 1` is upstream's, and callers pass `i+1`". It
+is a precondition of the source function, faithfully carried. The engine is not permitted to invent
+a bounds check the source does not have; doing so is the redesign §10 rejects.
+
+RECORDED RATHER THAN ACTED ON, because a reviewer who does not know the code is a port cannot tell
+a carried precondition from an introduced one — which is exactly why the second gate exists.
+
+### Declined, with the reason
+
+The blanket "iota blocks should be enums" from round 8 is TOO COARSE and the Go-aware reviewer
+withdrew part of it on inspection: `MethodTyp` is a BITMASK — `1, 2, 4 ... 1024`, ORed into `mALL`
+— and an enum would be wrong; `Version` is genuinely open, its own `Display` returning
+`BAD_VERSION_{n}` for `n > 15`. `NodeEventType`, `NodeTyp`, `EncryptionVersion` and `gjson::Type`
+remain fair. A rule that turned every iota block into an enum would have made the port worse in two
+places, and only reading the uses tells them apart.
+
+### Still live, and named for the next phase
+
+- `(T, bool)` in eight more functions. The reviewer traced the upstream call graph and found the
+  failure index discarded by every caller — a WHOLE-PROGRAM fact. `spells_an_option` is local and
+  conservative: it requires the failing return to hand back a literal, and these hand back the
+  offset they stopped at. Extending it needs the call-graph proof, and for a PRIVATE function that
+  proof is available inside the corpus.
+- `wrapping_*` applied where nothing can overflow. The reviewer's sharpest point: three of the
+  wrapping calls in `parse_uint`/`parse_int` are LOAD-BEARING because gjson relies on Go's wrap,
+  and twenty-one on slice indices are not — "the signal that this wrap is deliberate has been
+  destroyed by applying it everywhere".
+- Go's `int` as `i64` for offsets, then `as usize` at the index. Both gates, twice each now.
