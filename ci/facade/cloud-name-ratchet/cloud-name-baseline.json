@@ -1,7 +1,7 @@
 {
   "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
-  "count": 836,
+  "count": 833,
   "cloud_prefixed_names": [
     "dir:.github/workflows/oya-ci-required.yml",
     "dir:billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md",
@@ -412,7 +412,6 @@
     "dir:secrets/observability/slos/cloud-kms",
     "dir:secrets/observability/slos/cloud-secrets",
     "dir:secrets/ports/kms-api/tests/cloud_kms_api.rs",
-    "dir:specs/cloud-authorization-target.json",
     "dir:specs/cloud-ci-run-observability-packet.schema.json",
     "dir:specs/cloud-ci-run-observability-status.schema.json",
     "dir:specs/cloud-control-plane-canonical.json",
@@ -424,8 +423,6 @@
     "dir:specs/cloud-production-quality-kits-target.json",
     "dir:specs/cloud-resource-catalog-target.json",
     "dir:specs/cloud-resource-contract-parity-catalog.json",
-    "dir:specs/cloud-strangler-migration-target.json",
-    "dir:specs/cloud-toolchain-target.json",
     "dir:specs/design-system/cloud-cell-topology-map.json",
     "dir:specs/fixtures/cloud-ci-run-observability",
     "dir:specs/fixtures/cloud-ci-run-terminal-state",

@@ -357,10 +357,6 @@
     {
       "path": "specs/cloud-production-quality-kits-target.json",
       "role": "measured production-quality evidence kit target definitions"
-    },
-    {
-      "path": "specs/cloud-toolchain-target.json",
-      "role": "historical toolchain target; G007 must reconcile legacy CI wording with the user-mandated bespoke GitHub (interim)/Kubernetes dogfood CI lane"
     }
   ],
   "category_taxonomy": [
