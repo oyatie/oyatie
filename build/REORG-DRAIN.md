@@ -7625,3 +7625,44 @@ a reaching-definitions question, not a syntactic one — and a wrong answer conv
 failure offset a caller does use, which is a silent behaviour change of exactly the kind the local
 rule exists to refuse. It is tractable because every one of these functions is PRIVATE, so the
 package call graph is the whole call graph; the snapshot already carries it.
+
+## R5e — the mutex analysis was the wrong recommendation, and the measurement says so
+
+I put the `sync.Mutex` lock-scope analysis to the operator three times as the decision worth taking
+first, on the argument that it is an ANALYSIS rather than a preference and therefore supplies the
+fact the pack says is missing. Measured, that recommendation does not survive.
+
+Every struct in the corpus carrying a `sync` field:
+
+    gocache::cache               1 RWMutex,  5 fields
+    multierror::Group            1 Mutex + 1 WaitGroup, 3 fields
+    memberlist::awareness        1 RWMutex,  4 fields
+    memberlist::Keyring          1 Mutex,    2 fields
+    memberlist::TransmitLimited  1 Mutex,    6 fields
+    memberlist::NetTransport     1 WaitGroup
+    memberlist::Memberlist       SEVEN mutexes, 33 fields
+
+`Memberlist` is the central type of the phase-3 repository and it has SEVEN locks over
+thirty-three fields. A single-mutex reshape does not touch it, and a seven-way one has to partition
+the fields by which lock guards each — which is the harder half of the problem, not a corollary of
+the easy half.
+
+And the small candidates do not unlock either, because their methods do not release the lock the way
+the analysis assumes:
+
+    func (k *Keyring) UseKey(key []byte) error {
+        k.l.Lock()
+        defer k.l.Unlock()
+
+`defer` is not modelled. 83 `DeferStmt` nodes reach the model as `unsupported` across the corpus,
+234 `defer` statements in `memberlist` alone. So the mutex reshape would emit a struct nobody can
+use: the declaration translates and every method that touches it still refuses.
+
+THE GATEWAY IS `defer`, NOT THE MUTEX, and defer-for-a-lock has an exact and better Rust answer that
+needs no decision at all — `mu.Lock(); defer mu.Unlock()` is `let _guard = mu.lock()`, which is RAII
+and is what a Rust author writes. That is the "diverge where the target is better" case in its
+purest form, and it is mechanism rather than policy.
+
+Recorded as a correction rather than quietly re-ordered: the recommendation was made three times and
+was wrong, and the reason it was wrong is that it was never measured against the bodies that would
+have to use the reshaped struct.
