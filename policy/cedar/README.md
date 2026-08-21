@@ -39,9 +39,11 @@ permit alone                   -> Allow
 permit + bare forbid (bundled) -> Deny
 ```
 
-So `policy/policy/*.cedar` is **closed under concatenation**: `policies.cedar` is their byte-exact
-concatenation and decides identically. `CONFORMANCE.md` asserts this by running the whole suite
-against the concatenated bundle rather than the fragments.
+So `policy/policy/*.cedar` is **closed under concatenation**: `policies.cedar` is their concatenation
+plus a header and one separator comment per fragment, and it decides identically. (Comment-stripped
+the two are byte-identical; an earlier revision claimed "byte-exact", which the separators make
+false.) `CONFORMANCE.md` asserts the property that matters by running the whole suite against the
+concatenated bundle rather than against the fragments.
 
 ### The same shape elsewhere in the tree
 
