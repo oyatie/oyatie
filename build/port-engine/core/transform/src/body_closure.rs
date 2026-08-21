@@ -47,7 +47,8 @@ pub(crate) fn closure(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tra
     // variable -- the source has one value and `move` would make several. A variable nothing
     // reassigns has one value for its whole life, and there a copy is indistinguishable from the
     // original. So the reassigned case keeps refusing, and says which capture forced it.
-    if !captures.is_empty() && node.attr(crate::vocabulary::ATTR_DESTINATION) == Some(DESTINATION_RETURN)
+    if !captures.is_empty()
+        && node.attr(crate::vocabulary::ATTR_DESTINATION) == Some(DESTINATION_RETURN)
     {
         if let Some(shared) = captures
             .iter()
@@ -73,7 +74,9 @@ pub(crate) fn closure(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tra
         // carries its site counts once per site — which is how one undecided form read as eighteen
         // rows in R3j and hid the largest blocker in the corpus. What a reader needs here is the
         // missing DECISION, and that is the same decision at every one of these sites.
-        let written = captures.iter().any(|capture| capture.has_flag(FLAG_MUTATED));
+        let written = captures
+            .iter()
+            .any(|capture| capture.has_flag(FLAG_MUTATED));
         return Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),
             detail: format!(

@@ -42,13 +42,13 @@ pub(crate) fn formatted_call(
     // macro that parses its template at compile time, so a template computed at run time cannot
     // reach it at all. Read from the SOURCE node rather than from the rendered argument, because
     // what matters is whether the source wrote a literal there.
-    let template_node =
-        node.children
-            .get(1)
-            .ok_or_else(|| TransformError::Unsupported {
-                name: cx.owner.to_owned(),
-                detail: format!("`{identity}` was called with no template at all"),
-            })?;
+    let template_node = node
+        .children
+        .get(1)
+        .ok_or_else(|| TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: format!("`{identity}` was called with no template at all"),
+        })?;
     if template_node.kind != KIND_LITERAL {
         return Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),
@@ -194,16 +194,15 @@ fn translate_template(
 /// being passed through to mean something else. A raw literal refuses too: its content is
 /// uninterpreted in the source, and deciding what that becomes in the target is a decision nobody
 /// has made.
-fn literal_content(
-    raw: &str,
-    cx: &Body<'_>,
-    identity: &str,
-) -> Result<String, TransformError> {
+fn literal_content(raw: &str, cx: &Body<'_>, identity: &str) -> Result<String, TransformError> {
     let refuse = |what: &str| TransformError::Unsupported {
         name: cx.owner.to_owned(),
         detail: format!("the template passed to `{identity}` {what}"),
     };
-    let Some(inner) = raw.strip_prefix('"').and_then(|rest| rest.strip_suffix('"')) else {
+    let Some(inner) = raw
+        .strip_prefix('"')
+        .and_then(|rest| rest.strip_suffix('"'))
+    else {
         return Err(refuse(
             "is not a quoted string literal — a raw literal's content is uninterpreted in the \
              source, and what that becomes in the target is a decision nobody has made",
@@ -216,7 +215,9 @@ fn literal_content(
             out.push(ch);
             continue;
         }
-        let escape = chars.next().ok_or_else(|| refuse("ends in a bare escape"))?;
+        let escape = chars
+            .next()
+            .ok_or_else(|| refuse("ends in a bare escape"))?;
         out.push(match escape {
             'n' => '\n',
             't' => '\t',

@@ -122,12 +122,18 @@ fn mentions_read(statement: &Declaration, name: &str) -> usize {
     let implicit = usize::from(
         statement.kind == "assign"
             && statement.attr(ATTR_OP).is_some()
-            && statement.children.first().is_some_and(|target| {
-                target.kind == KIND_IDENT && target.name == name
-            }),
+            && statement
+                .children
+                .first()
+                .is_some_and(|target| target.kind == KIND_IDENT && target.name == name),
     );
     let written = match statement.kind == "assign" {
-        true => statement.children.iter().skip(1).map(|value| mentions(value, name)).sum(),
+        true => statement
+            .children
+            .iter()
+            .skip(1)
+            .map(|value| mentions(value, name))
+            .sum(),
         false => mentions(statement, name),
     };
     implicit + written

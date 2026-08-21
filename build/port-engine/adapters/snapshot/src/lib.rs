@@ -16,12 +16,12 @@ mod error;
 mod preimage;
 
 pub use admit::{
-    admit_embedded_fixture, admit_embedded_fixture_drift_after_v1,
-    admit_embedded_fixture_buildtags_v1, admit_embedded_fixture_drift_before_v1,
+    admit_embedded_fixture, admit_embedded_fixture_buildtags_v1,
+    admit_embedded_fixture_drift_after_v1, admit_embedded_fixture_drift_before_v1,
     admit_embedded_fixture_failure_v1, admit_embedded_fixture_foreign_v1,
     admit_embedded_fixture_interface_v1, admit_embedded_fixture_ownership_v1,
-    admit_embedded_fixture_sentinel_v1, admit_embedded_fixture_unproven_v1,
-    admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1, admit_reproducible_pair,
+    admit_embedded_fixture_refused_v1, admit_embedded_fixture_sentinel_v1,
+    admit_embedded_fixture_unproven_v1, admit_embedded_fixture_v1, admit_reproducible_pair,
 };
 pub use admitted::AdmittedSnapshot;
 pub use error::AdmitError;

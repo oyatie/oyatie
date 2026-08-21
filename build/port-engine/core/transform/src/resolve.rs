@@ -19,19 +19,19 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{Declaration, DeriveRule, DocConvention, FailureConvention, ForeignType, FunctionMapping, IdiomRule, IntegerArithmetic, TypeRef, UnitId};
+use port_engine_api::{
+    Declaration, DeriveRule, DocConvention, FailureConvention, ForeignType, FunctionMapping,
+    IdiomRule, IntegerArithmetic, TypeRef, UnitId,
+};
 use port_engine_rust_ir::RustType;
 
 use crate::error::TransformError;
 pub use crate::resolve_scope::LocalScope;
 
-use crate::signature_table::SignatureTable;
 use crate::naming::{module_path, to_pascal_case, to_screaming_snake, to_snake_case};
 use crate::ownership::OwnershipContext;
+use crate::signature_table::SignatureTable;
 use crate::vocabulary::{CHILD_FIELD, CHILD_METHOD, FLAG_EXPORTED, TYPE_NAMED_INTERFACE};
-
-
-
 
 /// What a resolver needs: the unit's own declarations, the pack's answers, and the unit's identity.
 pub(crate) struct Resolver<'a> {

@@ -9,12 +9,15 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::value_rules::{ForeignType, ChannelForms, Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
 use crate::failure::{
     DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };
 use crate::identity::{Digest, LanguagePair, RegionId, RuleId, UnitId};
 use crate::ownership::PointerDisposition;
+use crate::value_rules::{
+    Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ChannelForms, ForeignType,
+    FormatCalls, FormatFunction, ReadableLiterals, SequenceAppend,
+};
 
 /// The canonical semantic model of the source corpus, as produced by a front end.
 ///

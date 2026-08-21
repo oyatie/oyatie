@@ -7,10 +7,11 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{ChannelForms, 
-    Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, DeriveRule, DocConvention, FailureConvention, ReadableLiterals,
-    ForeignType, FormatCalls, FormatFunction, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
-    PointerConstruction, PointerDisposition, RuleId, SequenceAppend, UnitId,
+use port_engine_api::{
+    Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ChannelForms, DeriveRule,
+    DocConvention, FailureConvention, ForeignType, FormatCalls, FormatFunction, FunctionMapping,
+    IdiomRule, IntegerArithmetic, LanguagePair, PointerConstruction, PointerDisposition,
+    ReadableLiterals, RuleId, SequenceAppend, UnitId,
 };
 use port_engine_hash::digest_bytes;
 

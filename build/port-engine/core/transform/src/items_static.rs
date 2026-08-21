@@ -29,8 +29,10 @@ use crate::error::TransformError;
 use crate::naming::{to_pascal_case, to_screaming_snake, visibility};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    ATTR_REF, CONSTRUCTION_RUST_STATIC, FLAG_EXPORTED, FLAG_INIT_WRITTEN, FLAG_REBOUND, FORM_INIT_WRITTEN_PACKAGE_VAR,
-    FORM_EXPORTED_PACKAGE_VAR, FORM_WRITTEN_PACKAGE_VAR, KIND_COMPOSITE, KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING, TARGET_STR,
+    ATTR_REF, CONSTRUCTION_RUST_STATIC, FLAG_EXPORTED, FLAG_INIT_WRITTEN, FLAG_REBOUND,
+    FORM_EXPORTED_PACKAGE_VAR, FORM_INIT_WRITTEN_PACKAGE_VAR, FORM_WRITTEN_PACKAGE_VAR,
+    KIND_COMPOSITE, KIND_IDENT, KIND_KEYED, KIND_LITERAL, KIND_ZERO, REF_CONST, SOURCE_STRING,
+    TARGET_STR,
 };
 
 /// `static NAME: T = value;` for a package variable nothing writes.
@@ -52,7 +54,11 @@ pub(crate) fn build_static(
         // and what it lacks is the initialising expression rather than a decision. Naming both with
         // one reason told a reader the engine was weighing a concurrency policy for a compiled
         // constant, which is not what is missing.
-        let form = match declaration.flags.iter().any(|flag| flag == FLAG_INIT_WRITTEN) {
+        let form = match declaration
+            .flags
+            .iter()
+            .any(|flag| flag == FLAG_INIT_WRITTEN)
+        {
             true => FORM_INIT_WRITTEN_PACKAGE_VAR,
             false => FORM_WRITTEN_PACKAGE_VAR,
         };
@@ -172,9 +178,9 @@ pub(crate) fn build_static(
                 returns_option: false,
                 borrowed: std::collections::BTreeSet::new(),
                 result_is_owned_string: false,
-            result_is_owned_sequence: std::collections::BTreeSet::new(),
-            drops_absent_failure: false,
-            named_results: Vec::new(),
+                result_is_owned_sequence: std::collections::BTreeSet::new(),
+                drops_absent_failure: false,
+                named_results: Vec::new(),
                 results: crate::returns::ResultFacts::none(),
                 usize_counters: std::collections::BTreeSet::new(),
                 walked: None,
@@ -398,8 +404,10 @@ fn byte_string(initialiser: &Declaration, body: &Body<'_>) -> Option<RustExpr> {
         let RustExpr::Literal(spelled) = expression(element, body).ok()? else {
             return None;
         };
-        let byte = u8::try_from(crate::body_escape::rune_code_point(spelled.strip_prefix('b')?)?)
-            .ok()?;
+        let byte = u8::try_from(crate::body_escape::rune_code_point(
+            spelled.strip_prefix('b')?,
+        )?)
+        .ok()?;
         // The printable range, less the two characters that would end or escape the string.
         match (0x20..=0x7e).contains(&byte) && byte != b'"' && byte != b'\\' {
             true => bytes.push(char::from(byte)),

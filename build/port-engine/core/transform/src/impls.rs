@@ -94,8 +94,13 @@ fn display_impl(
     };
     // NO PARAMETERS and ONE RESULT. A method that merely shares the name is a different method:
     // the source's contract is nullary, and one taking an argument cannot be the trait's.
-    if !method.children_of_kind(crate::vocabulary::CHILD_PARAM).is_empty()
-        || method.children_of_kind(crate::vocabulary::CHILD_RESULT).len() != 1
+    if !method
+        .children_of_kind(crate::vocabulary::CHILD_PARAM)
+        .is_empty()
+        || method
+            .children_of_kind(crate::vocabulary::CHILD_RESULT)
+            .len()
+            != 1
     {
         return Ok(None);
     }
@@ -238,7 +243,6 @@ fn implementing_method(
     rendered.body = crate::promote::forwarding_body(promoted, declaration, resolver)?;
     Ok(rendered)
 }
-
 
 /// Whether this observed satisfaction cannot be spelled as a target trait impl.
 ///
@@ -395,7 +399,9 @@ fn written_exits(body: Vec<RustStmt>) -> Vec<RustStmt> {
     // correct where the value is KEPT; nothing here keeps it.
     let mut written: Vec<RustStmt> = body.into_iter().map(write_returns).collect();
     if let Some(RustStmt::Tail(value)) = written.pop() {
-        written.push(RustStmt::Tail(RustExpr::FormatterWrite(Box::new(unowned(value)))));
+        written.push(RustStmt::Tail(RustExpr::FormatterWrite(Box::new(unowned(
+            value,
+        )))));
     } else {
         // No tail: the body ends in a `return`, which the walk above already wrapped.
     }
@@ -462,9 +468,10 @@ fn returns_early(statement: &port_engine_rust_ir::RustStmt) -> bool {
     use port_engine_rust_ir::RustStmt;
     match statement {
         RustStmt::Return(_) => true,
-        RustStmt::While { body, .. } | RustStmt::Loop(body) | RustStmt::ForIn { body, .. } | RustStmt::Block(body) => {
-            body.iter().any(returns_early)
-        }
+        RustStmt::While { body, .. }
+        | RustStmt::Loop(body)
+        | RustStmt::ForIn { body, .. }
+        | RustStmt::Block(body) => body.iter().any(returns_early),
         RustStmt::Semi(expr) | RustStmt::Tail(expr) => returns_in_expression(expr),
         _ => false,
     }

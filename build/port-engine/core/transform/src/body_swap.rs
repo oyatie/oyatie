@@ -57,10 +57,7 @@ pub(crate) fn exchange(
     Ok(Some(RustExpr::MethodCall {
         receiver: Box::new(RustExpr::Path(to_snake_case(a.0))),
         method,
-        args: vec![
-            place_index(first, cx)?,
-            place_index(second, cx)?,
-        ],
+        args: vec![place_index(first, cx)?, place_index(second, cx)?],
     }))
 }
 
@@ -122,7 +119,12 @@ pub(crate) fn membership(arms: &[MatchArm], scrutinee: &RustExpr) -> Option<Rust
         if arm.patterns.is_empty() || !yields(&arm.body, "true") {
             return None;
         }
-        patterns.extend(arm.patterns.iter().map(render_operand).collect::<Option<Vec<_>>>()?);
+        patterns.extend(
+            arm.patterns
+                .iter()
+                .map(render_operand)
+                .collect::<Option<Vec<_>>>()?,
+        );
     }
     if patterns.is_empty() {
         return None;
@@ -410,9 +412,9 @@ pub(crate) fn compares_float_bounds(statement: &RustStmt) -> bool {
                     || otherwise.as_deref().is_some_and(in_expr)
             }
             RustExpr::Block(body) => body.iter().any(compares_float_bounds),
-            RustExpr::Match { arms, .. } => {
-                arms.iter().any(|arm| arm.body.iter().any(compares_float_bounds))
-            }
+            RustExpr::Match { arms, .. } => arms
+                .iter()
+                .any(|arm| arm.body.iter().any(compares_float_bounds)),
             _ => false,
         }
     }
@@ -420,7 +422,9 @@ pub(crate) fn compares_float_bounds(statement: &RustStmt) -> bool {
         RustStmt::Semi(expr) | RustStmt::Tail(expr) | RustStmt::Discard(expr) => in_expr(expr),
         RustStmt::Return(Some(expr)) => in_expr(expr),
         RustStmt::Let { value, .. } => value.as_ref().is_some_and(in_expr),
-        RustStmt::While { cond, body, .. } => in_expr(cond) || body.iter().any(compares_float_bounds),
+        RustStmt::While { cond, body, .. } => {
+            in_expr(cond) || body.iter().any(compares_float_bounds)
+        }
         RustStmt::Loop(body) | RustStmt::Block(body) | RustStmt::ForIn { body, .. } => {
             body.iter().any(compares_float_bounds)
         }

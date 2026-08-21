@@ -65,7 +65,9 @@ pub(crate) fn results_in(
         && let Some(convention) = resolver.failure
         && !convention.nullable_borrowed_type.is_empty()
     {
-        return Ok(Some(RustType::path(convention.nullable_borrowed_type.clone())));
+        return Ok(Some(RustType::path(
+            convention.nullable_borrowed_type.clone(),
+        )));
     }
     // A signature the body proves cannot fail loses the failure result WITHOUT gaining a `Result`.
     // See `returns::never_fails` for why carrying it over is not faithfulness.
@@ -199,17 +201,13 @@ pub(crate) fn results_in(
     ))))
 }
 
-
 /// Whether this declaration hands a failure back as a VALUE rather than through the channel.
 ///
 /// The one place that question is answered, so the signature and the body cannot disagree about it.
 /// They are built by different code and were asked separately once; a signature that says `Option<E>`
 /// while the body still emits `Err(..)` is two spellings of one decision, which is how the `mut`
 /// on a folded parameter went wrong three times.
-pub(crate) fn returns_failure_as_value(
-    declaration: &Declaration,
-    resolver: &Resolver<'_>,
-) -> bool {
+pub(crate) fn returns_failure_as_value(declaration: &Declaration, resolver: &Resolver<'_>) -> bool {
     crate::returns::borrows_failure_from_receiver(declaration, resolver)
         && resolver
             .failure

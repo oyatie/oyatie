@@ -15,8 +15,8 @@ use quote::quote;
 use port_engine_api::PortError;
 
 use crate::expr::RustExpr;
-use crate::ops::BinaryOp;
 use crate::lower_expr::lower_expr;
+use crate::ops::BinaryOp;
 use crate::ty::RustType;
 
 /// The base of a postfix form needs bracketing when it is not itself atomic.
@@ -87,9 +87,7 @@ pub(crate) fn binds_tighter_than_cast(expr: &RustExpr) -> bool {
 pub(crate) fn is_block_like(expr: &RustExpr) -> bool {
     matches!(
         expr,
-        RustExpr::If { .. }
-            | RustExpr::Block(_)
-            | RustExpr::Match { .. }
+        RustExpr::If { .. } | RustExpr::Block(_) | RustExpr::Match { .. }
     )
 }
 

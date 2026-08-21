@@ -222,7 +222,10 @@ pub(crate) fn named_results(cx: &crate::body::Body<'_>) -> Option<port_engine_ru
             .next()
             .map(port_engine_rust_ir::RustExpr::Path),
         _ => Some(port_engine_rust_ir::RustExpr::Tuple(
-            names.into_iter().map(port_engine_rust_ir::RustExpr::Path).collect(),
+            names
+                .into_iter()
+                .map(port_engine_rust_ir::RustExpr::Path)
+                .collect(),
         )),
     }
 }

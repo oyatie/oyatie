@@ -9,10 +9,11 @@ use crate::error::TransformError;
 use crate::naming::{to_snake_case, visibility};
 use crate::ownership::{binds_by_pointer, facts_of, parameter_target, receiver_for};
 use crate::params::params;
-use crate::results::{results, results_owned};
 use crate::resolve::Resolver;
+use crate::results::{results, results_owned};
 use crate::vocabulary::{
-    ATTR_RECEIVER, CHILD_BODY, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT, FLAG_VARIADIC, POSITION_PARAM, POSITION_RESULT, POSITION_TRAIT_METHOD_PARAM,
+    ATTR_RECEIVER, CHILD_BODY, CHILD_IMPLEMENTS, CHILD_METHOD, CHILD_PARAM, CHILD_RESULT,
+    FLAG_VARIADIC, POSITION_PARAM, POSITION_RESULT, POSITION_TRAIT_METHOD_PARAM,
 };
 
 /// Whether a method's body is translated, stubbed, or absent.
@@ -50,7 +51,11 @@ pub(crate) fn inherent_methods(
         .filter(|method| !claimed.contains(&method.name))
     {
         match method_signature(
-            method, resolver, Visibility::Public, body, &declaration.name,
+            method,
+            resolver,
+            Visibility::Public,
+            body,
+            &declaration.name,
             crate::body::ResultShape::Own,
         ) {
             Ok(built) => methods.push(built),
@@ -61,7 +66,11 @@ pub(crate) fn inherent_methods(
             }),
         }
     }
-    methods.extend(crate::promote::promoted_methods(declaration, resolver, &claimed)?);
+    methods.extend(crate::promote::promoted_methods(
+        declaration,
+        resolver,
+        &claimed,
+    )?);
     methods.extend(emptiness_companion(&methods));
     for method in &mut methods {
         borrow_constant_text(method);
@@ -185,7 +194,6 @@ pub(crate) fn method_signature_at(
     result: crate::body::ResultShape,
     position: &str,
 ) -> Result<RustFn, TransformError> {
-
     // A pointer receiver used to be refused outright, because `&self` drops the mutation it
     // permits and `&mut self` claims one the source may not perform, and nothing reported which.
     // The front end now reports it, so the guess became a decision — made by the pack over

@@ -42,7 +42,14 @@ pub(crate) fn length_constants(
 
     let mut reads: BTreeMap<String, (usize, usize)> = BTreeMap::new();
     for declaration in declarations {
-        count_reads(declaration, &candidates, lengths, renders, takes_length, &mut reads);
+        count_reads(
+            declaration,
+            &candidates,
+            lengths,
+            renders,
+            takes_length,
+            &mut reads,
+        );
     }
     let proven: BTreeSet<String> = reads
         .into_iter()
@@ -118,7 +125,10 @@ fn built_from(node: &Declaration, candidates: &BTreeSet<String>) -> bool {
     match node.kind.as_str() {
         KIND_LITERAL => true,
         KIND_IDENT => candidates.contains(&node.name),
-        "binary" | "paren" => node.children.iter().all(|child| built_from(child, candidates)),
+        "binary" | "paren" => node
+            .children
+            .iter()
+            .all(|child| built_from(child, candidates)),
         _ => false,
     }
 }
@@ -134,7 +144,6 @@ fn names_in(node: &Declaration, candidates: &BTreeSet<String>) -> BTreeSet<Strin
     }
     out
 }
-
 
 /// Count every read of a candidate, and how many of those are compared against a length.
 fn count_reads(
@@ -155,7 +164,14 @@ fn count_reads(
             .is_some_and(|callee| takes_length.contains(callee))
     {
         for child in &node.children {
-            count_reads(child, &BTreeSet::new(), lengths, renders, takes_length, into);
+            count_reads(
+                child,
+                &BTreeSet::new(),
+                lengths,
+                renders,
+                takes_length,
+                into,
+            );
         }
         return;
     }
@@ -167,13 +183,22 @@ fn count_reads(
     // the breach, and a reviewer called the resulting signed type the most consequential finding
     // in the file three separate times before this could see why.
     if node.kind == KIND_CALL
-        && node.attr(ATTR_CALLEE).is_some_and(|callee| renders.contains(callee))
+        && node
+            .attr(ATTR_CALLEE)
+            .is_some_and(|callee| renders.contains(callee))
     {
         // The TEMPLATE and the values are all rendered, so none of this subtree is evidence —
         // except a nested call, whose own arguments are its own business. Descending with the
         // candidate set emptied says exactly that: nothing here counts as a read.
         for child in &node.children {
-            count_reads(child, &BTreeSet::new(), lengths, renders, takes_length, into);
+            count_reads(
+                child,
+                &BTreeSet::new(),
+                lengths,
+                renders,
+                takes_length,
+                into,
+            );
         }
         return;
     }
@@ -184,7 +209,14 @@ fn count_reads(
     // keep `ksuid`'s byte length signed, though the unit compares it to a length as well.
     if is_length_arithmetic(node, candidates, lengths) {
         for child in &node.children {
-            count_reads(child, &BTreeSet::new(), lengths, renders, takes_length, into);
+            count_reads(
+                child,
+                &BTreeSet::new(),
+                lengths,
+                renders,
+                takes_length,
+                into,
+            );
         }
         return;
     }

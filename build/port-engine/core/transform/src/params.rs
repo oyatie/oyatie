@@ -8,14 +8,15 @@
 use std::collections::BTreeSet;
 
 use port_engine_api::{Declaration, TypeRef};
-use port_engine_rust_ir::{RustStmt, Visibility, RustParam, RustType};
+use port_engine_rust_ir::{RustParam, RustStmt, RustType, Visibility};
 
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
 use crate::ownership::{binds_by_pointer, parameter_target, reference_owned, reference_target};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, IDIOM_BORROWED_SLICE, IDIOM_SINGLE_EXPRESSION_INLINE, POSITION_PARAM, POSITION_RESULT, SOURCE_STRING, TARGET_STR,
+    CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, IDIOM_BORROWED_SLICE,
+    IDIOM_SINGLE_EXPRESSION_INLINE, POSITION_PARAM, POSITION_RESULT, SOURCE_STRING, TARGET_STR,
 };
 
 /// A variadic parameter is a SLICE, which is what it already is.
@@ -109,7 +110,12 @@ pub(crate) fn params_at(
                 } else {
                     borrowed_spelling(param, resolver, &declaration.name)?
                 };
-                RustType::path(reference_target(param, &spelling, &site, resolver.ownership)?)
+                RustType::path(reference_target(
+                    param,
+                    &spelling,
+                    &site,
+                    resolver.ownership,
+                )?)
             } else if param.type_ref.kind == "pointer" {
                 let pointee =
                     param
@@ -199,8 +205,7 @@ fn borrowed_spelling(
     resolver: &Resolver<'_>,
     owner: &str,
 ) -> Result<String, TransformError> {
-    if param.type_ref.name == SOURCE_STRING
-        && resolver.idiom_method(IDIOM_BORROWED_SLICE).is_some()
+    if param.type_ref.name == SOURCE_STRING && resolver.idiom_method(IDIOM_BORROWED_SLICE).is_some()
     {
         // `str` is the string's unsized view, exactly as `[T]` is a sequence's: `&str` takes every
         // `&String` and also a literal and a subslice, where `&String` takes only the container.
@@ -210,7 +215,10 @@ fn borrowed_spelling(
         && resolver.idiom_method(IDIOM_BORROWED_SLICE).is_some()
         && let Some(element) = param.type_ref.args.first()
     {
-        return Ok(format!("[{}]", resolver.resolve(element, owner)?.spelling()));
+        return Ok(format!(
+            "[{}]",
+            resolver.resolve(element, owner)?.spelling()
+        ));
     }
     Ok(resolver
         .resolve_in(&param.type_ref, owner, POSITION_PARAM)?

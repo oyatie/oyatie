@@ -71,7 +71,10 @@ pub(crate) fn address_of_fresh(
     if operand.kind != KIND_COMPOSITE {
         return Ok(None);
     }
-    let Some(construction) = cx.resolver.ownership.construction_for(DISPOSITION_OWNED_POINTER)
+    let Some(construction) = cx
+        .resolver
+        .ownership
+        .construction_for(DISPOSITION_OWNED_POINTER)
     else {
         return Ok(None);
     };
@@ -90,10 +93,7 @@ pub(crate) fn address_of_fresh(
 ///
 /// # Errors
 /// [`TransformError`] from translating the base.
-pub(crate) fn field_place(
-    node: &Declaration,
-    cx: &Body<'_>,
-) -> Result<RustExpr, TransformError> {
+pub(crate) fn field_place(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
     Ok(RustExpr::Field {
         base: Box::new(expression(one_child(node, cx, "selector")?, cx)?),
         name: to_snake_case(&node.name),
@@ -210,10 +210,7 @@ pub(crate) fn convert(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tra
 }
 
 /// What a newtype occurrence wraps, when the body can tell which newtype it is.
-fn newtype_underlying(
-    source: &Declaration,
-    cx: &Body<'_>,
-) -> Option<port_engine_api::TypeRef> {
+fn newtype_underlying(source: &Declaration, cx: &Body<'_>) -> Option<port_engine_api::TypeRef> {
     let owner = match crate::body_ops::is_receiver(source) {
         true => cx.receiver_type?,
         false => source.type_ref.name.as_str(),
@@ -228,7 +225,11 @@ fn newtype_underlying(
 /// from the expression's own type.
 fn wraps_a_local_newtype(source: &Declaration, cx: &Body<'_>) -> bool {
     source.type_ref.kind == "named"
-        && cx.resolver.scope.newtypes.contains_key(&source.type_ref.name)
+        && cx
+            .resolver
+            .scope
+            .newtypes
+            .contains_key(&source.type_ref.name)
 }
 
 /// The target expression for a value read through a FOREIGN package, when the pack names one.

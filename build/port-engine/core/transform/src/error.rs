@@ -128,10 +128,9 @@ impl fmt::Display for TransformError {
                 f,
                 "`{name}` is a `{form}`, whose target form the pack has not decided: {reason}"
             ),
-            Self::NotConstantExpression { name, detail } => write!(
-                f,
-                "`{name}` cannot be a static: {detail}"
-            ),
+            Self::NotConstantExpression { name, detail } => {
+                write!(f, "`{name}` cannot be a static: {detail}")
+            }
             Self::UnknownConstruction { rule, construction } => write!(
                 f,
                 "transform unknown construction `{construction}` for rule `{rule}`"

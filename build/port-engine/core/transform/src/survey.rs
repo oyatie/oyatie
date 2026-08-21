@@ -26,10 +26,10 @@ use std::collections::BTreeSet;
 use port_engine_api::{Declaration, PackSemantics, RulePack, SourceModel, UnitId};
 
 use crate::error::TransformError;
-use crate::signature_table::SignatureTable;
 use crate::items::build_item;
 use crate::ownership::{DispositionLog, OwnershipContext};
 use crate::resolve::{LocalScope, Resolver};
+use crate::signature_table::SignatureTable;
 use crate::survey_report::{PortedRegion, SurveyEntry, SurveyReport};
 
 /// Attempt every declaration in `model` independently and report what happened to each.
@@ -70,8 +70,7 @@ where
     let every = BTreeSet::new();
     let mut emittable = crate::reachable::emittable_names(model);
     loop {
-        let shrunk =
-            crate::reachable::shrink(model, pack, &rules, &signatures, &units, &emittable);
+        let shrunk = crate::reachable::shrink(model, pack, &rules, &signatures, &units, &emittable);
         if shrunk == emittable {
             break;
         }
@@ -128,8 +127,10 @@ where
             .filter(|region| region.unit == unit)
             .flat_map(|region| region.items.clone())
             .collect();
-        let prelude =
-            crate::emitted_names::retain_used(crate::prelude::prelude_items(&unit, pack, model), &already);
+        let prelude = crate::emitted_names::retain_used(
+            crate::prelude::prelude_items(&unit, pack, model),
+            &already,
+        );
         if !prelude.is_empty() {
             report.ported.push(PortedRegion {
                 region: crate::naming::region_id_for_unit(&unit, "prelude"),
@@ -278,13 +279,19 @@ pub(crate) fn survey_declaration<P>(
             // bar this engine is actually held to.
             report.ported.push(PortedRegion {
                 unit: site.unit.clone(),
-                region: crate::naming::region_id_for_declaration(site.unit, rule, &declaration.name),
+                region: crate::naming::region_id_for_declaration(
+                    site.unit,
+                    rule,
+                    &declaration.name,
+                ),
                 position: isize::try_from(site.position).unwrap_or(isize::MAX),
                 items,
             });
             report.translated.push(entry(None));
         }
-        Err(error) => report.refused.push(entry(Some(crate::survey_cause::refusal_of(&error)))),
+        Err(error) => report
+            .refused
+            .push(entry(Some(crate::survey_cause::refusal_of(&error)))),
     }
     // A method dropped from a type that WAS emitted still refuses, under its own name. The type
     // survives because its shape does not depend on any body; the method is reported because a

@@ -43,7 +43,9 @@ pub(crate) fn returned_operand(
     // is the pack's to say.
     if cx.results.borrows_failure
         && index == 0
-        && let Some(method) = cx.resolver.idiom_method(crate::vocabulary::IDIOM_FAILURE_GETTER)
+        && let Some(method) = cx
+            .resolver
+            .idiom_method(crate::vocabulary::IDIOM_FAILURE_GETTER)
     {
         return Ok(RustExpr::MethodCall {
             receiver: Box::new(crate::body_place::field_place(operand, cx)?),

@@ -17,8 +17,8 @@ use port_engine_snapshot::{
     AdmitError, AdmittedSnapshot, admit_embedded_fixture, admit_embedded_fixture_drift_after_v1,
     admit_embedded_fixture_drift_before_v1, admit_embedded_fixture_failure_v1,
     admit_embedded_fixture_interface_v1, admit_embedded_fixture_ownership_v1,
-    admit_embedded_fixture_sentinel_v1, admit_embedded_fixture_unproven_v1,
-    admit_embedded_fixture_refused_v1, admit_embedded_fixture_v1,
+    admit_embedded_fixture_refused_v1, admit_embedded_fixture_sentinel_v1,
+    admit_embedded_fixture_unproven_v1, admit_embedded_fixture_v1,
 };
 use port_engine_source_pin::{load_embedded, receipt_pin};
 use port_engine_toolchain::toolchain_digest;

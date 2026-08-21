@@ -8,10 +8,10 @@
 use port_engine_api::Declaration;
 use port_engine_rust_ir::RustExpr;
 
-use crate::body::{Body};
-use crate::body_parts::{one_child};
+use crate::body::Body;
 use crate::body_call::render_operand;
 use crate::body_expr::expression;
+use crate::body_parts::one_child;
 use crate::body_place::moves_on_read;
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
@@ -178,10 +178,7 @@ pub(crate) fn composite(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, T
 ///
 /// # Errors
 /// [`TransformError`] from translating an element.
-fn sequence_literal(
-    node: &Declaration,
-    cx: &Body<'_>,
-) -> Result<Option<RustExpr>, TransformError> {
+fn sequence_literal(node: &Declaration, cx: &Body<'_>) -> Result<Option<RustExpr>, TransformError> {
     let kind = node.type_ref.kind.as_str();
     if !cx.resolver.is_sequence_literal(kind) {
         return Ok(None);

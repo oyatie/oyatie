@@ -8,11 +8,11 @@ use port_engine_api::{
 use port_engine_rust_ir::{RustIr, RustItem};
 
 use crate::error::TransformError;
-use crate::signature_table::SignatureTable;
 use crate::items::{build_item, build_unit_item};
 use crate::naming::{region_id_for, region_id_for_declaration};
 use crate::ownership::{DispositionLog, DispositionRecord, OwnershipContext};
 use crate::resolve::{LocalScope, Resolver};
+use crate::signature_table::SignatureTable;
 use crate::vocabulary::{
     CONSTRUCTION_EMPTY_CANARY, CONSTRUCTION_PASS_THROUGH, PRECONDITION_UNIT_PRESENT,
 };

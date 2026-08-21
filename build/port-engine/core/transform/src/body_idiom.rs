@@ -15,7 +15,9 @@ use port_engine_rust_ir::{RustExpr, UnaryOp};
 use crate::body::Body;
 use crate::body_expr::expression;
 use crate::error::TransformError;
-use crate::vocabulary::{ATTR_LIT_KIND, ATTR_VALUE, IDIOM_EMPTY_STRING, KIND_LITERAL, LIT_KIND_STRING};
+use crate::vocabulary::{
+    ATTR_LIT_KIND, ATTR_VALUE, IDIOM_EMPTY_STRING, KIND_LITERAL, LIT_KIND_STRING,
+};
 
 /// `x == ""` and `x != ""`, which the target spells as a method.
 ///

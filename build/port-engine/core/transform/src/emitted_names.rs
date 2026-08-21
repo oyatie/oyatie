@@ -20,7 +20,10 @@ use port_engine_rust_ir::{RustItem, RustType, Visibility};
 /// same evidence. Asked of the output rather than of the declarations because an import nothing
 /// uses is a denied warning, where an unused alias is only dead code — a unit whose sentinels all
 /// refused must not gain an import for them.
-pub(crate) fn import_items(items: &[RustItem], declared: &BTreeMap<String, String>) -> Vec<RustItem> {
+pub(crate) fn import_items(
+    items: &[RustItem],
+    declared: &BTreeMap<String, String>,
+) -> Vec<RustItem> {
     let mut paths: BTreeSet<String> = BTreeSet::new();
     // The MESSAGE IMPL renders the same three names the sentinel form does, for the same reason:
     // it IS a display impl plus the error impl that follows from it. Adding it to the same question
@@ -86,18 +89,13 @@ pub(crate) fn import_items(items: &[RustItem], declared: &BTreeMap<String, Strin
 /// `MyOrdering` does not name `Ordering`, and treating it as though it did would emit an import
 /// nothing uses — which the compile proof denies.
 fn names(spelling: &str, short: &str) -> bool {
-    spelling
-        .match_indices(short)
-        .any(|(at, _)| {
-            let before = spelling[..at].chars().next_back();
-            let after = spelling[at + short.len()..].chars().next();
-            let boundary = |ch: Option<char>| {
-                ch.is_none_or(|c| !c.is_alphanumeric() && c != '_')
-            };
-            boundary(before) && boundary(after)
-        })
+    spelling.match_indices(short).any(|(at, _)| {
+        let before = spelling[..at].chars().next_back();
+        let after = spelling[at + short.len()..].chars().next();
+        let boundary = |ch: Option<char>| ch.is_none_or(|c| !c.is_alphanumeric() && c != '_');
+        boundary(before) && boundary(after)
+    })
 }
-
 
 /// The prelude items the unit's OWN OUTPUT refers to, and no others.
 ///
@@ -144,7 +142,8 @@ pub(crate) fn retain_used(prelude: Vec<RustItem>, rest: &[RustItem]) -> Vec<Rust
         };
         let named_by_kept = kept.iter().any(|other| match other {
             RustItem::TypeAlias { generics, ty, .. } => {
-                generics.iter().any(|generic| generic.contains(&name)) || ty.spelling().contains(&name)
+                generics.iter().any(|generic| generic.contains(&name))
+                    || ty.spelling().contains(&name)
             }
             _ => false,
         });

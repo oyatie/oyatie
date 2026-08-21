@@ -210,7 +210,9 @@ pub(crate) fn unsigned_bound(
     // arithmetic — and each side answered by the same question this one is.
     if bound.kind == "binary"
         && let [left, right] = bound.children.as_slice()
-        && let Some(op) = bound.attr(ATTR_OP).and_then(crate::body_ops::binary_operator)
+        && let Some(op) = bound
+            .attr(ATTR_OP)
+            .and_then(crate::body_ops::binary_operator)
     {
         return Ok(RustExpr::Binary {
             op,
@@ -314,7 +316,9 @@ fn count_cursor_reads(
         && let [lhs, rhs] = node.children.as_slice()
     {
         for (side, other) in [(lhs, rhs), (rhs, lhs)] {
-            if is_name(side, name) && (is_length(other, lengths) || other.kind == crate::vocabulary::KIND_LITERAL) {
+            if is_name(side, name)
+                && (is_length(other, lengths) || other.kind == crate::vocabulary::KIND_LITERAL)
+            {
                 *cursor += 1;
             }
         }

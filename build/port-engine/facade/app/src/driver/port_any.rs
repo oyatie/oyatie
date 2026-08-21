@@ -78,8 +78,8 @@ pub fn port_snapshot_pinned(path: &Path, pin: &str) -> Result<PortedPackage, Pip
     // Admitted against ITSELF, exactly as the survey does: one artifact from one extraction, so
     // the reproducibility pair has one member and the digest check is over the encoder.
     let admitted = admit_reproducible_pair(&bytes, &bytes).map_err(PipelineError::Admit)?;
-    let pack =
-        port_engine_rulepack::LoadedRulePack::load_embedded_go_rust().map_err(PipelineError::Rulepack)?;
+    let pack = port_engine_rulepack::LoadedRulePack::load_embedded_go_rust()
+        .map_err(PipelineError::Rulepack)?;
     let report = survey(admitted.as_model(), &pack);
 
     // Source order within a unit, exactly as the strict pipeline emits: the position each
@@ -149,7 +149,6 @@ pub fn port_snapshot_pinned(path: &Path, pin: &str) -> Result<PortedPackage, Pip
     }
 
     let receipt = port_engine_api::Receipt {
-
         pin: pin.to_owned(),
 
         snapshot_digest: admitted.artifact_digest().clone(),
@@ -161,7 +160,6 @@ pub fn port_snapshot_pinned(path: &Path, pin: &str) -> Result<PortedPackage, Pip
         toolchain_digest: port_engine_toolchain::toolchain_digest(),
 
         formatter_digest: port_engine_hash::digest_str(&renderer.formatter_digest().0),
-
     };
 
     Ok(PortedPackage {

@@ -98,7 +98,10 @@ pub(crate) fn slice(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Trans
 /// which declaration it is inside — and the scope maps that to whether the target shape wraps. An
 /// index through any other binding of a newtype is a shape the corpus does not have, and it arrives
 /// here unchanged rather than being guessed at.
-pub(crate) fn unwrapped_base(base: &Declaration, cx: &Body<'_>) -> Result<RustExpr, TransformError> {
+pub(crate) fn unwrapped_base(
+    base: &Declaration,
+    cx: &Body<'_>,
+) -> Result<RustExpr, TransformError> {
     unwrapped_in(base, cx, crate::body_expr::Position::Value)
 }
 
@@ -131,8 +134,9 @@ pub(crate) fn unwraps_newtype(base: &Declaration, cx: &Body<'_>) -> bool {
             .receiver_type
             .is_some_and(|owner| cx.resolver.scope.newtypes.contains_key(owner)),
         // A PARAMETER of newtype type, which the signature stated and the body was told.
-        false => base.kind == crate::vocabulary::KIND_IDENT
-            && cx.newtype_parameters.contains(&base.name),
+        false => {
+            base.kind == crate::vocabulary::KIND_IDENT && cx.newtype_parameters.contains(&base.name)
+        }
     }
 }
 

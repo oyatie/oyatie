@@ -14,7 +14,8 @@ use crate::error::TransformError;
 use crate::naming::{module_path, to_pascal_case, to_snake_case};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
-    POSITION_FIELD, POSITION_PARAM, POSITION_SUPERTRAIT, POSITION_TRAIT, SOURCE_STRING, TYPE_ARRAY, TYPE_NAMED_INTERFACE,
+    POSITION_FIELD, POSITION_PARAM, POSITION_SUPERTRAIT, POSITION_TRAIT, SOURCE_STRING, TYPE_ARRAY,
+    TYPE_NAMED_INTERFACE,
 };
 
 impl Resolver<'_> {
@@ -289,7 +290,6 @@ impl Resolver<'_> {
             .cloned()
     }
 }
-
 
 /// The identity a pack table is keyed by.
 ///

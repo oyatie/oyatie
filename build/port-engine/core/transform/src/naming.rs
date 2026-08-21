@@ -219,9 +219,9 @@ pub fn module_name(unit: &str) -> String {
 fn major_version_stripped(unit: &str) -> &str {
     let mut segments = unit.rsplit('/');
     let tail = segments.next().unwrap_or(unit);
-    let is_major_version = tail.strip_prefix('v').is_some_and(|rest| {
-        !rest.is_empty() && rest.bytes().all(|byte| byte.is_ascii_digit())
-    });
+    let is_major_version = tail
+        .strip_prefix('v')
+        .is_some_and(|rest| !rest.is_empty() && rest.bytes().all(|byte| byte.is_ascii_digit()));
     match is_major_version {
         true => segments.next().unwrap_or(tail),
         false => tail,

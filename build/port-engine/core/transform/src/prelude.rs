@@ -189,10 +189,7 @@ pub(crate) fn assemble(
             // ONCE per region, however many items land in it. A unit's prelude is two aliases now,
             // and registering the region per item put it in the order twice — which renders the
             // whole region twice and defines every name in it twice.
-            if provenance
-                .insert(RegionId(region.clone()), unit)
-                .is_none()
-            {
+            if provenance.insert(RegionId(region.clone()), unit).is_none() {
                 order.push((position, 0, region.clone()));
             }
             items.push((region, item));
@@ -202,10 +199,7 @@ pub(crate) fn assemble(
     let declared = semantics.target_imports();
     for (unit, item) in imports(items, provenance, declared) {
         let region = crate::naming::region_id_for_unit(&unit, "imports");
-        if provenance
-            .insert(RegionId(region.clone()), unit)
-            .is_none()
-        {
+        if provenance.insert(RegionId(region.clone()), unit).is_none() {
             order.push((-2, 0, region.clone()));
         }
         items.push((region, item));

@@ -11,13 +11,13 @@ use quote::{ToTokens, quote};
 use port_engine_api::PortError;
 
 use crate::expr::{MatchArm, RustExpr};
-use crate::stmt::{RustStmt};
 use crate::lower_body::lower_block;
 use crate::lower_parts::{parse_expr, parse_ident, parse_type};
-use crate::ops::BinaryOp;
 use crate::lower_precedence::{
     binds_tighter_than_cast, lower_operand, lower_postfix_base, typed_literal,
 };
+use crate::ops::BinaryOp;
+use crate::stmt::RustStmt;
 use crate::ty::RustType;
 
 /// Lower an expression, parenthesising an operand only where the tree says it needs it.
@@ -192,11 +192,12 @@ pub(crate) fn lower_expr(expr: &RustExpr) -> Result<TokenStream, PortError> {
                 template,
                 args,
             } if name == "format" => {
-                let template: proc_macro2::TokenStream = format!("{template:?}")
-                    .parse()
-                    .map_err(|err| PortError::Render {
-                        detail: format!("a message template is not a target literal: {err}"),
-                    })?;
+                let template: proc_macro2::TokenStream =
+                    format!("{template:?}")
+                        .parse()
+                        .map_err(|err| PortError::Render {
+                            detail: format!("a message template is not a target literal: {err}"),
+                        })?;
                 let args = lower_each(args)?;
                 Ok(quote! { write!(f, #template #(, #args)*) })
             }
@@ -388,11 +389,13 @@ pub(crate) fn static_str_match(expr: &RustExpr) -> Option<RustExpr> {
     };
     let mut borrowed = Vec::with_capacity(arms.len());
     for arm in arms {
-        let [crate::stmt::RustStmt::Tail(RustExpr::MethodCall {
-            receiver,
-            method,
-            args,
-        })] = arm.body.as_slice()
+        let [
+            crate::stmt::RustStmt::Tail(RustExpr::MethodCall {
+                receiver,
+                method,
+                args,
+            }),
+        ] = arm.body.as_slice()
         else {
             return None;
         };

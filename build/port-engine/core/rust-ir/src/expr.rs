@@ -12,8 +12,6 @@ use crate::ops::{BinaryOp, Precedence, UnaryOp};
 use crate::stmt::RustStmt;
 use crate::ty::RustType;
 
-
-
 /// An expression in an emitted body.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum RustExpr {

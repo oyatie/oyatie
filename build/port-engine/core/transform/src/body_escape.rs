@@ -13,7 +13,10 @@
 /// `\xHH` is shared only up to `0x7f`: above it the target admits the byte form but not the
 /// character one, so the two disagree and the caller respells by code point.
 pub(crate) fn shared_escape(value: &str) -> bool {
-    let Some(inner) = value.strip_prefix('\'').and_then(|rest| rest.strip_suffix('\'')) else {
+    let Some(inner) = value
+        .strip_prefix('\'')
+        .and_then(|rest| rest.strip_suffix('\''))
+    else {
         return false;
     };
     if !inner.starts_with('\\') {
@@ -64,7 +67,8 @@ pub(crate) fn rune_code_point(value: &str) -> Option<u32> {
             }
             // OCTAL, which the source writes as exactly three digits and the target does not write
             // at all.
-            let octal = escape.len() == 3 && escape.bytes().all(|digit| (b'0'..=b'7').contains(&digit));
+            let octal =
+                escape.len() == 3 && escape.bytes().all(|digit| (b'0'..=b'7').contains(&digit));
             octal.then(|| u32::from_str_radix(escape, 8).ok())?
         }
     }
@@ -76,15 +80,23 @@ mod tests {
 
     #[test]
     fn an_escape_the_target_also_defines_keeps_its_source_spelling() {
-        for shared in ["'a'", "'\\n'", "'\\r'", "'\\t'", "'\\\\'", "'\\''", "'\\x7f'"] {
-            assert!(shared_escape(shared), "{shared} is spelled the same by both");
+        for shared in [
+            "'a'", "'\\n'", "'\\r'", "'\\t'", "'\\\\'", "'\\''", "'\\x7f'",
+        ] {
+            assert!(
+                shared_escape(shared),
+                "{shared} is spelled the same by both"
+            );
         }
     }
 
     #[test]
     fn an_escape_only_the_source_defines_is_not_shared() {
         for source_only in ["'\\033'", "'\\a'", "'\\b'", "'\\f'", "'\\v'", "'\\x80'"] {
-            assert!(!shared_escape(source_only), "{source_only} has no target spelling");
+            assert!(
+                !shared_escape(source_only),
+                "{source_only} has no target spelling"
+            );
         }
     }
 
