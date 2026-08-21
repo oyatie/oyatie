@@ -9,11 +9,11 @@
 //! (`registry/fixuptasks.jsonl` F-CLOUDCI-CANON-DRIFT-AUTOGEN-GATE). This check
 //! implements that promise WITHOUT shelling out: it invokes the SAME producer
 //! library code the `oya doc adr-index` step uses — the pure kernel
-//! [`oya_check_adr_index`] — to re-render both projections from the source records
+//! [`check_adr_index`] — to re-render both projections from the source records
 //! and compares them to the committed bytes.
 //!
 //! Two failure surfaces:
-//! - **byte-parity** — [`oya_check_adr_index::validate_adr_index`] re-renders both
+//! - **byte-parity** — [`check_adr_index::validate_adr_index`] re-renders both
 //!   files from `records` (the source-of-truth ADR set) and reports
 //!   `MarkdownDrift` / `JsonDrift` when a committed file is stale or hand-edited.
 //! - **id-set staleness** — the record id set must exactly cover the ADR files on
@@ -28,7 +28,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_check_adr_index::{
+use check_adr_index::{
     AdrDecisionRecord, AdrIndexError, generate_adr_index, validate_adr_index,
 };
 

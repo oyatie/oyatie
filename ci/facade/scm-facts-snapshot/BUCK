@@ -71,7 +71,7 @@ rust_library(
         # Rename-aware path-keyed baseline relabel (task #64): the P4 content-subset guard reuses
         # the brand-residue census SSOT under the LIVE VocabPolicy from oya-ci.toml (config kernel),
         # so carve-outs + case-folding are byte-identical to the producer's collect_brand_residue.
-        "//libs/oya-check-brand-residue:oya-check-brand-residue",
+        "//governance/check/brand-residue:check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "//governance/corpus/doc-parser:corpus-doc-parser",
         "third-party//:serde",
@@ -153,7 +153,7 @@ rust_test(
         # predicates end-to-end over the resolved snapshot (#698 repoint attack goes RED).
         "//ci/facade/baseline-ratchet:ci-baseline-ratchet",
         # Rename-aware path-keyed baseline relabel (task #64) — census SSOT + VocabPolicy.
-        "//libs/oya-check-brand-residue:oya-check-brand-residue",
+        "//governance/check/brand-residue:check-brand-residue",
         "//libs/oya-ci-config:oya-ci-config-kernel",
         "//governance/corpus/doc-parser:corpus-doc-parser",
         # dev-only EFFICACY pin (task #64 BLOCKER A): the chained test derives the move-manifest

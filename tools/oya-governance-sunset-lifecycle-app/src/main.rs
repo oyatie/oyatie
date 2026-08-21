@@ -11,7 +11,7 @@
 //!    section in any workspace crate's `Cargo.toml`.
 //!
 //! Discovered clauses are fed into the I/O-free
-//! [`oya_governance_sunset_lifecycle_kernel::evaluate`] kernel
+//! [`check_sunset_lifecycle_kernel::evaluate`] kernel
 //! together with `now` (configurable via `--now YYYY-MM-DD`, defaults to
 //! today UTC at startup) and the set of reached milestones (configurable
 //! via repeated `--reached-milestone <id>`).
@@ -29,7 +29,7 @@ use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use oya_governance_sunset_lifecycle_kernel::{
+use check_sunset_lifecycle_kernel::{
     Date, LifecycleState, SunsetClause, Violation, evaluate,
 };
 

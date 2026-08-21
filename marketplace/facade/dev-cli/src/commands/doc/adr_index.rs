@@ -3,7 +3,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_check_adr_index::{AdrDecisionRecord, generate_adr_index, validate_adr_index};
+use check_adr_index::{AdrDecisionRecord, generate_adr_index, validate_adr_index};
 
 use crate::command_output::{OutputFormat as DevCheckOutputFormat, json_escape};
 
@@ -107,7 +107,7 @@ fn run_doc_adr_index(args: DocAdrIndexArgs) -> ExitCode {
 
 fn run_doc_adr_index_result(
     args: &DocAdrIndexArgs,
-) -> Result<oya_check_adr_index::AdrIndexReport, String> {
+) -> Result<check_adr_index::AdrIndexReport, String> {
     let records = read_adr_decision_records(&args.decisions_dir)?;
     if args.write {
         let artifacts =

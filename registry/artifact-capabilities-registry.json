@@ -966,7 +966,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "libs/oya-check-dependency-seam",
+          "checker_crate": "governance/check/dependency-seam",
           "command": "cargo check -p intelligence-settings-template-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
@@ -975,7 +975,7 @@
           ]
         },
         "validation": {
-          "validator": "libs/oya-check-dependency-seam::kernel_boundary_gate",
+          "validator": "governance/check/dependency-seam::kernel_boundary_gate",
           "trigger": "pre-commit-hook"
         },
         "autogen": {
@@ -1054,7 +1054,7 @@
           ]
         },
         "verification": {
-          "checker_crate": "libs/oya-check-dependency-seam",
+          "checker_crate": "governance/check/dependency-seam",
           "command": "cargo check -p intelligence-supervisor-kernel",
           "verifies": [
             "zero external non-std dependencies in kernel",
@@ -1063,7 +1063,7 @@
           ]
         },
         "validation": {
-          "validator": "libs/oya-check-dependency-seam::kernel_boundary_gate",
+          "validator": "governance/check/dependency-seam::kernel_boundary_gate",
           "trigger": "pre-commit-hook"
         },
         "autogen": {

@@ -10,7 +10,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_governance_adapter_with_no_importer_kernel::{
+use check_adapter_with_no_importer_kernel::{
     AdapterImporterReport, WorkspaceCrate, check,
 };
 

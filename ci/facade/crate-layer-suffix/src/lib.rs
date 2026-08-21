@@ -5,7 +5,7 @@
 //! (`kernel|domain|usecase|app|adapter|infrastructure|cli|rest|grpc|worker|sdk|api`).
 //!
 //! ## Reuse, not re-derive (CLI-GOVERNANCE-TO-FIREWALL-MIGRATION-PLAN Principle 1, shape a)
-//! The policy lives in the PURE, I/O-free `oya_governance_predictable_naming_kernel::check()`.
+//! The policy lives in the PURE, I/O-free `check_predictable_naming_kernel::check()`.
 //! The producer (`oya-cloud-ci-accounting-registry-app`) does the I/O — it enumerates the
 //! first-party `oya-*` crate package names from the tracked Cargo.toml manifests and feeds them
 //! as `rows`. This gate resolves each crate's `declared_role` CARVE-OUT-AWARE and runs `check()`:
@@ -33,7 +33,7 @@
 use std::collections::BTreeSet;
 
 use oya_ci_config_kernel::NamingConfig;
-use oya_governance_predictable_naming_kernel::{
+use check_predictable_naming_kernel::{
     CrateNaming, NamingPolicy, NamingViolationKind, check_with_policy,
     is_backend_qualified_adapter_with, is_check_family_with, is_doctrinal_carve_out_with,
 };
@@ -151,7 +151,7 @@ fn resolve_naming(crate_name: &str, policy: &NamingPolicy) -> CrateNaming {
 /// Pure evaluator over an INJECTED [`NamingConfig`] (ADR-0533 §Decision item 1/2: the naming
 /// policy — including `required_prefix` — is the PROFILE-RESOLVED config). Takes
 /// `{"rows": [{"crate_name": "..."}, ...]}` and returns one `Finding` per layer-suffix
-/// violation. Reuses `oya_governance_predictable_naming_kernel::check_with_policy`.
+/// violation. Reuses `check_predictable_naming_kernel::check_with_policy`.
 ///
 /// Under `profile='neutral'` the resolved `required_prefix` is empty, so `MissingOyaPrefix` is
 /// never raised (de-brand). Under `profile='oyatie'` the policy is today's consts, byte-identical.

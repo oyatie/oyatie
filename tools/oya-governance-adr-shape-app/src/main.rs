@@ -2,7 +2,7 @@ use std::env;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use oya_governance_adr_shape_kernel::{AdrDocument, validate_adr_shape_fitness};
+use check_adr_shape_kernel::{AdrDocument, validate_adr_shape_fitness};
 
 fn main() {
     if let Err(error) = run() {
@@ -58,7 +58,7 @@ fn input_paths() -> Result<Vec<PathBuf>, String> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_governance_adr_shape_kernel::audit_adr_shape_fitness;
+    use check_adr_shape_kernel::audit_adr_shape_fitness;
 
     fn filesystem_document(name: &str, text: &str) -> AdrDocument {
         let path = env::temp_dir().join(format!("oya-adr-shape-{}-{name}", std::process::id()));

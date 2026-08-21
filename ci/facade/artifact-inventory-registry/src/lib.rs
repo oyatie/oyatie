@@ -958,7 +958,7 @@ pub struct GateInputs<'a> {
     /// The §2.5#4 BNF layer-suffix gate input: `{"rows":[{"crate_name": "oya-..."}]}` —
     /// the first-party `oya-*` crate names the binary enumerates from the tracked Cargo.toml
     /// manifests. The gate's `evaluate_keyed` resolves the role carve-out-aware and reuses
-    /// `oya_governance_predictable_naming_kernel::check`. Empty in unit tests.
+    /// `check_predictable_naming_kernel::check`. Empty in unit tests.
     pub bnf_layer_suffix: &'a Value,
     /// The §2.5#7 manifest-hygiene gate input: `{"rows":[{"crate_name", "has_version_workspace",
     /// "has_publish_false", "has_license", "has_rust_version_workspace", "has_lints_workspace",
@@ -975,11 +975,11 @@ pub struct GateInputs<'a> {
     /// The SLO coverage gate input: `{"rows":[{"crate_id", "slo"}]}`. The producer expands the
     /// config-declared `[slo_coverage].catalog_record_globs` against tracked paths, derives the
     /// catalog identity from each file stem, and parses the top-level `slo:` value. The gate's
-    /// `evaluate_keyed` reuses `oya_check_slo_coverage::validate_slo_coverage` per row.
+    /// `evaluate_keyed` reuses `check_slo_coverage::validate_slo_coverage` per row.
     pub slo_coverage: &'a Value,
     /// The license-policy gate input: `{"rows":[{"package_name","manifest_path","license"}]}`.
     /// The producer resolves workspace members via `oya-workspace-members-kernel`, reads each
-    /// member manifest, and the gate reuses `oya_check_license_policy::LicensePolicy` per row.
+    /// member manifest, and the gate reuses `check_license_policy::LicensePolicy` per row.
     pub license_policy: &'a Value,
     /// The catalog-liveness gate input: `{"rows":[{"crate_id", "source_path", "is_live",
     /// "marker"}]}`. The producer expands the config-declared `[catalog_liveness]
@@ -1007,7 +1007,7 @@ pub struct GateInputs<'a> {
     /// references from `.claude/settings.json` + `.codex/hooks.json`.
     pub enforcement_liveness: &'a Value,
     /// The forbidden-vocab shrink-only ratchet's pre-grouped `code -> keys` (the live residue
-    /// files per stem), captured by the binary via `oya_check_brand_residue::forbidden_vocab`
+    /// files per stem), captured by the binary via `check_brand_residue::forbidden_vocab`
     /// over the live corpus. Unlike the four face gates this is computed from the raw tracked
     /// files (not a generated face), so it is supplied already grouped rather than re-derived
     /// here. Empty in unit tests that do not exercise the brand gate.

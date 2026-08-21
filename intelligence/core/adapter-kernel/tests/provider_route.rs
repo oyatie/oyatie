@@ -10,7 +10,7 @@ use intelligence_adapter_kernel::{
     SubscriptionBindingRegistry, ToolSchemaSet, invoke_provider_route, resolve_route,
 };
 use intelligence_capability_domain::{AutonomyTier, Capability, CapabilityError};
-use oya_check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope};
+use check_cost_budget::{BudgetCeiling as BudgetKernelCeiling, BudgetLedger, BudgetScope};
 use oya_data_boundary_kernel::{
     Classified, DataClass, PrivacyDataClass, privacy_data_classes_from,
 };

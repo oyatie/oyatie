@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//libs/oya-governance-eval-domain:oya-governance-eval-domain",
+        "//governance/check/eval-domain:check-eval-domain",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )
@@ -20,7 +20,7 @@ rust_test(
     deps = [
         ":intelligence-registry-api",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//libs/oya-governance-eval-domain:oya-governance-eval-domain",
+        "//governance/check/eval-domain:check-eval-domain",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )

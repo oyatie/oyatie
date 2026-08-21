@@ -73,7 +73,7 @@ reason = "the frozen missing-Competitive-Benchmark-section baseline ENUMERATES t
 
 [[vocab.carve_outs]]
 kind = "path_prefix"
-value = "libs/oya-check-brand-residue/"
+value = "governance/check/brand-residue/"
 reason = "the deny-list patterns themselves are not residue"
 
 [[vocab.carve_outs]]
@@ -88,7 +88,7 @@ reason = "the repo-root oya-ci config IS the deny-list (it declares the forbidde
 
 [[vocab.carve_outs]]
 kind = "path_exact"
-value = "registry/catalog/oya-check-brand-residue.yaml"
+value = "registry/catalog/check-brand-residue.yaml"
 reason = "the catalog deny-list spec is not residue"
 
 [[vocab.carve_outs]]

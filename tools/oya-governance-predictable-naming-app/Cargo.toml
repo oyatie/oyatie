@@ -11,7 +11,7 @@ name = "oya-governance-predictable-naming-app"
 path = "src/main.rs"
 
 [dependencies]
-oya-governance-predictable-naming-kernel = { path = "../../libs/oya-governance-predictable-naming-kernel" }
+check-predictable-naming-kernel = { path = "../../governance/check/predictable-naming-kernel" }
 
 [lints]
 workspace = true

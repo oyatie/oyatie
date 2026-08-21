@@ -1,0 +1,27 @@
+rust_library(
+    name = "check-saga-shape",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_saga_shape",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+)
+
+rust_test(
+    name = "check-saga-shape-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_saga_shape",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [],
+)
+
+rust_test(
+    name = "check-saga-shape-saga-shape",
+    srcs = ["tests/saga_shape.rs"],
+    crate = "check_saga_shape_saga_shape",
+    crate_root = "tests/saga_shape.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-saga-shape",
+    ],
+)

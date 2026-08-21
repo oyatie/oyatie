@@ -936,7 +936,7 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
                 "root//intelligence/core/autonomy-ceiling-domain:intelligence-autonomy-ceiling-domain-unittest",
                 "root//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel-unittest",
                 "root//governance/check/data-class:check-data-class-unittest",
-                "root//libs/oya-check-license-policy:oya-check-license-policy-license-policy",
+                "root//governance/check/license-policy:check-license-policy-license-policy",
             ],
         ),
     ];
@@ -953,7 +953,7 @@ fn baseline_repair_control_plane_inputs_seed_accountable_leaf_targets() {
             "root//ci/facade/cross-artifact-agreement:",
             "root//ci/facade/generated-artifact-freshness:",
             "root//governance/check/active-artifact-contract:",
-            "root//libs/oya-check-dependency-seam:",
+            "root//governance/check/dependency-seam:",
             "root//marketplace/facade/dev-cli:",
         ] {
             assert!(

@@ -1,0 +1,18 @@
+[package]
+name = "check-compliance-evidence-coverage"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "check_compliance_evidence_coverage"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+oya-shared-compliance-evidence-kernel = { path = "../../../libs/oya-shared-compliance-evidence-kernel" }
+
+[lints]
+workspace = true

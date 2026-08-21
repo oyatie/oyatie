@@ -107,7 +107,7 @@ use serde::{
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 
-use oya_governance_adr_shape_kernel::is_live_decision_status;
+use check_adr_shape_kernel::is_live_decision_status;
 
 mod adr_index_projection_parity;
 mod gate_coverage_baseline;
@@ -154,7 +154,7 @@ pub use idea_archive_transition::{
     collect_idea_archive_observation, evaluate_idea_archive_transition,
     immutable_idea_archive_baseline, parse_idea_archive_policy,
 };
-pub use oya_check_adr_index::AdrDecisionRecord;
+pub use check_adr_index::AdrDecisionRecord;
 pub use prose_frontmatter_status::{
     PROSE_STATUS_AGREEMENT_VALIDATOR, PROSE_STATUS_CONTRADICTION_CODE,
     evaluate_adr_prose_frontmatter_status,

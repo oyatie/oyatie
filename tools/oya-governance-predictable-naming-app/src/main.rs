@@ -2,7 +2,7 @@ use std::env;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_governance_predictable_naming_kernel::{CrateNaming, NamingReport, check};
+use check_predictable_naming_kernel::{CrateNaming, NamingReport, check};
 
 fn main() -> ExitCode {
     match run(env::args().skip(1)) {

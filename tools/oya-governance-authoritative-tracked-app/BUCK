@@ -4,6 +4,6 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-authoritative-tracked-kernel:oya-governance-authoritative-tracked-kernel",
+        "//governance/check/authoritative-tracked-kernel:check-authoritative-tracked-kernel",
     ],
 )

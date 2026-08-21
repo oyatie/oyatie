@@ -73,7 +73,7 @@ use ci_path_resolver_ports::{FrozenRefSource, MergeBaseName, PathId, PathResolve
 use corpus_doc_parser::census::{
     CensusInput, CensusReceipt, CensusSource, CensusSourceKind, SELECTOR_ID, build_receipt,
 };
-use oya_check_brand_residue::forbidden_vocab::{VocabPolicy, matched_line_occurrences_with};
+use check_brand_residue::forbidden_vocab::{VocabPolicy, matched_line_occurrences_with};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -3330,7 +3330,7 @@ fn load_move_manifest(repo_root: &Path) -> Result<MoveManifest, String> {
 ///
 /// Public for the package-local integration target's real-config boundary check.
 pub fn load_vocab_policy(repo_root: &Path) -> Result<VocabPolicy, String> {
-    use oya_check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
+    use check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
     use oya_ci_config_kernel::{OyaCiConfig, VocabCarveOutKind};
 
     let path = repo_root.join(OYA_CI_CONFIG_PATH);

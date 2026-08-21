@@ -27,13 +27,8 @@ serde_json = { workspace = true }
 ci-path-resolver-ports = { path = "../../ports/path-resolver" }
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
 ci-artifact-inventory-registry = { path = "../artifact-inventory-registry" }
-# The firewall's baseline PARSER (ADR-0616 PR-1): the frozen-baseline regen cross-check projects
-# BOTH the committed `git show` reference and the merge-base-source regeneration through the
-# firewall's OWN `Baseline::from_value` (reads only `gates`, so `_provenance` byte-noise is
-# tolerated) and compares {keys, mode, frozen_empty} per (gate, code). Acyclic: the ratchet lib
-# depends only on serde_json.
 ci-baseline-ratchet = { path = "../baseline-ratchet" }
-oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
+check-brand-residue = { path = "../../../governance/check/brand-residue" }
 oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
 corpus-doc-parser = { path = "../../../governance/corpus/doc-parser" }
 sha2 = { workspace = true }

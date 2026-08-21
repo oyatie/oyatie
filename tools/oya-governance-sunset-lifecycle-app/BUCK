@@ -4,7 +4,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-sunset-lifecycle-kernel:oya-governance-sunset-lifecycle-kernel",
+        "//governance/check/sunset-lifecycle-kernel:check-sunset-lifecycle-kernel",
         "third-party//:tempfile",
     ],
 )

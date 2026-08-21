@@ -3,7 +3,7 @@
 //! Portable conformance gate for workspace package license declarations. The producer owns all
 //! repository I/O: it resolves workspace members, reads each member `Cargo.toml`, and emits rows
 //! shaped as `{package_name, manifest_path, license}`. This crate stays pure and reuses
-//! `oya_check_license_policy::LicensePolicy` so the legacy dev-cli predicate and the cloud-ci gate
+//! `check_license_policy::LicensePolicy` so the legacy dev-cli predicate and the cloud-ci gate
 //! cannot drift.
 //!
 //! `evaluate_keyed` returns one `Finding{code,key}` per invalid package row. Current accepted debt
@@ -14,7 +14,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_check_license_policy::{LicensePolicy, LicensePolicyError};
+use check_license_policy::{LicensePolicy, LicensePolicyError};
 use serde_json::Value;
 
 /// The gate id, matching oya-ci config and the baseline ratchet.

@@ -26,8 +26,8 @@ use check_vendor_recency::{
 };
 use intelligence_api_semver_domain::validate_api_semver;
 use intelligence_cargo_prefix_domain::{CargoPrefixMember, validate_cargo_prefix};
-use oya_check_brand_residue::{BrandResidueDocument, validate_brand_residue};
-use oya_check_license_policy::LicensePolicy;
+use check_brand_residue::{BrandResidueDocument, validate_brand_residue};
+use check_license_policy::LicensePolicy;
 
 mod active_artifact_contract_gate;
 mod adr_0145_gates;

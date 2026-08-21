@@ -1134,7 +1134,7 @@ mod tests {
     use std::fs;
     use std::path::{Path, PathBuf};
 
-    use oya_governance_gate_catalog_domain::AGGREGATED_VALIDATE_LANES;
+    use check_gate_catalog_domain::AGGREGATED_VALIDATE_LANES;
 
     use super::{
         CloudIacModuleProviderRequirementsArgs, parse_cloud_iac_module_provider_requirements_args,

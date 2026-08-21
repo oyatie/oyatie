@@ -11,7 +11,7 @@ name = "oya-governance-adapter-with-no-importer-app"
 path = "src/main.rs"
 
 [dependencies]
-oya-governance-adapter-with-no-importer-kernel = { path = "../../libs/oya-governance-adapter-with-no-importer-kernel" }
+check-adapter-with-no-importer-kernel = { path = "../../governance/check/adapter-with-no-importer-kernel" }
 
 [lints]
 workspace = true

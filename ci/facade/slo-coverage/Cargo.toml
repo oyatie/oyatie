@@ -17,7 +17,7 @@ doctest = false
 
 [dependencies]
 serde_json = { workspace = true }
-oya-check-slo-coverage = { path = "../../../libs/oya-check-slo-coverage" }
+check-slo-coverage = { path = "../../../governance/check/slo-coverage" }
 
 [dev-dependencies]
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
