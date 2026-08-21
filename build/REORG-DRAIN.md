@@ -7793,3 +7793,48 @@ That is the whole shape, measured from every side now: the corpus is gated on fo
 and on the concurrency build, and no further rule the engine can prove by itself reaches past them.
 `bytes.Equal` to `==` is exact and needs no decision; `time.Duration` is signed in the source and
 unsigned in the target, and is one.
+
+## R5j — the foreign wall is not one wall, and eight exact mappings prove it
+
+An earlier split of the foreign refusals reported 0 functions and 45 types, and that was WRONG: the
+filter matched "is not in this snapshot" and the function-shaped refusals say "which this snapshot
+does not contain". Corrected:
+
+    FOREIGN FUNCTIONS / VALUES   105 declarations
+    FOREIGN TYPES                154 declarations
+
+The pack already maps four foreign FUNCTIONS — `errors.New`, `os.Getenv`, `strings.LastIndex`,
+`math/bits.RotateLeft64` — so that entry kind is established practice and needs no decision where
+the mapping is exact. Eight added, each with the reason it is exact:
+
+    strings.HasPrefix  {0}.starts_with({1})    byte-wise in both, no folding, no normalisation
+    strings.Contains   {0}.contains({1})       byte-wise substring, both true for the empty needle
+    strings.Index      {0}.find({1}).map_or(-1, |at| at as i64)   shaped as LastIndex beside it
+    strings.Join       {0}.join({1})           same separator rule, same empty-sequence answer
+    bytes.Equal        {0} == {1}              the target's slices ARE comparable
+    math.Log2/Log10    {0}.log2() / .log10()   the same IEEE operation
+    math.Log           {0}.ln()                the names differ and the operation does not
+
+DELIBERATELY ABSENT: `strings.ToLower` and `ToUpper`, because the source folds per rune and the
+target does FULL case mapping, so `İ` is one character in one and two in the other; and `math.Max`,
+because `math.Max(NaN, x)` is NaN in the source and `x` in the target. Those are divergences, not
+mappings, and they refuse until someone decides.
+
+Two defects came out from behind the refusals, both pre-existing:
+
+- `vec![String::new(); es.len() as i64]`. A REPEAT COUNT is an index position and the length
+  mapping's trailing cast does not belong there. Stripped structurally, because `structured` builds
+  a real cast node — the emitted call is a tree, not text.
+- `points[i as usize]` where `i` came from `enumerate`. The counted loop tells its body its counter
+  is already the index type; the RANGED loop did not, so the moment R4n made it produce an index the
+  two ends disagreed.
+
+And one defect I introduced and then had to take apart properly. Marking `xs[i] = v` as a write to
+`xs` made `Swap(values []int64, ..)` emit `mut values: &mut [i64]` — a mutable binding on a
+parameter that is already an exclusive borrow, which `unused_mut` rejects. THE TWO FACTS ARE
+DIFFERENT: writing `xs` REBINDS the name, and a rebound parameter needs its own mutable copy;
+writing `xs[i]` mutates the CONTENTS, and a parameter whose contents are written needs the exclusive
+borrow it already has. They are recorded apart now, and only an owned LOCAL takes the mutable
+binding from the second.
+
+    multierror   1 -> 2 translated       chi   50 -> 51

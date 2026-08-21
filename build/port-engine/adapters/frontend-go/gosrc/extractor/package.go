@@ -229,6 +229,7 @@ func packageInit(files []*ast.File, ctx *extractCtx) *node {
 			}
 			inner := *ctx
 			inner.assigned = assignedLocals(fn.Body, ctx)
+			inner.indexWritten = indexWrittenLocals(fn.Body, ctx)
 			inner.reread = rereadBindings(fn.Body, ctx)
 			out.Children = append(out.Children, bodyNode(fn.Body, &inner))
 		}
@@ -249,6 +250,10 @@ type extractCtx struct {
 	// the body never writes again needs nothing from the target; one it does write needs to say so,
 	// and which it is cannot be told from the binding itself.
 	assigned map[types.Object]bool
+	// indexWritten holds every local the enclosing body writes THROUGH AN INDEX. Separate from
+	// `assigned` because writing `xs[i]` mutates contents where writing `xs` rebinds the name, and
+	// only the first of those makes an owned local need a mutable binding.
+	indexWritten map[types.Object]bool
 	// destination names WHERE the function literal currently being extracted is going, empty when it
 	// is not in a position that outlives the enclosing frame. A closure's captures cannot be owned
 	// or borrowed on the strength of the literal alone -- that is a property of its destination --

@@ -85,3 +85,47 @@ func rereadBindings(body *ast.BlockStmt, ctx *extractCtx) map[types.Object]int {
 	})
 	return counts
 }
+
+// indexWrittenLocals reports every object the body writes THROUGH AN INDEX -- `xs[i] = v`.
+//
+// Kept apart from `assignedLocals` because the two facts are different and their consumers are
+// different. Writing `xs` REBINDS the name, and a parameter that is rebound needs its own mutable
+// copy; writing `xs[i]` mutates the CONTENTS, and a parameter whose contents are written needs an
+// exclusive borrow instead -- it does not need a mutable binding, and giving it one emits a `mut`
+// nothing uses, which this engine's deny-warnings gate rejects. `Swap(values []int64, ..)` is the
+// case that proved it.
+//
+// An owned LOCAL does need the mutable binding, which is what this is for:
+// `let mut points = vec![..]; points[i] = ..`.
+func indexWrittenLocals(body *ast.BlockStmt, ctx *extractCtx) map[types.Object]bool {
+	written := map[types.Object]bool{}
+	mark := func(expr ast.Expr) {
+		for {
+			paren, ok := expr.(*ast.ParenExpr)
+			if !ok {
+				break
+			}
+			expr = paren.X
+		}
+		indexed, ok := expr.(*ast.IndexExpr)
+		if !ok {
+			return
+		}
+		ident, ok := indexed.X.(*ast.Ident)
+		if !ok {
+			return
+		}
+		if object := ctx.info.Uses[ident]; object != nil {
+			written[object] = true
+		}
+	}
+	ast.Inspect(body, func(n ast.Node) bool {
+		if assign, ok := n.(*ast.AssignStmt); ok {
+			for _, lhs := range assign.Lhs {
+				mark(lhs)
+			}
+		}
+		return true
+	})
+	return written
+}
