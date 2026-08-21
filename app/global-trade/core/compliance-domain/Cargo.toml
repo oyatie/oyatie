@@ -1,5 +1,5 @@
 [package]
-name = "oya-global-trade-compliance-domain"
+name = "global-trade-compliance-domain"
 edition.workspace = true
 version.workspace = true
 rust-version.workspace = true
@@ -10,7 +10,7 @@ license = "Apache-2.0"
 oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
 
 [lib]
-name = "oya_global_trade_compliance_domain"
+name = "global_trade_compliance_domain"
 path = "src/lib.rs"
 doctest = false
 

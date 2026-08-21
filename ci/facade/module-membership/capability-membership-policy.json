@@ -227,7 +227,6 @@
       "oya/application/crates/oya-workspace-forms-api",
       "oya/application/crates/oya-workspace-meet-api",
       "oya/docs/crates/oya-docs-domain",
-      "oya/global-trade/crates/oya-global-trade-compliance-domain",
       "oya/notes/crates/oya-notes-domain",
       "oya/sites/crates/oya-sites-domain",
       "oya/slides/crates/oya-slides-domain",

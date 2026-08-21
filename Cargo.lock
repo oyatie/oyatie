@@ -3680,6 +3680,13 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e4eba85ea1d0a966a983acd07deee566e67395d2d96b6fb39e62b5a833f1eb0b"
 
 [[package]]
+name = "global-trade-compliance-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "gloo-net"
 version = "0.6.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8093,13 +8100,6 @@ dependencies = [
  "ci-action-item-accounting",
  "ci-canonical-json",
  "serde_json",
-]
-
-[[package]]
-name = "oya-global-trade-compliance-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
 ]
 
 [[package]]

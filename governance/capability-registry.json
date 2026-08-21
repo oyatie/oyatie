@@ -531,7 +531,7 @@
         "oya/design-collaboration",
         "oya/docs",
         "oya/financial-planning",
-        "oya/global-trade",
+        "app/global-trade",
         "oya/incident-management",
         "oya/itsm",
         "oya/learning-management",
