@@ -19,7 +19,7 @@
     "change-coordination-substrate"
   ],
   "layer": "app",
-  "package_name": "oya-ci-webhook-gateway-app",
+  "package_name": "ci-webhook-gateway-app",
   "owner": "council-architecture + ops-platform",
   "owner_team": "council-architecture + ops-platform",
   "criticality_tier": "substrate-critical",

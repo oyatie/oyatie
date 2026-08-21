@@ -1,0 +1,13 @@
+rust_library(
+    name = "ci-webhook-gateway-ed25519",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_webhook_gateway_ed25519",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//ci/core/webhook-gateway-kernel:ci-webhook-gateway-kernel",
+        "third-party//:ed25519-dalek",
+        "third-party//:ed25519-dalek",
+        "third-party//:rand_core",
+    ],
+)

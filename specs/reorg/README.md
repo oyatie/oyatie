@@ -36,6 +36,7 @@ Enforced by: `ci/facade/baseline-ratchet` test `reorg_at_most_one_executable_mov
 | `ci-keystone-rename-map.json` | **rename SSOT** (not a move-plan) — gate_registration + disposition |
 | `kernel-move-plan.BLOCKED.json` | **BLOCKED** — mechanical blockers |
 | `ci-graph-additions.json` | Companion graph for historical keystone lockfile edges |
+| `ci-webhook-gateway-move-plan.PARKED.json` | **PARKED** — crates already absorbed into `ci/` faces; unpark + singleton swap after #2192/#2194/community so the live slot can authenticate baseline key substitution |
 
 > **Spent leaf (no live plan file):** R-CAS-3A NativeLink storage rehome (`infra/nativelink` → `storage/adapters/nativelink/`) is **executed and promoted** — #1563 merged 2026-08-05, promoted `010c132ec`; completion evidence `evidence/completion/oyatie-oso.5-packet.md` (criteria_met=false only because the promoted-SHA CI run was cancelled; re-verify is post-merge hygiene, not a move lane). Plan file deleted as spent in PR #1954.
 

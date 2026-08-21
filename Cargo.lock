@@ -1875,6 +1875,61 @@ dependencies = [
 ]
 
 [[package]]
+name = "ci-webhook-gateway-app"
+version = "0.1.0"
+dependencies = [
+ "axum",
+ "bytes",
+ "ci-webhook-gateway-authz-cedar",
+ "ci-webhook-gateway-ed25519",
+ "ci-webhook-gateway-github",
+ "ci-webhook-gateway-kernel",
+ "ed25519-dalek",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tower 0.5.3",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "ci-webhook-gateway-authz-cedar"
+version = "0.1.0"
+dependencies = [
+ "cedar-policy",
+ "ci-webhook-gateway-kernel",
+]
+
+[[package]]
+name = "ci-webhook-gateway-ed25519"
+version = "0.1.0"
+dependencies = [
+ "ci-webhook-gateway-kernel",
+ "ed25519-dalek",
+ "rand_core 0.6.4",
+]
+
+[[package]]
+name = "ci-webhook-gateway-github"
+version = "0.1.0"
+dependencies = [
+ "ci-webhook-gateway-kernel",
+ "reqwest 0.13.4",
+ "scripted-http-server",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "ci-webhook-gateway-kernel"
+version = "0.1.0"
+dependencies = [
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "ci-workspace-member-coverage"
 version = "0.1.0"
 dependencies = [
@@ -7944,61 +7999,6 @@ dependencies = [
 
 [[package]]
 name = "oya-ci-gate-contract"
-version = "0.1.0"
-dependencies = [
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-app"
-version = "0.1.0"
-dependencies = [
- "axum",
- "bytes",
- "ed25519-dalek",
- "oya-ci-webhook-gateway-authz-cedar-adapter",
- "oya-ci-webhook-gateway-ed25519-adapter",
- "oya-ci-webhook-gateway-github-adapter",
- "oya-ci-webhook-gateway-kernel",
- "serde",
- "serde_json",
- "tokio",
- "tower 0.5.3",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-authz-cedar-adapter"
-version = "0.1.0"
-dependencies = [
- "cedar-policy",
- "oya-ci-webhook-gateway-kernel",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-ed25519-adapter"
-version = "0.1.0"
-dependencies = [
- "ed25519-dalek",
- "oya-ci-webhook-gateway-kernel",
- "rand_core 0.6.4",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-github-adapter"
-version = "0.1.0"
-dependencies = [
- "oya-ci-webhook-gateway-kernel",
- "reqwest 0.13.4",
- "scripted-http-server",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "oya-ci-webhook-gateway-kernel"
 version = "0.1.0"
 dependencies = [
  "serde",

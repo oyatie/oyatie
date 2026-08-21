@@ -391,10 +391,10 @@
       "docs_markdown_files": 1434,
       "live_adr_files": 19,
       "dotdir_files": 242,
-      "reorg_paths": 25,
-      "oya_legacy_root_files": 1432,
+      "reorg_paths": 26,
+      "oya_legacy_root_files": 1407,
       "yaml_files": 2950,
-      "json_files": 1280
+      "json_files": 1281
     },
     "reviewed_raises": {
       "$comment": "ADR-0717 item 3: a deliberate budget change is a reviewed DATA edit. A class listed here with an exact from->to move sanctions that ONE raise in the live merge-base test (corpus_budget_reductions_must_lower_the_frozen_ceiling); any other growth is born-blocking shrink-only. Stale entries (from/to not matching the merge-base and candidate ceilings) fail closed.",
@@ -418,10 +418,15 @@
         "to": 19,
         "reason": "Same single file as the docs_markdown_files raise above — ADR-0718 is counted by both classes. Recorded as its own exact from->to because the ratchet evaluates each class independently and an unrecorded class is born-blocking."
       },
+      "reorg_paths": {
+        "from": 25,
+        "to": 26,
+        "reason": "specs/reorg/ci-webhook-gateway-move-plan.PARKED.json is the RR-MOVEPLAN-SINGLETON-safe bijection for the ci/ webhook-gateway absorb. The live slot is occupied by payroll-move-plan.json (#2194, carrying spent HR pairs); a PARKED plan is the only admitted way to record the move without a second executable plan."
+      },
       "json_files": {
-        "from": 1285,
-        "to": 1286,
-        "reason": "One gate policy document: ci/facade/gitops-chart-license/gitops-chart-license-policy.json, the curated plane-keyed chart-license allow-list the ADR-0706 D-5 gate (bead oyatie-f2fg) evaluates against. The prior entry for this class is now stale (stale from/to fails closed) and is replaced rather than appended -- one sanctioned raise per class is the contract."
+        "from": 1280,
+        "to": 1281,
+        "reason": "The same PARKED webhook-gateway move-plan is one new JSON file vs origin/dev after #2201. Catalog rows were renamed in place, so the net class growth is exactly this PARKED record. Stale 1285->1286 raise from #2181 is replaced rather than appended."
       }
     }
   }
