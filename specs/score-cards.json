@@ -10,8 +10,8 @@
     {
       "id": "score-card:pre-push:github-action-sha",
       "facet": "pipeline",
-      "query": "oya gate validate supply-chain --require-adr0039-evidence",
-      "pass_criterion": "exit 0; every pinned GitHub Action SHA resolves and release supply-chain evidence is present",
+      "query": "grep -rhoE 'uses:[[:space:]]*[^[:space:]]+' .github/workflows | grep -vE '@[0-9a-f]{40}$'",
+      "pass_criterion": "empty output; every third-party `uses:` reference in every workflow names a full 40-hex commit SHA. Executed natively (no shell) by require_third_party_actions_are_sha_pinned, which also refuses a walk that saw zero references.",
       "score": 10,
       "severity_tier": "BLOCKER",
       "empirical_evidence_path": "registry/check-empirical-evidence/score-card-pre-push-github-action-sha.json"

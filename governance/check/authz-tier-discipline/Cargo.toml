@@ -22,5 +22,11 @@ doctest = false
 name = "authz_tier_discipline"
 path = "tests/authz_tier_discipline.rs"
 
+# The fixture suite above proves the kernel correct and says nothing about this repository.
+# This target is the LIVE-TREE walk that grounds the doctrine in the real Cedar/Envoy corpus.
+[[test]]
+name = "authz_tier_discipline_live"
+path = "tests/authz_tier_discipline_live.rs"
+
 [lints]
 workspace = true

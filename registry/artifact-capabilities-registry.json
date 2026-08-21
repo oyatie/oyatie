@@ -2441,8 +2441,8 @@
       }
     },
     {
-      "artifact_id": "oya-intelligence-architecture-map-app-manifest",
-      "artifact_path": "oya/intelligence/crates/oya-intelligence-architecture-map-app/Cargo.toml",
+      "artifact_id": "intelligence-architecture-map-app-manifest",
+      "artifact_path": "intelligence/core/architecture-map-app/Cargo.toml",
       "artifact_format": "cargo-toml",
       "contract_version": "v3.0.0",
       "owner_team": "council-foundry",
@@ -3113,11 +3113,10 @@
           "lane_id": "regvuln-002-vulnerability-contract-integration-decision"
         },
         "verification": {
-          "checker_crate": "governance/check/supply-chain",
-          "command": "python3 -m json.tool specs/vulnerability-intelligence-sbom-vex-pipeline.json >/dev/null && cargo test -p check-supply-chain --lib vulnerability_intelligence"
+          "command": "python3 -m json.tool specs/vulnerability-intelligence-sbom-vex-pipeline.json >/dev/null"
         },
         "validation": {
-          "validator": "JSON syntax plus Rust vulnerability-intelligence contract fixture until a dedicated cloud-ci gate lands"
+          "validator": "JSON syntax only. The former Rust fixture bridge (check-supply-chain --lib vulnerability_intelligence) was deleted with that dark kernel: it asserted on a hand-built fixture, never on this file, so it produced no verdict about this contract. A dedicated cloud-ci gate reading this artifact is the open work."
         },
         "autogen": {
           "generator": "not-applicable; source-authored planning/spec contract"

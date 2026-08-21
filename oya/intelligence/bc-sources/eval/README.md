@@ -58,10 +58,10 @@ oyatie's eval-harness substrate. Per ADR-0024 + ADR-0026 + ADR-0131.
 
 ```bash
 # Build all foundry-eval crates
-cargo build --workspace -p 'oya-intelligence-eval-*'
+cargo build --workspace -p 'intelligence-eval-*'
 
 # Run kernel tests
-cargo nextest run -p oya-intelligence-eval-eval-runner-kernel
+cargo nextest run -p intelligence-eval-kernel
 
 # Validate layout
 cargo run -p oya-dev-cli -- gate validate per-microservice-layout --microservice foundry-eval

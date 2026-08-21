@@ -518,16 +518,104 @@ fn cargo_materialization_is_deterministic_temporary_and_checkout_clean() {
     );
 }
 
+/// Minimal, deliberately SEPARATE `[package] name` presence probe — NOT a call into the
+/// producer's own `parse_package_name`. The point of "independent" is that a bug in the shared
+/// parser cannot hide behind the census reusing the same buggy code.
+fn independent_has_package_name(contents: &str) -> bool {
+    let mut in_package = false;
+    for line in contents.lines() {
+        let trimmed = line.trim();
+        if trimmed.starts_with('[') {
+            in_package = trimmed == "[package]";
+            continue;
+        }
+        if in_package
+            && let Some(rest) = trimmed.strip_prefix("name")
+            && let Some(rest) = rest.trim_start().strip_prefix('=')
+            && !rest.trim().trim_matches('"').is_empty()
+        {
+            return true;
+        }
+    }
+    false
+}
+
+/// INDEPENDENT dynamic census of the root workspace's member directories, resolved via the
+/// canonical `oya_workspace_members_kernel::resolve_member_dirs` with its OWN from-scratch
+/// `[package] name` probe.
+///
+/// Deliberately NOT the producer's `collect_cargo_prefix` path, and deliberately NOT
+/// intersected with the producer's tracked-path universe: that intersection is precisely the
+/// SILENT-DROP vector this census exists to catch. The producer derives every one of its
+/// faces from one `tracked_paths` vector, so a single narrowing there (an over-broad
+/// exclusion rule, a lost scan root, a truncated SCM face) shrinks this face with no other
+/// signal — and a `rows.len() > 500` floor cannot tell "the corpus shrank" from "the producer
+/// stopped seeing most of it". Measured: a 43% producer-side narrowing left this gate GREEN.
+///
+/// FAILS CLOSED: a resolved member directory whose Cargo.toml is unreadable or carries no
+/// `[package] name` is a hard test failure, never a silent skip. Self-adjusts as crates are
+/// added and removed — the census moves in lockstep with the face and never needs a bump.
+fn independent_member_census(root: &Path) -> BTreeSet<String> {
+    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(root)
+        .expect("resolve_member_dirs must resolve the live root workspace Cargo.toml");
+    let mut census = BTreeSet::new();
+    for dir in member_dirs {
+        let manifest_path = root.join(&dir).join("Cargo.toml");
+        let contents = fs::read_to_string(&manifest_path).unwrap_or_else(|error| {
+            panic!(
+                "independent census FAIL-CLOSED: unreadable manifest {} ({error}) — a resolved \
+                 workspace member MUST have a readable Cargo.toml",
+                manifest_path.display()
+            )
+        });
+        assert!(
+            independent_has_package_name(&contents),
+            "independent census FAIL-CLOSED: no [package] name in {}",
+            manifest_path.display()
+        );
+        census.insert(dir);
+    }
+    census
+}
+
+/// Assert the face's enumerated member-path set exactly equals the independent census, naming
+/// exactly which keys are missing/extra on mismatch. A SET, never a count: a count is
+/// unattributable, a set is a reviewable diff of named keys.
+fn assert_member_census_matches(face_members: &BTreeSet<String>, census: &BTreeSet<String>) {
+    let missing_from_face: Vec<&String> = census.difference(face_members).collect();
+    let extra_in_face: Vec<&String> = face_members.difference(census).collect();
+    assert!(
+        missing_from_face.is_empty() && extra_in_face.is_empty(),
+        "face/census SET MISMATCH — missing_from_face={missing_from_face:?} \
+         extra_in_face={extra_in_face:?}"
+    );
+}
+
 #[test]
 fn cargo_prefix_verdict_matches_the_live_corpus() {
     let root = repo_root();
     let face = cargo_prefix_face(&root);
     let rows = face["rows"].as_array().expect("cargo-prefix face rows");
-    assert!(
-        rows.len() > 500,
-        "the cargo-prefix face should enumerate the workspace member candidates, got {}",
-        rows.len()
+
+    // INDEPENDENT DYNAMIC CENSUS, not a magnitude floor: re-derive the live root-workspace
+    // member set from the canonical resolver and assert EXACT set equality against the face.
+    // A producer that silently drops even ONE eligible member is caught as a named set
+    // difference rather than masked by "still more than 500 rows".
+    let face_members: BTreeSet<String> = rows
+        .iter()
+        .map(|row| {
+            row["member_path"]
+                .as_str()
+                .expect("cargo-prefix row member_path")
+                .to_owned()
+        })
+        .collect();
+    assert_eq!(
+        face_members.len(),
+        rows.len(),
+        "cargo-prefix rows must be uniquely keyed by member_path"
     );
+    assert_member_census_matches(&face_members, &independent_member_census(&root));
 
     let advisory_rows = rows
         .iter()
@@ -560,4 +648,71 @@ fn cargo_prefix_verdict_matches_the_live_corpus() {
             "blocking findings present must mean RED (the gate fires + freezes that scoped debt)"
         );
     }
+}
+
+// --- assert_member_census_matches: RED-test the vacuous cases a bare `rows.len() > 500` floor
+// is blind to ("still a lot of rows" is not the same fact as "the corpus was enumerated"). ---
+
+#[test]
+#[should_panic(expected = "SET MISMATCH")]
+fn member_census_mismatch_is_caught_when_face_is_empty_but_census_is_not() {
+    let face: BTreeSet<String> = BTreeSet::new();
+    let census: BTreeSet<String> = ["audit/core/chain-domain".to_owned()].into_iter().collect();
+    assert_member_census_matches(&face, &census);
+}
+
+#[test]
+#[should_panic(expected = "SET MISMATCH")]
+fn member_census_mismatch_is_caught_when_exactly_one_member_is_missing() {
+    // The exact silent-drop this gate could not see: a producer-side narrowing removes one
+    // eligible member and every magnitude floor still passes.
+    let face: BTreeSet<String> = ["audit/core/chain-domain", "audit/core/emission-domain"]
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+    let census: BTreeSet<String> = [
+        "audit/core/chain-domain",
+        "audit/core/emission-domain",
+        "audit/adapters/file",
+    ]
+    .into_iter()
+    .map(str::to_owned)
+    .collect();
+    assert_member_census_matches(&face, &census);
+}
+
+#[test]
+#[should_panic(expected = "SET MISMATCH")]
+fn member_census_mismatch_is_caught_when_the_face_invents_a_member() {
+    let face: BTreeSet<String> = ["audit/core/chain-domain", "audit/core/phantom"]
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+    let census: BTreeSet<String> = ["audit/core/chain-domain".to_owned()].into_iter().collect();
+    assert_member_census_matches(&face, &census);
+}
+
+#[test]
+fn member_census_is_green_when_the_sets_are_equal() {
+    let members: BTreeSet<String> = ["audit/core/chain-domain", "audit/adapters/file"]
+        .into_iter()
+        .map(str::to_owned)
+        .collect();
+    assert_member_census_matches(&members, &members.clone());
+}
+
+#[test]
+fn independent_package_name_probe_rejects_a_virtual_manifest() {
+    assert!(independent_has_package_name(
+        "[package]\nname = \"a-domain\"\n"
+    ));
+    // A workspace-only manifest carries no [package] name; the census must NOT count it as a
+    // package, and the live census fails closed rather than silently skipping such a member.
+    assert!(!independent_has_package_name(
+        "[workspace]\nmembers = [\"a\"]\n"
+    ));
+    // `name` under a non-[package] table must never be mistaken for the package name.
+    assert!(!independent_has_package_name(
+        "[workspace.package]\nname = \"not-a-package\"\n"
+    ));
 }

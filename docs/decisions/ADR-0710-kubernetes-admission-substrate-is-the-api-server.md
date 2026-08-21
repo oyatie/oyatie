@@ -2,7 +2,7 @@
 doc_status: published
 id: ADR-0710
 title: "Kubernetes admission substrate is the API server: VAP/CEL + PSA, no policy webhook"
-status: Proposed
+status: Accepted
 planning_impact: true
 deciders: founder
 date: 2026-08-08
@@ -29,9 +29,34 @@ deliverables:
 
 ## Status
 
-**Proposed.** Deliberately not Accepted: clause D-8 depends on evidence about the tenant
-isolation boundary that is being measured and is not yet in. Landing this Accepted before
-that evidence would assert a security posture we have not verified.
+**Accepted (2026-08-18), D-8 SEVERED.** Founder Accept of D-1 through D-7 and D-9 onward:
+the API server is the admission substrate, validation is ValidatingAdmissionPolicy with
+CEL, pod security is Pod Security Admission, and the base platform overlay ships no policy
+webhook. The policy-engine category — Kyverno, Kubewarden, Gatekeeper/OPA — is ruled out as
+the default per D-7.
+
+**D-8 is severed from this Accept and remains open.** It is not accepted, not rejected, and
+not silently carried: D-8's own body records that its first conjunct self-fails on today's
+shared-substrate hosted default, and no evidence packet has been published. An unqualified
+Accept would assert a tenant-isolation posture that has not been verified, which is the
+exact thing the prior Proposed status existed to prevent. D-8 returns on its own evidence,
+under the [ADR-0715](ADR-0715-f1-admission-adr-0710-d8-gate.md) D-1 gate.
+
+**This Accept authorizes no removal yet.** D-1's exit criteria carry a PRESENCE HALF — every
+declared Namespace labelled `pod-security.kubernetes.io/enforce: restricted`, or carrying a
+recorded, expiring PSA exception — and that census is not closed. Measured on `origin/dev`
+at `712f7601c`: 27 files declare a Namespace, 18 carry an enforce label, 9 do not; and of
+the 95 kustomization files that reference the canonical `namespace-restricted-profile`
+component, **zero** compose it under a `components:` key — every one mentions it only in a
+leading `# Canonical-base:` comment, so the restricted labels render nowhere.
+
+Until that census closes, the enforcing Kyverno ClusterPolicy
+`cloud-k8s-require-restricted-runtime`
+(`k8s/iac/kustomize/base/kyverno-cluster-policies.yaml`) and the three Kubewarden
+Applications in `infra/gitops/values.yaml` **stay**. Removing the ClusterPolicy first would
+drop its RuntimeDefault seccomp, runAsNonRoot and explicit automountServiceAccountToken
+floor with nothing behind it — a net loss of control executed in the name of an ADR whose
+purpose is to strengthen admission. Removal is a later, separately-evidenced change.
 
 ## Context
 

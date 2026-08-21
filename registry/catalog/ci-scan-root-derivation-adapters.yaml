@@ -1,0 +1,16 @@
+context: ci
+role: adapter
+capability: ci-scan-root-derivation
+plane: control
+slo: cataloged-no-runtime-claim
+data_classes_owned: [INTERNAL_ONLY]
+operational_classes_owned: []
+api_stability: preview
+security_review: unreviewed
+supply_chain: source-only
+traceability:
+  source_crate: ci/adapters/scan-root-derivation/Cargo.toml
+non_claims:
+  - resolves which directories a gate scans; it decides no verdict and emits no finding
+  - the closed capability registry is the authority for what exists, this crate only
+    intersects that registry with the filesystem and reports the disagreement

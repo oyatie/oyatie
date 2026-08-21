@@ -41,7 +41,7 @@ capabilities:
     audit_event: MailDraftSuggestionShown (per-suggestion; minimal payload — prompt hash + suggestion hash; never plaintext)
     fallback_on_model_failure: silent skip
     risk_classification: minimal-risk (Annex III §3 NOT triggered — not employment/HR decision-making)
-    user_label: "AI suggestion — Tab to accept" (Art. 50 transparency)
+    user_label: "AI suggestion — Tab to accept"  # Art. 50 transparency
 
   - id: T0-mail-subject-suggest
     name: "Subject-line suggestion"

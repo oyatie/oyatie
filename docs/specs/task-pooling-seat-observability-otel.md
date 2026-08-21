@@ -1,7 +1,7 @@
 # Spec: pooling-seat-observability-otel
 
 **Objective**: Expose the pool's health/observability surface inside
-`oya-intelligence-provider-pool-app` only, with zero new workspace members.
+`intelligence-provider-pool-app` only, with zero new workspace members.
 
 ---
 
@@ -90,7 +90,7 @@ Response (200):
 
 ## Mod layout (flat-clean-arch, one crate)
 
-All code lives inside `oya-intelligence-provider-pool-app`:
+All code lives inside `intelligence-provider-pool-app`:
 
 ```
 src/
@@ -186,7 +186,7 @@ Per ADR-0130, this manifest is mandatory before promotion past dev.
 ## Crate boundary
 
 ALL changes stay inside:
-- `microservices/intelligence/crates/oya-intelligence-provider-pool-app/`
+- `intelligence/core/provider-pool-app/`
 - `microservices/intelligence/slos/providers-pool-seat-availability.openslo.yaml`
 - `tasks/pooling-seat-observability-otel-plan.md`
 - `docs/specs/task-pooling-seat-observability-otel.md`

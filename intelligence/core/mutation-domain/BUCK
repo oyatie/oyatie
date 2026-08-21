@@ -1,0 +1,27 @@
+rust_library(
+    name = "intelligence-mutation-domain",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_mutation_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//audit/core/chain-domain:audit-chain-domain",
+        "//intelligence/core/capability-domain:intelligence-capability-domain",
+        "//intelligence/core/policy-domain:intelligence-policy-domain",
+    ],
+)
+
+rust_test(
+    name = "intelligence-mutation-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "intelligence_mutation_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//audit/core/chain-domain:audit-chain-domain",
+        "//intelligence/core/capability-domain:intelligence-capability-domain",
+        "//intelligence/core/policy-domain:intelligence-policy-domain",
+    ],
+)

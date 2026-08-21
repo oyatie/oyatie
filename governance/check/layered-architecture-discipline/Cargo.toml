@@ -12,7 +12,15 @@ license = "Apache-2.0"
 # mesh), ADR-0183 (Cedar vs Kyverno), and ADR-0184 (Valkey vs Memcached
 # tier-3 cache).
 
+# The kernel stays pure; the LIVE-TREE walk that grounds it in this repository's manifests lives in
+# tests/layered_architecture_discipline_live.rs and reads both its frozen baseline
+# (layered-architecture-discipline-policy.json) and each manifest's DECLARED identity as JSON,
+# which is why serde_json is a dev-dependency and not a dependency.
+
 [dependencies]
+
+[dev-dependencies]
+serde_json = { workspace = true }
 
 [lints]
 workspace = true

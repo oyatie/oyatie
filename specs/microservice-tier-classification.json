@@ -14,11 +14,11 @@
   },
   "tier_distribution": {
     "substrate": 54,
-    "product": 41,
+    "product": 23,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 95,
+  "service_count": 77,
   "services": {
     "audit/manifest.json": {
       "service": "audit",
@@ -822,30 +822,6 @@
       "tier_subtype": "product-consumer-community",
       "dr_tier": "T1"
     },
-    "oya/contract-lifecycle-management/manifest.json": {
-      "service": "oya/contract-lifecycle-management",
-      "manifest": "oya/contract-lifecycle-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
-    "oya/crm/manifest.json": {
-      "service": "oya/crm",
-      "manifest": "oya/crm/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "oya/design-collaboration/manifest.json": {
-      "service": "oya/design-collaboration",
-      "manifest": "oya/design-collaboration/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
     "oya/docs/manifest.json": {
       "service": "oya/docs",
       "manifest": "oya/docs/manifest.json",
@@ -853,14 +829,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer-docs",
       "dr_tier": "T1"
-    },
-    "oya/financial-planning/manifest.json": {
-      "service": "oya/financial-planning",
-      "manifest": "oya/financial-planning/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
     },
     "oya/global-trade/manifest.json": {
       "service": "oya/global-trade",
@@ -883,14 +851,6 @@
         "consumed_by_substrates": [],
         "_note": "forward-declared per ADR-0280 Appendix C; edges land in DAG v1.1.0"
       }
-    },
-    "oya/incident-management/manifest.json": {
-      "service": "oya/incident-management",
-      "manifest": "oya/incident-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
     },
     "oya/intelligence/_legacy-foundry/manifest.json": {
       "service": "oya/intelligence",
@@ -940,30 +900,6 @@
         ]
       }
     },
-    "oya/itsm/manifest.json": {
-      "service": "oya/itsm",
-      "manifest": "oya/itsm/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
-    "oya/learning-management/manifest.json": {
-      "service": "oya/learning-management",
-      "manifest": "oya/learning-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "oya/marketing-automation/manifest.json": {
-      "service": "oya/marketing-automation",
-      "manifest": "oya/marketing-automation/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
     "oya/notes/manifest.json": {
       "service": "oya/notes",
       "manifest": "oya/notes/manifest.json",
@@ -979,46 +915,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer",
       "dr_tier": "T1"
-    },
-    "oya/performance-management/manifest.json": {
-      "service": "oya/performance-management",
-      "manifest": "oya/performance-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
-    },
-    "oya/plant-maintenance/manifest.json": {
-      "service": "oya/plant-maintenance",
-      "manifest": "oya/plant-maintenance/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
-    "oya/production-planning/manifest.json": {
-      "service": "oya/production-planning",
-      "manifest": "oya/production-planning/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "oya/quality-management/manifest.json": {
-      "service": "oya/quality-management",
-      "manifest": "oya/quality-management/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
-    "oya/real-estate/manifest.json": {
-      "service": "oya/real-estate",
-      "manifest": "oya/real-estate/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
     },
     "oya/sheets/manifest.json": {
       "service": "oya/sheets",
@@ -1044,14 +940,6 @@
       "tier_subtype": "product-consumer-slides",
       "dr_tier": "T2"
     },
-    "oya/supply-chain-planning/manifest.json": {
-      "service": "oya/supply-chain-planning",
-      "manifest": "oya/supply-chain-planning/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
     "oya/translate/manifest.json": {
       "service": "oya/translate",
       "manifest": "oya/translate/manifest.json",
@@ -1059,38 +947,6 @@
       "tier": "product",
       "tier_subtype": "product-consumer-translate",
       "dr_tier": "T0"
-    },
-    "oya/treasury/manifest.json": {
-      "service": "oya/treasury",
-      "manifest": "oya/treasury/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
-    "oya/warehouse/manifest.json": {
-      "service": "oya/warehouse",
-      "manifest": "oya/warehouse/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T3"
-    },
-    "oya/whiteboard/manifest.json": {
-      "service": "oya/whiteboard",
-      "manifest": "oya/whiteboard/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T2"
-    },
-    "oya/workplace-integration/manifest.json": {
-      "service": "oya/workplace-integration",
-      "manifest": "oya/workplace-integration/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer",
-      "dr_tier": "T1"
     },
     "secrets/kms/manifest.json": {
       "service": "secrets/kms",

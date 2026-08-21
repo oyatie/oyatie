@@ -7,7 +7,7 @@
     "owner_team": "council-architecture + axis-foundry",
     "version": "1.1.0",
     "created_at": "2026-05-13T00:00:00Z",
-    "policy_ref": "/specs/markdown-retirement-policy.json",
+    "policy_ref": "/ci/facade/cross-artifact-agreement/idea-archive-policy.json",
     "reconciled_at": "2026-07-13T00:00:00Z",
     "execution_authority": "/specs/masterplan.json#masterplan_v2.work_items[id=MPV2-0003]"
   },
@@ -40,7 +40,7 @@
       "target_json_path": "RETIRED-WITHOUT-MIGRATION",
       "status": "scheduled-for-retirement",
       "migration_date": "pending PHASE-5",
-      "retirement_phase": "PHASE-5 (per markdown-retirement-policy.json updated row)",
+      "retirement_phase": "PHASE-5 (historical; the phase table was retired with specs/markdown-retirement-policy.json)",
       "commit_sha": "pending-this-commit (retirement scheduled; deletion follows after content redistribution lands)",
       "replacement_notes": "Per user directive 2026-05-13 'i dont think constitution is necessary'. Constitution-as-a-concept retired. Content redistributes: (a) mission → masterplan.json §1; (b) decision principles → agent-operating-contract.json `principles` section; (c) prohibitions → new `/specs/forbidden-operations.json` (extends master-plan-sequencing.json forbidden_primitives); (d) decision rights → docs/RACI-OWNERSHIP.md (existing). Existing inbound citations from CI check crates + ADRs + plans must redirect after content redistributes; tracked in PHASE-8 check-crate rewrites.",
       "consolidation_action": "content-redistributed-across-4-sinks; constitution concept retired"

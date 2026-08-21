@@ -22,7 +22,6 @@ Runtime tier:
 | data-class | existing | STANDARD/data-class-tagging | oya-governance-data-class-kernel | tools/oya-governance-data-class | `cargo run -p oya-governance-data-class` | 600 | BLOCKER |
 | cohesion | existing | STANDARD/cross-axis-cohesion | oya-governance-cohesion-fitness-kernel | tools/oya-governance-cohesion | `cargo run -p oya-governance-cohesion` | 300 | BLOCKER |
 | glossary | existing | STANDARD/glossary-required-terms | oya-governance-glossary-kernel | tools/oya-governance-glossary | `cargo run -p oya-governance-glossary` | 700 | HIGH |
-| adr-citation | existing | STANDARD/adr-citation | oya-governance-adr-citation-kernel | tools/oya-governance-adr-citation | `cargo run -p oya-governance-adr-citation` | 800 | BLOCKER |
 | brand-residue | existing | STANDARD/brand-hygiene | oya-governance-brand-residue-kernel | tools/oya-governance-brand-residue | `cargo run -p oya-governance-brand-residue` | 900 | HIGH |
 | bypass | existing | STANDARD/no-silent-bypass | oya-intelligence-bypass-kernel | tools/oya-governance-bypass | `cargo run -p oya-governance-bypass` | 700 | BLOCKER |
 | flat-crates | existing | STANDARD/flat-workspace | oya-governance-flat-crates-kernel | tools/oya-governance-flat-crates | `cargo run -p oya-governance-flat-crates` | 100 | BLOCKER |

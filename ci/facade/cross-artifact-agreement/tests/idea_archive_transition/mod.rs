@@ -360,7 +360,9 @@ fn live_gate_parse_collect_evaluate_path_is_mode_generic() {
     let root = super::repo_root();
     let policy_path = std::env::var_os("OYA_IDEA_ARCHIVE_POLICY")
         .map(std::path::PathBuf::from)
-        .unwrap_or_else(|| root.join("specs/markdown-retirement-policy.json"));
+        .unwrap_or_else(|| {
+            root.join("ci/facade/cross-artifact-agreement/idea-archive-policy.json")
+        });
     let policy_bytes = fs::read(&policy_path).unwrap_or_else(|error| {
         panic!(
             "read live markdown retirement policy {}: {error}",

@@ -64,12 +64,24 @@ pub fn audit_all(documents: Vec<OpenApiDocument>) -> (CoverageReport, Vec<Findin
                     break;
                 }
             }
-            // Look for `offset:` / `page:` (FORBIDDEN) inside the op
-            // body. Use exact match — `name: page_size` is canonical
-            // and MUST NOT trigger.
+            // Look for `offset:` / `page:` (FORBIDDEN) inside the op body.
+            //
+            // Exact match AFTER stripping the optional YAML sequence dash. Exactness is
+            // load-bearing and must not become `contains`: `name: page_size` is the
+            // canonical cursor companion and a substring test on `name: page` would
+            // indict every compliant contract in the tree.
+            //
+            // The dash strip is the bug fix. A parameter list is written
+            // `- name: offset`, so `trim_start()` alone leaves the dash and the exact
+            // comparison never matched — while the sibling cursor arm below uses
+            // `contains` and does match. The two arms disagreed about YAML shape, and
+            // the gap hid a real violation: storage/imaging/contracts/openapi.yaml
+            // `/dicomweb/studies` declares `limit` + `offset` and was invisible to this
+            // gate entirely.
             for (kdx, body_line) in lines.iter().enumerate().take(end).skip(idx + 1) {
                 let bt = body_line.trim_start().to_ascii_lowercase();
-                let bt = bt.trim_end_matches([' ', '\t']).to_string();
+                let bt = bt.trim_end_matches([' ', '\t']);
+                let bt = bt.strip_prefix("- ").unwrap_or(bt).trim_start().to_string();
                 if bt == "name: offset" || bt == "name: page" {
                     findings.push(Finding {
                         path: doc.path.clone(),

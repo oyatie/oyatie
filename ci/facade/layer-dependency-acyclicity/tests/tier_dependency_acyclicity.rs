@@ -128,26 +128,33 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
     );
     assert_eq!(
         baseline.keys.len(),
-        34,
-        "the frozen baseline holds 34 rows: 8 SUBSTRATE-UPWARD + 9 S-RANK-INVERSION edges, plus 17 \
-         UNCLASSIFIED-ROOT-NOT-META roots.\n\
+        33,
+        "the frozen baseline holds 33 rows: 9 S-RANK-INVERSION edges + 8 \
+         SUBSTRATE-UPWARD edges + 16 UNCLASSIFIED-ROOT-NOT-META roots.\n\
          \n\
-         The root rows dropped 21 -> 17 when messaging/ci/storage were tier-declared (ADR-0631 \
-         floor test) and `policy` was removed as a ROOT. Three of those four are real burn-down; \
-         `policy` is a bookkeeping deletion, not a fix — the capability keeps its live \
-         policy-engine DAG node, but it owns ZERO crates (the nine Cedar/PDP crates stay \
-         iam-mapped per ADR-0615 to avoid a membership double-map), so `policy/*/*` matched \
-         nothing and the exemption governed nothing. Re-homing those crates into `policy/` is a \
-         MOVE, filed separately; it will need this root back.\n\
+         The 8 SUBSTRATE-UPWARD rows are intelligence's substrate->product debt, PRESERVED and \
+         relabeled after the G024 intelligence-remainder move (2026-08-14): the 78 crates left the \
+         tier'd oya/intelligence tree for the registered intelligence/ root. The root is now a \
+         tier-CLASSIFIED capability root (substrate S4, declared in the closed capability registry), \
+         so the tier rules RUN on its edges again — the substrate-upward edges are live, baselined \
+         known-debt, not burn-down. They will leave the baseline only when the upward dependency is \
+         actually removed, never by relocating an endpoint into an unenforced root.\n\
+         \n\
+         The root rows dropped 21 -> 16 when messaging/ci/storage were tier-declared (ADR-0631 \
+         floor test), `policy` was removed as a ROOT, and `intelligence` moved to capability_roots. \
+         Three of the first four are real burn-down; `policy` is a bookkeeping deletion, not a fix — \
+         the capability keeps its live policy-engine DAG node, but it owns ZERO crates (the nine \
+         Cedar/PDP crates stay iam-mapped per ADR-0615 to avoid a membership double-map), so \
+         `policy/*/*` matched nothing and the exemption governed nothing. Re-homing those crates \
+         into `policy/` is a MOVE, filed separately; it will need this root back.\n\
          \n\
          The S-RANK-INVERSION count did NOT move (9, unchanged): declaring the three surfaced \
          ZERO new inversions. That is a fact about the neighbourhood, not a clean bill of health \
          — messaging's and storage's ranked neighbours (audit/cell/network/secrets) are already \
-         classified and they sit legally, while every one of ci's neighbours (libs, intelligence, \
-         governance) is STILL unclassified, so ci's S5 constrains no live edge yet. Verified by \
-         perturbation: forcing messaging to S1 or storage to S1 each REDs one inversion, but \
-         forcing ci to S1 REDs nothing. ci's S4 floor becomes real when `intelligence` moves to \
-         capability_roots.\n\
+         classified and they sit legally, while ci's neighbours (libs, governance) are STILL \
+         unclassified, so ci's S5 constrains no live edge yet. Verified by perturbation: forcing \
+         messaging to S1 or storage to S1 each REDs one inversion, but forcing ci to S1 REDs \
+         nothing. ci's S4 floor became real when `intelligence` moved to capability_roots.\n\
          \n\
          The 9 S-RANK-INVERSIONs are the point of the capability_roots change. This assertion \
          previously read 8 and explained the drop from 12 as 'burned down by ADR-0562 move-19: \
@@ -157,7 +164,7 @@ fn frozen_baseline_is_exactly_the_live_violation_set() {
          network/ (with cell/observability/secrets/audit) brings them back, which is why this \
          number went UP: the gate now sees inversions it had been structurally blind to.\n\
          \n\
-         The 21 root rows are the capability roots still exempt; each burns down as its root moves \
+         The 16 root rows are the capability roots still exempt; each burns down as its root moves \
          to capability_roots. --emit-baseline never MINTS one (see the baseline _comment), so a \
          structural exemption cannot be laundered by re-running the tool; it does carry the rows \
          already committed here forward, filtered to those still live, so a re-emit does not \

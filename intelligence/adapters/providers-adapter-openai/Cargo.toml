@@ -1,0 +1,19 @@
+[package]
+name = "intelligence-providers-adapter-openai"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-dispatch-usecase = { path = "../../core/dispatch-usecase" }
+intelligence-model-routing-domain = { path = "../../core/model-routing-domain" }
+
+[lib]
+name = "intelligence_providers_adapter_openai"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

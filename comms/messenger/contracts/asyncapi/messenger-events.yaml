@@ -194,7 +194,7 @@ components:
           event_id:
             type: string
             format: ulid
-            description: Per-event ULID per ADR-0156 id-discipline.
+            description: Per-event UUIDv7 per ADR-0709 D-1 id-discipline.
           event_kind:
             type: string
             pattern: '^oya\.'

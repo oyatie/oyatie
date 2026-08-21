@@ -30,7 +30,7 @@ The supervisor-app crate hosts the harness in `benches/heartbeat.rs`. The kernel
 
 ```bash
 # Run with 200 iterations per metric (v6 BLOCKER-2):
-cargo bench -p oya-intelligence-supervisor-app -- heartbeat
+cargo bench -p intelligence-supervisor-app -- heartbeat
 
 # Output: .omc/state/benchmark-results/heartbeat-p95.jsonl
 ```
@@ -131,7 +131,7 @@ To identify bottlenecks:
 
 ```bash
 # Generate flamegraph:
-cargo flamegraph -p oya-intelligence-supervisor-app --bench heartbeat -- --profile-time 30
+cargo flamegraph -p intelligence-supervisor-app --bench heartbeat -- --profile-time 30
 
 # Opens flamegraph.svg
 ```
@@ -146,4 +146,4 @@ Common hotspots:
 
 - **v4 Plan § C.13a-d:** Performance budgets
 - **v6 Amendments § BLOCKER-2:** Multi-sample p95 exact methodology
-- **Bench harness:** `crates/oya-intelligence-supervisor-app/benches/heartbeat.rs`
+- **Bench harness:** `intelligence/core/supervisor-app/benches/heartbeat.rs`

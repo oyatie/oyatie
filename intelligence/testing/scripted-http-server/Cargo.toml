@@ -1,0 +1,52 @@
+[package]
+name = "scripted-http-server"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# First-party scripted HTTP test server (ADR-0709 D-6 Rule 2 / httpmock removal).
+#
+# WHY THIS CRATE EXISTS
+# ---------------------
+# `httpmock` was the sole parent of ~31 third-party packages after PR #2134's
+# interim `default-features = false` trim: the discontinued `async-std` runtime,
+# `winapi` 0.3.9, `hyper` 0.14, `http` 0.2 and `syn` 1.0.109. ADR-0709 D-6 Rule 2
+# fails a dependency on the cost of what it DRAGS IN, not on the crate itself, so a
+# dev-only matcher library carrying a second async runtime and a second HTTP stack
+# does not survive the rule.
+#
+# The replacement is the shape the repo had already converged on by hand, twice:
+# `scripted_http_server` in ci/controller/github-adapter/tests/review_admission.rs
+# and `recording_multi_request_server` in intelligence/adapters/rest/src/lib.rs.
+# This crate is the union of those two — the first one's framing and blocking-thread
+# model, the second one's full header recording — plus per-connection handling,
+# chunked/SSE response scripting, and a recorded 500 on script over-run instead of
+# a connection refusal or a hang.
+#
+# Dependency budget: std only, plus serde_json (already a dependency of every crate
+# that consumes this) for `RecordedRequest::json()`. Zero new Cargo.lock packages.
+[lib]
+name = "scripted_http_server"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde_json.workspace = true
+
+# Every dev-dependency below is already in Cargo.lock at these versions and is a
+# dependency of the crates this helper serves. Zero new packages.
+[dev-dependencies]
+reqwest = { version = "0.13", default-features = false, features = [
+  "json",
+  "rustls",
+  "blocking",
+  "stream",
+] }
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "macros", "time"] }
+futures = { version = "0.3", default-features = false, features = ["alloc"] }
+serde_json.workspace = true
+
+[lints]
+workspace = true

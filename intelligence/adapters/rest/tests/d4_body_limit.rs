@@ -16,7 +16,6 @@ use axum::body::Body;
 use axum::http::{Request, StatusCode};
 use bytes::Bytes;
 use http_body_util::BodyExt as _;
-use httpmock::prelude::*;
 use intelligence_kernel::{
     AgentId, AuthzDecision, AuthzGate, AuthzRequest, OAuthSubscription, Provider, SeatId,
     SelectionStrategy, SubscriptionId, SubscriptionPool, SubscriptionState, TenantId,
@@ -26,6 +25,7 @@ use intelligence_rest::{
     LlmGatewayEvent, PoolRegistry, RestAdapterError, SecretProviderStore,
     UpstreamOAuthSingleflight, build_router,
 };
+use scripted_http_server::{ScriptedResponse, ScriptedServer};
 use tower::ServiceExt; // for `oneshot`
 
 // ---------------------------------------------------------------------------
@@ -253,13 +253,14 @@ fn messages_request(bearer: Option<&str>) -> Request<Body> {
 /// edge no longer 403s on the tenant axis (principal == resource == tenant-b).
 #[tokio::test]
 async fn cross_tenant_ingress_principal_gets_no_seat() {
-    let server = MockServer::start();
-    let state = make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(
-        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+    // Empty script: any upstream call at all is unexpected here, and the trace below
+    // asserts none happened — which the httpmock original never checked.
+    let server = ScriptedServer::start(vec![]);
+    let state = make_cross_tenant_state(server.base_url().to_owned(), "tenant-a")
+        .with_ingress_authenticator(Arc::new(ConfiguredBearerIngressAuthenticator::new(
             "ingress-b",
             TenantId::new("tenant-b").unwrap(),
-        )),
-    );
+        )));
     let app = build_router(Arc::new(state));
     let resp = app
         .oneshot(messages_request(Some("ingress-b")))
@@ -275,25 +276,19 @@ async fn cross_tenant_ingress_principal_gets_no_seat() {
 /// Same-tenant: bearer bound to tenant-a on the tenant-a service => 200.
 #[tokio::test]
 async fn same_tenant_ingress_principal_is_allowed() {
-    let server = MockServer::start();
-    let _token = server.mock(|when, then| {
-        when.method(POST).path("/v1/oauth/token");
-        then.status(200)
+    let server = ScriptedServer::start(vec![
+        ScriptedResponse::ok()
             .header("content-type", "application/json")
-            .body(r#"{"access_token":"tok","refresh_token":"rt2","expires_in":3600}"#);
-    });
-    let _msg = server.mock(|when, then| {
-        when.method(POST).path("/v1/messages");
-        then.status(200)
+            .body(r#"{"access_token":"tok","refresh_token":"rt2","expires_in":3600}"#),
+        ScriptedResponse::ok()
             .header("content-type", "application/json")
-            .body(r#"{"id":"msg-1","type":"message"}"#);
-    });
-    let state = make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(
-        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+            .body(r#"{"id":"msg-1","type":"message"}"#),
+    ]);
+    let state = make_cross_tenant_state(server.base_url().to_owned(), "tenant-a")
+        .with_ingress_authenticator(Arc::new(ConfiguredBearerIngressAuthenticator::new(
             "ingress-a",
             TenantId::new("tenant-a").unwrap(),
-        )),
-    );
+        )));
     let app = build_router(Arc::new(state));
     let resp = app
         .oneshot(messages_request(Some("ingress-a")))
@@ -304,18 +299,27 @@ async fn same_tenant_ingress_principal_is_allowed() {
         StatusCode::OK,
         "same-tenant must reach lease/proxy"
     );
+    // The httpmock originals bound these two mocks to `_token` / `_msg` and never
+    // asserted either one, so "must reach lease/proxy" was carried entirely by the
+    // status code. Assert the upstream calls themselves.
+    assert_eq!(
+        server.request_lines(),
+        vec!["POST /v1/oauth/token", "POST /v1/messages"],
+        "same-tenant must exchange the token and then proxy upstream"
+    );
 }
 
 /// No bearer => 401 (default-deny before authz).
 #[tokio::test]
 async fn absent_bearer_is_unauthorized() {
-    let server = MockServer::start();
-    let state = make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(
-        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+    // Empty script: any upstream call at all is unexpected here, and the trace below
+    // asserts none happened — which the httpmock original never checked.
+    let server = ScriptedServer::start(vec![]);
+    let state = make_cross_tenant_state(server.base_url().to_owned(), "tenant-a")
+        .with_ingress_authenticator(Arc::new(ConfiguredBearerIngressAuthenticator::new(
             "ingress-a",
             TenantId::new("tenant-a").unwrap(),
-        )),
-    );
+        )));
     let app = build_router(Arc::new(state));
     let resp = app.oneshot(messages_request(None)).await.unwrap();
     assert_eq!(resp.status(), StatusCode::UNAUTHORIZED);
@@ -324,13 +328,14 @@ async fn absent_bearer_is_unauthorized() {
 /// Wrong bearer => 401 (constant-time compare fails).
 #[tokio::test]
 async fn wrong_bearer_is_unauthorized() {
-    let server = MockServer::start();
-    let state = make_cross_tenant_state(server.base_url(), "tenant-a").with_ingress_authenticator(
-        Arc::new(ConfiguredBearerIngressAuthenticator::new(
+    // Empty script: any upstream call at all is unexpected here, and the trace below
+    // asserts none happened — which the httpmock original never checked.
+    let server = ScriptedServer::start(vec![]);
+    let state = make_cross_tenant_state(server.base_url().to_owned(), "tenant-a")
+        .with_ingress_authenticator(Arc::new(ConfiguredBearerIngressAuthenticator::new(
             "ingress-a",
             TenantId::new("tenant-a").unwrap(),
-        )),
-    );
+        )));
     let app = build_router(Arc::new(state));
     let resp = app
         .oneshot(messages_request(Some("wrong-token")))

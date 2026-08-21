@@ -23,7 +23,10 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 
 [dev-dependencies]
-httpmock = "0.7"
+# First-party scripted HTTP test server. Replaces `httpmock`, which ADR-0709 D-6
+# Rule 2 fails on what it DRAGS IN (async-std, hyper 0.14, http 0.2, winapi 0.3.9,
+# syn 1.0.109) rather than on the crate itself.
+scripted-http-server = { path = "../../../intelligence/testing/scripted-http-server" }
 serde_json = { workspace = true }
 
 [lints]

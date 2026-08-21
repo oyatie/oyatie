@@ -14,6 +14,11 @@ use super::super::{
 };
 
 pub(super) struct ResolvedRetirement {
+    /// Whether the evaluated commit's first parent IS the recorded protected base, as opposed
+    /// to a descendant of it on the protected branch. Both are accepted for pull_request (the
+    /// merge ref regenerates against the live tip), so the receipt must report which actually
+    /// held rather than assert the strict case unconditionally.
+    pub(super) protected_base_is_evaluated_first_parent: bool,
     pub(super) protected: String,
     pub(super) candidate: String,
     pub(super) subject: String,
@@ -91,7 +96,24 @@ pub(super) fn resolve_retirement_materialization(
         &subject,
     )?;
     let first_parent = source.first_parent(&candidate)?;
-    if protected != first_parent {
+    // Event-scoped for the same reason validate_event.rs:46 is, and #2119 relaxed only that
+    // one: `protected` comes from the frozen event payload, while a pull_request's merge ref is
+    // regenerated against the LIVE base tip. Strict identity therefore rejects every open pull
+    // request the moment anything merges to the protected branch. Measured 2026-08-18/19: 22 of
+    // 100 pull_request runs died here or at the sibling site -- 43% of all failures -- and #2117
+    // alone lost 14 of 19 runs to it.
+    //
+    // push and merge_group keep strict identity: their evaluated commit is not regenerated, so
+    // a first-parent mismatch there is real drift and must stay fatal.
+    //
+    // The property being enforced is unchanged. A first parent that is not the recorded base and
+    // not a descendant of it on the protected branch -- unrelated, rewound, or fabricated -- is
+    // still rejected, so no gate can be fed a doctored tree.
+    let protected_base_is_evaluated_first_parent = protected == first_parent;
+    let first_parent_is_base_history = protected_base_is_evaluated_first_parent
+        || (context.scm_event_name == "pull_request"
+            && source.is_ancestor(&protected, &first_parent)?);
+    if !first_parent_is_base_history {
         return Err(format!(
             "retirement protected base {protected} is not candidate first parent {first_parent}"
         ));
@@ -205,6 +227,7 @@ pub(super) fn resolve_retirement_materialization(
     let protected_control_sha = protected_control_bytes.as_deref().map(sha256_digest);
     let candidate_control_sha = sha256_digest(&candidate_control_bytes);
     Ok(ResolvedRetirement {
+        protected_base_is_evaluated_first_parent,
         protected,
         candidate,
         subject,

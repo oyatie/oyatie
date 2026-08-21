@@ -1,0 +1,18 @@
+[package]
+name = "intelligence-guardrails-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+intelligence-guardrails-kernel = { path = "../guardrails-kernel" }
+
+[lib]
+name = "intelligence_guardrails_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

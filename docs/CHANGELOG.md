@@ -6,6 +6,24 @@ doc_status: published
 
 # Changelog
 
+## 2026-08-19 — ADR-0710 Accepted, D-8 severed (admission substrate)
+
+- Promoted **ADR-0710** from Proposed → **Accepted** (founder), with **D-8 SEVERED**: D-1..D-7
+  and D-9 onward carry; D-8 stays open on its own evidence under the ADR-0715 D-1 gate, whose
+  2026-09-10 timebox now scopes to D-8 alone. D-8's own body records that its first conjunct
+  self-fails on today's shared-substrate hosted default, so an unqualified Accept would have
+  asserted an unverified tenant-isolation posture.
+- Live law for the admission substrate is now the API server itself — ValidatingAdmissionPolicy
+  + CEL, with Pod Security Admission for the pod-security baseline, and no policy webhook in the
+  base overlay. **ADR-0701**'s carried ADR-0379 gist is annotated superseded-in-part at both
+  sites; `amended_by: [ADR-0710]`.
+- **The Accept authorizes no removal.** D-1's PSA presence half is unmet (27 Namespace files, 18
+  labelled, 9 not; 0 of 95 kustomizations compose `namespace-restricted-profile` — all mention it
+  only in a `# Canonical-base:` comment), so the Kyverno ClusterPolicy
+  `cloud-k8s-require-restricted-runtime` and the three Kubewarden Applications stay until it closes.
+- Regenerated `docs/ADR-INDEX.md` + `docs/machine-readable/decisions.json` together with
+  `oya doc adr-index --write` (Accepted 14 → 15, Proposed 5 → 4).
+
 ## 2026-08-17 — Canonical JSON fixed point restored
 
 - Ran the owned canonical-JSON fixer over the three drifted active specs, restoring literal

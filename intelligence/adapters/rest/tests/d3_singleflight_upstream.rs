@@ -1,4 +1,23 @@
 //! Deterministic D3 upstream OAuth keyed-flight lifecycle tests.
+//!
+//! Ported off `httpmock` onto the first-party `scripted-http-server` (ADR-0709 D-6
+//! Rule 2). This file is the one place where the httpmock usage was genuinely
+//! MATCHER-shaped rather than positional — every mock selected on
+//! `body_contains(r#""refresh_token":"X""#)` — so it ports onto content routing
+//! (`ScriptedServer::start_with`) rather than onto a positional script.
+//!
+//! `OAuthUpstream` below models what those matchers were really describing: an OAuth
+//! token endpoint whose refresh tokens are SINGLE USE. A refresh token is exchanged by
+//! being in the rotation table; `revoke` takes it out, after which presenting it again
+//! is answered `400 single-use refresh token already consumed` — which is precisely what
+//! the `rejected_replay` mocks in the original did.
+//!
+//! The negative assertions get STRICTLY STRONGER in the port. `rejected_replay.assert_hits(0)`
+//! only said "httpmock never SELECTED that mock", which is silent if matcher precedence
+//! ever sent the request elsewhere. `assert_no_replay_since` reads the recorded bodies and
+//! asserts no request carried the retired token at all — the property the test is named
+//! for. Likewise `mock.assert_hits(1)` becomes a count of the requests that actually
+//! carried that specific refresh token.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
 use std::collections::HashMap;
@@ -8,12 +27,11 @@ use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll, Waker};
 use std::time::Duration;
 
-use httpmock::Mock;
-use httpmock::prelude::*;
 use intelligence_rest::{
     AnthropicAdapter, RestAdapterError, SecretProviderFuture, SecretProviderStore,
     UpstreamOAuthSingleflight,
 };
+use scripted_http_server::{RecordedRequest, ScriptedResponse, ScriptedServer};
 use tokio::sync::Semaphore;
 
 type RefreshFuture =
@@ -180,32 +198,126 @@ impl SecretProviderStore for RecordingStore {
     }
 }
 
-fn success_mock<'a>(
-    server: &'a MockServer,
-    current_refresh: &str,
-    access_token: &str,
-    rotated_refresh: &str,
-) -> Mock<'a> {
-    server.mock(|when, then| {
-        when.method(POST)
-            .path("/v1/oauth/token")
-            .body_contains(format!(r#""refresh_token":"{current_refresh}""#));
-        then.status(200)
-            .header("content-type", "application/json")
-            .body(format!(
-                r#"{{"access_token":"{access_token}","refresh_token":"{rotated_refresh}","expires_in":3600}}"#
-            ));
-    })
+/// An OAuth token endpoint with SINGLE-USE refresh tokens.
+///
+/// `rotate(from, access, to)` is the port of a `success_mock`: presenting `from`
+/// exchanges it for `access` and rotates it to `to`. `revoke(from)` is the port of
+/// deleting that mock and installing a `rejected_replay` in its place: `from` is no
+/// longer exchangeable, so presenting it is answered 400 exactly as a real provider
+/// answers a replayed single-use token.
+#[derive(Clone, Default)]
+struct OAuthUpstream {
+    rotations: Arc<Mutex<HashMap<String, (String, String)>>>,
+    forced_failure: Arc<Mutex<Option<(u16, String)>>>,
+}
+
+impl OAuthUpstream {
+    fn new() -> Self {
+        Self::default()
+    }
+
+    fn rotate(&self, current_refresh: &str, access_token: &str, rotated_refresh: &str) -> &Self {
+        self.rotations.lock().unwrap().insert(
+            current_refresh.to_string(),
+            (access_token.to_string(), rotated_refresh.to_string()),
+        );
+        self
+    }
+
+    /// Retire a refresh token: any later presentation of it is a replay and is refused.
+    fn revoke(&self, current_refresh: &str) -> &Self {
+        self.rotations.lock().unwrap().remove(current_refresh);
+        self
+    }
+
+    /// Force every exchange to fail, whatever token is presented.
+    fn fail_with(&self, status: u16, body: &str) -> &Self {
+        *self.forced_failure.lock().unwrap() = Some((status, body.to_string()));
+        self
+    }
+
+    fn clear_failure(&self) -> &Self {
+        *self.forced_failure.lock().unwrap() = None;
+        self
+    }
+
+    fn serve(&self) -> ScriptedServer {
+        let upstream = self.clone();
+        ScriptedServer::start_with(move |request| {
+            if request.path() != "/v1/oauth/token" || request.method != "POST" {
+                return ScriptedResponse::status(404).text("not the token endpoint");
+            }
+            if let Some((status, body)) = upstream.forced_failure.lock().unwrap().clone() {
+                return ScriptedResponse::status(status).text(body);
+            }
+            let Some(presented) = presented_refresh_token(request) else {
+                return ScriptedResponse::status(400).text("no refresh_token in request body");
+            };
+            match upstream.rotations.lock().unwrap().get(&presented) {
+                Some((access_token, rotated_refresh)) => ScriptedResponse::ok()
+                    .header("content-type", "application/json")
+                    .body(format!(
+                        r#"{{"access_token":"{access_token}","refresh_token":"{rotated_refresh}","expires_in":3600}}"#
+                    )),
+                // The port of every `rejected_replay` mock in the original.
+                None => ScriptedResponse::status(400)
+                    .text("single-use refresh token already consumed"),
+            }
+        })
+    }
+}
+
+/// The `refresh_token` value an exchange request presented.
+fn presented_refresh_token(request: &RecordedRequest) -> Option<String> {
+    serde_json::from_slice::<serde_json::Value>(&request.body)
+        .ok()?
+        .get("refresh_token")?
+        .as_str()
+        .map(str::to_owned)
+}
+
+/// How many exchanges presented `refresh`, counting only requests recorded at or after
+/// `since` (the index captured where the original deleted a mock and installed a new one).
+fn exchanges_since(server: &ScriptedServer, refresh: &str, since: usize) -> usize {
+    server
+        .requests()
+        .iter()
+        .skip(since)
+        .filter(|request| presented_refresh_token(request).as_deref() == Some(refresh))
+        .count()
+}
+
+fn exchanges_for(server: &ScriptedServer, refresh: &str) -> usize {
+    exchanges_since(server, refresh, 0)
+}
+
+/// The port of `rejected_replay.assert_hits(0)`, and strictly stronger than it: the
+/// original only proved httpmock never SELECTED the replay mock, whereas this reads the
+/// bodies that actually went on the wire.
+fn assert_no_replay_since(server: &ScriptedServer, refresh: &str, since: usize) {
+    let replays = exchanges_since(server, refresh, since);
+    assert_eq!(
+        replays,
+        0,
+        "the single-use refresh token '{refresh}' was replayed {replays} time(s) after \
+         being retired; bodies seen: {:?}",
+        server
+            .requests()
+            .iter()
+            .skip(since)
+            .map(presented_refresh_token)
+            .collect::<Vec<_>>()
+    );
 }
 
 fn adapter(
     store: RecordingStore,
-    server: &MockServer,
+    server: &ScriptedServer,
     singleflight: Arc<UpstreamOAuthSingleflight>,
 ) -> Arc<AnthropicAdapter<RecordingStore>> {
     Arc::new(AnthropicAdapter::with_base_url_and_singleflight(
         store,
-        server.base_url(),
+        server.base_url().to_owned(),
         singleflight,
     ))
 }
@@ -221,7 +333,7 @@ fn refresh_future(
 fn independent_adapter_calls(
     count: usize,
     store: &RecordingStore,
-    server: &MockServer,
+    server: &ScriptedServer,
     singleflight: &Arc<UpstreamOAuthSingleflight>,
     client: &reqwest::Client,
     handle: &'static str,
@@ -264,9 +376,11 @@ async fn complete_admitted(mut calls: Vec<RefreshFuture>) -> Vec<Result<String, 
 #[tokio::test(flavor = "current_thread")]
 async fn shared_flight_spans_fetch_exchange_store_and_uses_rotated_token_next() {
     const HANDLE: &str = "tenant-sf/seat-sf";
-    let server = MockServer::start();
-    let first = success_mock(&server, "initial-rt", "access-1", "rotated-rt-1");
-    let second = success_mock(&server, "rotated-rt-1", "access-2", "rotated-rt-2");
+    let upstream = OAuthUpstream::new();
+    upstream
+        .rotate("initial-rt", "access-1", "rotated-rt-1")
+        .rotate("rotated-rt-1", "access-2", "rotated-rt-2");
+    let server = upstream.serve();
     let store = RecordingStore::new([(HANDLE, "initial-rt")]);
     let singleflight = Arc::new(UpstreamOAuthSingleflight::new());
     let client = reqwest::Client::new();
@@ -282,7 +396,15 @@ async fn shared_flight_spans_fetch_exchange_store_and_uses_rotated_token_next() 
     assert_eq!(store.fetch_attempts(HANDLE), 1);
     assert_eq!(store.store_attempts(HANDLE), 1);
     assert_eq!(store.token(HANDLE), "rotated-rt-1");
-    first.assert_hits(1);
+    // Ten concurrent callers must collapse to exactly ONE upstream exchange.
+    assert_eq!(exchanges_for(&server, "initial-rt"), 1);
+    assert_eq!(
+        server.request_count(),
+        1,
+        "singleflight must produce exactly one upstream call in total, not just one \
+         matching one: {:?}",
+        server.request_lines()
+    );
 
     let next = adapter(store.clone(), &server, Arc::clone(&singleflight))
         .refresh_token(&client, HANDLE)
@@ -292,16 +414,19 @@ async fn shared_flight_spans_fetch_exchange_store_and_uses_rotated_token_next() 
     assert_eq!(store.fetch_attempts(HANDLE), 2);
     assert_eq!(store.store_attempts(HANDLE), 2);
     assert_eq!(store.token(HANDLE), "rotated-rt-2");
-    second.assert_hits(1);
+    assert_eq!(exchanges_for(&server, "rotated-rt-1"), 1);
+    assert_eq!(server.request_count(), 2);
 }
 
 #[tokio::test(flavor = "current_thread")]
 async fn different_handles_run_independent_flights() {
     const HANDLE_A: &str = "tenant/seat-a";
     const HANDLE_B: &str = "tenant/seat-b";
-    let server = MockServer::start();
-    let mock_a = success_mock(&server, "refresh-a", "access-a", "rotated-a");
-    let mock_b = success_mock(&server, "refresh-b", "access-b", "rotated-b");
+    let upstream = OAuthUpstream::new();
+    upstream
+        .rotate("refresh-a", "access-a", "rotated-a")
+        .rotate("refresh-b", "access-b", "rotated-b");
+    let server = upstream.serve();
     let store = RecordingStore::new([(HANDLE_A, "refresh-a"), (HANDLE_B, "refresh-b")]);
     let singleflight = Arc::new(UpstreamOAuthSingleflight::new());
     let client = reqwest::Client::new();
@@ -328,18 +453,17 @@ async fn different_handles_run_independent_flights() {
     assert_eq!(store.fetch_attempts(HANDLE_B), 1);
     assert_eq!(store.store_attempts(HANDLE_A), 1);
     assert_eq!(store.store_attempts(HANDLE_B), 1);
-    mock_a.assert_hits(1);
-    mock_b.assert_hits(1);
+    assert_eq!(exchanges_for(&server, "refresh-a"), 1);
+    assert_eq!(exchanges_for(&server, "refresh-b"), 1);
+    assert_eq!(server.request_count(), 2);
 }
 
 #[tokio::test(flavor = "current_thread")]
 async fn exchange_failure_is_shared_without_store_and_a_later_retry_starts() {
     const HANDLE: &str = "tenant/seat-error";
-    let server = MockServer::start();
-    let mut failure = server.mock(|when, then| {
-        when.method(POST).path("/v1/oauth/token");
-        then.status(503).body("provider unavailable");
-    });
+    let upstream = OAuthUpstream::new();
+    upstream.fail_with(503, "provider unavailable");
+    let server = upstream.serve();
     let store = RecordingStore::new([(HANDLE, "refresh-error")]);
     let singleflight = Arc::new(UpstreamOAuthSingleflight::new());
     let client = reqwest::Client::new();
@@ -357,10 +481,14 @@ async fn exchange_failure_is_shared_without_store_and_a_later_retry_starts() {
     );
     assert_eq!(store.fetch_attempts(HANDLE), 1);
     assert_eq!(store.store_attempts(HANDLE), 0);
-    failure.assert_hits(1);
-    failure.delete();
+    // Five callers, one shared failure: exactly one exchange was attempted.
+    assert_eq!(exchanges_for(&server, "refresh-error"), 1);
+    assert_eq!(server.request_count(), 1);
+    let after_failure = server.request_count();
 
-    let success = success_mock(&server, "refresh-error", "access-retry", "rotated-retry");
+    upstream
+        .clear_failure()
+        .rotate("refresh-error", "access-retry", "rotated-retry");
     let retried = adapter(store.clone(), &server, Arc::clone(&singleflight))
         .refresh_token(&client, HANDLE)
         .await
@@ -368,13 +496,14 @@ async fn exchange_failure_is_shared_without_store_and_a_later_retry_starts() {
     assert_eq!(retried, "access-retry");
     assert_eq!(store.fetch_attempts(HANDLE), 2);
     assert_eq!(store.store_attempts(HANDLE), 1);
-    success.assert_hits(1);
+    assert_eq!(exchanges_since(&server, "refresh-error", after_failure), 1);
 }
 
 #[tokio::test(flavor = "current_thread")]
 async fn fetch_and_permanent_store_failures_are_shared_and_bounded() {
     const HANDLE: &str = "tenant/seat-storage-error";
-    let server = MockServer::start();
+    let upstream = OAuthUpstream::new();
+    let server = upstream.serve();
     let store = RecordingStore::new([(HANDLE, "refresh-storage")]);
     let singleflight = Arc::new(UpstreamOAuthSingleflight::new());
     let client = reqwest::Client::new();
@@ -397,14 +526,16 @@ async fn fetch_and_permanent_store_failures_are_shared_and_bounded() {
     );
     assert_eq!(store.fetch_attempts(HANDLE), 1);
     assert_eq!(store.store_attempts(HANDLE), 0);
+    // A fetch that never succeeded must never have reached the token endpoint.
+    assert_eq!(
+        server.request_count(),
+        0,
+        "a failed secret fetch must not produce an upstream exchange: {:?}",
+        server.request_lines()
+    );
 
     store.set_fetch_error(None);
-    let mut success = success_mock(
-        &server,
-        "refresh-storage",
-        "must-not-publish",
-        "rotated-storage",
-    );
+    upstream.rotate("refresh-storage", "must-not-publish", "rotated-storage");
     let store_error = RestAdapterError::SecretStoreUnavailable("store unavailable".to_string());
     store.set_store_error(Some(store_error.clone()));
     let store_results = complete_admitted(independent_adapter_calls(
@@ -424,17 +555,13 @@ async fn fetch_and_permanent_store_failures_are_shared_and_bounded() {
     assert_eq!(store.fetch_attempts(HANDLE), 2);
     assert_eq!(store.store_attempts(HANDLE), 3);
     assert_eq!(store.token(HANDLE), "refresh-storage");
-    success.assert_hits(1);
+    assert_eq!(exchanges_for(&server, "refresh-storage"), 1);
 
     store.set_store_error(None);
-    success.delete();
-    let rejected_replay = server.mock(|when, then| {
-        when.method(POST)
-            .path("/v1/oauth/token")
-            .body_contains(r#""refresh_token":"refresh-storage""#);
-        then.status(400)
-            .body("single-use refresh token already consumed");
-    });
+    // `refresh-storage` has now been consumed upstream: retire it, so any replay is
+    // refused exactly as the original's `rejected_replay` mock refused it.
+    upstream.revoke("refresh-storage");
+    let after_consumption = server.request_count();
     let recovery_error = adapter(store.clone(), &server, Arc::clone(&singleflight))
         .refresh_token(&client, HANDLE)
         .await
@@ -443,14 +570,17 @@ async fn fetch_and_permanent_store_failures_are_shared_and_bounded() {
     assert_eq!(store.fetch_attempts(HANDLE), 2);
     assert_eq!(store.store_attempts(HANDLE), 4);
     assert_eq!(store.token(HANDLE), "rotated-storage");
-    rejected_replay.assert_hits(0);
-
-    let rotated = success_mock(
-        &server,
-        "rotated-storage",
-        "access-after-recovery",
-        "next-rotation",
+    // The recovery path re-stores the CACHED rotated token and must NOT re-exchange, so
+    // the stale single-use token is never sent again.
+    assert_no_replay_since(&server, "refresh-storage", after_consumption);
+    assert_eq!(
+        server.request_count(),
+        after_consumption,
+        "recovery must re-store the cached token without any upstream exchange: {:?}",
+        server.request_lines()
     );
+
+    upstream.rotate("rotated-storage", "access-after-recovery", "next-rotation");
     let retried = adapter(store.clone(), &server, Arc::clone(&singleflight))
         .refresh_token(&client, HANDLE)
         .await
@@ -459,16 +589,18 @@ async fn fetch_and_permanent_store_failures_are_shared_and_bounded() {
     assert_eq!(store.fetch_attempts(HANDLE), 3);
     assert_eq!(store.store_attempts(HANDLE), 5);
     assert_eq!(store.token(HANDLE), "next-rotation");
-    rejected_replay.assert_hits(0);
-    rotated.assert_hits(1);
+    assert_no_replay_since(&server, "refresh-storage", after_consumption);
+    assert_eq!(exchanges_for(&server, "rotated-storage"), 1);
 }
 
 #[tokio::test(flavor = "current_thread")]
 async fn initiating_request_abort_does_not_cancel_worker_or_strand_flight() {
     const HANDLE: &str = "tenant/seat-abort";
-    let server = MockServer::start();
-    let first = success_mock(&server, "refresh-abort", "access-survives", "rotated-abort");
-    let second = success_mock(&server, "rotated-abort", "access-next", "rotated-next");
+    let upstream = OAuthUpstream::new();
+    upstream
+        .rotate("refresh-abort", "access-survives", "rotated-abort")
+        .rotate("rotated-abort", "access-next", "rotated-next");
+    let server = upstream.serve();
     let (store, fetch_started, fetch_release) =
         RecordingStore::with_fetch_gate([(HANDLE, "refresh-abort")]);
     let singleflight = Arc::new(UpstreamOAuthSingleflight::new());
@@ -499,7 +631,7 @@ async fn initiating_request_abort_does_not_cancel_worker_or_strand_flight() {
     assert_eq!(follower.await.unwrap().unwrap(), "access-survives");
     assert_eq!(store.fetch_attempts(HANDLE), 1);
     assert_eq!(store.store_attempts(HANDLE), 1);
-    first.assert_hits(1);
+    assert_eq!(exchanges_for(&server, "refresh-abort"), 1);
 
     fetch_release.add_permits(1);
     let next = adapter(store.clone(), &server, Arc::clone(&singleflight))
@@ -509,14 +641,15 @@ async fn initiating_request_abort_does_not_cancel_worker_or_strand_flight() {
     assert_eq!(next, "access-next");
     assert_eq!(store.fetch_attempts(HANDLE), 2);
     assert_eq!(store.store_attempts(HANDLE), 2);
-    second.assert_hits(1);
+    assert_eq!(exchanges_for(&server, "rotated-abort"), 1);
 }
 
 #[tokio::test(flavor = "current_thread")]
 async fn panicking_provider_future_publishes_failure_and_allows_retry() {
     const HANDLE: &str = "tenant/seat-panic";
-    let server = MockServer::start();
-    let success = success_mock(&server, "refresh-panic", "access-retry", "rotated-retry");
+    let upstream = OAuthUpstream::new();
+    upstream.rotate("refresh-panic", "access-retry", "rotated-retry");
+    let server = upstream.serve();
     let store = RecordingStore::new([(HANDLE, "refresh-panic")]);
     store.panic_next_fetch();
     let singleflight = Arc::new(UpstreamOAuthSingleflight::new());
@@ -539,6 +672,12 @@ async fn panicking_provider_future_publishes_failure_and_allows_retry() {
     );
     assert_eq!(store.fetch_attempts(HANDLE), 1);
     assert_eq!(store.store_attempts(HANDLE), 0);
+    assert_eq!(
+        server.request_count(),
+        0,
+        "a panicking fetch must not produce an upstream exchange: {:?}",
+        server.request_lines()
+    );
 
     let retried = adapter(store.clone(), &server, Arc::clone(&singleflight))
         .refresh_token(&client, HANDLE)
@@ -547,14 +686,15 @@ async fn panicking_provider_future_publishes_failure_and_allows_retry() {
     assert_eq!(retried, "access-retry");
     assert_eq!(store.fetch_attempts(HANDLE), 2);
     assert_eq!(store.store_attempts(HANDLE), 1);
-    success.assert_hits(1);
+    assert_eq!(exchanges_for(&server, "refresh-panic"), 1);
 }
 
 #[tokio::test(flavor = "current_thread")]
 async fn transient_store_failure_and_panic_retry_without_replaying_single_use_token() {
     const HANDLE: &str = "tenant/seat-single-use";
-    let server = MockServer::start();
-    let mut first = success_mock(&server, "single-use-old", "access-1", "single-use-rotated");
+    let upstream = OAuthUpstream::new();
+    upstream.rotate("single-use-old", "access-1", "single-use-rotated");
+    let server = upstream.serve();
     let store = RecordingStore::new([(HANDLE, "single-use-old")]);
     store.fail_next_store(RestAdapterError::SecretStoreUnavailable(
         "transient store failure".to_string(),
@@ -579,18 +719,13 @@ async fn transient_store_failure_and_panic_retry_without_replaying_single_use_to
     assert_eq!(store.fetch_attempts(HANDLE), 1);
     assert_eq!(store.store_attempts(HANDLE), 2);
     assert_eq!(store.token(HANDLE), "single-use-rotated");
-    first.assert_hits(1);
-    first.delete();
+    assert_eq!(exchanges_for(&server, "single-use-old"), 1);
 
-    let rejected_replay = server.mock(|when, then| {
-        when.method(POST)
-            .path("/v1/oauth/token")
-            .body_contains(r#""refresh_token":"single-use-old""#);
-        then.status(400)
-            .body("single-use refresh token already consumed");
-    });
+    // `single-use-old` is spent: retire it so any replay is refused upstream.
+    upstream.revoke("single-use-old");
+    let after_old_consumed = server.request_count();
     store.panic_next_store();
-    let mut second = success_mock(&server, "single-use-rotated", "access-2", "single-use-next");
+    upstream.rotate("single-use-rotated", "access-2", "single-use-next");
     let panic_results = complete_admitted(independent_adapter_calls(
         3,
         &store,
@@ -609,8 +744,8 @@ async fn transient_store_failure_and_panic_retry_without_replaying_single_use_to
     assert_eq!(store.fetch_attempts(HANDLE), 2);
     assert_eq!(store.store_attempts(HANDLE), 3);
     assert_eq!(store.token(HANDLE), "single-use-rotated");
-    rejected_replay.assert_hits(0);
-    second.assert_hits(1);
+    assert_no_replay_since(&server, "single-use-old", after_old_consumed);
+    assert_eq!(exchanges_for(&server, "single-use-rotated"), 1);
 
     let recovery_error = adapter(store.clone(), &server, Arc::clone(&singleflight))
         .refresh_token(&client, HANDLE)
@@ -619,18 +754,12 @@ async fn transient_store_failure_and_panic_retry_without_replaying_single_use_to
     assert_eq!(recovery_error, RestAdapterError::OAuthRefreshRetryRequired);
     assert_eq!(store.token(HANDLE), "single-use-next");
     assert_eq!(store.store_attempts(HANDLE), 4);
-    rejected_replay.assert_hits(0);
-    second.assert_hits(1);
+    assert_no_replay_since(&server, "single-use-old", after_old_consumed);
+    assert_eq!(exchanges_for(&server, "single-use-rotated"), 1);
 
-    second.delete();
-    let rejected_second_replay = server.mock(|when, then| {
-        when.method(POST)
-            .path("/v1/oauth/token")
-            .body_contains(r#""refresh_token":"single-use-rotated""#);
-        then.status(400)
-            .body("single-use refresh token already consumed");
-    });
-    let third = success_mock(&server, "single-use-next", "access-3", "single-use-final");
+    upstream.revoke("single-use-rotated");
+    let after_rotated_consumed = server.request_count();
+    upstream.rotate("single-use-next", "access-3", "single-use-final");
     let retried = adapter(store.clone(), &server, Arc::clone(&singleflight))
         .refresh_token(&client, HANDLE)
         .await
@@ -639,21 +768,17 @@ async fn transient_store_failure_and_panic_retry_without_replaying_single_use_to
     assert_eq!(store.fetch_attempts(HANDLE), 3);
     assert_eq!(store.store_attempts(HANDLE), 5);
     assert_eq!(store.token(HANDLE), "single-use-final");
-    rejected_replay.assert_hits(0);
-    rejected_second_replay.assert_hits(0);
-    third.assert_hits(1);
+    assert_no_replay_since(&server, "single-use-old", after_old_consumed);
+    assert_no_replay_since(&server, "single-use-rotated", after_rotated_consumed);
+    assert_eq!(exchanges_for(&server, "single-use-next"), 1);
 }
 
 #[tokio::test(flavor = "current_thread")]
 async fn hung_store_attempt_is_aborted_and_retried() {
     const HANDLE: &str = "tenant/seat-store-timeout";
-    let server = MockServer::start();
-    let success = success_mock(
-        &server,
-        "refresh-timeout",
-        "access-timeout",
-        "rotated-timeout",
-    );
+    let upstream = OAuthUpstream::new();
+    upstream.rotate("refresh-timeout", "access-timeout", "rotated-timeout");
+    let server = upstream.serve();
     let store = RecordingStore::new([(HANDLE, "refresh-timeout")]);
     store.hang_next_store();
     let singleflight = Arc::new(UpstreamOAuthSingleflight::new());
@@ -676,5 +801,7 @@ async fn hung_store_attempt_is_aborted_and_retried() {
     assert_eq!(store.fetch_attempts(HANDLE), 1);
     assert_eq!(store.store_attempts(HANDLE), 2);
     assert_eq!(store.token(HANDLE), "rotated-timeout");
-    success.assert_hits(1);
+    // The store was retried, but the single-use token must NOT have been re-exchanged.
+    assert_eq!(exchanges_for(&server, "refresh-timeout"), 1);
+    assert_eq!(server.request_count(), 1);
 }

@@ -3,7 +3,7 @@
 ## Objective
 
 Implement live OpenBao KV-v2 secret-fetch behind the `CredentialHandleIssuerPort`
-(SecretResolution port) in `oya-intelligence-credential-resolver-adapter`.
+(SecretResolution port) in `intelligence-credential-resolver-adapter`.
 Replaces the metadata-only sidecar adapter (`CredentialResolverAdapter`) with a real
 HTTP adapter (`OpenBaoKvAdapter`) that calls `GET /v1/secret/data/<seat-path>` and
 resolves the returned credential material into a short-lived in-memory
@@ -13,8 +13,8 @@ Satisfies: `Unimplemented::OpenBaoSecretResolution`.
 
 ## Crate Boundary
 
-Crate: `oya-intelligence-credential-resolver-adapter`
-Location: `microservices/intelligence/crates/oya-intelligence-credential-resolver-adapter/`
+Crate: `intelligence-credential-resolver-adapter`
+Location: `intelligence/credential-resolver-adapter/`
 
 All changes are INSIDE this crate. No new workspace member. Root `Cargo.toml` is NEVER
 touched.

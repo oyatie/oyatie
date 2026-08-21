@@ -1,9 +1,0 @@
-[package]
-name = "oya-intelligence-attribution-domain"
-version = "0.1.0"
-edition = "2024"
-license = "Apache-2.0"
-publish = false
-
-[dependencies]
-oya-intelligence-attribution-kernel = { path = "../oya-intelligence-attribution-kernel" }

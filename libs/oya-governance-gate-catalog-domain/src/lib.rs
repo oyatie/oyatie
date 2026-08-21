@@ -1,6 +1,6 @@
 //! Foundry gate-catalog canonical domain — single source of truth for the
 //! `oya gate ...` command catalog that the downstream content-validation
-//! gates (quality-lane, documentation-system, supply-chain) read as their
+//! gates (quality-lane, documentation-system) read as their
 //! input data.
 //!
 //! Naming justification:
@@ -25,8 +25,8 @@
 //!   the content-validation input data being canonicalized here).
 //! - source-of-truth lift: the catalog below mirrors
 //!   `scripts/check.sh`'s ~50-command enumeration verbatim (order
-//!   preserved for diff-readability) and the architecture-boundaries +
-//!   pre-push contract surface; once landed, `scripts/check.sh` and the
+//!   preserved for diff-readability) and the architecture-boundaries
+//!   surface; once landed, `scripts/check.sh` and the
 //!   two sibling `.sh` wrappers become deletable (audit row B-12 follow-up,
 //!   the `.sh-removal` chain IP-E).
 //!
@@ -59,13 +59,10 @@ pub const AGGREGATED_VALIDATE_LANES: &[&str] = &[
     "data-class",
     "doc-catalog",
     "documentation-system",
-    "adr-citation",
     "brand-residue",
     "no-grouping",
     "api-semver",
-    "supply-chain",
     "cargo-prefix",
-    "pre-push-contract",
     "freshness",
     "quality-lanes",
     "honest-claims",
@@ -208,14 +205,11 @@ pub const CI_REQUIRED_PREFLIGHT_COMMANDS: &[&str] =
 /// 2. Specialty `cargo run -p <tool>` invocations that aren't `gate validate`.
 /// 3. The architecture-boundaries Rust port (now `gate validate
 ///    architecture-boundaries`, mirrored here for downstream lookups).
-/// 4. The `repoctl pre-push --verify-contract` contract check.
 /// 5. The doc-pipeline subcommands the documentation-system gate must
 ///    confirm are wired.
 /// 6. The catalog-validate subcommand the doc-pipeline lint step needs.
 /// 7. The typescript-workspace lanes (typecheck + test) the master gate
 ///    expects to be wired even though they're not under `gate run-all`.
-/// 8. The retired-but-canonical-in-body `cargo audit` / `cargo deny check`
-///    tokens required by `oya-check-supply-chain` evidence detection.
 ///
 /// Naming-justification: `_non_gate_` describes the negative axis
 /// against `AGGREGATED_VALIDATE_LANES` — every entry that the legacy
@@ -231,9 +225,7 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "cargo check --workspace --all-targets --keep-going",
     "cargo clippy --workspace --all-targets --keep-going -- -D warnings",
     "cargo machete",
-    "cargo audit",
     "cargo nextest run --workspace --no-fail-fast",
-    "cargo deny check",
     // Demo and catalog.
     "buck2 run //marketplace/facade/dev-cli:oya -- demo",
     "buck2 run //marketplace/facade/dev-cli:oya -- catalog validate",
@@ -249,9 +241,6 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
     "buck2 run //marketplace/facade/dev-cli:oya -- gate validate active-artifact-contract --emit-evidence evidence/active-artifact-contract-lane-run.json --emit-graph-edges registry/graph/active-artifact-contract-edges.json",
     "buck2 run //marketplace/facade/dev-cli:oya -- gate validate cedar-fragment-coverage --emit-evidence evidence/cedar-fragment-coverage-lane-run.json",
     "buck2 run //marketplace/facade/dev-cli:oya -- gate validate openapi-rest-route-parity --emit-evidence evidence/openapi-rest-route-parity-lane-run.json",
-    // Release-supply-chain phased lane (separate from default supply-chain).
-    "buck2 run //marketplace/facade/dev-cli:oya -- gate validate release-supply-chain --phase pre-release",
-    "buck2 run //marketplace/facade/dev-cli:oya -- gate validate supply-chain --require-adr0039-evidence",
     // ADR-0221 governance hook-efficacy CI contexts.
     "bash tools/governance/adr-0221-governance-gates.sh vacuous-green",
     "bash tools/governance/adr-0221-governance-gates.sh orphan-citation",
@@ -271,8 +260,7 @@ pub const AGGREGATED_NON_GATE_COMMANDS: &[&str] = &[
 /// `scripts/check.sh`.
 ///
 /// Lookup semantics: each downstream content-validation gate
-/// (`oya-check-supply-chain`, `oya-check-documentation-system`,
-/// `oya-check-quality-lane`) previously did
+/// (`oya-check-documentation-system`, `oya-check-quality-lane`) previously did
 /// `check_script_contents.contains(<command>)`. With this catalog, the
 /// canonical lookup becomes `wired_commands.iter().any(|wired|
 /// wired.contains(<command>))` — preserving the substring-tolerant
@@ -334,7 +322,7 @@ pub fn canonical_gate_validate_command(lane: &str) -> String {
 /// # Variants
 ///
 /// * `Global` — the lane must always run regardless of what changed (used for
-///   cross-cutting concerns such as `supply-chain` or `license-policy`).
+///   cross-cutting concerns such as `license-policy`).
 /// * `Globs` — a non-empty list of path-glob patterns; the lane is selected
 ///   when at least one changed file matches at least one glob.  An empty
 ///   `Globs(&[])` is treated conservatively as `Global` by `lanes_for_changed`.
@@ -426,15 +414,6 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
         ]),
     ),
     (
-        "adr-citation",
-        LaneInputs::Globs(&[
-            "docs/decisions/**",
-            "docs/adr-archive/**",
-            "crates/**",
-            "microservices/**",
-        ]),
-    ),
-    (
         "adr-supersession-consistency",
         LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**"]),
     ),
@@ -447,7 +426,6 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
         LaneInputs::Globs(&["docs/decisions/**", "docs/adr-archive/**", "specs/**"]),
     ),
     // ── Supply-chain / licensing ─────────────────────────────────────────────
-    ("supply-chain", LaneInputs::Global),
     ("license-policy", LaneInputs::Global),
     (
         "dependency-seam",
@@ -718,7 +696,6 @@ pub const LANE_INPUT_GLOBS: &[(&str, LaneInputs)] = &[
         "quality-lanes",
         LaneInputs::Globs(&["registry/quality/**", "crates/**"]),
     ),
-    ("pre-push-contract", LaneInputs::Global),
     (
         "codeowners-mirror",
         LaneInputs::Globs(&["CODEOWNERS", ".github/**", "crates/**", "microservices/**"]),
@@ -1026,14 +1003,6 @@ mod tests {
     }
 
     #[test]
-    fn rendered_form_contains_cargo_deny_check_token() {
-        // supply-chain kernel checks for the literal "cargo deny check" token.
-        let rendered = all_canonical_commands_rendered();
-        assert!(rendered.contains("cargo deny check"));
-        assert!(rendered.contains("cargo audit"));
-    }
-
-    #[test]
     fn rendered_form_contains_doc_pipeline_canonical_commands() {
         // documentation-system kernel checks for `buck2 run //marketplace/facade/dev-cli:oya -- doc <step>`
         // commands per registry/docs/pipeline.tsv.
@@ -1047,16 +1016,6 @@ mod tests {
         }
         assert!(
             rendered.contains("buck2 run //marketplace/facade/dev-cli:oya -- catalog validate")
-        );
-    }
-
-    #[test]
-    fn rendered_form_contains_pre_push_contract_check() {
-        // oya-check-pre-push kernel asserts that `oya verify` is the
-        // canonical local verification surface.
-        let rendered = all_canonical_commands_rendered();
-        assert!(
-            rendered.contains("buck2 run //marketplace/facade/dev-cli:oya -- verify --ci-required")
         );
     }
 

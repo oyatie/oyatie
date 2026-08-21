@@ -1,7 +1,7 @@
 //! `oya-intelligence-subagent-runtime-kernel` — port-in-kernel substrate for
 //! the per-facet subagent invocation that closes the
 //! `subagent_runtime_pending=true` gap left by
-//! `tools/oya-intelligence-pr-review-dispatcher-app` (IP-004),
+//! `tools/intelligence-pr-review-dispatcher-app` (IP-004),
 //! `tools/oya-vcs-ci-fix-loop-dispatcher-app` (IP-005), and
 //! `tools/oya-vcs-merge-queue-fix-loop-app` (IP-006).
 //!
@@ -24,7 +24,7 @@
 //!
 //! - HTTP transport, OpenBao secret resolution, filesystem I/O, model
 //!   selection heuristics. Those belong in the
-//!   `tools/oya-intelligence-subagent-runtime-app/` binary (one ring out)
+//!   `tools/intelligence-subagent-runtime-app/` binary (one ring out)
 //!   or in adapter crates (e.g. the live Anthropic HTTP path).
 //!
 //! ## Why a port-in-kernel
@@ -463,7 +463,7 @@ fn mock_findings_body(request: &SubagentRequest, recommendation: FacetRecommenda
 }
 
 /// Serializer for the per-facet `<facet>.json` evidence file consumed
-/// by IP-004's `tools/oya-intelligence-pr-review-dispatcher-app::parse_recommendation`.
+/// by IP-004's `tools/intelligence-pr-review-dispatcher-app::parse_recommendation`.
 /// The shape matches `consensus_debate_protocol.rounds.round_1_independent.required_keys`
 /// from the multispectrum review protocol.
 ///

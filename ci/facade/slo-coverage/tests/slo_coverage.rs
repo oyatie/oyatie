@@ -128,7 +128,39 @@ const REQUIRED_SLO_LINKED_CLOUD_MANIFESTS: [&str; 6] = [
 ///                                  analysis.yaml, for the port-engine analysis crate.
 ///                                  Verified by diff against dev: one A and thirteen M
 ///                                  under registry/catalog/, so the face enumerates 773 + 1.
-const SLO_CATALOG_CENSUS: usize = 774;
+///   2026-08-19  774 -> pin 742     ROWS DELETED: 31 registry/catalog rows whose crate was
+///                                  removed by the unreferenced-oya-product deletion (51
+///                                  crates, zero inbound deps, zero deployment refs). The
+///                                  row set shrinks with its subjects; nothing was retired
+///                                  to make room.
+///   2026-08-19  742 -> pin 743     ROW ADDED, legitimately: registry/catalog/
+///                                  ci-corpus-census-adapters.yaml, the catalog row for the
+///                                  new ci/adapters/corpus-census crate this change
+///                                  introduces. The enumeration did NOT widen -- the corpus
+///                                  gained exactly one row and the face gained exactly one,
+///                                  which is the disambiguation this pin exists to force.
+///   2026-08-20  743 -> pin 740     ROWS DELETED, downward, on top of the 743 base: the three
+///                                  catalog rows check-{adr-citation,supply-chain,pre-push}.yaml
+///                                  go with their crates, retired because each doctrine's
+///                                  successor is already live (adr-citation-closure;
+///                                  ci/facade/supply-chain-audit; the ADR-0515 protected
+///                                  context). Attributable one-for-one: exactly three `git rm`s
+///                                  under registry/catalog/ in this change, so the same producer
+///                                  enumerates three fewer rows than the rebased base. Not a
+///                                  collapsed enumeration. The pin moved 742 -> 739 before the
+///                                  rebase; the base's own +1 is what makes it 740.
+///   2026-08-20  740 -> pin 741     ROW ADDED, legitimately: registry/catalog/
+///                                  scripted-http-server.yaml, the catalog row for the
+///                                  owned test server replacing httpmock. Corpus gained
+///                                  exactly one row, face gained exactly one; the
+///   2026-08-20  741 -> pin 742     ROW ADDED, legitimately: registry/catalog/
+///                                  ci-scan-root-derivation-adapters.yaml, the catalog row
+///                                  for the new ci/adapters/scan-root-derivation crate this
+///                                  change introduces. Corpus gained exactly one row, face
+///                                  gained exactly one; the enumeration did not widen.
+///   2026-08-20  742 -> pin 743     ROW ADDED: registry/catalog/check-integ-envelope.yaml
+///                                  for the new governance/check/integ-envelope crate.
+const SLO_CATALOG_CENSUS: usize = 743;
 
 fn producer_command(root: &Path, producer_bin: Option<&str>) -> Result<Command, String> {
     if let Some(bin) = producer_bin {

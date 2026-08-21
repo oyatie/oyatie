@@ -3050,9 +3050,13 @@ fn read_governed_citation_corpus(root: &Path) -> String {
     let mut paths: Vec<PathBuf> = Vec::new();
     for rel in ["docs/decisions", "docs/adr-archive"] {
         let dir = root.join(rel);
-        if !dir.is_dir() {
-            continue;
-        }
+        assert!(
+            dir.is_dir(),
+            "declared governed-citation root {rel} does not resolve under {} — a corpus root \
+             that silently `continue`s away narrows this scan without any signal; repoint the \
+             root in the same change that moves it",
+            root.display()
+        );
         paths.extend(
             fs::read_dir(&dir)
                 .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
@@ -3145,9 +3149,13 @@ fn decision_md_paths_under(root: &Path, rel_dirs: &[&str]) -> Vec<String> {
     let mut names: Vec<String> = Vec::new();
     for rel in rel_dirs {
         let dir = root.join(rel);
-        if !dir.is_dir() {
-            continue;
-        }
+        assert!(
+            dir.is_dir(),
+            "declared decision-corpus root {rel} does not resolve under {} — enumerating zero \
+             ADRs from a missing root reads as \"no decisions to check\"; repoint the root in \
+             the same change that moves it",
+            root.display()
+        );
         for entry in fs::read_dir(&dir)
             .unwrap_or_else(|e| panic!("read_dir {}: {e}", dir.display()))
             .filter_map(Result::ok)

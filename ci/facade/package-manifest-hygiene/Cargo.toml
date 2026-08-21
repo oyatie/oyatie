@@ -23,9 +23,12 @@ doctest = false
 serde_json = { workspace = true }
 
 [dev-dependencies]
+# The shared independent corpus census the born-blocking self-test re-derives the oya-* crate set
+# with (ci/adapters/corpus-census). It owns the oya-workspace-members-kernel + oya-ci-config-kernel
+# edges this crate used to declare directly for exactly that purpose; both are dead here now that
+# the census is no longer inlined in tests/manifest_hygiene.rs.
+ci-corpus-census-adapters = { path = "../../adapters/corpus-census" }
 ci-path-resolver-adapters = { path = "../../adapters/path-resolver" }
-oya-ci-config-kernel = { path = "../../../libs/oya-ci-config" }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 serde_json = { workspace = true }
 
 [lints]

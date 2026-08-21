@@ -254,8 +254,8 @@ mod tests {
     #[test]
     fn ignores_non_adapter_crates() {
         let report = check(&[
-            krate("oya-intelligence-supervisor-kernel"),
-            krate("oya-intelligence-supervisor-app"),
+            krate("intelligence-supervisor-kernel"),
+            krate("intelligence-supervisor-app"),
         ]);
         assert!(report.is_clean());
         assert_eq!(report.adapters_checked, 0);
@@ -282,7 +282,7 @@ mod tests {
             "oya-cloud-billing-adapter-aws",           // orphan: no importer
             "oya-intelligence-claude-account-adapter", // matched by importer below
             "oya-intelligence-claude-account-importer-supervisor",
-            "oya-intelligence-supervisor-kernel", // ignored: not an adapter
+            "intelligence-supervisor-kernel", // ignored: not an adapter
         ] {
             let dir = root.join(name);
             fs::create_dir(&dir).expect("mkdir crate");

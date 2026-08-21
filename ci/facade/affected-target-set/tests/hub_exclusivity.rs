@@ -3,8 +3,10 @@
 // 1. Policy pack cites specs/integ-branch-envelopes.json#hubs.paths — never re-lists hubs.
 // 2. RED fixture: multi-owned hub among open integ PRs MUST Refuse.
 // 3. GREEN fixture: sole owner is Green.
-// 4. When envelopes exist on tip: load live #hubs.paths and prove extract + non-empty authority.
-//    When absent (parked integ/ci before #1644 land): skip live load; fixture proofs still bind.
+// 4. Live #hubs.paths loads from specs/integ-branch-envelopes.json and must extract a non-empty
+//    authority. The envelopes file is a REQUIRED input, never an optional one: an absent or
+//    relocated SSOT is RED and names the path (it used to `return` with a "skip live envelopes
+//    bind" note, which turned `mv specs/integ-branch-envelopes.json` into a passing suite).
 //
 // ADR-0083 Tier-3: integration tests use unwrap/expect/panic to assert invariants.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
@@ -109,16 +111,17 @@ fn green_fixture_sole_owner_passes() {
 }
 
 #[test]
-fn live_envelopes_hubs_paths_bind_when_present() {
+fn live_envelopes_hubs_paths_bind() {
     let root = repo_root();
     let envelopes = root.join(ENVELOPES_PATH);
-    if !envelopes.is_file() {
-        // Parked integ/ci tip may lack envelopes until #1644 lands — fixture proofs above bind.
-        eprintln!(
-            "skip live envelopes bind: {ENVELOPES_PATH} absent on tip (expected until integ/specs lands)"
-        );
-        return;
-    }
+    assert!(
+        envelopes.is_file(),
+        "declared hub authority {ENVELOPES_PATH} does not resolve under {} — this gate decides \
+         which integ hub a PR may own, so an absent authority must be RED here, not a silent \
+         skip that leaves the fixture proofs standing in for a live bind. If the SSOT moved, \
+         repoint ENVELOPES_PATH in the same change that moves it",
+        root.display()
+    );
     let raw = fs::read_to_string(&envelopes).expect("read envelopes");
     let doc: Value = serde_json::from_str(&raw).expect("envelopes JSON");
     let authority = hubs_paths_from_envelopes(&doc).expect("hubs.paths parse");

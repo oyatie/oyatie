@@ -10,6 +10,19 @@ rust_library(
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:serde_json",
-        # UNRESOLVED: httpmock ^0.7
+    ],
+)
+
+rust_test(
+    name = "oya-ci-webhook-gateway-github-adapter-d5-github-status-poster-test",
+    srcs = glob(["tests/d5_github_status_poster.rs"]),
+    crate = "oya_ci_webhook_gateway_github_adapter_d5_github_status_poster_test",
+    crate_root = "tests/d5_github_status_poster.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":oya-ci-webhook-gateway-github-adapter",
+        "//oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel:oya-ci-webhook-gateway-kernel",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
+        "third-party//:serde_json",
     ],
 )

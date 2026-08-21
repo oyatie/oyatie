@@ -1,6 +1,6 @@
 # Spec: intel-api-semver-sunset-date-validation
 
-**Crate:** `oya-intelligence-api-semver-domain`
+**Crate:** `intelligence-api-semver-domain`
 **Lane:** intelligence
 **Priority:** med
 **Effort:** S

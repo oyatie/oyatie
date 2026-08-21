@@ -1,7 +1,7 @@
 # Spec: pooling-sse-passthrough-streaming
 
 **Status**: in-progress  
-**Crate**: `oya-intelligence-provider-pool-app`  
+**Crate**: `intelligence-provider-pool-app`  
 **Lane**: pooling / priority: high / effort: L  
 **ADR references**: ADR-0090 (http-stack), ADR-0083 (panic-free Tier 3), ADR-0105 (flat clean arch), ADR-0509 (single-crate per service)
 
@@ -165,7 +165,7 @@ records `Attempt`/`Success`/`Failure` at the `dispatch_to_pool_stream` level).
 ## Crate boundary
 
 Changes are strictly inside:
-- `microservices/intelligence/crates/oya-intelligence-provider-pool-app/src/lib.rs`
+- `intelligence/core/provider-pool-app/src/lib.rs`
 
 No new workspace members. No edits to `Cargo.toml` (no new deps needed —
 `hyper`, `hyper-util`, `http-body-util`, `bytes`, `futures-util`, `tokio` are
@@ -175,5 +175,5 @@ already declared). No edits to root `Cargo.toml`.
 
 ## Acceptance evidence
 
-`cargo nextest run -p oya-intelligence-provider-pool-app` — all tests green including
+`cargo nextest run -p intelligence-provider-pool-app` — all tests green including
 the five new hermetic stream tests.
