@@ -78,33 +78,6 @@ jobs:
           BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'dev' }}
         run: files="$(git diff --diff-filter=ACMR --name-only "origin/${BASE_REF#refs/heads/}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check --config skip_children=true -- $files; }
 
-  # ADR-0718-D1. DEEP LINT LANE, parallel with `test` and deliberately ABSENT from the
-  # oya-ci-required fan-in. It was already `continue-on-error: true` inside the old lint job,
-  # so it has never been able to fail a merge; keeping it out of `needs` therefore removes no
-  # enforcement and takes an advisory full-workspace compile off the merge path. If the
-  # repo-wide lint-debt cleanup lands and clippy becomes blocking, it must be added back to the
-  # fan-in in that same change — ADR-0718 does not pre-authorize that.
-  clippy:
-    name: clippy (advisory)
-    runs-on: ubuntu-latest
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: "1.97.1"
-          components: clippy
-      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: cargo-ci-clippy
-      - name: Clippy, warnings denied
-        # Advisory until the repo-wide lint-debt cleanup PR lands, then blocking.
-        # The differential format gate in `lint` is the blocking new-debt guard today.
-        continue-on-error: true
-        run: cargo clippy --locked --workspace --all-targets -- -D warnings
-
   test:
     name: test (workspace + gates) (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
@@ -129,14 +102,6 @@ jobs:
       OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/tools/hooks/registration/claude-settings.json
       OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/tools/hooks/registration/codex-hooks.json
       OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR: ${{ github.workspace }}/tools/hooks
-      # swatinem/rust-cache caches registry dependencies, NOT workspace members, and this
-      # workspace has 885 of them — a run logged a cache HIT with Cargo.lock untouched and still
-      # compiled 1,565 crates. sccache is content-addressed per compilation unit, so it survives
-      # the lockfile churn and the workspace-member gap that rust-cache leaves open.
-      # CARGO_INCREMENTAL=0 (set workflow-wide) is a prerequisite: sccache cannot cache
-      # incremental compilation.
-      RUSTC_WRAPPER: sccache
-      SCCACHE_GHA_ENABLED: "true"
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
@@ -165,7 +130,6 @@ jobs:
           cache-workspace-crates: "true"
       # The face materializer shells out to buck2 internally to build its sibling
       # face tools; the digest-pinned installer is the bridge it has always used.
-      - uses: mozilla-actions/sccache-action@fc920bf0ec8de6ee65d409111f7ec508035751ba
       - name: Install pinned buck2 (digest-verified)
         shell: bash
         run: infra/ci/install-buck2.sh
@@ -199,10 +163,10 @@ jobs:
         # at a time. Running the suite out reports every failure in one run at the same verdict.
         # This is not an advisory escape: the job still fails if any test fails, unlike
         # `--keep-going` or `|| true`, which the registration gates reject for that reason.
-        run: cargo nextest run --locked --workspace --no-fail-fast
+        run: cargo nextest run --locked --workspace --profile ci
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
-        run: cargo nextest run --locked --manifest-path kernel/Cargo.toml
+        run: cargo nextest run --locked --manifest-path kernel/Cargo.toml --profile ci
       # Live hub-exclusivity admission: rejects a second open PR touching a hub path
       # declared under specs/integ-branch-envelopes.json#hubs.paths.
       - name: Live hub-exclusivity admission
