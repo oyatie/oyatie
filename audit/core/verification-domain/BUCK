@@ -9,3 +9,28 @@ rust_library(
         "//audit/ports/verification-api:audit-verification-api",
     ],
 )
+
+rust_test(
+    name = "audit-verification-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "audit_verification_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//audit/core/chain-domain:audit-chain-domain",
+        "//audit/ports/verification-api:audit-verification-api",
+    ],
+)
+
+rust_test(
+    name = "audit-verification-domain-verification-flow",
+    srcs = ["tests/verification_flow.rs"],
+    crate = "audit_verification_domain_verification_flow",
+    crate_root = "tests/verification_flow.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-verification-domain",
+        "//audit/core/chain-domain:audit-chain-domain",
+        "//audit/ports/verification-api:audit-verification-api",
+    ],
+)
