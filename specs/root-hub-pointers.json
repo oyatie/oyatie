@@ -380,7 +380,7 @@
       "current_path": "/specs/deployment-ops-contract.json",
       "kind": "spec",
       "migration_phase": "complete",
-      "purpose": "Deployment entrypoint contract (per ADR-0375): OpenTofu owns only the Cloudflare edge; the cluster fleet is provisioned by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD; root Makefile owns operator entry; no manual SSH troubleshooting.",
+      "purpose": "Deployment entrypoint contract (per ADR-0375): OpenTofu owns only the Cloudflare edge; the cluster fleet is provisioned by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD; operators invoke tofu against infra/cloudflare (no root Makefile); no manual SSH troubleshooting.",
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "derived_compliance_cell_placement_contract": {

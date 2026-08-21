@@ -2054,9 +2054,9 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                 }
             }
         }
-        // deployment-ops-contract: makes OpenTofu + root Makefile + ops portal
-        // the only normal deployment surface, and tracks every infra/onprem
-        // shell script for Rust migration.
+        // deployment-ops-contract: makes OpenTofu (infra/cloudflare) + ops portal
+        // the only normal deployment surface (no root Makefile), and tracks
+        // remaining shell inventory for Rust migration.
         (Some("validate"), Some("deployment-ops-contract")) => {
             deployment_ops_contract::run(args.collect())
         }

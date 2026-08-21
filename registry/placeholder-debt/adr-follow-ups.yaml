@@ -110,15 +110,13 @@ follow_ups:
 
   - id: adr-0375-fleet-bootstrap-pipeline
     intent: |
-      `make fleet` is informational-only (prints the gen-media.sh/init.sh/render.sh
-      sequence). The deployment-ops-contract describes fleet bring-up as a
-      multi-step hardware-gated flow, not a single executable command. This
-      follow-up wires the end-to-end fleet bootstrap into a cloud-ci pipeline
+      Fleet bring-up remains a multi-step hardware-gated flow (gen-media.sh /
+      init.sh / render.sh), not a single executable command. This follow-up
+      wires the end-to-end fleet bootstrap into a cloud-ci pipeline
       (control-plane media build is hardware-gated and stays manual; the
       clusterctl init + CRS render + spoke apply legs become a pipeline once a
       hub kubeconfig is available to the cloud-ci agent).
     driver_docs:
-      - Makefile
       - specs/deployment-ops-contract.json
       - infra/capi/init.sh
       - infra/capi/crs/render.sh

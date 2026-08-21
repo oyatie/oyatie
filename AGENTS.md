@@ -84,8 +84,8 @@ Cargo workspace graph — the CI merge path (see [`README.md`](README.md#build--
 Toolchain: Rust pinned in [`rust-toolchain.toml`](rust-toolchain.toml). Merge authority is
 only the `oya-ci-required` context on the PR (ADR-0716).
 
-`make verify` is **not** this path. The Makefile target is now `make verify-deploy` (OpenTofu edge
-+ deployment-ops contract). Do not treat Make as cargo verify.
+There is no root Makefile. Cloudflare edge fmt/plan/apply is `tofu -chdir=infra/cloudflare`
+(see [`iac/README.md`](iac/README.md)). Do not treat Make as cargo verify.
 
 ## Coding & testing standards
 

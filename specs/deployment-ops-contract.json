@@ -2,18 +2,18 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://docs.oyatie.com/specs/deployment-ops-contract.json",
   "title": "DeploymentOpsContract",
-  "description": "Machine-readable deployment entrypoint contract: OpenTofu owns the Cloudflare edge, the cluster fleet is provisioned declaratively by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD, the root Makefile owns operator entry, day-2 changes route through ops, and no manual SSH troubleshooting.",
+  "description": "Machine-readable deployment entrypoint contract: OpenTofu owns the Cloudflare edge, the cluster fleet is provisioned declaratively by Cluster API + Talos (installation-media zero-touch) + per-cell Argo CD, operators invoke tofu against infra/cloudflare (no root Makefile), day-2 changes route through ops, and no manual SSH troubleshooting.",
   "_meta": {
     "doc_class": "Machine-Readable-Spec",
     "spec_id": "EXE-DEPLOYMENT-OPS-CONTRACT",
-    "version": "2.0.0",
+    "version": "3.0.0",
     "status": "Accepted",
     "owner_team": "axis-cloud + axis-foundry + council-architecture",
     "created_at": "2026-05-16T12:45:00Z",
-    "amended_at": "2026-05-27T00:00:00Z",
-    "amendment_note": "v2.0.0 (ADR-0375): retire the OCI/on-prem OpenTofu+shell deployment model. OpenTofu now owns only the Cloudflare edge; cluster lifecycle moves to Cluster API + Talos (installation media) + Argo CD. The infra/oci + infra/onprem trees and their shell-consolidation inventory are removed.",
+    "amended_at": "2026-08-21T00:00:00Z",
+    "amendment_note": "v3.0.0: delete the root Makefile. Operator entry is tofu -chdir=infra/cloudflare plus cargo run -p marketplace-dev-cli -- gate validate deployment-ops-contract. Merge-path verify remains cargo (ADR-0716).",
     "source_directives": [
-      "no handrolling; declarative IaC and a minimal, intuitive bootstrap/Makefile.",
+      "no handrolling; declarative IaC. No root Makefile.",
       "once setup, everything managed through ops/GitOps.",
       "no manual ssh command troubleshooting. just works out of the box.",
       "everything from control plane to worker auto-installs from installation media; cluster lifecycle via CAPI, apps via Argo CD."
@@ -59,40 +59,36 @@
     "note": "Full TALOS-001 matrix, authority, claim_boundary, and path_conflict_policy content lives in the dedicated spec_ref file, enforced by the //ci/facade/contract-slice-conformance gate slice talos-001-substrate-slice."
   },
   "operator_entrypoints": {
-    "makefile": {
-      "path": "Makefile",
-      "required_targets": [
-        "help",
-        "bootstrap",
-        "install",
-        "plan",
-        "apply",
-        "tofu-init",
-        "tofu-fmt-check",
-        "verify-deploy",
-        "verify-deploy-contract",
-        "ops"
-      ],
-      "command_policy": "Make targets may invoke cargo/Rust gates and tofu only (Cloudflare edge). They must not embed ssh troubleshooting, oci compute mutation, or terraform CLI. Cluster-fleet bring-up is git/CAPI-driven (see `make fleet`)."
+    "cloudflare_edge": {
+      "path": "infra/cloudflare",
+      "engine": "opentofu",
+      "commands": {
+        "init": "tofu -chdir=infra/cloudflare init -input=false",
+        "fmt_check": "tofu -chdir=infra/cloudflare fmt -check -recursive",
+        "plan": "tofu -chdir=infra/cloudflare plan -input=false",
+        "apply": "tofu -chdir=infra/cloudflare apply -input=false"
+      },
+      "command_policy": "Operators invoke tofu against infra/cloudflare only (Cloudflare edge) plus the Rust deployment-ops-contract gate. They must not embed ssh troubleshooting, oci compute mutation, or terraform CLI. Cluster-fleet bring-up is git/CAPI-driven. There is no root Makefile."
     },
+    "contract_gate": "cargo run -p marketplace-dev-cli -- gate validate deployment-ops-contract",
+    "docs": "iac/README.md",
     "allowed_human_commands_after_clone": [
-      "make bootstrap",
-      "make install",
-      "make plan",
-      "make apply",
-      "make fleet",
-      "make ops",
-      "make verify"
+      "tofu -chdir=infra/cloudflare init -input=false",
+      "tofu -chdir=infra/cloudflare fmt -check -recursive",
+      "tofu -chdir=infra/cloudflare plan -input=false",
+      "tofu -chdir=infra/cloudflare apply -input=false",
+      "cargo run -p marketplace-dev-cli -- gate validate deployment-ops-contract"
     ],
     "forbidden_human_commands": [
       "ssh <host> ... for troubleshooting",
       "oci compute instance update ...",
-      "terraform ..."
+      "terraform ...",
+      "make ..."
     ]
   },
   "bootstrap_contract": {
     "goal": "Cold-start the deployment toolchain without bespoke runbooks.",
-    "entrypoint": "make bootstrap",
+    "entrypoint": "tofu -chdir=infra/cloudflare init -input=false",
     "minimum_behaviour": [
       "validate this deployment contract with Rust",
       "verify tofu is installed and point to official OpenTofu install docs if absent",
@@ -106,20 +102,20 @@
     ]
   },
   "install_contract": {
-    "entrypoint": "make install",
-    "scope_note": "`make install` provisions ONLY the OpenTofu-owned Cloudflare edge (it is `install: apply`). It does NOT provision the cluster fleet — fleet bring-up is hardware-gated (boot Talos installation-media on real nodes) and multi-step, and `make fleet` is informational-only (prints the sequence). Treat fleet bring-up as a separate, manual/hardware-gated procedure until the cloud-ci fleet-bootstrap pipeline lands (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-fleet-bootstrap-pipeline).",
+    "entrypoint": "tofu -chdir=infra/cloudflare apply -input=false",
+    "scope_note": "`tofu apply` in infra/cloudflare provisions ONLY the OpenTofu-owned Cloudflare edge. It does NOT provision the cluster fleet — fleet bring-up is hardware-gated (boot Talos installation-media on real nodes) and multi-step. Treat fleet bring-up as a separate, manual/hardware-gated procedure until the cloud-ci fleet-bootstrap pipeline lands (registry/placeholder-debt/adr-follow-ups.yaml#adr-0375-fleet-bootstrap-pipeline).",
     "normal_flow": [
       "run Rust deployment contract gate",
-      "run tofu apply for infra/cloudflare (this is the entire `make install`)"
+      "run tofu apply for infra/cloudflare"
     ],
     "fleet_bring_up_separate": [
-      "hardware-gated, NOT part of `make install`:",
+      "hardware-gated, NOT part of infra/cloudflare apply:",
       "build Talos installation-media (infra/talos/installation-media/gen-media.sh) and boot it on the control-plane + node hardware",
       "clusterctl init onto the formed control plane (infra/capi/init.sh)",
       "render + apply the CRS bootstrap (infra/capi/crs/render.sh)",
       "add cells to infra/capi/clusters/values.yaml and helm template | kubectl apply — CAPI reconciles; per-cell Argo CD then owns app delivery"
     ],
-    "confirmation_policy": "OpenTofu apply prompts by default; do not use hidden auto-approve in the Makefile."
+    "confirmation_policy": "OpenTofu apply prompts by default; do not use hidden auto-approve."
   },
   "ops_management_contract": {
     "day_2_surface": "https://ops.oyatie.com",
@@ -153,7 +149,7 @@
   "acceptance_criteria": [
     {
       "id": "DEP-OPS-AC-001",
-      "rule": "root Makefile exists and exposes all required targets"
+      "rule": "root Makefile must not exist; operators invoke tofu against infra/cloudflare"
     },
     {
       "id": "DEP-OPS-AC-002",
@@ -176,9 +172,6 @@
     "python3 -m json.tool specs/deployment-ops-contract.json >/dev/null",
     "buck2 test //ci/facade/contract-slice-conformance:ci-contract-slice-conformance-gate",
     "cargo run -p marketplace-dev-cli -- gate validate deployment-ops-contract",
-    "make help",
-    "make fleet",
-    "make verify-deploy-contract",
-    "TOFU=tofu make tofu-fmt-check"
+    "tofu -chdir=infra/cloudflare fmt -check -recursive"
   ]
 }
