@@ -36,6 +36,10 @@ deliverables:
     description: "The merge-blocking CI context is named presubmit (Google TAP-shaped). New workflow and required-context names do not use an oya- prefix. Today's oya-ci-required string is a rename target, not the destination name."
     exit_criteria: "This ADR uses presubmit as verified_by; no new ADR or workflow is named oya-ci-*; the live GitHub required context rename is a follow-through PR that updates branch protection in the same change."
     verified_by: "presubmit"
+  - id: ADR-0719-D10
+    description: "Hyperscaler pipeline names: presubmit (merge-blocking, graph-aware), postsubmit (on merge to dev), nightly, weekly, promotion rungs dev-staging-canary-production, release train bundling. One required context. No oya- prefix. No per-capability required GitHub checks."
+    exit_criteria: "This ADR defines those cadences; new workflows use those names; oya-ci-required remains a rename target with branch protection in the same follow-through change."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -193,17 +197,19 @@ GitHub: `.github/`, `.gitignore`, `.gitattributes`. Hubs: `README.md`, `LICENSE`
 `OWNERS`, `AGENTS.md`, `CLAUDE.md`, founder-thin `HANDOFF.md`. Meta: `kernel/`, `os/`,
 `base/` (≥3 caps and strictly below them, else it is not `base/`), `build/`,
 `third-party/`. `governance/` is a **capability** (checks + `capability-registry.json`).
-`specs/` is the **singleton org machine-readable tree gates already load** (root-hub,
-masterplan, schemas); shrink unused rows, do not dual-home under `governance/` or
-`registry/`. Composition: `app/`. One directory per **registered** capability
-(including `policy/` the **engine**). Jurisdiction: `packs/<id>/` one versioned bundle
-the engines load. `docs/` = ADRs + operating contract.
+Composition: `app/`. One directory per **registered** capability (including `policy/`
+the **engine**). Jurisdiction: `packs/<id>/` one versioned bundle the engines load.
+`docs/` = ADRs + operating contract. **No catch-all `specs/`.** Machine contracts live
+next to the evaluator (gate `*-policy.json`, Cedar, IR proto). Agent entry is
+`AGENTS.md` / `CLAUDE.md`. `HANDOFF.md` is **deleted** (founder 2026-06-08 exception
+withdrawn); it was a redirect, not law.
 
 **Not repo-root:** `oya/`, `cloud/`, `libs/`, `infra/`, `tools/`, `toolchains/`
 (reorg_now); root `Makefile`; root `Dockerfile*` (→ `build/`); `oya-*.toml`; tracked
 agent dirs; `evidence/` dumps; `benchmarks/`; `scripts/`; `tasks/`/`plan/` as required
-corpora; `catalog.yaml` trees; root `contracts/` YAML as IDL; root `registry/` as a
-third org tree.
+corpora; `catalog.yaml` trees; root `contracts/` YAML as IDL; root `registry/`;
+root `specs/` as a JSON law corpus (delete with the gates that load contradicting
+files; do not scatter into cap/app). `HANDOFF.md`.
 
 **Capability root and `app/<product>/` (closed children):** `core/`, `ports/`,
 `adapters/`, `facade/`, `cedar/` (**.cedar unique to this cap** — schema and resource
@@ -233,9 +239,9 @@ still speak REST may go red until they speak proto — that break is in-scope hy
   tree; OpenSLO-as-authoring and REST transcode are Helm-shaped dual stacks; dual
   `cedar/`+`policy/` allowlists encoded the collision.
 - **rule:** cap-root `cedar/` only; `policy/` is the capability; SLO source is IR;
-  `specs/` is org-data SSOT; `ports/` is the contract face; extras and REST/JSON
-  product surfaces deleted, not grandfathered. Temporarily breaking live callers/gates
-  is accepted. Leaving anti-pattern debt is not.
+  no `specs/` catch-all; `ports/` is the contract face; extras, REST/JSON product
+  surfaces, and `HANDOFF.md` deleted, not grandfathered. Temporarily breaking live
+  callers/gates is accepted. Leaving anti-pattern debt is not.
 - **ensure:** layout allowlists match this set; no immortal `IPs/`; no both `cedar/` and
   `policy/` as cap children.
 - **overturn_when:** a child is loaded by a compiler/PDP/SLO/reconciler AND a five-field
@@ -246,9 +252,29 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 - Implementers read this plus ADR-0701/0702/0704/0705/0615. Do not re-derive from chat.
 - `policy/` extraction and IR proto are implementation follow-through, not optional sketch.
 - Admission remains ADR-0710 (VAP/CEL+PSA); this ADR does not re-open ADR-0710's D-8.
-- Merge-blocking CI is **presubmit** (one admission context, graph-aware work). Do not
-  name it `oya-ci-required` in new law. Pair with `merge-admission` for queue
-  admission. Per-capability required GitHub checks stay forbidden.
+- Merge-blocking CI is **presubmit**. Pair with **merge-admission**. See D-10.
+
+### D-10 — Pipeline cadences (names, not brand)
+
+Hyperscaler shape: Google **presubmit / postsubmit / continuous / release**; one
+admission, graph-aware work; promotion is not “the test job.”
+
+| Cadence | When | What | Blocks merge? |
+|---|---|---|---|
+| **presubmit** | every PR / merge-queue group | Affected cargo graph: fmt, clippy, tests + dependents; D-8 path-set (new junk red); license; rust-first; generated-not-hand-edited; Cedar compile of **touched** `cedar/` | **Yes.** One required context. |
+| **postsubmit** | merge to `dev` | Full workspace (or remainder not proven on the affected set); start of promotion **into staging** only via the promotion pipeline | No (already merged). Failure is a **revert/block-next** signal, not a second required PR check. |
+| **nightly** | schedule | arm64 (D88-amend), fuzz, long E2E, soak | No |
+| **weekly** | schedule | buck2 `build //...` honesty smoke (ADR-0716); hermetic graph | No |
+| **promotion** | explicit rung | `dev` → `staging` → `canary` → `production`; predecessor check | N/A (branch protection on the rung) |
+| **release** | train (interview D63) | Bundle what’s on the promotion rung; **release builds** (`cargo build --release` / buck2) on **CD**, not presubmit | N/A |
+
+Do **not** add one required GitHub check per capability (skipped-check failures, queue
+combinatorics). Lane isolation is **worktrees + non-overlapping paths**, not 24
+contexts. Do not resurrect merge-base **count** baselines as “affected set.”
+
+New workflow and context names: `presubmit`, `postsubmit`, `nightly`, `weekly`,
+`promotion-predecessor`, `release`. No `oya-` prefix. Today’s `oya-ci-required` is
+the **presubmit** rename target (branch protection in the same change).
 
 ## Rejected alternatives
 
@@ -267,3 +293,36 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 - Standing REST/JSON transcode “until SDK is ready” (that is dual-stack debt).
 - Hand-authored OpenSLO as a W0 source of truth.
 - Branding the merge-blocking CI `oya-ci-*` or adding one required check per capability.
+- Keeping `specs/` as a JSON org-law tree (even “thin”).
+- Keeping `HANDOFF.md` as a fourth root hub.
+
+## Appendix — considerations (not implement authority)
+
+Record of why D-8/D-9/D-10 landed. Not additional MUST.
+
+- **`specs/`:** Live tree ~376 files / ~359 JSON. Gates load `product-protocol-contract.json`
+  (REST required, Connect forbidden) and `per-microservice-flat-layout.json`
+  (`microservices/` + required PRDs). That contradicts D-3/D-4/D-8. A catch-all
+  `specs/` refilled once; shrinking it still leaves a magnet. Hyperscaler: policy
+  next to the evaluator; ADRs for decisions. **Do not copy `specs/` into cap/app.**
+- **`cedar/` vs cap-root `policy/`:** Inventory had ~359 files under `<cap>/policy/`.
+  That collides with the `policy/` **capability** (PDP). Engine vs data names must
+  not collide (`observability/` vs `observability/slos/`). Platform Cedar lives in
+  the engine; caps hold unique fragments only. Stamped `tenant-scope.cedar` is the
+  runbook-clone bug.
+- **OpenSLO:** “Controller eats YAML” is how Helm survived. SLO source is IR;
+  OpenSLO YAML is generated. Hand files (clone or unique) are debt.
+- **REST transcode:** Google ESP still JSON-encodes proto. We still reject a
+  **standing** dual API. Leftover REST is deleted; temporary caller red is hygiene.
+- **`HANDOFF.md`:** Thin redirect (2026-06-08 exception). Content is a read-order
+  already in `AGENTS.md`/`CLAUDE.md`. Deleted so a fourth hub cannot accrete status.
+  **Pending founder:** the sentence “a higher ADR number does not override an earlier
+  Accepted ADR by itself; only explicit `amends`/`supersedes`” — admit into this ADR
+  if that is still wanted as law (it is not copied here as MUST).
+- **presubmit name:** TAP/presubmit vs postsubmit. Not `oya-ci-required`.
+- **One context vs per-cap CI:** Central **admission** is hyperscaler; central
+  **full-repo JSON census** is the conflict source. Per-cap **required** checks are
+  the skip-fail anti-pattern.
+- **etcd / AWS journal:** EKS journal is closed, etcd-API-preserving, mega-cluster.
+  We cell-shard; steal log-vs-memory, not the binary.
+- **EU world-floor:** KR CSAP/본인인증/e-tax is not a GDPR subset. Packs overlay.

@@ -86,12 +86,7 @@
       "value": "AGENTS.md",
       "reason": "agent operating contract pointer"
     },
-    {
-      "id": "handoff-md",
-      "kind": "exact",
-      "value": "HANDOFF.md",
-      "reason": "founder-authorized thin fresh-session redirect; never a plan, backlog, or status authority"
-    },
+
     {
       "id": "owners",
       "kind": "exact",

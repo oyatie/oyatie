@@ -234,7 +234,7 @@ Git/GitHub state, prove
 each remote archive commit and tree are readable, and retain terminal anchors for every useful
 lane. [`/specs/masterplan.json`](../specs/masterplan.json) remains the live work-item source of
 truth; GitHub issues are intake, coordination, and blocker mirrors that link to their masterplan v2
-items, and [`HANDOFF.md`](../HANDOFF.md) remains a thin redirect.
+items. `HANDOFF.md` is removed (ADR-0719 D-8).
 
 Only durable useful work belongs in signed remote Git history. Secrets, credential-bearing
 machine configuration, raw `.omx`/`.omc` runtime state, caches, and generated build output MUST NOT
@@ -395,7 +395,7 @@ If any box is unchecked, the change is not complete. Loop back; do not declare s
 | `modules/`, `services/`, `platform/`, `tools/` | Retired legacy implementation roots; do not recreate. |
 | `registry/capability-templates/` | Capability records + metering events (Foundry-consumed). |
 | `contracts/` | Per-cross-axis contract spec files (OpenAPI, Protobuf, AsyncAPI). |
-| Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`, `HANDOFF.md`) | Founder-authorized Markdown survival set. `HANDOFF.md` is a thin fresh-session redirect only, never a plan/backlog/status authority. `CLAUDE.md` and this file are binding for agents; `/specs/root-hub-pointers.json` remains the redirect hub. Thinness lint may apply to redirect/index helper files only; it does not demote CLAUDE.md or docs/AGENTS.md. |
+| Repo root (`README.md`, `CLAUDE.md`, `AGENTS.md`) | Founder-authorized Markdown survival set. `HANDOFF.md` is deleted (ADR-0719). `CLAUDE.md` and this file are binding for agents. Thinness lint may apply to redirect/index helper files only; it does not demote CLAUDE.md or docs/AGENTS.md. |
 
 ## Boundaries
 

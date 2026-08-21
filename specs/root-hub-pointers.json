@@ -7,7 +7,7 @@
     "doc_class": "Machine-Readable-Spec",
     "last_audited": "2026-07-13",
     "owner_team": "founder + platform-governance",
-    "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs; HANDOFF.md survives under the founder's 2026-06-08 exception as a thin fresh-session redirect only.",
+    "purpose": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs. HANDOFF.md is deleted (ADR-0719).",
     "spec_id": "EXE-ROOT-HUB-POINTERS",
     "status": "Accepted",
     "user_directives_2026_05_13": [
@@ -60,7 +60,7 @@
     "schema": "JSON Schema (Draft 2020-12). Validates instances.",
     "spec": "Schema or canonical-truth definition. Read by validators + agents."
   },
-  "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs; HANDOFF.md survives under the founder's 2026-06-08 exception as a thin fresh-session redirect only. Agents read this JSON to discover canonical entry points.",
+  "description": "Canonical machine-readable pointer registry. README.md + CLAUDE.md + AGENTS.md survive as authority/entry hubs. HANDOFF.md is deleted (ADR-0719). Agents read this JSON to discover canonical entry points.",
   "entry_points": {
     "_retired_constitutional_authority": {
       "retired_on": "2026-05-15",
@@ -1162,12 +1162,7 @@
       "purpose": "Productized runner-neutral security validation pipeline matrix. Defines SAST, DAST, IAST, SCA, secrets, IaC, container, fuzzing, API fuzzing, BAS/purple-team, security chaos, automated pen-test, and continuous-control evidence lanes with scope, cadence, pass/fail policy, false-positive/VEX handling, API evidence records, and no CLI/scanner-as-authority claim.",
       "target_path_after_md_retirement": "same"
     },
-    "session_handoff": {
-      "current_path": "HANDOFF.md",
-      "kind": "doc",
-      "purpose": "Founder-authorized thin fresh-session redirect. It carries no plan, backlog, baseline-SHA, or completion claims; agents follow it to this root hub, docs/AGENTS.md, masterplan_v2, Accepted ADRs, and live Git/GitHub state.",
-      "target_path_after_md_retirement": "same"
-    },
+
     "spec_agentic_slo_gated_promotion": {
       "current_path": "/specs/agentic-slo-gated-promotion.json",
       "kind": "spec",
