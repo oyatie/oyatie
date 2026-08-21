@@ -72,6 +72,8 @@ pub struct DispositionRule {
     /// resolved type itself. Absent means this disposition declines the reference position.
     #[serde(default)]
     pub reference_target: Option<String>,
+    #[serde(default)]
+    pub reference_owned: bool,
     /// Why a reference takes that form, and what it costs.
     #[serde(default)]
     pub reference_reason: Option<String>,

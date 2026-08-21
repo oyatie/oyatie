@@ -12,7 +12,7 @@ use port_engine_rust_ir::{RustStmt, Visibility, RustParam, RustType};
 
 use crate::error::TransformError;
 use crate::naming::to_snake_case;
-use crate::ownership::{binds_by_pointer, parameter_target, reference_target};
+use crate::ownership::{binds_by_pointer, parameter_target, reference_owned, reference_target};
 use crate::resolve::Resolver;
 use crate::vocabulary::{
     CHILD_PARAM, CHILD_RESULT, FLAG_REBOUND, FLAG_UNREAD, FLAG_VARIADIC, IDIOM_BORROWED_SLICE, IDIOM_SINGLE_EXPRESSION_INLINE, POSITION_PARAM, POSITION_RESULT, SOURCE_STRING, TARGET_STR,
@@ -97,12 +97,19 @@ pub(crate) fn params_at(
             } else if crate::index_params::indexes_only_parameter(declaration, param, resolver) {
                 RustType::path("usize")
             } else if is_reference_kind(&param.type_ref) && !spawned.contains(&param.name) {
-                RustType::path(reference_target(
-                    param,
-                    &borrowed_spelling(param, resolver, &declaration.name)?,
-                    &site,
-                    resolver.ownership,
-                )?)
+                // WHICH SPELLING, before the form is applied to it. A borrow is spelled over the
+                // unsized view -- `str`, `[T]` -- because `&str` takes strictly more callers than
+                // `&String`. A disposition that does NOT borrow has to be handed the sized type
+                // instead: `mut p: str` is not a parameter, it is a size error, and chi emitted
+                // exactly that for a string the body reassigns.
+                let spelling = if reference_owned(param, &site, resolver.ownership)? {
+                    resolver
+                        .resolve_in(&param.type_ref, &declaration.name, position)?
+                        .spelling()
+                } else {
+                    borrowed_spelling(param, resolver, &declaration.name)?
+                };
+                RustType::path(reference_target(param, &spelling, &site, resolver.ownership)?)
             } else if param.type_ref.kind == "pointer" {
                 let pointee =
                     param

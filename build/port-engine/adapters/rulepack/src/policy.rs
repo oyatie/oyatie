@@ -62,6 +62,7 @@ pub(crate) fn validate_dispositions(
             target: rule.target.clone(),
             receiver: rule.receiver.clone(),
             reference_target: rule.reference_target.clone(),
+            reference_owned: rule.reference_owned,
             reference_reason: rule.reference_reason.clone(),
             construction: construction_of(&rule.construction),
             reason: rule.reason.clone(),
