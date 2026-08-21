@@ -6,13 +6,19 @@ doc_status: published
 
 Each Oyatie product (an axis or a vertical) has its own PRD here. Every PRD follows [`_TEMPLATE.md`](_TEMPLATE.md). Per-product PRDs are intentionally **slice-level**: they name the bounded context, list the kernel entities + data structures, declare optimization practices, list regional-pack seams, declare in-house vs external dep posture, and define success metrics for that slice only. Cross-cutting concerns live in the consolidated docs one level up.
 
+## Live product authority
+
+[`LOCK.md`](LOCK.md) is the published product lock (Agentic Delivery Fabric).
+Slice PRDs below are planning / target / non-claim until that bar is green.
+
 ## Reading order
 
-1. [`../README.md`](../README.md) — overall doc map.
-2. [`../PRD.md`](../PRD.md) — cross-product PRD (the cohesion thesis + 7 axes).
-3. [`../DESIGN.md`](../DESIGN.md) — architecture + cross-axis contracts.
-4. This index.
-5. The per-product PRD relevant to your work.
+1. [`LOCK.md`](LOCK.md) — live product lock and done-when.
+2. [`../README.md`](../README.md) — overall doc map.
+3. [`../PRD.md`](../PRD.md) — Discover-only 7-axis thesis, not the live north star.
+4. [`../DESIGN.md`](../DESIGN.md) — architecture + cross-axis contracts.
+5. This index.
+6. The per-product PRD relevant to your work.
 
 ## Per-product PRDs
 
