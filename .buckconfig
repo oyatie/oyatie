@@ -46,9 +46,10 @@
 # Measured on the canonical checkout: exit 3 / 0 targets / 45.8s before, exit 0 / 1851 targets
 # / 1.3s after. Scale: 55,902 BUCK files under these roots against 940 tracked in the repo.
 #
-# The four roots are exactly the in-repo worktree parents (`git worktree list`). `.claude` is
-# scoped to `worktrees` because `.claude/BUCK` defines a real `settings-json` filegroup; the
-# other three hold zero tracked files. No BUCK or .bzl references any of these paths.
+# The four roots are exactly the in-repo worktree parents (`git worktree list`). Agent
+# directories (.claude, .codex, .cursor) are no longer tracked at all -- they exist locally
+# because agent tools read them from fixed paths, but nothing in the build references them.
+# The hooks they wire live in tools/hooks, which IS tracked.
 # CI is unaffected — runners get a clean checkout with none of these roots present.
 [project]
   ignore = .claude/worktrees, .worktrees, .gjc, .omx

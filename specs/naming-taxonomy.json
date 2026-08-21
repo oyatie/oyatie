@@ -15,7 +15,7 @@
     "primary_consumers": [
       "specs/integ-branch-envelopes.json#naming",
       "governance/check/integ-envelope (future)",
-      ".claude/workflows/deliver.js Claim (future classifier)"
+      "templates/agent-delivery/deliver.js Claim (future classifier)"
     ],
     "extends": [
       "ADR-0701 (capability-first layout apex)",
@@ -202,7 +202,7 @@
       "integ": "integ/specs bootstrap adjunct or process-kit integ",
       "examples_good": [
         ".grok/programs/delivery-fabric/",
-        ".claude/workflows/deliver.js"
+        "templates/agent-delivery/deliver.js"
       ],
       "examples_bad": [
         ".omc/ as tracked authority"
@@ -592,7 +592,7 @@
     ]
   },
   "lens_battery": {
-    "authority": ".grok/harness/lenses.v1.json",
+    "authority": "ci/facade/harness/lenses.v1.json",
     "required": "all-16",
     "rule": "Judgments that keep or replace existing patterns MUST set lenses_applied=all-16 and challenges[]. Taxonomy REPLACES indefensible practice; it must not encode anti-patterns as forever grammar.",
     "ids": [

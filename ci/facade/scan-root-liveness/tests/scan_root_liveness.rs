@@ -1,8 +1,8 @@
 // cloud-ci-scan-root-liveness live-corpus gate.
 //
 // 1. LIVE: walk every ci/facade/*/*.json gate policy, collect coverage-bearing root
-//    declarations keyed by full JSON pointer, resolve each against the real tree
-//    (glob-aware), evaluate against the frozen policy, assert GREEN.
+//    declarations keyed by full JSON pointer, resolve each against TRACKED paths
+//    (git ls-files, glob-aware), evaluate against the frozen policy, assert GREEN.
 // 2. RED FIXTURE: a synthetic dead root MUST fail — the gate is proven capable of
 //    failing, not merely observed passing.
 // 3. BASELINE FIDELITY: the baseline equals all and only live dead non-forward roots,
@@ -14,6 +14,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
+use std::process::Command;
 
 use ci_scan_root_liveness::{
     CODE_DEAD_SCAN_ROOT, DeclaredRoot, ForwardDeclaration, GATE_ID, Observed, Policy, Verdict,
@@ -22,7 +23,9 @@ use ci_scan_root_liveness::{
 use serde_json::Value;
 
 const POLICY_PATH: &str = "ci/facade/scan-root-liveness/scan-root-liveness-policy.json";
-const EXPECTED_BASELINED_DEAD_ROOTS: usize = 9;
+// 9 -> 10: this PR untracks `.codex` while rust-first anti-narrowing forbids
+// dropping that scan root, so the debt is recorded in the baseline.
+const EXPECTED_BASELINED_DEAD_ROOTS: usize = 10;
 
 /// The reviewed ceiling on tolerated dark gate crates.
 ///
@@ -141,46 +144,62 @@ fn load_policy(root: &Path) -> (Policy, Vec<String>) {
     (policy, coverage_keys)
 }
 
-/// Resolve a declared root against the tree. Glob-aware: a pattern resolves iff it
-/// matches at least one path. Plain paths resolve iff they exist.
+/// Tracked-path universe (`git ls-files`). Working-tree `exists()` is the wrong
+/// boundary: a gitignored overlay (`.codex/` after untrack) is present on some
+/// clones and absent on CI, which would make the frozen exact-set host-dependent.
+fn tracked_files(root: &Path) -> BTreeSet<String> {
+    let out = Command::new("git")
+        .current_dir(root)
+        .args(["ls-files", "-z"])
+        .output()
+        .expect("git ls-files");
+    assert!(
+        out.status.success(),
+        "git ls-files failed: {}",
+        String::from_utf8_lossy(&out.stderr)
+    );
+    String::from_utf8(out.stdout)
+        .expect("git ls-files stdout was not UTF-8")
+        .split('\0')
+        .filter(|entry| !entry.is_empty())
+        .map(str::to_owned)
+        .collect()
+}
+
+fn is_tracked_root(tracked: &BTreeSet<String>, pattern: &str) -> bool {
+    tracked.contains(pattern)
+        || tracked.iter().any(|path| {
+            path.starts_with(pattern) && path.as_bytes().get(pattern.len()) == Some(&b'/')
+        })
+}
+
+fn glob_matches_tracked(pattern: &str, path: &str) -> bool {
+    let pat: Vec<&str> = pattern.split('/').collect();
+    let segs: Vec<&str> = path.split('/').collect();
+    if segs.len() < pat.len() {
+        return false;
+    }
+    pat.iter()
+        .zip(segs.iter())
+        .all(|(p, s)| glob_segment_matches(p, s))
+}
+
+/// Resolve a declared root against TRACKED paths. Glob-aware: a pattern resolves
+/// iff it matches at least one tracked path (as that path, or as a directory
+/// prefix of one). Plain paths resolve iff they are tracked or have a tracked
+/// child.
 ///
 /// Deliberately simple glob support — `*` matches within one path component, `**`
 /// spans components. The declarations in this repo use only those two forms, and a
 /// hand-rolled matcher with no dependency is preferable to pulling a crate into the
 /// gate fleet for four characters of syntax.
-fn resolves(root: &Path, pattern: &str) -> bool {
+fn resolves(tracked: &BTreeSet<String>, pattern: &str) -> bool {
     if !pattern.contains('*') && !pattern.contains('?') {
-        return root.join(pattern).exists();
+        return is_tracked_root(tracked, pattern);
     }
-    let segments: Vec<&str> = pattern.split('/').collect();
-    expand(root, &segments, PathBuf::new())
-}
-
-fn expand(root: &Path, segments: &[&str], acc: PathBuf) -> bool {
-    let Some((head, rest)) = segments.split_first() else {
-        return root.join(&acc).exists();
-    };
-    if !head.contains('*') && !head.contains('?') {
-        return expand(root, rest, acc.join(head));
-    }
-    let dir = root.join(&acc);
-    let Ok(entries) = std::fs::read_dir(&dir) else {
-        return false;
-    };
-    for entry in entries.flatten() {
-        let name = entry.file_name();
-        let name = name.to_string_lossy();
-        if !glob_segment_matches(head, &name) {
-            continue;
-        }
-        if rest.is_empty() {
-            return true;
-        }
-        if expand(root, rest, acc.join(name.as_ref())) {
-            return true;
-        }
-    }
-    false
+    tracked
+        .iter()
+        .any(|path| glob_matches_tracked(pattern, path))
 }
 
 /// Match one path segment against one glob segment (`*` = any run, `?` = one char).
@@ -217,7 +236,7 @@ fn collect_from(
     pointer: &str,
     file: &str,
     coverage_keys: &[String],
-    root: &Path,
+    tracked: &BTreeSet<String>,
     out: &mut Vec<DeclaredRoot>,
 ) {
     match value {
@@ -232,16 +251,16 @@ fn collect_from(
                             policy_file: file.to_owned(),
                             key: ptr.clone(),
                             value: entry.to_owned(),
-                            resolves: resolves(root, entry),
+                            resolves: resolves(tracked, entry),
                         });
                     }
                 }
-                collect_from(v, &ptr, file, coverage_keys, root, out);
+                collect_from(v, &ptr, file, coverage_keys, tracked, out);
             }
         }
         Value::Array(items) => {
             for v in items {
-                collect_from(v, pointer, file, coverage_keys, root, out);
+                collect_from(v, pointer, file, coverage_keys, tracked, out);
             }
         }
         _ => {}
@@ -251,6 +270,7 @@ fn collect_from(
 fn collect(root: &Path, coverage_keys: &[String]) -> Observed {
     let mut roots: Vec<DeclaredRoot> = Vec::new();
     let mut files_with_roots: BTreeSet<String> = BTreeSet::new();
+    let tracked = tracked_files(root);
 
     let facade = root.join("ci/facade");
     let Ok(gate_dirs) = std::fs::read_dir(&facade) else {
@@ -281,7 +301,7 @@ fn collect(root: &Path, coverage_keys: &[String]) -> Observed {
                 continue;
             };
             let before = roots.len();
-            collect_from(&doc, "", &rel, coverage_keys, root, &mut roots);
+            collect_from(&doc, "", &rel, coverage_keys, &tracked, &mut roots);
             if roots.len() > before {
                 files_with_roots.insert(rel);
             }
@@ -485,11 +505,10 @@ fn frozen_baseline_is_exactly_the_live_non_forward_debt_set() {
     assert_eq!(
         policy.baselined_dead_roots.len(),
         EXPECTED_BASELINED_DEAD_ROOTS,
-        "the reviewed frozen ceiling shrinks as gates stop enumerating roots by hand: it was 11 \
-         (four pre-existing roots plus seven retired top-level cloud roots), and dropped by one \
-         for each of embedded-asset-hermeticity and caller-supplied-authorization when they were \
-         routed through the registry-derived resolver in ci/adapters/scan-root-derivation. This \
-         number only ever goes DOWN"
+        "the reviewed frozen ceiling: routing a gate through the registry-derived resolver \
+         LOWERS it; a reorg that empties a scan root the anti-narrowing ratchet forbids removing \
+         MAY raise it under review. Confirm the constant comment. Exact-set comparison above is \
+         the laundering backstop."
     );
 }
 
@@ -604,4 +623,50 @@ fn glob_matcher_handles_the_declared_forms() {
     assert!(!glob_segment_matches("a*c", "abd"));
     assert!(glob_segment_matches("?", "x"));
     assert!(!glob_segment_matches("?", "xy"));
+}
+
+#[test]
+fn resolution_is_tracked_membership_not_working_tree_existence() {
+    let tracked = BTreeSet::from(["ci/facade/scan-root-liveness/src/lib.rs".to_owned()]);
+    assert!(resolves(&tracked, "ci"));
+    assert!(resolves(&tracked, "ci/*/*"));
+    assert!(!resolves(&tracked, ".codex"));
+    assert!(!resolves(&tracked, "cloud/*/crates/oya-*"));
+}
+
+#[test]
+fn gitignored_overlay_directory_does_not_resolve() {
+    // Mutation: a leftover/regenerated `.codex/` is the documented local overlay
+    // (gitignored). exists() would call that live; tracked membership must not.
+    let root = repo_root();
+    let overlay = root.join(".codex");
+    let created = if overlay.exists() {
+        false
+    } else {
+        std::fs::create_dir_all(overlay.join("hooks")).expect("mkdir gitignored overlay");
+        std::fs::write(overlay.join("hooks.json"), "{}\n").expect("write gitignored overlay");
+        true
+    };
+    struct RemoveDirOnDrop(PathBuf);
+    impl Drop for RemoveDirOnDrop {
+        fn drop(&mut self) {
+            let _ = std::fs::remove_dir_all(&self.0);
+        }
+    }
+    let _cleanup = created.then(|| RemoveDirOnDrop(overlay.clone()));
+    assert!(
+        overlay.exists(),
+        "mutation must leave a working-tree overlay so Path::exists would have been true"
+    );
+    let tracked = tracked_files(&root);
+    assert!(
+        !resolves(&tracked, ".codex"),
+        "a gitignored `.codex` overlay must not count as a live scan root"
+    );
+    assert!(
+        !tracked
+            .iter()
+            .any(|path| path == ".codex" || path.starts_with(".codex/")),
+        "git ls-files must not list the overlay"
+    );
 }

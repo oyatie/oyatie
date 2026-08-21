@@ -4,7 +4,6 @@ checklist_id: CHK-SWARM-RITUAL
 status: Accepted
 purpose: |
   Forever home for the per-dispatch Tier-2 agent ritual (INV-DOC-9).
-  Session-loaded process_meta rules under `.cursor/rules/` MUST cite this path.
   Brand-free: no third-party harness brand names as live coordination authority.
 owner_team: platform-governance
 related:
@@ -19,7 +18,7 @@ Two instruction tiers exist.
 - **Tier 1 (north-star):** the programme SSOT plan — where we are going, waves, topology.
 - **Tier 2 (this checklist):** the ritual every implement / audit / review / plan / scout / recon dispatch runs at start and end. Trivial read-only / babysit tasks MAY use the short form (A1 + D only).
 
-Session-loaded copy rides process_meta `.cursor/rules/` on `integ/ci` and **MUST cite this file** as the canonical in-repo copy (INV-DOC-9). Dispatch cards cite this checklist + role + lane mission — not the whole programme SSOT.
+This file is the canonical in-repo copy (INV-DOC-9). Dispatch cards cite this checklist + role + lane mission — not the whole programme SSOT. Local gitignored editor copies may cite it; they are not tracked process_meta.
 
 Operating-contract pointer: `docs/AGENTS.md` § Doctrine survival → Per-dispatch ritual.
 
@@ -36,7 +35,7 @@ Operating-contract pointer: `docs/AGENTS.md` § Doctrine survival → Per-dispat
 
 ## B. Reasoning map (before implementing / verdicting / planning)
 
-1. **Lens selection** — ≥2 task-fit lenses (`.grok/harness/lenses.v1.json`); full 16 only at root decisions; leaves inherit.
+1. **Lens selection** — ≥2 task-fit lenses (`ci/facade/harness/lenses.v1.json`); full 16 only at root decisions; leaves inherit.
 2. **Claim digraph** — build digraph (or tagged list if single-claim). Untagged claims = narrative, not reasoning.
 3. **Challenges[]** — ≥1 real challenge (Chesterton first). Empty / templated = stamp; reject your own work.
 

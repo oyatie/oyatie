@@ -1,7 +1,8 @@
 //! # cloud-ci-enforcement-liveness (FRIC-012 / G011)
 //!
-//! Enforces project hook liveness for the two agent wiring surfaces:
-//! `.claude/settings.json` and `.codex/hooks.json`.
+//! Enforces project hook liveness for the two tracked wiring surfaces:
+//! `tools/hooks/registration/claude-settings.json` and
+//! `tools/hooks/registration/codex-hooks.json`.
 //!
 //! ## Contract
 //! Input: `{"rows":[...]}` where the producer emits two row shapes:
@@ -30,8 +31,8 @@ pub const VIOLATION_CODES: [&str; 5] = [
     "wired_hook_missing_file",
 ];
 
-pub const CLAUDE_WIRING_FILE: &str = ".claude/settings.json";
-pub const CODEX_WIRING_FILE: &str = ".codex/hooks.json";
+pub const CLAUDE_WIRING_FILE: &str = "tools/hooks/registration/claude-settings.json";
+pub const CODEX_WIRING_FILE: &str = "tools/hooks/registration/codex-hooks.json";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Verdict {

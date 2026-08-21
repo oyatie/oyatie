@@ -108,8 +108,8 @@ rust_test(
     # regenerates it on the candidate tree before gates run) — no action calls git.
     env = {
         "OYA_CI_PRODUCER_BIN": "$(exe //ci/facade/artifact-inventory-registry:oya-cloud-ci-accounting-registry-app-bin)",
-        "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //.claude:settings-json)",
-        "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //.codex:hooks-json)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS": "$(location //tools/hooks/registration:claude-settings-json)",
+        "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS": "$(location //tools/hooks/registration:codex-hooks-json)",
         "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR": "$(location //tools/hooks:top-level-hook-scripts)",
     },
     visibility = ["PUBLIC"],

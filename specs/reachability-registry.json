@@ -6,20 +6,12 @@
       "prefix": ".cargo/BUCK"
     },
     {
-      "anchor": "ADR-0600: Buck package marker for the reviewed .claude/settings.json enforcement-liveness corpus target.",
-      "prefix": ".claude/BUCK"
+      "anchor": "ADR-0600: tracked hook-registration corpus (claude-settings.json, codex-hooks.json) plus Buck filegroups for the enforcement-liveness targets.",
+      "prefix": "tools/hooks/registration/"
     },
     {
-      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under .claude/workflows/ (local bridge feedback only; merge authority remains oya-ci-required).",
-      "prefix": ".claude/workflows/"
-    },
-    {
-      "anchor": "ADR-0600: Buck package marker for the reviewed .codex/hooks.json enforcement-liveness corpus target.",
-      "prefix": ".codex/BUCK"
-    },
-    {
-      "anchor": "ADR-0515 governance pipeline: reviewed Cursor model-routing and agent-ritual policy for cloud-ci delivery lanes.",
-      "prefix": ".cursor/rules/"
+      "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under templates/agent-delivery/ (local bridge feedback only; merge authority remains oya-ci-required).",
+      "prefix": "templates/agent-delivery/"
     },
     {
       "anchor": "ADR-0555: GitHub-native review routing for the protected base. Reached by DOC-CATALOG until this PR retired that index; the file is live (referenced by 17 tracked files) and its authority is GitHub's own CODEOWNERS contract, not a docs row.",
@@ -58,8 +50,8 @@
       "prefix": ".github/workflows/merge-admission-required.yml"
     },
     {
-      "anchor": "mm-kit land (PR #1575): tracked multi-model delivery harness under .grok/ (bins, harness schemas, roles, workflows, program doctrine). Process tooling only — not merge authority; admission remains reviewer APPROVE + oya-ci-required (ADR-0515). Runtime journals (.grok/mm-runs/, .grok/memory/) stay gitignored. Ownership seed .grok/OWNERS (cloud-ci-platform).",
-      "prefix": ".grok/"
+      "anchor": "Drained mm-kit harness (PR #2180): live schemas now live under ci/facade/harness/; .grok/ is gitignored agent scratch, not a tracked reachability tree.",
+      "prefix": "ci/facade/harness/"
     },
     {
       "anchor": "ADR-0562 § app/<product>/ tenant compositions + OVERRULE 3d: integ/app owns composition-glue routing only (app/README.md). Product forever homes land on integ/<product>, not this rail.",
@@ -826,7 +818,7 @@
       "prefix": "storage/drive/manifest.json"
     },
     {
-      "anchor": "INV-DOC-9 / docs AGENTS operating contract: forever home for the per-dispatch Tier-2 swarm agent ritual checklist (CHK-SWARM-RITUAL); session rules under .cursor/rules MUST cite this path. Brand-free process meta — not merge authority.",
+      "anchor": "INV-DOC-9 / docs AGENTS operating contract: forever home for the per-dispatch Tier-2 swarm agent ritual checklist (CHK-SWARM-RITUAL). Brand-free process meta — not merge authority.",
       "prefix": "templates/checklists/swarm-agent-ritual.md"
     },
     {

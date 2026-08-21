@@ -28,8 +28,8 @@ const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV: &str =
     "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
-const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
-const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
+const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = "tools/hooks/registration/claude-settings.json";
+const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = "tools/hooks/registration/codex-hooks.json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
 const CARGO_TEST_PRODUCER_ENV: &str = "OYA_CI_CARGO_TEST_PRODUCER_BIN";
 const CARGO_TEST_SCM_FACTS_EMITTER_ENV: &str = "OYA_CI_CARGO_TEST_SCM_FACTS_EMITTER_BIN";
@@ -253,13 +253,13 @@ fn append_declared_enforcement_liveness_corpus_args(command: &mut Command, root:
             root,
             ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS_ENV,
             ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
-            "settings.json",
+            "claude-settings.json",
         ),
         &declared_corpus_file(
             root,
             ENFORCEMENT_LIVENESS_CODEX_HOOKS_ENV,
             ENFORCEMENT_LIVENESS_CODEX_HOOKS,
-            "hooks.json",
+            "codex-hooks.json",
         ),
         &declared_corpus_path(
             root,
@@ -333,8 +333,8 @@ fn baseline_regeneration_declares_enforcement_liveness_corpus_args() {
     let mut command = Command::new("/tmp/producer");
     append_enforcement_liveness_corpus_paths(
         &mut command,
-        Path::new("/repo/.claude/settings.json"),
-        Path::new("/repo/.codex/hooks.json"),
+        Path::new("/repo/tools/hooks/registration/claude-settings.json"),
+        Path::new("/repo/tools/hooks/registration/codex-hooks.json"),
         Path::new("/repo/tools/hooks"),
     );
 
@@ -346,13 +346,13 @@ fn baseline_regeneration_declares_enforcement_liveness_corpus_args() {
     assert!(args.windows(2).any(|pair| {
         pair == [
             "--enforcement-liveness-claude-settings",
-            "/repo/.claude/settings.json",
+            "/repo/tools/hooks/registration/claude-settings.json",
         ]
     }));
     assert!(args.windows(2).any(|pair| {
         pair == [
             "--enforcement-liveness-codex-hooks",
-            "/repo/.codex/hooks.json",
+            "/repo/tools/hooks/registration/codex-hooks.json",
         ]
     }));
     assert!(
