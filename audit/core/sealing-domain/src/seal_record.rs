@@ -181,7 +181,10 @@ where
 fn is_well_formed_root(s: &str) -> bool {
     match s.strip_prefix("sha256:") {
         Some(hex) => {
-            hex.len() == 64 && hex.bytes().all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
+            hex.len() == 64
+                && hex
+                    .bytes()
+                    .all(|b| b.is_ascii_digit() || (b'a'..=b'f').contains(&b))
         }
         None => false,
     }

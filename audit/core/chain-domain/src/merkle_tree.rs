@@ -344,11 +344,7 @@ mod tests {
             let ls = leaves(n);
             let reference = reference_mth(&ls);
             let production = mth(&ls);
-            assert_eq!(
-                production.to_vec(),
-                reference,
-                "mismatch at leaf count {n}"
-            );
+            assert_eq!(production.to_vec(), reference, "mismatch at leaf count {n}");
         }
     }
 
@@ -504,7 +500,13 @@ mod tests {
         let path = tree.proof_path(0);
         let mut bad_leaf = ls[0];
         bad_leaf[0] ^= 0xff;
-        assert!(!MerkleTree::verify_proof(bad_leaf, 0, &path, root, tree.len()));
+        assert!(!MerkleTree::verify_proof(
+            bad_leaf,
+            0,
+            &path,
+            root,
+            tree.len()
+        ));
     }
 
     #[test]

@@ -192,7 +192,12 @@ fn leading_and_trailing_whitespace_on_tenant_partition_is_trimmed_not_distinguis
     // Four whitespace spellings of the same tenant partition must all build
     // to the identical stored value: none of them may spell a distinct
     // (shadow) partition.
-    let spellings = ["tenant-alpha", " tenant-alpha", "tenant-alpha\n", "\ttenant-alpha "];
+    let spellings = [
+        "tenant-alpha",
+        " tenant-alpha",
+        "tenant-alpha\n",
+        "\ttenant-alpha ",
+    ];
     for spelling in spellings {
         let mut coordinate = valid_coordinate();
         coordinate.tenant_partition = spelling.to_string();
@@ -214,9 +219,14 @@ fn leading_and_trailing_whitespace_on_pack_is_trimmed_not_distinguished() {
 
 #[test]
 fn leading_and_trailing_whitespace_on_event_id_is_trimmed_not_distinguished() {
-    let envelope =
-        CanonicalEnvelope::build(valid_coordinate(), " evt-1 ", "digest", "unused", &AlwaysAgrees)
-            .expect("whitespace-padded event id trims to a valid value");
+    let envelope = CanonicalEnvelope::build(
+        valid_coordinate(),
+        " evt-1 ",
+        "digest",
+        "unused",
+        &AlwaysAgrees,
+    )
+    .expect("whitespace-padded event id trims to a valid value");
     assert_eq!(envelope.event_id(), "evt-1");
 }
 
