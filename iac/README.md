@@ -2,6 +2,19 @@
 
 See `manifest.json` for this microservice canonical machine-readable declaration.
 
+## Cloudflare edge (OpenTofu)
+
+There is no root Makefile. Merge-path verify is cargo (ADR-0716). The live edge
+root is `infra/cloudflare` until `iac/` absorbs it:
+
+```sh
+tofu -chdir=infra/cloudflare init -input=false
+tofu -chdir=infra/cloudflare fmt -check -recursive
+tofu -chdir=infra/cloudflare plan -input=false
+tofu -chdir=infra/cloudflare apply -input=false
+cargo run -p marketplace-dev-cli -- gate validate deployment-ops-contract
+```
+
 ## Doctrine references
 
 - ADR-0346 is superseded for this surface: branch-protected `oya-ci-required` is the canonical blocking CI authority; retired local Oya CLI verifier output is not production or merge authority.

@@ -111,12 +111,6 @@
       "reason": "oya-ci enforcement config (DATA)"
     },
     {
-      "id": "makefile",
-      "kind": "exact",
-      "value": "Makefile",
-      "reason": "developer convenience targets"
-    },
-    {
       "id": "dockerfile-distroless",
       "kind": "exact",
       "value": "Dockerfile.distroless",

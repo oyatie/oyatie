@@ -1,7 +1,7 @@
 //! `oya ops` — Rust-owned deployment helper surface.
 //!
 //! Root-level deployment helper scripts remain as compatibility shims only.
-//! The operational logic lives here so OpenTofu, Makefile, and ops-controller
+//! The operational logic lives here so OpenTofu and ops-controller
 //! flows are not split across bespoke shell loops.
 
 use std::env;
@@ -702,7 +702,7 @@ fn render_onprem_bring_up_plan(args: &OnpremBringUpArgs, steps: &[CommandStep]) 
         OutputFormat::Text => {
             println!("On-prem bring-up Rust runner dry-run");
             println!("repo_root={}", args.repo_root.display());
-            println!("deployment_authority=Makefile + OpenTofu");
+            println!("deployment_authority=OpenTofu");
             println!("manual_ssh_troubleshooting_allowed=false");
             println!("day_2_surface=https://ops.oyatie.com");
             for step in steps {
@@ -715,7 +715,7 @@ fn render_onprem_bring_up_plan(args: &OnpremBringUpArgs, steps: &[CommandStep]) 
                 "command": "oya ops onprem-bring-up",
                 "dry_run": true,
                 "repo_root": args.repo_root,
-                "deployment_authority": "Makefile + OpenTofu",
+                "deployment_authority": "OpenTofu",
                 "manual_ssh_troubleshooting_allowed": false,
                 "day_2_surface": "https://ops.oyatie.com",
                 "steps": steps_to_json(steps)
@@ -727,7 +727,7 @@ fn render_onprem_bring_up_plan(args: &OnpremBringUpArgs, steps: &[CommandStep]) 
 fn render_onprem_bring_up_success(args: &OnpremBringUpArgs, steps: &[CommandStep]) {
     match args.output_format {
         OutputFormat::Text => println!(
-            "onprem bring-up passed: {} steps via Makefile/OpenTofu; ops=https://ops.oyatie.com",
+            "onprem bring-up passed: {} steps via OpenTofu; ops=https://ops.oyatie.com",
             steps.len()
         ),
         OutputFormat::Json => println!(

@@ -460,7 +460,7 @@ pub(crate) fn usage() -> String {
         + "\n       oya gate validate product-index [--products-readme <docs/products/README.md>] [--catalog <docs/machine-readable/catalog.json>]"
         + "\n       oya gate validate product-prd-json [--repo-root <.>] [--product <specs/products/<id>.json>]..."
         + "\n       oya gate validate stage0-prereqs [--repo-root <.>] [--self-test]"
-        + "\n       oya gate validate deployment-ops-contract [--repo-root <.>] [--contract <specs/deployment-ops-contract.json>] [--makefile <Makefile>]"
+        + "\n       oya gate validate deployment-ops-contract [--repo-root <.>] [--contract <specs/deployment-ops-contract.json>]"
         + "\n       oya gate validate milestone-audit [--repo-root <.>] [--audit <registry/milestone-audit/index.json>]"
         + "\n       oya gate run-all [--include-deferred] [--ci-required]"
         + "\n       oya verify [--include-deferred] [--ci-required]   # local-developer fold of `gate run-all`; canonical pre-push/pre-PR entry"

@@ -1,11 +1,12 @@
 //! `oya gate validate deployment-ops-contract` — deployment entrypoint and
-//! shell-consolidation guard. Encodes the 2026-05-16 directive that deployment
-//! is OpenTofu-owned, operator entry is the root Makefile, day-2 work routes
-//! through ops, and manual SSH troubleshooting is not a valid path.
+//! shell-consolidation guard. Encodes that deployment is OpenTofu-owned,
+//! operators invoke tofu against `infra/cloudflare` (no root Makefile),
+//! day-2 work routes through ops, and manual SSH troubleshooting is not a
+//! valid path.
 
 use std::collections::BTreeSet;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::process::ExitCode;
 
 use serde_json::Value;
@@ -14,12 +15,10 @@ use serde_json::Value;
 pub(crate) struct DeploymentOpsContractValidateArgs {
     repo_root: PathBuf,
     contract_path: PathBuf,
-    makefile_path: PathBuf,
 }
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub(crate) struct DeploymentOpsContractReport {
-    pub(crate) required_make_targets: usize,
     pub(crate) opentofu_roots_checked: usize,
     pub(crate) shell_scripts_tracked: usize,
 }
@@ -29,10 +28,8 @@ pub(crate) fn run(args: Vec<String>) -> ExitCode {
         Ok(parsed) => match validate_deployment_ops_contract(&parsed) {
             Ok(report) => {
                 println!(
-                    "deployment-ops-contract validation passed: {} Make targets, {} OpenTofu roots, {} shell scripts tracked for Rust migration",
-                    report.required_make_targets,
-                    report.opentofu_roots_checked,
-                    report.shell_scripts_tracked
+                    "deployment-ops-contract validation passed: {} OpenTofu roots, {} shell scripts tracked for Rust migration",
+                    report.opentofu_roots_checked, report.shell_scripts_tracked
                 );
                 ExitCode::SUCCESS
             }
@@ -57,7 +54,6 @@ fn parse_deployment_ops_contract_validate_args(
     let mut parsed = DeploymentOpsContractValidateArgs {
         repo_root: PathBuf::from("."),
         contract_path: PathBuf::from("specs/deployment-ops-contract.json"),
-        makefile_path: PathBuf::from("Makefile"),
     };
     let mut iter = args.into_iter();
     while let Some(flag) = iter.next() {
@@ -74,15 +70,9 @@ fn parse_deployment_ops_contract_validate_args(
                 })?;
                 parsed.contract_path = PathBuf::from(value);
             }
-            "--makefile" => {
-                let value = iter.next().ok_or_else(|| {
-                    "deployment-ops-contract: --makefile requires a value".to_string()
-                })?;
-                parsed.makefile_path = PathBuf::from(value);
-            }
             other => {
                 return Err(format!(
-                    "deployment-ops-contract: unknown flag {other:?}; allowed: --repo-root, --contract, --makefile"
+                    "deployment-ops-contract: unknown flag {other:?}; allowed: --repo-root, --contract"
                 ));
             }
         }
@@ -109,15 +99,20 @@ fn validate_deployment_ops_contract(
         )]
     })?;
 
-    let makefile_path = repo_root.join(&args.makefile_path);
-    let makefile = fs::read_to_string(&makefile_path).map_err(|error| {
-        vec![format!(
-            "Makefile unreadable {}: {error}",
-            makefile_path.display()
-        )]
-    })?;
-
     let mut errors = Vec::new();
+
+    if repo_root.join("Makefile").is_file() {
+        errors.push(
+            "root Makefile must not exist; Cloudflare edge commands are tofu -chdir=infra/cloudflare (iac/README.md)"
+                .to_string(),
+        );
+    }
+    if contract.pointer("/operator_entrypoints/makefile").is_some() {
+        errors.push(
+            "operator_entrypoints.makefile is retired; document tofu commands under operator_entrypoints.cloudflare_edge"
+                .to_string(),
+        );
+    }
 
     if string_at(&contract, &["deployment_authority", "primary"]) != Some("opentofu") {
         errors.push("deployment_authority.primary must be exactly opentofu".to_string());
@@ -141,24 +136,44 @@ fn validate_deployment_ops_contract(
         }
     }
 
-    let required_targets = string_array_at(
+    let fmt_check = string_at(
         &contract,
-        &["operator_entrypoints", "makefile", "required_targets"],
+        &[
+            "operator_entrypoints",
+            "cloudflare_edge",
+            "commands",
+            "fmt_check",
+        ],
     );
-    if required_targets.is_empty() {
-        errors.push("operator_entrypoints.makefile.required_targets must be non-empty".to_string());
+    if fmt_check != Some("tofu -chdir=infra/cloudflare fmt -check -recursive") {
+        errors.push(
+            "operator_entrypoints.cloudflare_edge.commands.fmt_check must be tofu -chdir=infra/cloudflare fmt -check -recursive"
+                .to_string(),
+        );
     }
-    for target in &required_targets {
-        if !makefile_declares_target(&makefile, target) {
-            errors.push(format!("Makefile missing required target: {target}"));
-        }
+
+    let allowed = string_array_at(
+        &contract,
+        &["operator_entrypoints", "allowed_human_commands_after_clone"],
+    );
+    if allowed.is_empty() {
+        errors.push(
+            "operator_entrypoints.allowed_human_commands_after_clone must be non-empty".to_string(),
+        );
     }
-    for forbidden in ["\n\tssh ", "oci compute instance update", "terraform "] {
-        if makefile.contains(forbidden) {
+    for command in &allowed {
+        if command_is_make(command) {
             errors.push(format!(
-                "Makefile contains forbidden operator command fragment: {forbidden:?}"
+                "allowed_human_commands_after_clone still lists Make: {command}"
             ));
         }
+    }
+
+    if string_at(&contract, &["bootstrap_contract", "entrypoint"]).is_some_and(command_is_make) {
+        errors.push("bootstrap_contract.entrypoint must not be a Make target".to_string());
+    }
+    if string_at(&contract, &["install_contract", "entrypoint"]).is_some_and(command_is_make) {
+        errors.push("install_contract.entrypoint must not be a Make target".to_string());
     }
 
     if string_at(&contract, &["ops_management_contract", "day_2_surface"])
@@ -211,7 +226,6 @@ fn validate_deployment_ops_contract(
     }
 
     Ok(DeploymentOpsContractReport {
-        required_make_targets: required_targets.len(),
         opentofu_roots_checked: roots.len(),
         shell_scripts_tracked: 0,
     })
@@ -255,13 +269,9 @@ fn string_array_at(value: &Value, path: &[&str]) -> Vec<String> {
         .collect()
 }
 
-fn makefile_declares_target(makefile: &str, target: &str) -> bool {
-    let target_prefix = format!("{target}:");
-    let target_with_prereqs = format!("{target}: ");
-    makefile.lines().any(|line| {
-        let trimmed = line.trim_start();
-        trimmed.starts_with(&target_prefix) || trimmed.starts_with(&target_with_prereqs)
-    })
+fn command_is_make(command: &str) -> bool {
+    let trimmed = command.trim();
+    trimmed == "make" || trimmed.starts_with("make ")
 }
 
 #[cfg(test)]
@@ -269,9 +279,20 @@ mod tests {
     use super::*;
 
     #[test]
-    fn makefile_target_detection_accepts_prerequisites() {
-        let makefile = "bootstrap: verify check-tofu\n\t@echo ok\n";
-        assert!(makefile_declares_target(makefile, "bootstrap"));
-        assert!(!makefile_declares_target(makefile, "install"));
+    fn make_commands_are_rejected() {
+        assert!(command_is_make("make bootstrap"));
+        assert!(command_is_make("make"));
+        assert!(!command_is_make(
+            "tofu -chdir=infra/cloudflare fmt -check -recursive"
+        ));
+    }
+
+    #[test]
+    fn makefile_flag_is_rejected() {
+        let parsed = parse_deployment_ops_contract_validate_args(vec!["--makefile".into()]);
+        assert!(
+            matches!(parsed, Err(ref message) if message.contains("unknown flag")),
+            "{parsed:?}"
+        );
     }
 }

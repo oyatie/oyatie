@@ -142,8 +142,7 @@
       {
         "id": "deploy",
         "canonical_artifacts": [
-          "specs/deployment-ops-contract.json (OpenTofu + Makefile + ops-only deployment contract)",
-          "Makefile (minimal bootstrap/install/plan/apply/ops entrypoint)",
+          "specs/deployment-ops-contract.json (OpenTofu + ops-only deployment contract; no root Makefile)",
           "infra/kyverno/<svc>/application.json (Argo Application)",
           "infra/talos/installation-media/ (per ADR-0375 — Talos USB zero-touch installer)",
           "infra/capi/ (per ADR-0375 — Cluster API: clusterctl pins + ClusterResourceSet + spoke Cluster CRs)",
