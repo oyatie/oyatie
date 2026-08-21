@@ -753,6 +753,14 @@
       "reason": "The circle constant at double precision. Both languages carry the nearest `f64` to it, which is the same bit pattern."
     }
   },
+  "foreign_types": {
+    "time.Duration": {
+      "form": "std::time::Duration",
+      "from_integer": "std::time::Duration::from_nanos({0})",
+      "nonnegative": true,
+      "reason": "A SPAN OF TIME in both, and the target's is what its own timers take -- which is the whole reason to prefer it over the source's underlying `i64` of nanoseconds. `tokio::time` is written in terms of this type, so a duration that maps to anything else has to be converted at every timer it reaches.\n\nTHE COST, because there is one: the source's duration is SIGNED and the target's is not. `time.Until(past)` is negative there and has no value here, and a subtraction that would go below zero panics in the target where the source simply returns a negative span. So the mapping is exact for a duration that is CARRIED -- stored in a field, passed to a timer, built from a literal -- and the arithmetic is where the two part company.\n\nTHIS IS A DECISION AND IT IS REVERSIBLE. `i64` is the other answer: exact for every value including the negative ones, and it composes with nothing. It is one entry to change if the negative span turns out to matter more than the timers do."
+    }
+  },
   "byte_order_calls": {
     "package": "encoding/binary",
     "orders": {

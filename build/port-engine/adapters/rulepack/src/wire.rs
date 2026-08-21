@@ -66,6 +66,8 @@ pub(crate) struct RulepackDocument {
     #[serde(default)]
     pub(crate) channel_forms: Option<ChannelFormsRule>,
     #[serde(default)]
+    pub(crate) foreign_types: BTreeMap<String, ForeignTypeRule>,
+    #[serde(default)]
     pub(crate) format_calls: Option<FormatCallsRule>,
     #[serde(default)]
     pub(crate) target_imports: Option<TargetImportsRule>,
@@ -249,5 +251,20 @@ pub(crate) struct ChannelFormsRule {
     pub(crate) spawn: String,
     pub(crate) select: String,
     pub(crate) zero_on_close: String,
+    pub(crate) reason: String,
+}
+
+/// A type the source names but does not define, as the pack spells it.
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct ForeignTypeRule {
+    pub(crate) form: String,
+    /// Absent where the target type has no constant form for an integer at the source's
+    /// representation — every constant at the type then refuses rather than emitting a bare one.
+    #[serde(default)]
+    pub(crate) from_integer: String,
+    /// Whether the target type's domain excludes the source's negative values.
+    #[serde(default)]
+    pub(crate) nonnegative: bool,
     pub(crate) reason: String,
 }

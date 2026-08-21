@@ -199,6 +199,7 @@ pub fn apply_with_provenance(
                     function_map: semantics.function_map(),
                     value_map: semantics.value_map(),
                     channel: semantics.channel_forms(),
+                    foreign_types: semantics.foreign_types(),
                     format_calls: semantics.format_calls(),
                     unmappable_calls: semantics.unmappable_calls(),
                     unmappable_types: semantics.unmappable_types(),

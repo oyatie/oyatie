@@ -100,6 +100,10 @@ fn build_const(
             value,
         });
     }
+    // A constant at a type the source did NOT define reaches its type the same way, and only the
+    // pack knows how the target constructs one -- so this asks the same table the TYPE side asked.
+    // Both ends of one decision read one answer.
+    let foreign = crate::items_value::foreign_constant(declaration, resolver).transpose()?;
     Ok(RustItem::Const {
         docs: docs_of(declaration, resolver)?,
         vis: visibility(declaration),
@@ -113,8 +117,8 @@ fn build_const(
         // A BIT PATTERN is spelled as one. The source's base is not recorded and would not bind
         // the target anyway; what the target owes a reader is the spelling in which the value can
         // be checked against whatever defines it.
-        value: match crate::items_value::constructs_at_type(declaration, resolver) {
-            true => format!("{}({})", ty.spelling(), value),
+        value: match constructs_at_type_or(declaration, resolver, foreign.is_some()) {
+            true => foreign.unwrap_or_else(|| format!("{}({})", ty.spelling(), value)),
             false => crate::items_value::bit_pattern(declaration, resolver)
                 .or_else(|| crate::items_value::readable_literal(value, resolver))
                 .map(|spelled| pointed_for(spelled, &ty))
@@ -294,4 +298,14 @@ fn pointed_for(spelled: String, ty: &RustType) -> String {
         true => format!("{spelled}.0"),
         false => spelled,
     }
+}
+
+/// Whether the constant is CONSTRUCTED at its type rather than assigned to it, either because the
+/// source defines that type or because the pack maps it to one the target defines.
+fn constructs_at_type_or(
+    declaration: &Declaration,
+    resolver: &Resolver<'_>,
+    foreign: bool,
+) -> bool {
+    foreign || crate::items_value::constructs_at_type(declaration, resolver)
 }

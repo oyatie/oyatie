@@ -86,6 +86,15 @@ impl Resolver<'_> {
         declaration_name: &str,
     ) -> Result<RustType, TransformError> {
         if !self.units.contains(&type_ref.package) {
+            // THE PACK MAY NAME IT. A library type the target has its own of -- `time.Duration` and
+            // `std::time::Duration` -- is answered here, and every entry carries what it claims and
+            // what that claim costs where the two do not line up exactly.
+            if let Some(mapped) = self
+                .foreign_types
+                .get(&format!("{}.{}", type_ref.package, type_ref.name))
+            {
+                return Ok(RustType::path(mapped.form.clone()));
+            }
             // The pack may have LOOKED at this type and decided it cannot be mapped, which is a
             // different answer from not having reached it. The target usually has a type of the
             // same name or the same rough purpose; what the reason records is how the shape differs.
