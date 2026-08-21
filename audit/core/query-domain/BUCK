@@ -8,3 +8,50 @@ rust_library(
         "//audit/ports/query-api:audit-query-api",
     ],
 )
+
+rust_test(
+    name = "audit-query-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "audit_query_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//audit/ports/query-api:audit-query-api",
+    ],
+)
+
+rust_test(
+    name = "audit-query-domain-query-validation",
+    srcs = ["tests/query_validation.rs"],
+    crate = "audit_query_domain_query_validation",
+    crate_root = "tests/query_validation.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-query-domain",
+        "//audit/ports/query-api:audit-query-api",
+    ],
+)
+
+rust_test(
+    name = "audit-query-domain-cursor-pagination",
+    srcs = ["tests/cursor_pagination.rs"],
+    crate = "audit_query_domain_cursor_pagination",
+    crate_root = "tests/cursor_pagination.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-query-domain",
+        "//audit/ports/query-api:audit-query-api",
+    ],
+)
+
+rust_test(
+    name = "audit-query-domain-auditor-engagement",
+    srcs = ["tests/auditor_engagement.rs"],
+    crate = "audit_query_domain_auditor_engagement",
+    crate_root = "tests/auditor_engagement.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-query-domain",
+        "//audit/ports/query-api:audit-query-api",
+    ],
+)
