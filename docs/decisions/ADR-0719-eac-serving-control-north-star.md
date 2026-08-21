@@ -225,6 +225,16 @@ require those files to exist are the reason they exist; delete the gate with the
 - **overturn_when:** a child is shown to be loaded by a compiler/PDP/SLO/reconciler AND
   a five-field amendment lands same-wave.
 
+**Founder-locked defaults (2026-08-21, no further shape debate):**
+
+| Fork | Locked default |
+|---|---|
+| Cedar directory | `policy/` only. Existing `cedar/` trees rehome or delete; allowlists must not list both. |
+| Cap-root `contracts/` | Absent. IDL is Rust → proto on `ports/` and generated faces. |
+| OpenSLO | `observability/slos/` — controller-native OpenSLO; not a product codec; not proto-only until a later ADR. |
+| Singleton org law | `governance/` + `docs/decisions/`. Root `specs/` / `registry/` that engines do not load shrink away; do not recreate a second org-spec tree. |
+| Public door | Destination = proto/H3. W0 may transcode leftover REST at the gateway. Cutting REST on this Accept is rejected. |
+
 ## Consequences
 
 - Implementers read this plus ADR-0701/0702/0704/0705/0615. Do not re-derive from chat.
@@ -242,3 +252,5 @@ require those files to exist are the reason they exist; delete the gate with the
 - Sync Merkle on every `Check`.
 - Cap-root `catalog.yaml` / `manifest.json` / dual `cedar/`+`policy/` as allowlist debt.
 - Rehoming AUDIT-FINDINGS, IPs, scorecards, DPIA essays into `docs/` instead of deleting.
+- Cap-root `contracts/` or root `contracts/*.yaml` as IDL SSOT.
+- Cutting public REST on Accept of this ADR (W0 transcode stands).
