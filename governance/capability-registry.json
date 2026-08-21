@@ -550,14 +550,9 @@
       ]
     },
     "retired_v1_products": {
-      "_comment": "Interview: office-suite retire (D41) — do not app-absorb notes, slides, sites, or office. translate is an intelligence concern (D42), not a product. D41 retired slides/notes/office/sites; office is already gone from the tree. Crates remain at oya/<slug>/ until a later retire PR deletes them. This block maps those dirs so membership stays green WITHOUT treating them as app_products (meta:app/). No live move-plan in this change.",
+      "_comment": "Interview: office-suite retire (D41) — do not app-absorb notes, slides, sites, or office. translate is an intelligence concern (D42), not a product. Trees deleted this wave (reorg/d41-retire-notes-slides-sites-translate). current_dirs lists only live paths.",
       "disposition": "retire-in-place; do not absorb into app/; D41/D42",
-      "current_dirs": [
-        "oya/notes",
-        "oya/sites",
-        "oya/slides",
-        "oya/translate"
-      ]
+      "current_dirs": []
     },
     "meta_directory_absorbs": [
       {

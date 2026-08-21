@@ -149,20 +149,22 @@ fn d41_office_suite_and_translate_are_not_app_products() {
         );
         assert!(root.join(keep).is_dir(), "{keep} must remain on disk");
     }
-    for still_on_disk in ["oya/notes", "oya/slides", "oya/sites", "oya/translate"] {
+    for gone in [
+        "oya/notes",
+        "oya/slides",
+        "oya/sites",
+        "oya/translate",
+        "oya/office",
+    ] {
         assert!(
-            retired_dirs.contains(&still_on_disk),
-            "{still_on_disk} must be retired_v1_products (still on disk): {retired_dirs:?}"
+            !retired_dirs.contains(&gone),
+            "{gone} trees are deleted; retired_v1_products.current_dirs lists only live paths: {retired_dirs:?}"
         );
         assert!(
-            root.join(still_on_disk).is_dir(),
-            "{still_on_disk} must still exist (this PR does not delete product trees)"
+            !root.join(gone).is_dir(),
+            "{gone} must not remain on disk after D41/D42 retirement"
         );
     }
-    assert!(
-        !retired_dirs.contains(&"oya/office"),
-        "oya/office is already gone from the tree; current_dirs lists only live paths: {retired_dirs:?}"
-    );
     assert_eq!(
         coverage["retired_v1_products"]["disposition"].as_str(),
         Some("retire-in-place; do not absorb into app/; D41/D42")
