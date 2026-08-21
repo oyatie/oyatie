@@ -200,9 +200,9 @@ pub const CARVE_OUT_RULES: &[CarveOutRule] = &[
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,
-        value: "oya-ci.toml",
+        value: "ci.toml",
         exempt_stems: &[],
-        reason: "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
+        reason: "the repo-root CI policy IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
     },
     CarveOutRule {
         kind: CarveOutKind::PathExact,

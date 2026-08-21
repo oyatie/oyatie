@@ -73,7 +73,7 @@ pub(crate) fn validate_closed_schema(config: &Value, findings: &mut BTreeSet<Fin
     );
 
     // Crate-dependency freshness (oyatie-gr1n): the sibling of the `[rust]` toolchain pin above.
-    // `oya-deps.toml` is a CLOSED schema by design, so a new section must be declared here before
+    // `deps.toml` is a CLOSED schema by design, so a new section must be declared here before
     // it may appear in the file — the gate refused this section until this entry existed, which is
     // the contract working as intended.
     check_table(
@@ -149,7 +149,7 @@ fn check_keys<'a, I, const N: usize>(
             findings.insert(Finding::new(
                 "DEP-AUTO-UNKNOWN-KEY",
                 format!("{CONFIG_PATH}:{key_path}"),
-                "oya-deps.toml is a closed-schema contract; add schema support before adding keys",
+                "deps.toml is a closed-schema contract; add schema support before adding keys",
             ));
         }
     }

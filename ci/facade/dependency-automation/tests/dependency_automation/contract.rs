@@ -20,7 +20,7 @@ fn live_tree_has_valid_owned_dependency_automation_contract() {
 fn missing_oya_deps_is_red() {
     let root = temp_root();
     write_minimal_candidate(&root, "1.96.0");
-    fs::remove_file(root.join("oya-deps.toml")).unwrap();
+    fs::remove_file(root.join("deps.toml")).unwrap();
     let report = evaluate_repo(&root).expect("evaluate fixture");
     assert_eq!(report.verdict, Verdict::Red);
     assert!(
@@ -70,9 +70,9 @@ fn dependabot_yaml_variant_is_red() {
 fn unknown_config_key_is_red() {
     let root = temp_root();
     write_minimal_candidate(&root, "1.96.0");
-    let mut text = fs::read_to_string(root.join("oya-deps.toml")).unwrap();
+    let mut text = fs::read_to_string(root.join("deps.toml")).unwrap();
     text.push_str("\nunknown = true\n");
-    fs::write(root.join("oya-deps.toml"), text).unwrap();
+    fs::write(root.join("deps.toml"), text).unwrap();
     let report = evaluate_repo(&root).expect("evaluate fixture");
     assert_eq!(report.verdict, Verdict::Red);
     assert!(

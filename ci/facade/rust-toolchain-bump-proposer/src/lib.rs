@@ -563,7 +563,7 @@ fn rewrite_dependency_policy_row(text: &str, old: &str, new: &str) -> String {
 fn rewrite_for_path(rel: &str, text: &str, old: &str, new: &str) -> String {
     if rel == "rust-toolchain.toml" {
         rewrite_toml_key(text, "channel", old, new)
-    } else if rel == "oya-deps.toml" {
+    } else if rel == "deps.toml" || rel == "oya-deps.toml" {
         rewrite_toml_key(text, "pin", old, new)
     } else if rel == "Cargo.toml" || rel.ends_with("/Cargo.toml") {
         rewrite_toml_key(text, "rust-version", old, new)
@@ -635,6 +635,7 @@ fn active_text_path(path: &str) -> bool {
 
 fn relevant_to_bump(path: &str) -> bool {
     path == "rust-toolchain.toml"
+        || path == "deps.toml"
         || path == "oya-deps.toml"
         || path == "Cargo.toml"
         || path.ends_with("/Cargo.toml")
@@ -1266,7 +1267,7 @@ uses: some/action@v1.97.1
             "rust-toolchain.toml",
             "[toolchain]\nchannel = \"1.97.1\"\ncomponents = [\"rustfmt\", \"clippy\"]\nprofile = \"minimal\"\n",
         );
-        write(&root, "oya-deps.toml", &oya_deps_fixture("1.97.1"));
+        write(&root, "deps.toml", &oya_deps_fixture("1.97.1"));
         // The fixture DECLARES a drift guard, so the fixture must also contain it.
         // Without this the dependency-automation gate reports
         // DEP-AUTO-DECLARED-PATH-MISSING against the fixture tree and reconcile returns
@@ -1332,7 +1333,7 @@ uses: some/action@v1.97.1
             read(&root, "rust-toolchain.toml"),
             "[toolchain]\nchannel = \"1.98.0\"\ncomponents = [\"rustfmt\", \"clippy\"]\nprofile = \"minimal\"\n"
         );
-        assert!(read(&root, "oya-deps.toml").contains("pin = \"1.98.0\""));
+        assert!(read(&root, "deps.toml").contains("pin = \"1.98.0\""));
         assert!(read(&root, "Cargo.toml").contains("rust-version = \"1.98.0\""));
         assert!(
             read(&root, "build/images/Dockerfile.distroless").contains("ARG RUST_VERSION=1.98.0")
@@ -1387,7 +1388,7 @@ uses: some/action@v1.97.1
             "rust-toolchain.toml",
             "[toolchain]\nchannel = \"1.97.1\"\n",
         );
-        write(&root, "oya-deps.toml", &oya_deps_fixture("1.97.1"));
+        write(&root, "deps.toml", &oya_deps_fixture("1.97.1"));
         // The fixture DECLARES a drift guard, so the fixture must also contain it.
         // Without this the dependency-automation gate reports
         // DEP-AUTO-DECLARED-PATH-MISSING against the fixture tree and reconcile returns
@@ -1442,7 +1443,7 @@ uses: some/action@v1.97.1
             "rust-toolchain.toml",
             "[toolchain]\nchannel = \"1.98.0\"\n",
         );
-        write(&root, "oya-deps.toml", &oya_deps_fixture("1.98.0"));
+        write(&root, "deps.toml", &oya_deps_fixture("1.98.0"));
         write(
             &root,
             "Cargo.toml",

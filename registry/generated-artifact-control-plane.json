@@ -78,7 +78,7 @@
         "OWNERS",
         "docs/decisions/**",
         "specs/**",
-        "oya-ci.toml"
+        "ci.toml"
       ],
       "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "A repo-wide accounting projection must be controller-regenerated; humans and agents must not resolve conflicts by editing the JSON.",
@@ -136,7 +136,7 @@
       "source_inputs": [
         "scm-facts snapshot",
         "ci/facade/**",
-        "oya-ci.toml"
+        "ci.toml"
       ],
       "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Enforcement inventory is generated CI product metadata and must have deterministic final-tree parity.",
@@ -166,7 +166,7 @@
         "tools/hooks/*.sh",
         "tools/hooks/registration/claude-settings.json",
         "tools/hooks/registration/codex-hooks.json",
-        "oya-ci.toml"
+        "ci.toml"
       ],
       "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "Enforcement liveness is generated hook wiring metadata and must be regenerated rather than hand-merged.",
@@ -195,7 +195,7 @@
       "source_inputs": [
         "all enabled gate faces",
         "ci/facade/baseline-ratchet/gate-baseline.signoff.json",
-        "oya-ci.toml"
+        "ci.toml"
       ],
       "final_tree_validation": "FROZEN-REFERENCE BASELINE, DE-COMMITTED (ADR-0616, supersedes ADR-0596). This face is the firewall ratchet's FROZEN reference AND the candidate baseline; it is now NOT tracked in git. The scm-facts emitter REGENERATES the FROZEN reference by running the accounting producer over the `git merge-base <base_ref> HEAD` SOURCE worktree (the ratchet policy declares frozen_reference.source: regenerate-from-merge-base-source) — it is NO LONGER read from a committed git blob via `git show <merge-base>:<this-path>`. Removing that committed blob is exactly what makes de-commit safe: with no blob to empty there is no #828 empty-frozen deadlock, and the retired `git show` fallback cannot silently produce an empty reference (regen is the sole path, fail-closed). Trust is the hyperscaler recompute-don't-commit model (Bazel affected-set / Tricorder): the emitter regenerates the frozen baseline TWICE and asserts the two project identically (determinism canary), and binds the regeneration to the merge-base tree via provenance (base_tree_sha). The freshness gate proves the CANDIDATE baseline by regeneration-success + regenerate-twice determinism (the same class as every other de-committed face) rather than byte parity against a committed copy — a committed copy would list itself in tracked_paths and mutate on every PR, the faces-serialization cascade this de-commit kills. cloud-ci materializes the candidate baseline from source before gates consume it.",
       "public_product_contract": "The baseline ratchet is shrink-only generated policy; the frozen reference is regenerated from the merge-base source and validated by determinism + provenance, never a committed merge surface that could launder new debt.",
@@ -250,7 +250,7 @@
       "owner_team": "cloud-ci-platform",
       "source_inputs": [
         "libs/oya-ci-config/src/bundled/ttl-policy.json",
-        "oya-ci.toml"
+        "ci.toml"
       ],
       "final_tree_validation": "ADR-0595 de-commit class: this face is NOT tracked in git; cloud-ci materializes it on demand from the checked-out candidate tree before gates consume it. The freshness gate requires it to regenerate successfully and to be byte-stable across two regenerations (determinism canary); registry-drift byte-compares the materialized output against a fresh regeneration. Byte parity against a committed copy is intentionally retired for this face.",
       "public_product_contract": "TTL policy is data-derived generated CI policy and must be deterministic across repositories.",

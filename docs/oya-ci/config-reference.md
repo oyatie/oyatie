@@ -1,6 +1,6 @@
-# oya-ci.toml — config reference
+# ci.toml — config reference
 
-`oya-ci.toml` is the single, human-authored policy file at the repo root. It is parsed by the
+`ci.toml` is the single, human-authored policy file at the repo root. It is parsed by the
 `oya-ci-config-kernel` crate into typed structs and validated by a **CLOSED schema**: an unknown
 key (top-level or nested) is a hard error, and a malformed file fails the producer LOUDLY rather
 than silently reverting to defaults. Every section is optional — an absent section falls back to

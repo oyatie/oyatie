@@ -63,7 +63,7 @@ pub(crate) fn report(findings: BTreeSet<Finding>) -> GateReport {
 
 pub fn render_findings(report: &GateReport) -> String {
     if report.findings.is_empty() {
-        return format!("{GATE_ID}: GREEN — oya-deps.toml owned updater contract is valid");
+        return format!("{GATE_ID}: GREEN — deps.toml owned updater contract is valid");
     }
     let mut out = format!(
         "{GATE_ID}: RED — {} dependency automation finding(s)",

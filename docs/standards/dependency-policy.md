@@ -1,5 +1,5 @@
 ---
-purpose: "Cross-cutting dependency policy. Defines LTS pinning (per the verified roster), license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code), `cargo-vet` + `cargo-deny` enforcement, and the owned `oya-deps.toml` dependency-automation baseline."
+purpose: "Cross-cutting dependency policy. Defines LTS pinning (per the verified roster), license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code), `cargo-vet` + `cargo-deny` enforcement, and the owned `deps.toml` dependency-automation baseline."
 doc_status: published
 ---
 
@@ -13,7 +13,7 @@ date: 2026-05-12
 purpose: |
   Cross-cutting dependency policy. Defines LTS pinning (per the verified roster),
   license posture (no AGPL / GPL / SSPL / BUSL / RSAL in product code),
-  `cargo-vet` + `cargo-deny` enforcement, the owned `oya-deps.toml` dependency-automation baseline,
+  `cargo-vet` + `cargo-deny` enforcement, the owned `deps.toml` dependency-automation baseline,
   and the provider-SDK strategy: Anthropic / OpenAI / Gemini SDKs sit behind a
   `ProviderAdapter` trait so the workspace remains provider-agnostic per
   MASTERPLAN Directive 4.
@@ -120,7 +120,7 @@ Pinning rules:
 ## 4. Owned dependency-automation baseline
 
 ADR-0535 supersedes the earlier external-bot baseline: Oyatie uses a
-closed-schema root [`oya-deps.toml`](../../oya-deps.toml) as DATA for an
+closed-schema root [`deps.toml`](../../deps.toml) as DATA for an
 in-house Rust bump-bot. The bot opens provider-neutral scm-facts ChangeSets,
 runs license/advisory/version gates before proposing updates, and reaches merge
 only through the single `oya-ci-required` context. GitHub Actions is a
@@ -138,10 +138,10 @@ Baseline invariants:
 - `supply_chain` points at `deny.toml`, the cargo-deny/advisory lane, cargo-vet,
   and the OSS stewardship registry.
 
-Lane: `cloud-ci-dependency-automation` validates `oya-deps.toml`, rejects
+Lane: `cloud-ci-dependency-automation` validates `deps.toml`, rejects
 external bot configs, and catches Rust pin split-brain.
 
-Source: ADR-0535 and root `oya-deps.toml`.
+Source: ADR-0535 and root `deps.toml`.
 
 ## 5. Provider-SDK strategy — `ProviderAdapter`
 

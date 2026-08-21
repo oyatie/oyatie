@@ -131,7 +131,7 @@ fn pr_template_v2_path(root: &Path) -> PathBuf {
 }
 
 fn oya_ci_config_path(root: &Path) -> PathBuf {
-    root.join("oya-ci.toml")
+    root.join("ci.toml")
 }
 
 fn bundled_gate_disposition_path(root: &Path) -> PathBuf {
