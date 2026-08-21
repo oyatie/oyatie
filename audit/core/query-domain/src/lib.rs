@@ -70,11 +70,9 @@
 //! - a bare `YYYY-MM` month, treated as that whole calendar month
 //!   (`span_days()` = the number of days in that month).
 //!
-//! The port DTO (`audit-query-api::AuditQuery::period`) mandates no format —
-//! its own doc comment says only "Full DTO schema in IP-012", and that IP
-//! does not exist: `audit/IPs/` holds only `IP-ADR-0339` and
-//! `IP-WAVE-15-ZD`. This crate's own format decision therefore rests on this
-//! doc paragraph, not on that dangling citation. Two sibling artifacts in
+//! The port DTO (`audit-query-api::AuditQuery::period`) mandates no format at
+//! all, so this crate's format decision rests on this doc paragraph and on
+//! what the rest of the capability actually mints. Two sibling artifacts in
 //! this same capability
 //! already mint bare period identifiers of exactly the bare-date and
 //! bare-month shapes above: `sealing-domain` uses `period_id: "2026-08-15"`

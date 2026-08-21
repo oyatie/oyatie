@@ -95,11 +95,15 @@ fn node_hash(left: &Sha256Hash, right: &Sha256Hash) -> Sha256Hash {
 /// `n > 1`; RFC 6962's MTH/PATH recursions never call this for `n <= 1`.
 fn largest_power_of_two_less_than(n: usize) -> usize {
     debug_assert!(n > 1, "largest_power_of_two_less_than requires n > 1");
-    let mut k = 1_usize;
-    while k * 2 < n {
-        k *= 2;
-    }
-    k
+    // Computed by bit position rather than by doubling. The doubling form
+    // (`while k * 2 < n { k *= 2 }`) OVERFLOWS for n above 2^62: k reaches 2^62,
+    // and `k * 2` then panics in debug and wraps in release. That was reachable
+    // from `verify_proof`'s caller-supplied `leaf_count`, i.e. from untrusted
+    // input, which made a verification primitive panic on demand.
+    //
+    // For n > 1 the answer is 2^floor(log2(n - 1)), and `leading_zeros` gives that
+    // bit position directly with no arithmetic that can overflow.
+    1_usize << (usize::BITS - 1 - (n - 1).leading_zeros())
 }
 
 /// RFC 6962 §2.1 `MTH(D[n])` over `leaves`, computed directly from the
@@ -593,6 +597,24 @@ mod tests {
         let tree = MerkleTree::new(vec![l]);
         let root = tree.build_root();
         assert!(!MerkleTree::verify_proof(root, 999, &[], root, 1));
+    }
+
+    #[test]
+    fn absurd_leaf_count_is_rejected_without_panicking() {
+        // REGRESSION: `leaf_count` is caller-supplied and therefore untrusted. The
+        // old doubling loop in `largest_power_of_two_less_than` overflowed above
+        // 2^62, so a verifier could be made to panic on demand — an unauthenticated
+        // denial of service in the one function whose whole job is to fail closed.
+        let ls = leaves(3);
+        let tree = MerkleTree::new(ls.clone());
+        let root = tree.build_root();
+        let path = tree.proof_path(0);
+        for absurd in [usize::MAX, usize::MAX - 1, 1_usize << 62, 1_usize << 63] {
+            assert!(
+                !MerkleTree::verify_proof(ls[0], 0, &path, root, absurd),
+                "an absurd leaf_count must be rejected, never accepted"
+            );
+        }
     }
 
     #[test]

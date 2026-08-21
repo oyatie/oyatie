@@ -3,10 +3,12 @@
 //! `audit-verification-domain` depends only on `audit-chain-domain` and
 //! `audit-verification-api` (see the crate doc for why) — it may NOT depend
 //! on `audit_verification_kernel`, the port-only crate that already declares
-//! `RootRegistry`, `KeyResolver`, and `MerkleVerifier`. The three traits
-//! below are this crate's OWN declarations of the equivalent shapes,
-//! written independently so this crate never needs the dependency edge.
-//! Anywhere the mirrored shape differs from `audit_verification_kernel`'s,
+//! `RootRegistry`, `KeyResolver`, and `MerkleVerifier`. Three of the four
+//! traits below are this crate's OWN declarations of those equivalent
+//! shapes, written independently so this crate never needs the dependency
+//! edge; the fourth, [`RedactionRegistry`], has no `audit_verification_kernel`
+//! counterpart at all and is this crate's own addition (see its doc for
+//! why). Anywhere a mirrored shape differs from `audit_verification_kernel`'s,
 //! the doc comment on that item says so and why.
 
 use audit_chain_domain::{Ed25519VerificationKey, Sha256Hash};
@@ -99,5 +101,51 @@ pub trait RootRegistry {
         pack: &str,
         tenant_partition: &str,
         period_id: &str,
+    ) -> Result<bool, Self::Error>;
+}
+
+/// Confirms whether the leaf under verification has genuinely been redacted
+/// by a retention-cascade action, per `audit/policy/retention-matrix.yaml`'s
+/// `preserve_merkle_proof: true` policy (every class it defines sets this:
+/// a redacted event's leaf hash stays in the tree even though its payload
+/// is gone elsewhere).
+///
+/// ## Why this port exists at all (L8)
+///
+/// [`crate::VerificationRequest::redacted`] is a plain `bool` field — every
+/// bit as free to construct as [`crate::PriorRootClaim::First`] is free to
+/// construct, and for the exact same reason [`RootRegistry::is_first_period`]
+/// exists: a caller (or an attacker replaying a genuinely-signed record)
+/// could otherwise simply set `redacted: false` and have a truly redacted
+/// leaf's `RedactedEvent` verdict silently laundered into `Verified`,
+/// because nothing about the Ed25519 signature or the Merkle proof says
+/// anything about redaction status — [`crate::verification_signing_payload`]
+/// does not cover it, deliberately, because redaction is a fact about
+/// retention-cascade state *after* sealing, not something the record itself
+/// could have attested to at signing time. [`crate::verify`] therefore never
+/// takes `request.redacted` as the whole story: it also asks this registry,
+/// and only a confirmed `Ok(false)` answer lets a would-be `Verified`
+/// verdict actually pass step 6. `Ok(true)` and `Err` are both treated as
+/// "not confirmed clean" and fail closed into
+/// [`crate::VerificationFailureReason::RedactedEvent`] (L4) — an
+/// unreachable or erroring registry can never be used to launder a
+/// genuinely redacted leaf through as verified, and `request.redacted` on
+/// its own can never override a registry that says otherwise.
+pub trait RedactionRegistry {
+    type Error;
+
+    /// Returns `Ok(true)` only when the registry can affirmatively confirm
+    /// that the leaf at `(pack, tenant_partition, period_id)` has been
+    /// redacted by a retention-cascade action. `Ok(false)` means
+    /// affirmatively confirmed clean. `Err` means the registry could not
+    /// answer at all — [`crate::verify`] treats that identically to
+    /// `Ok(true)`: neither is a confirmed "clean", so neither lets
+    /// [`crate::verify`] report [`crate::VerificationVerdict::Verified`].
+    fn is_redacted(
+        &self,
+        pack: &str,
+        tenant_partition: &str,
+        period_id: &str,
+        leaf: &Sha256Hash,
     ) -> Result<bool, Self::Error>;
 }

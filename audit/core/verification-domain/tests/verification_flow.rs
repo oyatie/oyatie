@@ -14,8 +14,8 @@
 
 use audit_chain_domain::{Ed25519SigningKey, Ed25519VerificationKey, MerkleTree, Sha256Hash};
 use audit_verification_domain::{
-    ChainMerkleVerifier, KeyResolver, MerkleInclusionProof, PriorRootClaim, RootRegistry,
-    VerificationFailureReason, VerificationRequest, VerificationVerdict,
+    ChainMerkleVerifier, KeyResolver, MerkleInclusionProof, PriorRootClaim, RedactionRegistry,
+    RootRegistry, VerificationFailureReason, VerificationRequest, VerificationVerdict,
     verification_signing_payload, verify,
 };
 
@@ -139,6 +139,39 @@ impl RootRegistry for ChainsToFixedPriorRoot {
     }
 }
 
+/// Affirmatively confirms the leaf under verification is NOT redacted —
+/// models a registry that has genuine retention-cascade state on file and
+/// reports it accurately.
+struct ConfirmsNotRedacted;
+impl RedactionRegistry for ConfirmsNotRedacted {
+    type Error = ();
+    fn is_redacted(&self, _: &str, _: &str, _: &str, _: &Sha256Hash) -> Result<bool, ()> {
+        Ok(false)
+    }
+}
+
+/// Affirmatively confirms the leaf under verification HAS been redacted —
+/// used to prove `verify` reports `RedactedEvent` from the registry's own
+/// authority, independent of whatever the caller's `request.redacted`
+/// claim happens to say (L8).
+struct ConfirmsRedacted;
+impl RedactionRegistry for ConfirmsRedacted {
+    type Error = ();
+    fn is_redacted(&self, _: &str, _: &str, _: &str, _: &Sha256Hash) -> Result<bool, ()> {
+        Ok(true)
+    }
+}
+
+/// Models an unreachable/erroring redaction registry — L4: an inability to
+/// confirm "clean" must never be treated as a pass.
+struct RedactionLookupFails;
+impl RedactionRegistry for RedactionLookupFails {
+    type Error = ();
+    fn is_redacted(&self, _: &str, _: &str, _: &str, _: &Sha256Hash) -> Result<bool, ()> {
+        Err(())
+    }
+}
+
 fn flip_first_hex_char(hex: &str) -> String {
     if let Some(rest) = hex.strip_prefix('0') {
         format!("1{rest}")
@@ -158,6 +191,7 @@ fn verified_when_every_check_genuinely_passes() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(verdict, VerificationVerdict::Verified);
 }
@@ -173,6 +207,7 @@ fn verified_via_a_genuinely_chained_preceding_root_too() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ChainsToFixedPriorRoot(prior_root),
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(verdict, VerificationVerdict::Verified);
 }
@@ -188,6 +223,7 @@ fn key_epoch_mismatch_when_no_key_covers_the_request() {
         &NoKeyCoversThisRequest,
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -205,6 +241,7 @@ fn signature_invalid_when_the_signature_bytes_are_tampered() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -222,6 +259,7 @@ fn signature_invalid_when_the_resolved_key_is_the_wrong_key() {
         &FixedKeyResolver(attacker_key),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -239,6 +277,7 @@ fn proof_invalid_when_the_leaf_is_tampered() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -256,6 +295,7 @@ fn proof_invalid_when_the_audit_path_is_truncated() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -275,6 +315,7 @@ fn prior_root_missing_when_a_preceding_claim_cannot_be_confirmed() {
         &FixedKeyResolver(signing_key.verification_key()),
         &DeniesFirstPeriodNoRootOnFile,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -296,6 +337,7 @@ fn prior_root_missing_when_a_preceding_claim_does_not_match_the_published_root()
         &FixedKeyResolver(signing_key.verification_key()),
         &ChainsToFixedPriorRoot(distinct_leaf(203)),
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -315,6 +357,7 @@ fn prior_root_missing_when_a_first_period_claim_is_not_confirmed() {
         &FixedKeyResolver(signing_key.verification_key()),
         &DeniesFirstPeriodNoRootOnFile,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -342,6 +385,7 @@ fn pack_mismatch_even_though_the_signature_and_merkle_proof_both_check_out() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -362,6 +406,7 @@ fn pack_mismatch_on_a_period_id_leg_mismatch_alone() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -379,6 +424,7 @@ fn pack_mismatch_on_a_tenant_partition_leg_mismatch_alone() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -396,6 +442,7 @@ fn redacted_event_reported_after_genuinely_proving_inclusion() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
@@ -417,10 +464,57 @@ fn redacted_event_still_requires_a_genuinely_valid_inclusion_proof() {
         &FixedKeyResolver(signing_key.verification_key()),
         &ConfirmsFirstPeriod,
         &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
     );
     assert_eq!(
         verdict,
         VerificationVerdict::Failed(VerificationFailureReason::ProofInvalid)
+    );
+}
+
+#[test]
+fn redacted_event_when_registry_confirms_redaction_even_though_caller_claims_clean() {
+    // L8, the exact defect this port exists to close: `request.redacted` is
+    // a plain `bool`, exactly as free to construct as
+    // `PriorRootClaim::First` is. A caller (or an attacker replaying a
+    // genuinely-signed record) setting `redacted: false` must NOT be able
+    // to launder a genuinely redacted leaf through as `Verified` — the
+    // registry's own confirmation governs, not the caller's say-so.
+    let signing_key = signer(17);
+    let mut request = valid_request(&signing_key);
+    request.redacted = false; // the caller's (false) claim of "not redacted"
+    let verdict = verify(
+        &request,
+        &FixedKeyResolver(signing_key.verification_key()),
+        &ConfirmsFirstPeriod,
+        &ChainMerkleVerifier,
+        &ConfirmsRedacted, // the registry's (true) ground truth
+    );
+    assert_eq!(
+        verdict,
+        VerificationVerdict::Failed(VerificationFailureReason::RedactedEvent),
+        "an unauthenticated `redacted: false` claim must never override a \
+         registry that affirmatively confirms the leaf was redacted"
+    );
+}
+
+#[test]
+fn redacted_event_when_the_registry_cannot_be_reached() {
+    // L4: an unconfirmable "clean" answer must never be treated as a pass.
+    let signing_key = signer(18);
+    let mut request = valid_request(&signing_key);
+    request.redacted = false;
+    let verdict = verify(
+        &request,
+        &FixedKeyResolver(signing_key.verification_key()),
+        &ConfirmsFirstPeriod,
+        &ChainMerkleVerifier,
+        &RedactionLookupFails,
+    );
+    assert_eq!(
+        verdict,
+        VerificationVerdict::Failed(VerificationFailureReason::RedactedEvent),
+        "an erroring redaction registry must fail closed, never pass through as Verified"
     );
 }
 
@@ -454,5 +548,92 @@ fn signing_payload_changes_when_any_identity_leg_changes() {
     assert_ne!(
         base,
         verification_signing_payload("pack-a", "tenant-1", "2026-09", &root)
+    );
+}
+
+// ── payload injectivity: no field-boundary confusion (L3/L9) ─────────────
+//
+// Regression coverage for a real, proven defect: an earlier version of
+// `verification_signing_payload` joined `"field=value"` strings with `\n`
+// separators. Because none of `pack` / `tenant_partition` / `period_id` are
+// restricted in what characters they may contain, a `\n` embedded in one
+// field let bytes migrate across a field boundary, so two DIFFERENT
+// identity triples serialized to byte-identical payloads — and a signature
+// genuinely minted for one verified as valid for the other. Fixed by
+// length-prefixing every field instead of delimiting it; these tests prove
+// the fix holds using the exact triples that used to collide.
+
+#[test]
+fn no_field_boundary_confusion_across_the_tenant_period_seam() {
+    let (_, _, root) = merkle_fixture(3, 0);
+    let a = verification_signing_payload("pack-a", "tenant-1\nperiod_id=2026-08", "9999-12", &root);
+    let b = verification_signing_payload("pack-a", "tenant-1", "2026-08\nperiod_id=9999-12", &root);
+    assert_ne!(
+        a, b,
+        "two distinct (pack, tenant_partition, period_id) triples must never \
+         serialize to the same bytes"
+    );
+}
+
+#[test]
+fn no_field_boundary_confusion_across_the_pack_tenant_seam() {
+    let (_, _, root) = merkle_fixture(3, 0);
+    let a = verification_signing_payload("pack-a\ntenant_partition=t2", "t1", "2026-08", &root);
+    let b = verification_signing_payload("pack-a", "t2", "2026-08", &root);
+    // Not a claim that these two SHOULD collide — a sanity check that the
+    // encoding does not accidentally make the first triple look like the
+    // second by dropping the embedded newline; the real assertion is the
+    // dedicated forgery test below.
+    assert_ne!(a, b);
+}
+
+#[test]
+fn a_signature_minted_for_one_identity_triple_does_not_verify_as_another() {
+    // The end-to-end security property: sign over one (pack,
+    // tenant_partition, period_id) triple with real Ed25519, then present
+    // that exact signature under a DIFFERENT triple engineered to have
+    // collided under the old `\n`-joined encoding. Must be rejected as
+    // `SignatureInvalid`, never accepted.
+    let signing_key = signer(19);
+    let (leaf, proof, root) = merkle_fixture(3, 0);
+
+    let signed_pack = "pack-a";
+    let signed_tenant = "tenant-1\nperiod_id=2026-08";
+    let signed_period = "9999-12";
+    let payload = verification_signing_payload(signed_pack, signed_tenant, signed_period, &root);
+    let signature = signing_key.sign(&payload);
+
+    // The triple that used to collide with the one above under the old
+    // `\n`-joined format.
+    let presented_tenant = "tenant-1";
+    let presented_period = "2026-08\nperiod_id=9999-12";
+
+    let request = VerificationRequest {
+        context_pack: signed_pack.to_string(),
+        context_tenant_partition: presented_tenant.to_string(),
+        context_period_id: presented_period.to_string(),
+        record_pack: signed_pack.to_string(),
+        record_tenant_partition: presented_tenant.to_string(),
+        record_period_id: presented_period.to_string(),
+        leaf,
+        proof,
+        merkle_root: root,
+        prior_root: PriorRootClaim::First,
+        signature,
+        redacted: false,
+    };
+
+    let verdict = verify(
+        &request,
+        &FixedKeyResolver(signing_key.verification_key()),
+        &ConfirmsFirstPeriod,
+        &ChainMerkleVerifier,
+        &ConfirmsNotRedacted,
+    );
+    assert_eq!(
+        verdict,
+        VerificationVerdict::Failed(VerificationFailureReason::SignatureInvalid),
+        "a signature minted for one identity triple must never verify as a \
+         different triple, even one that collided under the old encoding"
     );
 }

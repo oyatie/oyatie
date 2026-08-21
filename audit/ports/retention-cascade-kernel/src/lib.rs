@@ -1,6 +1,7 @@
 //! Audit-chain retention-cascade kernel: policy and cascade ports.
 //!
-//! Wave 15-IMPL-truth-up scaffold (2026-05-21). Full surface in IP-013.
+//! Policy-source, cascade-source and redaction-writer ports. Pure traits; the
+//! rules applied over them live in `audit/core/retention-cascade-domain`.
 #![allow(dead_code)]
 
 /// Port: load retention windows from `policy/retention-matrix.yaml`.

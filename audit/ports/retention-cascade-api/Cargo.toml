@@ -6,8 +6,7 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# Wave 15-IMPL-truth-up scaffold (2026-05-21):
-# Retention DTOs per IP-013.
+# Retention/DSR DTOs. Rules live in audit/core/retention-cascade-domain.
 
 [dependencies]
 

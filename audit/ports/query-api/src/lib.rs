@@ -1,9 +1,11 @@
 //! Audit-chain query API: tenant-scoped query and export DTOs.
 //!
-//! Wave 15-IMPL-truth-up scaffold (2026-05-21). Full DTO schema in IP-012.
+//! Tenant-scoped query and export DTOs. Validation, cursor codec and pagination
+//! rules live in `audit/core/query-domain`; the wire schema, including the
+//! `limit` bounds that crate enforces, is `audit/contracts/openapi/audit-chain.yaml`.
 #![allow(dead_code)]
 
-/// Audit query filter. Full filter schema in IP-012.
+/// Audit query filter. Validated by `audit/core/query-domain`.
 #[derive(Clone, Debug, Default)]
 pub struct AuditQuery {
     pub tenant_id: String,
@@ -25,7 +27,8 @@ pub enum ResultSealState {
     Redacted,
 }
 
-/// Query result page. Full schema in IP-012.
+/// Query result page. Built by `audit/core/query-domain`, which also mints
+/// and validates `next_cursor`.
 #[derive(Clone, Debug, Default)]
 pub struct QueryResult {
     pub rows: Vec<QueryRow>,
@@ -40,7 +43,7 @@ pub struct QueryRow {
     pub seal_state: ResultSealState,
 }
 
-/// Signed export bundle. Full schema in IP-012.
+/// Signed export bundle.
 #[derive(Clone, Debug)]
 pub struct ExportBundle {
     pub engagement_id: String,
@@ -49,7 +52,8 @@ pub struct ExportBundle {
     pub bundle_uri: String,
 }
 
-/// Auditor engagement. Full schema in IP-012.
+/// Auditor engagement. Expiry and tenant-match are checked by
+/// `audit/core/query-domain`.
 #[derive(Clone, Debug)]
 pub struct AuditorEngagement {
     pub engagement_id: String,

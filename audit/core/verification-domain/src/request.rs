@@ -88,14 +88,23 @@ pub struct VerificationRequest {
     pub prior_root: PriorRootClaim,  // data_class: INTERNAL_ONLY
     pub signature: Ed25519Signature, // data_class: INTERNAL_ONLY
 
-    /// `true` when the leaf under verification belongs to an event a
-    /// retention-cascade redaction has already erased the payload of.
-    /// `audit/policy/retention-matrix.yaml` sets `preserve_merkle_proof:
+    /// The caller's claim that the leaf under verification belongs to an
+    /// event a retention-cascade redaction has already erased the payload
+    /// of. `audit/policy/retention-matrix.yaml` sets `preserve_merkle_proof:
     /// true` for every class it defines, so a redacted event's leaf hash is
     /// never removed from the tree — [`crate::verify`] still runs the full
     /// signature and Merkle-inclusion check against it (it must still PROVE
-    /// inclusion) and only turns a would-be `Verified` into
-    /// `VerificationFailureReason::RedactedEvent` at the very end, so a
-    /// redacted leaf is reported honestly rather than silently verified.
+    /// inclusion).
+    ///
+    /// This field alone is NOT the enforcement: a plain `bool` is exactly
+    /// as free to construct as [`PriorRootClaim::First`] is (L8), so
+    /// [`crate::verify`] never takes it at face value either. It confirms
+    /// the true redaction status via
+    /// [`crate::ports::RedactionRegistry::is_redacted`] — see that port's
+    /// doc for why — and only turns a would-be `Verified` into
+    /// `VerificationFailureReason::RedactedEvent` once genuine inclusion
+    /// has been proven, so a redacted leaf is reported honestly rather than
+    /// silently verified, and setting this field to `false` cannot by
+    /// itself launder a genuinely redacted leaf through as `Verified`.
     pub redacted: bool, // data_class: PUBLIC
 }
