@@ -493,11 +493,39 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
     // signature gave, read rather than derived a second time.
     let already_borrowed =
         sequence.kind == KIND_IDENT && cx.borrowed.contains(&to_snake_case(&sequence.name));
-    let iter = match already_borrowed {
+    // A COPYABLE ELEMENT IS COPIED, which is what the source's range does. Borrowing the sequence
+    // and stopping there hands the body a REFERENCE where the source handed it a value, and every
+    // use downstream then has one type too many -- `out.send(value)` wanted an `i64` and was given
+    // an `&i64`. `.copied()` is the same read the counted loop already does for the same reason.
+    //
+    // Only where the element IS copyable. A sequence of owned values yields references because that
+    // is all it can yield without consuming the sequence, and the body works with those.
+    // COPYABLE IN THE TARGET, which the pack decides and `moves_on_read` already asks. The source's
+    // `string` is a basic type there and a `String` here, and `String` is not copyable -- so a test
+    // that read the source's own classification called `[]string` copyable and broke `chi` and
+    // `xxhash`. One answer, asked in the one place that has it.
+    let copies = sequence
+        .type_ref
+        .args
+        .first()
+        .is_some_and(|element| !crate::body_place::moves_on_read(element, cx));
+    let borrowed = match already_borrowed {
         true => rendered,
         false => RustExpr::Reference {
             mutable: false,
             inner: Box::new(rendered),
+        },
+    };
+    let iter = match copies {
+        false => borrowed,
+        true => RustExpr::MethodCall {
+            receiver: Box::new(RustExpr::MethodCall {
+                receiver: Box::new(borrowed),
+                method: "iter".to_owned(),
+                args: Vec::new(),
+            }),
+            method: "copied".to_owned(),
+            args: Vec::new(),
         },
     };
 

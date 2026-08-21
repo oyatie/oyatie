@@ -282,17 +282,26 @@ pub(crate) fn statement(
                      variables — the destination is recorded, and the sendability is not proven"
                 .to_owned(),
         }),
-        "send" => Err(TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: "a channel send has no target form yet, because the pack names no channel. \
-                     The source's channel is MULTI-producer and MULTI-consumer, closable, and \
-                     unbuffered by default — where an unbuffered send does not complete until a \
-                     receiver takes the value. The target's candidates each keep some of that and \
-                     drop the rest, so which one this becomes decides what the ported program does \
-                     when a peer is slow, and that is a decision about the program rather than a \
-                     spelling"
-                .to_owned(),
-        }),
+        // `ch <- v`. The source's send does not complete until a receiver takes the value, which
+        // the target's bounded sender also promises, and it PANICS when the far end is gone, which
+        // is what `expect` does. Both halves are the pack's to spell.
+        "send" => {
+            let forms = cx.resolver.channel;
+            if forms.send.is_empty() {
+                return Err(TransformError::Unsupported {
+                    name: cx.owner.to_owned(),
+                    detail: "a channel send has no target form, because the pack names no channel"
+                        .to_owned(),
+                });
+            }
+            let (channel, value) = two_children(node, cx, "send")?;
+            Ok(RustStmt::Semi(crate::channels::sent(
+                in_position(channel, cx, Position::Place)?,
+                expression(value, cx)?,
+                &forms.send,
+                cx,
+            )?))
+        }
         "select" => Err(TransformError::Unsupported {
             name: cx.owner.to_owned(),
             detail: "a `select` has no target form yet. The shape maps — the target has a macro \

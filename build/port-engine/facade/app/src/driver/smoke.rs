@@ -62,7 +62,8 @@ pub fn smoke_syn_quote_render() -> Result<(), port_engine_api::PortError> {
             params: Vec::new(),
             ret: None,
             attrs: Vec::new(),
-            body: Some(Vec::new()),
+            is_async: false,
+        body: Some(Vec::new()),
         })],
     )?;
     let renderer = RustRenderer::new();

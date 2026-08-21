@@ -5,7 +5,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{
+use port_engine_api::{ChannelForms, 
     Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ReadableLiterals, DeriveRule, Digest, DocConvention,
     FailureConvention, FormatCalls, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
     PackSemantics, PointerDisposition, RuleId, RulePack, SequenceAppend, UnitId,
@@ -99,6 +99,10 @@ impl PackSemantics for LoadedRulePack {
 
     fn value_map(&self) -> &BTreeMap<String, FunctionMapping> {
         &self.value_map
+    }
+
+    fn channel_forms(&self) -> &ChannelForms {
+        &self.channel_forms
     }
 
     fn failure_convention(&self) -> Option<&FailureConvention> {

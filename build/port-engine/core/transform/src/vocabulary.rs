@@ -66,6 +66,9 @@ pub const CONSTRUCTOR_PREFIX: &str = "New";
 pub const TYPE_ARRAY: &str = "array";
 /// The type kind of a pointer.
 pub const TYPE_POINTER: &str = "pointer";
+
+/// The source's channel type, whose target form is one END of a pair.
+pub const TYPE_CHANNEL: &str = "chan";
 /// The node kind of a literal.
 pub const KIND_IDENT: &str = "ident";
 pub const KIND_LITERAL: &str = "literal";
@@ -119,6 +122,9 @@ pub const ARGUMENT_STRING_LITERAL: &str = "string_literal";
 pub const ARGUMENT_INT_LITERAL_LAST: &str = "int_literal_last";
 /// The node kind of a unary expression.
 pub const KIND_UNARY: &str = "unary";
+
+/// A channel send, whose children are the channel and then the value.
+pub const KIND_SEND: &str = "send";
 /// The node kind of a call.
 pub const KIND_CALL: &str = "call";
 /// The node kind of a return statement.

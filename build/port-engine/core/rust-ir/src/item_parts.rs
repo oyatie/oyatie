@@ -100,6 +100,12 @@ pub struct RustFn {
     pub attrs: Vec<String>, // data_class: INTERNAL_ONLY
     /// The body. `None` is a signature with no body, which is what a trait item is.
     pub body: Option<Vec<RustStmt>>,
+    /// Whether the body may YIELD to an executor, which the target spells on the signature.
+    ///
+    /// A property of the function rather than of any statement in it: `.await` is legal only inside
+    /// an `async` body, so a rule that emits one has to say so here as well, and the two are the
+    /// same decision read in two places.
+    pub is_async: bool,
 }
 
 /// The shape of a struct's data.

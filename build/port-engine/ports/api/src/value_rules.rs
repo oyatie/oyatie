@@ -22,6 +22,27 @@ pub struct SequenceAppend {
     pub reason: String, // data_class: INTERNAL_ONLY
 }
 
+/// How the source's CHANNEL is spelled in the target, end by end.
+///
+/// The source's channel is ONE value carrying both ends; the target's is a pair. So this table has
+/// no single "channel type" entry and could not: which end a site holds is a fact about where the
+/// channel is used, and the transform decides it per use before asking here for the spelling.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct ChannelForms {
+    /// The sending end, over element `{0}`.
+    pub sender: String, // data_class: INTERNAL_ONLY
+    /// The receiving end, over element `{0}`.
+    pub receiver: String, // data_class: INTERNAL_ONLY
+    /// Sending `{1}` down `{0}`.
+    pub send: String, // data_class: INTERNAL_ONLY
+    /// Taking the next value from `{0}`.
+    pub receive: String, // data_class: INTERNAL_ONLY
+    /// Running `{0}` concurrently with what follows it.
+    pub spawn: String, // data_class: INTERNAL_ONLY
+    /// Why these forms and not the others the target offers.
+    pub reason: String, // data_class: INTERNAL_ONLY
+}
+
 /// How the source's ALLOCATING builtin becomes the target's.
 ///
 /// Its own shape rather than a row in the function map because the builtin's first argument is a

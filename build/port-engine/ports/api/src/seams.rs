@@ -9,7 +9,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use crate::declaration::Declaration;
 use crate::error::PortError;
-use crate::value_rules::{Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
+use crate::value_rules::{ChannelForms, Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, ReadableLiterals, FormatCalls, FormatFunction, SequenceAppend};
 use crate::failure::{
     DeriveRule, DocConvention, FailureConvention, FunctionMapping, IdiomRule, IntegerArithmetic,
 };
@@ -186,6 +186,12 @@ pub trait PackSemantics {
     fn byte_order_calls(&self) -> &ByteOrderCalls;
     /// How the source's allocating builtin becomes the target's.
     fn allocation(&self) -> &Allocation;
+    /// How the source's channel, its send, its receive and its `go` are spelled.
+    ///
+    /// EMPTY means the pack has not decided, and every one of those constructs refuses by name
+    /// rather than picking a target primitive on the author's behalf -- which of the target's
+    /// channels this becomes decides what the ported program does when a peer is slow.
+    fn channel_forms(&self) -> &ChannelForms;
     /// How the source's `append` becomes the target's.
     fn sequence_append(&self) -> &SequenceAppend;
     /// Callees that TAKE a length, so a read there is not evidence against a constant being one.

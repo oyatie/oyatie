@@ -267,6 +267,7 @@ pub(crate) fn method_signature_at(
         },
         attrs: crate::params::inline_attrs(statements.as_deref(), vis, resolver),
         body: statements,
+        is_async: false,
     })
 }
 
@@ -334,6 +335,7 @@ fn emptiness_companion(methods: &[RustFn]) -> Option<RustFn> {
         params: Vec::new(),
         ret: Some(port_engine_rust_ir::RustType::path("bool")),
         attrs: Vec::new(),
+        is_async: false,
         body: Some(vec![port_engine_rust_ir::RustStmt::Tail(
             port_engine_rust_ir::RustExpr::Binary {
                 op: port_engine_rust_ir::BinaryOp::Eq,

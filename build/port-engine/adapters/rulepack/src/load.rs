@@ -7,7 +7,7 @@
 
 use std::collections::{BTreeMap, BTreeSet};
 
-use port_engine_api::{
+use port_engine_api::{ChannelForms, 
     Allocation, BinaryString, BitPatternConstants, ByteOrderCalls, DeriveRule, DocConvention, FailureConvention, ReadableLiterals,
     FormatCalls, FormatFunction, FunctionMapping, IdiomRule, IntegerArithmetic, LanguagePair,
     PointerConstruction, PointerDisposition, RuleId, SequenceAppend, UnitId,
@@ -260,6 +260,17 @@ impl LoadedRulePack {
                     )
                 })
                 .collect(),
+            channel_forms: doc
+                .channel_forms
+                .map(|rule| ChannelForms {
+                    sender: rule.sender,
+                    receiver: rule.receiver,
+                    send: rule.send,
+                    receive: rule.receive,
+                    spawn: rule.spawn,
+                    reason: rule.reason,
+                })
+                .unwrap_or_default(),
             failure_convention: doc.failure_convention.map(|failure| FailureConvention {
                 source_type: failure.source_type,
                 discards_companion: failure.discards_companion,

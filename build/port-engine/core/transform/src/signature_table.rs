@@ -145,6 +145,7 @@ impl SignatureTable {
                 failure: semantics.failure_convention(),
                 function_map: semantics.function_map(),
                     value_map: semantics.value_map(),
+                    channel: semantics.channel_forms(),
                 format_calls: semantics.format_calls(),
                 unmappable_calls: semantics.unmappable_calls(),
                 unmappable_types: semantics.unmappable_types(),

@@ -243,6 +243,7 @@ pub(crate) fn survey_declaration<P>(
         signatures,
         function_map: pack.function_map(),
         value_map: pack.value_map(),
+        channel: pack.channel_forms(),
         format_calls: pack.format_calls(),
         unmappable_calls: pack.unmappable_calls(),
         unmappable_types: pack.unmappable_types(),

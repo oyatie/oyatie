@@ -288,11 +288,18 @@ fn lower_fn(function: &RustFn) -> Result<TokenStream, PortError> {
         _ => TokenStream::new(),
     };
 
+    //  sits between the visibility and the , which is the one place the target accepts
+    // it -- so it is built here rather than folded into the attribute list.
+    let asyncness = match function.is_async {
+        true => quote! { async },
+        false => TokenStream::new(),
+    };
+
     match &function.body {
-        None => Ok(quote! { #docs #(#attrs)* #vis fn #name(#(#inputs),*) #ret ; }),
+        None => Ok(quote! { #docs #(#attrs)* #vis #asyncness fn #name(#(#inputs),*) #ret ; }),
         Some(body) => {
             let statements = lower_block(body)?;
-            Ok(quote! { #docs #(#attrs)* #vis fn #name(#(#inputs),*) #ret { #statements } })
+            Ok(quote! { #docs #(#attrs)* #vis #asyncness fn #name(#(#inputs),*) #ret { #statements } })
         }
     }
 }
