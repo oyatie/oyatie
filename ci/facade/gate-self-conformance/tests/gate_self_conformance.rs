@@ -146,54 +146,12 @@ fn freshness_shellout_exception_has_cutover_note() {
 // decides which targets CI runs — and all three carried the tell in their own names
 // (`…_when_present`), which made the fail-open read as deliberate.
 //
-// The checks below are SET equalities, never counts or minimums, so a failure is a reviewable
-// diff of named keys rather than a number to bump:
+// The rule is the empty set, not a hand-maintained allowlist of exceptions:
 //
-//   1. ADMITTED_EARLY_RETURN_TESTS freezes, two-sided, the exact set of ci/facade tests that may
-//      return early. A NEW early-returning test is blocking (justify it here, or make the absence
-//      RED). A listed test that stops returning early is ALSO blocking until its row is removed
-//      in the same change — a one-sided ceiling cannot tell debt-paid-off from a collapsed scan.
-//   2. No test may encode a fail-open in its NAME. The frozen expectation is the empty set: an
-//      equality, not a minimum, so paying this debt down can never turn the check red.
+//   1. No `#[test]` under ci/facade/*/tests/ may `return;` in its body. An early return
+//      turns a missing input into a pass. Branch with if/else, or fail closed.
+//   2. No test may encode a fail-open in its NAME (`_when_present` / `_if_present`).
 // ---------------------------------------------------------------------------
-
-/// `<test file>::<fn>` -> why the early return is a real tolerance rather than a silent skip.
-/// Every row was read and classified; none of them lets an ABSENT input read as success.
-const ADMITTED_EARLY_RETURN_TESTS: [(&str, &str); 6] = [
-    (
-        "ci/facade/automation-language-policy/tests/rust_first_automation_hygiene.rs::replacement_window_adr_must_exist_and_be_accepted",
-        "Optional POLICY block, not a filesystem input: with no active replacement_window there \
-         is no window ADR to validate, and the shrink-only ceiling still binds. When the block IS \
-         present the ADR path is asserted, never skipped.",
-    ),
-    (
-        "ci/facade/baseline-ratchet/tests/firewall.rs::firewall_is_green_on_the_live_corpus_with_the_baseline",
-        "Bootstrap window (frozen.missing_at_merge_base): substitutes a committed-blob check at \
-         HEAD plus a zero-unsigned-growth check against the pre-decommit parent, so the absence \
-         is replaced by stricter assertions rather than waved through.",
-    ),
-    (
-        "ci/facade/baseline-ratchet/tests/firewall.rs::frozen_snapshot_provenance_matches_ratchet_policy",
-        "Same bootstrap window, and it asserts `git cat-file -e HEAD:<face_path>` succeeds before \
-         returning — an absent merge-base face is distinguished from an emitter bug by proof, not \
-         assumed benign.",
-    ),
-    (
-        "ci/facade/inventory-registry-drift/tests/registry_drift.rs::scm_facts_regenerates_deterministically",
-        "Git-boundary gate, not an input check: the regenerate-twice canary needs a real `.git`, \
-         which a hermetic buck2 action deliberately does not have. It runs on every cargo and CI \
-         regen invocation; the hermetic producer-faces drift check covers the action graph.",
-    ),
-    (
-        "ci/facade/inventory-registry-drift/tests/registry_drift.rs::move_manifest_regenerates_deterministically",
-        "Same git-boundary gate as the scm-facts canary above, for the codemod move-manifest face.",
-    ),
-    (
-        "ci/facade/scm-facts-snapshot/tests/snapshot_integration.rs::status_only_command_probe_helper",
-        "Not a corpus test: a self-re-exec child helper that only does work when the harness sets \
-         OYA_CI_COMMAND_PROBE_MODE, so the parent test can drive it as a subprocess.",
-    ),
-];
 
 /// One `#[test]` fn plus the facts this scan needs about it.
 struct ScannedTest {
@@ -301,7 +259,7 @@ fn gate_of(key: &str) -> Option<&str> {
 }
 
 #[test]
-fn early_returning_facade_tests_equal_the_admitted_set() {
+fn facade_tests_do_not_return_early() {
     let root = repo_root();
     let scanned = scan_facade_tests(&root);
 
@@ -328,31 +286,15 @@ fn early_returning_facade_tests_equal_the_admitted_set() {
          only one side means the walk stopped seeing it"
     );
 
-    let observed: BTreeSet<&str> = scanned
+    let early: Vec<&str> = scanned
         .iter()
         .filter(|test| test.returns_early)
         .map(|test| test.key.as_str())
         .collect();
-    let admitted: BTreeSet<&str> = ADMITTED_EARLY_RETURN_TESTS
-        .iter()
-        .map(|(key, _)| *key)
-        .collect();
-
-    let born_blocking: Vec<&&str> = observed.difference(&admitted).collect();
     assert!(
-        born_blocking.is_empty(),
-        "new early-returning ci/facade test(s) {born_blocking:?} — an early `return` in a \
-         live-corpus test makes an ABSENT input read as success. Make the absence RED and name \
-         the missing path (//ci/facade/graphql-usage-policy's dead-scan-root assertion is the \
-         shape to copy). If the return really is a tolerance and not a skip, add it to \
-         ADMITTED_EARLY_RETURN_TESTS with the reason it cannot hide an absence."
-    );
-    let stale: Vec<&&str> = admitted.difference(&observed).collect();
-    assert!(
-        stale.is_empty(),
-        "ADMITTED_EARLY_RETURN_TESTS row(s) {stale:?} no longer early-return — this freeze is \
-         TWO-SIDED on purpose: remove the row in the SAME change that removes the return, so a \
-         collapsed or renamed scan can never be mistaken for debt that was paid off"
+        early.is_empty(),
+        "ci/facade test(s) {early:?} `return;` in the test body — that is fail-open on a \
+         missing input. Branch with if/else, or fail closed. Do not maintain an exception list."
     );
 }
 

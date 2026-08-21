@@ -1758,20 +1758,19 @@ fn replacement_window_adr_must_exist_and_be_accepted() {
     let policy: Value =
         serde_json::from_str(&fs::read_to_string(&policy_path).expect("read policy"))
             .expect("parse policy");
-    let Some(window) = policy["workflow_inline_shell_baseline"].get("replacement_window") else {
-        return; // no active window: shrink-only ceiling applies
-    };
-    let adr_rel = window["adr"].as_str().expect("window adr must be a string");
-    let adr_path = root.join(adr_rel);
-    assert!(
-        adr_path.is_file(),
-        "the replacement window ADR must exist: {adr_rel}"
-    );
-    let text = fs::read_to_string(&adr_path).expect("read ADR");
-    assert!(
-        text.contains("status: Accepted"),
-        "the replacement window's ADR must be Accepted"
-    );
+    if let Some(window) = policy["workflow_inline_shell_baseline"].get("replacement_window") {
+        let adr_rel = window["adr"].as_str().expect("window adr must be a string");
+        let adr_path = root.join(adr_rel);
+        assert!(
+            adr_path.is_file(),
+            "the replacement window ADR must exist: {adr_rel}"
+        );
+        let text = fs::read_to_string(&adr_path).expect("read ADR");
+        assert!(
+            text.contains("status: Accepted"),
+            "the replacement window's ADR must be Accepted"
+        );
+    }
     let stem = adr_path
         .file_stem()
         .and_then(|s| s.to_str())

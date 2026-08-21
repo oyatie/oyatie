@@ -466,26 +466,25 @@ fn scm_facts_regenerates_deterministically() {
     // out-of-graph boundary on every runner.
     let regen_boundary = std::env::var_os("CARGO").is_some()
         || std::env::var("OYA_CI_SCM_FACTS_REGEN").as_deref() == Ok("1");
-    if !regen_boundary {
+    if regen_boundary {
+        let root = repo_root();
+        let first = regenerate_scm_facts(&root, 1);
+        let second = regenerate_scm_facts(&root, 2);
+
+        assert_eq!(
+            first, second,
+            "SCM-FACTS NON-DETERMINISTIC: two fresh emissions of {SCM_FACTS_FACE} differ. \
+             The scm-facts emitter must be a pure function of the tracked tree (ADR-0604 de-commit \
+             class: there is no committed copy, so regenerate-twice determinism is the integrity \
+             canary). A non-deterministic emitter is a hard failure."
+        );
+    } else {
         eprintln!(
             "scm-facts regen-validation SKIPPED: not a git boundary context (run via cargo or \
              the CI scm-facts-regen pre-step with OYA_CI_SCM_FACTS_REGEN=1). The hermetic \
              producer-faces drift check ran; git stays out of the buck2 action graph."
         );
-        return;
     }
-
-    let root = repo_root();
-    let first = regenerate_scm_facts(&root, 1);
-    let second = regenerate_scm_facts(&root, 2);
-
-    assert_eq!(
-        first, second,
-        "SCM-FACTS NON-DETERMINISTIC: two fresh emissions of {SCM_FACTS_FACE} differ. \
-         The scm-facts emitter must be a pure function of the tracked tree (ADR-0604 de-commit \
-         class: there is no committed copy, so regenerate-twice determinism is the integrity \
-         canary). A non-deterministic emitter is a hard failure."
-    );
 }
 
 /// Regenerate the reorg move-manifest face (task #64) TWICE via the codemod `manifest` subcommand
@@ -502,25 +501,24 @@ fn scm_facts_regenerates_deterministically() {
 fn move_manifest_regenerates_deterministically() {
     let regen_boundary = std::env::var_os("CARGO").is_some()
         || std::env::var("OYA_CI_SCM_FACTS_REGEN").as_deref() == Ok("1");
-    if !regen_boundary {
+    if regen_boundary {
+        let root = repo_root();
+        let first = regenerate_move_manifest(&root, 1);
+        let second = regenerate_move_manifest(&root, 2);
+
+        assert_eq!(
+            first, second,
+            "MOVE-MANIFEST NON-DETERMINISTIC: two fresh codemod `manifest` emissions differ. \
+             move-manifest is de-committed (ADR-0614): there is no committed copy, so regenerate-twice \
+             determinism is the integrity canary. The codemod must be a pure function of the committed \
+             move plan(s) x candidate tracked tree. A non-deterministic generator is a hard failure. \
+             Re-run //tools/oya-reorg-codemod-app:oya-reorg-codemod manifest to reproduce."
+        );
+    } else {
         eprintln!(
             "move-manifest regen-validation SKIPPED: not a git boundary context (run via cargo \
              or the CI regen pre-step with OYA_CI_SCM_FACTS_REGEN=1). git stays out of the buck2 \
              action graph."
         );
-        return;
     }
-
-    let root = repo_root();
-    let first = regenerate_move_manifest(&root, 1);
-    let second = regenerate_move_manifest(&root, 2);
-
-    assert_eq!(
-        first, second,
-        "MOVE-MANIFEST NON-DETERMINISTIC: two fresh codemod `manifest` emissions differ. \
-         move-manifest is de-committed (ADR-0614): there is no committed copy, so regenerate-twice \
-         determinism is the integrity canary. The codemod must be a pure function of the committed \
-         move plan(s) x candidate tracked tree. A non-deterministic generator is a hard failure. \
-         Re-run //tools/oya-reorg-codemod-app:oya-reorg-codemod manifest to reproduce."
-    );
 }
