@@ -1,0 +1,23 @@
+rust_library(
+    name = "community-post-store-usecase",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_post_store_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/core/post-store-domain:community-post-store-domain",
+    ],
+)
+
+rust_test(
+    name = "community-post-store-usecase-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_post_store_usecase",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/community/ports/post-store-api:community-post-store-api",
+        "//app/community/core/post-store-domain:community-post-store-domain",
+    ],
+)

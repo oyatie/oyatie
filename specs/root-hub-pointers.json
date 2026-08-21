@@ -817,7 +817,7 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_community_network_retired": {
-      "current_path": "/oya/community/manifest.json",
+      "current_path": "/app/community/manifest.json",
       "current_path_status": "retired-prd-redirect-to-successor-manifest",
       "kind": "manifest",
       "migration_phase": "retired-by-wave-15k-network-into-community-merge",
@@ -825,13 +825,13 @@
         "previous_path": "legacy network JSON projection",
         "reason": "Wave 15K retires network as standalone product and redirects its professional content into community."
       },
-      "purpose": "Retired network PRD pointer. Professional profile, connections, InMail, endorsements, recommendations, jobs, recruiter, skill assessments, pages, and events are now community scope. The live successor authority is the accepted-topology oya/community manifest.",
+      "purpose": "Retired network PRD pointer. Professional profile, connections, InMail, endorsements, recommendations, jobs, recruiter, skill assessments, pages, and events are now community scope. The live successor authority is the accepted-topology app/community manifest.",
       "retired_on": "2026-05-21",
-      "successor_path": "/oya/community/manifest.json",
-      "target_path_after_md_retirement": "/oya/community/manifest.json until a community machine-readable PRD successor projection is authored"
+      "successor_path": "/app/community/manifest.json",
+      "target_path_after_md_retirement": "/app/community/manifest.json until a community machine-readable PRD successor projection is authored"
     },
     "prd_community_shorts_retired": {
-      "current_path": "/oya/community/manifest.json",
+      "current_path": "/app/community/manifest.json",
       "current_path_status": "retired-prd-redirect-to-successor-manifest",
       "kind": "manifest",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
@@ -839,17 +839,17 @@
         "previous_path": "retired specs/products communications/shorts JSON",
         "reason": "specs/products is retired in this checkout; live machine-readable surface is under specs/microservices."
       },
-      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is oya/community (homes oya-community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
+      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is app/community (homes oya-community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
       "retired_on": "2026-05-21",
       "retirement_correction_2026_05_21": {
         "previous_path": "/specs/microservices/shorts.json",
         "reason": "Wave 15O retires shorts as a standalone µservice and absorbs its short-form video capabilities into social per ADR-0334."
       },
-      "successor_path": "/oya/community/manifest.json",
-      "target_path_after_md_retirement": "/oya/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
+      "successor_path": "/app/community/manifest.json",
+      "target_path_after_md_retirement": "/app/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
       "successor_retarget_2026_08_06": {
         "previous_path": "/oya/social/manifest.json",
-        "reason": "Unregistered zero-crate oya/social scaffold deleted; social crates live under oya/community.",
+        "reason": "Unregistered zero-crate oya/social scaffold deleted; social crates live under app/community.",
         "prd_authority": "/specs/microservices/social.json"
       }
     },
@@ -939,14 +939,14 @@
       "target_path_after_md_retirement": "same"
     },
     "prd_network": {
-      "current_path": "/oya/community/manifest.json",
+      "current_path": "/app/community/manifest.json",
       "current_path_status": "retired-prd-redirect-to-successor-manifest",
       "kind": "manifest",
       "migration_phase": "retired-by-wave-15k-network-into-community-merge",
-      "purpose": "Retired network PRD pointer. LinkedIn-class jobs/profile/recruiter content is absorbed into community; LinkedIn-style engagement feed remains forbidden. The live successor authority is the accepted-topology oya/community manifest.",
+      "purpose": "Retired network PRD pointer. LinkedIn-class jobs/profile/recruiter content is absorbed into community; LinkedIn-style engagement feed remains forbidden. The live successor authority is the accepted-topology app/community manifest.",
       "retired_on": "2026-05-21",
-      "successor_path": "/oya/community/manifest.json",
-      "target_path_after_md_retirement": "/oya/community/manifest.json until a community machine-readable PRD successor projection is authored"
+      "successor_path": "/app/community/manifest.json",
+      "target_path_after_md_retirement": "/app/community/manifest.json until a community machine-readable PRD successor projection is authored"
     },
     "prd_ontology": {
       "current_path": "/specs/microservices/ontology.json",
@@ -998,17 +998,17 @@
       "target_path_after_md_retirement": "same (machine-readable from inception)"
     },
     "prd_shorts": {
-      "current_path": "/oya/community/manifest.json",
+      "current_path": "/app/community/manifest.json",
       "current_path_status": "retired-prd-redirect-to-successor-manifest",
       "kind": "manifest",
       "migration_phase": "retired-by-wave-15o-shorts-into-social-merge",
-      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is oya/community (homes oya-community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
+      "purpose": "Retired shorts PRD pointer. Short-form video is absorbed into community/social media flavor scope rather than a product-group wrapper. Live successor authority is app/community (homes oya-community-social-* crates); zero-crate oya/social residual deleted 2026-08-06 (reorg orphan scaffold batch1). PRD remains specs/microservices/social.json.",
       "retired_on": "2026-05-21",
-      "successor_path": "/oya/community/manifest.json",
-      "target_path_after_md_retirement": "/oya/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
+      "successor_path": "/app/community/manifest.json",
+      "target_path_after_md_retirement": "/app/community/manifest.json (short-video / social flavor; crates oya-community-social-*)",
       "successor_retarget_2026_08_06": {
         "previous_path": "/oya/social/manifest.json",
-        "reason": "Unregistered zero-crate oya/social scaffold deleted; social crates live under oya/community.",
+        "reason": "Unregistered zero-crate oya/social scaffold deleted; social crates live under app/community.",
         "prd_authority": "/specs/microservices/social.json"
       }
     },

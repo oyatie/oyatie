@@ -1451,6 +1451,7 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     let root = repo_root();
     let policy = policy();
     let expected_roots = BTreeSet::from([
+        "app/community".to_owned(),
         "audit".to_owned(),
         "billing".to_owned(),
         "cell".to_owned(),
@@ -1481,8 +1482,10 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     assert_eq!(
         policy["manifest_inventory"]["expected_total"], 76,
         "the governed corpus total is review-pinned: retiring the two cloud manifests moved it \
-         96 -> 94, retiring the 51 unreferenced oya product crates moved it 94 -> 77, and draining \
-         the leftover oya/calendar husk (app/ is not a governed root) moved it 77 -> 76"
+         96 -> 94, retiring the 51 unreferenced oya product crates moved it 94 -> 77, draining \
+         the leftover oya/calendar husk (app/ is not a governed root) moved it 77 -> 76, and \
+         admitting app/community as its own governed root keeps the community product in the \
+         corpus after the oya/community husk drain so the pin stays 76"
     );
     let retirement = policy["manifest_inventory"]["_comment"]
         .as_str()
@@ -1506,9 +1509,11 @@ fn retired_cloud_corpus_has_exact_accounting_and_cannot_revive_silently() {
     // retired corpus still fails here.
     // Retiring the 51 unreferenced oya product crates dropped 18 entries, all of them
     // product-tier: 95 -> 77 with substrate held at 54. Draining the leftover oya/calendar
-    // husk drops one more product entry (77 -> 76) without touching substrate. A retirement
-    // of product crates that moved the substrate count would mean the walk, not the
-    // retirement, changed — so the substrate pin stays exact and is the control on this shrink.
+    // husk drops one more product entry (77 -> 76) without touching substrate. Admitting
+    // app/community as a governed root after the oya/community husk drain keeps that
+    // product entry in the walk (still 76). A retirement of product crates that moved
+    // the substrate count would mean the walk, not the retirement, changed — so the
+    // substrate pin stays exact and is the control on this shrink.
     assert_eq!(projection["service_count"], 76);
     assert_eq!(projection["tier_distribution"]["substrate"], 54);
     assert!(

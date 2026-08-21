@@ -60,7 +60,7 @@ spec:
             namespace: oya-backbone-social
             imageRepository: oya-social
             imageDigest: "" # release automation injects ADR-0181 signed digest
-            primaryCargoPackage: oya-community-social-app
+            primaryCargoPackage: community-social-app
             tenantId: fd001-dogfood
             costCenter: fd001-backbone
             workloadClass: app
@@ -73,7 +73,7 @@ spec:
             namespace: oya-backbone-community
             imageRepository: oya-community
             imageDigest: "" # release automation injects ADR-0181 signed digest
-            primaryCargoPackage: oya-community-post-store-app
+            primaryCargoPackage: community-post-store-app
             tenantId: fd001-dogfood
             costCenter: fd001-backbone
             workloadClass: app

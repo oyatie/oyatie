@@ -22,8 +22,8 @@
     ],
     "crate_refs_planned": [
       "oya-community-social-kernel",
-      "oya-community-social-domain",
-      "oya-community-social-app",
+      "community-social-domain",
+      "community-social-app",
       "oya-community-social-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure and root Makefile/oya ops targets; no manual SSH troubleshooting path",
@@ -50,8 +50,8 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       },
       {
-        "crate": "oya-community-social-domain",
-        "crate_name": "oya-community-social-domain",
+        "crate": "community-social-domain",
+        "crate_name": "community-social-domain",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "social",
@@ -71,8 +71,8 @@
         "enforcement_status": "planning_contract_until_crate_scaffold"
       },
       {
-        "crate": "oya-community-social-app",
-        "crate_name": "oya-community-social-app",
+        "crate": "community-social-app",
+        "crate_name": "community-social-app",
         "bnf_parse": {
           "prefix": "oya",
           "bounded_context": "social",
@@ -163,48 +163,48 @@
       "given": "a user posts a photo in personal context",
       "when": "the post is written to storage and indexed",
       "then": "context_kind=personal and ownership_pillar=personal are immutable on the artifact; the post does not appear in any professional feed, search index, or Ontology work-graph",
-      "verification_command": "cargo nextest -p oya-community-social-domain -- test_personal_post_pillar_immutable",
-      "test_ref": "cargo nextest -p oya-community-social-domain -- test_personal_post_pillar_immutable"
+      "verification_command": "cargo nextest -p community-social-domain -- test_personal_post_pillar_immutable",
+      "test_ref": "cargo nextest -p community-social-domain -- test_personal_post_pillar_immutable"
     },
     {
       "id": "AC-SOCIAL-02",
       "given": "a user has both personal and work persona grants",
       "when": "they switch context in TenantContextSwitcher",
       "then": "the social feed, stories ring, close-friends list, and AR camera session are fully reconstructed from the new context; zero cross-context artifact references survive the switch",
-      "verification_command": "cargo nextest -p oya-community-social-domain -- test_context_switch_reconstructs_all_surfaces",
-      "test_ref": "cargo nextest -p oya-community-social-domain -- test_context_switch_reconstructs_all_surfaces"
+      "verification_command": "cargo nextest -p community-social-domain -- test_context_switch_reconstructs_all_surfaces",
+      "test_ref": "cargo nextest -p community-social-domain -- test_context_switch_reconstructs_all_surfaces"
     },
     {
       "id": "AC-SOCIAL-03",
       "given": "a story is created with ephemeral TTL",
       "when": "the TTL expires",
       "then": "the story artifact is purged from CDN, search index, and Ontology graph within 60 seconds; a tombstone audit event is emitted",
-      "verification_command": "cargo nextest -p oya-community-social-domain -- test_ephemeral_story_purge_within_ttl",
-      "test_ref": "cargo nextest -p oya-community-social-domain -- test_ephemeral_story_purge_within_ttl"
+      "verification_command": "cargo nextest -p community-social-domain -- test_ephemeral_story_purge_within_ttl",
+      "test_ref": "cargo nextest -p community-social-domain -- test_ephemeral_story_purge_within_ttl"
     },
     {
       "id": "AC-SOCIAL-04",
       "given": "a Workflow automation is configured to cross-post a professional story to the Workspace newsfeed",
       "when": "the story is published in work context",
       "then": "Workflow receives a SocialContentPublished event with explicit consent token; cross-post executes only within professional context; personal context is never consulted",
-      "verification_command": "cargo nextest -p oya-community-social-domain -- test_workflow_crosspost_requires_consent_and_stays_in_work_context",
-      "test_ref": "cargo nextest -p oya-community-social-domain -- test_workflow_crosspost_requires_consent_and_stays_in_work_context"
+      "verification_command": "cargo nextest -p community-social-domain -- test_workflow_crosspost_requires_consent_and_stays_in_work_context",
+      "test_ref": "cargo nextest -p community-social-domain -- test_workflow_crosspost_requires_consent_and_stays_in_work_context"
     },
     {
       "id": "AC-SOCIAL-05",
       "given": "an AR effect is applied to a photo",
       "when": "the photo is saved or shared",
       "then": "effect metadata is stored as a non-sensitive annotation; biometric data derived from face-detection is never persisted beyond the in-session rendering pipeline",
-      "verification_command": "cargo nextest -p oya-community-social-domain -- test_ar_no_biometric_persistence",
-      "test_ref": "cargo nextest -p oya-community-social-domain -- test_ar_no_biometric_persistence"
+      "verification_command": "cargo nextest -p community-social-domain -- test_ar_no_biometric_persistence",
+      "test_ref": "cargo nextest -p community-social-domain -- test_ar_no_biometric_persistence"
     },
     {
       "id": "AC-SOCIAL-06",
       "given": "a collaborative post is created between two users",
       "when": "both users are in personal context",
       "then": "the collaborative artifact is owned by personal pillar for both users; if either user's context is work, the collaboration requires explicit cross-user consent and is audit logged",
-      "verification_command": "cargo nextest -p oya-community-social-domain -- test_collab_post_ownership_and_consent",
-      "test_ref": "cargo nextest -p oya-community-social-domain -- test_collab_post_ownership_and_consent"
+      "verification_command": "cargo nextest -p community-social-domain -- test_collab_post_ownership_and_consent",
+      "test_ref": "cargo nextest -p community-social-domain -- test_collab_post_ownership_and_consent"
     }
   ],
   "scope": {
@@ -413,7 +413,7 @@
       "dimension": "story_purge_latency_s",
       "target": 60,
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "cargo nextest -p oya-community-social-domain -- test_ephemeral_story_purge_within_ttl",
+      "planned_verification_ref": "cargo nextest -p community-social-domain -- test_ephemeral_story_purge_within_ttl",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
@@ -434,13 +434,13 @@
       "dimension": "cross_pillar_denial_correctness_pct",
       "target": 100,
       "enforcement_status": "advisory_until_community_social_expansion_gates",
-      "planned_verification_ref": "cargo nextest -p oya-community-social-domain -- pillar",
+      "planned_verification_ref": "cargo nextest -p community-social-domain -- pillar",
       "claim_boundary": "Planning target only until the community expansion gates and crates land."
     },
     {
       "dimension": "availability_slo",
       "target": "99.95% monthly availability for feed/stories read surfaces; 99.9% for media write APIs",
-      "planned_verification_ref": "cargo nextest -p oya-community-social-domain -- slo",
+      "planned_verification_ref": "cargo nextest -p community-social-domain -- slo",
       "enforcement_status": "advisory_until_community_social_expansion_gates",
       "claim_boundary": "Planning target only; no availability monitor ships in PR #130."
     },
@@ -462,17 +462,17 @@
   "production_readiness_gates": [
     {
       "gate": "dual-context isolation",
-      "check": "cargo nextest -p oya-community-social-domain -- pillar",
+      "check": "cargo nextest -p community-social-domain -- pillar",
       "must_pass": true
     },
     {
       "gate": "ar-no-biometric-persistence",
-      "check": "cargo nextest -p oya-community-social-domain -- test_ar_no_biometric_persistence",
+      "check": "cargo nextest -p community-social-domain -- test_ar_no_biometric_persistence",
       "must_pass": true
     },
     {
       "gate": "story-ttl-purge",
-      "check": "cargo nextest -p oya-community-social-domain -- test_ephemeral_story_purge_within_ttl",
+      "check": "cargo nextest -p community-social-domain -- test_ephemeral_story_purge_within_ttl",
       "must_pass": true
     },
     {
@@ -661,7 +661,7 @@
         "stable": 100,
         "GA": 100
       },
-      "verification_ref": "cargo nextest -p oya-community-social-domain -- pillar",
+      "verification_ref": "cargo nextest -p community-social-domain -- pillar",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -681,7 +681,7 @@
         "stable": 60,
         "GA": 30
       },
-      "verification_ref": "cargo nextest -p oya-community-social-domain -- test_ephemeral_story_purge_within_ttl",
+      "verification_ref": "cargo nextest -p community-social-domain -- test_ephemeral_story_purge_within_ttl",
       "lane_ref": "cargo-nextest"
     }
   ],

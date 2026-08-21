@@ -2,7 +2,7 @@
 
 ## Objective
 
-Extend `oya-community-social-domain` with a pure, deterministic collaborative-consent
+Extend `community-social-domain` with a pure, deterministic collaborative-consent
 reconciliation/audit kernel. The kernel operates after `SocialPost` construction and
 answers the question: given a set of required owner refs and a set of granted consent refs,
 which owners are fully consented, which are missing consent, and which consents name
@@ -10,7 +10,7 @@ non-owners?
 
 ## Crate boundary
 
-`oya-community-social-domain` (`crates/oya-community-social-domain/src/lib.rs`).
+`community-social-domain` (`crates/community-social-domain/src/lib.rs`).
 No workspace changes, no new dependencies, no new crates.
 
 ## Mod layout (flat-clean-arch per ADR-0509)
@@ -80,7 +80,7 @@ Hermetic unit tests inside `src/lib.rs` `#[cfg(test)]` block. Minimum 7 tests:
 ## Observability / SLO
 
 Domain layer has no direct OTel instrumentation; spans/metrics are emitted by the
-use-case adapter layer (`oya-community-social-post-composition-usecase`). No OpenSLO
+use-case adapter layer (`community-social-post-composition-usecase`). No OpenSLO
 changes needed for this slice — the audit is a pure in-process computation with no
 network or storage I/O.
 

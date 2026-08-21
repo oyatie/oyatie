@@ -7,10 +7,10 @@ publish = false
 license = "Apache-2.0"
 
 [dev-dependencies]
-oya-community-post-store-adapter-postgres = { path = "../../../oya/community/crates/oya-community-post-store-adapter-postgres" }
-oya-community-post-store-api = { path = "../../../oya/community/crates/oya-community-post-store-api" }
-oya-community-post-store-domain = { path = "../../../oya/community/crates/oya-community-post-store-domain" }
-oya-community-post-store-usecase = { path = "../../../oya/community/crates/oya-community-post-store-usecase" }
+community-post-store-postgres = { path = "../../../app/community/adapters/post-store-postgres" }
+community-post-store-api = { path = "../../../app/community/ports/post-store-api" }
+community-post-store-domain = { path = "../../../app/community/core/post-store-domain" }
+community-post-store-usecase = { path = "../../../app/community/core/post-store-usecase" }
 comms-mail-mailbox-postgres = { path = "../../../comms/adapters/mail-mailbox-postgres" }
 comms-mail-mailbox-api = { path = "../../../comms/ports/mail-mailbox-api" }
 comms-mail-mailbox-usecase = { path = "../../../comms/core/mail-mailbox-usecase" }
@@ -22,9 +22,9 @@ oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres
 oya-shared-protocol-parity-kernel = { path = "../../../libs/oya-shared-protocol-parity-kernel" }
 oya-shared-transactional-outbox-adapter-sqlx = { path = "../../../libs/oya-shared-transactional-outbox-adapter-sqlx" }
 oya-shared-transactional-outbox-kernel = { path = "../../../libs/oya-shared-transactional-outbox-kernel" }
-oya-community-social-post-composition-adapter-postgres = { path = "../../../oya/community/crates/oya-community-social-post-composition-adapter-postgres" }
-oya-community-social-post-composition-api = { path = "../../../oya/community/crates/oya-community-social-post-composition-api" }
-oya-community-social-post-composition-usecase = { path = "../../../oya/community/crates/oya-community-social-post-composition-usecase" }
+community-social-post-composition-postgres = { path = "../../../app/community/adapters/social-post-composition-postgres" }
+community-social-post-composition-api = { path = "../../../app/community/ports/social-post-composition-api" }
+community-social-post-composition-usecase = { path = "../../../app/community/core/social-post-composition-usecase" }
 sqlx.workspace = true
 tokio.workspace = true
 
