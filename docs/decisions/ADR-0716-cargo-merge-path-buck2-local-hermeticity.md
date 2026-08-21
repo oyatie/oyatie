@@ -67,8 +67,8 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 
 1. **The Cargo workspace graph is the CI merge path.** The required workflow runs lint, test,
    and live-postgres, fanned in to the single protected `oya-ci-required` context. No
-   Windows/macOS job: production is Linux VMs (amd64 per-PR; arm64 is a nightly and
-   release-train gate, not a presubmit). No buck2 build/test verdict step (the face
+   Windows/macOS job: production is Linux VMs; presubmit nextest is native amd64
+   AND arm64 in parallel (interview D88 restored). No buck2 build/test verdict step (the face
    materializer keeps buck2 as an internal helper via the digest-pinned installer), no
    producer artifact handoff, no affected-set baselines, no daily-red canary.
 2. **buck2 remains a local hermeticity tool**, kept honest by a weekly non-blocking

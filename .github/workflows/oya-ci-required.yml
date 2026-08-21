@@ -72,6 +72,7 @@ jobs:
           persist-credentials: false
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
+          toolchain: "1.97.1"
           components: rustfmt
       - name: Check formatting
         run: cargo fmt --all --check
@@ -164,7 +165,7 @@ jobs:
         run: cargo nextest run --locked --workspace --profile ci
       # kernel/ is a nested workspace (ADR-0512 carve-out) the root workspace excludes.
       - name: Kernel workspace tests
-        run: cargo nextest run --locked --manifest-path kernel/Cargo.toml --profile ci
+        run: cargo nextest run --locked --manifest-path kernel/Cargo.toml --no-fail-fast
       # Live hub-exclusivity admission: rejects a second open PR touching a hub path
       # declared under specs/integ-branch-envelopes.json#hubs.paths.
       - name: Live hub-exclusivity admission
