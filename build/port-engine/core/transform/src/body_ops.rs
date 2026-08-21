@@ -186,6 +186,12 @@ pub(crate) fn returns_owned_sequence(
     if crate::failure::is_fallible(declaration, resolver.failure) {
         results.pop();
     }
+    // A RESULT THAT BORROWS ITS PARAMETER owns nothing. The signature already decided that, and
+    // reading its answer here is what keeps the two ends from disagreeing — the alternative is a
+    // `.to_vec()` in a body whose signature says `&[T]`, which is what this used to emit.
+    if crate::returns::borrows_from_parameter(declaration, resolver) {
+        return std::collections::BTreeSet::new();
+    }
     // Per POSITION, not one answer for the declaration. A function returning `([]byte, uint64)`
     // renders as a tuple, and only its first element is a sequence the target owns — asking once for
     // the whole signature answered "no" and left a borrow in a tuple whose type said otherwise.
