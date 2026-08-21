@@ -7666,3 +7666,53 @@ purest form, and it is mechanism rather than policy.
 Recorded as a correction rather than quietly re-ordered: the recommendation was made three times and
 was wrong, and the reason it was wrong is that it was never measured against the bodies that would
 have to use the reshaped struct.
+
+## R5f — a forward is a forward whatever else the callee answers with
+
+R4v recognised `return f(x)` as a forward only where the callee answered with the failure ALONE.
+`uuid` writes it the other way round more often:
+
+    func NewDCEPerson() (UUID, error) {
+        return NewDCESecurity(Person, uint32(os.Getuid()))
+    }
+
+One operand standing for TWO results. The engine asked whether the callee's result tuple was exactly
+one failure, found two, and fell through to demanding a proof that the operand was "certainly a
+failure" — of a call that was never claiming to be one.
+
+The last result is what matters and the rest come along. Arity needs no checking: a source that
+expanded a call into a different number of results would not compile, so the shapes agree by
+construction and the call IS this return.
+
+Cause 20 -> 15 declarations across eight packages. Coverage unmoved, for the reason it has been
+unmoved six times now — the callees these forward to refuse, so the caller refuses again as cascade.
+Cascade is 277 declarations across all thirteen packages and is the whole remaining shape of the
+problem.
+
+## R5g — the mutex and `defer` are one build, not two
+
+R5e corrected the recommendation from the mutex to `defer`. Measured, that correction was also only
+half right, and the two are MUTUALLY DEPENDENT:
+
+    memberlist   24 `defer func`, 9 `defer intv.Unlock`, 9 `defer e.mu.Unlock`
+    gocache      2 `defer c.mu.RUnlock`, 1 `defer c.mu.Unlock`
+    multierror   1 `defer g.mutex.Unlock`, 1 `defer g.wg.Done`
+
+A `defer` releasing a lock needs a lock to release — the mutex's target form — and the mutex reshape
+needs `defer` because that is how every one of these methods unlocks. Neither is a gateway to the
+other; they are one unit of work, and building either alone emits something whose counterpart still
+refuses.
+
+What that unit would reach, and what it would not:
+
+    Keyring, TransmitLimitedQueue, awareness, gocache::cache   one mutex each -- reachable
+    memberlist::Memberlist                                     SEVEN mutexes over 33 fields -- not
+
+The rest of `defer` — 44 deferred CLOSURES — needs the closure-ownership question and Go's defer
+semantics on the panic path, which is a third thing again.
+
+STATED PLAINLY: phase 3 as specified — `memberlist` as a working binary with goroutines, channels
+and `select` — needs the mutex reshape including a seven-way field partition, `defer` with its panic
+path, `WaitGroup`, the closure-ownership rule for spawned literals, a channel decision, `select`, and
+timers. That is a body of work measured in weeks, not in rules. The engine's refusals name every
+piece of it by now, which is what they are for.

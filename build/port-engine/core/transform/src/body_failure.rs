@@ -360,9 +360,11 @@ fn forwards_the_same_failure<'a>(
         return None;
     }
     let produced = callee.type_ref.args.get(1)?;
-    let [answered] = produced.args.as_slice() else {
-        return None;
-    };
+    // The callee's LAST result is the failure, whatever else it answers with. One operand standing
+    // for several results is the source's expanding call — `return NewDCESecurity(..)` from a
+    // function returning `(UUID, error)` — and the arity matches by construction, because the source
+    // would not compile otherwise. So the shapes agree exactly and the call IS this return.
+    let answered = produced.args.last()?;
     crate::failure::is_failure_type(answered, cx.resolver.failure).then_some(operand)
 }
 
