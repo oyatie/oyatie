@@ -11,12 +11,6 @@ community-post-store-postgres = { path = "../../../app/community/adapters/post-s
 community-post-store-api = { path = "../../../app/community/ports/post-store-api" }
 community-post-store-domain = { path = "../../../app/community/core/post-store-domain" }
 community-post-store-usecase = { path = "../../../app/community/core/post-store-usecase" }
-comms-mail-mailbox-postgres = { path = "../../../comms/adapters/mail-mailbox-postgres" }
-comms-mail-mailbox-api = { path = "../../../comms/ports/mail-mailbox-api" }
-comms-mail-mailbox-usecase = { path = "../../../comms/core/mail-mailbox-usecase" }
-comms-messenger-stream-postgres = { path = "../../../comms/adapters/messenger-stream-postgres" }
-comms-messenger-stream-api = { path = "../../../comms/ports/messenger-stream-api" }
-comms-messenger-stream-usecase = { path = "../../../comms/core/messenger-stream-usecase" }
 oya-shared-postgres-command-adapter-sqlx = { path = "../../../libs/oya-shared-postgres-command-adapter-sqlx" }
 oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres-command-kernel" }
 oya-shared-protocol-parity-kernel = { path = "../../../libs/oya-shared-protocol-parity-kernel" }

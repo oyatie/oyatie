@@ -176,7 +176,8 @@
       ".omx/",
       "buck-out/",
       "target/",
-      "third-party/"
+      "third-party/",
+      ".github/scripts/"
     ],
     "interpreter_command_authority": {
       "_comment": "G006 inventory-first guard: Rust automation/gate source must not re-authorize retired Python/Node/MJS authority by spawning interpreter commands directly. The dead cloud/cloud-ci root is retained to avoid scan-scope-narrowing findings; retire it in a change whose subject is the shrink.",
@@ -227,7 +228,6 @@
       "billing",
       "cell",
       "ci",
-      "comms",
       "compliance",
       "compute",
       "data",
@@ -246,8 +246,7 @@
       "observability",
       "secrets",
       "storage",
-      "tenancy",
-      "workflow"
+      "tenancy"
     ],
     "workflow_forbidden_uses": {
       "_comment": "Forbid third-party / marketplace buck2 setup actions. The allowed bridge is repo-owned infra/ci/install-buck2.sh, which downloads the official facebook/buck2 release asset and verifies the pinned SHA-256 before execution.",

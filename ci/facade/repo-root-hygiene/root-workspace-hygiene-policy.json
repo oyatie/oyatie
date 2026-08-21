@@ -136,7 +136,6 @@
     "cell",
     "ci",
     "cloud",
-    "comms",
     "compliance",
     "compute",
     "contracts",
@@ -172,8 +171,7 @@
     "tenancy",
     "third-party",
     "toolchains",
-    "tools",
-    "workflow"
+    "tools"
   ],
   "restricted_tracked_roots": [],
   "allowed_tracked_paths": [],

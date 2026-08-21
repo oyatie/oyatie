@@ -8,7 +8,6 @@ license = "Apache-2.0"
 
 [dependencies]
 oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
-comms-meet-domain = { path = "../../../comms/core/meet-domain" }
 
 [lib]
 name = "storage_recordings_domain"

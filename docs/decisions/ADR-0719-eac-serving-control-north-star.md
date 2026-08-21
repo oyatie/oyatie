@@ -64,6 +64,10 @@ deliverables:
     description: "Presubmit is cargo fmt/clippy/test plus a short closed set of admission engines. Census gates, Helm/OpenAPI/OpenSLO parity, docs-coverage, frozen counts, min_expected_*, and expected_total pins are deleted, not trimmed."
     exit_criteria: "ci/facade and governance/check contain only the D-17 keep set; cedar-deploy-parity and scan-root-liveness are gone; no new gate is a path/count freeze."
     verified_by: "presubmit"
+  - id: ADR-0719-D18
+    description: "pipeline/ is TAP+Cloud Build; GHA disjoint; workflow/ and comms/ purged; rewrite workflow and notify; messaging→bus; .github/scripts any-language glue."
+    exit_criteria: "ADR tables use pipeline/, bus/, notify/; workflow/ and comms/ trees absent; rust-first exclude_prefixes includes .github/scripts/; GHA YAML is not a face of pipeline/."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -466,15 +470,15 @@ calls `policy/` in-process; it does not embed a second PDP.
 | GKE / EKS control plane (sold) | **k8s** | core: owned apiserver. Facade: managed cluster. Store: cluster objects only (D-2). |
 | VPC / DNS / mesh | **network** | core: mesh, signed DNS snapshots, cell dataplane. |
 | Front door / GFE / API Gateway | **gateway** | core: the **one** public door (D-3/D-4). Rate/quota. Transcode is not a second API. |
-| Pub/Sub / Pulsar | **messaging** | core: bus, idempotency, outbox. Schema with the bus, not `specs/proto/`. |
+| Pub/Sub / Service Bus | **bus** (today’s dir `messaging/` until git mv) | core: bus, outbox, per-key order. Not `comms`. |
 | SageMaker / internal AI | **intelligence** | core: model/agent substrate. AI Act registry is pack + this cap, not `capabilities/*.yaml` essays. |
 | Step Functions / Composer | **workflow** | core: engine. Studio is facade. Business sagas, **not** deploy orchestrator (D-1). |
-| CodeBuild / TAP / merge queue | **ci** | core: presubmit engines, controller, queue. Delivery fabric as product (ADR-0548). Gate **policy next to the gate**, not `specs/`. |
+| Cloud Build / TAP / CodePipeline | **pipeline** (today’s dir `ci/` until git mv) | core: graph-aware execution, queue, controller. GitHub is an **adapter**, not the product. |
 | CloudFormation / Config reconciler | **iac** | core: IR unifier + reconcilers. `<cap>/iac/` is **this** cap’s desired state; `iac/` the cap owns the **engine**. |
 | Billing / Cost Explorer | **billing** | core: meter, rate, invoice, tax, FinOps. Sold-ness, not a drawer. |
 | Marketplace | **marketplace** | core: plugins, signed modules, SKU **engine**. Generated sell-catalog view is `build/`. |
 | Artifact / evidence packs | **compliance** | core: pack evidence, data-class registry. Consumes **audit**. Not the Merkle log. |
-| SES / Chat / Meet | **comms** | core: mail, messenger, meet, notify, contact-center **engines**. End-user “Workspace” product → `app/` when it wires 2+. |
+| SES / SNS / FCM (send) | **notify** | core: transactional email/SMS/push **send**. Not Gmail/Meet/Slack. |
 | AppConfig / Feature flags | **flags** | core: flags, kill switches. Pack-gated overrides. |
 
 **Meta (not sold as a tenant API, still in-repo):** `kernel/` rung 0; `os/` node OS; `base/` (≥3 caps, below all); `build/` toolchains/images; `third-party/` vendored; `governance/` registry + check crates (off the runtime ladder).
@@ -502,15 +506,15 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
 | **network** | VPC/DNS/mesh dataplane. | Public API door (`gateway`). Direct Connect/CDN = facade when sold. | Census. |
 | **gateway** | **One** public door, quota, proto/H3. | Mesh (`network`). Second REST API. | REST dual-stack; connector leftover if it’s a second door. |
-| **messaging** | Bus, outbox, ordering. | Workflow sagas (`workflow`). Kafka-as-source. | Kafka in IaC; `specs/proto` event novels. |
+| **bus** | Outbox, order, pub/sub, queues. | Sagas (`workflow`). Human notify (`comms`). Kafka-as-source. | git mv `messaging/` later. |
 | **intelligence** | Model/agent substrate. | Console. Workflow studio. AI Act essays as cap-root YAML. | `capabilities/*.yaml`; detection is a **facade** of this cap if sold. |
-| **workflow** | Saga **engine** + studio facade. | Deploy/GitOps (`iac`/`ci`). | Template-stamped graphs. |
-| **ci** | **presubmit** engines, controller, merge queue. | 60 census gates on `specs/`. Per-cap GitHub required checks. | Those gates **delete** with the specs. |
+| **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
+| **pipeline** | TAP + Cloud Build engines, queue, controller. | This repo’s `.github/` GHA. Census gates. | GHA stays disjoint; census already D-17. git mv `ci/` → `pipeline/` later. |
 | **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
 | **billing** | Meter, rate, invoice, tax, FinOps. | Ledger books (`ledger/`). Payments rails (`payments/`). | Nested accounting/tax leftover dirs. |
 | **marketplace** | Plugins, signed modules, SKU **engine**. | Generated sell-catalog (**`build/` view**). | Dev-cli as merge authority. |
 | **compliance** | Pack evidence, data-class registry. | Merkle log (`audit`). Cloned `dpia.md`. | Those clones. |
-| **comms** | Mail/meet/messenger/notify **engines**. | Slack-superset **app** (2+ caps). Emergency clinical product. | Nested `mail/`/`meet/` leftover trees → faces or rm. |
+| **notify** | Transactional send (SES/SNS/FCM). | Email/SMS/push **send API**. | Mailbox/Meet/Messenger/contact-center (`app/` later). Current `comms/` dump **purged**. |
 | **flags** | Flags, kill switches. | Census `catalog.yaml` / IPs. | Cap-root junk. |
 | **governance/** | Registry + check **crates** (off ladder). | Org JSON `specs/` corpus. | Specs catch-all. |
 | **build/** | Toolchains, images, **port-engine**, SKU **view**. | Capability engines. | — |
@@ -539,21 +543,21 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
 | **network** | Connect inside the cloud. | VPC, DNS snapshots, mesh dataplane. | Public API door (`gateway`). CDN/Interconnect until sold as facades. |
 | **gateway** | **One** north-south door. | Proto/H3 edge, authn terminate, quota, Cedar on the call. | Mesh (`network`). Second connector door. Tenant SaaS APIs implemented here. |
-| **messaging** | Move **events**. | Bus, outbox, idempotency, per-key order. | Saga engine (`workflow`). Kafka-as-source. App notification UX. |
-| **workflow** | Managed **sagas** (Step Functions / Workflows). | State machine, retries, timers, execution API; studio as **authoring facade for this engine**. | Deploy/CD (`ci`/`iac`). Owning the bus (`messaging`). HR/payroll graphs as a **product**. `saas-*` product kernels. |
+| **bus** | Move **events** (Pub/Sub / Service Bus). | Outbox, idempotency, per-key order, queues, streams. | Sagas (`workflow`). Mail/chat (`comms`). Kafka-as-source. |
+| **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **model/agent** substrate. | Inference/agent runtime, adapters to models, platform proof layer. | Console. Workflow studio. Vertical AI products. Cap-root autonomy YAML essays. |
 | **flags** | Dynamic config and kill switches. | Flag eval, targeting, kill switch. | App feature roadmaps. Census catalogs. |
-| **ci** | **Presubmit** delivery fabric (TAP). | Graph-aware presubmit, postsubmit, queue, controller. | Census/`specs/` gates. Per-cap required GitHub checks. CD desired-state (`iac`). |
-| **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`ci`). Business sagas (`workflow`). Helm/Tofu as source. |
+| **pipeline** | Sold TAP + Cloud Build. | Graph-aware execute, queue, controller, SCM **adapter**. Tenant graphs. | `.github/` GHA. Census gates. Desired-state apply (`iac`). |
+| **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, permission envelope, SKU **engine**. | Generated price list (**`build/` view**). The apps themselves. |
 | **compliance** | Evidence **engine** for the platform. | Load packs, data-class registry, evidence export. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA files. |
-| **comms** | **Platform** notify/email/voice/video **infrastructure** (SES/Chime analog). | Send/receive engines, fanout, media **infra**. | Slack/Meet **products**. Nested leftover µservice trees. Emergency clinical app. |
+| **notify** | Transactional **send** (SES / SNS / FCM). | Send email/SMS/push; DKIM/SPF as this engine. | Inbox/Meet/Messenger/calendar/contact-center (apps later). Emergency clinical. Current `comms/` tree (purged). |
 | **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | Cedar+ontology+constraints per region. | Copied into each cap. EU as world floor. |
 
 **Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS), **`console/`** (D-16 — discarded pilot, not a shell engine). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
 
-**Dogfood.** First-party `app/<product>/` is a **tenant of this cloud** (Oyatie as tenant #0). It calls the **same** gateway, iam, policy Check, cells, storage, data, messaging, workflow, billing meters, and packs as any customer. No private Helm tree, no in-process PDP that customers cannot call, no `iam/**` shortcut around `policy/`, no cap `core/` that exists only for our SaaS.
+**Dogfood.** First-party `app/<product>/` is a **tenant of this cloud** (Oyatie as tenant #0). It calls the **same** gateway, iam, policy Check, cells, storage, data, bus, workflow, billing meters, and packs as any customer. No private Helm tree, no in-process PDP that customers cannot call, no `iam/**` shortcut around `policy/`, no cap `core/` that exists only for our SaaS.
 
 **MUST (cloud vs SaaS)**
 
@@ -648,6 +652,62 @@ coverage, `authz-tier-discipline` frozen leak **counts**, `event-schema-versioni
 - **overturn_when:** a five-field ADR adds one engine that evaluates IR/Cedar/cargo
   graph without a frozen corpus.
 
+### D-18 — `pipeline/` product vs GHA operator; purge `workflow/`; `.github/scripts` glue
+
+**Product.** Analog: Google **TAP** (internal graph-aware execute) + **Cloud Build**
+(sold). Destination slug is **`pipeline/`** (rename from `ci/` — git mv later, not
+this change). Core: execute a graph, queue, controller. GitHub is an **adapter**,
+not the engine. Tenant pipelines (including first-party apps as tenant #0) run
+**here**. D-17 crates still under `ci/facade/` are **operator admission**, not
+`pipeline/` core — they move to `governance/` or die with GHA; they do not become
+the TAP product.
+
+**Operator GHA.** `.github/workflows` is a **temporary** merge path for *this*
+monorepo. Completely **disjoint** from `pipeline/`: no YAML copied into cap
+`core/`; no claim that GHA **is** Cloud Build. Cutover is when `pipeline/` can
+run this repo’s nextest graph; until then GHA stays.
+
+**Glue languages.** Rust-first still owns `scripts/`, `tools/`, `infra/`, and every
+capability. **Exception:** self-contained files under **`.github/scripts/`** may be
+shell, JS/MJS, Python, **Go, or any other language**. That keeps GHA glue out of
+the product tree.
+
+Self-contained means: no repo-root `go.mod` / `package.json` / `requirements.txt`;
+if a module file exists it lives **only** under `.github/scripts/`; not a Cargo
+workspace member; no shared crate with a capability; no `npm install` / `pip install`
+/ `go get` on the presubmit path (pin a binary or a file in that directory). The
+exception **dies with GHA**. It is not a license to grow `scripts/` or `tools/`.
+
+**`bus/`.** `messaging/` collides with human chat. Destination slug is **`bus/`**.
+git mv later.
+
+**`notify/` not `comms/`.** `comms/core` is mailbox, Meet, messenger, calendar,
+address book — Workspace/Slack, not a cloud send API. Those are **later `app/`**
+products (dogfood tenant #0). The cloud primitive is transactional **send**
+(SES/SNS/FCM): destination slug **`notify/`**. **Purge** `comms/`. Do not
+strangler mail/meet/messenger into `app/` from this dump. Rewrite `notify/` from
+the send charter.
+
+**`workflow/`.** Current tree is n8n/SaaS/bus/forms/tasks, not Step Functions.
+**Purge** (`git rm -r workflow/`). Keep the **registry row** as the rewrite
+destination. No empty scaffold. Do **not** strangler event-bus crates into
+`bus/` from this junk — `messaging/` (→ `bus/`) already has kernels. Rewrite the
+saga engine from the D-15 charter (proto/H3, studio as facade). Forms/tasks wait
+for the apps discussion.
+
+**MUST (GHA ≠ pipeline product)**
+
+- **achieves:** sold TAP/Cloud Build cannot be this repo’s Actions YAML.
+- **origin:** `ci/` mixed census gates, GHA glue, and the delivery-fabric product.
+- **rule:** product slug is `pipeline/`; `.github/` is temporary operator merge,
+  disjoint; rust-first does not scan `.github/scripts/`; `workflow/` implementation
+  is gone pending rewrite.
+- **ensure:** no new GHA glue outside `.github/scripts/` and workflow YAML; no
+  `workflow/` dump resurrection; git mv `ci/` → `pipeline/` does not carry D-17
+  gates into product `core/`.
+- **overturn_when:** `pipeline/` runs this repo and GHA is deleted same-wave, or a
+  five-field ADR names a different sold slug.
+
 ## Rejected alternatives
 
 - AWS EKS etcd journal as our store.
@@ -681,6 +741,15 @@ coverage, `authz-tier-discipline` frozen leak **counts**, `event-schema-versioni
 - **mold** on GitHub presubmit. Rust 1.90+ already uses bundled `rust-lld` on
   `x86_64-unknown-linux-gnu`; CI already has debuginfo off. Mold is a local Linux
   optional, not a merge-path pin.
+- Treating `.github/workflows` as the `pipeline/` product, or copying GHA YAML
+  into a capability `core/`.
+- Strangler-moving `workflow/` event-bus/saas/forms into `bus/` or `app/`
+  instead of purge+rewrite.
+- Keeping the slug `messaging/` (collides with `comms`).
+- Allowing shell/Python/Go under `scripts/` or `tools/` because `.github/scripts`
+  is allowed. The exception is prefix-exact.
+- Keeping `comms/` as a cloud cap (mailbox/Meet/messenger/calendar). Those are
+  apps. Cloud send is `notify/`.
 
 ## Appendix — considerations (not implement authority)
 

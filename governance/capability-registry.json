@@ -310,14 +310,15 @@
       "substrate_dag_position": {
         "stratum": "S0"
       },
-      "charter": "Event bus / messaging substrate (Pulsar/Oxia transient -> owned Rust destination): idempotency, outbox, backpressure, per-key ordering.",
+      "charter": "Event/service bus (Pub/Sub + queues + outbox). Destination slug bus/ (git mv from messaging/ later). Not comms (mail/chat).",
       "seed_domains": [
         "messaging"
       ],
       "absorbs_current_dirs": [
         "messaging"
       ],
-      "dag_node": "messaging"
+      "dag_node": "messaging",
+      "boundary_note": "ADR-0719 D-18: sold name is bus/, not messaging/ (collides with comms). Directory git mv later."
     },
     {
       "name": "intelligence",
@@ -341,18 +342,13 @@
       "substrate_dag_position": {
         "stratum": "S4"
       },
-      "charter": "Orchestration substrate: workflow engine + studio. Cross-capability composition via events.",
+      "charter": "Managed sagas (Step Functions / Cloud Workflows). Implementation purged ADR-0719 D-18; rewrite from proto/H3. Not the event bus (messaging). Not forms/tasks/SaaS.",
       "seed_domains": [
         "control plane"
       ],
-      "absorbs_current_dirs": [
-        "workflow",
-        "workflow/workflow-engine",
-        "workflow/workflow-studio",
-        "workflow/tasks",
-        "workflow/forms"
-      ],
-      "dag_node": "workflow-engine"
+      "absorbs_current_dirs": [],
+      "dag_node": "workflow-engine",
+      "boundary_note": "ADR-0719 D-18: git rm of the n8n/SaaS/bus dump. Registry row kept as rewrite destination. No empty workflow/ scaffold."
     },
     {
       "name": "ci",
@@ -360,7 +356,7 @@
       "substrate_dag_position": {
         "stratum": "S5"
       },
-      "charter": "The delivery fabric: cloud-ci gates, controller, Tide merge queue, webhook gateway, the pipeline-as-product paved road. ADR-0515/0548.",
+      "charter": "Sold TAP + Cloud Build (destination slug pipeline/, git mv from ci/ later). Graph-aware execute, queue, controller. GitHub Actions is a disjoint temporary operator merge path (ADR-0719 D-18), not this product.",
       "seed_domains": [
         "delivery fabric"
       ],
@@ -431,26 +427,18 @@
       "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): compliance (regulatory-evidence engine) and audit (always-on tamper-evident log substrate) stay SEPARATE across their clean port seam; compliance consumes audit. A collapse would need its own ADR amendment (ADR-0562 §7). NOTE (ADR-0615 §2 Q13): oya/governance does NOT belong in this absorb — it is 0-crate enforcement/policy residue that decomposes to governance/ (authority) + ci/gateway/cell (SLOs) + iac/ in the compliance/governance Batch-5 move-plan; this absorb entry is retained until that atomic move to avoid orphaning."
     },
     {
-      "name": "comms",
+      "name": "notify",
       "tier": "substrate",
       "substrate_dag_position": {
         "stratum": "S2"
       },
-      "charter": "Communications substrate: email/mail, messenger, meet, notifications, contact-center. Multi-channel comms plane.",
+      "charter": "Transactional send (SES/SNS/FCM analog): email/SMS/push. Not mailbox, Meet, messenger, or contact-center (those are later app/). ADR-0719 D-18: comms/ dump purged; rewrite notify/.",
       "seed_domains": [
         "control plane"
       ],
-      "absorbs_current_dirs": [
-        "comms",
-        "comms/comms-email",
-        "comms/mail",
-        "comms/messenger",
-        "comms/meet",
-        "comms/contact-center",
-        "comms/emergency"
-      ],
-      "dag_node": "comms",
-      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): comms is the multi-channel comms SUBSTRATE (messenger-stream, mail-mailbox, meet-media, notifications, contact-center engines + their sold API facades) — confirmed as-landed. A future end-user collaboration product wiring comms+iam+storage+billing is app/; none exists today. oya/emergency (ED clinical) awaits a later flat-product judgment, not a comms or app/healthcare context; it remains in this absorb until the comms Batch-5 move-plan can rehome it atomically."
+      "absorbs_current_dirs": [],
+      "dag_node": "notify",
+      "boundary_note": "ADR-0719 D-18: ADR-0615 'comms substrate' is scoped-superseded. Collaboration products are apps. Cloud primitive is send-only. No empty comms/ scaffold."
     },
     {
       "name": "flags",
