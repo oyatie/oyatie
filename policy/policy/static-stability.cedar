@@ -2,37 +2,60 @@
 // Capability: policy (ADR-0615 §5, 24th registered capability)
 // Binding ADRs: ADR-0280 §D-13.E (static-stability invariant)
 // Fragment soak window: >= 60s per ADR-0294
-// Fragment version: 1.0.0
-// Reviewed: 2026-08-20
+// Fragment version: 2.0.0
+// Reviewed: 2026-08-20 (adversarial review; v1.0.0 findings S1-S6 closed)
 //
-// The invariant, verbatim: "a stale snapshot must DENY or route to the authoritative shard — never
-// silently authorize." These forbids are the DENY half expressed as policy. The route-to-
-// authoritative half is a runtime concern and is specified in policy/CONTRACT.md, because Cedar
-// answers allow/deny and cannot express "ask someone else".
+// The invariant: "a stale snapshot must DENY or route to the authoritative shard — never silently
+// authorize." These forbids are the DENY half. The route half is a runtime concern specified in
+// policy/CONTRACT.md, because Cedar answers allow/deny and cannot express "ask someone else".
+//
+// 300s is the ABSOLUTE ceiling. v1.0.0 let the caller declare `max_staleness_seconds` with no cap,
+// so a PEP passing i64::MAX evaluated a 30-day-old non-authoritative snapshot to Allow. A bound the
+// constrained party chooses is not a bound.
 
-// F2 — a read served from a snapshot that is both stale beyond its bound AND not the authoritative
-// copy is refused. Non-authoritative + fresh is fine; authoritative + stale is fine (it IS the
-// truth). Only the conjunction is unsafe.
+// F2 — a tuple read served from a snapshot that is both stale past the ceiling AND not the
+// authoritative copy is refused. Non-authoritative + fresh is fine; authoritative + stale is fine
+// (it IS the truth). Only the conjunction is unsafe.
+//
+// This reads the snapshot through `resource.served_from`. v1.0.0 asked the CALLER for
+// `context.snapshot_age_seconds`, i.e. it asked the party being constrained to report the fact that
+// constrains it — a request could always claim age 0.
 forbid (
   principal,
   action == OyaPolicy::Action::"ReadRebacTuple",
   resource
 )
 when {
-  context.snapshot_age_seconds > 300 && !context.snapshot_is_authoritative
+  resource.served_from.age_seconds > 300 && !resource.served_from.is_authoritative
 };
 
-// F3 — evaluating against a snapshot older than the caller's declared tolerance is refused. The
-// caller states the bound; the plane enforces it. A PEP that needs strong freshness sets it low.
+// F3 — evaluating a snapshot older than the caller's declared tolerance is refused. The caller may
+// only tighten below the ceiling, never loosen past it; F3b is what makes that true.
 forbid (
   principal,
   action == OyaPolicy::Action::"EvaluateAgainstSnapshot",
   resource
 )
-when { resource.age_seconds > context.max_staleness_seconds };
+unless {
+  context has max_staleness_seconds &&
+  resource.age_seconds <= context.max_staleness_seconds
+};
 
-// F4 — an unverified snapshot never serves and never propagates. Signature verification precedes
-// use, mirroring the load order in iam/adapters/cloud-pdp-bundle-file: verify, THEN parse.
+// F3b — the absolute ceiling, independent of anything the caller asserts. Also covers distribution:
+// v1.0.0 gated distribution on signature only, so an ancient non-authoritative snapshot propagated
+// fleet-wide.
+forbid (
+  principal,
+  action in [
+    OyaPolicy::Action::"EvaluateAgainstSnapshot",
+    OyaPolicy::Action::"DistributeSnapshot"
+  ],
+  resource
+)
+when { resource.age_seconds > 300 && !resource.is_authoritative };
+
+// F4 — an unverified snapshot never serves and never propagates. Verification precedes use,
+// mirroring the load order in iam/adapters/cloud-pdp-bundle-file: verify, THEN parse.
 forbid (
   principal,
   action in [
@@ -42,3 +65,11 @@ forbid (
   resource
 )
 unless { resource.signature_verified };
+
+// F4b — the same rule on the tuple read path, which reaches its snapshot indirectly.
+forbid (
+  principal,
+  action == OyaPolicy::Action::"ReadRebacTuple",
+  resource
+)
+unless { resource.served_from.signature_verified };

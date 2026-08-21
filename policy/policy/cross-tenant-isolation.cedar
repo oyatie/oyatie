@@ -2,23 +2,23 @@
 // Capability: policy (ADR-0615 §5, 24th registered capability)
 // Binding ADRs: ADR-0280 §D-13.D, ADR-0615 §5
 // Fragment soak window: >= 60s per ADR-0294
-// Fragment version: 1.0.0
-// Reviewed: 2026-08-20
+// Fragment version: 2.0.0
+// Reviewed: 2026-08-20 (adversarial review; v1.0.0 findings S1-S6 closed)
 //
-// F-CROSS-TENANT. Defence in depth: every permit in this bundle already binds the tenant, and this
-// forbid makes a permit that FORGETS to bind it non-exploitable. Applies to every action and every
-// resource type in the namespace — all six resource entities carry `tenant_id` by schema.
-//
-// Note on shape: this file deliberately does NOT open with a bare
-// `forbid (principal, action, resource);`. Cedar is default-deny by construction, so a bare forbid
-// adds no denial — but because forbid unconditionally overrides permit, in the CONSOLIDATED bundle
-// (cedar/policies.cedar) it would nullify every permit in every other fragment. See
-// policy/cedar/README.md for the executable demonstration.
-
 // F1 — a principal may never act on another tenant's authorization state.
+//
+// This is MEMBERSHIP (`principal in resource.owner_tenant`), not a string comparison. v1.0.0 wrote
+// `principal.tenant_id != resource.tenant_id`, which an adversarial review defeated in one step: a
+// principal whose entity parent was tenant A but whose `tenant_id` attribute said B was authorized
+// against B, and this forbid — reading the same caller-supplied field as the permit it backstops —
+// did not fire. A backstop derived from the same untrusted input as the thing it guards is not a
+// backstop. `owner_tenant` is an entity reference and membership is structural.
+//
+// Note it is `unless`, not `when`: a request whose principal is in NO tenant is forbidden, rather
+// than slipping through a `!=` that never becomes true.
 forbid (
   principal,
   action,
   resource
 )
-when { principal.tenant_id != resource.tenant_id };
+unless { principal in resource.owner_tenant };
