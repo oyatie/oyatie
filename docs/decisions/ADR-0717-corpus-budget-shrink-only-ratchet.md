@@ -75,25 +75,15 @@ members is a same-wave engine change under this ADR, not a newly numbered decisi
 
 Cite: #2100, #2101, #2102, #2103 → #2104.
 
-## Amendment (2026-08-21): frozen integer ceilings retired
-
-Founder challenge: every PR editing a count is an antipattern; git is the audit log.
-Hand-maintained `corpus_budget.counts` / `reviewed_raises` are observation, not policy.
-Decisions 3–5 (numeric ceilings, absence-fails-closed on the count block, reduction-must-lower-N)
-are OVERRULED. The 2026-08-17 note already named the failure mode.
-
-Replacement: do not freeze path counts in JSON. Re-introducing `corpus_budget` is born-blocking
-so the census cannot sneak back. Root-file / root-dir allowlist (ADR-0600) stays — that is a
-default-deny rule, not a census. Shrink-only remains operator intent, enforced by review of
-path-set diffs vs merge-base, not by a number in DATA.
-
 ## Rules carry why
 
-- **achieves:** no hand-maintained observation JSON that every PR must bump.
-- **origin:** count pins collided under concurrent PRs (#2100–#2104); later PRs spent more
-  lines editing ceilings than doing the change.
-- **rule:** do not freeze corpus integer ceilings in policy DATA. Git history is the audit log.
-  Re-adding `corpus_budget` fails closed. ADR-0600 root allowlist remains.
-- **ensure:** repo-root-hygiene unit tests: absence of `corpus_budget` is green; presence is RED.
-- **overturn_when:** a recorded challenge shows merge-base path-set review is insufficient AND a
-  replacement with five fields lands same-wave (not a return of frozen N).
+- **achieves:** permanent shrink-only corpus; enforcement by engine, not prose.
+- **origin:** wave-2 cleanup had no backstop; one-ledger and plan-lifecycle rules were advisory.
+  The #2100–#2103 → #2104 train showed a count pin (770 vs corpus 772) cannot identify which
+  row appeared under concurrent isolated-green PRs.
+- **rule:** corpus classes and ceilings are policy DATA; growth is born-blocking; absent block
+  fails closed; reductions must lower the ceiling same-PR. A count is a poor ratchet key;
+  prefer a frozen set that names members.
+- **ensure:** repo-root-hygiene unit + live merge-base tests under `cargo test --workspace`.
+- **overturn_when:** a recorded challenge shows the ratchet blocks legitimate delivery AND a
+  replacement with five fields lands same-wave.
