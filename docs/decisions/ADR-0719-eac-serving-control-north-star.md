@@ -383,12 +383,32 @@ admission, graph-aware work; promotion is not “the test job.”
 
 | Cadence | When | What | Blocks merge? |
 |---|---|---|---|
-| **presubmit** | every PR / merge-queue group | Affected cargo graph: fmt, clippy, tests + dependents; D-8 path-set (new junk red); license; rust-first; generated-not-hand-edited; Cedar compile of **touched** `cedar/` | **Yes.** One required context. |
-| **postsubmit** | merge to `dev` | Full workspace (or remainder not proven on the affected set); start of promotion **into staging** only via the promotion pipeline | No (already merged). Failure is a **revert/block-next** signal, not a second required PR check. |
-| **nightly** | schedule | arm64 (D88-amend), fuzz, long E2E, soak | No |
+| **presubmit** | every PR / merge-queue group | `cargo fmt --all --check`; clippy `-D warnings` (blocking once the tree is clippy-clean; advisory is debt); **`cargo nextest run --locked --workspace --no-fail-fast`** (this **is** compile proof — do not also `cargo check`); D-8 path-set; license; rust-first; generated-not-hand-edited; Cedar compile of **touched** `cedar/`. **linux/amd64 only.** | **Yes.** One required context. |
+| **postsubmit** | merge to `dev` | Same nextest workspace (or remainder not proven on an affected set); start of promotion **into staging** only via the promotion pipeline | No (already merged). Failure is a **revert/block-next** signal, not a second required PR check. |
+| **nightly** | schedule | arm64 nextest (D88-amend), fuzz, long E2E, soak | No |
 | **weekly** | schedule | buck2 `build //...` honesty smoke (ADR-0716); hermetic graph | No |
 | **promotion** | explicit rung | `dev` → `staging` → `canary` → `production`; predecessor check | N/A (branch protection on the rung) |
-| **release** | train (interview D63) | Bundle what’s on the promotion rung; **release builds** (`cargo build --release` / buck2) on **CD**, not presubmit | N/A |
+| **release / CD** | train (interview D63) | Bundle what’s on the promotion rung; **`cargo build --release`** (and buck2 if still local-honest) **here, not presubmit** | N/A |
+
+**Cargo verbs (closed).** `cargo nextest` is the only compile+test proof. `cargo check` is a local optional shortcut, never CI. `cargo test` (libtest) is not CI. `rustfmt` CLI is not CI — `cargo fmt` is. Windows/macOS per-PR smoke is not a cadence.
+
+| Verb | Local | Presubmit (PR / merge queue) | Nightly | CD / release |
+|---|---|---|---|---|
+| `cargo fmt` | touched files | `--all --check` | — | — |
+| `cargo clippy -D warnings` | touched / workspace | workspace `--all-targets` (blocking when clean) | — | — |
+| `cargo check` | optional, humans | **never** | **never** | **never** |
+| `cargo nextest` | `-p` affected | `--workspace --locked --no-fail-fast` linux/amd64 | arm64 workspace; long tests | — |
+| `cargo test` (libtest) | **never** (use nextest) | **never** | **never** | **never** |
+| `cargo build --release` | never required | **never** | **never** | **yes** |
+| `buck2 build //...` | local hermeticity | **never** | weekly honesty | optional CD |
+
+**MUST (nextest is the proof)**
+
+- **achieves:** one compile+test signal; no double compile (`check` then `test`); no libtest dual.
+- **origin:** `cargo check` + `cargo test` compiled twice; win/mac smoke and `cargo test -p` were not merge evidence; nextest is already the workspace runner.
+- **rule:** nextest is the only compile+test proof in presubmit/postsubmit/nightly unit lanes; `cargo check` and `cargo test` are not CI; release binary is CD.
+- **ensure:** required workflow invokes nextest, not libtest; no `cargo check` job; no win/mac per-PR smoke.
+- **overturn_when:** a five-field ADR names a different runner that still compiles once.
 
 Do **not** add one required GitHub check per capability (skipped-check failures, queue
 combinatorics). Lane isolation is **worktrees + non-overlapping paths**, not 24
@@ -635,6 +655,8 @@ coverage, `authz-tier-discipline` frozen leak **counts**, `event-schema-versioni
 - Trimming `cedar-deploy-parity-policy.json` (or any census JSON) instead of
   deleting the gate. Hand-maintained path lists, FNV signatures, `min_expected_*`,
   and `expected_total` are the same anti-pattern.
+- `cargo check` as a CI job (nextest already compiles). `cargo test` (libtest) as
+  the merge runner. Windows/macOS per-PR smoke. `rustfmt` CLI instead of `cargo fmt`.
 
 ## Appendix — considerations (not implement authority)
 

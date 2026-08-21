@@ -61,11 +61,10 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # ADR-0718-D1. FAST BLOCKING LANE. `cargo fmt` compiles nothing. `--all` is the
-  # merge bar for a format-clean workspace (Cargo owns file discovery + rustfmt.toml
-  # + edition). Local hooks must NOT pass `--all` — they format the change, not 885 crates.
+  # ADR-0719 D-10. FAST BLOCKING LANE. cargo fmt --all --check is the merge bar.
+  # Clippy is a separate job (advisory until the tree is -D warnings clean).
   lint:
-    name: lint (format + clippy)
+    name: lint (format)
     if: ${{ github.event_name != 'schedule' }}
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -73,12 +72,36 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
+          fetch-depth: 1
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
           components: rustfmt
       - name: Check formatting
+        # Merge bar is cargo fmt --all --check (ADR-0719 D-10). Not the rustfmt CLI.
         run: cargo fmt --all --check
+
+  # ADR-0718-D1. DEEP LINT LANE, parallel with `test` and deliberately ABSENT from the
+  # oya-ci-required fan-in. Advisory until the tree is -D warnings clean.
+  clippy:
+    name: clippy (advisory)
+    if: ${{ github.event_name != 'schedule' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          persist-credentials: false
+      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
+        with:
+          toolchain: "1.97.1"
+          components: clippy
+      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
+        with:
+          shared-key: cargo-ci-clippy
+      - name: Clippy, warnings denied
+        continue-on-error: true
+        run: cargo clippy --locked --workspace --all-targets -- -D warnings
 
   test:
     # D88-amend: per-PR / merge_group / push-to-dev nextest is native Linux
@@ -211,6 +234,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: nextest
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
@@ -244,7 +270,7 @@ jobs:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
           OYA_BACKBONE_POSTGRES_URL: ${{ env.OYA_PG_ADMIN_URL }}
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
-        run: RUST_TEST_THREADS=1 cargo test --locked -p oya-data-sql-adapter-sqlx -p oya-data-outbox-adapter-postgres -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
+        run: cargo nextest run --locked --no-fail-fast -p oya-data-sql-adapter-sqlx -p oya-data-outbox-adapter-postgres -p tenancy-tenant-lifecycle-store-postgres -p identity-scim-store-postgres
 
   live-postgres-facades:
     name: live-postgres-facades (tenant lifecycle / SCIM)
@@ -272,6 +298,9 @@ jobs:
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
           toolchain: "1.97.1"
+      - uses: taiki-e/install-action@5b4d68e2e660441203ab128a23676f1e4faf1532
+        with:
+          tool: nextest
       - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
         with:
           shared-key: cargo-ci-linux
@@ -298,12 +327,13 @@ jobs:
         env:
           OYA_BACKBONE_LIVE_POSTGRES: "1"
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
-        run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
+        run: cargo nextest run --locked --no-fail-fast -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
   # Fan-in: the single required context. Green IFF lint, Linux amd64 nextest, and
   # both live-postgres lanes are green. Arm64 nextest is not a per-PR fan-in
-  # input (D88-amend). No Windows/macOS job. Skipped on the nightly schedule so
-  # a skipped lint/postgres lane cannot fail-closed a non-merge event.
+  # input (D88-amend). No Windows/macOS job. No cargo test/libtest.
+  # Skipped on the nightly schedule so a skipped lint/postgres lane cannot
+  # fail-closed a non-merge event.
   oya-ci-required:
     # The context string is the job's `name:`, not its id, so this renames the PUBLIC status
     # check while leaving the job id -- and therefore the rust-first inline-shell baseline key
