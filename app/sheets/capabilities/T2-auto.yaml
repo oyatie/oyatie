@@ -1,0 +1,191 @@
+# Canonical-base: specs/capabilities/canonical-tier-schema.json + eu-ai-act-risk-class-registry.json (SWEEP-I Slice 5 per ADR-0064)
+id: cap:sheets:t2-auto:v1
+name: t2-auto
+namespace: sheets
+display_name: Sheets T2 — Auto-categorize + auto-cleanup-data + auto-pivot (autonomous; gated)
+description: |
+  T2-tier capability: sheets autonomously performs three categories of action given a
+  human-originated trigger:
+
+  1. Auto-categorize: classify a column of free-text values into discrete categories.
+     Trigger: tenant clicks "auto-categorize column"; foundry-runtime infers categories;
+     Sheets writes the category labels into an adjacent column.
+
+  2. Auto-cleanup-data: detect + correct common data-quality issues (whitespace, casing,
+     date-format inconsistency, duplicate detection). Trigger: tenant clicks "clean up
+     range"; Sheets applies cleanup ops within the range.
+
+  3. Auto-pivot: from a flat data range, infer a sensible pivot configuration (rows /
+     columns / aggregators) and author the pivot. Trigger: tenant clicks "auto-pivot"
+     on a data range.
+
+  T2 because state mutation is autonomous given the trigger, but the trigger itself
+  is human-originated and heavily constrained:
+  - Cedar policy default-deny across all paths
+  - Tenant-scope binding server-side
+  - Per-range ACL enforced per ADR-SHEETS-0006 (no T2 writes outside allowed ranges)
+  - All emissions Ed25519-sealed
+  - Cross-µservice scope (e.g., T2 cleanup that triggers workflow-engine dispatch)
+    additionally gated by Cedar + ChangeSet review per ADR-SHEETS-0005
+
+owner_team: axis-sheets + ops-security
+maturity: stable
+created_at: 2026-05-17
+related_adrs: [ADR-0022, ADR-0028, ADR-0110, ADR-0135, ADR-0131, ADR-0140 (retired per ADR-0145), ADR-SHEETS-0001, ADR-SHEETS-0002, ADR-SHEETS-0005, ADR-SHEETS-0006]
+related_specs: [/specs/app/sheets.json]
+related_artifacts:
+  - app/sheets/PRD.md FR-04 (recalc), FR-06 (CRDT), FR-08 (pivot), FR-10 (data-validation), FR-20 (license-gate), FR-21 (offline buffer)
+  - app/sheets/threat-model.md §"T-T-01" + §"T-T-02" + §"T-T-05" + §"T-T-07"
+  - app/sheets/policy/tenant-scope.cedar
+  - app/sheets/contracts/asyncapi/sheets-events.yaml
+  - app/sheets/runbooks/collab-conflict-resolution-crdt.md
+
+autonomy_tier: T2
+# T2 = autonomous mutation given human-originated trigger; default-deny policy gate.
+
+inputs:
+  - name: tenant_id
+    type: string
+    required: true
+  - name: workbook_id
+    type: string
+    required: true
+  - name: sheet_id
+    type: string
+    required: true
+  - name: range
+    type: string
+    required: true
+    description: target range (A1-notation)
+  - name: subcapability
+    type: enum
+    values: [auto_categorize, auto_cleanup_data, auto_pivot]
+    required: true
+  - name: trigger_kind
+    type: enum
+    values:
+      - workbook_open_request          # → license-gate-cedar evaluation + session-row insert
+      - cell_save_request              # → cell µservice SDK submit + audit-chain seal
+      - crdt_op_received               # → Loro CRDT merge + fan-out
+      - workbook_close_request         # → session-row close + final-state seal
+      - jurisdiction_switch_request    # → overlay-resolver invocation + audit emit
+      - recalc_trigger                 # → recalc-engine plan + execute (dep-graph + parallel-safe per ADR-SHEETS-0004)
+      - auto_categorize_request        # → foundry-runtime infer + write category column
+      - auto_cleanup_data_request      # → cleanup ops within range
+      - auto_pivot_request             # → infer + author pivot
+      - xlsx_import_complete           # → workbook materialize from imported XLSX
+      - connected_query_scheduled      # → scheduled refresh
+      - edit_trigger_fired             # → workflow-engine dispatch via trigger-bridge
+    required: true
+  - name: payload
+    type: object
+    required: true
+
+outputs:
+  - name: action_taken
+    type: enum
+    values: [accepted, conflict_surfaced, license_denied, acl_denied, schema_rejected, crdt_merged, recalc_completed, pivot_authored, range_cleaned, columns_categorized, xlsx_materialized, query_refreshed, workflow_dispatched]
+  - name: audit_chain_seal
+    type: string
+    description: Ed25519 over the action
+  - name: side_effects_summary
+    type: object
+    description: |
+      For workbook_open: {session_id, license_decision}.
+      For cell_save: {version_sha, audit_chain_seal, cell_ops_count}.
+      For crdt_op: {merged_seq, conflict_id?}.
+      For close: {session_closed_at}.
+      For recalc: {plan_id, cells_recalculated, duration_ms}.
+      For auto_categorize: {column_written, category_count, category_labels}.
+      For auto_cleanup: {ops_applied_count}.
+      For auto_pivot: {pivot_id, rows, columns, aggregator}.
+      For xlsx_import: {workbook_id, cell_count, fidelity_warnings_count}.
+      For query_refresh: {query_id, row_count, duration_ms}.
+      For workflow_dispatched: {workflow_id, dispatch_id}.
+
+data_classes_touched:
+  - BEHAVIORAL_TENANT_PRODUCT
+  - AUDIT
+  - PII_QUASI_IDENTIFIER
+
+regulatory_packs_consumed:
+  - pack-kr
+  - pack-eu
+  - pack-us
+  - pack-us-healthcare
+  - pack-jp
+  - pack-sg
+  - pack-au
+  - pack-in
+  - pack-br
+  - pack-ae
+  - pack-ksa
+
+evidence_topic: oya.sheets.t2.action
+
+cost_profile:
+  type: per-action
+  estimated_cost_usd_per_call: 0.0008
+  cost_drivers:
+    - Postgres write (per save: 2-4ms)
+    - Valkey read+write (per CRDT op: 0.5ms)
+    - Cell µservice SDK round-trip (per save: 50-100ms)
+    - Audit-chain seal (Ed25519 sign + emit: 1-2ms)
+    - Cedar policy evaluation including per-range ACL (constant-time, < 1ms)
+    - Recalc-engine plan execution (per 100k-cell: ≤ 1s p95)
+    - foundry-runtime ML inference (auto-categorize / auto-cleanup / auto-pivot: 200-500ms)
+
+cedar_policy_fragments:
+  - app/sheets/policy/tenant-scope.cedar
+  - app/sheets/policy/ci-scope.cedar
+  - app/sheets/policy/auditor-scope.cedar
+
+eval_set:
+  reference_inputs_path: app/sheets/capabilities/eval/t2-auto-reference.jsonl
+  pass_threshold: 0.999
+  eval_metric: |
+    Composite invariants (must hold over 1000-case corpus):
+    (a) Recalc determinism: same workbook + same edit sequence → same final state per ADR-SHEETS-0004.
+    (b) Never silent loss on CRDT merge per ADR-SHEETS-0001 (Loro alignment).
+    (c) License-gate default-deny: missing seat → deny + audit row.
+    (d) Per-range ACL enforced: writes outside allowed_range_acls always rejected per ADR-SHEETS-0006.
+    (e) Cross-tenant attempts always rejected.
+    (f) Every save Ed25519-sealed; chain reconstructable.
+    (g) Auto-categorize accuracy ≥ 85% on labelled corpus.
+    (h) Auto-cleanup precision ≥ 95% (no false positives that corrupt data).
+    (i) Auto-pivot config matches manual-expert pivot on ≥ 80% of corpus.
+  cadence: per-release + nightly chaos test
+  reference: ADR-0028 audit-chain + ADR-0110 ChangeSet state machine + ADR-SHEETS-0001..0007
+
+invariants:
+  - never_silent_loss: |
+      A CRDT op that cannot be auto-merged MUST surface conflict UI; never silently discard.
+      Asserted by test_no_silent_overwrite (AC-06).
+  - recalc_determinism: |
+      Same workbook + same edit sequence → same final formula-engine output.
+      Asserted by `oya-governance-sheets-recalc-determinism` lane per ADR-SHEETS-0004.
+  - formula_engine_correctness: |
+      ≥400-function library output matches LibreOffice Calc reference behaviour per ADR-SHEETS-0002.
+      Asserted by `oya-governance-sheets-formula-engine-correctness` lane.
+  - per_range_acl_enforced: |
+      Every cell read/write evaluated against per-range ACL per ADR-SHEETS-0006.
+      Asserted by `oya-governance-sheets-range-acl-cedar-required` lane.
+  - default_deny: |
+      Every Cedar policy evaluation that doesn't match a permit returns deny + audit row.
+      Asserted by policy-fragment compilation tests.
+  - tenant_isolation: |
+      Every Postgres + Valkey + S3 + Arrow/Parquet write tenant_id-scoped.
+      Asserted by oya-governance-citus-rls-enforced lane.
+  - ed25519_seal_chain: |
+      Every cell-edit + share + license-gate event's seal references its predecessor; chain reconstructable.
+      Asserted by audit-chain regression tests.
+  - xlsx_best_effort_roundtrip: |
+      XLSX import → export round-trip preserves best-effort fidelity per ADR-SHEETS-0007 named-limit list.
+      Asserted by `oya-governance-sheets-xlsx-roundtrip-best-effort` lane.
+  - xlsx_sandboxed_and_avscan: |
+      Every XLSX import passes ClamAV + OPSWAT scan AND runs inside gVisor sandbox.
+      Asserted by `oya-governance-sheets-import-sandboxed-and-avscan-required` lane.
+
+sunset:
+  status: none
+  notes: ""

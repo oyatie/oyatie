@@ -139,9 +139,16 @@ fn d41_office_suite_and_translate_are_not_app_products() {
         );
     }
     assert!(
-        app_dirs.contains(&"oya/sheets"),
+        app_dirs.contains(&"app/sheets"),
         "sheets stays in app_products as the ontology/action-event-document product spine (D41 did not name it): {app_dirs:?}"
     );
+    for keep in ["app/hr", "app/payroll", "app/community", "app/sheets"] {
+        assert!(
+            app_dirs.contains(&keep),
+            "{keep} must remain an app_products current_dir: {app_dirs:?}"
+        );
+        assert!(root.join(keep).is_dir(), "{keep} must remain on disk");
+    }
     for still_on_disk in ["oya/notes", "oya/slides", "oya/sites", "oya/translate"] {
         assert!(
             retired_dirs.contains(&still_on_disk),

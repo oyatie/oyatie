@@ -9241,7 +9241,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-sheets-domain",
+      "key": "sheets-domain",
       "context": "sheets",
       "role": "domain",
       "capability": "sheets",

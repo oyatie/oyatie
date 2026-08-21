@@ -60,7 +60,7 @@
     "namespaces": [
       {
         "namespace": "sheets",
-        "manifest": "oya/sheets/iac/kustomize/base/namespace.yaml",
+        "manifest": "app/sheets/iac/kustomize/base/namespace.yaml",
         "blocker": "Its Deployment delegates container securityContext to the shared helper `oya.securityContext.restrictedContainer` (oya/governance/iac/helm/_oya-helpers/templates/_helpers.tpl), which sets allowPrivilegeEscalation, readOnlyRootFilesystem, runAsNonRoot, runAsUser and capabilities.drop — but NOT seccompProfile. PSA restricted requires it.",
         "unblock": "Add `seccompProfile: {type: RuntimeDefault}` to the shared helper, which is consumed by exactly this class of workload, then label both namespaces in the same change."
       },
