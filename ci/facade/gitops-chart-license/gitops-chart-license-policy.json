@@ -5,7 +5,7 @@
   "planes": {
     "ops-internal": {
       "_doc": "Internal SRE/ops tooling: no distribution, no network provision to a third party (AGPL S13 does not engage). ADR-0706 D-5 extends the ADR-0705 dev-only carve-out to ops-internal use.",
-      "accepted_licenses": ["Apache-2.0", "MIT", "BSD-2-Clause", "BSD-3-Clause", "ISC", "0BSD", "MPL-2.0", "PostgreSQL", "AGPL-3.0"]
+      "accepted_licenses": ["Apache-2.0", "MIT", "BSD-2-Clause", "BSD-3-Clause", "ISC", "0BSD", "MPL-2.0", "AGPL-3.0"]
     },
     "tenant-facing": {
       "_doc": "ADR-0705 Tier-1 permissive only. No AGPL component may be embedded in, proxied by, or queried by a tenant-facing route -- the data plane follows the product, not the console (ADR-0706 D-5 point 3).",
@@ -13,11 +13,13 @@
     }
   },
   "sources": {
-    "_doc": "Where this gate looks for chart pulls. Both are read structurally (parsed YAML), not grepped.",
+    "_doc": "Where this gate looks for chart pulls. All are read structurally (parsed YAML), not grepped.",
     "gitops_values": "infra/gitops/values.yaml",
-    "gitops_values_doc": "Every `apps[]` entry with `type: chart` names a direct third-party Helm pull via `repoURL` + `chart`. `type: path` entries reference in-repo directories (e.g. the `observability` app itself, `openbao`) and are out of this gate's scope -- their content, if a Helm chart, is scanned via observability_chart_dirs below.",
+    "gitops_values_doc": "Every `apps[]` entry with `type: chart` names a direct third-party Helm pull via `repoURL` + `chart`. `type: path` entries with `helmPath: true` reference local Helm charts whose `Chart.yaml` dependencies are parsed structurally.",
+    "observability_umbrella_chart": "observability/iac/k8s/helm/Chart.yaml",
+    "observability_umbrella_chart_doc": "The first-party umbrella chart deployed by GitOps; its `dependencies[]` array declares the third-party Helm charts it wraps.",
     "observability_chart_dirs": "observability/iac/helm/*/Chart.yaml",
-    "observability_chart_dirs_doc": "Each first-party umbrella chart's own `dependencies[]` array names the real upstream Helm chart it wraps (name + repository), the same structural signal Helm itself uses to resolve subcharts. A chart with no `dependencies` block (axe-pa11y-runner, timescaledb-extension) pulls nothing external and emits no row."
+    "observability_chart_dirs_doc": "Each first-party wrapper chart's own `dependencies[]` array names the real upstream Helm chart it wraps (name + repository), the same structural signal Helm itself uses to resolve subcharts. A chart with no `dependencies` block (axe-pa11y-runner, timescaledb-extension) pulls nothing external and emits no row."
   },
   "entries": [
     {"repository": "https://helm.cilium.io", "chart": "cilium", "license": "Apache-2.0", "plane": "ops-internal", "note": "cluster CNI; GPL-2.0 applies only to the in-kernel eBPF programs it loads at runtime, not to the chart or control-plane binaries this pull distributes"},
@@ -33,10 +35,10 @@
     {"repository": "ghcr.io/actions/actions-runner-controller-charts", "chart": "gha-runner-scale-set", "license": "Apache-2.0", "plane": "ops-internal"},
     {"repository": "https://prometheus-community.github.io/helm-charts", "chart": "prometheus", "license": "Apache-2.0", "plane": "ops-internal"},
     {"repository": "https://prometheus-community.github.io/helm-charts", "chart": "alertmanager", "license": "Apache-2.0", "plane": "ops-internal"},
-    {"repository": "https://docs.altinity.com/clickhouse-operator/", "chart": "clickhouse-operator", "license": "Apache-2.0", "plane": "ops-internal"},
+    {"repository": "https://docs.altinity.com/clickhouse-operator/", "chart": "clickhouse-operator", "license": "Apache-2.0", "plane": "tenant-facing", "note": "wrapping chart serves tenant-facing analytics/audit/billing rollups; ADR-0706 D-5 point 3 names ClickHouse as a permissive product store"},
     {"repository": "https://opencost.github.io/opencost-helm-chart", "chart": "opencost", "license": "Apache-2.0", "plane": "ops-internal"},
     {"repository": "https://open-telemetry.github.io/opentelemetry-helm-charts", "chart": "opentelemetry-collector", "license": "Apache-2.0", "plane": "ops-internal"},
-    {"repository": "https://charts.bitnami.com/bitnami", "chart": "postgresql", "license": "PostgreSQL", "plane": "ops-internal", "note": "statuspage readside store; PostgreSQL licence is a permissive MIT/BSD-family variant"},
+    {"repository": "https://charts.bitnami.com/bitnami", "chart": "postgresql", "license": "Apache-2.0", "plane": "tenant-facing", "note": "statuspage readside store; Bitnami Helm chart SPDX is Apache-2.0 for the public status page readside store (status.oya.dev)"},
     {"repository": "https://grafana.github.io/helm-charts", "chart": "alloy", "license": "Apache-2.0", "plane": "ops-internal", "note": "the one Apache-2.0 chart in the Grafana Labs family (fleet-wide collector); do not conflate with the AGPL entries below (ADR-0706 D-5's own historical misclassification)"},
     {"repository": "https://grafana.github.io/helm-charts", "chart": "grafana", "license": "AGPL-3.0", "plane": "ops-internal"},
     {"repository": "https://grafana.github.io/helm-charts", "chart": "loki", "license": "AGPL-3.0", "plane": "ops-internal"},
@@ -46,5 +48,5 @@
     {"repository": "https://grafana.github.io/helm-charts", "chart": "tempo-distributed", "license": "AGPL-3.0", "plane": "ops-internal"}
   ],
   "min_expected_rows": 24,
-  "_min_expected_rows_doc": "Anti-vacuity floor (shrink-only): if a broken parse or an emptied source ever made the scan see fewer chart pulls than this, every plane assertion below would be vacuously green. Set to the corpus measured 2026-08-20: 11 distinct infra/gitops type:chart (repository, chart) pairs + 13 distinct observability/iac/helm dependency pairs = 24."
+  "_min_expected_rows_doc": "Anti-vacuity floor (shrink-only): if a broken parse or an emptied source ever made the scan see fewer chart pulls than this, every plane assertion below would be vacuously green. Set to the corpus measured 2026-08-20: 11 distinct infra/gitops type:chart (repository, chart) pairs + 13 distinct observability (umbrella + wrapper) dependency pairs = 24."
 }

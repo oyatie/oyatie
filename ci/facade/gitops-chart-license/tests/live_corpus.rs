@@ -95,3 +95,22 @@ fn a_chart_missing_from_the_policy_fails_closed_not_silently() {
     );
     assert_eq!(evaluate(&policy, &observed).verdict, Verdict::Red);
 }
+
+#[test]
+fn umbrella_chart_dependencies_are_present_in_collected_rows() {
+    let root = repo_root();
+    let observed = collect_chart_rows(&root).expect("collect chart pulls from the live tree");
+    let rows = observed["rows"].as_array().expect("rows array");
+
+    // observability/iac/k8s/helm/Chart.yaml declares loki, tempo-distributed, mimir-distributed, grafana
+    let expected_umbrella_charts = ["loki", "tempo-distributed", "mimir-distributed", "grafana"];
+    for chart_name in expected_umbrella_charts {
+        assert!(
+            rows.iter().any(|row| {
+                row["chart"] == chart_name
+                    && row["repository"] == "https://grafana.github.io/helm-charts"
+            }),
+            "expected umbrella chart dependency {chart_name} from https://grafana.github.io/helm-charts in collected rows"
+        );
+    }
+}
