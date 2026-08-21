@@ -2308,25 +2308,6 @@
       }
     },
     {
-      "artifact_id": "oya-http-latency-budget-middleware-infrastructure-manifest",
-      "artifact_path": "libs/oya-http-latency-budget-middleware-infrastructure/Cargo.toml",
-      "artifact_format": "cargo-toml",
-      "contract_version": "v3.0.0",
-      "owner_team": "council-foundry",
-      "purpose_short": "Layer 4 middleware: per-request budget timer; replaces response with 504 when elapsed exceeds budget_ms. Std-only; sync (post-hoc enforcement).",
-      "artifact_profile": "registry",
-      "capability_overrides": {
-        "verification": {
-          "checker_crate": "governance/check/active-artifact-contract",
-          "command": "oya-ci-required/cloud-ci evidence: active-artifact-contract"
-        },
-        "provenance": {
-          "current_author": "claude-opus-4-7 + jason931225",
-          "last_modified_at": "2026-05-14T00:00:00Z"
-        }
-      }
-    },
-    {
       "artifact_id": "oya-http-middleware-kernel-manifest",
       "artifact_path": "libs/oya-http-middleware-kernel/Cargo.toml",
       "artifact_format": "cargo-toml",

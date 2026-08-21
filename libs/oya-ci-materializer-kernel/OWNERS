@@ -1,7 +1,0 @@
-# Owner of the universal generated-artifact lifecycle planner kernel (ADR-0597 — E1).
-# This is cloud-ci/build tooling (ADR-0562 capability-registry: libs/oya-ci-materializer-kernel
-# maps to the build/ meta-home — the off-runtime-ladder CI engines + buck2/workspace/manifest
-# tooling), owned by the same cloud-ci-platform team that owns the cloud-ci gate fleet and the
-# tools/oya-*-app build tooling. The crate's sources are reachable via the libs/oya-* cargo-members
-# glob (ADR-0538) and justified by ADR-0597 (this decision).
-cloud-ci-platform

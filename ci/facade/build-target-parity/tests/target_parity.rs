@@ -70,8 +70,10 @@ fn target_parity_face_reports_live_corpus_debt() {
     let root = repo_root();
     let face = run_producer_face(&root, "target-parity");
     let rows = face["rows"].as_array().expect("target-parity face rows");
+    // 2026-08-20  817 -> 793. Deletion, not a narrowed scan: 45 zero-importer libs/ crates were
+    // removed outright, so the root workspace member census shrinks with them.
     assert!(
-        rows.len() >= 817,
+        rows.len() >= 793,
         "the target-parity face should enumerate at least the G011 base workspace members, got {}",
         rows.len()
     );

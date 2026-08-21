@@ -60,7 +60,9 @@ const EXPECTED_BASELINED_DEAD_ROOTS: usize = 9;
 // freezes 4 real SectionMissing violations two-sided.
 // 2026-08-20  85 -> 84. retired-vocabulary leaves the dark baseline: it gains a live-corpus test
 // asserting no live documentation mentions retired CLI surfaces, scripts, or hooks.
-const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 84;
+// 2026-08-20  84 -> 64. deleting 45 zero-importer libs/ crates removes 20 baselined dark-gate
+// crates outright (their gate logic is gone, not connected); the baseline shrinks with them.
+const EXPECTED_BASELINED_DARK_GATE_CRATES: usize = 64;
 
 fn repo_root() -> PathBuf {
     let mut dir = std::env::current_dir().expect("current_dir");

@@ -200,12 +200,12 @@ fn collector_sees_the_real_corpus() {
     let root = repo_root();
     let observed = collect(&root);
     assert!(
-        observed.crates.len() > 800,
+        observed.crates.len() > 780,
         "collected only {} crates — the collector is broken",
         observed.crates.len()
     );
     assert!(
-        observed.catalog_rows.len() > 700,
+        observed.catalog_rows.len() > 680,
         "collected only {} catalog rows — the catalog scan is broken",
         observed.catalog_rows.len()
     );
