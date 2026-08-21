@@ -282,8 +282,18 @@ kernel story.
   we own a kernel, not as a vacant port.
 - Consume Talos as **upstream** through `k8s/` / `iac/` **adapters**, not a parallel
   `os/` engine.
-- **`k8s/` stays** as the owned Kubernetes port destination (ADR-0704). That is the
-  control-plane product, not a second node OS.
+- **`k8s/` the capability stays.** It is the **managed-k8s product** (cluster
+  lifecycle, control-plane host, quota, SLO) with real `core/ports/adapters/facade`
+  crates and a CAPI adapter. That is not a generated twin of upstream Kubernetes
+  the way `os/` is a twin of Talos.
+- **`k8s/` the dump burns (D-8).** IPs, AUDIT-FINDINGS, dual ARCH, dashboards, DPIA,
+  `manifest.json`, scorecards, `PRD.md` on a capability, nested `managed-*` leftover
+  trees (faces already exist), `k8s/iac/{helm,kustomize,terraform}` as **source**,
+  cap-root `policy/` vs `cedar/`, root `slos/`. Git history keeps the prose.
+- **Generated apimachinery / kube API farm:** if port-engine emits one, **do not
+  keep it as the live `k8s/` tree** unless we *run* that as the apiserver. Same
+  rule as `os/`: regenerate when we own it. Today we run **upstream** k8s on Talos;
+  `k8s/` is the **sold control-plane product**, not a vendored kubernetes/kubernetes.
 
 **Destinations (so delete is not an orphan):** nothing in `infra/` **needs** `os/`.
 `infra/talos/` is **upstream Talos machine state** — it moves with the `infra/`
