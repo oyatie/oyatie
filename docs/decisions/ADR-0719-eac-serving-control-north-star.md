@@ -511,12 +511,14 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 
 **Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
 
+**Dogfood.** First-party `app/<product>/` is a **tenant of this cloud** (Oyatie as tenant #0). It calls the **same** gateway, iam, policy Check, cells, storage, data, messaging, workflow, billing meters, and packs as any customer. No private Helm tree, no in-process PDP that customers cannot call, no `iam/**` shortcut around `policy/`, no cap `core/` that exists only for our SaaS.
+
 **MUST (cloud vs SaaS)**
 
-- **achieves:** capability charters cannot absorb HR/Slack/SAP products.
-- **origin:** registry mixed `cloud/` + `oya/` seeds; drafts delivered IPs as if each cap were a SaaS.
-- **rule:** D-15 in/out is the cloud-provider charter; apps only in `app/`; no cap `core/` owns a vertical product.
-- **ensure:** new crates match in-scope; PRs that put payroll/studio-SaaS in `workflow/core` fail review.
+- **achieves:** capability charters cannot absorb HR/Slack/SAP products; apps cannot grow a shadow cloud.
+- **origin:** registry mixed `cloud/` + `oya/` seeds; drafts delivered IPs as if each cap were a SaaS; private paths would make dogfood fake.
+- **rule:** D-15 in/out is the cloud-provider charter; apps only in `app/`; apps consume public/cloud APIs only; no cap `core/` owns a vertical product.
+- **ensure:** new crates match in-scope; PRs that put payroll/studio-SaaS in `workflow/core` or add a private control plane for `app/` fail review.
 - **overturn_when:** a §7 ADR explicitly adds a product engine **outside** this cloud set, with five fields.
 
 **MUST (cloud lives in caps)**
