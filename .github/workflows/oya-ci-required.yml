@@ -1,6 +1,15 @@
 # Single canonical required status check: branch protection keys on the `oya-ci-required`
 # context, which is green IFF every constituent lane is green.
 #
+# Stage split (cheap local vs this engine):
+#   git hook pre-commit  — rustfmt on staged *.rs (seconds). No workspace compile.
+#   git hook pre-push    — not a full nextest; authors use CI for that.
+#   this file            — PRE-MERGE (pull_request + merge_group): rustfmt + native
+#                          Linux nextest on amd64 AND arm64. Live-postgres on amd64.
+#                          No cargo build --release, no buck2 build //..., no mac/win.
+#   buck2-weekly-smoke   — POST-SUBMIT graph honesty.
+#   CD train (D63)       — PRE-DEPLOYMENT: release binaries / multi-arch OCI.
+#
 # Execution engine: the Cargo workspace graph (rust-toolchain.toml pins the toolchain).
 # buck2 is local hermeticity tooling plus a weekly non-blocking smoke;
 # (buck2-weekly-smoke.yml). Inside the merge path, buck2 appears only as the
