@@ -4347,7 +4347,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-global-trade-compliance-domain",
+      "key": "global-trade-compliance-domain",
       "context": "global-trade",
       "role": "domain",
       "capability": "compliance",

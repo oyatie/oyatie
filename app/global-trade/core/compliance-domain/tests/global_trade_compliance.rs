@@ -1,4 +1,4 @@
-use oya_global_trade_compliance_domain::{
+use global_trade_compliance_domain::{
     CustomsDeclarationInput, CustomsDeclarationState, CustomsDeclarationType,
     ExportControlAssessmentInput, ExportControlAssessmentState, ExportControlDecision,
     GlobalTradeComplianceError, LandedCostSimulationInput, LandedCostState, PartyScreeningState,

@@ -1,6 +1,6 @@
 {
-  "_comment": "Live executable move-plan authenticating the oya/sheets -> app/sheets absorb and carrying the spent parent community absorb bijection plus the spent grandparent payroll absorb bijection plus the spent great-grandparent HR absorb bijection so origin/dev...HEAD stays a single-plan substitution after community-move-plan.json is deleted (RR-MOVEPLAN-SINGLETON). Occupies the singleton so generated-artifact diff-policy can apply a bijective key substitution on the port-placement baseline member_path. Catalog records co-move one-for-one.",
-  "capability": "sheets",
+  "_comment": "Live executable move-plan authenticating the oya/global-trade -> app/global-trade absorb and carrying the spent parent sheets absorb bijection plus the spent grandparent community absorb bijection plus the spent great-grandparent payroll absorb bijection plus the spent great-great-grandparent HR absorb bijection so origin/dev...HEAD stays a single-plan substitution after sheets-move-plan.json is deleted (RR-MOVEPLAN-SINGLETON). Occupies the singleton so generated-artifact diff-policy can apply a bijective key substitution on the port-placement baseline member_path. Catalog records co-move one-for-one.",
+  "capability": "global-trade",
   "moves": [
     {
       "old_path": "oya/hr/crates/oya-hr-employment-api",
@@ -151,6 +151,12 @@
       "new_path": "app/sheets/core/sheets-domain",
       "old_cargo_name": "oya-sheets-domain",
       "new_cargo_name": "sheets-domain"
+    },
+    {
+      "old_path": "oya/global-trade/crates/oya-global-trade-compliance-domain",
+      "new_path": "app/global-trade/core/compliance-domain",
+      "old_cargo_name": "oya-global-trade-compliance-domain",
+      "new_cargo_name": "global-trade-compliance-domain"
     }
   ],
   "artifacts": [
@@ -253,6 +259,10 @@
     {
       "old_path": "registry/catalog/oya-sheets-domain.yaml",
       "new_path": "registry/catalog/sheets-domain.yaml"
+    },
+    {
+      "old_path": "registry/catalog/oya-global-trade-compliance-domain.yaml",
+      "new_path": "registry/catalog/global-trade-compliance-domain.yaml"
     }
   ]
 }

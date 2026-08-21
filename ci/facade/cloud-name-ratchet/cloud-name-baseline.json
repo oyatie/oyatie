@@ -1,7 +1,7 @@
 {
   "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
-  "count": 864,
+  "count": 860,
   "cloud_prefixed_names": [
     "dir:.github/workflows/oya-ci-required.yml",
     "dir:billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md",
@@ -259,7 +259,6 @@
     "dir:oya/application/crates/oya-workspace-forms-api",
     "dir:oya/application/crates/oya-workspace-meet-api",
     "dir:oya/docs/crates/oya-docs-domain",
-    "dir:oya/global-trade/crates/oya-global-trade-compliance-domain",
     "dir:oya/notes/crates/oya-notes-domain",
     "dir:oya/sites/crates/oya-sites-domain",
     "dir:oya/slides/crates/oya-slides-domain",
@@ -329,7 +328,6 @@
     "dir:registry/catalog/oya-community-social-user-profile-rest.yaml",
     "dir:registry/catalog/oya-data-boundary-kernel.yaml",
     "dir:registry/catalog/oya-docs-domain.yaml",
-    "dir:registry/catalog/oya-global-trade-compliance-domain.yaml",
     "dir:registry/catalog/oya-governance-adapter-with-no-importer-app.yaml",
     "dir:registry/catalog/oya-governance-adapter-with-no-importer-kernel.yaml",
     "dir:registry/catalog/oya-governance-adr-shape-app.yaml",
@@ -781,8 +779,6 @@
     "name:oya/docs/crates/oya-docs-domain/Cargo.toml:oya-docs-domain",
     "name:oya/docs/crates/oya-docs-domain/Cargo.toml:oya_docs_domain",
     "name:oya/docs/iac/helm/Chart.yaml:oya-docs",
-    "name:oya/global-trade/crates/oya-global-trade-compliance-domain/Cargo.toml:oya-global-trade-compliance-domain",
-    "name:oya/global-trade/crates/oya-global-trade-compliance-domain/Cargo.toml:oya_global_trade_compliance_domain",
     "name:oya/governance/iac/helm/_oya-helpers/Chart.yaml:oya-helpers",
     "name:oya/intelligence/iac/helm/intelligence/Chart.yaml:oya-intelligence",
     "name:oya/intelligence/iac/helm/milvus/Chart.yaml:oya-intelligence-milvus",
