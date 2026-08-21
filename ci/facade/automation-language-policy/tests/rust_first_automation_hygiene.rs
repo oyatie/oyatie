@@ -485,7 +485,7 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
 }
 
 #[test]
-fn lint_format_gate_is_differential_blocking_on_changed_files() {
+fn lint_format_gate_is_cargo_fmt_all_check() {
     let root = repo_root();
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
     let workflow = fs::read_to_string(&workflow_path)
@@ -496,23 +496,19 @@ fn lint_format_gate_is_differential_blocking_on_changed_files() {
     let fmt = named_workflow_step(&workflow_doc, "lint", "Check formatting");
     assert!(
         fmt.get("continue-on-error").is_none(),
-        "new rustfmt drift on changed files must fail the lint job"
+        "format drift must fail the lint job"
     );
     let run = fmt
         .get("run")
         .and_then(YamlValue::as_str)
         .expect("format gate must be an inline run step");
     assert!(
-        run.contains("--diff-filter=ACMR"),
-        "deleted files are not rustfmt inputs; got {run}"
+        run.contains("cargo fmt") && run.contains("--all") && run.contains("--check"),
+        "merge-bar format gate is `cargo fmt --all --check` (Cargo owns discovery); got {run}"
     );
     assert!(
-        run.contains("skip_children=true"),
-        "crate-root paths must not re-check untouched sibling modules; got {run}"
-    );
-    assert!(
-        run.contains("rustfmt --check"),
-        "format gate must invoke rustfmt --check; got {run}"
+        !run.contains("rustfmt --check"),
+        "do not invoke the rustfmt binary; cargo fmt is the interface; got {run}"
     );
 }
 

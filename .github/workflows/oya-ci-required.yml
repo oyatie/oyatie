@@ -59,11 +59,9 @@ concurrency:
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  # ADR-0718-D1. FAST BLOCKING LANE. `rustfmt --check` compiles nothing — it is differential
-  # over the changed *.rs files only. It previously shared a job with an ADVISORY
-  # `cargo clippy --workspace --all-targets`, so the blocking format verdict could not report
-  # until a full-workspace compile finished, and the job restored/saved a cargo cache the
-  # format check has no use for.
+  # ADR-0718-D1. FAST BLOCKING LANE. `cargo fmt` compiles nothing. `--all` is the
+  # merge bar for a format-clean workspace (Cargo owns file discovery + rustfmt.toml
+  # + edition). Local hooks must NOT pass `--all` — they format the change, not 885 crates.
   lint:
     name: lint (format + clippy)
     runs-on: ubuntu-latest
@@ -72,20 +70,11 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           persist-credentials: false
-          # The format gate diffs against the base ref.
-          fetch-depth: 0
       - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
         with:
-          toolchain: "1.97.1"
           components: rustfmt
       - name: Check formatting
-        # Blocking and differential: only ACMR (added/copied/modified/renamed) *.rs
-        # files this PR changed. Deleted paths are not rustfmt inputs. skip_children
-        # keeps a crate-root path from re-checking untouched sibling modules that
-        # still carry pre-existing rustfmt debt. Repo-wide drift is a follow-up PR.
-        env:
-          BASE_REF: ${{ github.base_ref || github.event.merge_group.base_ref || 'dev' }}
-        run: files="$(git diff --diff-filter=ACMR --name-only "origin/${BASE_REF#refs/heads/}...HEAD" -- '*.rs')" && { [ -z "$files" ] || rustfmt --check --config skip_children=true -- $files; }
+        run: cargo fmt --all --check
 
   test:
     name: test (workspace + gates) (${{ matrix.os }})
