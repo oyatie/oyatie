@@ -1,0 +1,23 @@
+[package]
+name = "community-post-store-rest"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+community-post-store-app = { path = "../../facade/post-store-app" }
+community-post-store-api = { path = "../../ports/post-store-api" }
+community-post-store-domain = { path = "../../core/post-store-domain" }
+community-post-store-usecase = { path = "../../core/post-store-usecase" }
+oya-shared-hyperscaler-metrics-kernel = { path = "../../../../libs/oya-shared-hyperscaler-metrics-kernel" }
+oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+
+[lib]
+name = "community_post_store_rest"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

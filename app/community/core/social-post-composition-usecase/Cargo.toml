@@ -1,0 +1,19 @@
+[package]
+name = "community-social-post-composition-usecase"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+community-social-domain = { path = "../social-domain" }
+community-social-post-composition-api = { path = "../../ports/social-post-composition-api" }
+
+[lib]
+name = "community_social_post_composition_usecase"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

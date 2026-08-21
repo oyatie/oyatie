@@ -59,12 +59,12 @@
       "name": "community",
       "description": "Bounded context 'community' within community (data plane)",
       "crates": [
-        "oya-community-post-store-adapter-postgres",
-        "oya-community-post-store-api",
-        "oya-community-post-store-app",
-        "oya-community-post-store-domain",
-        "oya-community-post-store-rest",
-        "oya-community-post-store-usecase"
+        "community-post-store-postgres",
+        "community-post-store-api",
+        "community-post-store-app",
+        "community-post-store-domain",
+        "community-post-store-rest",
+        "community-post-store-usecase"
       ]
     }
   ],

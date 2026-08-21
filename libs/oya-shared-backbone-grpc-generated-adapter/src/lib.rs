@@ -69,8 +69,8 @@ pub enum GeneratedBackboneGrpcAdapterError {
     },
     Messenger(comms_messenger_stream_grpc::MessengerGrpcError),
     Mail(comms_mail_mailbox_grpc::MailGrpcError),
-    Social(oya_community_social_post_composition_grpc::SocialGrpcError),
-    Community(oya_community_post_store_grpc::CommunityGrpcError),
+    Social(community_social_post_composition_grpc::SocialGrpcError),
+    Community(community_post_store_grpc::CommunityGrpcError),
 }
 
 pub fn messenger_post_message_generated_write_plan(
@@ -180,12 +180,12 @@ pub fn social_publish_post_generated_write_plan(
     tenant: TenantSqlContext,
     request: social::v1::PublishPostRequest,
 ) -> Result<
-    oya_community_social_post_composition_grpc::GrpcResponse<
-        oya_community_social_app::SocialPublishPlan,
+    community_social_post_composition_grpc::GrpcResponse<
+        community_social_app::SocialPublishPlan,
     >,
     GeneratedBackboneGrpcAdapterError,
 > {
-    let context = oya_community_social_post_composition_api::AuthorizedSocialContext {
+    let context = community_social_post_composition_api::AuthorizedSocialContext {
         context: social_context(request.context)?,
         scope_ref: request.scope_ref,
         principal_ref: request.principal_ref,
@@ -194,7 +194,7 @@ pub fn social_publish_post_generated_write_plan(
         audit_correlation_id: request.audit_correlation_id,
     };
     let story_purge_now = nonzero_u64(request.story_purge_now);
-    let request = oya_community_social_post_composition_api::ComposePostRequest {
+    let request = community_social_post_composition_api::ComposePostRequest {
         post_id: request.post_id,
         creator_ref: request.creator_ref,
         kind: social_artifact_kind(request.kind)?,
@@ -206,7 +206,7 @@ pub fn social_publish_post_generated_write_plan(
         ar_biometric_persisted: request.ar_biometric_persisted,
     };
 
-    oya_community_social_post_composition_grpc::publish_post_write_plan(
+    community_social_post_composition_grpc::publish_post_write_plan(
         tenant,
         context,
         request,
@@ -219,11 +219,11 @@ pub fn community_create_post_generated_write_plan(
     tenant: TenantSqlContext,
     request: community::v1::CreatePostRequest,
 ) -> Result<
-    oya_community_post_store_grpc::GrpcResponse<oya_community_post_store_app::CommunityPostPlan>,
+    community_post_store_grpc::GrpcResponse<community_post_store_app::CommunityPostPlan>,
     GeneratedBackboneGrpcAdapterError,
 > {
     let context = community_context(request.context, "CreatePostRequest")?;
-    let request_body = oya_community_post_store_api::CreatePostRequest {
+    let request_body = community_post_store_api::CreatePostRequest {
         post_id: request.post_id,
         thread_id: request.thread_id,
         mode: community_mode(request.mode)?,
@@ -234,7 +234,7 @@ pub fn community_create_post_generated_write_plan(
         retention_policy_id: request.retention_policy_id,
     };
 
-    oya_community_post_store_grpc::create_post_write_plan(
+    community_post_store_grpc::create_post_write_plan(
         tenant,
         context,
         request.space_id,
@@ -245,42 +245,42 @@ pub fn community_create_post_generated_write_plan(
 
 pub fn community_cast_vote_generated_write_plan(
     tenant: TenantSqlContext,
-    post: &oya_community_post_store_domain::CommunityPost,
-    ledger: &mut oya_community_post_store_domain::VoteLedger,
+    post: &community_post_store_domain::CommunityPost,
+    ledger: &mut community_post_store_domain::VoteLedger,
     request: community::v1::CastVoteRequest,
 ) -> Result<
-    oya_community_post_store_grpc::GrpcResponse<oya_community_post_store_app::CommunityVotePlan>,
+    community_post_store_grpc::GrpcResponse<community_post_store_app::CommunityVotePlan>,
     GeneratedBackboneGrpcAdapterError,
 > {
     let context = community_context(request.context, "CastVoteRequest")?;
-    let request = oya_community_post_store_api::CastVoteRequest {
+    let request = community_post_store_api::CastVoteRequest {
         post_id: request.post_id,
         voter_ref: request.voter_ref,
         direction: vote_direction(request.direction)?,
     };
 
-    oya_community_post_store_grpc::cast_vote_write_plan(tenant, context, post, ledger, request)
+    community_post_store_grpc::cast_vote_write_plan(tenant, context, post, ledger, request)
         .map_err(GeneratedBackboneGrpcAdapterError::Community)
 }
 
 pub fn community_apply_action_generated_write_plan(
     tenant: TenantSqlContext,
-    post: &oya_community_post_store_domain::CommunityPost,
+    post: &community_post_store_domain::CommunityPost,
     request: community::v1::ApplyActionRequest,
 ) -> Result<
-    oya_community_post_store_grpc::GrpcResponse<
-        oya_community_post_store_app::CommunityModerationPlan,
+    community_post_store_grpc::GrpcResponse<
+        community_post_store_app::CommunityModerationPlan,
     >,
     GeneratedBackboneGrpcAdapterError,
 > {
     let context = community_context(request.context, "ApplyActionRequest")?;
-    let request = oya_community_post_store_api::ModeratePostRequest {
+    let request = community_post_store_api::ModeratePostRequest {
         policy_ref: request.policy_ref,
         evidence_ref: request.evidence_ref,
         verb: moderation_verb(request.verb)?,
     };
 
-    oya_community_post_store_grpc::apply_moderation_action_write_plan(
+    community_post_store_grpc::apply_moderation_action_write_plan(
         tenant, context, post, request,
     )
     .map_err(GeneratedBackboneGrpcAdapterError::Community)
@@ -321,13 +321,13 @@ fn mail_context(
 fn social_context(
     value: i32,
 ) -> Result<
-    oya_community_social_post_composition_api::SocialApiContext,
+    community_social_post_composition_api::SocialApiContext,
     GeneratedBackboneGrpcAdapterError,
 > {
     if value == social::v1::SocialContextKind::Personal as i32 {
-        Ok(oya_community_social_post_composition_api::SocialApiContext::Personal)
+        Ok(community_social_post_composition_api::SocialApiContext::Personal)
     } else if value == social::v1::SocialContextKind::Work as i32 {
-        Ok(oya_community_social_post_composition_api::SocialApiContext::Work)
+        Ok(community_social_post_composition_api::SocialApiContext::Work)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "PublishPostRequest",
@@ -340,15 +340,15 @@ fn social_context(
 fn social_artifact_kind(
     value: i32,
 ) -> Result<
-    oya_community_social_post_composition_api::SocialApiArtifactKind,
+    community_social_post_composition_api::SocialApiArtifactKind,
     GeneratedBackboneGrpcAdapterError,
 > {
     if value == social::v1::SocialArtifactKind::FeedPost as i32 {
-        Ok(oya_community_social_post_composition_api::SocialApiArtifactKind::FeedPost)
+        Ok(community_social_post_composition_api::SocialApiArtifactKind::FeedPost)
     } else if value == social::v1::SocialArtifactKind::Story as i32 {
-        Ok(oya_community_social_post_composition_api::SocialApiArtifactKind::Story)
+        Ok(community_social_post_composition_api::SocialApiArtifactKind::Story)
     } else if value == social::v1::SocialArtifactKind::CollaborativePost as i32 {
-        Ok(oya_community_social_post_composition_api::SocialApiArtifactKind::CollaborativePost)
+        Ok(community_social_post_composition_api::SocialApiArtifactKind::CollaborativePost)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "PublishPostRequest",
@@ -362,14 +362,14 @@ fn community_context(
     context: Option<community::v1::CommunityAuthContext>,
     request: &'static str,
 ) -> Result<
-    oya_community_post_store_api::AuthorizedCommunityContext,
+    community_post_store_api::AuthorizedCommunityContext,
     GeneratedBackboneGrpcAdapterError,
 > {
     let context = context.ok_or(GeneratedBackboneGrpcAdapterError::MissingMessage {
         request,
         field: "context",
     })?;
-    Ok(oya_community_post_store_api::AuthorizedCommunityContext {
+    Ok(community_post_store_api::AuthorizedCommunityContext {
         tenant_scope_ref: context.tenant_scope_ref,
         principal_ref: context.principal_ref,
         idempotency_key: context.idempotency_key,
@@ -380,15 +380,15 @@ fn community_context(
 
 fn community_mode(
     value: i32,
-) -> Result<oya_community_post_store_api::CommunityApiMode, GeneratedBackboneGrpcAdapterError> {
+) -> Result<community_post_store_api::CommunityApiMode, GeneratedBackboneGrpcAdapterError> {
     if value == community::v1::CommunityMode::Reddit as i32 {
-        Ok(oya_community_post_store_api::CommunityApiMode::Reddit)
+        Ok(community_post_store_api::CommunityApiMode::Reddit)
     } else if value == community::v1::CommunityMode::Teamblind as i32 {
-        Ok(oya_community_post_store_api::CommunityApiMode::Teamblind)
+        Ok(community_post_store_api::CommunityApiMode::Teamblind)
     } else if value == community::v1::CommunityMode::Handshake as i32 {
-        Ok(oya_community_post_store_api::CommunityApiMode::Handshake)
+        Ok(community_post_store_api::CommunityApiMode::Handshake)
     } else if value == community::v1::CommunityMode::KnowledgeBase as i32 {
-        Ok(oya_community_post_store_api::CommunityApiMode::KnowledgeBase)
+        Ok(community_post_store_api::CommunityApiMode::KnowledgeBase)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "CreatePostRequest",
@@ -400,13 +400,13 @@ fn community_mode(
 
 fn vote_direction(
     value: i32,
-) -> Result<oya_community_post_store_api::VoteDirection, GeneratedBackboneGrpcAdapterError> {
+) -> Result<community_post_store_api::VoteDirection, GeneratedBackboneGrpcAdapterError> {
     if value == community::v1::VoteDirection::Up as i32 {
-        Ok(oya_community_post_store_api::VoteDirection::Up)
+        Ok(community_post_store_api::VoteDirection::Up)
     } else if value == community::v1::VoteDirection::Down as i32 {
-        Ok(oya_community_post_store_api::VoteDirection::Down)
+        Ok(community_post_store_api::VoteDirection::Down)
     } else if value == community::v1::VoteDirection::Clear as i32 {
-        Ok(oya_community_post_store_api::VoteDirection::Clear)
+        Ok(community_post_store_api::VoteDirection::Clear)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "CastVoteRequest",
@@ -418,13 +418,13 @@ fn vote_direction(
 
 fn moderation_verb(
     value: i32,
-) -> Result<oya_community_post_store_api::ModerationVerb, GeneratedBackboneGrpcAdapterError> {
+) -> Result<community_post_store_api::ModerationVerb, GeneratedBackboneGrpcAdapterError> {
     if value == community::v1::ModerationVerb::Allow as i32 {
-        Ok(oya_community_post_store_api::ModerationVerb::Allow)
+        Ok(community_post_store_api::ModerationVerb::Allow)
     } else if value == community::v1::ModerationVerb::Hide as i32 {
-        Ok(oya_community_post_store_api::ModerationVerb::Hide)
+        Ok(community_post_store_api::ModerationVerb::Hide)
     } else if value == community::v1::ModerationVerb::Remove as i32 {
-        Ok(oya_community_post_store_api::ModerationVerb::Remove)
+        Ok(community_post_store_api::ModerationVerb::Remove)
     } else {
         Err(GeneratedBackboneGrpcAdapterError::InvalidEnum {
             request: "ApplyActionRequest",
@@ -779,7 +779,7 @@ mod tests {
             },
         )
         .unwrap();
-        let mut ledger = oya_community_post_store_domain::VoteLedger::new(&created.body.post);
+        let mut ledger = community_post_store_domain::VoteLedger::new(&created.body.post);
         let vote = community_cast_vote_generated_write_plan(
             tenant("tenant:t"),
             &created.body.post,

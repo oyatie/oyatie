@@ -720,7 +720,7 @@ fn unclassified_root_silently_exempts_an_otherwise_red_edge() {
     // a fix.
     let edge = (
         "iam/core/identity-domain",
-        "oya/community/crates/oya-community-post-store-api",
+        "app/community/ports/post-store-api",
     );
     let unclassified = {
         let mut c = corpus(

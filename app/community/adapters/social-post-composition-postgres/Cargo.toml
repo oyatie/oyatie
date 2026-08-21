@@ -1,0 +1,18 @@
+[package]
+name = "community-social-post-composition-postgres"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license = "Apache-2.0"
+publish = false
+
+[dependencies]
+oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
+
+[lib]
+name = "community_social_post_composition_postgres"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

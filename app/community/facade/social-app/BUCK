@@ -1,0 +1,33 @@
+rust_library(
+    name = "community-social-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_social_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//libs/oya-shared-transactional-outbox-kernel:oya-shared-transactional-outbox-kernel",
+        "//app/community/adapters/social-post-composition-postgres:community-social-post-composition-postgres",
+        "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
+        "//app/community/core/social-post-composition-usecase:community-social-post-composition-usecase",
+    ],
+)
+
+rust_test(
+    name = "community-social-app-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "community_social_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//libs/oya-shared-protocol-parity-kernel:oya-shared-protocol-parity-kernel",
+        "//libs/oya-shared-protocol-transport-kernel:oya-shared-protocol-transport-kernel",
+        "//libs/oya-shared-transactional-outbox-kernel:oya-shared-transactional-outbox-kernel",
+        "//app/community/adapters/social-post-composition-postgres:community-social-post-composition-postgres",
+        "//app/community/ports/social-post-composition-api:community-social-post-composition-api",
+        "//app/community/core/social-post-composition-usecase:community-social-post-composition-usecase",
+    ],
+)

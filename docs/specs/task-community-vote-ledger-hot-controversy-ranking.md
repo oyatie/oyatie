@@ -3,18 +3,18 @@
 ## Objective
 
 Add a deterministic, integer-only Reddit-style hot/controversy ranking kernel
-to `oya-community-post-store-domain`. Pure domain logic, no I/O, no async, no
+to `community-post-store-domain`. Pure domain logic, no I/O, no async, no
 new crate dependencies.
 
 ## Crate Boundary
 
-All changes confined to `crates/oya-community-post-store-domain/`.
+All changes confined to `crates/community-post-store-domain/`.
 No root `Cargo.toml` edit. No new workspace member.
 
 ## Mod Layout (flat clean-arch)
 
 ```
-crates/oya-community-post-store-domain/src/
+crates/community-post-store-domain/src/
   lib.rs          (existing — add `pub mod ranking; pub use ranking::rank_posts;`)
   ranking.rs      (NEW — hot_score, controversy_score, rank_posts)
 ```

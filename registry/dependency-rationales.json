@@ -588,7 +588,7 @@
       "isolated_in_crate": "oya-shared-postgres-command-adapter-sqlx, oya-shared-transactional-outbox-adapter-sqlx, oya-shared-transactional-outbox-worker-app, env-gated foundry live workload harness apps, and future *-adapter-postgres runtime crates only",
       "allowed_crates": [
         "check-olap-tier-discipline",
-        "oya-community-post-store-adapter-postgres",
+        "community-post-store-postgres",
         "intelligence-backbone-workload-live-app",
         "oya-mail-mailbox-store-adapter-postgres",
         "oya-messenger-message-stream-adapter-postgres",
@@ -597,7 +597,7 @@
         "oya-shared-postgres-command-kernel",
         "oya-shared-transactional-outbox-adapter-sqlx",
         "oya-shared-transactional-outbox-worker-app",
-        "oya-community-social-post-composition-adapter-postgres"
+        "community-social-post-composition-postgres"
       ]
     },
     "tonic": {
