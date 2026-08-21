@@ -24,7 +24,7 @@ Two of them (§1) fire on the mere existence of the `policy/` directory, because
 `ci/adapters/scan-root-derivation` resolves a root by `repo_root.join(name).is_dir()`. They are
 mechanically forced by landing *any* file here — including this one.
 
-## §1 Forced by the directory existing — 4 one-line strikes
+## §1 Forced by the directory existing — 5 edits
 
 Whoever lands `policy/` owes these in the same change. The gate policies say so themselves:
 *"Sibling roots base/ and policy/ remain absent and remain declared; whoever lands their first crate
@@ -36,10 +36,37 @@ owes the same one-line retirement."*
 | `ci/facade/scan-root-liveness/scan-root-liveness-policy.json` | delete `"ci/facade/module-membership/capability-membership-policy.json::/scan_roots::policy"` from `forward_declarations` |
 | `ci/facade/embedded-asset-hermeticity/embedded-asset-hermeticity-baseline.json` | remove `"policy"` from `_provenance.pending_roots` (leaving `["base"]`) |
 | `ci/facade/caller-supplied-authorization/dto-authz-trust-policy.json` | remove `"policy"` from `_pending_scan_roots` (leaving `["base"]`) |
+| `governance/capability-registry.json` (**HUB**) | set `capabilities[policy].absorbs_current_dirs` to `["policy"]` |
 
 Verified present on `origin/dev@7f8a5a075`. Both `pending_roots` sets are frozen **two-sided** by
 tests named `pending_roots_equal_the_frozen_set_exactly`, and `forward_declarations_are_all_still_absent`
-panics rather than reporting — so all four are hard failures, not advisories.
+panics rather than reporting — so these are hard failures, not advisories.
+
+The registry row is the one that was NOT predicted. It was filed under §2 as a crates-only blocker
+and is in fact forced by the directory existing, because `walked_roots_are_exactly_the_registry_derived_set`
+compares the registry's materialization record against the tree:
+
+> capability `policy`: the registry's materialization record and the tree disagree — either the
+> registry row is stale or the directory was deleted without retiring it
+
+`governance/capability-registry.json` is a **hub** (`specs/integ-branch-envelopes.json#hubs`,
+`sole_owner_per_wave: true`), so it needs a waiver row, not merely an adjunct claim.
+
+### Measured, not predicted
+
+Both locally (`cargo test -p ...`, after `oya-cloud-ci-materialize-generated-faces`) and in CI on
+this head, the failure set is exactly **6 tests across 3 crates**:
+
+| crate | failing tests |
+|---|---|
+| `ci-caller-supplied-authorization` | `pending_roots_equal_the_frozen_set_exactly`, `walked_roots_are_exactly_the_registry_derived_set` |
+| `ci-embedded-asset-hermeticity` | `pending_roots_equal_the_frozen_set_exactly`, `walked_roots_are_exactly_the_registry_derived_set` |
+| `ci-scan-root-liveness` | `forward_declarations_are_all_still_absent`, `live_corpus_is_green_against_the_frozen_policy` |
+
+`ci-repo-root-hygiene` and `ci-module-membership` **pass** — the corpus budget and top-level-dir
+membership are satisfied, which is the design of §3 working. A local `ci-slo-coverage` failure
+(`run producer binary: NotFound`) is a local-environment artifact, not a finding: CI builds that
+producer binary and `ci-slo-coverage` passes there.
 
 Already satisfied, needing no edit: `policy` is present in module-membership `allowed_top_level_dirs`
 and `scan_roots`, and in repo-root-hygiene `allowed_root_dirs`. Ownership resolves through
@@ -56,10 +83,10 @@ blockers stop one landing from `integ/policy`, and **none is inside `policy/**`*
    (`specs/integ-branch-envelopes.json#hubs`, and `adjunct_claims.rules`: *"Cargo.lock edits are owned
    solely by integ/build … other integs MUST use an unexpired hubs.active_waivers row"*). There is no
    waiver for `integ/policy`. Any new workspace member writes the lock, and CI runs `--locked`.
-2. **`governance/capability-registry.json` is a hub.** `capabilities[policy].absorbs_current_dirs` is
-   `[]`, and `module-membership` resolves a crate's home only from that mapping — there is no implicit
-   "directory name == capability" rule — so every `policy/core/*` crate is a `MEM-NEW-UNMAPPED-CRATE`
-   regression until `"policy"` is added there.
+2. **`governance/capability-registry.json` is a hub.** Its `absorbs_current_dirs` edit is already
+   forced by §1 above. It is *additionally* required for crates: `module-membership` resolves a
+   crate's home only from that mapping — there is no implicit "directory name == capability" rule —
+   so every `policy/core/*` crate is a `MEM-NEW-UNMAPPED-CRATE` regression until `"policy"` is there.
 3. **`registry/catalog/policy-<leaf>.yaml`, one per crate.** `crate-catalog-coverage` blocks every new
    uncatalogued crate. The row is a `.yaml`, which §3 independently forbids.
 4. **`ci/facade/slo-coverage/tests/slo_coverage.rs:163`, `SLO_CATALOG_CENSUS = 743`** — an equality pin

@@ -7,91 +7,116 @@
 // publish, activate and distribute authorization state. It is NOT the tenant-facing decision
 // schema; that is `iam/adapters/pdp-cedar/cedar/platform.cedarschema` (namespace OyaPlatform),
 // which stays iam-mapped per ADR-0615 §5.
+//
+// MODELLING RULE, learned from an adversarial review of the first draft of this file:
+// authority is carried by ENTITY MEMBERSHIP and ENTITY REFERENCES, never by a string attribute
+// the requesting PEP fills in. A principal's tenant is `principal in resource.owner_tenant`, not
+// `principal.tenant_id == resource.tenant_id`; its role is membership in a `Role`, not
+// `principal.role == "..."`; a policy's author is a `Principal` reference, not an id string.
+// The first draft used strings and declared `in [Tenant]` without ever testing membership, so a
+// principal whose parent was tenant A and whose `tenant_id` attribute said B was authorized
+// against B — and the cross-tenant backstop, reading the same untrusted field, did not fire.
 
 namespace OyaPolicy {
 
   entity Tenant = {
     "tenant_id": String,
+  };
+
+  // A cell. Cell-distribution (ADR-0280 §D-13.D) is only real if something checks it, so a PEP
+  // must be a member of the cell whose snapshot it evaluates.
+  entity Cell = {
     "cell_id": String,
   };
 
+  // RBAC role as a GROUP, not a string. Membership is the grant.
+  entity Role;
+
   // The verified principal the iam capability produces. `policy` consumes it and never mints it.
-  entity Principal in [Tenant] = {
-    "tenant_id": String,
-    "principal_id": String,
-    "role": String,           // tenant-policy-admin | platform-policy-engineer | policy-signer
-                              // | policy-distributor | auditor | pep-workload
-    "step_up_class": String,  // "" | A | B | C
+  // Membership carries tenant, cell and role; only session-scoped facts remain attributes.
+  entity Principal in [Tenant, Role, Cell] = {
+    // Step-up class is a property of THIS session, so it is legitimately an attribute rather than
+    // membership. It is still asserted by the caller — see policy/cedar/README.md for what that
+    // does and does not buy.
+    "step_up_class": String,   // "" | A | B | C
     "spiffe_id": String,
   };
 
-  // A versioned, scoped policy document in the G plane.
-  entity PolicyVersion in [Tenant] = {
-    "tenant_id": String,
-    "policy_id": String,
-    "scope": String,               // "tenant" | "global"
-    "signed": Bool,
-    "author_principal_id": String,
-  };
-
-  // A ReBAC relation tuple (Zanzibar-shaped: object#relation@subject), tenant-scoped.
-  entity RebacTuple in [Tenant] = {
-    "tenant_id": String,
-    "object_type": String,
-    "relation": String,
-  };
-
-  // The C0 face's last-known-good versioned snapshot. `age_seconds` and `is_authoritative` are the
-  // two facts the static-stability invariant (ADR-0280 §D-13.E) turns into a decision.
+  // The C0 face's last-known-good versioned snapshot. Declared BEFORE the entities that reference
+  // it so the reference resolves.
   entity Snapshot in [Tenant] = {
-    "tenant_id": String,
-    "cell_id": String,
+    "owner_tenant": Tenant,
+    "cell": Cell,
     "snapshot_version": String,
     "age_seconds": Long,
     "is_authoritative": Bool,
     "signature_verified": Bool,
   };
 
-  entity DecisionLog in [Tenant] = {
-    "tenant_id": String,
+  // A versioned, scoped policy document in the G plane.
+  entity PolicyVersion in [Tenant] = {
+    "owner_tenant": Tenant,
+    "policy_id": String,
+    "scope": String,           // "tenant" | "global"
+    "signed": Bool,
+    // Entity reference, not an id string: separation of duties must not be defeatable by
+    // registering a second identifier for the same actor.
+    "author": Principal,
   };
+
+  // A ReBAC relation tuple (Zanzibar-shaped: object#relation@subject), tenant-scoped.
+  // `served_from` is what makes a freshness rule possible at all: without it a read request
+  // carries no fact about the snapshot it is answered from except one the caller asserts.
+  entity RebacTuple in [Tenant] = {
+    "owner_tenant": Tenant,
+    "object_type": String,
+    "relation": String,
+    "served_from": Snapshot,
+  };
+
+  entity DecisionLog in [Tenant] = {
+    "owner_tenant": Tenant,
+  };
+
+  // Every action carries `token_age_seconds`: credential freshness is required on MUTATING paths,
+  // not only on the audit read. The first draft bounded only `ReadDecisionLog`.
 
   // ─── G face: authoring, signing, distribution ──────────────────────────────
 
   action AuthorPolicy appliesTo {
     principal: [Principal],
     resource: [PolicyVersion],
-    context: { "now": Long },
+    context: { "now": Long, "token_age_seconds": Long },
   };
 
   action SignPolicy appliesTo {
     principal: [Principal],
     resource: [PolicyVersion],
-    context: { "now": Long },
+    context: { "now": Long, "token_age_seconds": Long },
   };
 
   action PublishPolicy appliesTo {
     principal: [Principal],
     resource: [PolicyVersion],
-    context: { "now": Long },
+    context: { "now": Long, "token_age_seconds": Long },
   };
 
   action ActivatePolicy appliesTo {
     principal: [Principal],
     resource: [PolicyVersion],
-    context: { "now": Long, "soak_elapsed_seconds": Long },
+    context: { "now": Long, "token_age_seconds": Long, "soak_elapsed_seconds": Long },
   };
 
   action WriteRebacTuple appliesTo {
     principal: [Principal],
     resource: [RebacTuple],
-    context: { "now": Long },
+    context: { "now": Long, "token_age_seconds": Long },
   };
 
   action DistributeSnapshot appliesTo {
     principal: [Principal],
     resource: [Snapshot],
-    context: { "now": Long },
+    context: { "now": Long, "token_age_seconds": Long },
   };
 
   // ─── C0 face: runtime read paths, served from the local snapshot ───────────
@@ -99,13 +124,13 @@ namespace OyaPolicy {
   action ReadRebacTuple appliesTo {
     principal: [Principal],
     resource: [RebacTuple],
-    context: { "now": Long, "snapshot_age_seconds": Long, "snapshot_is_authoritative": Bool },
+    context: { "now": Long, "token_age_seconds": Long },
   };
 
   action EvaluateAgainstSnapshot appliesTo {
     principal: [Principal],
     resource: [Snapshot],
-    context: { "now": Long, "max_staleness_seconds": Long },
+    context: { "now": Long, "token_age_seconds": Long, "max_staleness_seconds": Long },
   };
 
   // ─── Audit ────────────────────────────────────────────────────────────────

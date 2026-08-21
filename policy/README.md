@@ -47,9 +47,13 @@ the authoritative shard. It never silently authorizes.**
 
 - `CONTRACT.md` — the C0 snapshot-store port contract: the staleness-bounded, versioned
   last-known-good store that ADR-0280 §D-13.E requires and that no crate in the tree implements yet.
-- `policy/` — Cedar fragments governing this capability's own control surface (who may author, sign,
-  publish, activate, and distribute), plus `schema.cedarschema`.
-- `cedar/policies.cedar` — the consolidated bundle of those fragments.
+- `policy/` — eight Cedar fragments governing this capability's own control surface (who may author,
+  sign, publish, activate and distribute), plus `schema.cedarschema`. Authority is carried by entity
+  membership and entity references, never by a string the caller supplies.
+- `cedar/policies.cedar` — the consolidated bundle; the fragments are closed under concatenation.
+- `cedar/CONFORMANCE.md` — what was measured against the real Cedar engine, and the mutation matrix
+  that shows the suite can fail.
+- `cedar/README.md` — the two authoring rules these fragments follow, and what they do not buy.
 - `runbooks/` — Day-2 procedures for the failure modes the invariant names.
 - `PROMOTION.md` — what this capability still owes, and the exact out-of-envelope edits that unblock
   it. Read this before adding a crate here.

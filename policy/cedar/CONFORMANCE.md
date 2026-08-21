@@ -1,7 +1,7 @@
 ---
 doc_class: Specification
 shape: Specification
-length_cap: 400
+length_cap: 500
 microservice: policy
 related_adrs:
   - ADR-0243
@@ -12,191 +12,335 @@ inbound_citations:
 
 # Cedar conformance — measured, not asserted
 
-Every claim on this page was produced by running the policies in `policy/policy/` against the real
+Every claim here was produced by running the policies in `policy/policy/` against the real
 `cedar-policy` engine at the version the workspace locks (**4.12.0**; root `Cargo.toml` requires
 `"4.11"`, `Cargo.lock` resolves 4.12.0).
 
-The harness runs **out of tree**, in a scratch crate, for a specific reason: this capability may not
-add a workspace member yet (see `PROMOTION.md` — `Cargo.lock` is a hub owned by `integ/build`, and a
-new crate additionally owes a `registry/catalog/*.yaml` row this envelope cannot write). Rather than
-ship an unrunnable claim, the harness source is reproduced in full below. At promotion it becomes the
-test body of `policy/adapters/policy-cedar-conformance`, unchanged.
+The harness runs **out of tree**, in a scratch crate, because this capability may not add a workspace
+member yet (see `PROMOTION.md` §2 — `Cargo.lock` is a hub owned by `integ/build`, and a new crate
+additionally owes a `registry/catalog/*.yaml` row this envelope cannot write). Rather than ship an
+unrunnable claim, the harness source is reproduced in full below; at promotion it becomes the test
+body of `policy/adapters/policy-cedar-conformance`, unchanged.
 
-## 1. Schema and policies validate
+**These fragments are version 2.0.0.** Version 1.0.0 was broken by an adversarial review that found
+six classes of defect — every safety forbid failing open on an absent attribute, tenant binding by
+self-asserted string, a caller-declared staleness bound with no ceiling, global-scope signing
+ungated, ReBAC writes bypassing change control, and credential freshness required only on the audit
+read. All six are closed, and each is now a named regression case below.
+
+## 1. Instrument check first
+
+A passing validator proves nothing until it is shown to work on something known good:
 
 ```
-$ cedarval policy/policy/schema.cedarschema policy/policy/*.cedar
-SCHEMA-OK policy/policy/schema.cedarschema
-VALIDATE-OK policy/policy/auditor-scope.cedar (2 policies)
-VALIDATE-OK policy/policy/authoring-grants.cedar (4 policies)
-VALIDATE-OK policy/policy/change-control.cedar (4 policies)
-VALIDATE-OK policy/policy/cross-tenant-isolation.cedar (1 policies)
-VALIDATE-OK policy/policy/runtime-grants.cedar (3 policies)
-VALIDATE-OK policy/policy/static-stability.cedar (3 policies)
+$ cedarval iam/adapters/pdp-cedar/cedar/platform.cedarschema \
+           iam/adapters/pdp-cedar/cedar/platform-policies.cedar
+SCHEMA-OK   iam/adapters/pdp-cedar/cedar/platform.cedarschema
+VALIDATE-OK iam/adapters/pdp-cedar/cedar/platform-policies.cedar (4 policies)
 exit 0
 ```
 
-Validation is `ValidationMode::Strict` against the schema. The instrument was checked against a known-
-good pair first — `iam/adapters/pdp-cedar/cedar/platform.cedarschema` + `platform-policies.cedar`
-returns `VALIDATE-OK (4 policies)`, exit 0 — so a passing result is not a collector that saw nothing.
+## 2. Strict validation
 
-## 2. The bundle is the concatenation, and decides identically
+```
+SCHEMA-OK policy/policy/schema.cedarschema
+VALIDATE-OK policy/policy/auditor-scope.cedar (1 policies)
+VALIDATE-OK policy/policy/authoring-grants.cedar (6 policies)
+VALIDATE-OK policy/policy/change-control.cedar (7 policies)
+VALIDATE-OK policy/policy/credential-freshness.cedar (1 policies)
+VALIDATE-OK policy/policy/cross-tenant-isolation.cedar (1 policies)
+VALIDATE-OK policy/policy/runtime-attestation.cedar (2 policies)
+VALIDATE-OK policy/policy/runtime-grants.cedar (3 policies)
+VALIDATE-OK policy/policy/static-stability.cedar (5 policies)
+exit 0
+```
 
-`policy/cedar/policies.cedar` is the byte-exact concatenation of the six fragments (17 policies =
-2+4+4+1+3+3) and validates clean. The behavioural suite below runs against **the bundle**, not the
-fragments, so the concatenation property is asserted by every case.
+`policy/cedar/policies.cedar` is the byte-exact concatenation of these fragments and validates clean
+at **26 policies**. The behavioural suite runs against **the bundle**, so consolidation-equivalence
+is asserted by every case rather than claimed.
 
 ## 3. Behavioural suite
 
 ```
-  ok   P2 tenant admin authors own-tenant policy  [red if: drop P2]
-  ok   F1 cross-tenant author refused  [red if: drop F1 cross-tenant forbid]
-  ok   F8 tenant admin cannot touch global scope  [red if: drop F8]
-  ok   P3 step-up-C engineer may author global  [red if: tighten F8 past step-up C]
-  ok   F8 engineer without step-up refused on global  [red if: drop the step_up_class clause in F8]
-  ok   F5 signer cannot sign own authorship  [red if: drop F5 separation of duties]
+  ok   P2 admin authors own-tenant policy  [red if: drop P2]
+  ok   P2a activation after soak  [red if: drop P2a]
+  ok   P3 step-up-C engineer authors global  [red if: tighten F8 past step-up C]
   ok   P4 signer signs another's policy  [red if: drop P4]
-  ok   F6 unsigned policy cannot publish  [red if: drop F6]
-  ok   F7 activation before soak refused  [red if: lower the 60s soak bound in F7]
-  ok   activation after soak allowed  [red if: drop P2's ActivatePolicy]
-  ok   P7 pep reads tuple on fresh snapshot  [red if: drop P7]
-  ok   F2 stale AND non-authoritative read refused  [red if: drop F2]
-  ok   F2 stale BUT authoritative read allowed  [red if: make F2 forbid on staleness alone]
-  ok   F3 snapshot older than caller tolerance refused  [red if: drop F3]
-  ok   evaluate within tolerance allowed  [red if: drop P6]
-  ok   F4 unverified snapshot never evaluates  [red if: drop F4]
-  ok   P8 distributor propagates verified snapshot  [red if: drop P8]
-  ok   F4 distributor cannot propagate unverified  [red if: drop F4's DistributeSnapshot arm]
+  ok   P5 admin writes tuple at step-up C  [red if: drop P5]
+  ok   P6 pep evaluates fresh in-cell snapshot  [red if: drop P6]
+  ok   P7 pep reads tuple from fresh snapshot  [red if: drop P7]
+  ok   P8 distributor propagates verified fresh  [red if: drop P8]
   ok   P1 auditor reads log on fresh token  [red if: drop P1]
-  ok   F9 expired token reads nothing  [red if: raise the 900s bound in F9]
-  ok   default-deny: unlisted role gets nothing  [red if: add a catch-all permit]
-  ok   F1 BACKSTOP: tenant-blind permit is still denied cross-tenant  [red if: drop F1 (this is the ONLY case that reaches it)]
+  ok   stale BUT authoritative tuple read allowed  [red if: make F2 forbid on staleness alone]
+  ok   default-deny: unlisted role/action  [red if: add a catch-all permit]
+  ok   S1a activation with NO soak attribute  [red if: stop mirroring the soak bound into P2a/P3a]
+  ok   S1b evaluate with NO max_staleness attribute  [red if: stop mirroring the staleness bound into P6]
+  ok   S1c author with NO token_age attribute  [red if: stop mirroring token_age into the permits]
+  ok   S2a caller declares i64::MAX tolerance on ancient snapshot  [red if: drop F3b, the absolute ceiling]
+  ok   S2b tuple read from ancient non-authoritative snapshot  [red if: drop F2]
+  ok   S2c distribute ancient non-authoritative snapshot  [red if: drop F3b's DistributeSnapshot arm]
+  ok   S2d evaluate unverified snapshot  [red if: drop F4]
+  ok   S2e tuple read from unverified snapshot  [red if: drop F4b]
+  ok   S2f pep evaluates ANOTHER CELL's snapshot  [red if: drop `principal in resource.cell` from P6]
+  ok   S3 no-step-up signer signs GLOBAL policy  [red if: remove SignPolicy from F8's action list]
+  ok   S4a principal acts on another tenant's resource  [red if: revert F1 to a tenant_id string compare]
+  ok   S4b principal with NO role membership  [red if: revert permits to a principal.role string compare]
+  ok   S4c signer sharing the author's spiffe_id  [red if: drop F5b]
+  ok   S4d signer signs own authorship  [red if: drop F5]
+  ok   S4e junk spiffe_id fails attestation  [red if: weaken the spiffe_id `like` pattern]
+  ok   S5 tuple write with no step-up  [red if: drop F12]
+  ok   S6a author with a 5000s-old token  [red if: drop F10]
+  ok   S6b distribute with a 5000s-old token  [red if: drop F10]
+  ok   F6 unsigned policy cannot publish  [red if: drop F6]
+  ok   F7 activation before soak  [red if: lower the 60s soak bound]
+  ok   F8 tenant admin cannot touch global  [red if: drop F8]
+  ok   F8 engineer without step-up on global  [red if: drop F8's step_up_class clause]
+  ok   F11 unrecognised scope value denied  [red if: drop F11]
+  ok   cross-tenant tuple read denied  [red if: drop F1]
 
-22 passed, 0 failed
+35 passed, 0 failed
 ```
 
-## 4. Mutation coverage — which cases actually reach which fragment
+## 4. Backstop run — every bound is enforced twice
 
-A suite that passes tells you nothing until you show it can fail. Each fragment was dropped from the
-bundle in turn and the suite re-run:
-
-```
-drop auditor-scope.cedar          -> 20 passed, 1 failed
-drop authoring-grants.cedar       -> 17 passed, 4 failed
-drop change-control.cedar         -> 18 passed, 3 failed
-drop cross-tenant-isolation.cedar -> 21 passed, 0 failed     <-- NOT COVERED
-drop runtime-grants.cedar         -> 17 passed, 4 failed
-drop static-stability.cedar       -> 17 passed, 4 failed
-```
-
-**`cross-tenant-isolation.cedar` was not covered by the first 21 cases.** The case named
-"F1 cross-tenant author refused" passed with F1 *removed* — because every permit already binds
-`principal.tenant_id == resource.tenant_id`, so a cross-tenant request is denied by the absence of a
-matching permit, not by F1. The test was measuring default-deny and reporting it as F1.
-
-F1 is a **backstop**: unreachable precisely while the permits are correct. Testing it requires making
-a permit incorrect. Case 22 injects a permit that forgets the tenant bind — the exact authoring
-mistake F1 exists to survive — and asserts the cross-tenant request is still denied:
+Because each bound is written both inside the permit and again in a forbid, the permits alone deny
+these cases and the **forbids are never reached**. A forbid nothing reaches is a forbid nothing
+tests. So this run injects a fixture of deliberately *bound-blind* permits — each omitting a bound
+the shipped permits carry — which is precisely the authoring mistake the forbids exist to survive:
 
 ```cedar
-// test fixture only, never shipped
+// tenant-blind AND token-blind
 permit (principal, action == OyaPolicy::Action::"AuthorPolicy", resource)
-when { principal.role == "tenant-policy-admin" };
+when { principal in OyaPolicy::Role::"tenant-policy-admin" };
+
+// freshness-blind and signature-blind evaluate
+permit (principal, action == OyaPolicy::Action::"EvaluateAgainstSnapshot", resource)
+when { principal in OyaPolicy::Role::"pep-workload" && principal in resource.owner_tenant };
+// ... likewise for ReadRebacTuple and DistributeSnapshot
 ```
 
 ```
-with cross-tenant-isolation.cedar:     ok   F1 BACKSTOP ... -> Deny     22 passed, 0 failed
-without cross-tenant-isolation.cedar:  FAIL F1 BACKSTOP ... want Deny got Allow
+  ok   BACKSTOP F1: tenant-blind permit, cross-tenant author  [red if: drop F1]
+  ok   BACKSTOP F10: token-blind permit, 5000s-old token  [red if: drop F10]
+  ok   BACKSTOP F3b: freshness-blind permit, ancient snapshot  [red if: drop F3b]
+  ok   BACKSTOP F4: signature-blind permit, unverified snapshot  [red if: drop F4]
+  ok   BACKSTOP F2: freshness-blind permit, ancient tuple read  [red if: drop F2]
+  ok   BACKSTOP F4b: signature-blind permit, unverified tuple read  [red if: drop F4b]
+  ok   BACKSTOP F3b: freshness-blind permit, ancient distribute  [red if: drop F3b's DistributeSnapshot arm]
+42 passed, 0 failed
 ```
 
-Every fragment now has at least one case that turns red when it is dropped.
+All 42 pass **with the bound-blind permits present**. That is the property worth stating plainly:
+every safety bound in this bundle survives a permit that forgets it.
 
-## 5. Harness source
+## 5. Mutation coverage
 
-Reproduce with `cedar-policy = "4.12"` and `serde_json = "1"`. `conform.rs`:
+A suite that passes tells you nothing until you show it can fail. Each fragment was dropped from the
+bundle in turn, in both runs:
+
+| fragment dropped | plain run | with bound-blind fixture |
+|---|---|---|
+| `auditor-scope.cedar` | 34/1 **fail** | 41/1 **fail** |
+| `authoring-grants.cedar` | 30/5 **fail** | 38/4 **fail** |
+| `change-control.cedar` | 31/4 **fail** | 36/6 **fail** |
+| `credential-freshness.cedar` | 35/0 — | 38/4 **fail** |
+| `cross-tenant-isolation.cedar` | 35/0 — | 40/2 **fail** |
+| `runtime-attestation.cedar` | 35/0 — | 40/2 **fail** |
+| `runtime-grants.cedar` | 31/4 **fail** | 42/0 — |
+| `static-stability.cedar` | 35/0 — | 31/11 **fail** |
+
+Every fragment is covered by at least one run, and the split is the design showing through: the
+plain run exercises the **permits**, the fixture run exercises the **forbids**. `runtime-grants`
+shows no failures in the fixture run only because the fixture supplies replacement permits for those
+same three actions; the plain run covers it.
+
+**This matrix has already caught two real defects in these tests.** In v1.0.0,
+`cross-tenant-isolation.cedar` was covered by *nothing*: its test passed with the fragment removed,
+because every permit already bound the tenant, so the case was measuring default-deny and reporting
+it as F1. In v2.0.0 the same reading showed four fragments uncovered, which is what motivated the
+fixture run — and building it exposed a genuine gap (four bounds enforced only inside permits, with
+no forbid at all), closed by `runtime-attestation.cedar` and the `has`-guarded forbids.
+
+## 6. Harness source
+
+Reproduce with `cedar-policy = "4.12"` and `serde_json = "1"`. Note `Context::from_json_value(ctx,
+None)` and `Request::new(..., None)`: the schema is deliberately **not** passed, so omitted context
+attributes stay omitted. That is the precondition for the `S1` cases, and passing the schema would
+silently paper over the failure mode they exist to catch.
+
+`conform.rs`:
 
 ```rust
+// Conformance + attack-regression suite for the policy capability Cedar bundle.
+// argv: <schema> <policies> [extra-policies]
 use cedar_policy::{Authorizer, Context, Decision, Entities, EntityUid, PolicySet, Request, Schema};
-use serde_json::json;
+use serde_json::{json, Value};
 use std::{fs, str::FromStr};
 
 fn uid(s: &str) -> EntityUid { EntityUid::from_str(s).expect("uid") }
+fn ent(t: &str, i: &str) -> Value { json!({"type": format!("OyaPolicy::{t}"), "id": i}) }
+fn eref(t: &str, i: &str) -> Value { json!({"__entity": ent(t, i)}) }
+
+fn principal(id: &str, tenant: &str, role: &str, cell: &str, step: &str, spiffe: &str) -> Value {
+    json!({"uid": ent("Principal", id),
+           "attrs": {"step_up_class": step, "spiffe_id": spiffe},
+           "parents": [ent("Tenant", tenant), ent("Role", role), ent("Cell", cell)]})
+}
+fn snapshot(id: &str, tenant: &str, cell: &str, age: i64, auth: bool, sig: bool) -> Value {
+    json!({"uid": ent("Snapshot", id),
+           "attrs": {"owner_tenant": eref("Tenant", tenant), "cell": eref("Cell", cell),
+                     "snapshot_version": "v1", "age_seconds": age,
+                     "is_authoritative": auth, "signature_verified": sig},
+           "parents": [ent("Tenant", tenant)]})
+}
+fn pv(id: &str, tenant: &str, scope: &str, signed: bool, author: &str) -> Value {
+    json!({"uid": ent("PolicyVersion", id),
+           "attrs": {"owner_tenant": eref("Tenant", tenant), "policy_id": "p1", "scope": scope,
+                     "signed": signed, "author": eref("Principal", author)},
+           "parents": [ent("Tenant", tenant)]})
+}
+fn tuple(id: &str, tenant: &str, snap: &str) -> Value {
+    json!({"uid": ent("RebacTuple", id),
+           "attrs": {"owner_tenant": eref("Tenant", tenant), "object_type": "doc",
+                     "relation": "viewer", "served_from": eref("Snapshot", snap)},
+           "parents": [ent("Tenant", tenant)]})
+}
 
 fn main() -> std::process::ExitCode {
-    let schema_src = fs::read_to_string(std::env::args().nth(1).unwrap()).unwrap();
-    let (schema, _) = Schema::from_cedarschema_str(&schema_src).unwrap();
-    let mut src = fs::read_to_string(std::env::args().nth(2).unwrap()).unwrap();
-    let backstop = std::env::args().nth(3).is_some();
-    if let Some(extra) = std::env::args().nth(3) { src.push('\n'); src.push_str(&fs::read_to_string(extra).unwrap()); }
+    let a: Vec<String> = std::env::args().collect();
+    let (schema, _) = Schema::from_cedarschema_str(&fs::read_to_string(&a[1]).unwrap()).unwrap();
+    let mut src = fs::read_to_string(&a[2]).unwrap();
+    let backstop = a.len() > 3;
+    if backstop { src.push('\n'); src.push_str(&fs::read_to_string(&a[3]).unwrap()); }
     let ps: PolicySet = src.parse().unwrap();
 
-    let ents = json!([
-      {"uid":{"type":"OyaPolicy::Tenant","id":"t1"},"attrs":{"tenant_id":"t1","cell_id":"c1"},"parents":[]},
-      {"uid":{"type":"OyaPolicy::Tenant","id":"t2"},"attrs":{"tenant_id":"t2","cell_id":"c1"},"parents":[]},
-      {"uid":{"type":"OyaPolicy::Principal","id":"admin1"},"attrs":{"tenant_id":"t1","principal_id":"admin1","role":"tenant-policy-admin","step_up_class":"","spiffe_id":"spiffe://o/a1"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Principal","id":"eng_c"},"attrs":{"tenant_id":"t1","principal_id":"eng_c","role":"platform-policy-engineer","step_up_class":"C","spiffe_id":"spiffe://o/e"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Principal","id":"eng_none"},"attrs":{"tenant_id":"t1","principal_id":"eng_none","role":"platform-policy-engineer","step_up_class":"","spiffe_id":"spiffe://o/e2"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Principal","id":"signer1"},"attrs":{"tenant_id":"t1","principal_id":"signer1","role":"policy-signer","step_up_class":"","spiffe_id":"spiffe://o/s"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Principal","id":"pep1"},"attrs":{"tenant_id":"t1","principal_id":"pep1","role":"pep-workload","step_up_class":"","spiffe_id":"spiffe://o/p"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Principal","id":"dist1"},"attrs":{"tenant_id":"t1","principal_id":"dist1","role":"policy-distributor","step_up_class":"","spiffe_id":"spiffe://o/d"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Principal","id":"aud1"},"attrs":{"tenant_id":"t1","principal_id":"aud1","role":"auditor","step_up_class":"","spiffe_id":"spiffe://o/au"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::PolicyVersion","id":"pv_t1"},"attrs":{"tenant_id":"t1","policy_id":"p1","scope":"tenant","signed":true,"author_principal_id":"admin1"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::PolicyVersion","id":"pv_t1_unsigned"},"attrs":{"tenant_id":"t1","policy_id":"p1","scope":"tenant","signed":false,"author_principal_id":"admin1"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::PolicyVersion","id":"pv_t2"},"attrs":{"tenant_id":"t2","policy_id":"p1","scope":"tenant","signed":true,"author_principal_id":"other"},"parents":[{"type":"OyaPolicy::Tenant","id":"t2"}]},
-      {"uid":{"type":"OyaPolicy::PolicyVersion","id":"pv_global"},"attrs":{"tenant_id":"t1","policy_id":"pg","scope":"global","signed":true,"author_principal_id":"other"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::PolicyVersion","id":"pv_selfauthored"},"attrs":{"tenant_id":"t1","policy_id":"ps","scope":"tenant","signed":true,"author_principal_id":"signer1"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::RebacTuple","id":"rt1"},"attrs":{"tenant_id":"t1","object_type":"doc","relation":"viewer"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Snapshot","id":"snap_ok"},"attrs":{"tenant_id":"t1","cell_id":"c1","snapshot_version":"v9","age_seconds":10,"is_authoritative":true,"signature_verified":true},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Snapshot","id":"snap_old"},"attrs":{"tenant_id":"t1","cell_id":"c1","snapshot_version":"v1","age_seconds":900,"is_authoritative":false,"signature_verified":true},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::Snapshot","id":"snap_unverified"},"attrs":{"tenant_id":"t1","cell_id":"c1","snapshot_version":"v9","age_seconds":10,"is_authoritative":true,"signature_verified":false},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]},
-      {"uid":{"type":"OyaPolicy::DecisionLog","id":"log1"},"attrs":{"tenant_id":"t1"},"parents":[{"type":"OyaPolicy::Tenant","id":"t1"}]}
-    ]);
-    let entities = Entities::from_json_value(ents, Some(&schema)).expect("entities");
-
-    // (name, principal, action, resource, context, expected, what-turns-it-red)
-    let cases: Vec<(&str,&str,&str,&str,serde_json::Value,Decision,&str)> = vec![
-      ("P2 tenant admin authors own-tenant policy","admin1","AuthorPolicy","pv_t1",json!({"now":0}),Decision::Allow,"drop P2"),
-      ("F1 cross-tenant author refused","admin1","AuthorPolicy","pv_t2",json!({"now":0}),Decision::Deny,"drop F1 cross-tenant forbid"),
-      ("F8 tenant admin cannot touch global scope","admin1","AuthorPolicy","pv_global",json!({"now":0}),Decision::Deny,"drop F8"),
-      ("P3 step-up-C engineer may author global","eng_c","AuthorPolicy","pv_global",json!({"now":0}),Decision::Allow,"tighten F8 past step-up C"),
-      ("F8 engineer without step-up refused on global","eng_none","AuthorPolicy","pv_global",json!({"now":0}),Decision::Deny,"drop the step_up_class clause in F8"),
-      ("F5 signer cannot sign own authorship","signer1","SignPolicy","pv_selfauthored",json!({"now":0}),Decision::Deny,"drop F5 separation of duties"),
-      ("P4 signer signs another's policy","signer1","SignPolicy","pv_t1",json!({"now":0}),Decision::Allow,"drop P4"),
-      ("F6 unsigned policy cannot publish","admin1","PublishPolicy","pv_t1_unsigned",json!({"now":0}),Decision::Deny,"drop F6"),
-      ("F7 activation before soak refused","admin1","ActivatePolicy","pv_t1",json!({"now":0,"soak_elapsed_seconds":30}),Decision::Deny,"lower the 60s soak bound in F7"),
-      ("activation after soak allowed","admin1","ActivatePolicy","pv_t1",json!({"now":0,"soak_elapsed_seconds":120}),Decision::Allow,"drop P2's ActivatePolicy"),
-      ("P7 pep reads tuple on fresh snapshot","pep1","ReadRebacTuple","rt1",json!({"now":0,"snapshot_age_seconds":10,"snapshot_is_authoritative":false}),Decision::Allow,"drop P7"),
-      ("F2 stale AND non-authoritative read refused","pep1","ReadRebacTuple","rt1",json!({"now":0,"snapshot_age_seconds":900,"snapshot_is_authoritative":false}),Decision::Deny,"drop F2"),
-      ("F2 stale BUT authoritative read allowed","pep1","ReadRebacTuple","rt1",json!({"now":0,"snapshot_age_seconds":900,"snapshot_is_authoritative":true}),Decision::Allow,"make F2 forbid on staleness alone"),
-      ("F3 snapshot older than caller tolerance refused","pep1","EvaluateAgainstSnapshot","snap_old",json!({"now":0,"max_staleness_seconds":300}),Decision::Deny,"drop F3"),
-      ("evaluate within tolerance allowed","pep1","EvaluateAgainstSnapshot","snap_ok",json!({"now":0,"max_staleness_seconds":300}),Decision::Allow,"drop P6"),
-      ("F4 unverified snapshot never evaluates","pep1","EvaluateAgainstSnapshot","snap_unverified",json!({"now":0,"max_staleness_seconds":300}),Decision::Deny,"drop F4"),
-      ("P8 distributor propagates verified snapshot","dist1","DistributeSnapshot","snap_ok",json!({"now":0}),Decision::Allow,"drop P8"),
-      ("F4 distributor cannot propagate unverified","dist1","DistributeSnapshot","snap_unverified",json!({"now":0}),Decision::Deny,"drop F4's DistributeSnapshot arm"),
-      ("P1 auditor reads log on fresh token","aud1","ReadDecisionLog","log1",json!({"now":0,"token_age_seconds":60}),Decision::Allow,"drop P1"),
-      ("F9 expired token reads nothing","aud1","ReadDecisionLog","log1",json!({"now":0,"token_age_seconds":1200}),Decision::Deny,"raise the 900s bound in F9"),
-      ("default-deny: unlisted role gets nothing","dist1","AuthorPolicy","pv_t1",json!({"now":0}),Decision::Deny,"add a catch-all permit"),
+    let mut e = vec![
+        json!({"uid": ent("Tenant","t1"), "attrs": {"tenant_id":"t1"}, "parents": []}),
+        json!({"uid": ent("Tenant","t2"), "attrs": {"tenant_id":"t2"}, "parents": []}),
+        json!({"uid": ent("Cell","c1"), "attrs": {"cell_id":"c1"}, "parents": []}),
+        json!({"uid": ent("Cell","c99"), "attrs": {"cell_id":"c99"}, "parents": []}),
+        json!({"uid": ent("DecisionLog","log1"), "attrs": {"owner_tenant": eref("Tenant","t1")}, "parents": [ent("Tenant","t1")]}),
     ];
-    let mut cases = cases;
+    for r in ["tenant-policy-admin","platform-policy-engineer","policy-signer","policy-distributor","auditor","pep-workload"] {
+        e.push(json!({"uid": ent("Role", r), "attrs": {}, "parents": []}));
+    }
+    e.push(principal("admin1","t1","tenant-policy-admin","c1","C","spiffe://oyatie/a1"));
+    e.push(principal("admin_nostep","t1","tenant-policy-admin","c1","","spiffe://oyatie/a2"));
+    e.push(principal("eng_c","t1","platform-policy-engineer","c1","C","spiffe://oyatie/e1"));
+    e.push(principal("eng_none","t1","platform-policy-engineer","c1","","spiffe://oyatie/e2"));
+    e.push(principal("signer1","t1","policy-signer","c1","C","spiffe://oyatie/s1"));
+    e.push(principal("signer_same_spiffe","t1","policy-signer","c1","C","spiffe://oyatie/a1"));
+    e.push(principal("dist1","t1","policy-distributor","c1","C","spiffe://oyatie/d1"));
+    e.push(principal("aud1","t1","auditor","c1","","spiffe://oyatie/au1"));
+    e.push(principal("pep1","t1","pep-workload","c1","","spiffe://oyatie/p1"));
+    e.push(principal("pep_c99","t1","pep-workload","c99","","spiffe://oyatie/p2"));
+    e.push(principal("pep_junk","t1","pep-workload","c1","","  "));
+    // S4: parent tenant t1, but every check is membership now, so it can never reach t2.
+    e.push(principal("spoofer","t1","tenant-policy-admin","c1","C","spiffe://oyatie/sp"));
+    // no Role parent at all
+    e.push(json!({"uid": ent("Principal","roleless"), "attrs": {"step_up_class":"C","spiffe_id":"spiffe://oyatie/r"},
+                  "parents": [ent("Tenant","t1"), ent("Cell","c1")]}));
+    e.push(pv("pv_t1","t1","tenant",true,"admin1"));
+    e.push(pv("pv_t1_unsigned","t1","tenant",false,"admin1"));
+    e.push(pv("pv_t2","t2","tenant",true,"admin1"));
+    e.push(pv("pv_global","t1","global",true,"eng_c"));
+    e.push(pv("pv_global_unsigned","t1","global",false,"eng_c"));
+    e.push(pv("pv_selfauthored","t1","tenant",true,"signer1"));
+    e.push(pv("pv_badscope","t1","GLOBAL",true,"admin1"));
+    e.push(snapshot("snap_ok","t1","c1",10,true,true));
+    e.push(snapshot("snap_old","t1","c1",900,false,true));
+    e.push(snapshot("snap_old_auth","t1","c1",900,true,true));
+    e.push(snapshot("snap_ancient","t1","c1",2_592_000,false,true));
+    e.push(snapshot("snap_unverified","t1","c1",10,true,false));
+    e.push(snapshot("snap_c99","t1","c99",10,true,true));
+    e.push(tuple("rt_fresh","t1","snap_ok"));
+    e.push(tuple("rt_stale","t1","snap_old"));
+    e.push(tuple("rt_stale_auth","t1","snap_old_auth"));
+    e.push(tuple("rt_unverified","t1","snap_unverified"));
+    e.push(tuple("rt_t2","t2","snap_ok"));
+    let entities = Entities::from_json_value(Value::Array(e), Some(&schema)).expect("entities");
+
+    let t = |extra: Value| -> Value {
+        let mut m = json!({"now":0,"token_age_seconds":60});
+        if let (Some(o), Some(x)) = (m.as_object_mut(), extra.as_object()) {
+            for (k,v) in x { o.insert(k.clone(), v.clone()); } }
+        m
+    };
+    type C<'a> = (&'a str,&'a str,&'a str,&'a str,Value,Decision,&'a str);
+    let mut cases: Vec<C> = vec![
+      // ── baseline behaviour ──
+      ("P2 admin authors own-tenant policy","admin1","AuthorPolicy","pv_t1",t(json!({})),Decision::Allow,"drop P2"),
+      ("P2a activation after soak","admin1","ActivatePolicy","pv_t1",t(json!({"soak_elapsed_seconds":120})),Decision::Allow,"drop P2a"),
+      ("P3 step-up-C engineer authors global","eng_c","AuthorPolicy","pv_global",t(json!({})),Decision::Allow,"tighten F8 past step-up C"),
+      ("P4 signer signs another's policy","signer1","SignPolicy","pv_t1",t(json!({})),Decision::Allow,"drop P4"),
+      ("P5 admin writes tuple at step-up C","admin1","WriteRebacTuple","rt_fresh",t(json!({})),Decision::Allow,"drop P5"),
+      ("P6 pep evaluates fresh in-cell snapshot","pep1","EvaluateAgainstSnapshot","snap_ok",t(json!({"max_staleness_seconds":300})),Decision::Allow,"drop P6"),
+      ("P7 pep reads tuple from fresh snapshot","pep1","ReadRebacTuple","rt_fresh",t(json!({})),Decision::Allow,"drop P7"),
+      ("P8 distributor propagates verified fresh","dist1","DistributeSnapshot","snap_ok",t(json!({})),Decision::Allow,"drop P8"),
+      ("P1 auditor reads log on fresh token","aud1","ReadDecisionLog","log1",t(json!({})),Decision::Allow,"drop P1"),
+      ("stale BUT authoritative tuple read allowed","pep1","ReadRebacTuple","rt_stale_auth",t(json!({})),Decision::Allow,"make F2 forbid on staleness alone"),
+      ("default-deny: unlisted role/action","dist1","AuthorPolicy","pv_t1",t(json!({})),Decision::Deny,"add a catch-all permit"),
+      // ── S1: forbids must not fail open on an absent context attribute ──
+      ("S1a activation with NO soak attribute","admin1","ActivatePolicy","pv_t1",json!({"now":0,"token_age_seconds":60}),Decision::Deny,"stop mirroring the soak bound into P2a/P3a"),
+      ("S1b evaluate with NO max_staleness attribute","pep1","EvaluateAgainstSnapshot","snap_ok",json!({"now":0,"token_age_seconds":60}),Decision::Deny,"stop mirroring the staleness bound into P6"),
+      ("S1c author with NO token_age attribute","admin1","AuthorPolicy","pv_t1",json!({"now":0}),Decision::Deny,"stop mirroring token_age into the permits"),
+      // ── S2: the static-stability invariant ──
+      ("S2a caller declares i64::MAX tolerance on ancient snapshot","pep1","EvaluateAgainstSnapshot","snap_ancient",t(json!({"max_staleness_seconds":9223372036854775807i64})),Decision::Deny,"drop F3b, the absolute ceiling"),
+      ("S2b tuple read from ancient non-authoritative snapshot","pep1","ReadRebacTuple","rt_stale",t(json!({})),Decision::Deny,"drop F2"),
+      ("S2c distribute ancient non-authoritative snapshot","dist1","DistributeSnapshot","snap_ancient",t(json!({})),Decision::Deny,"drop F3b's DistributeSnapshot arm"),
+      ("S2d evaluate unverified snapshot","pep1","EvaluateAgainstSnapshot","snap_unverified",t(json!({"max_staleness_seconds":300})),Decision::Deny,"drop F4"),
+      ("S2e tuple read from unverified snapshot","pep1","ReadRebacTuple","rt_unverified",t(json!({})),Decision::Deny,"drop F4b"),
+      ("S2f pep evaluates ANOTHER CELL's snapshot","pep_c99","EvaluateAgainstSnapshot","snap_ok",t(json!({"max_staleness_seconds":300})),Decision::Deny,"drop `principal in resource.cell` from P6"),
+      // ── S3: global-scope signing ──
+      ("S3 no-step-up signer signs GLOBAL policy","signer1","SignPolicy","pv_global_unsigned",t(json!({})),Decision::Deny,"remove SignPolicy from F8's action list"),
+      // ── S4: authority by membership, not by string ──
+      ("S4a principal acts on another tenant's resource","spoofer","AuthorPolicy","pv_t2",t(json!({})),Decision::Deny,"revert F1 to a tenant_id string compare"),
+      ("S4b principal with NO role membership","roleless","AuthorPolicy","pv_t1",t(json!({})),Decision::Deny,"revert permits to a principal.role string compare"),
+      ("S4c signer sharing the author's spiffe_id","signer_same_spiffe","SignPolicy","pv_t1",t(json!({})),Decision::Deny,"drop F5b"),
+      ("S4d signer signs own authorship","signer1","SignPolicy","pv_selfauthored",t(json!({})),Decision::Deny,"drop F5"),
+      ("S4e junk spiffe_id fails attestation","pep_junk","EvaluateAgainstSnapshot","snap_ok",t(json!({"max_staleness_seconds":300})),Decision::Deny,"weaken the spiffe_id `like` pattern"),
+      // ── S5: tuple writes are governed ──
+      ("S5 tuple write with no step-up","admin_nostep","WriteRebacTuple","rt_fresh",t(json!({})),Decision::Deny,"drop F12"),
+      // ── S6: credential freshness on mutating paths ──
+      ("S6a author with a 5000s-old token","admin1","AuthorPolicy","pv_t1",t(json!({"token_age_seconds":5000})),Decision::Deny,"drop F10"),
+      ("S6b distribute with a 5000s-old token","dist1","DistributeSnapshot","snap_ok",t(json!({"token_age_seconds":5000})),Decision::Deny,"drop F10"),
+      // ── misc ──
+      ("F6 unsigned policy cannot publish","admin1","PublishPolicy","pv_t1_unsigned",t(json!({})),Decision::Deny,"drop F6"),
+      ("F7 activation before soak","admin1","ActivatePolicy","pv_t1",t(json!({"soak_elapsed_seconds":30})),Decision::Deny,"lower the 60s soak bound"),
+      ("F8 tenant admin cannot touch global","admin1","AuthorPolicy","pv_global",t(json!({})),Decision::Deny,"drop F8"),
+      ("F8 engineer without step-up on global","eng_none","AuthorPolicy","pv_global",t(json!({})),Decision::Deny,"drop F8's step_up_class clause"),
+      ("F11 unrecognised scope value denied","admin1","AuthorPolicy","pv_badscope",t(json!({})),Decision::Deny,"drop F11"),
+      ("cross-tenant tuple read denied","pep1","ReadRebacTuple","rt_t2",t(json!({})),Decision::Deny,"drop F1"),
+    ];
     if backstop {
-        // F1 is a BACKSTOP: unreachable while every permit binds the tenant. This case injects a
-        // permit that FORGETS the tenant bind — the exact authoring mistake F1 exists to survive —
-        // and asserts the cross-tenant request is still denied. Drop F1 and this flips to Allow.
-        cases.push(("F1 BACKSTOP: tenant-blind permit is still denied cross-tenant",
-                    "admin1","AuthorPolicy","pv_t2",json!({"now":0}),Decision::Deny,
-                    "drop F1 (this is the ONLY case that reaches it)"));
+        // BACKSTOP CASES. Every bound is enforced twice: once inside the permit (so an absent
+        // attribute denies) and once in a forbid (so a permit that FORGETS the bound is survivable).
+        // The permits alone make the forbids unreachable, so these cases inject deliberately
+        // bound-blind permits — the exact authoring mistakes the forbids exist for — and assert the
+        // request is still denied. Each is the ONLY case that reaches its forbid.
+        cases.extend(vec![
+          ("BACKSTOP F1: tenant-blind permit, cross-tenant author","spoofer","AuthorPolicy","pv_t2",t(json!({})),Decision::Deny,"drop F1"),
+          ("BACKSTOP F10: token-blind permit, 5000s-old token","admin1","AuthorPolicy","pv_t1",t(json!({"token_age_seconds":5000})),Decision::Deny,"drop F10"),
+          ("BACKSTOP F3b: freshness-blind permit, ancient snapshot","pep1","EvaluateAgainstSnapshot","snap_ancient",t(json!({"max_staleness_seconds":9223372036854775807i64})),Decision::Deny,"drop F3b"),
+          ("BACKSTOP F4: signature-blind permit, unverified snapshot","pep1","EvaluateAgainstSnapshot","snap_unverified",t(json!({"max_staleness_seconds":300})),Decision::Deny,"drop F4"),
+          ("BACKSTOP F2: freshness-blind permit, ancient tuple read","pep1","ReadRebacTuple","rt_stale",t(json!({})),Decision::Deny,"drop F2"),
+          ("BACKSTOP F4b: signature-blind permit, unverified tuple read","pep1","ReadRebacTuple","rt_unverified",t(json!({})),Decision::Deny,"drop F4b"),
+          ("BACKSTOP F3b: freshness-blind permit, ancient distribute","dist1","DistributeSnapshot","snap_ancient",t(json!({})),Decision::Deny,"drop F3b's DistributeSnapshot arm"),
+        ]);
     }
 
     let auth = Authorizer::new();
     let (mut pass, mut fail) = (0, 0);
-    for (name, p, a, r, ctx, want, red) in cases {
-        let action = uid(&format!(r#"OyaPolicy::Action::"{a}""#));
-        let rtype = match a { "AuthorPolicy"|"SignPolicy"|"PublishPolicy"|"ActivatePolicy" => "PolicyVersion",
+    for (name, p, act, r, ctx, want, red) in cases {
+        let action = uid(&format!(r#"OyaPolicy::Action::"{act}""#));
+        let rtype = match act { "AuthorPolicy"|"SignPolicy"|"PublishPolicy"|"ActivatePolicy" => "PolicyVersion",
             "WriteRebacTuple"|"ReadRebacTuple" => "RebacTuple",
             "DistributeSnapshot"|"EvaluateAgainstSnapshot" => "Snapshot", _ => "DecisionLog" };
-        let context = Context::from_json_value(ctx, Some((&schema, &action))).expect("ctx");
-        let req = Request::new(uid(&format!(r#"OyaPolicy::Principal::"{p}""#)), action.clone(),
-                               uid(&format!(r#"OyaPolicy::{rtype}::"{r}""#)), context, Some(&schema)).expect("req");
+        // Context deliberately built WITHOUT the schema so absent attributes stay absent — that is
+        // the S1 precondition and the whole point of those cases.
+        let context = Context::from_json_value(ctx, None).expect("ctx");
+        let req = Request::new(uid(&format!(r#"OyaPolicy::Principal::"{p}""#)), action,
+                               uid(&format!(r#"OyaPolicy::{rtype}::"{r}""#)), context, None).expect("req");
         let got = auth.is_authorized(&req, &ps, &entities).decision();
         if got == want { pass += 1; println!("  ok   {name}  [red if: {red}]"); }
         else { fail += 1; println!("  FAIL {name}: want {want:?} got {got:?}"); }
@@ -206,7 +350,7 @@ fn main() -> std::process::ExitCode {
 }
 ```
 
-And the validator used in §1, `cedarval.rs`:
+The validator used in §1 and §2, `cedarval.rs`:
 
 ```rust
 use cedar_policy::{PolicySet, Schema, Validator, ValidationMode};
