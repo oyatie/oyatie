@@ -50,6 +50,7 @@ pub const KNOWN_FLAGS: &[&str] = &[
 /// The closed attribute-key vocabulary, closed for the same reason as the flags.
 pub const KNOWN_ATTR_KEYS: &[&str] = &[
     ATTR_BUNDLE,
+    ATTR_DEFAULT,
     ATTR_DESTINATION,
     ATTR_CALLEE,
     ATTR_CALLEE_KIND,
@@ -117,6 +118,12 @@ pub const ATTR_RECEIVER: &str = "receiver";
 /// structurally — every type with the embedded method sets has it. The target says that once with a
 /// blanket impl, and a per-type impl beside one is a coherence conflict rather than a redundancy.
 pub const ATTR_BUNDLE: &str = "bundle";
+
+/// That a `select` arm is its `default` — the arm taken when no communication is ready.
+///
+/// Recorded because a select WITH a default never blocks and one without always may, which is the
+/// difference between two programs rather than a detail of one.
+pub const ATTR_DEFAULT: &str = "default";
 
 /// Where a function literal GOES, when that is a position outliving its enclosing frame.
 ///

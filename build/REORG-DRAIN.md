@@ -7140,3 +7140,40 @@ does not only add code, it EXPOSES code that was already wrong.
 
 The front end classifies a package-scope variable distinctly from a local, so the fix reads that
 classification rather than guessing — and a local shadowing the name keeps its own casing.
+
+## R4s — the concurrency trio becomes visible, and says what it is waiting on
+
+Until now the front end did not model Go's concurrency at all. `go`, `select` and `ch <- v` reached
+the model as `unsupported`, which meant the survey could not name them and no rule could be written
+against them however good the analysis was. They are modelled now: 14 goroutines, 21 selects, 20
+sends, 44 select arms across the corpus.
+
+The `default` arm is recorded distinctly, because a select WITH one never blocks and one without
+always may — two programs, not a detail of one. A goroutine records the CALL it starts rather than
+folding it into whatever the target spawns, because the source evaluates that call's arguments
+before the goroutine begins and folding would lose the ordering.
+
+`go` is also a DESTINATION, the second one the engine can see. A literal a goroutine starts outlives
+the frame that wrote it exactly as a returned one does, and more strictly: a return needs its
+captures OWNED, a spawn needs them owned AND sendable. The ownership half of R4m therefore applies
+unchanged, and the sendability is the part still missing.
+
+None of this emits anything, and that is the honest state. What each of the three now does is REFUSE
+BY NAME with what it is waiting on, replacing "source construct `GoStmt` has no translation yet":
+
+- a goroutine waits on COLOUR before it waits on the spawn. The source's goroutine blocks anywhere;
+  the target's task blocks only at an `.await`. So every callee reachable from a spawn that blocks
+  has to become an async function — a property of the whole call graph, not of the statement. A
+  spawn whose body blocks the executor compiles and stalls every other task, which is worse than
+  emitting nothing.
+- a send waits on the pack naming a channel. The source's is multi-producer AND multi-consumer,
+  closable, and unbuffered by default, where a send does not complete until a receiver takes the
+  value. Each target candidate keeps some of that and drops the rest, and which one it becomes
+  decides what the ported program does when a peer is slow.
+- a select waits on two things the shape does not give. The source chooses UNIFORMLY AT RANDOM
+  among ready arms and the target's macro is biased unless told otherwise, which changes which arm
+  starves; and an arm not chosen must not have consumed anything, which holds only for
+  cancellation-safe operations and is a property of each arm's callee.
+
+Both closed vocabularies caught the new kinds and the new attribute before any of this ran, which
+is the fail-closed admission doing its job twice in one change.

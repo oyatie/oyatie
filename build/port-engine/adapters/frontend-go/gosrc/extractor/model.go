@@ -146,6 +146,17 @@ const (
 	kindCapture = "capture"
 	kindBlock   = "block"
 	kindReturn  = "return"
+	// kindGo is a goroutine: `go f(x)`. Its child is the call.
+	kindGo = "go"
+	// kindSend is `ch <- v`. Children are the channel and the value, in that order.
+	kindSend = "send"
+	// kindSelect is `select { case ... }`. Children are its arms.
+	kindSelect = "select"
+	// kindCommClause is one arm of a select: a communication and a body, or just a body when the
+	// arm is `default`.
+	kindCommClause = "comm_clause"
+	// kindComm holds an arm's communicating statement.
+	kindComm = "comm"
 	kindIf      = "if"
 	kindThen    = "then"
 	kindElse    = "else"
@@ -293,9 +304,12 @@ const (
 	// attrDestination names where a function literal GOES, when that is a position outliving the frame
 	// it is written in. Absent when it is not. The value is the destination, not a decision about
 	// ownership: what the target does with it belongs to the transform.
+	attrDefault = "default"
 	attrDestination = "destination"
 	// destinationReturn is the destination of a literal among a `return`'s operands.
 	destinationReturn = "return"
+	// destinationGo is the destination of a literal a goroutine starts.
+	destinationGo = "go"
 	// attrOp is a binary or unary operator, spelled as Go source.
 	attrOp = "op"
 	// attrGoNode names the Go AST node an `unsupported` placeholder stands for, so a refusal can
