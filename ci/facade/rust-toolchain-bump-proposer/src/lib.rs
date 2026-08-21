@@ -14,7 +14,7 @@
 //!   belongs to the workflow step (curl to `https://static.rust-lang.org/dist/channel-rust-stable.toml`).
 //! - **Pin-field surgical editor**: rewrites target the declared pin fields the evaluators
 //!   actually enforce (toolchain `channel`, `oya-deps` `pin`, `rust-version`, JSON toolchain
-//!   keys, Docker ARG/image pins, workflow `toolchain:` lines, `toolchains/` text) plus the
+//!   keys, Docker ARG/image pins, workflow `toolchain:` lines, `build/toolchains/` text) plus the
 //!   explicitly curated current-policy row in `docs/standards/dependency-policy.md`. Active docs
 //!   are rewritten ONLY for `rust:` image refs — never blanket version tokens, so dated
 //!   snapshots and URLs (e.g. `blog.rust-lang.org/.../Rust-1.97.1/`) are never corrupted.
@@ -63,7 +63,7 @@ const ACTIVE_TEXT_PATHS: [&str; 8] = [
     "docs/plans/",
     "docs/standards/",
     "specs/oss-stewardship-registry.json",
-    "toolchains/",
+    "build/toolchains/",
 ];
 
 /// The one managed-file doc whose toolchain row is a declared current-policy pin location
@@ -234,7 +234,7 @@ pub fn latest_is_newer(current: &str, latest: &str) -> Result<bool, ProposerErro
 /// characters are neither digits nor dots, so `1.97.1` inside `1.97.10` or `11.97.1` is never
 /// corrupted, while `1.97.1-stable`, `rust:1.97.1-slim`, `"1.97.1"` and `1.97.1-` all rewrite.
 ///
-/// Used for the `toolchains/` text surface (the freshness evaluator's `explicit_rust_versions`
+/// Used for the `build/toolchains/` text surface (the freshness evaluator's `explicit_rust_versions`
 /// contract) and as the per-line primitive for workflow pin lines.
 pub fn rewrite_version_boundary(text: &str, old: &str, new: &str) -> String {
     if old.is_empty() || old == new {
@@ -573,7 +573,7 @@ fn rewrite_for_path(rel: &str, text: &str, old: &str, new: &str) -> String {
         rewrite_docker_pins(text, old, new)
     } else if rel.starts_with(".github/workflows/") {
         rewrite_workflow_pins(text, old, new)
-    } else if rel.starts_with("toolchains/") {
+    } else if rel.starts_with("build/toolchains/") {
         rewrite_version_boundary(text, old, new)
     } else if rel == DEPENDENCY_POLICY_DOC {
         rewrite_dependency_policy_row(text, old, new)
@@ -642,7 +642,7 @@ fn relevant_to_bump(path: &str) -> bool {
         || path.ends_with("supported-oses.json")
         || is_dockerfile_path(path)
         || path.starts_with(".github/workflows/")
-        || path.starts_with("toolchains/")
+        || path.starts_with("build/toolchains/")
         || active_text_path(path)
 }
 
@@ -672,7 +672,7 @@ fn tracked_paths(repo_root: &Path) -> Option<std::collections::HashSet<String>> 
 }
 
 /// Enumerate the rewrite surface: the same walk the freshness drift evaluator performs, plus the
-/// ADR-0535 gate surfaces (`oya-deps.toml`, `toolchains/BUCK`).
+/// ADR-0535 gate surfaces (`oya-deps.toml`, `build/toolchains/BUCK`).
 ///
 /// RESTRICTED TO TRACKED FILES in a real checkout. The unrestricted walk rewrote anything matching
 /// `relevant_to_bump`, so running this in a non-clean tree silently edited untracked user state —
@@ -1289,7 +1289,7 @@ uses: some/action@v1.97.1
         );
         write(
             &root,
-            "toolchains/BUCK",
+            "build/toolchains/BUCK",
             "# Rust 1.97.1 toolchain\n# ~/.rustup/toolchains/1.97.1-aarch64-apple-darwin/bin\n",
         );
         write(
@@ -1335,8 +1335,8 @@ uses: some/action@v1.97.1
         assert!(read(&root, "oya-deps.toml").contains("pin = \"1.98.0\""));
         assert!(read(&root, "Cargo.toml").contains("rust-version = \"1.98.0\""));
         assert!(read(&root, "Dockerfile.distroless").contains("ARG RUST_VERSION=1.98.0"));
-        assert!(read(&root, "toolchains/BUCK").contains("# Rust 1.98.0 toolchain"));
-        assert!(read(&root, "toolchains/BUCK").contains("1.98.0-aarch64-apple-darwin"));
+        assert!(read(&root, "build/toolchains/BUCK").contains("# Rust 1.98.0 toolchain"));
+        assert!(read(&root, "build/toolchains/BUCK").contains("1.98.0-aarch64-apple-darwin"));
         assert!(
             read(&root, ".github/workflows/oya-ci-required.yml").contains("toolchain: \"1.98.0\"")
         );
@@ -1402,7 +1402,7 @@ uses: some/action@v1.97.1
             "[workspace.package]\nrust-version = \"1.97.1\"\n",
         );
         write(&root, "Dockerfile.distroless", "ARG RUST_VERSION=1.97.1\n");
-        write(&root, "toolchains/BUCK", "# Rust 1.97.1 toolchain\n");
+        write(&root, "build/toolchains/BUCK", "# Rust 1.97.1 toolchain\n");
         write(
             &root,
             "docs/standards/dependency-policy.md",
@@ -1443,7 +1443,7 @@ uses: some/action@v1.97.1
             "[workspace.package]\nrust-version = \"1.97.1\"\n",
         );
         write(&root, "Dockerfile.distroless", "ARG RUST_VERSION=1.98.0\n");
-        write(&root, "toolchains/BUCK", "# Rust 1.98.0 toolchain\n");
+        write(&root, "build/toolchains/BUCK", "# Rust 1.98.0 toolchain\n");
         write(
             &root,
             "docs/standards/dependency-policy.md",
@@ -1544,7 +1544,7 @@ update = "sync-rust-pin"
 reason = "fixture"
 
 [[managed_file]]
-path = "toolchains/BUCK"
+path = "build/toolchains/BUCK"
 role = "buck2-toolchain-comment"
 update = "sync-rust-pin"
 reason = "fixture"
