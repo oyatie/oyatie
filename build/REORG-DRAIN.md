@@ -7838,3 +7838,28 @@ borrow it already has. They are recorded apart now, and only an owned LOCAL take
 binding from the second.
 
     multierror   1 -> 2 translated       chi   50 -> 51
+
+## R5k — a constant is not a call, and it needed its own table
+
+`math.MaxInt64` refused as "reads through package `math`, which this snapshot does not contain".
+The function map could not answer it: a value takes no arguments, it is reached through a SELECTOR
+rather than a callee identity, and the refusal it replaces is a different one. So `value_map` is its
+own seam, shaped exactly like `function_map` beside it.
+
+    math.MaxInt64   i64::MAX          same width, same value, no import
+    math.MinInt64   i64::MIN
+    math.MaxUint64  u64::MAX
+    math.MaxUint32  u32::MAX
+    math.MaxInt32   i32::MAX
+    math.Pi         std::f64::consts::PI   both carry the nearest f64, the same bit pattern
+
+Asked BEFORE the field path, because a selector into a package the model does not have is not a
+field of anything: treating it as one produced `math.max_int_64`, a path into a crate the output
+does not contain. That is the same self-containment defect the package check already refuses, caught
+one step earlier where the pack can answer instead.
+
+Refusals naming a `math` value: 7 -> 2. The two left are values the pack does not name, which is the
+correct answer for a value nobody has decided.
+
+The test pack implements the new seam EMPTY and says why: its fixtures name no foreign package, so a
+pack that answered for one would be answering a question they do not ask.

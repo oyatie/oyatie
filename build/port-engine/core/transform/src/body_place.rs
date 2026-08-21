@@ -105,6 +105,14 @@ pub(crate) fn selector(
     cx: &Body<'_>,
     position: Position,
 ) -> Result<RustExpr, TransformError> {
+    // A VALUE THE PACK NAMES, reached through a package the snapshot does not contain.
+    // `math.MaxInt64` is not a field of anything -- it is a constant of a library that does not come
+    // along -- and the target has its own spelling for the same value. Asked before the field path,
+    // because treating it as a field produces `math.max_int_64`, a path into a crate the output does
+    // not have.
+    if let Some(mapped) = foreign_value(node, cx) {
+        return Ok(RustExpr::Literal(mapped));
+    }
     let field = field_place(node, cx)?;
     if position == Position::Value && moves_on_read(&node.type_ref, cx) {
         return Ok(RustExpr::MethodCall {
@@ -221,4 +229,23 @@ fn newtype_underlying(
 fn wraps_a_local_newtype(source: &Declaration, cx: &Body<'_>) -> bool {
     source.type_ref.kind == "named"
         && cx.resolver.scope.newtypes.contains_key(&source.type_ref.name)
+}
+
+/// The target expression for a value read through a FOREIGN package, when the pack names one.
+///
+/// The base must be a package the snapshot does not contain: a selector into a unit the model has
+/// is an ordinary path, and one into a type is a field. Only the remaining case -- a library that
+/// does not come along -- reaches the pack's table.
+fn foreign_value(node: &Declaration, cx: &Body<'_>) -> Option<String> {
+    let base = node.children.first()?;
+    if base.attr(crate::vocabulary::ATTR_REF) != Some(crate::vocabulary::REF_PACKAGE)
+        || cx.resolver.units.contains(&base.name)
+    {
+        return None;
+    }
+    let mapped = cx
+        .resolver
+        .value_map
+        .get(&format!("{}.{}", base.name, node.name))?;
+    Some(mapped.form.clone())
 }

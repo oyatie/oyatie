@@ -727,6 +727,32 @@
       "reason": "The source answers with a byte offset or -1; the target answers with an optional byte offset. Same search, same units -- both count BYTES rather than characters, which is the thing that usually differs between two languages' index functions -- so only the absent case needs spelling, and -1 is how the source spells it. Kept as the sentinel rather than turned into an option because the call sites are the source's and they compare against -1."
     }
   },
+  "value_map": {
+    "math.MaxInt64": {
+      "form": "i64::MAX",
+      "reason": "The largest value the source's 64-bit signed integer holds, which the target names on the type itself. Same width, same value, and the target's spelling needs no import."
+    },
+    "math.MinInt64": {
+      "form": "i64::MIN",
+      "reason": "The smallest value the source's 64-bit signed integer holds. Named on the type in the target, as its maximum is."
+    },
+    "math.MaxUint64": {
+      "form": "u64::MAX",
+      "reason": "The largest value the source's 64-bit unsigned integer holds, named on the target's type of the same width."
+    },
+    "math.MaxUint32": {
+      "form": "u32::MAX",
+      "reason": "The largest value the source's 32-bit unsigned integer holds."
+    },
+    "math.MaxInt32": {
+      "form": "i32::MAX",
+      "reason": "The largest value the source's 32-bit signed integer holds."
+    },
+    "math.Pi": {
+      "form": "std::f64::consts::PI",
+      "reason": "The circle constant at double precision. Both languages carry the nearest `f64` to it, which is the same bit pattern."
+    }
+  },
   "byte_order_calls": {
     "package": "encoding/binary",
     "orders": {

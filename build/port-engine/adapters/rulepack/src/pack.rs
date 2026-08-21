@@ -39,6 +39,7 @@ pub struct LoadedRulePack {
     pub(crate) display_method_source: String,
     pub(crate) failure_convention: Option<FailureConvention>,
     pub(crate) function_map: BTreeMap<String, FunctionMapping>,
+    pub(crate) value_map: BTreeMap<String, FunctionMapping>,
     pub(crate) format_calls: FormatCalls,
     pub(crate) target_imports: BTreeMap<String, String>,
     pub(crate) unmappable_calls: BTreeMap<String, String>,

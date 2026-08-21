@@ -246,6 +246,20 @@ impl LoadedRulePack {
                     )
                 })
                 .collect(),
+            value_map: doc
+                .value_map
+                .into_iter()
+                .map(|(identity, rule)| {
+                    (
+                        identity,
+                        FunctionMapping {
+                            form: rule.form,
+                            requires_argument: rule.requires_argument,
+                            reason: rule.reason,
+                        },
+                    )
+                })
+                .collect(),
             failure_convention: doc.failure_convention.map(|failure| FailureConvention {
                 source_type: failure.source_type,
                 discards_companion: failure.discards_companion,

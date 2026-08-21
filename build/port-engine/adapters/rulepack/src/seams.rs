@@ -97,6 +97,10 @@ impl PackSemantics for LoadedRulePack {
         &self.function_map
     }
 
+    fn value_map(&self) -> &BTreeMap<String, FunctionMapping> {
+        &self.value_map
+    }
+
     fn failure_convention(&self) -> Option<&FailureConvention> {
         self.failure_convention.as_ref()
     }

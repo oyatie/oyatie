@@ -139,6 +139,13 @@ pub trait PackSemantics {
     /// have. No real package can be ported without this table: every one of them calls its standard
     /// library, and a standard library is exactly the part that does not come along.
     fn function_map(&self) -> &BTreeMap<String, FunctionMapping>;
+    /// Source VALUE identity — `math.MaxInt64`, `math.Pi` — to the target expression that is it.
+    ///
+    /// Its own table rather than a corner of the function map because a value is not a call: it
+    /// takes no arguments, it is reached through a selector rather than a callee identity, and the
+    /// refusal it replaces is a different one. A real package reads its standard library's
+    /// constants as surely as it calls its functions, and the constants do not come along either.
+    fn value_map(&self) -> &BTreeMap<String, FunctionMapping>;
     /// How the pack answers for a call that FORMATS a template.
     ///
     /// Its own seam rather than a corner of the function map, because the mechanism differs: this
