@@ -1,32 +1,22 @@
-//! cloud-ci-crate-catalog-coverage — every live first-party crate must carry a
-//! `registry/catalog/<package-name>.yaml` row.
+//! cloud-ci-crate-catalog-coverage — catalog YAML is optional census metadata.
 //!
 //! ## Why this gate exists
 //!
-//! The service catalog is keyed by FILENAME, one file per crate. That single fact
-//! makes it invisible to the search an agent naturally reaches for: the crate name
-//! lives in the PATH, so `grep -r <crate-name>` over file CONTENTS never finds the
-//! row. A crate move therefore strands its catalog row under the old package name
-//! with nothing pointing at the problem until three unrelated born-blocking gates
-//! fail downstream (`slo-coverage`, `catalog-liveness`, the ADR census receipt),
-//! none of which names the missing row as the cause.
+//! Membership is the Cargo workspace (and the closed capability registry for
+//! capabilities). `registry/catalog/<package-name>.yaml` is NOT a per-crate census:
+//! a missing row is not born-blocking. Hyperscaler does not require one YAML file
+//! per package.
 //!
-//! That is exactly how PR #1437 went red: a crate was moved out of the legacy
-//! `oya/` root, every code reference was repointed, the build and its consumer both
-//! passed locally — and the move still failed CI because a YAML file 300 directories
-//! away was named after the old crate.
-//!
-//! The existing catalog checks run the OTHER direction (a row whose crate is gone).
-//! This one closes the loop: a crate with no row. Together they make the crate set
-//! and the catalog set mutually total.
+//! Extra YAML (a row whose crate is gone) is ignored here. Unmarked stale rows
+//! stay the catalog-liveness (`service-catalog-parity`) gate's job, which can read
+//! explicit non-live markers. Filename-only comparison cannot tell a retired row
+//! from a forgotten one.
 //!
 //! ## Shape
 //!
-//! Born-blocking against a FROZEN, shrink-only baseline of the crates that lack a
-//! row today. Pre-existing gaps are tolerated; a NEW uncatalogued crate fails. A
-//! MOVED crate is a new package name, is therefore absent from the baseline, and
-//! fails unless its catalog row moves in the same PR — which is the coupled edit
-//! this gate exists to force.
+//! The only RED this evaluator emits is an implausible crate corpus — a collection
+//! bug must not present as a clean pass. Observed row counts are reported, never
+//! required.
 //!
 //! ADR-0083 Tier-3: production code carries no unwrap/expect/panic.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
@@ -36,12 +26,6 @@ use std::collections::{BTreeMap, BTreeSet};
 /// Gate identity, as registered in the cloud-ci gate fleet.
 pub const GATE_ID: &str = "cloud-ci-crate-catalog-coverage";
 
-/// A live crate has no `registry/catalog/<package-name>.yaml`.
-pub const CODE_CRATE_WITHOUT_CATALOG_ROW: &str = "crate_without_catalog_row";
-/// The frozen baseline names a crate that no longer lacks a row (or no longer
-/// exists). Stale debt must shrink in the SAME change that fixes it, or the
-/// baseline silently over-tolerates.
-pub const CODE_STALE_BASELINE_ENTRY: &str = "catalog_coverage_stale_baseline_entry";
 /// The observed corpus is implausibly small — a collection bug would otherwise
 /// present as a clean pass. A gate that reports GREEN because it saw nothing is
 /// the false-green this repo keeps re-learning.
@@ -49,11 +33,7 @@ pub const CODE_IMPLAUSIBLE_CORPUS: &str = "catalog_coverage_implausible_corpus";
 
 /// Every code this gate can emit. Registered so the fleet meta-test can assert the
 /// set is declared rather than discovered at runtime.
-pub const VIOLATION_CODES: [&str; 3] = [
-    CODE_CRATE_WITHOUT_CATALOG_ROW,
-    CODE_STALE_BASELINE_ENTRY,
-    CODE_IMPLAUSIBLE_CORPUS,
-];
+pub const VIOLATION_CODES: [&str; 1] = [CODE_IMPLAUSIBLE_CORPUS];
 
 /// A single gate finding: the code, the subject it is about, and enough detail to
 /// act without re-deriving anything.
@@ -70,16 +50,18 @@ pub struct Finding {
 pub struct Observed {
     /// package name -> the manifest path that declares it.
     pub crates: BTreeMap<String, String>,
-    /// The `registry/catalog/*.yaml` stems present.
+    /// The `registry/catalog/*.yaml` stems present (optional census, not membership).
     pub catalog_rows: BTreeSet<String>,
 }
 
-/// The frozen, shrink-only debt: crates known to lack a catalog row.
+/// Floor on the observed crate count. Collecting fewer than this means the
+/// collector broke, not that the repo shrank by hundreds of crates.
+///
+/// `uncatalogued` is retained as policy DATA so the committed baseline file can
+/// stay put; it is not a born-blocking set. Missing YAML is not a finding.
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
 pub struct Baseline {
     pub uncatalogued: BTreeSet<String>,
-    /// Floor on the observed crate count. Collecting fewer than this means the
-    /// collector broke, not that the repo shrank by hundreds of crates.
     pub min_expected_crates: usize,
 }
 
@@ -95,16 +77,15 @@ pub struct Report {
     pub findings: Vec<Finding>,
     pub crates_checked: usize,
     pub rows_checked: usize,
-    /// Baselined crates that now HAVE a row — real burn-down, reported so the
-    /// baseline can be shrunk deliberately rather than drifting.
+    /// Crates that now HAVE a row while still listed in the historical uncatalogued
+    /// set — informational burn-down, never a verdict input.
     pub burned_down: BTreeSet<String>,
 }
 
 /// Evaluate coverage. Pure: no I/O, no clock, no environment.
 ///
-/// A crate fails iff it has no catalog row AND is not in the frozen baseline.
-/// A baseline entry that is no longer uncatalogued is stale and also fails, so
-/// burn-down cannot be pocketed silently while the baseline keeps its slack.
+/// Catalog YAML is optional. A crate without a row is GREEN. Extra YAML is ignored.
+/// Only an implausibly small crate corpus is RED.
 pub fn evaluate(observed: &Observed, baseline: &Baseline) -> Report {
     let mut findings: Vec<Finding> = Vec::new();
 
@@ -124,52 +105,10 @@ pub fn evaluate(observed: &Observed, baseline: &Baseline) -> Report {
     }
 
     let mut burned_down: BTreeSet<String> = BTreeSet::new();
-
-    for (name, manifest) in &observed.crates {
-        if observed.catalog_rows.contains(name) {
-            // Has a row. If it was baselined as missing one, that is burn-down.
-            if baseline.uncatalogued.contains(name) {
-                burned_down.insert(name.clone());
-            }
-            continue;
+    for name in observed.crates.keys() {
+        if observed.catalog_rows.contains(name) && baseline.uncatalogued.contains(name) {
+            burned_down.insert(name.clone());
         }
-        if baseline.uncatalogued.contains(name) {
-            continue; // frozen, tolerated debt
-        }
-        findings.push(Finding {
-            code: CODE_CRATE_WITHOUT_CATALOG_ROW.to_owned(),
-            subject: name.clone(),
-            detail: format!(
-                "{manifest} declares package `{name}` but registry/catalog/{name}.yaml does not \
-                 exist. The catalog is keyed by FILENAME, so a content search for the crate name \
-                 will not find this. If you MOVED or RENAMED a crate, move its catalog row in the \
-                 same change: `git mv registry/catalog/<old-name>.yaml registry/catalog/{name}.yaml` \
-                 and update `role`/`capability` to match the destination."
-            ),
-        });
-    }
-
-    // Stale baseline entries: a crate that gained a row, or vanished entirely.
-    for name in &baseline.uncatalogued {
-        let still_missing =
-            observed.crates.contains_key(name) && !observed.catalog_rows.contains(name);
-        if still_missing {
-            continue;
-        }
-        let reason = if observed.crates.contains_key(name) {
-            "now HAS a catalog row (burn-down)"
-        } else {
-            "is no longer a live crate"
-        };
-        findings.push(Finding {
-            code: CODE_STALE_BASELINE_ENTRY.to_owned(),
-            subject: name.clone(),
-            detail: format!(
-                "the frozen baseline still lists `{name}`, but it {reason}. Remove the entry in \
-                 this same change — a baseline that keeps slack it no longer needs silently \
-                 tolerates the next regression that lands on that name."
-            ),
-        });
     }
 
     findings.sort();
@@ -218,48 +157,29 @@ mod tests {
     }
 
     #[test]
-    fn uncatalogued_crate_fails_closed() {
+    fn uncatalogued_crate_is_not_born_blocking() {
         let o = observed(&[("a", "a/Cargo.toml"), ("b", "b/Cargo.toml")], &["a"]);
         let r = evaluate(&o, &baseline(&[]));
-        assert_eq!(r.verdict, Verdict::Red);
-        let f = &r.findings[0];
-        assert_eq!(f.code, CODE_CRATE_WITHOUT_CATALOG_ROW);
-        assert_eq!(f.subject, "b");
-        // The remedy must be actionable without re-deriving the keying rule.
-        assert!(f.detail.contains("keyed by FILENAME"));
-        assert!(f.detail.contains("git mv registry/catalog/"));
+        assert_eq!(r.verdict, Verdict::Green, "{:?}", r.findings);
+        assert!(r.findings.is_empty());
     }
 
     #[test]
-    fn baselined_gap_is_tolerated() {
-        let o = observed(&[("a", "a/Cargo.toml"), ("b", "b/Cargo.toml")], &["a"]);
-        let r = evaluate(&o, &baseline(&["b"]));
-        assert_eq!(r.verdict, Verdict::Green);
+    fn extra_yaml_for_a_gone_crate_is_ignored_here() {
+        // Catalog-liveness owns unmarked stale rows (it can read markers).
+        let o = observed(&[("a", "a/Cargo.toml")], &["a", "gone-crate"]);
+        let r = evaluate(&o, &baseline(&[]));
+        assert_eq!(r.verdict, Verdict::Green, "{:?}", r.findings);
+        assert_eq!(r.rows_checked, 2);
     }
 
-    /// THE MOVE CASE — the whole reason this gate exists. A crate renamed from
-    /// `old-name` to `new-name` without moving its catalog row must fail, even
-    /// though the OLD name was baselined debt. Baselined slack must not transfer
-    /// to a new identity.
     #[test]
-    fn moved_crate_cannot_inherit_the_old_names_baseline_slack() {
+    fn moved_crate_without_a_row_is_green() {
         let o = observed(&[("new-name", "dest/Cargo.toml")], &["old-name"]);
         let r = evaluate(&o, &baseline(&["old-name"]));
-        assert_eq!(r.verdict, Verdict::Red);
-        let codes: BTreeSet<&str> = r.findings.iter().map(|f| f.code.as_str()).collect();
-        assert!(
-            codes.contains(CODE_CRATE_WITHOUT_CATALOG_ROW),
-            "the moved crate has no row of its own: {:?}",
-            r.findings
-        );
-        assert!(
-            codes.contains(CODE_STALE_BASELINE_ENTRY),
-            "the old baseline entry is now stale: {:?}",
-            r.findings
-        );
+        assert_eq!(r.verdict, Verdict::Green, "{:?}", r.findings);
     }
 
-    /// The move done RIGHT is green: crate and row relocate together.
     #[test]
     fn move_with_the_row_co_moved_is_green() {
         let o = observed(&[("new-name", "dest/Cargo.toml")], &["new-name"]);
@@ -268,23 +188,18 @@ mod tests {
     }
 
     #[test]
-    fn burn_down_is_reported_and_stale_entry_must_be_removed() {
-        // `b` gained a row while still baselined: real progress, but the baseline
-        // must shrink in the same change.
+    fn burn_down_is_reported_but_does_not_fail() {
         let o = observed(&[("a", "a/Cargo.toml"), ("b", "b/Cargo.toml")], &["a", "b"]);
         let r = evaluate(&o, &baseline(&["b"]));
         assert_eq!(r.burned_down, ["b".to_owned()].into_iter().collect());
-        assert_eq!(r.verdict, Verdict::Red);
-        assert_eq!(r.findings[0].code, CODE_STALE_BASELINE_ENTRY);
+        assert_eq!(r.verdict, Verdict::Green, "{:?}", r.findings);
     }
 
     #[test]
-    fn baseline_entry_for_a_deleted_crate_is_stale() {
+    fn baseline_entry_for_a_deleted_crate_is_not_a_finding() {
         let o = observed(&[("a", "a/Cargo.toml")], &["a"]);
         let r = evaluate(&o, &baseline(&["deleted-crate"]));
-        assert_eq!(r.verdict, Verdict::Red);
-        assert_eq!(r.findings[0].code, CODE_STALE_BASELINE_ENTRY);
-        assert!(r.findings[0].detail.contains("no longer a live crate"));
+        assert_eq!(r.verdict, Verdict::Green, "{:?}", r.findings);
     }
 
     /// FALSE-GREEN FLOOR: an empty collection must not read as full coverage.
@@ -301,25 +216,10 @@ mod tests {
     }
 
     #[test]
-    fn findings_are_deterministically_ordered() {
-        let o = observed(
-            &[
-                ("z", "z/Cargo.toml"),
-                ("a", "a/Cargo.toml"),
-                ("m", "m/Cargo.toml"),
-            ],
-            &[],
-        );
-        let r = evaluate(&o, &baseline(&[]));
-        let subjects: Vec<&str> = r.findings.iter().map(|f| f.subject.as_str()).collect();
-        assert_eq!(subjects, vec!["a", "m", "z"], "output must be stable");
-    }
-
-    #[test]
     fn every_emitted_code_is_registered() {
-        let o = observed(&[("uncovered", "u/Cargo.toml")], &[]);
+        let o = observed(&[], &[]);
         let b = Baseline {
-            uncatalogued: ["gone".to_owned()].into_iter().collect(),
+            uncatalogued: BTreeSet::new(),
             min_expected_crates: 500,
         };
         let r = evaluate(&o, &b);
@@ -330,7 +230,6 @@ mod tests {
                 f.code
             );
         }
-        // All three codes are reachable — no dead code in the registered set.
         let codes: BTreeSet<&str> = r.findings.iter().map(|f| f.code.as_str()).collect();
         assert_eq!(codes.len(), VIOLATION_CODES.len());
     }

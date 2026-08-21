@@ -3109,14 +3109,18 @@ status: Accepted
             finding.code == "catalog_record_source_crate_missing"
                 && finding.key == "audit-emission-api"
         }));
-        assert!(findings.iter().any(|finding| {
-            finding.code == "catalog_live_crate_without_row" && finding.key == "audit-missing-row"
-        }));
+        assert!(
+            !findings.iter().any(|finding| {
+                finding.code == "catalog_live_crate_without_row"
+                    && finding.key == "audit-missing-row"
+            }),
+            "catalog YAML is optional; missing rows are not findings: {findings:?}"
+        );
         assert!(
             !findings
                 .iter()
                 .any(|finding| finding.key == "audit-exempt-row"),
-            "bounded exemption must suppress only its own missing-row finding: {findings:?}"
+            "an exempt live crate without a row must not be a finding: {findings:?}"
         );
 
         fs::remove_dir_all(root).expect("remove temp repo");

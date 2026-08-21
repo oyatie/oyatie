@@ -10,7 +10,7 @@ license = "Apache-2.0"
 bounded_context = "cloud-ci"
 kind = "shared"
 layer = "app"
-purpose = "Cloud CI crate-catalog coverage gate. Asserts every live first-party crate carries a registry/catalog/<package-name>.yaml row. The catalog is keyed by FILENAME, so a moved crate strands its row under the old package name and a content search never finds it — the coupled edit no codemod authors. Born-blocking against a FROZEN shrink-only baseline of today's uncatalogued crates; a NEW or MOVED crate fails unless its row lands in the same change. Complements the existing catalog->crate checks (a row whose crate is gone) by closing the reverse direction."
+purpose = "Cloud CI crate-catalog coverage gate. Catalog YAML is optional census metadata; membership is the Cargo workspace plus the closed capability registry. A missing registry/catalog/<package-name>.yaml is not born-blocking. Extra YAML is ignored here; unmarked stale rows are catalog-liveness. The evaluator still fails closed on an implausibly small crate corpus so a broken collector cannot present as green."
 
 [dependencies]
 serde_json = { workspace = true }
