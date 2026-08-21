@@ -123,6 +123,52 @@ pub(crate) fn in_position(
         }
         "closure" => crate::body_closure::closure(node, cx),
         "composite" => composite(node, cx),
+        // `*p`. The target autoderefs a field or a method through a reference, so the source's
+        // explicit dereference survives only where it is the whole expression — reading the
+        // pointee, or naming the place a write lands in.
+        //
+        // Emitted for BOTH, and the two are not equally settled. A write through a pointer copies
+        // nothing in either language, so it is exact. A read COPIES in the source and MOVES in the
+        // target, so the two agree only where the pointee is copyable — and where it is not, the
+        // target refuses to compile rather than doing something else. That is the one direction
+        // this engine can take on trust: a borrow error is loud, and the compile proof over every
+        // corpus package is what reads it.
+        // `x.(T)`, refused with WHICH of two different things is missing.
+        //
+        // Out of the FAILURE type this is a downcast the target has — `downcast_ref::<T>()` gives
+        // exactly the source's comma-ok as an `Option`. Out of a bare interface it is not: the
+        // source's `interface{}` is a value carrying its own type at runtime and the target has no
+        // counterpart, which is the same decision its TYPE already refuses under. Naming both as
+        // "no translation yet" hid that one of them is a rule waiting to be written and the other
+        // is waiting on a decision that has already been made the other way.
+        "assert" => {
+            let operand = one_child(node, cx, "assert")?;
+            Err(TransformError::Unsupported {
+                name: cx.owner.to_owned(),
+                detail: match operand.type_ref.kind.as_str() {
+                    "interface" => "a type assertion out of the source's BARE interface has no \
+                                    target form, for the reason its type already refuses under: \
+                                    the value carries its own type at runtime and the target has \
+                                    no counterpart. This is not waiting on a rule, it is waiting \
+                                    on that decision being made differently"
+                        .to_owned(),
+                    _ => format!(
+                        "a type assertion out of `{}` has no target form yet. Out of the failure \
+                         type it is a downcast the target has, and the source's comma-ok is its \
+                         `Option` exactly; out of any other interface the target keeps no runtime \
+                         type to ask about, so the pack has to say what it becomes",
+                        match operand.type_ref.name.is_empty() {
+                            true => operand.type_ref.kind.clone(),
+                            false => operand.type_ref.name.clone(),
+                        }
+                    ),
+                },
+            })
+        }
+        "deref" => Ok(RustExpr::Deref(Box::new(expression(
+            one_child(node, cx, "deref")?,
+            cx,
+        )?))),
         "convert" => convert(node, cx),
         "slice" => slice(node, cx),
         "unsupported" => Err(unsupported_source(node, cx)),

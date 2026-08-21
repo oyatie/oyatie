@@ -129,6 +129,13 @@ pub const KNOWN_MEMBER_KINDS: &[&str] = &[
     "closure",
     "continue",
     "composite",
+    // `*p`. A read through a pointer COPIES in the source and moves in the target, so the two
+    // agree only where the pointee is copyable; a write through one copies nothing in either.
+    "deref",
+    // `x.(T)`. Its own type is the ASSERTED type and its child is the operand: what the target can
+    // do about it depends on both, because a concrete type out of the failure type is a downcast
+    // the target has and out of a bare interface it is not.
+    "assert",
     // One arm of a `select`: a communication and a body, or a body alone when the arm is
     // `default`. The default arm is what makes a select non-blocking, so an arm that has one and
     // an arm that does not are recorded distinctly rather than collapsed.

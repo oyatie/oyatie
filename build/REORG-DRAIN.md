@@ -7177,3 +7177,49 @@ BY NAME with what it is waiting on, replacing "source construct `GoStmt` has no 
 
 Both closed vocabularies caught the new kinds and the new attribute before any of this ran, which
 is the fail-closed admission doing its job twice in one change.
+
+## R4t — the ceiling is not missing syntax, and here is the measurement that says so
+
+Pointer dereference and type assertion were the two largest unmodelled constructs — 127 and 112
+occurrences. Both are modelled now. Neither moved coverage by a single declaration.
+
+That is not a failure of the two rules; it is the answer to a question that had been guessed at for
+several phases. Across the corpus:
+
+    functions and methods                                 642
+    containing NO unmodelled source construct             566
+    blocked by exactly one unmodelled construct            69
+
+566 of 642 functions contain nothing the front end cannot see, and coverage is 15–41%. So the
+ceiling is NOT missing syntax support. Modelling every remaining Go AST node would unlock at most 69
+declarations, and the measurement above overstates even that: 35 of the type assertions are out of a
+BARE INTERFACE, which refuses on a decision already made — the source's `interface{}` carries its
+own type at runtime and the target has no counterpart — so those declarations would refuse again one
+step later, on the type instead of the assertion.
+
+What the refusals are actually made of, over 700 of them:
+
+    124  cascade — refused only because something it names refused
+     58  mutable package state
+     54  interface and dynamic type
+     36  a foreign package not in the snapshot
+     29  string representation
+     25  closures and ownership
+     22  control effects (defer, panic, recover)
+     16  a failing return's operand not provably a failure
+     12  concurrency
+
+The 124 cascade are free: they come back when their roots do. Of the roots, the largest groups are
+not rules waiting to be written. `written_package_var` needs a choice among mutex, reader/writer
+lock and atomic, which is a decision about the ported program's CONCURRENCY. `exported_package_var`
+needs to know whether an importer assigns to it, which no single package can answer.
+`init_written_package_var` needs a purity proof. The bare interface needs the compatibility lane
+that §2 forbids. Each is a DECISION, and the doctrine is explicit that the engine may not make one
+on the author's behalf.
+
+Both constructs still earn their place. `deref` is exact for a write — a write through a pointer
+copies nothing in either language — and for a read the target refuses to compile rather than doing
+something else, which is the one direction this engine can take on trust. And `assert` now says
+WHICH of two different things is missing, where before both said "no translation yet": out of the
+failure type it is a downcast the target has and the source's comma-ok is its `Option` exactly; out
+of a bare interface it is waiting on a decision that has already been made the other way.
