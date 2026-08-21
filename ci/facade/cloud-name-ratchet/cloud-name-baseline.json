@@ -1,7 +1,7 @@
 {
   "_comment": "FROZEN shrink-only baseline of deprecated `cloud-` names (directories, Cargo package names, Helm chart names) present today. Growth is RED; shrink is the point. Regenerate with `cargo run -p ci-cloud-name-ratchet --bin oya-ci-cloud-name-baseline` in the SAME change as the rename, so this file never overstates the remaining debt. NOTE: the oya-cloud-ci-* names are LIVE merge machinery (the required test job binds oya-cloud-ci-accounting-registry-app via OYA_CI_PRODUCER_BIN) — renaming one means moving that binding in the same change.",
   "_bootstrap": true,
-  "count": 891,
+  "count": 889,
   "cloud_prefixed_names": [
     "dir:.github/workflows/oya-ci-required.yml",
     "dir:billing/benchmarks/cloud-billing-vs-aws-cur-vs-gcp-billing-vs-azure-cost-management.md",
@@ -800,8 +800,6 @@
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-github-adapter/Cargo.toml:oya_ci_webhook_gateway_github_adapter",
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel/Cargo.toml:oya-ci-webhook-gateway-kernel",
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-kernel/Cargo.toml:oya_ci_webhook_gateway_kernel",
-    "name:oya/community/iac/helm/community/Chart.yaml:oya-community",
-    "name:oya/community/iac/k8s/helm/Chart.yaml:oya-community",
     "name:oya/docs/crates/oya-docs-domain/Cargo.toml:oya-docs-domain",
     "name:oya/docs/crates/oya-docs-domain/Cargo.toml:oya_docs_domain",
     "name:oya/docs/iac/helm/Chart.yaml:oya-docs",

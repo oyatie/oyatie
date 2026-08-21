@@ -56,7 +56,7 @@
     "observability/diagnostics/contracts/asyncapi.yaml",
     "oya/application/contracts/asyncapi/application-events.yaml",
     "oya/ci-webhook-gateway/contracts/asyncapi-v1.yaml",
-    "oya/community/contracts/asyncapi/community-events.yaml",
+    "app/community/contracts/asyncapi/community-events.yaml",
     "oya/docs/contracts/asyncapi/docs-events.yaml",
     "oya/global-trade/contracts/asyncapi-v1.yaml",
     "oya/governance/contracts/asyncapi/governance-events.yaml",

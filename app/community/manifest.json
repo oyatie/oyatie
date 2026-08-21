@@ -81,16 +81,16 @@
   ],
   "contracts": {
     "openapi": [
-      "microservices/community/contracts/openapi/community.yaml"
+      "app/community/contracts/openapi/community.yaml"
     ],
     "asyncapi": [
-      "microservices/community/contracts/asyncapi/community-events.yaml"
+      "app/community/contracts/asyncapi/community-events.yaml"
     ],
     "internal_grpc": {
       "transport": "http2",
       "language_profile": "proto3",
       "contracts": [
-        "oya/community/contracts/proto/community.proto"
+        "app/community/contracts/proto/community.proto"
       ]
     }
   },
@@ -98,43 +98,43 @@
     {
       "tier": "surface",
       "name": "reddit-mode",
-      "file": "microservices/community/capabilities/reddit-mode.yaml",
+      "file": "app/community/capabilities/reddit-mode.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "surface",
       "name": "teamblind-mode",
-      "file": "microservices/community/capabilities/teamblind-mode.yaml",
+      "file": "app/community/capabilities/teamblind-mode.yaml",
       "risk_class": "employment-sensitive"
     },
     {
       "tier": "surface",
       "name": "handshake-mode",
-      "file": "microservices/community/capabilities/handshake-mode.yaml",
+      "file": "app/community/capabilities/handshake-mode.yaml",
       "risk_class": "employment-sensitive"
     },
     {
       "tier": "surface",
       "name": "linkedin-profile-jobs-recruiter-mode",
-      "file": "microservices/community/capabilities/linkedin-mode.yaml",
+      "file": "app/community/capabilities/linkedin-mode.yaml",
       "risk_class": "employment-high-risk"
     },
     {
       "tier": "T1",
       "name": "moderate-action",
-      "file": "microservices/community/capabilities/moderate-action.yaml",
+      "file": "app/community/capabilities/moderate-action.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "post-create",
-      "file": "microservices/community/capabilities/post-create.yaml",
+      "file": "app/community/capabilities/post-create.yaml",
       "risk_class": "minimal"
     },
     {
       "tier": "T1",
       "name": "vote-cast",
-      "file": "microservices/community/capabilities/vote-cast.yaml",
+      "file": "app/community/capabilities/vote-cast.yaml",
       "risk_class": "minimal"
     }
   ],
@@ -143,43 +143,43 @@
       "name": "community-audit-chain-seal-latency",
       "target": "0.999",
       "sli": "sum(rate(oya_community_audit_seal_duration_seconds_bucket{le=\"1.0\"}[5m]))",
-      "file": "oya/community/slos/audit-chain-seal-latency.openslo.yaml"
+      "file": "app/community/slos/audit-chain-seal-latency.openslo.yaml"
     },
     {
       "name": "community-feed-render-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_community_feed_render_duration_seconds_bucket{le=\"0.3\"}[5m]))",
-      "file": "oya/community/slos/feed-render-latency.openslo.yaml"
+      "file": "app/community/slos/feed-render-latency.openslo.yaml"
     },
     {
       "name": "community-kb-article-publish-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_community_kb_article_publish_duration_seconds_bucket{le=\"0.5\"}[5m]))",
-      "file": "oya/community/slos/kb-article-publish-latency.openslo.yaml"
+      "file": "app/community/slos/kb-article-publish-latency.openslo.yaml"
     },
     {
       "name": "community-moderation-action-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_community_moderation_action_duration_seconds_bucket{le=\"0.2\"}[5m]))",
-      "file": "oya/community/slos/moderation-action-latency.openslo.yaml"
+      "file": "app/community/slos/moderation-action-latency.openslo.yaml"
     },
     {
       "name": "community-post-create-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_community_post_create_duration_seconds_bucket{le=\"0.25\"}[5m]))",
-      "file": "oya/community/slos/post-create-latency.openslo.yaml"
+      "file": "app/community/slos/post-create-latency.openslo.yaml"
     },
     {
       "name": "community-search-query-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_community_search_query_duration_seconds_bucket{le=\"0.5\"}[5m]))",
-      "file": "oya/community/slos/search-query-latency.openslo.yaml"
+      "file": "app/community/slos/search-query-latency.openslo.yaml"
     },
     {
       "name": "community-vote-cast-latency",
       "target": "0.99",
       "sli": "sum(rate(oya_community_vote_cast_duration_seconds_bucket{le=\"0.1\"}[5m]))",
-      "file": "oya/community/slos/vote-cast-latency.openslo.yaml"
+      "file": "app/community/slos/vote-cast-latency.openslo.yaml"
     }
   ],
   "ips": [
@@ -187,91 +187,91 @@
       "id": "IP-001-postgres-citus-post-store-iac",
       "title": "IP-001 — Postgres + Citus post-store IaC",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-001-postgres-citus-post-store-iac.md"
+      "file": "app/community/IP-001-postgres-citus-post-store-iac.md"
     },
     {
       "id": "IP-002-post-store-kernel-domain",
       "title": "IP-002 — post-store kernel + domain crates",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-002-post-store-kernel-domain.md"
+      "file": "app/community/IP-002-post-store-kernel-domain.md"
     },
     {
       "id": "IP-003-post-store-usecase-api",
       "title": "IP-003 — post-store usecase + api crates",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-003-post-store-usecase-api.md"
+      "file": "app/community/IP-003-post-store-usecase-api.md"
     },
     {
       "id": "IP-004-post-store-adapter-postgres-rest-worker-sdk-app",
       "title": "IP-004 — post-store adapter-postgres + rest + worker + sdk + app crates",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-004-post-store-adapter-postgres-rest-worker-sdk-app.md"
+      "file": "app/community/IP-004-post-store-adapter-postgres-rest-worker-sdk-app.md"
     },
     {
       "id": "IP-005-thread-tree-materialised-path",
       "title": "IP-005 — thread-tree (materialised path)",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-005-thread-tree-materialised-path.md"
+      "file": "app/community/IP-005-thread-tree-materialised-path.md"
     },
     {
       "id": "IP-006-voting-engine",
       "title": "IP-006 — voting-engine",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-006-voting-engine.md"
+      "file": "app/community/IP-006-voting-engine.md"
     },
     {
       "id": "IP-007-moderation-queue",
       "title": "IP-007 — moderation-queue",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-007-moderation-queue.md"
+      "file": "app/community/IP-007-moderation-queue.md"
     },
     {
       "id": "IP-008-kb-article-store-s3",
       "title": "IP-008 — kb-article-store + adapter-s3",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-008-kb-article-store-s3.md"
+      "file": "app/community/IP-008-kb-article-store-s3.md"
     },
     {
       "id": "IP-009-search-index-elasticsearch",
       "title": "IP-009 — search-index (Elasticsearch)",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-009-search-index-elasticsearch.md"
+      "file": "app/community/IP-009-search-index-elasticsearch.md"
     },
     {
       "id": "IP-010-foundry-guardrails-moderation-bridge",
       "title": "IP-010 — foundry-guardrails moderation bridge adapter",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-010-foundry-guardrails-moderation-bridge.md"
+      "file": "app/community/IP-010-foundry-guardrails-moderation-bridge.md"
     },
     {
       "id": "IP-011-cedar-policy-fragments",
       "title": "IP-011 — Cedar policy fragments",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-011-cedar-policy-fragments.md"
+      "file": "app/community/IP-011-cedar-policy-fragments.md"
     },
     {
       "id": "IP-012-openslo-grafana-dashboards",
       "title": "IP-012 — OpenSLO manifests + Grafana dashboards",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-012-openslo-grafana-dashboards.md"
+      "file": "app/community/IP-012-openslo-grafana-dashboards.md"
     },
     {
       "id": "IP-013-oya-governance-promotion-readiness",
       "title": "IP-013 — oya-governance promotion-readiness wiring",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-013-oya-governance-promotion-readiness.md"
+      "file": "app/community/IP-013-oya-governance-promotion-readiness.md"
     },
     {
       "id": "IP-014-hyperscaler-maturity-gate",
       "title": "IP-014 — Hyperscaler maturity gate HG-COMMUNITY",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-014-hyperscaler-maturity-gate.md"
+      "file": "app/community/IP-014-hyperscaler-maturity-gate.md"
     },
     {
       "id": "IP-015-capacity-cost-chaos-drill",
       "title": "IP-015 — Capacity + cost + chaos drill",
       "acceptance_status": "ga",
-      "file": "microservices/community/IP-015-capacity-cost-chaos-drill.md"
+      "file": "app/community/IP-015-capacity-cost-chaos-drill.md"
     }
   ],
   "regulatory_packs": [
@@ -513,10 +513,10 @@
   "pod_runtime_tier": 2,
   "pod_runtime_tier_justification": "Tier 2 because community is a first-party product surface for posts, votes, moderation, KB articles, and tenant-scoped search. It consumes platform substrates through policy-bound adapters but is not itself a foundation or substrate owner.",
   "pod_runtime_tier_surface_evidence": [
-    "microservices/community/PRD.md",
-    "microservices/community/IP-005-thread-tree-materialised-path.md",
-    "microservices/community/IP-007-moderation-queue.md",
-    "microservices/community/runbooks/moderation-queue-clear.md"
+    "app/community/PRD.md",
+    "app/community/IP-005-thread-tree-materialised-path.md",
+    "app/community/IP-007-moderation-queue.md",
+    "app/community/runbooks/moderation-queue-clear.md"
   ],
   "tenant_version_pinning": {
     "declared_versions": [
@@ -529,10 +529,10 @@
     "deprecation_calendar": [],
     "public_surface_files": {
       "openapi": {
-        "2026-05-21": "microservices/community/contracts/openapi/community.yaml"
+        "2026-05-21": "app/community/contracts/openapi/community.yaml"
       },
       "asyncapi": {
-        "2026-05-21": "microservices/community/contracts/asyncapi/community-events.yaml"
+        "2026-05-21": "app/community/contracts/asyncapi/community-events.yaml"
       }
     }
   },

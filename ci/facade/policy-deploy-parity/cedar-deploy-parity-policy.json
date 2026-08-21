@@ -19,7 +19,7 @@
       "oya/application/iac/k8s/helm/values.yaml",
       "audit/iac/k8s/helm/values.yaml",
       "comms/comms-email/iac/k8s/helm/values.yaml",
-      "oya/community/iac/k8s/helm/templates/cedar.yaml",
+      "app/community/iac/k8s/helm/templates/cedar.yaml",
       "compliance/iac/k8s/helm/values.yaml",
       "gateway/connector/iac/k8s/helm/values.yaml",
       "iam/consent-graph/iac/k8s/helm/values.yaml",

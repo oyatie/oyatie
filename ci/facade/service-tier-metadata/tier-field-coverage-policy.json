@@ -9,6 +9,7 @@
     "ADR-0280"
   ],
   "governed_service_roots": [
+    "app/community",
     "audit",
     "billing",
     "cell",
