@@ -4,6 +4,6 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-adapter-with-no-importer-kernel:oya-governance-adapter-with-no-importer-kernel",
+        "//governance/check/adapter-with-no-importer-kernel:check-adapter-with-no-importer-kernel",
     ],
 )

@@ -7,7 +7,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::process::ExitCode;
 
-use oya_governance_portfolio_citation_kernel::{
+use check_portfolio_citation_kernel::{
     CitationBlock, CitationRole, FoundryCorpusCitationVerdict, PortfolioCitationVerdict, verify,
     verify_foundry_corpus,
 };
@@ -225,7 +225,7 @@ fn parse_scalar(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_governance_portfolio_citation_kernel::{
+    use check_portfolio_citation_kernel::{
         BOMINAL_PRD_PATH, OYATIE_PRD_PATH, REQUIRED_FOUNDRY_CORPUS_SOURCES,
     };
 

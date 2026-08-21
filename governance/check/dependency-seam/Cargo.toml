@@ -1,0 +1,23 @@
+[package]
+name = "check-dependency-seam"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "check_dependency_seam"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+toml = { workspace = true }
+# Canonical glob-aware workspace-member resolver (FRIC-1781069288 / ADR-0538): the seam
+# check resolves the member set here instead of textually reading the now-globbed array.
+oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+
+[lints]
+workspace = true

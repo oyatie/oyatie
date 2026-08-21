@@ -13,7 +13,7 @@
 use std::fs;
 use std::path::PathBuf;
 
-use oya_check_saga_shape::{
+use check_saga_shape::{
     AuditClass, CompensationKind, IdempotencyKeyStrategy, RollbackStrategy, SagaDefinition,
     SagaStep, canonical_microservice_catalog, validate_saga_shape,
 };

@@ -471,7 +471,7 @@ fn default_required_prefix() -> String {
 fn default_allowed_roles() -> Vec<String> {
     // ADR-0565: `graphql` removed from the canonical role/layer vocabulary
     // (13 → 12). Kept byte-for-byte aligned with `oya-ci.toml [naming]` and
-    // `oya_governance_predictable_naming_kernel::ALLOWED_ROLES`.
+    // `check_predictable_naming_kernel::ALLOWED_ROLES`.
     [
         "kernel",
         "domain",
@@ -605,7 +605,7 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
     let rows: &[(VocabCarveOutKind, &str, &[&str], &str)] = &[
         (
             VocabCarveOutKind::PathPrefix,
-            "libs/oya-check-brand-residue/",
+            "governance/check/brand-residue/",
             &[],
             "the deny-list patterns themselves are not residue",
         ),
@@ -623,7 +623,7 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
         ),
         (
             VocabCarveOutKind::PathExact,
-            "registry/catalog/oya-check-brand-residue.yaml",
+            "registry/catalog/check-brand-residue.yaml",
             &[],
             "the catalog deny-list spec is not residue",
         ),

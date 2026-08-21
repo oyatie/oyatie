@@ -947,11 +947,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "check-adapter-with-no-importer-kernel"
+version = "0.1.0"
+dependencies = [
+ "tempfile",
+]
+
+[[package]]
 name = "check-adr-citation-closure"
 version = "0.1.0"
 dependencies = [
  "serde_json",
 ]
+
+[[package]]
+name = "check-adr-index"
+version = "0.1.0"
+dependencies = [
+ "corpus-doc-parser",
+]
+
+[[package]]
+name = "check-adr-shape-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "check-apex-gist-integrity"
@@ -966,6 +984,10 @@ version = "0.1.0"
 
 [[package]]
 name = "check-audit-chain-seal-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-authoritative-tracked-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -984,6 +1006,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "check-backup-retention-discipline"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-backup-kernel",
+]
+
+[[package]]
+name = "check-banned-primitives-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "check-benchmark"
 version = "0.1.0"
 dependencies = [
@@ -991,7 +1024,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "check-brand-residue"
+version = "0.1.0"
+dependencies = [
+ "serde_json",
+]
+
+[[package]]
+name = "check-bypass-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "check-cedar-fragment-coverage"
+version = "0.1.0"
+
+[[package]]
+name = "check-claim-ceiling"
+version = "0.1.0"
+dependencies = [
+ "intelligence-catalog-domain",
+]
+
+[[package]]
+name = "check-claim-ceiling-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -1005,6 +1060,24 @@ version = "0.1.0"
 [[package]]
 name = "check-cohesion"
 version = "0.1.0"
+
+[[package]]
+name = "check-cohesion-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "check-compliance-evidence-coverage"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-compliance-evidence-kernel",
+]
+
+[[package]]
+name = "check-cost-budget"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
 
 [[package]]
 name = "check-cursor-pagination-coverage"
@@ -1023,6 +1096,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "check-dependency-seam"
+version = "0.1.0"
+dependencies = [
+ "oya-workspace-members-kernel",
+ "serde",
+ "serde_json",
+ "toml 0.8.23",
+]
+
+[[package]]
+name = "check-doc-axis"
+version = "0.1.0"
+dependencies = [
+ "check-adr-shape-kernel",
+ "tempfile",
+]
+
+[[package]]
 name = "check-doc-catalog"
 version = "0.1.0"
 
@@ -1031,11 +1122,22 @@ name = "check-documentation-system"
 version = "0.1.0"
 
 [[package]]
+name = "check-eval-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
 name = "check-event-schema-versioning"
 version = "0.1.0"
 dependencies = [
  "serde_json",
 ]
+
+[[package]]
+name = "check-gate-catalog-domain"
+version = "0.1.0"
 
 [[package]]
 name = "check-glossary-coverage"
@@ -1054,6 +1156,13 @@ name = "check-honest-claims"
 version = "0.1.0"
 dependencies = [
  "serde_json",
+]
+
+[[package]]
+name = "check-i18n-coverage"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-i18n-kernel",
 ]
 
 [[package]]
@@ -1091,6 +1200,14 @@ version = "0.1.0"
 dependencies = [
  "serde_json",
 ]
+
+[[package]]
+name = "check-license-policy"
+version = "0.1.0"
+
+[[package]]
+name = "check-lifecycle-kernel"
+version = "0.1.0"
 
 [[package]]
 name = "check-metric-cardinality"
@@ -1146,11 +1263,35 @@ name = "check-placeholder-debt"
 version = "0.1.0"
 
 [[package]]
+name = "check-portfolio-citation-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "check-pr-traceability-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "check-pre-push-kernel"
+version = "0.1.0"
+
+[[package]]
+name = "check-predictable-naming-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "check-protection-context-match"
 version = "0.1.0"
 
 [[package]]
+name = "check-purpose-kernel"
+version = "0.1.0"
+
+[[package]]
 name = "check-quality-lane"
+version = "0.1.0"
+
+[[package]]
+name = "check-quality-lane-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -1160,6 +1301,13 @@ version = "0.1.0"
 [[package]]
 name = "check-readme-coverage"
 version = "0.1.0"
+
+[[package]]
+name = "check-realtime-transport-tier"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-realtime-transport-kernel",
+]
 
 [[package]]
 name = "check-release-pack"
@@ -1182,6 +1330,10 @@ name = "check-runbook-index"
 version = "0.1.0"
 
 [[package]]
+name = "check-saga-shape"
+version = "0.1.0"
+
+[[package]]
 name = "check-shardability"
 version = "0.1.0"
 dependencies = [
@@ -1189,11 +1341,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "check-slo-coverage"
+version = "0.1.0"
+
+[[package]]
 name = "check-slsa-l3-evidence-grounded"
 version = "0.1.0"
 
 [[package]]
 name = "check-statelessness"
+version = "0.1.0"
+
+[[package]]
+name = "check-sunset-lifecycle-kernel"
 version = "0.1.0"
 
 [[package]]
@@ -1262,6 +1422,7 @@ dependencies = [
 name = "ci-artifact-inventory-registry"
 version = "0.1.0"
 dependencies = [
+ "check-brand-residue",
  "ci-artifact-accountability",
  "ci-automation-coverage",
  "ci-build-target-parity",
@@ -1276,7 +1437,6 @@ dependencies = [
  "ci-slo-coverage",
  "ci-stale-artifact-detection",
  "ci-workspace-member-coverage",
- "oya-check-brand-residue",
  "oya-ci-config-kernel",
  "oya-reorg-codemod-app",
  "oya-workspace-members-kernel",
@@ -1442,10 +1602,10 @@ dependencies = [
 name = "ci-crate-layer-suffix"
 version = "0.1.0"
 dependencies = [
+ "check-predictable-naming-kernel",
  "ci-corpus-census-adapters",
  "ci-path-resolver-adapters",
  "oya-ci-config-kernel",
- "oya-governance-predictable-naming-kernel",
  "serde_json",
 ]
 
@@ -1482,9 +1642,9 @@ dependencies = [
 name = "ci-cross-artifact-agreement"
 version = "0.1.0"
 dependencies = [
+ "check-adr-index",
+ "check-adr-shape-kernel",
  "ci-path-resolver-adapters",
- "oya-check-adr-index",
- "oya-governance-adr-shape-kernel",
  "serde",
  "serde_json",
  "sha2",
@@ -1634,8 +1794,8 @@ dependencies = [
 name = "ci-license-policy"
 version = "0.1.0"
 dependencies = [
+ "check-license-policy",
  "ci-path-resolver-adapters",
- "oya-check-license-policy",
  "serde_json",
 ]
 
@@ -1643,7 +1803,7 @@ dependencies = [
 name = "ci-lifecycle-status"
 version = "0.1.0"
 dependencies = [
- "oya-governance-lifecycle-kernel",
+ "check-lifecycle-kernel",
  "serde_json",
 ]
 
@@ -1779,12 +1939,12 @@ dependencies = [
 name = "ci-scm-facts-snapshot"
 version = "0.1.0"
 dependencies = [
+ "check-brand-residue",
  "ci-artifact-inventory-registry",
  "ci-baseline-ratchet",
  "ci-path-resolver-adapters",
  "ci-path-resolver-ports",
  "corpus-doc-parser",
- "oya-check-brand-residue",
  "oya-ci-config-kernel",
  "oya-reorg-codemod-app",
  "rustix",
@@ -1812,8 +1972,8 @@ dependencies = [
 name = "ci-slo-coverage"
 version = "0.1.0"
 dependencies = [
+ "check-slo-coverage",
  "ci-path-resolver-adapters",
- "oya-check-slo-coverage",
  "serde_json",
 ]
 
@@ -4931,8 +5091,8 @@ version = "0.1.0"
 name = "intelligence-adapter-kernel"
 version = "0.1.0"
 dependencies = [
+ "check-cost-budget",
  "intelligence-capability-domain",
- "oya-check-cost-budget",
  "oya-data-boundary-kernel",
  "secrets-domain",
 ]
@@ -5796,9 +5956,9 @@ dependencies = [
 name = "intelligence-registry-api"
 version = "0.1.0"
 dependencies = [
+ "check-eval-domain",
  "intelligence-capability-domain",
  "oya-data-boundary-kernel",
- "oya-governance-eval-domain",
 ]
 
 [[package]]
@@ -6953,29 +7113,40 @@ dependencies = [
  "audit-file-adapter",
  "check-a11y-discipline",
  "check-active-artifact-contract",
+ "check-adr-index",
  "check-aspirational-enforcement",
  "check-audit-chain-seal-coverage",
  "check-authority-cohesion",
  "check-authz-tier-discipline",
+ "check-backup-retention-discipline",
+ "check-banned-primitives-kernel",
  "check-benchmark",
+ "check-brand-residue",
  "check-cedar-fragment-coverage",
+ "check-claim-ceiling",
  "check-client-stack-discipline",
  "check-codeowners-mirror",
  "check-cohesion",
+ "check-compliance-evidence-coverage",
  "check-cursor-pagination-coverage",
  "check-data-class",
+ "check-dependency-seam",
+ "check-doc-axis",
  "check-doc-catalog",
  "check-documentation-system",
  "check-event-schema-versioning",
+ "check-gate-catalog-domain",
  "check-glossary-coverage",
  "check-glossary-vocabulary",
  "check-high-risk-auto-decision-refusal",
  "check-honest-claims",
+ "check-i18n-coverage",
  "check-iac-tier-discipline",
  "check-id-discipline",
  "check-idempotency-key-coverage",
  "check-image-signing-discipline",
  "check-layered-architecture-discipline",
+ "check-license-policy",
  "check-metric-cardinality",
  "check-mobile-native",
  "check-no-grouping",
@@ -6989,12 +7160,14 @@ dependencies = [
  "check-quality-lane",
  "check-raci-coverage",
  "check-readme-coverage",
+ "check-realtime-transport-tier",
  "check-release-pack",
  "check-retired-vocabulary",
  "check-rpo-rto-coverage",
  "check-runbook-freshness",
  "check-runbook-index",
  "check-shardability",
+ "check-slo-coverage",
  "check-slsa-l3-evidence-grounded",
  "check-statelessness",
  "check-tenant-cost-labels-coverage",
@@ -7020,20 +7193,7 @@ dependencies = [
  "messaging-domain",
  "messaging-file-adapter",
  "oya-application-app",
- "oya-check-adr-index",
- "oya-check-backup-retention-discipline",
- "oya-check-brand-residue",
- "oya-check-claim-ceiling",
- "oya-check-compliance-evidence-coverage",
- "oya-check-dependency-seam",
- "oya-check-doc-axis",
- "oya-check-i18n-coverage",
- "oya-check-license-policy",
- "oya-check-realtime-transport-tier",
- "oya-check-slo-coverage",
  "oya-data-boundary-kernel",
- "oya-governance-banned-primitives-kernel",
- "oya-governance-gate-catalog-domain",
  "oya-workspace-members-kernel",
  "secrets-domain",
  "secrets-file",
@@ -7822,6 +7982,8 @@ dependencies = [
  "audit-chain-domain",
  "cell-regional-pack",
  "cell-routing",
+ "check-cost-budget",
+ "check-eval-domain",
  "data-ontology-domain",
  "iam-identity-domain",
  "iam-policy-cedar-domain",
@@ -7837,9 +7999,7 @@ dependencies = [
  "network-residency",
  "observability-domain",
  "observability-tracing-adapter",
- "oya-check-cost-budget",
  "oya-data-boundary-kernel",
- "oya-governance-eval-domain",
  "secrets-domain",
  "tenancy-domain",
  "tracing",
@@ -7901,92 +8061,6 @@ dependencies = [
  "anyhow",
  "toml_edit",
 ]
-
-[[package]]
-name = "oya-check-adr-index"
-version = "0.1.0"
-dependencies = [
- "corpus-doc-parser",
-]
-
-[[package]]
-name = "oya-check-backup-retention-discipline"
-version = "0.1.0"
-dependencies = [
- "oya-shared-backup-kernel",
-]
-
-[[package]]
-name = "oya-check-brand-residue"
-version = "0.1.0"
-dependencies = [
- "serde_json",
-]
-
-[[package]]
-name = "oya-check-claim-ceiling"
-version = "0.1.0"
-dependencies = [
- "intelligence-catalog-domain",
-]
-
-[[package]]
-name = "oya-check-compliance-evidence-coverage"
-version = "0.1.0"
-dependencies = [
- "oya-shared-compliance-evidence-kernel",
-]
-
-[[package]]
-name = "oya-check-cost-budget"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-check-dependency-seam"
-version = "0.1.0"
-dependencies = [
- "oya-workspace-members-kernel",
- "serde",
- "serde_json",
- "toml 0.8.23",
-]
-
-[[package]]
-name = "oya-check-doc-axis"
-version = "0.1.0"
-dependencies = [
- "oya-governance-adr-shape-kernel",
- "tempfile",
-]
-
-[[package]]
-name = "oya-check-i18n-coverage"
-version = "0.1.0"
-dependencies = [
- "oya-shared-i18n-kernel",
-]
-
-[[package]]
-name = "oya-check-license-policy"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-realtime-transport-tier"
-version = "0.1.0"
-dependencies = [
- "oya-shared-realtime-transport-kernel",
-]
-
-[[package]]
-name = "oya-check-saga-shape"
-version = "0.1.0"
-
-[[package]]
-name = "oya-check-slo-coverage"
-version = "0.1.0"
 
 [[package]]
 name = "oya-checkout-guard-app"
@@ -8106,136 +8180,62 @@ dependencies = [
 name = "oya-governance-adapter-with-no-importer-app"
 version = "0.1.0"
 dependencies = [
- "oya-governance-adapter-with-no-importer-kernel",
-]
-
-[[package]]
-name = "oya-governance-adapter-with-no-importer-kernel"
-version = "0.1.0"
-dependencies = [
- "tempfile",
+ "check-adapter-with-no-importer-kernel",
 ]
 
 [[package]]
 name = "oya-governance-adr-shape-app"
 version = "0.1.0"
 dependencies = [
- "oya-governance-adr-shape-kernel",
+ "check-adr-shape-kernel",
 ]
-
-[[package]]
-name = "oya-governance-adr-shape-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-governance-authoritative-tracked-app"
 version = "0.1.0"
 dependencies = [
- "oya-governance-authoritative-tracked-kernel",
+ "check-authoritative-tracked-kernel",
 ]
-
-[[package]]
-name = "oya-governance-authoritative-tracked-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-governance-banned-primitives-app"
 version = "0.1.0"
 dependencies = [
- "oya-governance-banned-primitives-kernel",
+ "check-banned-primitives-kernel",
 ]
-
-[[package]]
-name = "oya-governance-banned-primitives-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-bypass-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-claim-ceiling-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-cohesion-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-eval-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "oya-governance-gate-catalog-domain"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-lifecycle-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-governance-portfolio-citation-app"
 version = "0.1.0"
 dependencies = [
- "oya-governance-portfolio-citation-kernel",
+ "check-portfolio-citation-kernel",
 ]
-
-[[package]]
-name = "oya-governance-portfolio-citation-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-pr-traceability-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-pre-push-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-governance-predictable-naming-app"
 version = "0.1.0"
 dependencies = [
- "oya-governance-predictable-naming-kernel",
+ "check-predictable-naming-kernel",
 ]
-
-[[package]]
-name = "oya-governance-predictable-naming-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-governance-purpose-audit-app"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "check-purpose-kernel",
  "glob",
- "oya-governance-purpose-kernel",
  "serde_json",
  "serde_yaml",
 ]
 
 [[package]]
-name = "oya-governance-purpose-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "oya-governance-quality-lane-kernel"
-version = "0.1.0"
-
-[[package]]
 name = "oya-governance-sunset-lifecycle-app"
 version = "0.1.0"
 dependencies = [
- "oya-governance-sunset-lifecycle-kernel",
+ "check-sunset-lifecycle-kernel",
  "tempfile",
 ]
-
-[[package]]
-name = "oya-governance-sunset-lifecycle-kernel"
-version = "0.1.0"
 
 [[package]]
 name = "oya-http-middleware-kernel"

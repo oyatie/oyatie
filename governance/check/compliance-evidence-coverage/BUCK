@@ -1,0 +1,33 @@
+rust_library(
+    name = "check-compliance-evidence-coverage",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_compliance_evidence_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-compliance-evidence-kernel:oya-shared-compliance-evidence-kernel",
+    ],
+)
+
+rust_test(
+    name = "check-compliance-evidence-coverage-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_compliance_evidence_coverage",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-shared-compliance-evidence-kernel:oya-shared-compliance-evidence-kernel",
+    ],
+)
+
+rust_test(
+    name = "check-compliance-evidence-coverage-per-framework",
+    srcs = ["tests/per_framework.rs"],
+    crate = "check_compliance_evidence_coverage_per_framework",
+    crate_root = "tests/per_framework.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-compliance-evidence-coverage",
+        "//libs/oya-shared-compliance-evidence-kernel:oya-shared-compliance-evidence-kernel",
+    ],
+)

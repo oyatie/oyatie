@@ -4,7 +4,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-purpose-kernel:oya-governance-purpose-kernel",
+        "//governance/check/purpose-kernel:check-purpose-kernel",
         "third-party//:anyhow",
         "third-party//:glob",
         "third-party//:serde_json",

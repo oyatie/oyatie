@@ -3,7 +3,7 @@
 //! Portable conformance gate for catalog SLO declarations. The producer owns all repository I/O:
 //! it enumerates `registry/catalog/*.yaml`, maps each file stem to `crate_id`, and parses the
 //! top-level `slo:` scalar into rows shaped as `{"crate_id", "source_path", "slo"}`. This crate
-//! stays pure and reuses `oya_check_slo_coverage::validate_slo_coverage` per row so the legacy
+//! stays pure and reuses `check_slo_coverage::validate_slo_coverage` per row so the legacy
 //! predicate and the cloud-ci gate cannot drift.
 //!
 //! `evaluate_keyed` returns one `Finding{code,key}` per invalid catalog row. Current oyatie corpus
@@ -14,7 +14,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_check_slo_coverage::{SloCatalogRecord, SloCoverageError, validate_slo_coverage};
+use check_slo_coverage::{SloCatalogRecord, SloCoverageError, validate_slo_coverage};
 use serde_json::Value;
 
 /// The gate id, matching oya-ci config and the baseline ratchet.

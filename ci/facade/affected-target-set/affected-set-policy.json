@@ -67,7 +67,7 @@
       "root//libs/oya-ci-config:",
       "root//libs/oya-crate-registrar-app:",
       "root//libs/oya-crate-registrar-kernel:",
-      "root//libs/oya-governance-gate-catalog-domain:",
+      "root//governance/check/gate-catalog-domain:",
       "root//marketplace/facade/dev-cli:"
     ],
     ".github/**": [
@@ -93,7 +93,7 @@
       "root//governance/check/integ-envelope:",
       "root//governance/check/retired-vocabulary:",
       "root//governance/check/slsa-l3-evidence-grounded:",
-      "root//libs/oya-governance-gate-catalog-domain:",
+      "root//governance/check/gate-catalog-domain:",
       "root//marketplace/facade/dev-cli:"
     ],
     ".cursor/rules/**": [
@@ -180,7 +180,7 @@
       "root//intelligence/core/autonomy-ceiling-domain:intelligence-autonomy-ceiling-domain-unittest",
       "root//intelligence/core/autonomy-ceiling-kernel:intelligence-autonomy-ceiling-kernel-unittest",
       "root//governance/check/data-class:check-data-class-unittest",
-      "root//libs/oya-check-license-policy:oya-check-license-policy-license-policy"
+      "root//governance/check/license-policy:check-license-policy-license-policy"
     ],
     "specs/product-protocol-contract.json": [
       "root//ci/facade/artifact-inventory-registry:ci-artifact-inventory-registry-unittest",

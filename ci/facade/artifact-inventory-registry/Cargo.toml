@@ -48,7 +48,7 @@ ci-service-catalog-parity = { path = "../service-catalog-parity" }
 ci-workspace-member-coverage = { path = "../workspace-member-coverage" }
 ci-build-target-parity = { path = "../build-target-parity" }
 ci-hook-wiring = { path = "../hook-wiring" }
-oya-check-brand-residue = { path = "../../../libs/oya-check-brand-residue" }
+check-brand-residue = { path = "../../../governance/check/brand-residue" }
 oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
 
 [lints]

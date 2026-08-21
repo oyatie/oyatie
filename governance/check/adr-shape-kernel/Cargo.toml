@@ -1,0 +1,15 @@
+[package]
+name = "check-adr-shape-kernel"
+version = "0.1.0"
+edition = "2024"
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "check_adr_shape_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

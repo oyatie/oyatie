@@ -11,7 +11,7 @@ name = "oya-governance-portfolio-citation-app"
 path = "src/main.rs"
 
 [dependencies]
-oya-governance-portfolio-citation-kernel = { path = "../../libs/oya-governance-portfolio-citation-kernel" }
+check-portfolio-citation-kernel = { path = "../../governance/check/portfolio-citation-kernel" }
 
 [lints]
 workspace = true

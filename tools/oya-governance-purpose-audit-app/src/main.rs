@@ -4,7 +4,7 @@
 //! Also supports backfilling purpose frontmatter if requested (v6 Directive 12).
 
 use anyhow::{Context, Result};
-use oya_governance_purpose_kernel::{PurposeNode, check};
+use check_purpose_kernel::{PurposeNode, check};
 use std::fs;
 use std::path::Path;
 

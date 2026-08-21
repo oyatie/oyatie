@@ -7,7 +7,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 use std::process::ExitCode;
 
-use oya_governance_banned_primitives_kernel::{
+use check_banned_primitives_kernel::{
     BannedPrimitivesFitnessReport, check_documented_genuine_need, scan_agent_instruction_file,
 };
 
@@ -155,7 +155,7 @@ fn normalize_path(path: &Path) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_governance_banned_primitives_kernel::PrimitiveKind;
+    use check_banned_primitives_kernel::PrimitiveKind;
 
     #[test]
     fn detects_exact_fence_only() {

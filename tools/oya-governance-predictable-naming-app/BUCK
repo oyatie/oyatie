@@ -4,6 +4,6 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-predictable-naming-kernel:oya-governance-predictable-naming-kernel",
+        "//governance/check/predictable-naming-kernel:check-predictable-naming-kernel",
     ],
 )

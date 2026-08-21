@@ -11,7 +11,7 @@ name = "oya-governance-banned-primitives-app"
 path = "src/main.rs"
 
 [dependencies]
-oya-governance-banned-primitives-kernel = { path = "../../libs/oya-governance-banned-primitives-kernel" }
+check-banned-primitives-kernel = { path = "../../governance/check/banned-primitives-kernel" }
 
 [lints]
 workspace = true

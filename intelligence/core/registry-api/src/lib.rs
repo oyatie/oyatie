@@ -12,7 +12,7 @@ use intelligence_capability_domain::{
     CapabilityRegistry,
 };
 use oya_data_boundary_kernel::{PrivacyDataClass, parse_data_class_label};
-use oya_governance_eval_domain::{
+use check_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalError, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
 };
 

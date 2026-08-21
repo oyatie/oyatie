@@ -4,6 +4,6 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-portfolio-citation-kernel:oya-governance-portfolio-citation-kernel",
+        "//governance/check/portfolio-citation-kernel:check-portfolio-citation-kernel",
     ],
 )

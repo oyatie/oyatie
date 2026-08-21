@@ -4,7 +4,7 @@ rust_binary(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
+        "//governance/check/adr-shape-kernel:check-adr-shape-kernel",
     ],
 )
 
@@ -14,6 +14,6 @@ rust_test(
     crate_root = "src/main.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-adr-shape-kernel:oya-governance-adr-shape-kernel",
+        "//governance/check/adr-shape-kernel:check-adr-shape-kernel",
     ],
 )

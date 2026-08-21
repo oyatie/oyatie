@@ -49,7 +49,7 @@ use ci_artifact_inventory_registry::{
     fix_owners, fix_reachability, front_matter_field, load_envelope_prefix_allows,
     load_reachability_registry, registration_matches, resolve_owners, to_canonical_json,
 };
-use oya_check_brand_residue::forbidden_vocab::{
+use check_brand_residue::forbidden_vocab::{
     CensusDocument, VocabPolicy, census_findings_with, is_path_carved_out_with,
     strict_zero_retired_brand_finding,
 };
@@ -427,7 +427,7 @@ fn run() -> Result<(), CliError> {
     };
     // The §2.5#4 bnf-layer-suffix gate input: the first-party oya-* crate names enumerated from
     // the tracked Cargo.toml manifests. The gate's evaluate_keyed resolves the role carve-out-
-    // aware and reuses oya_governance_predictable_naming_kernel::check.
+    // aware and reuses check_predictable_naming_kernel::check.
     let bnf_layer_suffix = collect_bnf_layer_suffix(&repo_root, &inputs.tracked_paths, &cfg);
     // The §2.5#7 manifest-hygiene gate input: per-crate Cargo.toml hygiene flags.
     let manifest_hygiene = collect_manifest_hygiene(&repo_root, &inputs.tracked_paths, &cfg);
@@ -839,7 +839,7 @@ fn invalid_git_path(tracked_path: &str, reason: &str) -> CliError {
 /// (§3.3 / Stage 3). The kind enum is mirrored 1:1; the bundled default reproduces today's
 /// `FORBIDDEN_VOCAB_STEMS` + `CARVE_OUT_RULES`.
 fn vocab_policy(cfg: &oya_ci_config_kernel::VocabConfig) -> VocabPolicy {
-    use oya_check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
+    use check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
     use oya_ci_config_kernel::VocabCarveOutKind;
     VocabPolicy {
         stems: cfg
@@ -1828,7 +1828,7 @@ mod tests {
         let grouped = collect_brand_residue(&root, &tracked_paths, &cfg)
             .expect("strict-zero collection succeeds");
         let keys =
-            &grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE];
+            &grouped[check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE];
         assert_eq!(keys, &tracked_paths.into_iter().collect());
         fs::remove_dir_all(root).expect("remove temp repo");
     }
@@ -1857,7 +1857,7 @@ mod tests {
         let grouped = collect_brand_residue(&root, &tracked_paths, &cfg)
             .expect("dangling tracked symlink payload is readable");
         assert!(
-            grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
+            grouped[check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
                 .contains("links/retired-target")
         );
         fs::remove_dir_all(root).expect("remove temp repo");
@@ -1897,7 +1897,7 @@ mod tests {
         let grouped = collect_brand_residue(&root, std::slice::from_ref(&tracked_key), &cfg)
             .expect("decoded tracked pathname resolves to its exact bytes");
         assert!(
-            grouped[oya_check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
+            grouped[check_brand_residue::forbidden_vocab::STRICT_ZERO_RETIRED_BRAND_CODE]
                 .contains(&tracked_key)
         );
         fs::remove_dir_all(root).expect("remove temp repo");

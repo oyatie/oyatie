@@ -8,7 +8,7 @@ use std::fs;
 use std::path::{Component, Path, PathBuf};
 use std::process::{Command, ExitCode};
 
-use oya_governance_authoritative_tracked_kernel::{
+use check_authoritative_tracked_kernel::{
     AuthoritativeArtifact, AuthoritativeTrackedFitnessReport, check,
 };
 

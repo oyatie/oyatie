@@ -1,0 +1,17 @@
+[package]
+name = "check-portfolio-citation-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "check_portfolio_citation_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+
+[lints]
+workspace = true
