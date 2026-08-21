@@ -21,7 +21,7 @@
 //! ## PRE-MOVE vs POST-move mapping
 //! PRE-MOVE (today) a crate is mapped by the CURRENT dir it lives under, resolved against the
 //! registry's `capabilities[].absorbs_current_dirs` + the `membership_lint_coverage` block
-//! (`app_products`, `meta_directory_absorbs`, `absorbs_current_crate_globs`,
+//! (`app_products`, `retired_v1_products`, `meta_directory_absorbs`, `absorbs_current_crate_globs`,
 //! `frozen_unmapped_baseline`). POST-move the path itself is the namespace (the gate would map by
 //! the top-level dir directly); the policy `scan_roots` shrink as the strangler completes.
 //!
@@ -93,6 +93,10 @@ pub const VIOLATION_CODES: [&str; 11] = [
 
 /// The policy block that freezes the legacy-root crate census shrink-only.
 pub const LEGACY_ROOT_FREEZE_KEY: &str = "legacy_root_freeze";
+
+/// Home label for `membership_lint_coverage.retired_v1_products` dirs. Not `meta:app/` —
+/// D41/D42 retire-in-place until a later PR deletes the crates.
+pub const RETIRE_IN_PLACE_HOME: &str = "retire-in-place";
 
 /// Sentinel key for policy-level (non-per-crate) findings.
 const POLICY_KEY: &str = "<policy>";
@@ -309,7 +313,8 @@ fn string_array(value: &Value, key: &str) -> Vec<String> {
 /// resolution this gate enforces. Fields stay private (the orchestrator treats `Mapping` as opaque,
 /// only passing it to [`homes_for`]).
 pub struct Mapping {
-    /// (prefix dir, home label) pairs from absorbs_current_dirs + app_products + meta_directory_absorbs.
+    /// (prefix dir, home label) pairs from absorbs_current_dirs + app_products +
+    /// retired_v1_products + meta_directory_absorbs.
     dir_prefixes: Vec<(String, String)>,
     /// (glob, home label) pairs from absorbs_current_crate_globs (glob ends with `*` for stem-match).
     globs: Vec<(String, String)>,
@@ -373,6 +378,18 @@ pub fn parse_mapping(registry: &Value) -> Result<Mapping, String> {
             .unwrap_or("app/");
         for dir in string_array(app, "current_dirs") {
             dir_prefixes.push((dir, format!("meta:{meta}")));
+        }
+    }
+
+    // retired_v1_products → retire-in-place (NOT meta:app/). meta_dir must be omitted or null.
+    if let Some(retired) = coverage.get("retired_v1_products") {
+        if let Some(meta) = retired.get("meta_dir").and_then(Value::as_str) {
+            return Err(format!(
+                "retired_v1_products.meta_dir must be omitted or null (got {meta:?}); these dirs must not absorb into app/"
+            ));
+        }
+        for dir in string_array(retired, "current_dirs") {
+            dir_prefixes.push((dir, RETIRE_IN_PLACE_HOME.to_owned()));
         }
     }
 

@@ -102,6 +102,73 @@ fn registry_membership_coverage_block_is_present() {
     );
 }
 
+#[test]
+fn d41_office_suite_and_translate_are_not_app_products() {
+    // Interview: office-suite retire (D41) — notes/slides/sites/office must not be
+    // absorb-into-app destinations. translate is an intelligence concern (D42).
+    // sheets stays on the ontology/action-event-document product spine (D41 did not name it).
+    // V1 keep products remain in app_products.
+    let root = repo_root();
+    let registry = load_json(&root.join("governance/capability-registry.json"));
+    let coverage = registry
+        .get("membership_lint_coverage")
+        .expect("membership_lint_coverage");
+    let app_dirs: Vec<&str> = coverage["app_products"]["current_dirs"]
+        .as_array()
+        .expect("app_products.current_dirs")
+        .iter()
+        .filter_map(|v| v.as_str())
+        .collect();
+    let retired_dirs: Vec<&str> = coverage["retired_v1_products"]["current_dirs"]
+        .as_array()
+        .expect("retired_v1_products.current_dirs")
+        .iter()
+        .filter_map(|v| v.as_str())
+        .collect();
+
+    for retired in [
+        "oya/notes",
+        "oya/slides",
+        "oya/sites",
+        "oya/office",
+        "oya/translate",
+    ] {
+        assert!(
+            !app_dirs.contains(&retired),
+            "{retired} must not be an app_products absorb destination: {app_dirs:?}"
+        );
+    }
+    assert!(
+        app_dirs.contains(&"oya/sheets"),
+        "sheets stays in app_products as the ontology/action-event-document product spine (D41 did not name it): {app_dirs:?}"
+    );
+    for still_on_disk in ["oya/notes", "oya/slides", "oya/sites", "oya/translate"] {
+        assert!(
+            retired_dirs.contains(&still_on_disk),
+            "{still_on_disk} must be retired_v1_products (still on disk): {retired_dirs:?}"
+        );
+        assert!(
+            root.join(still_on_disk).is_dir(),
+            "{still_on_disk} must still exist (this PR does not delete product trees)"
+        );
+    }
+    assert!(
+        !retired_dirs.contains(&"oya/office"),
+        "oya/office is already gone from the tree; current_dirs lists only live paths: {retired_dirs:?}"
+    );
+    assert_eq!(
+        coverage["retired_v1_products"]["disposition"].as_str(),
+        Some("retire-in-place; do not absorb into app/; D41/D42")
+    );
+    assert!(
+        coverage["retired_v1_products"]
+            .get("meta_dir")
+            .and_then(|v| v.as_str())
+            .is_none(),
+        "retired_v1_products must not carry meta_dir (that would absorb into app/)"
+    );
+}
+
 // ---------------------------------------------------------------------------
 // Filesystem fixture repos: prove collect resolves real Cargo.toml crates from disk and that the
 // three mandated regressions fail. Materialized under the OS temp dir (self-cleaning).
