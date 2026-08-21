@@ -10,13 +10,13 @@
   "source_authority_refs": [
     "specs/microservices/calendar.json",
     "specs/microservices/manifests-index.json#microservices[name=calendar]",
-    "oya/calendar/manifest.json"
+    "app/calendar/manifest.json"
   ],
   "inventory_context_not_live_authority": [
-    "oya/calendar/manifest.json",
-    "oya/calendar/contracts/*",
-    "oya/calendar/catalog/*",
-    "oya/calendar/IPs/*",
+    "app/calendar/manifest.json",
+    "app/calendar/contracts/*",
+    "app/calendar/catalog/*",
+    "app/calendar/IPs/*",
     "microservices/calendar/manifest.json",
     "microservices/calendar/contracts/*"
   ],
@@ -35,7 +35,7 @@
   ],
   "contract_replay_expectations": {
     "openapi": {
-      "source_path": "oya/calendar/contracts/openapi/calendar.yaml",
+      "source_path": "app/calendar/contracts/openapi/calendar.yaml",
       "legacy_manifest_pointer": "microservices/calendar/contracts/openapi/calendar.yaml",
       "future_replay_family": "calendar-prd-openapi-v1",
       "must_assert": [
@@ -46,7 +46,7 @@
       ]
     },
     "asyncapi": {
-      "source_path": "oya/calendar/contracts/asyncapi/calendar-events.yaml",
+      "source_path": "app/calendar/contracts/asyncapi/calendar-events.yaml",
       "legacy_manifest_pointer": "microservices/calendar/contracts/asyncapi/calendar-events.yaml",
       "future_replay_family": "calendar-prd-asyncapi-v1",
       "must_assert": [
@@ -57,7 +57,7 @@
       ]
     },
     "proto": {
-      "source_path": "oya/calendar/contracts/proto/calendar.proto",
+      "source_path": "app/calendar/contracts/proto/calendar.proto",
       "legacy_manifest_pointer": "microservices/calendar/contracts/proto/calendar.proto",
       "future_replay_family": "calendar-prd-proto-v1",
       "must_assert": [
@@ -81,9 +81,9 @@
     {
       "fixture_id": "calendar_prd_authority_source_lock_fixture",
       "fixture_kind": "authority_source_lock",
-      "source_authority_refs": ["specs/microservices/calendar.json#_meta", "specs/microservices/manifests-index.json#microservices[name=calendar]", "oya/calendar/manifest.json", "kanban:t_9aca64a9"],
+      "source_authority_refs": ["specs/microservices/calendar.json#_meta", "specs/microservices/manifests-index.json#microservices[name=calendar]", "app/calendar/manifest.json", "kanban:t_9aca64a9"],
       "future_replay_artifacts": ["specs/fixtures/calendar-prd/replay/authority/calendar-prd-authority-source-lock.fixture.json"],
-      "must_assert": ["PRD-CALENDAR status Accepted", "calendar manifest-index prd points to specs/microservices/calendar.json", "calendar manifest-index manifest points to oya/calendar/manifest.json", "inventory is provenance only"],
+      "must_assert": ["PRD-CALENDAR status Accepted", "calendar manifest-index prd points to specs/microservices/calendar.json", "calendar manifest-index manifest points to app/calendar/manifest.json", "inventory is provenance only"],
       "must_reject": ["runtime readiness from manifest inventory", "canonical microservices/calendar/manifest.json", "Build without parent t_9aca64a9 and RED gate t_46ab5900"],
       "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
     },
@@ -149,7 +149,7 @@
     {
       "fixture_id": "calendar_prd_api_contract_replay_fixture",
       "fixture_kind": "api_contract_replay",
-      "source_authority_refs": ["oya/calendar/contracts/openapi/calendar.yaml", "oya/calendar/contracts/asyncapi/calendar-events.yaml", "oya/calendar/contracts/proto/calendar.proto", "oya/calendar/manifest.json#contracts"],
+      "source_authority_refs": ["app/calendar/contracts/openapi/calendar.yaml", "app/calendar/contracts/asyncapi/calendar-events.yaml", "app/calendar/contracts/proto/calendar.proto", "app/calendar/manifest.json#contracts"],
       "future_replay_artifacts": ["specs/fixtures/calendar-prd/replay/openapi/calendar-openapi-v1-replay.fixture.json", "specs/fixtures/calendar-prd/replay/asyncapi/calendar-asyncapi-v1-replay.fixture.json", "specs/fixtures/calendar-prd/replay/proto/calendar-proto-v1-replay.fixture.json"],
       "must_assert": ["OpenAPI replay covers AC-01 through AC-05", "AsyncAPI replay covers produced event families", "proto replay covers structural personal/work separation", "legacy microservices contract pointers are not canonical readiness evidence"],
       "must_reject": ["handler before contract replay", "green API claim without OpenAPI replay", "green event claim without AsyncAPI replay", "green gRPC claim without proto replay", "legacy microservices/calendar/contracts as live authority"],
@@ -176,10 +176,10 @@
     {
       "fixture_id": "calendar_prd_inventory_provenance_rejection_fixture",
       "fixture_kind": "authority_non_claim",
-      "source_authority_refs": ["oya/calendar/manifest.json", "specs/microservices/manifests-index.json#microservices[name=calendar]", "kanban:t_9aca64a9"],
+      "source_authority_refs": ["app/calendar/manifest.json", "specs/microservices/manifests-index.json#microservices[name=calendar]", "kanban:t_9aca64a9"],
       "future_replay_artifacts": ["specs/fixtures/calendar-prd/replay/authority/calendar-inventory-provenance-rejection.fixture.json"],
-      "must_assert": ["oya/calendar/manifest.json is inventory/provenance only", "microservices/calendar/manifest.json is absent and must not be restored", "declared legacy contract pointers require source mapping before readiness claims"],
-      "must_reject": ["oya/calendar/manifest.json as runtime readiness", "oya/calendar/catalog as product readiness", "microservices/calendar/manifest.json as canonical", "microservices/calendar/contracts as canonical source"],
+      "must_assert": ["app/calendar/manifest.json is inventory/provenance only", "microservices/calendar/manifest.json is absent and must not be restored", "declared legacy contract pointers require source mapping before readiness claims"],
+      "must_reject": ["app/calendar/manifest.json as runtime readiness", "app/calendar/catalog as product readiness", "microservices/calendar/manifest.json as canonical", "microservices/calendar/contracts as canonical source"],
       "expected_red_status": "RED_UNTIL_REPLAY_ARTIFACT_EXISTS"
     },
     {

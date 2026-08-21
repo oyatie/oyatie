@@ -14,11 +14,11 @@
   },
   "tier_distribution": {
     "substrate": 54,
-    "product": 23,
+    "product": 22,
     "service-cell": 0,
     "reserved": 0
   },
-  "service_count": 77,
+  "service_count": 76,
   "services": {
     "audit/manifest.json": {
       "service": "audit",
@@ -791,14 +791,6 @@
       "tier": "product",
       "tier_subtype": "product-developer-application-shell",
       "dr_tier": "T1"
-    },
-    "oya/calendar/manifest.json": {
-      "service": "oya/calendar",
-      "manifest": "oya/calendar/manifest.json",
-      "capability": null,
-      "tier": "product",
-      "tier_subtype": "product-consumer-calendar",
-      "dr_tier": "T0"
     },
     "oya/ci-webhook-gateway/manifest.json": {
       "service": "oya/ci-webhook-gateway",

@@ -471,7 +471,7 @@ Steps:
 
 1. **`receive_request`** — accept request with `(employee_id, leave_type, start_date, end_date, partial_day_hours?, reason?, evidence_attachments?)`.
 2. **`resolve_employee_and_policy`** — fetch employment record + applicable leave policy (per-tenant + per-jurisdiction overlay).
-3. **`validate_balance`** — fetch current leave balance from `hr` µservice; compute days requested (excluding weekends + tenant holidays per `oya/calendar/` calendar-of-record). If balance < requested → route to `step_balance_insufficient_handler`.
+3. **`validate_balance`** — fetch current leave balance from `hr` µservice; compute days requested (excluding weekends + tenant holidays per `app/calendar/` calendar-of-record). If balance < requested → route to `step_balance_insufficient_handler`.
 4. **`check_eligibility`** — Cedar gate: probation employees may have limited leave; employee under 90d may not be eligible for some leave types (KR labor act); per-tenant blackout-period policy (e.g., no vacation during quarter-end finance close).
 5. **`check_team_coverage`** — gRPC to `calendar` µservice `QueryTeamAvailability(team_id, [start_date, end_date])`; if >50% of team OOO during requested window → flag `team_coverage_risk: high` for manager attention.
 6. **`detect_policy_violations`** — Cedar gate against per-jurisdiction overlay: KR labor act Article 60 requires employer to grant annual leave on requested dates "unless business operations are significantly hindered"; auto-deny is uncommon; flag-for-manager-review is the norm. EU varies. US: at-will employer-discretion (subject to FMLA for medical).
@@ -1943,7 +1943,7 @@ Per ADR-0241 per-µservice `dr_tier`:
 - **ADR-0252 — Workflow-engine per-step idempotency**.
 - **`oya/workflow-engine/PRD.md`** — durable execution substrate.
 - **`oya/workflow-studio/PRD.md`** — visual authoring product.
-- **`oya/calendar/PRD.md`** — calendar substrate.
+- **`app/calendar/PRD.md`** — calendar substrate.
 - **`oya/meet/PRD.md`** — video meeting.
 - **`oya/mail/PRD.md`** — mail product.
 - **`oya/messenger/PRD.md`** — chat product.
@@ -2029,7 +2029,7 @@ The workplace-integration product layer ships in IPs (Implementation Plans) unde
 
 ## 13. Sources scanned
 
-- `oya/calendar/PRD.md` (workplace flow integration)
+- `app/calendar/PRD.md` (workplace flow integration)
 - `oya/meet/PRD.md` (meeting/video flow integration)
 - `oya/workflow-engine/PRD.md` (durable saga substrate)
 - `oya/workflow-studio/PRD.md` (visual authoring product)

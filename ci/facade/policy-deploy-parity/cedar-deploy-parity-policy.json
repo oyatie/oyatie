@@ -18,7 +18,6 @@
       "gateway/iac/k8s/helm/values.yaml",
       "oya/application/iac/k8s/helm/values.yaml",
       "audit/iac/k8s/helm/values.yaml",
-      "oya/calendar/iac/k8s/helm/values.yaml",
       "comms/comms-email/iac/k8s/helm/values.yaml",
       "oya/community/iac/k8s/helm/templates/cedar.yaml",
       "compliance/iac/k8s/helm/values.yaml",
