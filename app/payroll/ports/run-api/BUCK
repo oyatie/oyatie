@@ -1,0 +1,32 @@
+rust_library(
+    name = "payroll-run-api",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "payroll_run_api",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//app/payroll/facade/run-app:payroll-run-app",
+        "//app/payroll/core/run-domain:payroll-run-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "payroll-run-api-contracts",
+    # Declared contract binding; previously a cwd-relative read that only resolved under Buck.
+    env = {
+        "OYA_PAYROLL_OPENAPI_CONTRACT": "$(location //oya/payroll/contracts:openapi-v1.yaml)",
+    },
+    srcs = ["tests/contracts.rs"],
+    crate = "payroll_run_api_contracts",
+    crate_root = "tests/contracts.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":payroll-run-api",
+        "//app/payroll/facade/run-app:payroll-run-app",
+        "//app/payroll/core/run-domain:payroll-run-domain",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

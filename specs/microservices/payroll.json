@@ -21,8 +21,8 @@
     ],
     "crate_refs_planned": [
       "oya-payroll-run-kernel",
-      "oya-payroll-run-domain",
-      "oya-payroll-run-app",
+      "payroll-run-domain",
+      "payroll-run-app",
       "oya-payroll-run-rest"
     ],
     "ops_surface": "managed through OpenTofu-owned infrastructure, root Makefile bootstrap/install/plan/apply targets, and oya ops surfaces; no manual SSH troubleshooting path"
@@ -91,49 +91,49 @@
       "given": "a KR payroll run is created",
       "when": "the run enters trial close",
       "then": "each payee has legal_entity_id, payee_class, rulepack_effective_date, wage ledger, and evidence digest",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/kr_close.rs::test_trial_close_requires_rulepack_and_evidence"
+      "test_ref": "microservices/payroll/crates/payroll-run-domain/tests/kr_close.rs::test_trial_close_requires_rulepack_and_evidence"
     },
     {
       "id": "AC-02",
       "given": "a group tenant has multiple legal entities",
       "when": "payroll closes for the group",
       "then": "each entity closes independently before group rollup and detachment history remains immutable/redacted",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/group.rs::test_entity_close_before_group_rollup"
+      "test_ref": "microservices/payroll/crates/payroll-run-domain/tests/group.rs::test_entity_close_before_group_rollup"
     },
     {
       "id": "AC-03",
       "given": "KR statutory exports are generated",
       "when": "HomeTax/4대보험/withholding evidence is emitted",
       "then": "export hashes, receipts or rejection reasons, and rollback/repair plan are attached before promotion",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/filing.rs::test_kr_exports_require_hashes_and_receipts"
+      "test_ref": "microservices/payroll/crates/payroll-run-domain/tests/filing.rs::test_kr_exports_require_hashes_and_receipts"
     },
     {
       "id": "AC-04",
       "given": "payroll is approved for posting",
       "when": "the accounting bridge runs",
       "then": "balanced GL journal vouchers are produced with source payroll digest and approval evidence",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/accounting_bridge.rs::test_payroll_posts_balanced_journals"
+      "test_ref": "microservices/payroll/crates/payroll-run-domain/tests/accounting_bridge.rs::test_payroll_posts_balanced_journals"
     },
     {
       "id": "AC-05",
       "given": "a production close canary or evidence gate fails",
       "when": "the controller evaluates launch health",
       "then": "close promotion stops, rollback/quarantine evidence is emitted, and repair routes through hotfix PR or OpenTofu/ops convergence",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/rollback.rs::test_failed_close_uses_rollback_first"
+      "test_ref": "microservices/payroll/crates/payroll-run-domain/tests/rollback.rs::test_failed_close_uses_rollback_first"
     },
     {
       "id": "AC-06",
       "given": "a payroll trial close or payroll-to-accounting bridge is evaluated by the app layer",
       "when": "the app crate prepares downstream integration metadata",
       "then": "metadata-only audit and accounting dispatch envelopes carry run identity, source digest, evidence refs, idempotency, and data-class metadata without external I/O",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-app/tests/app_envelopes.rs::{trial_close_emits_audit_event,accounting_bridge_emits_integration_event}"
+      "test_ref": "microservices/payroll/crates/payroll-run-app/tests/app_envelopes.rs::{trial_close_emits_audit_event,accounting_bridge_emits_integration_event}"
     },
     {
       "id": "AC-07",
       "given": "an external caller submits payroll close or payroll journal JSON",
       "when": "the API DTO contract parses the request",
       "then": "camelCase fields, stable enum labels, consistent validation error envelope shape, and deterministic conversion into payroll domain/app inputs are preserved without transport runtime I/O",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-api/tests/contracts.rs::{trial_close_request_uses_camel_case_and_stable_enums,payroll_journal_request_converts_to_accounting_dispatch_input,error_envelope_has_consistent_shape}"
+      "test_ref": "microservices/payroll/crates/payroll-run-api/tests/contracts.rs::{trial_close_request_uses_camel_case_and_stable_enums,payroll_journal_request_converts_to_accounting_dispatch_input,error_envelope_has_consistent_shape}"
     },
     {
       "id": "AC-08",
@@ -147,35 +147,35 @@
       "given": "payroll run changes are proposed for review",
       "when": "the self-hostable CI quality gate runs",
       "then": "Jenkins LTS runs fmt, check, clippy, nextest, OpenAPI semver, Oya VCS admission, and Wave 15-ZE evidence emission across payroll domain/app/API packages before promotion",
-      "test_ref": "microservices/payroll/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for oya-payroll-run-domain, oya-payroll-run-app, oya-payroll-run-api; oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
+      "test_ref": "microservices/payroll/ci/Jenkinsfile; static Jenkins lane scan; cargo fmt/test/clippy for payroll-run-domain, payroll-run-app, payroll-run-api; oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
     },
     {
       "id": "AC-10",
       "given": "HR emits an approved leave or attendance payroll-impact metadata envelope",
       "when": "payroll accepts the intake for a payroll run and payee",
       "then": "source topic, HR idempotency key, payroll period, payee/employee/leave ids, rulepack basis, and decision/routing/payroll/intake evidence refs are validated without calculating payroll",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/hr_leave.rs::test_hr_leave_impact_intake_requires_source_evidence and microservices/payroll/crates/oya-payroll-run-app/tests/hr_leave.rs::hr_leave_impact_intake_envelope_is_metadata_only and microservices/payroll/crates/oya-payroll-run-api/tests/contracts.rs::hr_leave_impact_request_converts_to_domain_input; microservices/payroll/contracts/openapi-v1.yaml#/paths/~1payroll~1v1~1hr-leave-impact-intakes; validated by oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
+      "test_ref": "microservices/payroll/crates/payroll-run-domain/tests/hr_leave.rs::test_hr_leave_impact_intake_requires_source_evidence and microservices/payroll/crates/payroll-run-app/tests/hr_leave.rs::hr_leave_impact_intake_envelope_is_metadata_only and microservices/payroll/crates/payroll-run-api/tests/contracts.rs::hr_leave_impact_request_converts_to_domain_input; microservices/payroll/contracts/openapi-v1.yaml#/paths/~1payroll~1v1~1hr-leave-impact-intakes; validated by oya gate validate api-semver --contracts-dir microservices/payroll/contracts"
     },
     {
       "id": "AC-11",
       "given": "a future payroll HTTP adapter receives JSON for trial close, accounting journal draft, HR leave-impact intake, or health checks",
       "when": "the payroll runtime adapter router dispatches the request through the repo-native Hyper foundation",
       "then": "OpenAPI-aligned JSON responses and validation error envelopes are returned with bounded body limits and explicit non-claims for deployed listener, storage, Workflow dispatch, statutory filing rails, and payroll calculation",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-infrastructure/tests/runtime.rs::{payroll_runtime_dispatches_hr_leave_intake,payroll_runtime_dispatches_trial_close_and_journal_metadata,payroll_runtime_rejects_invalid_json_and_domain_errors_without_panicking,payroll_runtime_manifest_and_health_preserve_honest_non_claims}"
+      "test_ref": "microservices/payroll/crates/payroll-run-infrastructure/tests/runtime.rs::{payroll_runtime_dispatches_hr_leave_intake,payroll_runtime_dispatches_trial_close_and_journal_metadata,payroll_runtime_rejects_invalid_json_and_domain_errors_without_panicking,payroll_runtime_manifest_and_health_preserve_honest_non_claims}"
     },
     {
       "id": "AC-12",
       "given": "a future durable payroll persistence adapter needs a stable contract for trial-close audit, accounting dispatch, and HR leave-impact intake metadata",
       "when": "the in-memory payroll storage reference adapter records app-layer payroll envelopes",
       "then": "topic, tenant, legal-entity, run, primary refs, evidence counts, payload data-class labels, and idempotency keys are preserved while durable backend, Postgres/RLS, payroll calculation, statutory filing rails, disbursement rails, Workflow dispatch, HR/accounting calls, and audit-chain emission remain explicit non-claims",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-storage-adapter-inmemory/tests/storage.rs::{payroll_storage_records_metadata_without_durable_backend_claim,payroll_storage_refuses_duplicate_idempotency_keys,payroll_storage_reservation_validates_key_shape_and_allows_commit}"
+      "test_ref": "microservices/payroll/crates/payroll-run-storage-inmemory/tests/storage.rs::{payroll_storage_records_metadata_without_durable_backend_claim,payroll_storage_refuses_duplicate_idempotency_keys,payroll_storage_reservation_validates_key_shape_and_allows_commit}"
     },
     {
       "id": "AC-13",
       "given": "payroll statutory rulepacks need official source/version provenance before any tax calculation or filing rail is attached",
       "when": "the payroll domain builds a statutory rulepack manifest for US federal or Korea payroll inputs",
       "then": "rulepack refs, payroll period, source version, effective date, approval evidence, official source URLs, source evidence refs, and source digests are validated while calculation engine, filing rail, disbursement rail, and cloud deployment capabilities remain explicit non-claims",
-      "test_ref": "microservices/payroll/crates/oya-payroll-run-domain/tests/rulepack_manifest.rs::{statutory_rulepack_manifest_requires_source_version_and_evidence_without_calculation_claim,statutory_rulepack_manifest_rejects_empty_sources_and_overclaims,statutory_rulepack_manifest_rejects_unofficial_or_unversioned_sources,korean_statutory_manifest_can_reference_moel_and_law_sources_without_filing_claim}"
+      "test_ref": "microservices/payroll/crates/payroll-run-domain/tests/rulepack_manifest.rs::{statutory_rulepack_manifest_requires_source_version_and_evidence_without_calculation_claim,statutory_rulepack_manifest_rejects_empty_sources_and_overclaims,statutory_rulepack_manifest_rejects_unofficial_or_unversioned_sources,korean_statutory_manifest_can_reference_moel_and_law_sources_without_filing_claim}"
     }
   ],
   "scope": {
@@ -396,7 +396,7 @@
         "stable": 25,
         "GA": 10
       },
-      "verification_ref": "cargo nextest -p oya-payroll-run-domain -- kr_close_variance",
+      "verification_ref": "cargo nextest -p payroll-run-domain -- kr_close_variance",
       "lane_ref": "cargo-nextest"
     },
     {
@@ -416,7 +416,7 @@
         "stable": 0,
         "GA": 0
       },
-      "verification_ref": "cargo nextest -p oya-payroll-run-domain -- gl_bridge_balance",
+      "verification_ref": "cargo nextest -p payroll-run-domain -- gl_bridge_balance",
       "lane_ref": "cargo-nextest"
     },
     {

@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//billing/adapters/accounting-http:billing-accounting-http-adapter",
         "//app/hr/adapters/employment-infrastructure:hr-employment-infrastructure",
-        "//oya/payroll/crates/oya-payroll-run-infrastructure:oya-payroll-run-infrastructure",
+        "//app/payroll/adapters/run-infrastructure:payroll-run-infrastructure",
         "//iam/facade/tenant-rbac-app:iam-tenant-rbac-app",
     ],
 )
@@ -22,7 +22,7 @@ rust_test(
         ":iam-tenant-rbac-local-runtime-composition",
         "//billing/adapters/accounting-http:billing-accounting-http-adapter",
         "//app/hr/adapters/employment-infrastructure:hr-employment-infrastructure",
-        "//oya/payroll/crates/oya-payroll-run-infrastructure:oya-payroll-run-infrastructure",
+        "//app/payroll/adapters/run-infrastructure:payroll-run-infrastructure",
         "//iam/facade/tenant-rbac-app:iam-tenant-rbac-app",
     ],
 )

@@ -16,8 +16,8 @@ use iam_tenant_rbac_local_inmemory_harness::{
     TenantRbacLocalInMemoryHarness, TenantRbacLocalInMemoryHarnessError,
 };
 use iam_tenant_rbac_usecase::prepare_cross_service_workflow_envelope;
-use oya_payroll_run_app::{prepare_accounting_dispatch, prepare_hr_leave_impact_intake};
-use oya_payroll_run_domain::{
+use payroll_run_app::{prepare_accounting_dispatch, prepare_hr_leave_impact_intake};
+use payroll_run_domain::{
     HrLeaveImpactIntakeInput, HrLeaveImpactKind, PayrollJournalInput, PayrollJournalLineInput,
 };
 
