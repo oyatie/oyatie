@@ -27,6 +27,14 @@ members = [
   "*/ports/*",
   "*/adapters/*",
   "*/facade/*",
+  # ADR-0562 composition ring. The layer globs above are single-segment and cannot reach
+  # `app/<product>/<face>/<crate>`, so without these an app absorb lands crates OUTSIDE the
+  # build — which evaluation_gate.forbidden calls move_now_fix_later. app/calendar landed
+  # only because it holds zero crates.
+  "app/*/core/*",
+  "app/*/ports/*",
+  "app/*/adapters/*",
+  "app/*/facade/*",
 
   # LEGACY roots, retained until their capability moves land. Each is narrowed to the crate
   # leaf shape (`oya-*`, `-app`) so non-crate siblings — scripts, completions, vendored trees —

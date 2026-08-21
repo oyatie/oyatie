@@ -1,0 +1,19 @@
+[package]
+name = "hr-employment-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+oya-data-boundary-kernel = { path = "../../../../libs/oya-data-boundary-kernel" }
+hr-employment-domain = { path = "../../core/employment-domain" }
+
+[lib]
+name = "hr_employment_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

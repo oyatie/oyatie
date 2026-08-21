@@ -45,7 +45,7 @@ pub fn tenant_rbac_local_runtime_composition() -> TenantRbacLocalRuntimeComposit
     let mut routes = Vec::new();
 
     routes.extend(
-        oya_hr_employment_infrastructure::hr_runtime_routes()
+        hr_employment_infrastructure::hr_runtime_routes()
             .into_iter()
             .map(|route| TenantRbacLocalRuntimeRoute {
                 service: "hr",

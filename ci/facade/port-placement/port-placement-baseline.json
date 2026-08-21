@@ -20,7 +20,7 @@
       "reason": "tenant-RBAC storage port defined in the in-memory adapter; relocate to an iam core/ports crate (separate follow-up)"
     },
     {
-      "member_path": "oya/hr/crates/oya-hr-employment-storage-adapter-inmemory",
+      "member_path": "app/hr/adapters/employment-storage-inmemory",
       "trait": "HrEmploymentStoragePort",
       "reason": "HR employment storage port defined in the in-memory adapter-named crate (caught by forbidden_crate_name_suffixes FIX 1); relocate to an oya/hr core/ports crate (separate follow-up)"
     },

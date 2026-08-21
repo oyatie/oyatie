@@ -386,13 +386,13 @@
       }
     },
     "counts": {
-      "evidence_files": 54,
+      "evidence_files": 53,
       "planning_files": 11,
       "docs_markdown_files": 1434,
       "live_adr_files": 19,
       "dotdir_files": 242,
       "reorg_paths": 25,
-      "oya_legacy_root_files": 1691,
+      "oya_legacy_root_files": 1659,
       "yaml_files": 2981,
       "json_files": 1286
     },
@@ -407,11 +407,6 @@
         "from": 2980,
         "to": 2981,
         "reason": "registry/catalog/ci-gitops-chart-license.yaml is the catalog row for the ADR-0706 D-5 chart-license gate (bead oyatie-f2fg). The crate-catalog-coverage gate requires one row per package keyed by filename, so a new gate crate cannot land without it -- the raise is forced by another gate, not chosen. The prior entry for this class is now stale (stale from/to fails closed) and is replaced rather than appended, one sanctioned raise per class."
-      },
-      "evidence_files": {
-        "from": 53,
-        "to": 54,
-        "reason": "evidence/reorg/rr-intel-remainder-execute-20260814.json is the reorg receipt for the G024 remainder rehome (78 crates -> intelligence/). ADR-0562 move plans are admitted against a recorded receipt, so the artifact is load-bearing for the migration it documents, not sprawl. The prior 52->53 raise is superseded by this exact from->to because a stale raise fails closed."
       },
       "docs_markdown_files": {
         "from": 1434,
