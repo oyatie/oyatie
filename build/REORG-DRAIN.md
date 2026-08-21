@@ -7430,3 +7430,13 @@ written a second time.
 `yaml` is now the corpus's largest emitted crate by a wide margin -- 207 declarations against
 `memberlist`'s 76 -- and every one of its defects existed because a gate that could not tell
 compiling from empty had been reporting it green.
+
+## R4y — a directory of Rust files is not a crate
+
+The review bundle shipped no `Cargo.toml`. A reviewer handed it had to write one before anything
+could be built, and counted its absence against the CODE — which was the harness's fault and not
+the engine's, and is the third finding this script has produced about itself after the name
+collision and the module inception.
+
+It writes a manifest now, `unsafe_code = "forbid"` declared there rather than only in the crate
+root, and the bundle builds with plain `cargo build`.
