@@ -1070,6 +1070,12 @@
       "purpose": "Workflow Studio product PRD — visual editor + DSL backbone; n8n-class first hero product per feedback_workflow_studio_scope. Pairs with prd_workflow on the same canonical spec.",
       "target_path_after_md_retirement": "same"
     },
+    "product_lock": {
+      "current_path": "docs/products/LOCK.md",
+      "kind": "doc",
+      "purpose": "Published product lock: Oyatie on this repo is the Agentic Delivery Fabric. Live product authority. docs/PRD.md is Discover/drafted, not this claim.",
+      "target_path_after_md_retirement": "same"
+    },
     "product_protocol_contract": {
       "current_path": "/specs/product-protocol-contract.json",
       "kind": "spec",
