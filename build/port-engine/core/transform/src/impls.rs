@@ -405,7 +405,7 @@ fn written_exits(body: Vec<RustStmt>) -> Vec<RustStmt> {
 /// A value with a copy taken off it, where the copy was made for a position that keeps the value.
 ///
 /// See `written_exits`: a write borrows, so the clone is dropped immediately after being written.
-fn unowned(value: RustExpr) -> RustExpr {
+pub(crate) fn unowned(value: RustExpr) -> RustExpr {
     match value {
         RustExpr::MethodCall {
             receiver,

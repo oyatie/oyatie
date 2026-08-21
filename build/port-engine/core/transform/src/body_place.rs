@@ -148,9 +148,27 @@ pub(crate) fn convert(node: &Declaration, cx: &Body<'_>) -> Result<RustExpr, Tra
     // A named type the corpus declares emits as a newtype, so converting to it is construction.
     if target.kind == "named" {
         let path = cx.resolver.resolve(target, cx.owner)?;
+        // FROM ONE DEFINED TYPE TO ANOTHER. The source allows it wherever the two share an
+        // underlying type, and spells it as a conversion; the target's two newtypes are unrelated,
+        // so what the constructor wants is the UNDERLYING value and not the other wrapper.
+        // `yaml_mapping_style_t(n.Style)` handed `YamlMappingStyleT` a `YamlStyleT`.
+        //
+        // Asked here rather than in `unwraps_newtype`, which the INDEX path shares: reaching
+        // through every operand that happens to be a newtype is right for a conversion and wrong
+        // for an index, and making it general broke `uuid`.
+        let inner = match wraps_a_local_newtype(source, cx) {
+            // UNOWNED, because reading `.0` out of a wrapper does not need a copy of the wrapper.
+            // The operand was built for a position that owns; this position reads through it, and
+            // `self.style.clone().0` is a clone the target's own lint rejects.
+            true => RustExpr::TupleIndex {
+                base: Box::new(crate::impls::unowned(operand)),
+                index: 0,
+            },
+            false => operand,
+        };
         return Ok(RustExpr::Call {
             callee: Box::new(RustExpr::Path(path.spelling())),
-            args: vec![operand],
+            args: vec![inner],
         });
     }
 
@@ -193,4 +211,14 @@ fn newtype_underlying(
         false => source.type_ref.name.as_str(),
     };
     cx.resolver.scope.newtypes.get(owner).cloned()
+}
+
+/// Whether this operand's own recorded type is a newtype THIS UNIT declares.
+///
+/// Read from the same table the receiver and parameter cases read, so the three cannot disagree
+/// about what is a newtype -- they differ only in where the fact comes from, and this one comes
+/// from the expression's own type.
+fn wraps_a_local_newtype(source: &Declaration, cx: &Body<'_>) -> bool {
+    source.type_ref.kind == "named"
+        && cx.resolver.scope.newtypes.contains_key(&source.type_ref.name)
 }
