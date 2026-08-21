@@ -10,9 +10,7 @@ use community_post_store_app::{
     plan_cast_vote, plan_create_post, plan_moderation_action,
 };
 use community_post_store_domain::{CommunityPost, VoteLedger};
-use community_post_store_usecase::{
-    CommunityUsecaseError, cast_vote, create_post, moderate_post,
-};
+use community_post_store_usecase::{CommunityUsecaseError, cast_vote, create_post, moderate_post};
 use oya_shared_hyperscaler_metrics_kernel::{
     MetricsContext, MetricsError, RequestTelemetryBinding,
 };

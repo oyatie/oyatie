@@ -180,9 +180,7 @@ pub fn social_publish_post_generated_write_plan(
     tenant: TenantSqlContext,
     request: social::v1::PublishPostRequest,
 ) -> Result<
-    community_social_post_composition_grpc::GrpcResponse<
-        community_social_app::SocialPublishPlan,
-    >,
+    community_social_post_composition_grpc::GrpcResponse<community_social_app::SocialPublishPlan>,
     GeneratedBackboneGrpcAdapterError,
 > {
     let context = community_social_post_composition_api::AuthorizedSocialContext {
@@ -268,9 +266,7 @@ pub fn community_apply_action_generated_write_plan(
     post: &community_post_store_domain::CommunityPost,
     request: community::v1::ApplyActionRequest,
 ) -> Result<
-    community_post_store_grpc::GrpcResponse<
-        community_post_store_app::CommunityModerationPlan,
-    >,
+    community_post_store_grpc::GrpcResponse<community_post_store_app::CommunityModerationPlan>,
     GeneratedBackboneGrpcAdapterError,
 > {
     let context = community_context(request.context, "ApplyActionRequest")?;
@@ -280,10 +276,8 @@ pub fn community_apply_action_generated_write_plan(
         verb: moderation_verb(request.verb)?,
     };
 
-    community_post_store_grpc::apply_moderation_action_write_plan(
-        tenant, context, post, request,
-    )
-    .map_err(GeneratedBackboneGrpcAdapterError::Community)
+    community_post_store_grpc::apply_moderation_action_write_plan(tenant, context, post, request)
+        .map_err(GeneratedBackboneGrpcAdapterError::Community)
 }
 
 fn messenger_context(
@@ -361,10 +355,8 @@ fn social_artifact_kind(
 fn community_context(
     context: Option<community::v1::CommunityAuthContext>,
     request: &'static str,
-) -> Result<
-    community_post_store_api::AuthorizedCommunityContext,
-    GeneratedBackboneGrpcAdapterError,
-> {
+) -> Result<community_post_store_api::AuthorizedCommunityContext, GeneratedBackboneGrpcAdapterError>
+{
     let context = context.ok_or(GeneratedBackboneGrpcAdapterError::MissingMessage {
         request,
         field: "context",

@@ -1,13 +1,11 @@
 //! App-layer write orchestration for social post composition.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use community_social_post_composition_postgres::{
-    PersistSocialPostRecord, build_post_write_batch,
-};
 use community_social_post_composition_api::{
     AuthorizedSocialContext, ComposePostRequest, SocialApiArtifactKind, SocialApiContext,
     SocialPostReceipt, post_published_event_envelope,
 };
+use community_social_post_composition_postgres::{PersistSocialPostRecord, build_post_write_batch};
 use community_social_post_composition_usecase::{
     SocialUsecaseError, compose_post, plan_story_purge,
 };
