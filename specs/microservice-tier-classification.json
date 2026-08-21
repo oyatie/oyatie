@@ -792,9 +792,9 @@
       "tier_subtype": "product-developer-application-shell",
       "dr_tier": "T1"
     },
-    "oya/calendar/manifest.json": {
-      "service": "oya/calendar",
-      "manifest": "oya/calendar/manifest.json",
+    "app/calendar/manifest.json": {
+      "service": "app/calendar",
+      "manifest": "app/calendar/manifest.json",
       "capability": null,
       "tier": "product",
       "tier_subtype": "product-consumer-calendar",

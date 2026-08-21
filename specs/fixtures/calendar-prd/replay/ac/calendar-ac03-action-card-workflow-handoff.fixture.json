@@ -9,9 +9,9 @@
   "build_kanban_task": "t_7b437a23",
   "claim_boundary": "contract/fixture skeleton only; no handler, storage, deployment, live SLO, UI readiness, or availability-to-users claim",
   "contract_source_refs": [
-    "oya/calendar/contracts/openapi/calendar.yaml",
-    "oya/calendar/contracts/asyncapi/calendar-events.yaml",
-    "oya/calendar/contracts/proto/calendar.proto"
+    "app/calendar/contracts/openapi/calendar.yaml",
+    "app/calendar/contracts/asyncapi/calendar-events.yaml",
+    "app/calendar/contracts/proto/calendar.proto"
   ],
   "fixture_id": "calendar_prd_ac03_action_card_workflow_handoff_fixture",
   "negative_assertions_rejected": [

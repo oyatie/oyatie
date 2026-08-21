@@ -818,7 +818,6 @@
     "name:oya/application/iac/helm/cdn-controller/Chart.yaml:oya-application-cdn-controller",
     "name:oya/application/iac/helm/postgres/Chart.yaml:oya-application-postgres",
     "name:oya/application/iac/helm/shell-app/Chart.yaml:oya-application-shell-app",
-    "name:oya/calendar/iac/helm/Chart.yaml:oya-calendar",
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/Cargo.toml:oya-ci-webhook-gateway-app",
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-app/Cargo.toml:oya_ci_webhook_gateway_app",
     "name:oya/ci-webhook-gateway/crates/oya-ci-webhook-gateway-authz-cedar-adapter/Cargo.toml:oya-ci-webhook-gateway-authz-cedar-adapter",

@@ -55,7 +55,6 @@
     "observability/contracts/asyncapi/eligibility-events.yaml",
     "observability/diagnostics/contracts/asyncapi.yaml",
     "oya/application/contracts/asyncapi/application-events.yaml",
-    "oya/calendar/contracts/asyncapi/calendar-events.yaml",
     "oya/ci-webhook-gateway/contracts/asyncapi-v1.yaml",
     "oya/community/contracts/asyncapi/community-events.yaml",
     "oya/docs/contracts/asyncapi/docs-events.yaml",
