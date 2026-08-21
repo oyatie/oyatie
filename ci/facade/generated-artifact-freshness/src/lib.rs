@@ -34,6 +34,10 @@ const ADR_CENSUS_EPOCH_RECEIPT_FACE: &str = "adr-census-epoch-receipt.generated.
 const ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = "tools/hooks/registration/claude-settings.json";
 const ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = "tools/hooks/registration/codex-hooks.json";
 const ENFORCEMENT_LIVENESS_HOOKS_DIR: &str = "tools/hooks";
+/// Merge-base trees from before the registration drain still track these files.
+/// Do not recreate them on HEAD; they are lookup candidates for faithful mb inputs only.
+const PRE_MOVE_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: &str = ".claude/settings.json";
+const PRE_MOVE_ENFORCEMENT_LIVENESS_CODEX_HOOKS: &str = ".codex/hooks.json";
 /// The generated-artifact control-plane manifest. Faces whose `materialization_mode` is
 /// non-PR-owned are materialized by cloud-ci/controllers, not byte-compared against contributor
 /// branch copies.
@@ -1568,6 +1572,58 @@ fn append_enforcement_liveness_corpus_args(
     );
 }
 
+fn resolve_tree_enforcement_liveness_corpus(
+    tree_root: &Path,
+) -> Result<EnforcementLivenessCorpusPaths, FreshnessError> {
+    let claude_settings = first_existing_regular_file(
+        tree_root,
+        &[
+            ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
+            PRE_MOVE_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS,
+        ],
+        "enforcement-liveness claude-settings corpus",
+    )?;
+    let codex_hooks = first_existing_regular_file(
+        tree_root,
+        &[
+            ENFORCEMENT_LIVENESS_CODEX_HOOKS,
+            PRE_MOVE_ENFORCEMENT_LIVENESS_CODEX_HOOKS,
+        ],
+        "enforcement-liveness codex-hooks corpus",
+    )?;
+    let hooks_dir = tree_root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR);
+    if !hooks_dir.is_dir() {
+        return Err(FreshnessError::new(format!(
+            "enforcement-liveness hooks corpus is not a directory: {}",
+            hooks_dir.display()
+        )));
+    }
+    Ok(EnforcementLivenessCorpusPaths {
+        claude_settings,
+        codex_hooks,
+        hooks_dir,
+    })
+}
+
+fn first_existing_regular_file(
+    tree_root: &Path,
+    relative_candidates: &[&str],
+    label: &str,
+) -> Result<PathBuf, FreshnessError> {
+    let mut tried = Vec::with_capacity(relative_candidates.len());
+    for relative in relative_candidates {
+        let path = tree_root.join(relative);
+        if path.is_file() {
+            return Ok(path);
+        }
+        tried.push(path.display().to_string());
+    }
+    Err(FreshnessError::new(format!(
+        "{label}: none of the candidate files exist on the source tree ({})",
+        tried.join(", ")
+    )))
+}
+
 fn append_enforcement_liveness_corpus_paths(
     command: &mut Command,
     claude_settings: &Path,
@@ -2440,18 +2496,15 @@ fn regenerate_frozen_baseline_from_merge_base_source(
 
     // Run the producer rooted at the worktree with the mb tree's OWN enforcement-liveness corpus
     // (faithful mb inputs), emitting the baseline face to stdout. Never reads the committed blob.
+    // Resolve files on that tree: HEAD registration paths are absent on pre-move merge-bases.
+    let corpus = resolve_tree_enforcement_liveness_corpus(worktree)?;
     let mut producer = Command::new(&tools.producer);
     producer
         .args(["--repo-root"])
         .arg(worktree)
         .args(["--scm-facts"])
         .arg(&mb_scm_facts);
-    append_enforcement_liveness_corpus_paths(
-        &mut producer,
-        &worktree.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
-        &worktree.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS),
-        &worktree.join(ENFORCEMENT_LIVENESS_HOOKS_DIR),
-    );
+    append_enforcement_liveness_corpus_args(&mut producer, &corpus);
     producer
         .args(["--stdout", "--face", "baseline"])
         .current_dir(worktree);
@@ -2878,6 +2931,28 @@ mod materialize_generated_faces_tests {
         let root = std::env::temp_dir().join(format!("{label}-{}-{nanos}", std::process::id()));
         let _ = std::fs::remove_dir_all(&root);
         root
+    }
+
+    fn seed_current_enforcement_liveness_corpus(root: &Path) {
+        let registration = root.join("tools/hooks/registration");
+        std::fs::create_dir_all(&registration).expect("create registration dir");
+        std::fs::write(registration.join("claude-settings.json"), "{}\n")
+            .expect("write claude settings");
+        std::fs::write(registration.join("codex-hooks.json"), "{}\n").expect("write codex hooks");
+        std::fs::create_dir_all(root.join("tools/hooks")).expect("create hooks dir");
+    }
+
+    fn seed_pre_move_enforcement_liveness_corpus(root: &Path) {
+        std::fs::create_dir_all(root.join(".claude")).expect("create pre-move claude dir");
+        std::fs::create_dir_all(root.join(".codex")).expect("create pre-move codex dir");
+        std::fs::write(
+            root.join(PRE_MOVE_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
+            "{}\n",
+        )
+        .expect("write pre-move claude settings");
+        std::fs::write(root.join(PRE_MOVE_ENFORCEMENT_LIVENESS_CODEX_HOOKS), "{}\n")
+            .expect("write pre-move codex hooks");
+        std::fs::create_dir_all(root.join("tools/hooks")).expect("create hooks dir");
     }
 
     #[test]
@@ -3836,6 +3911,69 @@ mod materialize_generated_faces_tests {
     }
 
     #[test]
+    fn merge_base_corpus_prefers_tracked_registration_over_pre_move_agent_files() {
+        let root = temp_root("oya-mb-corpus-prefer-registration");
+        seed_current_enforcement_liveness_corpus(&root);
+        seed_pre_move_enforcement_liveness_corpus(&root);
+
+        let corpus = resolve_tree_enforcement_liveness_corpus(&root).expect("resolve corpus");
+        assert_eq!(
+            corpus.claude_settings,
+            root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS)
+        );
+        assert_eq!(
+            corpus.codex_hooks,
+            root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS)
+        );
+        assert_eq!(corpus.hooks_dir, root.join(ENFORCEMENT_LIVENESS_HOOKS_DIR));
+    }
+
+    #[test]
+    fn merge_base_corpus_reads_pre_move_agent_files_when_registration_is_absent() {
+        let root = temp_root("oya-mb-corpus-pre-move");
+        seed_pre_move_enforcement_liveness_corpus(&root);
+
+        let corpus = resolve_tree_enforcement_liveness_corpus(&root).expect("resolve corpus");
+        assert_eq!(
+            corpus.claude_settings,
+            root.join(PRE_MOVE_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS)
+        );
+        assert_eq!(
+            corpus.codex_hooks,
+            root.join(PRE_MOVE_ENFORCEMENT_LIVENESS_CODEX_HOOKS)
+        );
+        assert!(!root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).exists());
+        assert!(!root.join(ENFORCEMENT_LIVENESS_CODEX_HOOKS).exists());
+    }
+
+    #[test]
+    fn merge_base_corpus_fails_closed_when_no_candidate_file_exists() {
+        let root = temp_root("oya-mb-corpus-missing");
+        std::fs::create_dir_all(root.join("tools/hooks")).expect("create hooks dir");
+
+        let error = resolve_tree_enforcement_liveness_corpus(&root)
+            .expect_err("absent corpus must fail closed");
+        assert!(
+            error
+                .to_string()
+                .contains("enforcement-liveness claude-settings corpus"),
+            "{error}"
+        );
+        assert!(
+            error
+                .to_string()
+                .contains(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
+            "{error}"
+        );
+        assert!(
+            error
+                .to_string()
+                .contains(PRE_MOVE_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS),
+            "{error}"
+        );
+    }
+
+    #[test]
     fn parse_show_output_path_resolves_materializer_targets() {
         let output = "\
 root//ci/facade/scm-facts-snapshot:ci-scm-facts-snapshot buck-out/v2/gen/emitter\n\
@@ -4076,6 +4214,7 @@ printf 'fresh graph\n' > "$out"
     fn materializer_invokes_architecture_product_graph_generator() {
         let root = temp_root("oya-materialize-faces");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        seed_current_enforcement_liveness_corpus(&root);
         let masterplan = derivable_masterplan();
         write_masterplan(&root, &masterplan);
         let log = root.join("calls.log");
@@ -4320,6 +4459,7 @@ printf 'generated dashboard\n' > docs/architecture/product-graph.html
     fn frozen_baseline_regen_is_fail_closed_on_producer_failure() {
         let root = temp_root("oya-regen-fail-closed");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        seed_current_enforcement_liveness_corpus(&root);
         let emitter = root.join("bin/emitter");
         write_executable(
             &emitter,
@@ -4360,6 +4500,7 @@ exit 1
     fn frozen_baseline_regen_is_blob_independent() {
         let root = temp_root("oya-regen-blob-independent");
         std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        seed_current_enforcement_liveness_corpus(&root);
         let log = root.join("producer.log");
         let log_path = log.display();
         let emitter = root.join("bin/emitter");
@@ -4408,6 +4549,65 @@ printf '{{"gates":{{}}}}\n'
         assert!(
             !calls.contains("gate-baseline.generated.json"),
             "the regeneration must NEVER reference the committed blob path: {calls}"
+        );
+        assert!(
+            calls.contains(&format!(
+                "--enforcement-liveness-claude-settings {}",
+                root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).display()
+            )),
+            "merge-base regen must pass the tree's own tracked registration: {calls}"
+        );
+    }
+
+    #[cfg(unix)]
+    #[test]
+    fn frozen_baseline_regen_uses_pre_move_agent_files_when_registration_is_absent() {
+        let root = temp_root("oya-regen-pre-move-corpus");
+        std::fs::create_dir_all(root.join("bin")).expect("create bin dir");
+        seed_pre_move_enforcement_liveness_corpus(&root);
+        let log = root.join("producer.log");
+        let log_path = log.display();
+        let emitter = root.join("bin/emitter");
+        write_executable(
+            &emitter,
+            r#"#!/bin/sh
+set -eu
+out=""
+while [ "$#" -gt 0 ]; do case "$1" in --out) shift; out="$1" ;; esac; shift || true; done
+test -n "$out"; mkdir -p "$(dirname "$out")"
+printf '{"schema":"oya-ci/scm-facts/v2","tracked_paths":[]}\n' > "$out"
+"#,
+        );
+        let producer = root.join("bin/producer");
+        write_executable(
+            &producer,
+            &format!(
+                r#"#!/bin/sh
+set -eu
+printf 'producer %s\n' "$*" >> "{log_path}"
+printf '{{"gates":{{}}}}\n'
+"#
+            ),
+        );
+
+        let tools = regen_tools(&root, emitter, producer);
+        regenerate_frozen_baseline_from_merge_base_source(&tools, &root)
+            .expect("pre-move merge-base corpus must be readable");
+        let calls = std::fs::read_to_string(&log).expect("read producer log");
+        assert!(
+            calls.contains(&format!(
+                "--enforcement-liveness-claude-settings {}",
+                root.join(PRE_MOVE_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS)
+                    .display()
+            )),
+            "merge-base regen must not require HEAD registration files: {calls}"
+        );
+        assert!(
+            !calls.contains(&format!(
+                "--enforcement-liveness-claude-settings {}",
+                root.join(ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS).display()
+            )),
+            "absent registration files must not be passed as corpus: {calls}"
         );
     }
 

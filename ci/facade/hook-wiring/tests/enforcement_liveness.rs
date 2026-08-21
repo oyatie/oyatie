@@ -19,6 +19,7 @@ const CODEX_HOOKS_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS";
 const HOOKS_DIR_ENV: &str = "OYA_CI_ENFORCEMENT_LIVENESS_HOOKS_DIR";
 const BUCK: &str = include_str!("../BUCK");
 const CARGO_CONFIG: &str = include_str!("../../../../.cargo/config.toml");
+const REQUIRED_WORKFLOW: &str = include_str!("../../../../.github/workflows/oya-ci-required.yml");
 const CARGO_PRODUCER_BINDING: &str = "cargo-test-binary:oya-cloud-ci-accounting-registry-app";
 static TEMP_SEQUENCE: AtomicU64 = AtomicU64::new(0);
 
@@ -127,6 +128,30 @@ fn assert_cargo_buck_producer_binding_parity() {
     assert!(
         CARGO_CONFIG.lines().any(|line| line == cargo_binding),
         "Cargo must mirror the Buck producer with a portable logical resource and force=false"
+    );
+}
+
+#[test]
+fn required_workflow_env_points_at_tracked_registration_not_agent_dirs() {
+    assert!(
+        REQUIRED_WORKFLOW.contains(
+            "OYA_CI_ENFORCEMENT_LIVENESS_CLAUDE_SETTINGS: ${{ github.workspace }}/tools/hooks/registration/claude-settings.json"
+        ),
+        "workflow env must not override Cargo config with untracked .claude"
+    );
+    assert!(
+        REQUIRED_WORKFLOW.contains(
+            "OYA_CI_ENFORCEMENT_LIVENESS_CODEX_HOOKS: ${{ github.workspace }}/tools/hooks/registration/codex-hooks.json"
+        ),
+        "workflow env must not override Cargo config with untracked .codex"
+    );
+    assert!(
+        !REQUIRED_WORKFLOW.contains("/.claude"),
+        "workflow must not inject the untracked .claude agent dir as liveness corpus"
+    );
+    assert!(
+        !REQUIRED_WORKFLOW.contains("/.codex"),
+        "workflow must not inject the untracked .codex agent dir as liveness corpus"
     );
 }
 
