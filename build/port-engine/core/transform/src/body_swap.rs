@@ -420,7 +420,7 @@ pub(crate) fn compares_float_bounds(statement: &RustStmt) -> bool {
         RustStmt::Semi(expr) | RustStmt::Tail(expr) | RustStmt::Discard(expr) => in_expr(expr),
         RustStmt::Return(Some(expr)) => in_expr(expr),
         RustStmt::Let { value, .. } => value.as_ref().is_some_and(in_expr),
-        RustStmt::While { cond, body } => in_expr(cond) || body.iter().any(compares_float_bounds),
+        RustStmt::While { cond, body, .. } => in_expr(cond) || body.iter().any(compares_float_bounds),
         RustStmt::Loop(body) | RustStmt::Block(body) | RustStmt::ForIn { body, .. } => {
             body.iter().any(compares_float_bounds)
         }

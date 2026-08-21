@@ -448,6 +448,7 @@ fn write_returns_in(expr: RustExpr) -> RustExpr {
                 .into_iter()
                 .map(|arm| port_engine_rust_ir::MatchArm {
                     patterns: arm.patterns,
+                    guard: arm.guard,
                     body: arm.body.into_iter().map(write_returns).collect(),
                 })
                 .collect(),

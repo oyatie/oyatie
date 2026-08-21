@@ -245,6 +245,14 @@ pub struct MatchArm {
     /// value to compare against, not a destructuring pattern. Modelling them as full patterns
     /// would be inventing a capability the source does not have.
     pub patterns: Vec<RustExpr>,
+    /// A guard: `pat if <guard> => ..`.
+    ///
+    /// What a source case whose value is NOT a constant becomes. Go's `case end:` COMPARES the
+    /// subject against `end`; the target's `end =>` is an irrefutable binding that shadows it and
+    /// matches everything, so the arms after it become unreachable and every value takes this one.
+    /// That compiles, and gjson's `validcomma` returned success for every byte it should have
+    /// rejected. A comparison is a guard, and only a constant is a pattern.
+    pub guard: Option<RustExpr>,
     /// The arm's body.
     pub body: Vec<RustStmt>,
 }

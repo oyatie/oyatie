@@ -36,6 +36,7 @@ pub(crate) fn counted_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt
             TailPosition::No,
         )?)),
         (None, Some(cond), None) => Ok(RustStmt::While {
+            label: None,
             cond: expression(one_child(cond, cx, "cond")?, cx)?,
             body: translate(&body.children, cx, TailPosition::No)?,
         }),
@@ -47,6 +48,7 @@ pub(crate) fn counted_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt
             let inner = match condition {
                 None => RustStmt::Loop(translate(&body.children, cx, TailPosition::No)?),
                 Some(cond) => RustStmt::While {
+                    label: None,
                     cond: expression(one_child(cond, cx, "cond")?, cx)?,
                     body: translate(&body.children, cx, TailPosition::No)?,
                 },
@@ -92,17 +94,28 @@ fn while_with_post(
     body: &Declaration,
     cx: &Body<'_>,
 ) -> Result<RustStmt, TransformError> {
-    if continues_this_loop(body) {
-        return Err(TransformError::Unsupported {
-            name: cx.owner.to_owned(),
-            detail: "a `for` with a post-statement contains a `continue`, and the target's \
-                     `continue` jumps to the test rather than to the post-statement — spelling the \
-                     post-statement at the end of the body would skip it on exactly those paths"
-                .to_owned(),
-        });
-    }
-
+    // A `continue` here does not mean what the target's `continue` means. The source's jumps to the
+    // POST clause; the target's jumps to the test, skipping the post-statement this form has to
+    // spell at the end of the body — so the loop would count differently, which compiles.
+    //
+    // The target has the construct that says it exactly. A LABELLED BLOCK around the body turns
+    // `continue` into `break 'step`, which leaves the block and lands on the post-statement: the
+    // same place the source goes. A `break` written in the same body has to be relabelled too,
+    // because inside the block a bare one would leave the BLOCK — one iteration — rather than the
+    // loop.
+    let stepped = continues_this_loop(body);
+    // Only where a `break` would end up INSIDE the step block, because there a bare one leaves the
+    // block rather than the loop. An unused label is a warning, and the emitted crate is held to
+    // deny-warnings.
+    let labelled = stepped && breaks_this_loop(body);
     let mut translated = translate(&body.children, cx, TailPosition::No)?;
+    if stepped {
+        relabel(&mut translated, labelled);
+        translated = vec![RustStmt::Labelled {
+            label: STEP.to_owned(),
+            body: translated,
+        }];
+    }
     translated.push(crate::body_stmt::statement(
         one_child(post, cx, "post")?,
         cx,
@@ -111,6 +124,7 @@ fn while_with_post(
     let looped = RustStmt::While {
         cond: expression(one_child(cond, cx, "cond")?, cx)?,
         body: translated,
+        label: labelled.then(|| LOOP.to_owned()),
     };
 
     match init {
@@ -119,6 +133,67 @@ fn while_with_post(
             crate::body_stmt::statement(one_child(init, cx, "init")?, cx, false)?,
             looped,
         ])),
+    }
+}
+
+/// The label on the block one iteration of a stepped loop runs in.
+const STEP: &str = "step";
+/// The label on a stepped loop itself, for a `break` that has to leave more than the step.
+const LOOP: &str = "counted";
+
+/// Whether a `break` inside this body targets THIS loop.
+///
+/// The same walk `continues_this_loop` does and for the same reason: a `break` written inside a
+/// nested loop or a `switch` arm belongs to that construct. The source's `switch` DOES capture a
+/// `break`, unlike its `continue`, so the walk stops at one.
+fn breaks_this_loop(node: &Declaration) -> bool {
+    node.children.iter().any(|child| match child.kind.as_str() {
+        "break" => true,
+        "for" | "range" | "switch" | "select" => false,
+        _ => breaks_this_loop(child),
+    })
+}
+
+/// Point this body's jumps at the labels a stepped loop introduces.
+///
+/// `continue` becomes `break 'step`, which leaves one iteration's block and lands on the
+/// post-statement — where the source's `continue` goes. A `break` becomes `break 'counted` when the
+/// loop carries that label, because inside the step block a bare one would leave the block instead.
+///
+/// The walk does NOT descend into a nested loop: a jump written there belongs to it, and rewriting
+/// one would move it to the wrong construct.
+fn relabel(statements: &mut [RustStmt], labelled: bool) {
+    for statement in statements {
+        match statement {
+            RustStmt::Continue => *statement = RustStmt::Break(Some(STEP.to_owned())),
+            RustStmt::Break(target @ None) if labelled => *target = Some(LOOP.to_owned()),
+            RustStmt::Block(body) | RustStmt::Labelled { body, .. } => relabel(body, labelled),
+            RustStmt::Semi(expr) | RustStmt::Tail(expr) => relabel_expression(expr, labelled),
+            // A nested loop owns its own jumps.
+            RustStmt::While { .. } | RustStmt::Loop(_) | RustStmt::ForIn { .. } => {}
+            _ => {}
+        }
+    }
+}
+
+/// The same, through the expressions that carry statements.
+fn relabel_expression(expr: &mut RustExpr, labelled: bool) {
+    match expr {
+        RustExpr::Block(body) => relabel(body, labelled),
+        RustExpr::If {
+            then, otherwise, ..
+        } => {
+            relabel(then, labelled);
+            if let Some(otherwise) = otherwise.as_deref_mut() {
+                relabel_expression(otherwise, labelled);
+            }
+        }
+        RustExpr::Match { arms, .. } => {
+            for arm in arms {
+                relabel(&mut arm.body, labelled);
+            }
+        }
+        _ => {}
     }
 }
 
@@ -350,6 +425,59 @@ pub(crate) fn range_loop(node: &Declaration, cx: &Body<'_>) -> Result<RustStmt, 
     })
 }
 
+/// Whether a source case value is something the target's PATTERNS accept.
+///
+/// A literal is. A name the source declares `const` is, because the target emits one as a `const`
+/// and its patterns accept those. Everything else -- a parameter, a local, a field, a call -- is a
+/// value read at run time, and naming it in a pattern binds rather than compares.
+fn is_pattern(node: &Declaration) -> bool {
+    node.kind == crate::vocabulary::KIND_LITERAL
+        || node.attr(crate::vocabulary::ATTR_REF) == Some(crate::vocabulary::REF_CONST)
+}
+
+/// The guard a non-constant case needs: the subject compared against each of its values.
+///
+/// The subject is named again rather than bound, which is why it must be an expression that can be
+/// named twice without doing anything. A call there would run once in the source and once per
+/// guarded arm here.
+fn guard_for(
+    comparisons: &[&Declaration],
+    tag: &Declaration,
+    cx: &Body<'_>,
+) -> Result<RustExpr, TransformError> {
+    let subject = one_child(tag, cx, "tag")?;
+    if !crate::body_copy::repeatable(subject) {
+        return Err(TransformError::Unsupported {
+            name: cx.owner.to_owned(),
+            detail: "a switch compares its subject against a value that is not a constant, which \
+                     the target spells as a guard — and the guard has to name the subject again, \
+                     where this one does something when it is evaluated"
+                .to_owned(),
+        });
+    }
+    let mut guard: Option<RustExpr> = None;
+    for value in comparisons {
+        let test = RustExpr::Binary {
+            op: port_engine_rust_ir::BinaryOp::Eq,
+            lhs: Box::new(expression(subject, cx)?),
+            rhs: Box::new(expression(value, cx)?),
+        };
+        guard = Some(match guard {
+            None => test,
+            // `case a, b:` is a match on EITHER, which is an or of the comparisons.
+            Some(built) => RustExpr::Binary {
+                op: port_engine_rust_ir::BinaryOp::Or,
+                lhs: Box::new(built),
+                rhs: Box::new(test),
+            },
+        });
+    }
+    guard.ok_or_else(|| TransformError::Unsupported {
+        name: cx.owner.to_owned(),
+        detail: "a switch case compares against nothing".to_owned(),
+    })
+}
+
 /// An expression switch becomes a `match`.
 ///
 /// The target's `match` does not fall through and neither does the source's switch, so the two
@@ -374,12 +502,27 @@ pub(crate) fn switch(
     for case in cases {
         let patterns_node = named_child(case, "patterns", cx, "switch")?;
         let body = branch(case, "then", cx)?;
-        let patterns = patterns_node
-            .children
-            .iter()
-            .map(|pattern| expression(pattern, cx))
-            .collect::<Result<Vec<_>, _>>()?;
-        if patterns.is_empty() {
+        // A CASE IS A COMPARISON, and only some comparisons are patterns. A literal is one, and so
+        // is a name the source declares `const` — the target emits it as a `const`, which its
+        // patterns accept. Anything else is a value read at run time: `case end:` where `end` is a
+        // parameter compares against it, and `end =>` in the target BINDS it, shadowing the
+        // parameter and matching everything. gjson's `validcomma` returned success for every byte
+        // it should have rejected, and it compiled.
+        //
+        // So a non-constant case becomes a GUARD instead, which is what the source meant.
+        let comparisons: Vec<&Declaration> = patterns_node.children.iter().collect();
+        let constant = comparisons.iter().all(|node| is_pattern(node));
+        let (patterns, guard) = match constant {
+            true => (
+                comparisons
+                    .iter()
+                    .map(|pattern| expression(pattern, cx))
+                    .collect::<Result<Vec<_>, _>>()?,
+                None,
+            ),
+            false => (Vec::new(), Some(guard_for(&comparisons, tag, cx)?)),
+        };
+        if patterns.is_empty() && guard.is_none() {
             if wildcard.is_some() {
                 return Err(TransformError::Unsupported {
                     name: cx.owner.to_owned(),
@@ -392,6 +535,7 @@ pub(crate) fn switch(
         }
         arms.push(MatchArm {
             patterns,
+            guard,
             // AN ARM OF A TAIL MATCH IS ITSELF IN TAIL POSITION. The source's switch is a statement
             // and every arm has to `return` out of the function; the target's is an expression, and
             // an arm that returns where it could simply yield is the shape clippy's

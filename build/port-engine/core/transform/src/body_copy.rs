@@ -139,7 +139,7 @@ pub(crate) fn slice_copy(
 /// safer than enumerating everything harmless, where a form left off the list refuses a copy that
 /// was fine. `uuid` slices with a literal bound, and an admitting list that forgot literals
 /// refused four of them.
-fn repeatable(node: &Declaration) -> bool {
+pub(crate) fn repeatable(node: &Declaration) -> bool {
     !matches!(node.kind.as_str(), KIND_CALL | KIND_ASSIGN | KIND_INCDEC)
         && node.children.iter().all(repeatable)
 }

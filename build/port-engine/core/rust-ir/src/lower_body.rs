@@ -108,9 +108,16 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             };
             Ok(quote! { ( #(#places),* ) = #right; })
         }
-        RustStmt::While { cond, body } => {
+        RustStmt::While { cond, body, label } => {
             let (cond, body) = (lower_expr(cond)?, lower_block(body)?);
-            Ok(quote! { while #cond { #body } })
+            match label {
+                None => Ok(quote! { while #cond { #body } }),
+                Some(name) => {
+                    let name =
+                        syn::Lifetime::new(&format!("'{name}"), proc_macro2::Span::call_site());
+                    Ok(quote! { #name: while #cond { #body } })
+                }
+            }
         }
         RustStmt::Loop(body) => {
             let body = lower_block(body)?;
@@ -135,7 +142,16 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             };
             Ok(quote! { for #binding in #iter { #body } })
         }
-        RustStmt::Break => Ok(quote! { break; }),
+        RustStmt::Break(None) => Ok(quote! { break; }),
+        RustStmt::Break(Some(label)) => {
+            let label = syn::Lifetime::new(&format!("'{label}"), proc_macro2::Span::call_site());
+            Ok(quote! { break #label; })
+        }
+        RustStmt::Labelled { label, body } => {
+            let body = lower_block(body)?;
+            let label = syn::Lifetime::new(&format!("'{label}"), proc_macro2::Span::call_site());
+            Ok(quote! { #label: { #body } })
+        }
         RustStmt::Continue => Ok(quote! { continue; }),
         RustStmt::Discard(value) => {
             let value = lower_expr(value)?;
