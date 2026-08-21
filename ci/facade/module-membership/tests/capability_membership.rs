@@ -104,8 +104,10 @@ fn registry_membership_coverage_block_is_present() {
 
 #[test]
 fn d41_office_suite_and_translate_are_not_app_products() {
-    // Interview D41/D42: notes/slides/sites/office/translate must not be absorb-into-app
-    // destinations. sheets stays (Foundry-like; D41 did not name it).
+    // Interview: office-suite retire (D41) — notes/slides/sites/office must not be
+    // absorb-into-app destinations. translate is an intelligence concern (D42).
+    // sheets stays on the ontology/action-event-document product spine (D41 did not name it).
+    // V1 keep products remain in app_products.
     let root = repo_root();
     let registry = load_json(&root.join("governance/capability-registry.json"));
     let coverage = registry
@@ -138,7 +140,7 @@ fn d41_office_suite_and_translate_are_not_app_products() {
     }
     assert!(
         app_dirs.contains(&"oya/sheets"),
-        "sheets stays in app_products (D41 did not name it): {app_dirs:?}"
+        "sheets stays in app_products as the ontology/action-event-document product spine (D41 did not name it): {app_dirs:?}"
     );
     for still_on_disk in ["oya/notes", "oya/slides", "oya/sites", "oya/translate"] {
         assert!(
