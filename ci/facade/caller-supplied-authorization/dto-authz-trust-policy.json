@@ -1,21 +1,27 @@
 {
   "_comment": "cloud-ci-dto-authz-trust gate policy (the CLASS-FIX for 'caller-supplied authorization trusted as the authz decision'; sibling of cloud-ci-authz-coverage / issue #770 / AUTH-005). R0 pack-shaped DATA — all repo-specifics live here, the Rust engine is neutral. The gate flags a function iff (a) it reads a caller-supplied authorization-decision field (a parameter whose type-name tail ends with an authorization_dto_type_suffix, OR its body reads a trigger_decision_field_ident off a binding, OR it reads an authorization_header_ident in a comment-stripped string-preserving body view) AND (b) the body makes NO whole-token CALL to a pdp_decision_ident (.decide( / ensure_authorized / check_authz / ensure_authz). NOTE: verify_principal is deliberately ABSENT from pdp_decision_idents — it is an AUTHENTICATION step, not an authorization decision; a function that authenticates the principal but self-compares the authz DTO is still flagged. FN-06 inversion: self-compare operators are description-only (Vec::contains / binary_search / is_superset all evade an operator gate; the two-signal heuristic closes that class). Baseline keys include a FNV-1a body-content hash (<file>#<fn>:<hash>) to prevent same-fn-name laundering across mods. FIXED/GREEN pattern: iam/ports/policy-cedar-api/src/authz.rs (PrincipalVerifier::verify_principal AUTHN step + PublishAuthorizer::ensure_authorized / PDP decide() AUTHZ port, fail-closed). Ratchets vs frozen_dto_authz_trust_instances (today's known instances) so the gate lands GREEN and only NEW instances block. SHRINK-ONLY + AUTOMATED: regenerate via the gate binary --write; growing requires --allow-new; a stale key self-cleans via DAT-STALE-BASELINE. GENUINE false positives (a residual NON-AUTHORITATIVE correlation check whose authoritative PDP decision dominates the operation elsewhere, or a no-verdict fingerprint serializer) are cleared by the EXPLICIT, CURATED split_decision_allowlist (exact-key file#fn:body_hash, non-launderable, self-cleans via DAT-STALE-SPLIT-DECISION-ALLOWLIST) — NOT by any name-reachability heuristic (the unsound recognize_sibling_pdp_delegation heuristic was removed). Detection LIMITS (honest): (1) dead-code evasion: if false { .decide() } suppresses signal (b) — no reachability analysis; (2) wrong-receiver evasion: other_svc.ensure_authorized() suppresses signal (b); (3) opaque-helper evasion: a handler that hides the same authz-decision behind a helper with no authz-DTO signal is outside the envelope (human review + authz-coverage gate own that). These residuals are documented, not hidden.",
-  "gate_id": "cloud-ci-dto-authz-trust",
-  "schema_version": "2.0.0",
-  "min_expected_functions": 2000,
-  "scan_root_source": {
-    "kind": "capability_registry_derived",
-    "registry_path": "governance/capability-registry.json",
-    "resolver_crate": "ci/adapters/scan-root-derivation",
-    "_comment": "REPLACES a hand-enumerated `scan_roots` array of 34 directory names, 3 of which were dead (base, cloud, policy) and which omitted the legacy root infra/ entirely. The roots are now DERIVED from the closed capability registry: every materialized capability, every landed meta directory except the vendored third-party/ carve-out, and the shared legacy list (oya/, libs/, tools/, infra/) each carrying a written deletion condition. A capability that materializes is scanned BY CONSTRUCTION with zero edit here — the move the root Cargo.toml already made when it replaced 24 per-capability member globs with four shape globs. Routed second, after the pattern was mutation-proven on embedded-asset-hermeticity.",
-    "_born_pack_shaped": "Still pack-shaped. An adopting repository with no capability registry deletes `scan_root_source` and declares a literal `scan_roots` array instead; the resolver supports both and DAT-POLICY-MALFORMED requires exactly one of the two forms. In BOTH modes a declared root that does not exist is a hard error naming the path, never a silent skip.",
-    "_absence_is_never_a_skip": "A root the registry records as materialized but that is absent fails the run. A root the registry declares that has NOT materialized is PENDING: not scanned, reported by name, and frozen two-sided against _pending_scan_roots below, so a pending root that LANDS must be struck from the frozen set in the same change that makes it real."
-  },
+  "_frozen_baseline_note": "Baseline cleared for v2 re-keying (keys now include FNV-1a body-content hash: <file>#<fn>:<hash>). Regenerate via: cargo run --bin oya-cloud-ci-dto-authz-trust-app-bin -- --repo-root <root> --write --allow-new. Pre-existing caller-supplied-authorization-trust instances are FROZEN and keyed by stable <file>#<fn>:<body_hash> signature. Each below is pre-existing debt owned by its capability team, grandfathered so the gate lands GREEN and blocks only NEW instances. REMEDIATION per instance: derive the principal from a verified mTLS/SVID/bearer credential, call the cloud-iam Cedar PDP server-side to decide(principal, action, resource), and fail closed — do NOT trust the caller-supplied authorization DTO/header as the verdict. The GREEN reference is iam/ports/policy-cedar-api/src/authz.rs (PrincipalVerifier::verify_principal AUTHN + PublishAuthorizer::ensure_authorized / PDP decide() AUTHZ port).",
+  "_pdp_decision_idents_note": "verify_principal is intentionally ABSENT: it is an AUTHENTICATION step (verifies identity from an unforgeable credential), NOT an authorization decision. A function that calls verify_principal but then self-compares the authz DTO is still flagged.",
   "_pending_scan_roots": [
     "base",
     "policy"
   ],
   "_pending_scan_roots_contract": "REGISTERED roots that have not materialized on disk, frozen TWO-SIDED by pending_roots_equal_the_frozen_set_exactly. base/ is the ADR-0562 shared floor and a primitive there can carry an authorization DTO; policy is the capability ADR-0615 extracted from iam and is the single root where a caller-supplied-authz defect would be most consequential. Both are scanned BY CONSTRUCTION the moment they land, and the gate reds until the landed key is struck from this list, so neither can become a standing unaudited exemption. This replaces the two hand-written forward_declarations entries this gate carried in ci/facade/scan-root-liveness.",
+  "_self_compare_tokens_note": "Description-enrichment only since v2 (FN-06 inversion). Not a gate precondition. Vec::contains / binary_search / is_superset all evade an operator-based gate; the two-signal heuristic (reads authz field + no PDP call) closes that class.",
+  "_split_decision_allowlist_note": "EXPLICIT, CURATED allowlist of genuine FALSE POSITIVES — NOT a heuristic. The earlier recognize_sibling_pdp_delegation name-reachability heuristic was REMOVED as UNSOUND (it suppressed by function-NAME call-graph reachability, not by proving a PDP decision dominates the guarded operation, so a dead-code `if false { decide() }` PDP root + call edge, a same-named overload in a DIFFERENT impl block reached from a PDP root, and a single-file decide_access bypass all laundered a genuinely-forgeable check to GREEN). Each entry below is the SAME exact-key shape as the baseline (<file>#<fn>:<body_hash>); any body change re-keys it and re-flags it (DAT-STALE-SPLIT-DECISION-ALLOWLIST self-clean). It suppresses ONLY the exact audited body — it cannot suppress a different function that merely shares a name, nor a body edited after the audit. Every entry was hand-verified by tracing the call graph: an authoritative server-side PDP `ensure_authorized`/`decide` dominates every path to the function and the function itself NEVER grants (it returns Ok/Err on internal consistency, or serializes fields with no verdict at all).",
+  "authorization_dto_type_suffixes": [
+    "Authorization"
+  ],
+  "authorization_header_idents": [
+    "x-authorization-decision-id",
+    "x-authorization-surfaces",
+    "x-authorization-principal-id",
+    "x-authorization-tenant-id"
+  ],
+  "decision_field_idents": [
+    "allowed_surfaces",
+    "decision_id"
+  ],
   "excluded_dir_names": [
     "target",
     "third-party",
@@ -24,69 +30,6 @@
     "tests",
     "benches",
     "examples"
-  ],
-  "authorization_dto_type_suffixes": [
-    "Authorization"
-  ],
-  "trigger_decision_field_idents": [
-    "allowed_surfaces",
-    "permitted_scopes",
-    "caller_roles",
-    "granted",
-    "allowed_actions"
-  ],
-  "decision_field_idents": [
-    "allowed_surfaces",
-    "decision_id"
-  ],
-  "authorization_header_idents": [
-    "x-authorization-decision-id",
-    "x-authorization-surfaces",
-    "x-authorization-principal-id",
-    "x-authorization-tenant-id"
-  ],
-  "pdp_decision_idents": [
-    ".decide(",
-    "ensure_authorized",
-    "check_authz",
-    "ensure_authz",
-    "authorize_decision",
-    "pdp_decide"
-  ],
-  "_pdp_decision_idents_note": "verify_principal is intentionally ABSENT: it is an AUTHENTICATION step (verifies identity from an unforgeable credential), NOT an authorization decision. A function that calls verify_principal but then self-compares the authz DTO is still flagged.",
-  "self_compare_tokens": [
-    "==",
-    "!=",
-    ".iter().any(",
-    ".contains("
-  ],
-  "_self_compare_tokens_note": "Description-enrichment only since v2 (FN-06 inversion). Not a gate precondition. Vec::contains / binary_search / is_superset all evade an operator-based gate; the two-signal heuristic (reads authz field + no PDP call) closes that class.",
-  "_split_decision_allowlist_note": "EXPLICIT, CURATED allowlist of genuine FALSE POSITIVES — NOT a heuristic. The earlier recognize_sibling_pdp_delegation name-reachability heuristic was REMOVED as UNSOUND (it suppressed by function-NAME call-graph reachability, not by proving a PDP decision dominates the guarded operation, so a dead-code `if false { decide() }` PDP root + call edge, a same-named overload in a DIFFERENT impl block reached from a PDP root, and a single-file decide_access bypass all laundered a genuinely-forgeable check to GREEN). Each entry below is the SAME exact-key shape as the baseline (<file>#<fn>:<body_hash>); any body change re-keys it and re-flags it (DAT-STALE-SPLIT-DECISION-ALLOWLIST self-clean). It suppresses ONLY the exact audited body — it cannot suppress a different function that merely shares a name, nor a body edited after the audit. Every entry was hand-verified by tracing the call graph: an authoritative server-side PDP `ensure_authorized`/`decide` dominates every path to the function and the function itself NEVER grants (it returns Ok/Err on internal consistency, or serializes fields with no verdict at all).",
-  "split_decision_allowlist": [
-    {
-      "key": "audit/core/usecase/src/lib.rs#validate_authorization:4069857d",
-      "justification": "ADR-0591 split-decision FP. Only caller is validate_audit_event_emit_request, reached ONLY from emit_audit_event_authorized which runs the authoritative authz.ensure_authorized(verified,&resource) PDP (fail-closed/default-deny) at audit/core/usecase/src/lib.rs:433, and from the pub(crate) emit_audit_event_unauthorized_inner whose sole caller is that same post-PDP path. No external bypass caller exists. This fn only DENIES-or-passes on internal consistency (decision_id non-empty, tenant/producer match the verified envelope, surface membership); it NEVER affirmatively grants. Defense-in-depth, not the authz verdict."
-    },
-    {
-      "key": "billing/ports/finops-api/src/lib.rs#validate_authorization_correlation:6a809fe6",
-      "justification": "ADR-0591 split-decision FP. Only caller is validate_cloud_finops_report_request, reached ONLY from generate_cloud_finops_report_from_api which runs the authoritative FinopsReportAuthorizer .ensure_authorized PDP at billing/ports/finops-api/src/lib.rs:705 (fail-closed). No external bypass. This fn only returns Ok/Err on correlation-tuple consistency (decision_id non-empty, tenant/principal match); it NEVER grants. Non-authoritative cross-check, not the verdict."
-    },
-    {
-      "key": "observability/core/api/src/lib.rs#cross_check_authorization_correlation:6ac794ae",
-      "justification": "ADR-0591 split-decision FP. Called directly inside read_cloud_observability_audit_from_api which runs the authoritative AuditReadAuthorizer .ensure_authorized PDP at observability/core/api/src/lib.rs:498 (fail-closed). No external callers. This fn only returns Ok/Err on optional-DTO consistency vs the verified identity (NEVER grants — empty fields are tolerated). Non-authoritative cross-check, not the verdict."
-    },
-    {
-      "key": "iam/ports/policy-cedar-api/src/rest/mod.rs#publish_handler:5bc02232",
-      "justification": "AUTH-005 split-decision FP. publish_handler is private and mounted only by build_router, whose non-optional CedarPolicyAuthzProvider first verifies the bearer. Before constructing the API request, taking either mutation lock, or calling publish_cedar_policy_from_api, the handler calls enforce_publish_authz; every successful path through that helper calls CedarPolicyAuthzProvider::ensure_authorized(verified, &resource), while deny, refusal, or panic returns 403 before mutation. The x-authorization-* values read later are non-authoritative correlation/defense-in-depth inputs: they cannot convert a PDP deny into allow. rest_router regressions publish_authorization_denied_returns_403, publish_authenticated_but_pdp_denies_returns_403, and self_attested_headers_without_verified_principal_returns_401_not_ok prove the dominating fail-closed decision. The exact handler body is hash-pinned and any edit requires re-audit."
-    },
-    {
-      "key": "audit/core/usecase/src/lib.rs#audit_event_emit_fingerprint_for:aebab7bd",
-      "justification": "NO-VERDICT-SERIALIZER FP. Returns an AuditEventEmitRequestFingerprint STRUCT (not a Result) — it makes NO authorization decision at all. It reads request.authorization.allowed_surfaces.join(\",\")/decision_id ONLY to fold them into the canonical idempotency-dedup fingerprint string. The authz verdict is the PDP in emit_audit_event_authorized (audit/core/usecase/src/lib.rs:433); a perturbed fingerprint only changes idempotency dedup, never an authorization outcome. The trigger-field read is the gate's known return-type-blind limit; this is a genuine FP."
-    },
-    {
-      "key": "billing/ports/finops-api/src/lib.rs#finops_report_fingerprint_for:66fa841e",
-      "justification": "NO-VERDICT-SERIALIZER FP. Returns a CloudFinopsReportRequestFingerprint STRUCT (not a Result) — makes NO authorization decision. Reads request.authorization.allowed_surfaces.join(\",\")/decision_id ONLY to serialize into the idempotency-dedup fingerprint. The authz verdict is the PDP at billing/ports/finops-api/src/lib.rs:705. A perturbed fingerprint affects only dedup, never authz. Genuine FP (gate's return-type-blind limit)."
-    }
   ],
   "frozen_dto_authz_trust_instances": [
     "cell/ports/region/src/lib.rs#validate_authorization:98c8ad92",
@@ -103,19 +46,6 @@
     "iam/ports/cloud-api/src/lib.rs#validate_authorization:9ab52454",
     "iam/ports/identity-api/src/lib.rs#validate_authorization:517acda8",
     "iam/ports/policy-cedar-api/src/lib.rs#validate_authorization:96197af4",
-    "libs/oya-governance-eval-usecase/src/lib.rs#validate_api_binding:6f193126",
-    "oya/application/crates/oya-workspace-chat-api/src/lib.rs#send_fingerprint_for:21f2e017",
-    "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_authorization:bc32ce6e",
-    "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_tenant_binding:96920e1d",
-    "oya/application/crates/oya-workspace-drive-api/src/lib.rs#put_fingerprint_for:1490fc8f",
-    "oya/application/crates/oya-workspace-drive-api/src/lib.rs#validate_authorization:753a6676",
-    "oya/application/crates/oya-workspace-drive-api/src/lib.rs#validate_tenant_binding:4b5aa92d",
-    "oya/application/crates/oya-workspace-forms-api/src/lib.rs#ingest_fingerprint_for:4f928158",
-    "oya/application/crates/oya-workspace-forms-api/src/lib.rs#validate_authorization:39e44074",
-    "oya/application/crates/oya-workspace-forms-api/src/lib.rs#validate_tenant_binding:f3bcc549",
-    "oya/application/crates/oya-workspace-meet-api/src/lib.rs#start_fingerprint_for:cfa434ca",
-    "oya/application/crates/oya-workspace-meet-api/src/lib.rs#validate_authorization:c92c1610",
-    "oya/application/crates/oya-workspace-meet-api/src/lib.rs#validate_tenant_binding:c1756c7f",
     "intelligence/core/assist-draft-api/src/lib.rs#from_request:7629b93b",
     "intelligence/core/assist-draft-api/src/lib.rs#validate_api_request:5e209766",
     "intelligence/core/assist-draft-domain/src/lib.rs#invalid_input_reasons:24c40039",
@@ -145,6 +75,18 @@
     "intelligence/core/rag-api/src/lib.rs#from_request:0909d811",
     "intelligence/core/rag-api/src/lib.rs#validate_request:0104a7e2",
     "intelligence/core/registry-api/src/lib.rs#validate_api_binding:4b77b884",
+    "oya/application/crates/oya-workspace-chat-api/src/lib.rs#send_fingerprint_for:21f2e017",
+    "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_authorization:bc32ce6e",
+    "oya/application/crates/oya-workspace-chat-api/src/lib.rs#validate_tenant_binding:96920e1d",
+    "oya/application/crates/oya-workspace-drive-api/src/lib.rs#put_fingerprint_for:1490fc8f",
+    "oya/application/crates/oya-workspace-drive-api/src/lib.rs#validate_authorization:753a6676",
+    "oya/application/crates/oya-workspace-drive-api/src/lib.rs#validate_tenant_binding:4b5aa92d",
+    "oya/application/crates/oya-workspace-forms-api/src/lib.rs#ingest_fingerprint_for:4f928158",
+    "oya/application/crates/oya-workspace-forms-api/src/lib.rs#validate_authorization:39e44074",
+    "oya/application/crates/oya-workspace-forms-api/src/lib.rs#validate_tenant_binding:f3bcc549",
+    "oya/application/crates/oya-workspace-meet-api/src/lib.rs#start_fingerprint_for:cfa434ca",
+    "oya/application/crates/oya-workspace-meet-api/src/lib.rs#validate_authorization:c92c1610",
+    "oya/application/crates/oya-workspace-meet-api/src/lib.rs#validate_tenant_binding:c1756c7f",
     "storage/ports/block-api/src/lib.rs#block_create_fingerprint_for:ac83ccbf",
     "storage/ports/block-api/src/lib.rs#validate_authorization:4ce00a12",
     "storage/ports/object-api/src/lib.rs#put_fingerprint_for:0f719e08",
@@ -154,12 +96,69 @@
     "workflow/ports/state-machine-api/src/lib.rs#validate_boundary:9246696b",
     "workflow/ports/trigger-orchestrator-api/src/lib.rs#validate_boundary:5802bccc"
   ],
-  "_frozen_baseline_note": "Baseline cleared for v2 re-keying (keys now include FNV-1a body-content hash: <file>#<fn>:<hash>). Regenerate via: cargo run --bin oya-cloud-ci-dto-authz-trust-app-bin -- --repo-root <root> --write --allow-new. Pre-existing caller-supplied-authorization-trust instances are FROZEN and keyed by stable <file>#<fn>:<body_hash> signature. Each below is pre-existing debt owned by its capability team, grandfathered so the gate lands GREEN and blocks only NEW instances. REMEDIATION per instance: derive the principal from a verified mTLS/SVID/bearer credential, call the cloud-iam Cedar PDP server-side to decide(principal, action, resource), and fail closed — do NOT trust the caller-supplied authorization DTO/header as the verdict. The GREEN reference is iam/ports/policy-cedar-api/src/authz.rs (PrincipalVerifier::verify_principal AUTHN + PublishAuthorizer::ensure_authorized / PDP decide() AUTHZ port).",
+  "gate_id": "cloud-ci-dto-authz-trust",
+  "min_expected_functions": 2000,
+  "pdp_decision_idents": [
+    ".decide(",
+    "ensure_authorized",
+    "check_authz",
+    "ensure_authz",
+    "authorize_decision",
+    "pdp_decide"
+  ],
   "product_contract": {
     "born_blocking": "Born-blocking vs a frozen baseline of currently-known caller-supplied-authz-trust instances. The FIXED iam/ports/policy-cedar-api/src/authz.rs PDP-port pattern is GREEN by construction. Pre-existing instances are frozen in frozen_dto_authz_trust_instances (shrink-only). Only a NEW instance blocks.",
-    "pack_shaped": "Neutral engine; every repo-specific is DATA in this file. A different repo adopts the gate by repointing the policy.",
     "fail_closed": "No shell/network/VCS/clock/rand. A read-only walk of the candidate tree's Rust source. Malformed policy (null or empty required lists), gate-id mismatch, and a below-floor function census all fail closed.",
+    "pack_shaped": "Neutral engine; every repo-specific is DATA in this file. A different repo adopts the gate by repointing the policy.",
     "remediation_doctrine": "iam/ports/policy-cedar-api/src/authz.rs (PrincipalVerifier::verify_principal AUTHN step on an unforgeable credential + PublishAuthorizer::ensure_authorized / PDP decide() AUTHZ port, fail-closed).",
     "v2_hardening": "FN-01: verify_principal removed from PDP-satisfies (AUTHN not AUTHZ). FN-02: baseline key includes FNV-1a body hash. FN-03/FN-04: expanded trigger fields + corrected header spellings. FN-05: cfg(not(test)) production code no longer excluded. FN-06: self-compare inversion — flag reads-authz-field AND no-PDP-call regardless of comparison form. CORRECTNESS-01: empty required lists fail closed. FP-01: header detection on comment-stripped string-preserving view."
-  }
+  },
+  "scan_root_source": {
+    "_absence_is_never_a_skip": "A root the registry records as materialized but that is absent fails the run. A root the registry declares that has NOT materialized is PENDING: not scanned, reported by name, and frozen two-sided against _pending_scan_roots below, so a pending root that LANDS must be struck from the frozen set in the same change that makes it real.",
+    "_born_pack_shaped": "Still pack-shaped. An adopting repository with no capability registry deletes `scan_root_source` and declares a literal `scan_roots` array instead; the resolver supports both and DAT-POLICY-MALFORMED requires exactly one of the two forms. In BOTH modes a declared root that does not exist is a hard error naming the path, never a silent skip.",
+    "_comment": "REPLACES a hand-enumerated `scan_roots` array of 34 directory names, 3 of which were dead (base, cloud, policy) and which omitted the legacy root infra/ entirely. The roots are now DERIVED from the closed capability registry: every materialized capability, every landed meta directory except the vendored third-party/ carve-out, and the shared legacy list (oya/, libs/, tools/, infra/) each carrying a written deletion condition. A capability that materializes is scanned BY CONSTRUCTION with zero edit here — the move the root Cargo.toml already made when it replaced 24 per-capability member globs with four shape globs. Routed second, after the pattern was mutation-proven on embedded-asset-hermeticity.",
+    "kind": "capability_registry_derived",
+    "registry_path": "governance/capability-registry.json",
+    "resolver_crate": "ci/adapters/scan-root-derivation"
+  },
+  "schema_version": "2.0.0",
+  "self_compare_tokens": [
+    "==",
+    "!=",
+    ".iter().any(",
+    ".contains("
+  ],
+  "split_decision_allowlist": [
+    {
+      "justification": "ADR-0591 split-decision FP. Only caller is validate_audit_event_emit_request, reached ONLY from emit_audit_event_authorized which runs the authoritative authz.ensure_authorized(verified,&resource) PDP (fail-closed/default-deny) at audit/core/usecase/src/lib.rs:433, and from the pub(crate) emit_audit_event_unauthorized_inner whose sole caller is that same post-PDP path. No external bypass caller exists. This fn only DENIES-or-passes on internal consistency (decision_id non-empty, tenant/producer match the verified envelope, surface membership); it NEVER affirmatively grants. Defense-in-depth, not the authz verdict.",
+      "key": "audit/core/usecase/src/lib.rs#validate_authorization:4069857d"
+    },
+    {
+      "justification": "ADR-0591 split-decision FP. Only caller is validate_cloud_finops_report_request, reached ONLY from generate_cloud_finops_report_from_api which runs the authoritative FinopsReportAuthorizer .ensure_authorized PDP at billing/ports/finops-api/src/lib.rs:705 (fail-closed). No external bypass. This fn only returns Ok/Err on correlation-tuple consistency (decision_id non-empty, tenant/principal match); it NEVER grants. Non-authoritative cross-check, not the verdict.",
+      "key": "billing/ports/finops-api/src/lib.rs#validate_authorization_correlation:6a809fe6"
+    },
+    {
+      "justification": "ADR-0591 split-decision FP. Called directly inside read_cloud_observability_audit_from_api which runs the authoritative AuditReadAuthorizer .ensure_authorized PDP at observability/core/api/src/lib.rs:498 (fail-closed). No external callers. This fn only returns Ok/Err on optional-DTO consistency vs the verified identity (NEVER grants — empty fields are tolerated). Non-authoritative cross-check, not the verdict.",
+      "key": "observability/core/api/src/lib.rs#cross_check_authorization_correlation:6ac794ae"
+    },
+    {
+      "justification": "AUTH-005 split-decision FP. publish_handler is private and mounted only by build_router, whose non-optional CedarPolicyAuthzProvider first verifies the bearer. Before constructing the API request, taking either mutation lock, or calling publish_cedar_policy_from_api, the handler calls enforce_publish_authz; every successful path through that helper calls CedarPolicyAuthzProvider::ensure_authorized(verified, &resource), while deny, refusal, or panic returns 403 before mutation. The x-authorization-* values read later are non-authoritative correlation/defense-in-depth inputs: they cannot convert a PDP deny into allow. rest_router regressions publish_authorization_denied_returns_403, publish_authenticated_but_pdp_denies_returns_403, and self_attested_headers_without_verified_principal_returns_401_not_ok prove the dominating fail-closed decision. The exact handler body is hash-pinned and any edit requires re-audit.",
+      "key": "iam/ports/policy-cedar-api/src/rest/mod.rs#publish_handler:5bc02232"
+    },
+    {
+      "justification": "NO-VERDICT-SERIALIZER FP. Returns an AuditEventEmitRequestFingerprint STRUCT (not a Result) — it makes NO authorization decision at all. It reads request.authorization.allowed_surfaces.join(\",\")/decision_id ONLY to fold them into the canonical idempotency-dedup fingerprint string. The authz verdict is the PDP in emit_audit_event_authorized (audit/core/usecase/src/lib.rs:433); a perturbed fingerprint only changes idempotency dedup, never an authorization outcome. The trigger-field read is the gate's known return-type-blind limit; this is a genuine FP.",
+      "key": "audit/core/usecase/src/lib.rs#audit_event_emit_fingerprint_for:aebab7bd"
+    },
+    {
+      "justification": "NO-VERDICT-SERIALIZER FP. Returns a CloudFinopsReportRequestFingerprint STRUCT (not a Result) — makes NO authorization decision. Reads request.authorization.allowed_surfaces.join(\",\")/decision_id ONLY to serialize into the idempotency-dedup fingerprint. The authz verdict is the PDP at billing/ports/finops-api/src/lib.rs:705. A perturbed fingerprint affects only dedup, never authz. Genuine FP (gate's return-type-blind limit).",
+      "key": "billing/ports/finops-api/src/lib.rs#finops_report_fingerprint_for:66fa841e"
+    }
+  ],
+  "trigger_decision_field_idents": [
+    "allowed_surfaces",
+    "permitted_scopes",
+    "caller_roles",
+    "granted",
+    "allowed_actions"
+  ]
 }
