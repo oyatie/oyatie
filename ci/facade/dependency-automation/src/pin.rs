@@ -50,7 +50,7 @@ pub(crate) fn validate_rust_pin_alignment(
     )?;
     expect_file_contains(
         root,
-        "Dockerfile.distroless",
+        "build/images/Dockerfile.distroless",
         &format!("ARG RUST_VERSION={pin}"),
         findings,
     )?;

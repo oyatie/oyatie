@@ -1284,7 +1284,7 @@ uses: some/action@v1.97.1
         );
         write(
             &root,
-            "Dockerfile.distroless",
+            "build/images/Dockerfile.distroless",
             "ARG RUST_VERSION=1.97.1\nFROM rust:${RUST_VERSION}-alpine AS builder\n",
         );
         write(
@@ -1334,7 +1334,9 @@ uses: some/action@v1.97.1
         );
         assert!(read(&root, "oya-deps.toml").contains("pin = \"1.98.0\""));
         assert!(read(&root, "Cargo.toml").contains("rust-version = \"1.98.0\""));
-        assert!(read(&root, "Dockerfile.distroless").contains("ARG RUST_VERSION=1.98.0"));
+        assert!(
+            read(&root, "build/images/Dockerfile.distroless").contains("ARG RUST_VERSION=1.98.0")
+        );
         assert!(read(&root, "build/toolchains/BUCK").contains("# Rust 1.98.0 toolchain"));
         assert!(read(&root, "build/toolchains/BUCK").contains("1.98.0-aarch64-apple-darwin"));
         assert!(
@@ -1401,7 +1403,11 @@ uses: some/action@v1.97.1
             "Cargo.toml",
             "[workspace.package]\nrust-version = \"1.97.1\"\n",
         );
-        write(&root, "Dockerfile.distroless", "ARG RUST_VERSION=1.97.1\n");
+        write(
+            &root,
+            "build/images/Dockerfile.distroless",
+            "ARG RUST_VERSION=1.97.1\n",
+        );
         write(&root, "build/toolchains/BUCK", "# Rust 1.97.1 toolchain\n");
         write(
             &root,
@@ -1442,7 +1448,11 @@ uses: some/action@v1.97.1
             "Cargo.toml",
             "[workspace.package]\nrust-version = \"1.97.1\"\n",
         );
-        write(&root, "Dockerfile.distroless", "ARG RUST_VERSION=1.98.0\n");
+        write(
+            &root,
+            "build/images/Dockerfile.distroless",
+            "ARG RUST_VERSION=1.98.0\n",
+        );
         write(&root, "build/toolchains/BUCK", "# Rust 1.98.0 toolchain\n");
         write(
             &root,
@@ -1538,7 +1548,7 @@ update = "sync-rust-pin"
 reason = "fixture"
 
 [[managed_file]]
-path = "Dockerfile.distroless"
+path = "build/images/Dockerfile.distroless"
 role = "container-builder-toolchain"
 update = "sync-rust-pin"
 reason = "fixture"

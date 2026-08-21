@@ -111,12 +111,6 @@
       "reason": "oya-ci enforcement config (DATA)"
     },
     {
-      "id": "dockerfile-distroless",
-      "kind": "exact",
-      "value": "Dockerfile.distroless",
-      "reason": "release image build descriptor"
-    },
-    {
       "id": "gitignore",
       "kind": "exact",
       "value": ".gitignore",

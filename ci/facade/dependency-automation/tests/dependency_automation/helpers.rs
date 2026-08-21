@@ -42,8 +42,9 @@ pub(crate) fn write_minimal_candidate(root: &Path, pin: &str) {
         format!("[workspace.package]\nrust-version = \"{pin}\"\n"),
     )
     .unwrap();
+    fs::create_dir_all(root.join("build/images")).unwrap();
     fs::write(
-        root.join("Dockerfile.distroless"),
+        root.join("build/images/Dockerfile.distroless"),
         format!("ARG RUST_VERSION={pin}\n"),
     )
     .unwrap();
@@ -107,7 +108,7 @@ update = "sync-rust-pin"
 reason = "fixture"
 
 [[managed_file]]
-path = "Dockerfile.distroless"
+path = "build/images/Dockerfile.distroless"
 role = "container-builder-toolchain"
 update = "sync-rust-pin"
 reason = "fixture"

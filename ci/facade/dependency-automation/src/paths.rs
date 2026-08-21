@@ -133,7 +133,11 @@ pub(crate) fn validate_managed_files(
         }
     }
 
-    for required in ["rust-toolchain.toml", "Cargo.toml", "Dockerfile.distroless"] {
+    for required in [
+        "rust-toolchain.toml",
+        "Cargo.toml",
+        "build/images/Dockerfile.distroless",
+    ] {
         if !seen.contains(required) {
             findings.insert(Finding::new(
                 "DEP-AUTO-MISSING-MANAGED-FILE",
