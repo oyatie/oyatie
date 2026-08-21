@@ -1770,16 +1770,16 @@ fn replacement_window_adr_must_exist_and_be_accepted() {
             text.contains("status: Accepted"),
             "the replacement window's ADR must be Accepted"
         );
+        let stem = adr_path
+            .file_stem()
+            .and_then(|s| s.to_str())
+            .unwrap_or_default();
+        let number = stem.get(4..8).unwrap_or(stem);
+        assert!(
+            text.contains(&format!("id: ADR-{number}")),
+            "the ADR frontmatter id must match its filename number"
+        );
     }
-    let stem = adr_path
-        .file_stem()
-        .and_then(|s| s.to_str())
-        .unwrap_or_default();
-    let number = stem.get(4..8).unwrap_or(stem);
-    assert!(
-        text.contains(&format!("id: ADR-{number}")),
-        "the ADR frontmatter id must match its filename number"
-    );
 }
 
 fn init_policy_git_repo(root: &Path) {
