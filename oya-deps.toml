@@ -44,7 +44,7 @@ update = "sync-rust-pin"
 reason = "Workspace MSRV follows the stable Rust pin."
 
 [[managed_file]]
-path = "Dockerfile.distroless"
+path = "build/images/Dockerfile.distroless"
 role = "container-builder-toolchain"
 update = "sync-rust-pin"
 reason = "Release image builder uses the same Rust pin."
