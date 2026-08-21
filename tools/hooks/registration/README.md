@@ -20,8 +20,5 @@ There is no `hook_registration_copies_agree` test.
 `..._CODEX_HOOKS` to these paths. That env var **overrides** the constants in
 the enforcement-liveness consumers.
 
-To enable the tracked git hooks in a clone:
-
-```
-git config core.hooksPath .githooks
-```
+Git hooks stay in `tools/hooks/` (reviewed scripts). Do not introduce a
+`.githooks/` root; `core.hooksPath` is local-only and is not a tracked root.

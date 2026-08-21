@@ -13,10 +13,7 @@
       "anchor": "ADR-0515 + ADR-0701 governance pipeline: reviewed agent-lane deliver/restack/preflight harness under templates/agent-delivery/ (local bridge feedback only; merge authority remains oya-ci-required).",
       "prefix": "templates/agent-delivery/"
     },
-    {
-      "anchor": "Tracked clone-visible git hooks (core.hooksPath .githooks). Local bridge only; merge authority remains oya-ci-required.",
-      "prefix": ".githooks/"
-    },
+
     {
       "anchor": "ADR-0555: GitHub-native review routing for the protected base. Reached by DOC-CATALOG until this PR retired that index; the file is live (referenced by 17 tracked files) and its authority is GitHub's own CODEOWNERS contract, not a docs row.",
       "prefix": ".github/CODEOWNERS"
