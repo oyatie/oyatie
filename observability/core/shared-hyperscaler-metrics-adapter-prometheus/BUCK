@@ -1,0 +1,23 @@
+rust_library(
+    name = "shared-hyperscaler-metrics-adapter-prometheus",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_hyperscaler_metrics_adapter_prometheus",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//comms/core/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "third-party//:prometheus",
+    ],
+)
+
+rust_test(
+    name = "shared-hyperscaler-metrics-adapter-prometheus-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "shared_hyperscaler_metrics_adapter_prometheus",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//comms/core/shared-hyperscaler-metrics-kernel:shared-hyperscaler-metrics-kernel",
+        "third-party//:prometheus",
+    ],
+)

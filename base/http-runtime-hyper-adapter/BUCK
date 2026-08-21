@@ -1,0 +1,38 @@
+rust_library(
+    name = "http-runtime-hyper-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "http_runtime_hyper_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//base/http-middleware-kernel:http-middleware-kernel",
+        "//base/http-router-kernel:http-router-kernel",
+        "third-party//:bytes",
+        "third-party//:http-body-util",
+        "third-party//:hyper",
+        "third-party//:hyper-rustls",
+        "third-party//:hyper-util",
+        "third-party//:rustls",
+        "third-party//:tokio",
+    ],
+)
+
+rust_test(
+    name = "http-runtime-hyper-adapter-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "http_runtime_hyper_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//base/http-middleware-kernel:http-middleware-kernel",
+        "//base/http-router-kernel:http-router-kernel",
+        "third-party//:bytes",
+        "third-party//:http-body-util",
+        "third-party//:hyper",
+        "third-party//:hyper-util",
+        "third-party//:tokio",
+        "third-party//:hyper-rustls",
+        "third-party//:rcgen",
+        "third-party//:rustls",
+    ],
+)

@@ -38,7 +38,7 @@ use opentelemetry::metrics::{Counter, Gauge, MeterProvider as _};
 use opentelemetry_otlp::{Protocol, WithExportConfig};
 use opentelemetry_sdk::Resource;
 use opentelemetry_sdk::metrics::SdkMeterProvider;
-use oya_shared_hyperscaler_metrics_kernel::{
+use shared_hyperscaler_metrics_kernel::{
     CircuitState, HyperscalerMetrics, MetricFamily, MetricsContext, MetricsError, metric_name,
 };
 
@@ -440,7 +440,7 @@ fn validate_label(label: &str, value: &str) -> Result<(), MetricsError> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_hyperscaler_metrics_kernel::{
+    use shared_hyperscaler_metrics_kernel::{
         BackpressureObservation, RequestTelemetryBinding, RequestTelemetryOutcome,
     };
 

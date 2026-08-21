@@ -549,12 +549,12 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
                         println!(
                             "dependency-seam validation passed: {} subchecks, {} pass, {} report-only, {} skipped, {} fail, {} diagnostics, {} blocking",
                             report.subchecks.len(),
-                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Pass),
+                            report.status_count(check_dependency_seam::SubcheckStatus::Pass),
                             report.status_count(
-                                oya_check_dependency_seam::SubcheckStatus::ReportOnly
+                                check_dependency_seam::SubcheckStatus::ReportOnly
                             ),
-                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Skipped),
-                            report.status_count(oya_check_dependency_seam::SubcheckStatus::Fail),
+                            report.status_count(check_dependency_seam::SubcheckStatus::Skipped),
+                            report.status_count(check_dependency_seam::SubcheckStatus::Fail),
                             report.diagnostic_count(),
                             blocking
                         );
@@ -2310,7 +2310,7 @@ pub(crate) fn run(args: Vec<String>, usage: &str) -> ExitCode {
             let rest: Vec<String> = args.collect();
             let strict = rest.iter().any(|a| a == "--strict");
             let repo_root = std::path::Path::new(".");
-            match oya_check_doc_axis::validate(repo_root, strict) {
+            match check_doc_axis::validate(repo_root, strict) {
                 Ok(report) => {
                     if report.warnings > 0 {
                         println!(

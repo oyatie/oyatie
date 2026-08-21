@@ -36,14 +36,6 @@ members = [
   "app/*/adapters/*",
   "app/*/facade/*",
 
-  # LEGACY roots, retained until their capability moves land. Each is narrowed to the crate
-  # leaf shape (`oya-*`, `-app`) so non-crate siblings — scripts, completions, vendored trees —
-  # can never break cargo resolution. These lines are the reorg's remaining debt and shrink to
-  # nothing as `oya/`, `libs/`, `tools/` and `cloud/` empty out.
-  "libs/oya-*",
-  "tools/oya-*",
-  "tools/*-app",
-
   # Crates in conforming roots that legitimately sit OUTSIDE the four-layer shape.
   # `governance/` is a meta root off the runtime ladder (ADR-0615) and the two harness/testing
   # trees are build-support rather than capability faces. Each is an explicit, reviewed
@@ -83,6 +75,14 @@ members = [
   "ci/controller/github-adapter",
   "ci/controller/k8s-adapter",
   "ci/controller/kernel",
+
+  # ADR-0562 base/: irreducible cross-capability primitives, one segment deep. A SHAPE
+  # glob, not the 14 literals the codemod appends — this array's own doctrine is that
+  # enumerating instances re-creates "the 100%-by-construction merge-conflict class on
+  # Cargo.toml across concurrent lanes" that ADR-0538 exists to remove. Admission to base/
+  # is governed by the registry rule (>=3 capabilities AND strictly below all of them),
+  # never by this line.
+  "base/*", "build/buck-test-wiring-app", "build/cargo-lock-merge-driver-app", "build/checkout-guard-app", "build/fixup-ledger-merge-driver-app", "build/friction-ledger-merge-driver-app", "build/reorg-codemod-app", "build/tooling-agent-read", "build/xtask-metadata-augment-app", "libs/oya-check-adr-placeholders", "libs/oya-check-container-base-image", "libs/oya-check-step-up-auth-coverage", "libs/oya-ci-materializer-kernel", "libs/oya-governance-agentic-navigability-kernel", "libs/oya-governance-architecture-map-freshness-kernel", "libs/oya-governance-audit-event-emission", "libs/oya-governance-byok-disambiguation", "libs/oya-governance-capability-tier-coverage", "libs/oya-governance-cedar-coverage", "libs/oya-governance-doc-freshness-kernel", "libs/oya-governance-doc-style-kernel", "libs/oya-governance-eval-usecase", "libs/oya-governance-image-discipline-kernel", "libs/oya-governance-license-policy-kernel", "libs/oya-governance-mistakes-ledger-kernel", "libs/oya-governance-naming-justifications", "libs/oya-governance-orphan-detection-kernel", "libs/oya-governance-pack-overlay-completeness", "libs/oya-governance-pr-merge-gate-kernel", "libs/oya-governance-provider-coupling-kernel", "libs/oya-governance-substance-bar", "libs/oya-governance-supply-chain-kernel", "libs/oya-governance-tos-policy-kernel", "libs/oya-governance-upstream-api-drift-kernel", "libs/oya-http-latency-budget-middleware-infrastructure", "libs/oya-http-wide-event-middleware-infrastructure", "libs/oya-json-kernel", "libs/oya-shared-backbone-grpc-transport-adapter", "libs/oya-shared-cursor-pagination-kernel", "libs/oya-shared-email-comms-kernel", "libs/oya-shared-hyperscaler-metrics-adapter-otlp", "libs/oya-shared-outbox-broker-http-adapter", "libs/oya-shared-outbox-pattern-kernel", "libs/oya-shared-presence-kernel", "libs/oya-shared-protocol-transport-retry-app", "libs/oya-shared-semver-check-cli", "libs/oya-shared-supply-chain-check-cli", "libs/oya-shared-tenant-quota-kernel", "libs/oya-shared-timeseries-kernel", "libs/oya-shared-transactional-outbox-runtime-tokio-app", "libs/oya-shared-vector-store-kernel", "libs/oya-shared-webauthn-server-kernel", "libs/oya-shared-webhook-delivery-kernel", "libs/oya-workflow-safe-metadata-kernel",
 ]
 exclude = [
   # Workspace carve-outs and non-crate directories the layer globs over-match.

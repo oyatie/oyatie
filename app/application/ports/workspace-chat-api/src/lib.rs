@@ -16,7 +16,7 @@ use comms_messenger_domain::{
     ChatMessageCreate, ChatParticipant, ChatParticipantRole, ChatSenderKind,
     workspace_chat_data_class_from_legacy,
 };
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 
 pub const WORKSPACE_CHAT_MESSAGE_SEND_SURFACE: &str = "workspace.chat.message.send";
 pub const WORKSPACE_CHAT_OPENAPI_CONTRACT: &str =
@@ -919,7 +919,7 @@ fn attachment_from_request(
 
 fn parse_privacy_data_class_label(
     data_class: &str,
-) -> Result<oya_data_boundary_kernel::PrivacyDataClass, WorkspaceChatApiError> {
+) -> Result<data_boundary_kernel::PrivacyDataClass, WorkspaceChatApiError> {
     let parsed = parse_data_class_label(data_class).ok_or_else(|| {
         WorkspaceChatApiError::InvalidDataClassLabel {
             data_class: data_class.to_string(),

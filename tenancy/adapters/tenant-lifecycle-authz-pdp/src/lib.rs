@@ -37,13 +37,13 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use iam_pdp_cedar::CedarPdp;
-use oya_shared_pdp_kernel::{
+use shared_pdp_kernel::{
     EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint,
 };
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, Obligation, PolicyVersion,
 };
-use oya_shared_ulid_id_kernel::{IdGenerator, IdGeneratorError, Ulid};
+use shared_ulid_id_kernel::{IdGenerator, IdGeneratorError, Ulid};
 
 use tenancy_tenant_lifecycle_authz_port::{
     AuthorizationDecision, AuthorizationOutcome, AuthorizationQuery, AuthzError,
@@ -709,7 +709,7 @@ impl IdGenerator for SystemUlidIdGenerator {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_ulid_id_kernel::SeededIdGenerator;
+    use shared_ulid_id_kernel::SeededIdGenerator;
     use tenancy_tenant_lifecycle_authz_port::CallerIdentity;
 
     fn authorizer() -> PdpTenantLifecycleAuthorizer {

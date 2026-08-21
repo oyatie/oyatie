@@ -1,0 +1,18 @@
+[package]
+name = "check-eval-domain"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+data-boundary-kernel = { path = "../../../base/data-boundary-kernel" }
+
+[lib]
+name = "check_eval_domain"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

@@ -10,10 +10,10 @@ license = "Apache-2.0"
 comms-mail-mailbox-postgres = { path = "../../adapters/mail-mailbox-postgres" }
 comms-mail-mailbox-api = { path = "../../ports/mail-mailbox-api" }
 comms-mail-mailbox-usecase = { path = "../mail-mailbox-usecase" }
-oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres-command-kernel" }
-oya-shared-protocol-parity-kernel = { path = "../../../libs/oya-shared-protocol-parity-kernel" }
-oya-shared-protocol-transport-kernel = { path = "../../../libs/oya-shared-protocol-transport-kernel" }
-oya-shared-transactional-outbox-kernel = { path = "../../../libs/oya-shared-transactional-outbox-kernel" }
+shared-postgres-command-kernel = { path = "../../../base/shared-postgres-command-kernel" }
+shared-protocol-parity-kernel = { path = "../../../base/shared-protocol-parity-kernel" }
+shared-protocol-transport-kernel = { path = "../shared-protocol-transport-kernel" }
+shared-transactional-outbox-kernel = { path = "../../../data/core/shared-transactional-outbox-kernel" }
 
 [lib]
 name = "comms_mail_mailbox_app"

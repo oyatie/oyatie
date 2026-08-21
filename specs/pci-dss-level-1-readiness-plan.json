@@ -92,7 +92,7 @@
         "contract": "Pack activation, data access, retention, and cross-cell decisions are Cedar-gated with default deny"
       },
       {
-        "path": "libs/oya-shared-pdp-kernel/src/lib.rs",
+        "path": "iam/core/shared-pdp-kernel/src/lib.rs",
         "contract": "Embedded PDP port; every allow/deny decision emits an attributable audit record and fails closed on audit-chain emission error"
       },
       {
@@ -365,7 +365,7 @@
         ],
         "source_contract_refs": [
           "docs/decisions/ADR-0700-ci-admission-live-apex.md",
-          "libs/oya-shared-pdp-kernel/src/lib.rs"
+          "iam/core/shared-pdp-kernel/src/lib.rs"
         ],
         "evidence_required": [
           "cedar-fragment-set",

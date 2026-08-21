@@ -1,0 +1,22 @@
+[package]
+name = "cargo-lock-merge-driver-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[lib]
+name = "cargo_lock_merge_driver_app"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-cargo-lock-merge-driver"
+path = "src/main.rs"
+
+[dependencies]
+toml_edit = "0.22"
+
+[lints]
+workspace = true

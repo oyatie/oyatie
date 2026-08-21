@@ -32,7 +32,7 @@ path = "src/bin/oya-cloud-ci-materialize-generated-faces.rs"
 [dependencies]
 ci-cross-artifact-agreement = { path = "../cross-artifact-agreement" }
 ci-planning-projection = { path = "../planning-projection" }
-oya-workspace-members-kernel = { path = "../../../libs/oya-workspace-members-kernel" }
+workspace-members-kernel = { path = "../../../base/workspace-members-kernel" }
 serde_json = { workspace = true }
 toml = { workspace = true }
 

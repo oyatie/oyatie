@@ -20,7 +20,7 @@ use core::future::Future;
 use core::pin::Pin;
 use std::collections::BTreeMap;
 
-use oya_shared_platform_contracts_kernel::tenancy::Tenant;
+use shared_platform_contracts_kernel::tenancy::Tenant;
 use tenancy_tenant_lifecycle_kernel::{
     AppliedWriteRecord, OperationRecord, StoreError, TenantLifecycleStore,
 };
@@ -209,10 +209,10 @@ impl TenantLifecycleStore for InMemoryTenantLifecycleStore {
 
 #[cfg(test)]
 mod tests {
-    use oya_shared_platform_contracts_kernel::tenancy::{
+    use shared_platform_contracts_kernel::tenancy::{
         IsolationPosture, TenantLifecycleOperation, TenantLifecycleState,
     };
-    use oya_shared_resource_provider_contract_kernel::{
+    use shared_resource_provider_contract_kernel::{
         CancellationMetadata, CompensationMetadata, Operation, OperationLedgerEntry,
         OperationPhase, OperationState, RetryPolicy,
     };

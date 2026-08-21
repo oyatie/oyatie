@@ -6,7 +6,7 @@
 
 use std::collections::BTreeMap;
 
-use oya_governance_eval_domain::{
+use check_eval_domain::{
     AdversarialKind, EvalCaseInput, EvalError, EvalGate, EvalMetric, EvalRunInput, EvalSetInput,
     REQUIRED_LINGUISTIC_COHORTS_DETAIL, REQUIRED_LINGUISTIC_COHORTS_MESSAGE,
 };

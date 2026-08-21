@@ -42,7 +42,7 @@ use data_analytics_usecase::{
     CreateDataExportUseCase, GetDashboardUseCase, RunBillingRollupUseCase, SearchAuditLogUseCase,
     UseCaseError,
 };
-use oya_shared_olap_client_kernel::{KernelError, OlapClient, TenantId};
+use shared_olap_client_kernel::{KernelError, OlapClient, TenantId};
 
 /// OpenAPI contract path (SSOT: `data/analytics/catalog/contracts.json`).
 pub const ANALYTICS_OPENAPI_CONTRACT: &str = "data/analytics/contracts/openapi-v1.yaml";
@@ -326,7 +326,7 @@ pub fn handle_data_export(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_olap_client_kernel::{
+    use shared_olap_client_kernel::{
         ColumnDef, ColumnType, QualifiedTable, TableEngine, TableName, TableSchema,
         memory_adapter::InMemoryOlapClient,
     };

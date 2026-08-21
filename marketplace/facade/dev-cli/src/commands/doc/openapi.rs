@@ -10,7 +10,7 @@ use intelligence_openapi_domain::{
     OpenApiSchemaParityReport, OpenApiSourceReport, validate_openapi_contract_mirror,
     validate_openapi_documents, validate_openapi_runtime_parity, validate_openapi_schema_parity,
 };
-use oya_data_boundary_kernel::parse_data_class_label;
+use data_boundary_kernel::parse_data_class_label;
 
 use crate::command_output::OutputFormat as DevCheckOutputFormat;
 use crate::{

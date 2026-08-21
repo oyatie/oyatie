@@ -25,15 +25,11 @@ ssr = ["dep:any_spawner", "dep:axum", "dep:tokio", "leptos/ssr"]
 
 [dependencies]
 leptos = { version = "=0.8.19", default-features = false }
-oya-shared-oidc-client-kernel = { path = "../../../../libs/oya-shared-oidc-client-kernel" }
-oya-shared-platform-contracts-kernel = { path = "../../../../libs/oya-shared-platform-contracts-kernel" }
+shared-oidc-client-kernel = { path = "../../../core/shared-oidc-client-kernel" }
+shared-platform-contracts-kernel = { path = "../../../../base/shared-platform-contracts-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 axum = { workspace = true, optional = true }
-# `server::router_for_package_root` calls `any_spawner::Executor::init_tokio`, which is gated
-# behind any_spawner's `tokio` feature. Declare the feature here rather than inheriting it from
-# `leptos_axum`'s own dependency edge: feature unification makes that work today, but it would
-# vanish silently if leptos_axum changed its features, leaving a confusing missing-function error.
 any_spawner = { workspace = true, optional = true, features = ["tokio"] }
 tokio = { workspace = true, features = ["fs", "sync"], optional = true }
 wasm-bindgen = { version = "=0.2.121", optional = true }

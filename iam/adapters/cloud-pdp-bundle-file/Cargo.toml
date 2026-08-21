@@ -9,13 +9,10 @@ description = "File-backed PolicyBundleStore adapter for the cloud-iam PDP servi
 
 [dependencies]
 iam-cloud-pdp-kernel = { path = "../../core/cloud-pdp-kernel" }
-oya-shared-pdp-kernel = { path = "../../../libs/oya-shared-pdp-kernel" }
-oya-shared-platform-contracts-kernel = { path = "../../../libs/oya-shared-platform-contracts-kernel" }
-# First legal iam/ -> libs/oya-shared-audit-* lib->lib edge (no inversion): the
-# OWNED aws-lc-rs Ed25519 verifier (ADR-0506, ring-free) for signed-bundle
-# verify-on-load, and its ports (ChainVerifier, hex codec).
-oya-shared-audit-digest-adapter-awslc = { path = "../../../libs/oya-shared-audit-digest-adapter-awslc" }
-oya-shared-audit-event-kernel = { path = "../../../libs/oya-shared-audit-event-kernel" }
+shared-pdp-kernel = { path = "../../core/shared-pdp-kernel" }
+shared-platform-contracts-kernel = { path = "../../../base/shared-platform-contracts-kernel" }
+shared-audit-digest-adapter-awslc = { path = "../../core/shared-audit-digest-adapter-awslc" }
+shared-audit-event-kernel = { path = "../../core/shared-audit-event-kernel" }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 

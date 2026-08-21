@@ -32,9 +32,9 @@ use iac_rest::{
     MODULE_REGISTRY_DISCOVERY_REST_ROUTE, MODULE_REGISTRY_DOWNLOAD_REST_ROUTE,
     MODULE_REGISTRY_VERSIONS_REST_ROUTE,
 };
-use oya_http_middleware_kernel::HttpRequest;
-use oya_http_router_kernel::HttpMethod;
-use oya_http_runtime_hyper_adapter::serve_one_connection_on_std_listener;
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
+use http_runtime_hyper_adapter::serve_one_connection_on_std_listener;
 
 const BEARER_SECRET: &str = "break-glass-iac-registry-secret";
 const PRINCIPAL_ID: &str = "sp_cloud_iac_registry_reader";
@@ -185,7 +185,7 @@ fn http_request_with_bearer(method: HttpMethod, path: &str, bearer: &str) -> Htt
     request
 }
 
-fn body_text(response: &oya_http_middleware_kernel::HttpResponse) -> String {
+fn body_text(response: &http_middleware_kernel::HttpResponse) -> String {
     String::from_utf8(response.body.clone()).expect("response body is UTF-8 JSON")
 }
 

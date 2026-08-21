@@ -38,7 +38,7 @@ mod authz {
     use std::collections::BTreeMap;
     use std::sync::Arc;
 
-    use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+    use http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
 
     /// A caller whose bearer credential a [`PrincipalAuthenticator`] has VERIFIED.
     ///
@@ -182,9 +182,9 @@ mod authz {
         use super::*;
         use crate::{build_chain, build_dev_catalog, build_router};
         use console_workspace_shell_rest::SHELL_HEALTH_ROUTE;
-        use oya_http_middleware_kernel::MiddlewareChain;
-        use oya_http_router_kernel::HttpMethod;
-        use oya_http_runtime_hyper_adapter::dispatch;
+        use http_middleware_kernel::MiddlewareChain;
+        use http_router_kernel::HttpMethod;
+        use http_runtime_hyper_adapter::dispatch;
 
         const TOKEN: &str = "test-admin-token";
 
@@ -320,9 +320,9 @@ use console_workspace_shell_rest::{
 use console_workspace_shell_usecase::{
     ListAllSurfacesUseCase, ListLiveSurfacesUseCase, ShellHealthUseCase,
 };
-use oya_http_middleware_kernel::MiddlewareChain;
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
+use http_middleware_kernel::MiddlewareChain;
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_runtime_hyper_adapter::{HttpRequest, HttpResponse, SyncHandler};
 
 /// Shared catalog state. Wrapped in `RwLock` so handlers can clone-snapshot
 /// without mutating shared state. Per-cell composition swaps this for a
@@ -482,8 +482,8 @@ fn escape_json(value: &str) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_http_router_kernel::HttpMethod;
-    use oya_http_runtime_hyper_adapter::dispatch;
+    use http_router_kernel::HttpMethod;
+    use http_runtime_hyper_adapter::dispatch;
     use std::collections::BTreeMap;
 
     const TEST_TOKEN: &str = "test-admin-token";

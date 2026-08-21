@@ -886,7 +886,7 @@
       ]
     },
     {
-      "key": "oya-check-adr-placeholders",
+      "key": "check-adr-placeholders",
       "context": "tooling",
       "role": "worker",
       "capability": "check-adr-placeholders",
@@ -916,7 +916,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-check-container-base-image",
+      "key": "check-container-base-image",
       "context": "tooling",
       "role": "worker",
       "capability": "check-container-base-image",
@@ -4045,7 +4045,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-data-boundary-kernel",
+      "key": "data-boundary-kernel",
       "context": "data",
       "role": "kernel",
       "capability": "data-boundary",
@@ -4362,7 +4362,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-governance-audit-event-emission",
+      "key": "check-audit-event-emission",
       "context": "governance",
       "role": "test",
       "capability": "governance-audit-event-emission",
@@ -4388,7 +4388,7 @@
       ]
     },
     {
-      "key": "oya-governance-byok-disambiguation",
+      "key": "check-byok-disambiguation",
       "context": "governance",
       "role": "test",
       "capability": "governance-byok-disambiguation",
@@ -4414,7 +4414,7 @@
       ]
     },
     {
-      "key": "oya-governance-capability-tier-coverage",
+      "key": "check-capability-tier-coverage",
       "context": "governance",
       "role": "test",
       "capability": "governance-capability-tier-coverage",
@@ -4440,7 +4440,7 @@
       ]
     },
     {
-      "key": "oya-governance-cedar-coverage",
+      "key": "check-cedar-coverage",
       "context": "governance",
       "role": "test",
       "capability": "governance-cedar-coverage",
@@ -4466,7 +4466,7 @@
       ]
     },
     {
-      "key": "oya-governance-naming-justifications",
+      "key": "check-naming-justifications",
       "context": "governance",
       "role": "test",
       "capability": "governance-naming-justifications",
@@ -4518,7 +4518,7 @@
       ]
     },
     {
-      "key": "oya-governance-pack-overlay-completeness",
+      "key": "check-pack-overlay-completeness",
       "context": "governance",
       "role": "test",
       "capability": "governance-pack-overlay-completeness",
@@ -4544,7 +4544,7 @@
       ]
     },
     {
-      "key": "oya-governance-substance-bar",
+      "key": "check-substance-bar",
       "context": "governance",
       "role": "test",
       "capability": "governance-substance-bar",
@@ -4669,7 +4669,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-latency-budget-middleware-infrastructure",
+      "key": "http-latency-budget-middleware-infrastructure",
       "context": "http",
       "role": "infrastructure",
       "capability": "latency-budget",
@@ -4684,7 +4684,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-middleware-kernel",
+      "key": "http-middleware-kernel",
       "context": "http",
       "role": "kernel",
       "capability": "http-middleware",
@@ -4699,7 +4699,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-router-kernel",
+      "key": "http-router-kernel",
       "context": "http",
       "role": "kernel",
       "capability": "http-router",
@@ -4725,7 +4725,7 @@
       ]
     },
     {
-      "key": "oya-http-runtime-hyper-adapter",
+      "key": "http-runtime-hyper-adapter",
       "context": "http",
       "role": "adapter",
       "capability": "http-runtime-hyper",
@@ -4766,7 +4766,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-sse-kernel",
+      "key": "http-sse-kernel",
       "context": "http",
       "role": "kernel",
       "capability": "sse",
@@ -4796,7 +4796,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-telemetry-middleware-infrastructure",
+      "key": "http-telemetry-middleware-infrastructure",
       "context": "http",
       "role": "infrastructure",
       "capability": "telemetry",
@@ -4826,7 +4826,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-http-tenant-middleware-infrastructure",
+      "key": "http-tenant-middleware-infrastructure",
       "context": "http",
       "role": "infrastructure",
       "capability": "tenant-middleware",
@@ -5840,7 +5840,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-json-kernel",
+      "key": "json-kernel",
       "context": "json",
       "role": "kernel",
       "capability": "json",
@@ -8463,7 +8463,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-architecture-check-cli",
+      "key": "check-shared-architecture-check-cli",
       "context": "shared",
       "role": "worker",
       "capability": "shared-architecture-check",
@@ -8478,7 +8478,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-audit-chain-client-kernel",
+      "key": "shared-audit-chain-client-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "audit-chain-client",
@@ -8493,7 +8493,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backbone-grpc-generated-adapter",
+      "key": "shared-backbone-grpc-generated-adapter",
       "context": "shared",
       "role": "grpc",
       "capability": "backbone-tonic-prost-generated-write-plan-adapter",
@@ -8511,7 +8511,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backbone-grpc-transport-adapter",
+      "key": "shared-backbone-grpc-transport-adapter",
       "context": "shared",
       "role": "runtime",
       "capability": "backbone-tonic-transport-loopback-adapter",
@@ -8529,7 +8529,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backbone-proto-contracts-kernel",
+      "key": "shared-backbone-proto-contracts-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "backbone-proto3-write-contracts",
@@ -8547,7 +8547,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backbone-rest-runtime-adapter",
+      "key": "shared-backbone-rest-runtime-adapter",
       "context": "shared",
       "role": "runtime",
       "capability": "backbone-rest-hyper-loopback-adapter",
@@ -8565,7 +8565,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-backup-kernel",
+      "key": "shared-backup-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "backup",
@@ -8580,7 +8580,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-bounded-contexts-check-cli",
+      "key": "check-shared-bounded-contexts-check-cli",
       "context": "shared",
       "role": "cli",
       "capability": "shared-bounded-contexts-check-cli",
@@ -8604,7 +8604,7 @@
       ]
     },
     {
-      "key": "oya-shared-compliance-evidence-kernel",
+      "key": "shared-compliance-evidence-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "compliance-evidence",
@@ -8621,7 +8621,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-connector-kernel",
+      "key": "shared-connector-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "connector",
@@ -8636,7 +8636,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-cursor-pagination-kernel",
+      "key": "shared-cursor-pagination-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "cursor-pagination",
@@ -8651,7 +8651,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-email-comms-kernel",
+      "key": "shared-email-comms-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "email-comms",
@@ -8668,7 +8668,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-hyperscaler-metrics-adapter-otlp",
+      "key": "shared-hyperscaler-metrics-adapter-otlp",
       "context": "shared",
       "role": "adapter",
       "capability": "hyperscaler-metrics-otlp-exporter-harness",
@@ -8683,7 +8683,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-hyperscaler-metrics-adapter-prometheus",
+      "key": "shared-hyperscaler-metrics-adapter-prometheus",
       "context": "shared",
       "role": "adapter",
       "capability": "hyperscaler-metrics-prometheus-impl",
@@ -8698,7 +8698,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-hyperscaler-metrics-kernel",
+      "key": "shared-hyperscaler-metrics-kernel",
       "context": "shared",
       "role": "domain",
       "capability": "hyperscaler-metrics-trait",
@@ -8713,7 +8713,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-i18n-kernel",
+      "key": "shared-i18n-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "i18n",
@@ -8729,7 +8729,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-idempotency-key-kernel",
+      "key": "shared-idempotency-key-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "idempotency-key",
@@ -8762,7 +8762,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-oidc-client-kernel",
+      "key": "shared-oidc-client-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "oidc-client",
@@ -8779,7 +8779,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-olap-clickhouse-adapter",
+      "key": "shared-olap-clickhouse-adapter",
       "context": "analytics",
       "role": "adapter",
       "capability": "olap-clickhouse",
@@ -8806,7 +8806,7 @@
       ]
     },
     {
-      "key": "oya-shared-olap-client-kernel",
+      "key": "shared-olap-client-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "olap-client",
@@ -8821,7 +8821,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-outbox-broker-http-adapter",
+      "key": "shared-outbox-broker-http-adapter",
       "context": "shared",
       "role": "adapter",
       "capability": "transactional-outbox-http-broker-gateway-publisher-executor",
@@ -8838,7 +8838,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-outbox-pattern-kernel",
+      "key": "shared-outbox-pattern-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "outbox-pattern",
@@ -8853,7 +8853,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-postgres-command-adapter-sqlx",
+      "key": "shared-postgres-command-adapter-sqlx",
       "context": "shared",
       "role": "adapter",
       "capability": "postgres-command-sqlx-executor",
@@ -8870,7 +8870,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-postgres-command-kernel",
+      "key": "shared-postgres-command-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "postgres-command",
@@ -8887,7 +8887,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-presence-kernel",
+      "key": "shared-presence-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "presence",
@@ -8903,7 +8903,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-protocol-parity-kernel",
+      "key": "shared-protocol-parity-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "protocol-parity",
@@ -8920,7 +8920,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-protocol-transport-kernel",
+      "key": "shared-protocol-transport-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "protocol-transport-plans",
@@ -8937,7 +8937,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-protocol-transport-retry-app",
+      "key": "shared-protocol-transport-retry-app",
       "context": "shared",
       "role": "app",
       "capability": "protocol-transport-bounded-retry",
@@ -8954,7 +8954,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-realtime-transport-kernel",
+      "key": "shared-realtime-transport-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "realtime-transport",
@@ -8969,7 +8969,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-scim-server-kernel",
+      "key": "shared-scim-server-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "scim-server",
@@ -8985,7 +8985,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-semver-check-cli",
+      "key": "check-shared-semver-check-cli",
       "context": "shared",
       "role": "worker",
       "capability": "shared-semver-check",
@@ -9000,7 +9000,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-supply-chain-check-cli",
+      "key": "check-shared-supply-chain-check-cli",
       "context": "shared",
       "role": "worker",
       "capability": "shared-supply-chain-check",
@@ -9015,7 +9015,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-tenant-quota-kernel",
+      "key": "shared-tenant-quota-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "tenant-quota",
@@ -9030,7 +9030,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-timeseries-kernel",
+      "key": "shared-timeseries-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "timeseries",
@@ -9045,7 +9045,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-tracing-client-kernel",
+      "key": "shared-tracing-client-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "tracing-client",
@@ -9060,7 +9060,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-adapter-sqlx",
+      "key": "shared-transactional-outbox-adapter-sqlx",
       "context": "shared",
       "role": "adapter",
       "capability": "transactional-outbox-sqlx-drain",
@@ -9077,7 +9077,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-dispatch-app",
+      "key": "shared-transactional-outbox-dispatch-app",
       "context": "shared",
       "role": "usecase",
       "capability": "transactional-outbox-dispatch-app",
@@ -9094,7 +9094,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-kernel",
+      "key": "shared-transactional-outbox-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "transactional-outbox-command-seam",
@@ -9111,7 +9111,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-poller-app",
+      "key": "shared-transactional-outbox-poller-app",
       "context": "shared",
       "role": "runtime",
       "capability": "transactional-outbox-bounded-poller-policy",
@@ -9128,7 +9128,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-runtime-tokio-app",
+      "key": "shared-transactional-outbox-runtime-tokio-app",
       "context": "shared",
       "role": "runtime",
       "capability": "transactional-outbox-tokio-runtime-sleeper-service-loop-supervisor",
@@ -9145,7 +9145,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-transactional-outbox-worker-app",
+      "key": "shared-transactional-outbox-worker-app",
       "context": "shared",
       "role": "app",
       "capability": "transactional-outbox-sqlx-worker-cycle",
@@ -9162,7 +9162,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-ulid-id-kernel",
+      "key": "shared-ulid-id-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "ulid-id",
@@ -9177,7 +9177,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-vector-store-kernel",
+      "key": "shared-vector-store-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "vector-store",
@@ -9192,7 +9192,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-wasm-runtime-kernel",
+      "key": "shared-wasm-runtime-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "wasm-runtime",
@@ -9207,7 +9207,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-webauthn-server-kernel",
+      "key": "shared-webauthn-server-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "webauthn-server",
@@ -9225,7 +9225,7 @@
       "supply_chain": "source-only"
     },
     {
-      "key": "oya-shared-webhook-delivery-kernel",
+      "key": "shared-webhook-delivery-kernel",
       "context": "shared",
       "role": "kernel",
       "capability": "webhook-delivery",

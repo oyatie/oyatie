@@ -7,7 +7,7 @@ publish = false
 license = "Apache-2.0"
 
 [dependencies]
-oya-governance-eval-domain = { path = "../oya-governance-eval-domain" }
+check-eval-domain = { path = "../../governance/check/eval-domain" }
 
 [lib]
 name = "oya_governance_eval_usecase"

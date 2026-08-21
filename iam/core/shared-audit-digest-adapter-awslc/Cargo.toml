@@ -1,0 +1,26 @@
+[package]
+name = "shared-audit-digest-adapter-awslc"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# Transitional crypto adapter for the audit digest-chain ports
+# (oya-shared-audit-event-kernel): SHA-256 digesting + Ed25519
+# sign/verify via aws-lc-rs, the ADR-0506 canonical crypto backend.
+# The PORT shapes model the owned KMS destination (ADR-0536 D-5,
+# AMENDMENT 2); at W5 cutover only this adapter is replaced — sealing,
+# linkage, and verification logic in the kernel survive unchanged.
+
+[lib]
+name = "shared_audit_digest_adapter_awslc"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+aws-lc-rs = { workspace = true }
+shared-audit-event-kernel = { path = "../shared-audit-event-kernel" }
+
+[lints]
+workspace = true

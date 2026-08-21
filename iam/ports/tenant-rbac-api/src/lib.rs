@@ -16,7 +16,7 @@ use iam_tenant_rbac_domain::{
     ServiceWriteInput, TenantRbacService, TenantRbacWriteKind, WorkflowRoutingOwner,
 };
 use iam_tenant_rbac_usecase::{OpsCommandKind, TenantRbacOpsCommandInput, TenantRbacOpsRoute};
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

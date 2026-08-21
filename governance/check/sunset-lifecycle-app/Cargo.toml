@@ -1,0 +1,20 @@
+[package]
+name = "check-sunset-lifecycle-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[[bin]]
+name = "oya-governance-sunset-lifecycle-app"
+path = "src/main.rs"
+
+[dependencies]
+check-sunset-lifecycle-kernel = { path = "../sunset-lifecycle-kernel" }
+
+[dev-dependencies]
+tempfile = "3"
+
+[lints]
+workspace = true

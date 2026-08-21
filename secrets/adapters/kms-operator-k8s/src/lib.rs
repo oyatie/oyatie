@@ -21,7 +21,7 @@ use kube::{
     runtime::{Controller, controller::Action as ControllerAction, watcher},
 };
 use network_residency::ResidencyClass;
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use secrets_kms_domain::{
     CloudKmsDirectory, CloudKmsError, HsmValidation as DomainHsmValidation, KeyDestructionReceipt,
     KeyDestructionRequest, KeyRingQuarantineRequest, KeyVersionDemotionRequest, KmsDecryptRequest,

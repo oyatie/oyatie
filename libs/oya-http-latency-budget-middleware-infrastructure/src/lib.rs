@@ -26,7 +26,7 @@
 
 use std::time::Instant;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
+use http_middleware_kernel::{HttpRequest, HttpResponse, Middleware, Next};
 
 #[derive(Clone, Debug)]
 pub struct LatencyBudgetReporter {
@@ -76,8 +76,8 @@ impl Middleware<HttpRequest, HttpResponse> for LatencyBudgetReporter {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_http_middleware_kernel::MiddlewareChain;
-    use oya_http_router_kernel::HttpMethod;
+    use http_middleware_kernel::MiddlewareChain;
+    use http_router_kernel::HttpMethod;
     use std::collections::BTreeMap;
     use std::thread::sleep;
     use std::time::Duration;

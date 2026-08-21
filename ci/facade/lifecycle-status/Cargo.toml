@@ -26,7 +26,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-governance-lifecycle-kernel = { path = "../../../libs/oya-governance-lifecycle-kernel" }
+check-lifecycle-kernel = { path = "../../../governance/check/lifecycle-kernel" }
 serde_json = { workspace = true }
 
 [lints]

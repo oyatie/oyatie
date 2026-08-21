@@ -26,7 +26,7 @@ path = "src/lib.rs"
 doctest = false
 
 [dependencies]
-oya-advisory-mirror-kernel = { path = "../../../libs/oya-advisory-mirror-kernel" }
+advisory-mirror-kernel = { path = "../../core/advisory-mirror-kernel" }
 semver = { workspace = true }
 serde_json = { workspace = true }
 toml = { workspace = true }

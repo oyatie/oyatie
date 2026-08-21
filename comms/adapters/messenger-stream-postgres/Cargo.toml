@@ -7,7 +7,7 @@ license = "Apache-2.0"
 publish = false
 
 [dependencies]
-oya-shared-postgres-command-kernel = { path = "../../../libs/oya-shared-postgres-command-kernel" }
+shared-postgres-command-kernel = { path = "../../../base/shared-postgres-command-kernel" }
 
 [lib]
 path = "src/lib.rs"

@@ -9,8 +9,8 @@ license = "Apache-2.0"
 [dependencies]
 community-post-store-domain = { path = "../../app/community/core/post-store-domain" }
 comms-mail-mailbox-api = { path = "../../comms/ports/mail-mailbox-api" }
-oya-shared-backbone-grpc-generated-adapter = { path = "../oya-shared-backbone-grpc-generated-adapter" }
-oya-shared-postgres-command-kernel = { path = "../oya-shared-postgres-command-kernel" }
+shared-backbone-grpc-generated-adapter = { path = "../../gateway/core/shared-backbone-grpc-generated-adapter" }
+shared-postgres-command-kernel = { path = "../../base/shared-postgres-command-kernel" }
 tonic = { workspace = true, features = ["router", "transport"] }
 
 [dev-dependencies]

@@ -58,8 +58,8 @@ use std::collections::BTreeSet;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub use oya_buck_syntax_kernel::glob_match;
-use oya_buck_syntax_kernel::{
+pub use buck_syntax_kernel::glob_match;
+use buck_syntax_kernel::{
     BuckDoc, Env, Expr, PreImageRegistry, Stmt, call_strings, dict_values, eval_string,
     find_target, guarded_rewrite, insert_dict_entry, insert_kwarg, replace_span, resolve_dict_var,
 };
@@ -665,7 +665,7 @@ pub struct BuckTarget {
 /// silent pass — fail-safe).
 pub fn parse_buck_targets(buck_text: &str, crate_files: &[String]) -> Vec<BuckTarget> {
     const KINDS: [&str; 3] = ["rust_library", "rust_binary", "rust_test"];
-    let Ok(doc) = oya_buck_syntax_kernel::parse(buck_text) else {
+    let Ok(doc) = buck_syntax_kernel::parse(buck_text) else {
         return Vec::new();
     };
     // Top-level `IDENT = "string"` and `IDENT = glob([...])` assignments, so crate_root / srcs /
@@ -767,7 +767,7 @@ fn crate_relative(path: &str) -> String {
 
 /// Top-level `IDENT = "string"` assignments. Used to resolve concat operands like `ADAPTER_ROOT`.
 fn top_level_string_vars(buck_text: &str) -> Vec<(String, String)> {
-    oya_buck_syntax_kernel::parse(buck_text)
+    buck_syntax_kernel::parse(buck_text)
         .map(|doc| Env::from_doc(&doc).string_vars.into_iter().collect())
         .unwrap_or_default()
 }
@@ -775,14 +775,14 @@ fn top_level_string_vars(buck_text: &str) -> Vec<(String, String)> {
 /// Top-level `IDENT = glob([...])` assignments -> the glob patterns. Used to resolve a
 /// srcs/mapped comprehension `for src in SRCS`.
 fn top_level_glob_vars(buck_text: &str) -> Vec<(String, Vec<String>)> {
-    oya_buck_syntax_kernel::parse(buck_text)
+    buck_syntax_kernel::parse(buck_text)
         .map(|doc| Env::from_doc(&doc).glob_vars.into_iter().collect())
         .unwrap_or_default()
 }
 
 /// Parse a target's `srcs` kwarg. Returns (explicit_srcs, glob_patterns, unparseable).
 fn parse_srcs(
-    call: &oya_buck_syntax_kernel::CallExpr,
+    call: &buck_syntax_kernel::CallExpr,
     env: &Env,
 ) -> (Vec<String>, Vec<String>, bool) {
     let Some(arg) = call.kwarg("srcs") else {
@@ -793,7 +793,7 @@ fn parse_srcs(
     match &arg.value.expr {
         Expr::List(list) if list.elements.is_empty() => (Vec::new(), Vec::new(), false),
         Expr::List(_) => (
-            oya_buck_syntax_kernel::expr_strings(&arg.value),
+            buck_syntax_kernel::expr_strings(&arg.value),
             Vec::new(),
             false,
         ),
@@ -815,7 +815,7 @@ fn parse_srcs(
 /// exactly like the pre-kernel implementation, and the collector augments via the file-level
 /// resolver.
 fn parse_mapped_srcs(
-    call: &oya_buck_syntax_kernel::CallExpr,
+    call: &buck_syntax_kernel::CallExpr,
     env: &Env,
     crate_files: &[String],
 ) -> (Vec<String>, bool) {
@@ -840,7 +840,7 @@ pub fn resolve_mapped_var(
     glob_vars: &[(String, Vec<String>)],
     crate_files: &[String],
 ) -> Vec<String> {
-    let Ok(doc) = oya_buck_syntax_kernel::parse(buck_text) else {
+    let Ok(doc) = buck_syntax_kernel::parse(buck_text) else {
         return Vec::new();
     };
     let env = Env::from_slices(string_vars, glob_vars);
@@ -1182,7 +1182,7 @@ fn globs_via_crate_root(t: &BuckTarget, rs_in_crate: &str, _crate_files: &[Strin
 /// `name` kwarg via the shared kernel — never a first-occurrence substring match (the ADR-0545
 /// "first-occurrence name binding" residual the kernel retires).
 fn mapped_srcs_var_for(buck_text: &str, target_name: &str) -> Option<String> {
-    let doc = oya_buck_syntax_kernel::parse(buck_text).ok()?;
+    let doc = buck_syntax_kernel::parse(buck_text).ok()?;
     let env = Env::from_doc(&doc);
     let call = find_target(&doc, None, target_name, &env)?;
     match &call.kwarg("mapped_srcs")?.value.expr {
@@ -1481,7 +1481,7 @@ fn buck_crate_root_is_root_prefixed(
     crate_dir: &str,
 ) -> Option<bool> {
     let text = std::fs::read_to_string(root.join(buck_path)).ok()?;
-    let doc = oya_buck_syntax_kernel::parse(&text).ok()?;
+    let doc = buck_syntax_kernel::parse(&text).ok()?;
     let env = Env::from_doc(&doc);
     let call = find_target(&doc, None, target, &env)?;
     let crate_root = &call.kwarg("crate_root")?.value;
@@ -1545,7 +1545,7 @@ pub fn apply_remediation(buck_text: &str, rem: &Remediation) -> Result<String, S
     if !rem.applicable {
         return Err(rem.note.clone());
     }
-    let doc = oya_buck_syntax_kernel::parse(buck_text)
+    let doc = buck_syntax_kernel::parse(buck_text)
         .map_err(|e| format!("BUCK text does not parse soundly ({e}); fix by hand"))?;
     let env = Env::from_doc(&doc);
     // Sound binding by the actual `name` kwarg (never first-occurrence substring match).
@@ -1676,7 +1676,7 @@ fn validate_remediation_output(out: &str, rem: &Remediation) -> Result<(), Strin
 /// literal is never touched. The emitted form mirrors the proven cloud-intelligence adapter.
 fn rewrite_to_comprehension(
     buck_text: &str,
-    call: &oya_buck_syntax_kernel::CallExpr,
+    call: &buck_syntax_kernel::CallExpr,
     env: &Env,
     rem: &Remediation,
 ) -> Result<String, String> {

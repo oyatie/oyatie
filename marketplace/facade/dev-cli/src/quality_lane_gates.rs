@@ -6,7 +6,7 @@ use check_quality_lane::{
     QualityLaneDocRow, QualityLaneRecord, QualityLaneStage, QualityLaneStatus,
     validate_quality_lanes,
 };
-use oya_governance_gate_catalog_domain::all_canonical_commands_rendered;
+use check_gate_catalog_domain::all_canonical_commands_rendered;
 
 use crate::{clean_yaml_value, list_team_ids, usage};
 

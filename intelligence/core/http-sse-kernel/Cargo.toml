@@ -1,0 +1,17 @@
+[package]
+name = "http-sse-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+
+[lib]
+name = "http_sse_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

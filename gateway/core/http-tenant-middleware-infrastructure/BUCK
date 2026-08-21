@@ -1,0 +1,25 @@
+rust_library(
+    name = "http-tenant-middleware-infrastructure",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "http_tenant_middleware_infrastructure",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//tenancy/core/kernel:tenancy-kernel",
+        "//base/http-middleware-kernel:http-middleware-kernel",
+        "//base/http-router-kernel:http-router-kernel",
+    ],
+)
+
+rust_test(
+    name = "http-tenant-middleware-infrastructure-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "http_tenant_middleware_infrastructure",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//tenancy/core/kernel:tenancy-kernel",
+        "//base/http-middleware-kernel:http-middleware-kernel",
+        "//base/http-router-kernel:http-router-kernel",
+    ],
+)

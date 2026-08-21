@@ -58,10 +58,10 @@ use axum::http::{HeaderMap, StatusCode, Uri};
 use axum::routing::{delete, get, post};
 use serde::{Deserialize, Serialize};
 
-use oya_shared_platform_contracts_kernel::tenancy::{
+use shared_platform_contracts_kernel::tenancy::{
     IsolationPosture, Tenant, TenantLifecycleOperation, TenantLifecycleState,
 };
-use oya_shared_resource_provider_contract_kernel::{
+use shared_resource_provider_contract_kernel::{
     IdempotencyKey, Operation, OperationResult, PageRequest, PageToken, ProviderError,
     ResourceName, ResourceProvider,
 };

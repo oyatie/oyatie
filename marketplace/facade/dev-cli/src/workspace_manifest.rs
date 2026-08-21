@@ -22,7 +22,7 @@ pub(crate) fn read_workspace_member_paths(path: &Path) -> Result<Vec<String>, St
     let repo_root = path
         .parent()
         .ok_or_else(|| format!("workspace manifest has no parent: {}", path.display()))?;
-    let member_paths = oya_workspace_members_kernel::resolve_member_dirs(repo_root)
+    let member_paths = workspace_members_kernel::resolve_member_dirs(repo_root)
         .map_err(|error| format!("workspace manifest members unresolved: {error}"))?;
     if member_paths.is_empty() {
         Err("workspace manifest members array is empty".to_string())

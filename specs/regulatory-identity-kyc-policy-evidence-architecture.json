@@ -29,8 +29,8 @@
     "related_specs_and_contracts": [
       "specs/tenant-model.json",
       "specs/compliance-pack-schema.json",
-      "libs/oya-shared-platform-contracts-kernel/src/pdp.rs",
-      "libs/oya-shared-pdp-kernel/src/lib.rs",
+      "base/shared-platform-contracts-kernel/src/pdp.rs",
+      "iam/core/shared-pdp-kernel/src/lib.rs",
       "iam/adapters/pdp-cedar/src/lib.rs",
       "tenancy/IP-018-kyb-kyc-verifier-domain.md",
       "tenancy/IP-024-kyb-kyc-rest-and-async.md",
@@ -85,8 +85,8 @@
     {
       "id": "PDP-CONTRACT",
       "source_paths": [
-        "libs/oya-shared-platform-contracts-kernel/src/pdp.rs",
-        "libs/oya-shared-pdp-kernel/src/lib.rs",
+        "base/shared-platform-contracts-kernel/src/pdp.rs",
+        "iam/core/shared-pdp-kernel/src/lib.rs",
         "iam/adapters/pdp-cedar/src/lib.rs"
       ],
       "usable_findings": [

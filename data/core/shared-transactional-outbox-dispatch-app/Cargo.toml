@@ -1,0 +1,18 @@
+[package]
+name = "shared-transactional-outbox-dispatch-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+shared-transactional-outbox-kernel = { path = "../shared-transactional-outbox-kernel" }
+
+[lib]
+name = "shared_transactional_outbox_dispatch_app"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

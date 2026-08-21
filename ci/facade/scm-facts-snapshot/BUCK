@@ -71,8 +71,8 @@ rust_library(
         # Rename-aware path-keyed baseline relabel (task #64): the P4 content-subset guard reuses
         # the brand-residue census SSOT under the LIVE VocabPolicy from oya-ci.toml (config kernel),
         # so carve-outs + case-folding are byte-identical to the producer's collect_brand_residue.
-        "//libs/oya-check-brand-residue:oya-check-brand-residue",
-        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//governance/check/brand-residue:check-brand-residue",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
         "//governance/corpus/doc-parser:corpus-doc-parser",
         "third-party//:serde",
         "third-party//:serde_json",
@@ -153,14 +153,14 @@ rust_test(
         # predicates end-to-end over the resolved snapshot (#698 repoint attack goes RED).
         "//ci/facade/baseline-ratchet:ci-baseline-ratchet",
         # Rename-aware path-keyed baseline relabel (task #64) — census SSOT + VocabPolicy.
-        "//libs/oya-check-brand-residue:oya-check-brand-residue",
-        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//governance/check/brand-residue:check-brand-residue",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
         "//governance/corpus/doc-parser:corpus-doc-parser",
         # dev-only EFFICACY pin (task #64 BLOCKER A): the chained test derives the move-manifest
         # from a MovePlan over a candidate POST-move tree via the codemod's own
         # file_level_manifest + crate_dir_pairs + move_manifest_value, then drives the relabel —
         # proving it FIRES for a real move (and FAILS if file_level_manifest enumerates-old).
-        "//tools/oya-reorg-codemod-app:oya-reorg-codemod-app",
+        "//build/reorg-codemod-app:reorg-codemod-app",
         "third-party//:serde",
         "third-party//:serde_json",
         "third-party//:sha2",

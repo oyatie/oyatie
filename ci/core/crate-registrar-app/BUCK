@@ -1,0 +1,27 @@
+rust_library(
+    name = "crate-registrar-app",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "crate_registrar_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//ci/core/crate-registrar-kernel:crate-registrar-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "crate-registrar-app-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "crate_registrar_app",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//ci/core/crate-registrar-kernel:crate-registrar-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

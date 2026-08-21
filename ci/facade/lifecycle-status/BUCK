@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-lifecycle-kernel:oya-governance-lifecycle-kernel",
+        "//governance/check/lifecycle-kernel:check-lifecycle-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -17,7 +17,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-lifecycle-kernel:oya-governance-lifecycle-kernel",
+        "//governance/check/lifecycle-kernel:check-lifecycle-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -37,7 +37,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":ci-lifecycle-status",
-        "//libs/oya-governance-lifecycle-kernel:oya-governance-lifecycle-kernel",
+        "//governance/check/lifecycle-kernel:check-lifecycle-kernel",
         "third-party//:serde_json",
     ],
 )

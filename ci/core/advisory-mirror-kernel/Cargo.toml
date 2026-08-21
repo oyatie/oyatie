@@ -1,0 +1,31 @@
+[package]
+name = "advisory-mirror-kernel"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+bounded_context = "advisory-mirror"
+kind = "shared"
+layer = "kernel"
+purpose = "Pure I/O-free distiller for RustSec advisory .md front matter into normalized Advisory records, plus a deterministic content hash over the distilled set. The owned, hermetic core of the supply-chain advisory pipeline (replaces the reverted #974 shell cargo-audit/deny): the network/clock-bearing producer feeds raw advisory text in, the hermetic cloud-ci-supply-chain-audit gate consumes the vendored snapshot out. toml-only parse adds ZERO new crates to Cargo.lock (no rustsec/git2/libgit2)."
+
+[lib]
+name = "advisory_mirror_kernel"
+path = "src/lib.rs"
+doctest = false
+
+[[bin]]
+name = "oya-advisory-mirror-producer"
+path = "src/main.rs"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+toml = { workspace = true }
+
+[lints]
+workspace = true

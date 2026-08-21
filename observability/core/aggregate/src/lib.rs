@@ -17,7 +17,7 @@ use compute_resource::{CloudResourceError, ResourceId};
 use iam_cloud_domain::IamRoleId;
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
 use observability_domain::{TelemetryLogExposure, log_exposure_for_classification};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     Classified, DataClass, DataClassification, OperationalDataClass, PrivacyDataClass, Purpose,
 };
 
@@ -1646,7 +1646,7 @@ mod tests {
     use network_residency::{
         PerPackResidency, PerPackResidencyCreate, RegulatorOverlay, RegulatorOverlayCreate,
     };
-    use oya_data_boundary_kernel::{OperationalDataClass, Purpose};
+    use data_boundary_kernel::{OperationalDataClass, Purpose};
 
     use super::*;
 

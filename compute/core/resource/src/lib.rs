@@ -11,7 +11,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 use cell_region::{AzCode, CellId, RegionCode};
 use network_residency::{ResidencyClass, residency_class_allows_home_region_label};
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 
 const RESOURCE_SCHEMA_VERSION: u32 = 1;
 const RESOURCE_ID_PREFIX_OWNER: &str = "oya";

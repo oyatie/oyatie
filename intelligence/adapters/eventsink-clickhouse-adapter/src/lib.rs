@@ -4,7 +4,7 @@
 //! Implements [`EventSink`] from `intelligence-kernel` by
 //! INSERTing [`LlmGatewayEvent`] rows into the `cloud_intelligence_receipts`
 //! table in the caller's per-tenant ClickHouse database via the shared
-//! [`oya_shared_olap_clickhouse_adapter::ClickHouseOlapClient`] (ADR-0193).
+//! [`shared_olap_clickhouse_adapter::ClickHouseOlapClient`] (ADR-0193).
 //!
 //! ## Insert shape
 //!
@@ -34,8 +34,8 @@ use std::fmt;
 use std::sync::Mutex;
 
 use intelligence_kernel::{EventSink, LlmGatewayEvent};
-use oya_shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
-use oya_shared_olap_client_kernel::{
+use shared_olap_clickhouse_adapter::{ClickHouseConfig, ClickHouseOlapClient};
+use shared_olap_client_kernel::{
     InsertBatch, OlapClient, QualifiedTable, TableName, TenantId, Value,
 };
 use tracing::warn;

@@ -22,7 +22,7 @@ use std::collections::BTreeMap;
 
 use audit_chain_domain::{AuditChain, AuditChainError, AuditEvent, Plane};
 use messaging_domain::{EventingError, Outbox, OutboxRecord};
-use oya_data_boundary_kernel::{
+use data_boundary_kernel::{
     DataClassification, Purpose, parse_data_class_label, parse_purpose_pascal_label,
 };
 

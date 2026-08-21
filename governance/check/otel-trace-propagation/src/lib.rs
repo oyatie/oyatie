@@ -129,7 +129,7 @@ pub const PROPAGATION_TOKENS: &[&str] = &[
     "TextMapPropagator",
     "inject_context",
     concat!("opentelemetry", "::global::get_text_map_propagator"),
-    "oya_shared_tracing_client_kernel",
+    "shared_tracing_client_kernel",
 ];
 
 /// Canonical tokens that prove the slice has an OTLP exporter path to a

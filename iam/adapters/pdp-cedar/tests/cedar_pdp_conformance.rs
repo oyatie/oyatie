@@ -25,15 +25,15 @@ use iam_pdp_cedar::{
     AuditChainCedarPdp, CedarPdp, PDP_DECISION_AUDIT_SURFACE, PdpAuditChainError,
     PdpDecisionAuditChainLogger,
 };
-use oya_data_boundary_kernel::{DataClass, Purpose};
-use oya_shared_pdp_kernel::{
+use data_boundary_kernel::{DataClass, Purpose};
+use shared_pdp_kernel::{
     EntityRecord, EntitySlice, PdpError, PolicyBundle, PolicyDecisionPoint, TemplateLink,
     TemplateSrc,
 };
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, Decision, EntityRef, PolicyVersion,
 };
-use oya_shared_ulid_id_kernel::SeededIdGenerator;
+use shared_ulid_id_kernel::SeededIdGenerator;
 
 const SCHEMA_SRC: &str = include_str!("../cedar/platform.cedarschema");
 const POLICIES_SRC: &str = include_str!("../cedar/platform-policies.cedar");

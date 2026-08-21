@@ -743,7 +743,7 @@ mod tests {
         TargetGroupCreate, VpcCreate, VpcState,
     };
     use network_residency::ResidencyClass;
-    use oya_data_boundary_kernel::DataClass;
+    use data_boundary_kernel::DataClass;
 
     const COMPARTMENT_REF: &str = "ocid1.compartment.oc1..cloud";
     const REGION: &str = "ap-chuncheon-1";

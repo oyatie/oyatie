@@ -18,8 +18,8 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use identity_scim_store_postgres::{PgScimGroupStore, PgScimUserStore, SCHEMA_NAME, USERS_TABLE};
-use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
-use oya_shared_scim_server_kernel::{Group, GroupStore, Meta, ScimId, TenantId, User, UserStore};
+use shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
+use shared_scim_server_kernel::{Group, GroupStore, Meta, ScimId, TenantId, User, UserStore};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 
 const ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_POSTGRES";

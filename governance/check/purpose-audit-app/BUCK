@@ -1,0 +1,13 @@
+rust_binary(
+    name = "check-purpose-audit-app",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//governance/check/purpose-kernel:check-purpose-kernel",
+        "third-party//:anyhow",
+        "third-party//:glob",
+        "third-party//:serde_json",
+        "third-party//:serde_yaml",
+    ],
+)

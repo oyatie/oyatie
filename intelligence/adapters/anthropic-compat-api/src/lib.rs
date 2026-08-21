@@ -21,8 +21,8 @@ use intelligence_provider_pool_kernel::{
     AccountHealthMap, PoolError, PoolRoutingDecision, ProviderAccountId, ProviderAccountPool,
     RequestMetadata, UnixMillis, UsageSnapshotMap, pick_account,
 };
-use oya_http_router_kernel::{HttpMethod, Router, RouterError};
-use oya_http_sse_kernel::SseEvent;
+use http_router_kernel::{HttpMethod, Router, RouterError};
+use http_sse_kernel::SseEvent;
 use std::fmt;
 
 pub const ANTHROPIC_API_VERSION: &str = "2023-06-01";

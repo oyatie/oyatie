@@ -8,8 +8,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-ci-config:oya-ci-config-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
     ],
 )
 
@@ -20,7 +20,7 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-ci-config:oya-ci-config-kernel",
-        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
+        "//base/workspace-members-kernel:workspace-members-kernel",
     ],
 )

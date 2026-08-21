@@ -44,15 +44,15 @@ buildscript_run(
 _DEPS = [
     "//iam/core/cloud-pdp-kernel:iam-cloud-pdp-kernel",
     "//iam/adapters/cloud-pdp-bundle-file:iam-cloud-pdp-bundle-file",
-    "//libs/oya-shared-pdp-kernel:oya-shared-pdp-kernel",
+    "//iam/core/shared-pdp-kernel:shared-pdp-kernel",
     "//iam/adapters/pdp-cedar:iam-pdp-cedar",
-    "//libs/oya-shared-platform-contracts-kernel:oya-shared-platform-contracts-kernel",
-    "//libs/oya-shared-ulid-id-kernel:oya-shared-ulid-id-kernel",
+    "//base/shared-platform-contracts-kernel:shared-platform-contracts-kernel",
+    "//iam/core/shared-ulid-id-kernel:shared-ulid-id-kernel",
     "//iam/core/identity-workload-domain:iam-identity-workload-domain",
     "//iam/core/identity-workload-svid-kernel:iam-identity-workload-svid-kernel",
     "//iam/adapters/identity-workload-svid-trustd:iam-identity-workload-svid-trustd",
     "//os/core/trustd-domain:os-trustd-domain",
-    "//libs/oya-http-runtime-hyper-adapter:oya-http-runtime-hyper-adapter",
+    "//base/http-runtime-hyper-adapter:http-runtime-hyper-adapter",
     "third-party//:async-stream",
     "third-party//:aws-lc-rs",
     "third-party//:axum",
@@ -109,8 +109,8 @@ _TEST_DEPS = [":iam-cloud-pdp-app"] + _DEPS + [
     "third-party//:tower",
     # G004 bundle-signing slice: TEST-SIDE Ed25519 signer + envelope types used
     # by tests/common to write signed bundle fixtures + trust-anchor dirs.
-    "//libs/oya-shared-audit-digest-adapter-awslc:oya-shared-audit-digest-adapter-awslc",
-    "//libs/oya-shared-audit-event-kernel:oya-shared-audit-event-kernel",
+    "//iam/core/shared-audit-digest-adapter-awslc:shared-audit-digest-adapter-awslc",
+    "//iam/core/shared-audit-event-kernel:shared-audit-event-kernel",
 ]
 
 rust_test(

@@ -3,7 +3,7 @@
 //! `.omc/pooling-convergence.json`).
 //!
 //! Composes the bespoke hyper backbone
-//! (`oya_http_runtime_hyper_adapter::{ServerConfig, serve}` + the
+//! (`http_runtime_hyper_adapter::{ServerConfig, serve}` + the
 //! `oya-http-router-kernel` `Router` + `oya-http-middleware-kernel`
 //! `MiddlewareChain`) with the anthropic/openai compat-api ingress route
 //! surfaces into a runnable process, wiring real handlers through to the
@@ -46,9 +46,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use bytes::Bytes;
 
-use oya_http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
-use oya_http_router_kernel::{HttpMethod, Router};
-use oya_http_runtime_hyper_adapter::{ServerConfig, SyncHandler, serve};
+use http_middleware_kernel::{HttpRequest, HttpResponse, MiddlewareChain};
+use http_router_kernel::{HttpMethod, Router};
+use http_runtime_hyper_adapter::{ServerConfig, SyncHandler, serve};
 
 use intelligence_provider_pool_app::{
     AccountHealthMap, AccountHealthStore, DispatchError, InMemoryAccountHealthStore,
@@ -458,7 +458,7 @@ impl AppConfig {
             Ok(raw) => raw
                 .parse::<usize>()
                 .map_err(|_| ConfigError::InvalidMaxBodyBytes { value: raw.clone() })?,
-            Err(_) => oya_http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES,
+            Err(_) => http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES,
         };
 
         // AUTH-005: empty bearer is deliberately valid config — it means fail-closed
@@ -1156,7 +1156,7 @@ mod tests {
             pool_id: "pool_local".into(),
             provider: ProviderFamily::Claude,
             member_account_ids: vec!["seat-local-1".into(), "seat-local-2".into()],
-            max_body_bytes: oya_http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES,
+            max_body_bytes: http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES,
             ingress_bearer: "test-ingress-secret".into(),
             control_bearer: "test-control-secret".into(),
         }
@@ -1220,7 +1220,7 @@ mod tests {
         assert!(router.match_route(HttpMethod::Get, "/v1/models").is_some());
         assert_eq!(
             server_config.max_body_bytes,
-            oya_http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES
+            http_runtime_hyper_adapter::DEFAULT_MAX_BODY_BYTES
         );
     }
 
@@ -1228,7 +1228,7 @@ mod tests {
     fn healthz_returns_ok_json() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Get,
                 path: "/healthz".into(),
@@ -1249,7 +1249,7 @@ mod tests {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
         let body = br#"{"model":"claude-sonnet-4-6","messages":[{"role":"user","content":"hi"}],"max_tokens":16}"#.to_vec();
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/messages".into(),
@@ -1276,7 +1276,7 @@ mod tests {
         cfg.provider = ProviderFamily::OpenAiOrCodex;
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
         let body = br#"{"model":"gpt-4o","messages":[{"role":"user","content":"hi"}]}"#.to_vec();
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/chat/completions".into(),
@@ -1316,7 +1316,7 @@ mod tests {
     fn auth_no_bearer_on_messages_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/messages".into(),
@@ -1335,7 +1335,7 @@ mod tests {
     fn auth_no_bearer_on_chat_completions_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/chat/completions".into(),
@@ -1367,7 +1367,7 @@ mod tests {
             ),
             (HttpMethod::Get, "/v1/models", Vec::new()),
         ] {
-            let resp = oya_http_runtime_hyper_adapter::dispatch(
+            let resp = http_runtime_hyper_adapter::dispatch(
                 HttpRequest {
                     method,
                     path: path.into(),
@@ -1388,7 +1388,7 @@ mod tests {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
 
-        let count_tokens = oya_http_runtime_hyper_adapter::dispatch(
+        let count_tokens = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Get,
                 path: "/v1/messages/count_tokens".into(),
@@ -1403,7 +1403,7 @@ mod tests {
         assert_eq!(count_tokens.status, 200);
         assert_eq!(count_tokens.body, br#"{"input_tokens":2}"#.to_vec());
 
-        let models = oya_http_runtime_hyper_adapter::dispatch(
+        let models = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Get,
                 path: "/v1/models".into(),
@@ -1417,7 +1417,7 @@ mod tests {
         );
         assert_eq!(models.status, 200);
 
-        let embeddings = oya_http_runtime_hyper_adapter::dispatch(
+        let embeddings = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/embeddings".into(),
@@ -1438,7 +1438,7 @@ mod tests {
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
         let mut headers = std::collections::BTreeMap::new();
         headers.insert("authorization".into(), "Bearer forged-token".into());
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/messages".into(),
@@ -1457,7 +1457,7 @@ mod tests {
     fn auth_no_bearer_on_internal_seats_reload_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/internal/seats/reload".into(),
@@ -1476,7 +1476,7 @@ mod tests {
     fn auth_no_bearer_on_internal_seats_get_returns_401() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Get,
                 path: "/internal/seats".into(),
@@ -1558,7 +1558,7 @@ mod tests {
     fn auth_valid_control_bearer_permits_reload() {
         let cfg = base_config();
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/internal/seats/reload".into(),
@@ -1581,7 +1581,7 @@ mod tests {
         let ComposedApp { router, chain, .. } = build_app(&cfg).expect("build_app succeeds");
         let mut headers = std::collections::BTreeMap::new();
         headers.insert("authorization".into(), "Bearer anything".into());
-        let resp = oya_http_runtime_hyper_adapter::dispatch(
+        let resp = http_runtime_hyper_adapter::dispatch(
             HttpRequest {
                 method: HttpMethod::Post,
                 path: "/v1/messages".into(),

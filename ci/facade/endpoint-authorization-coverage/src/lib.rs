@@ -3455,7 +3455,7 @@ mod tests {
 
         struct PolicyAdmissionHandler;
 
-        impl oya_http_middleware_kernel::Handler for PolicyAdmissionHandler {
+        impl http_middleware_kernel::Handler for PolicyAdmissionHandler {
             type Error = HttpResponse;
 
             fn call(&self, req: HttpRequest) -> Result<HttpResponse, Self::Error> {
@@ -3500,7 +3500,7 @@ mod tests {
 
         struct PolicyAdmissionHandler;
 
-        impl oya_http_middleware_kernel::Handler for PolicyAdmissionHandler {
+        impl http_middleware_kernel::Handler for PolicyAdmissionHandler {
             type Error = HttpResponse;
 
             fn call(&self, _req: HttpRequest) -> Result<HttpResponse, Self::Error> {

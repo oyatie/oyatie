@@ -34,16 +34,16 @@ use community_social_post_composition_api::{
     post_published_event_envelope,
 };
 use community_social_post_composition_usecase::{compose_post, plan_story_purge};
-use oya_shared_postgres_command_adapter_sqlx::{
+use shared_postgres_command_adapter_sqlx::{
     SqlxPostgresBatchExecutor, SqlxPostgresCommandError, SqlxPostgresConnectionConfig,
 };
-use oya_shared_postgres_command_kernel::{
+use shared_postgres_command_kernel::{
     PostgresPoolConfig, SET_LOCAL_TENANT_SQL, SqlExecutionPlan, SqlWriteBatch, TenantSqlContext,
 };
-use oya_shared_transactional_outbox_adapter_sqlx::{
+use shared_transactional_outbox_adapter_sqlx::{
     OutboxClaimRequest, SqlxOutboxDrainConfig, SqlxOutboxDrainError, SqlxTransactionalOutboxDrain,
 };
-use oya_shared_transactional_outbox_kernel::{BackboneOutboxTable, append_outbox_to_batch};
+use shared_transactional_outbox_kernel::{BackboneOutboxTable, append_outbox_to_batch};
 use sqlx::{Executor, PgPool, Postgres, Transaction, postgres::PgPoolOptions};
 
 const WORKLOAD_LIVE_ENABLE_ENV: &str = "OYA_BACKBONE_LIVE_WORKLOAD_POSTGRES";
@@ -941,7 +941,7 @@ impl CommunityPostRecordTemplate {
 fn append_community_outbox(
     tenant: &TenantSqlContext,
     persistence: SqlWriteBatch,
-    protocol_event: &oya_shared_protocol_parity_kernel::ProtocolEventEnvelope,
+    protocol_event: &shared_protocol_parity_kernel::ProtocolEventEnvelope,
 ) -> Result<SqlWriteBatch, WorkloadLiveError> {
     append_outbox_to_batch(
         BackboneOutboxTable::CommunityPostStore,

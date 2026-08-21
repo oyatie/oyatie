@@ -8,7 +8,7 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use intelligence_step_domain::{StepDisposition, StepKind, StepLedger, StepStart};
 use intelligence_step_file_adapter::{FileStepLedgerStore, FileStepLedgerStoreError};
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
+use data_boundary_kernel::{DataClass, PrivacyDataClass, privacy_data_classes_from};
 
 fn privacy_data_classes(data_classes: Vec<DataClass>) -> Vec<PrivacyDataClass> {
     privacy_data_classes_from(&data_classes).expect("test fixture uses privacy data classes")

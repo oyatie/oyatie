@@ -27,7 +27,7 @@ use data_ontology_kernel::{
     EntityTypePropertyDefinition, LinkCardinality, LinkTypeDefinition, LinkTypeId, OntologyEngine,
     OntologyEngineError, OntologyPillar, PropertyTier,
 };
-use oya_data_boundary_kernel::{DataClass, PrivacyDataClass};
+use data_boundary_kernel::{DataClass, PrivacyDataClass};
 
 // ---------------------------------------------------------------------------
 // Shared helpers

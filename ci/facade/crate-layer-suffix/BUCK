@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-predictable-naming-kernel:oya-governance-predictable-naming-kernel",
-        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//governance/check/predictable-naming-kernel:check-predictable-naming-kernel",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
         "third-party//:serde_json",
     ],
 )
@@ -18,8 +18,8 @@ rust_test(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-predictable-naming-kernel:oya-governance-predictable-naming-kernel",
-        "//libs/oya-ci-config:oya-ci-config-kernel",
+        "//governance/check/predictable-naming-kernel:check-predictable-naming-kernel",
+        "//ci/core/ci-config-kernel:ci-config-kernel",
         "third-party//:serde_json",
     ],
 )

@@ -70,7 +70,7 @@
 use std::collections::BTreeSet;
 use std::path::{Component, Path, PathBuf};
 
-use oya_advisory_mirror_kernel::{Advisory, canonical_hash};
+use advisory_mirror_kernel::{Advisory, canonical_hash};
 use semver::{Version, VersionReq};
 use serde_json::{Value, json};
 

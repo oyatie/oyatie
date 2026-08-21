@@ -1,0 +1,22 @@
+rust_library(
+    name = "data-sql-kernel",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "data_sql_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+    ],
+)
+
+rust_test(
+    name = "data-sql-kernel-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "data_sql_kernel",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

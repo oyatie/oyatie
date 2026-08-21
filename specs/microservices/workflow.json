@@ -974,7 +974,7 @@
     {
       "name": "bypass_cedar_policy_gate",
       "why_forbidden": "violates autonomy_tier ceiling",
-      "detection_lane": "oya-governance-cedar-coverage"
+      "detection_lane": "check-cedar-coverage"
     },
     {
       "name": "single_session_audit_chain_across_steps",

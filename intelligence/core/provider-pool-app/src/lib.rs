@@ -81,7 +81,7 @@ use std::sync::{Arc, Mutex};
 
 use bytes::Bytes;
 use futures_util::stream::Stream;
-use oya_http_runtime_hyper_adapter::{
+use http_runtime_hyper_adapter::{
     HyperHttpsClient, build_loopback_http_or_pqc_hybrid_https_client_for_tests,
     build_pqc_hybrid_https_client,
 };

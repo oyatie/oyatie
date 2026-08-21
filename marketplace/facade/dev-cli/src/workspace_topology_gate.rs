@@ -154,11 +154,11 @@ pub(crate) fn validate_workspace_topology_gate(
     //
     // Glob patterns are exempt: Cargo tolerates a glob matching nothing but rejects an absent
     // literal, so only literals can be phantoms.
-    let entries = oya_workspace_members_kernel::read_workspace_manifest_entries(&args.repo_root)
+    let entries = workspace_members_kernel::read_workspace_manifest_entries(&args.repo_root)
         .map_err(|error| format!("workspace-topology: workspace manifest unresolved: {error}"))?;
     for pattern in &entries.members {
         if pattern.contains('*')
-            || oya_workspace_members_kernel::is_excluded(pattern, &entries.exclude)
+            || workspace_members_kernel::is_excluded(pattern, &entries.exclude)
         {
             continue;
         }
@@ -177,7 +177,7 @@ pub(crate) fn validate_workspace_topology_gate(
     // Remaining rules walk the members that DID resolve. `scan_member_dirs` is the producer
     // surface: unlike `resolve_member_dirs` it does not fail closed, so a tree carrying an R4
     // finding still gets checked for the other rules instead of aborting here.
-    let member_paths = oya_workspace_members_kernel::scan_member_dirs(&args.repo_root)
+    let member_paths = workspace_members_kernel::scan_member_dirs(&args.repo_root)
         .map_err(|error| format!("workspace-topology: workspace members unresolved: {error}"))?
         .member_dirs;
 

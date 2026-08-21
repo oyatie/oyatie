@@ -23,11 +23,11 @@ use iam_cloud_pdp_app::PdpState;
 use iam_cloud_pdp_bundle_file::{BundleSignature, SignedPolicyBundleDoc};
 use iam_cloud_pdp_kernel::InMemoryDecisionAuditSink;
 use iam_pdp_cedar::CedarPdp;
-use oya_shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
-use oya_shared_audit_event_kernel::{ChainSigner, encode_hex};
-use oya_shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyBundle, TemplateLink, TemplateSrc};
-use oya_shared_platform_contracts_kernel::pdp::{AuthorizationRequest, EntityRef, PolicyVersion};
-use oya_shared_ulid_id_kernel::SeededIdGenerator;
+use shared_audit_digest_adapter_awslc::Ed25519ChainSigner;
+use shared_audit_event_kernel::{ChainSigner, encode_hex};
+use shared_pdp_kernel::{EntityRecord, EntitySlice, PolicyBundle, TemplateLink, TemplateSrc};
+use shared_platform_contracts_kernel::pdp::{AuthorizationRequest, EntityRef, PolicyVersion};
+use shared_ulid_id_kernel::SeededIdGenerator;
 
 pub const SCHEMA_SRC: &str = include_str!("../../cedar/platform.cedarschema");
 pub const POLICIES_SRC: &str = include_str!("../../cedar/platform-policies.cedar");

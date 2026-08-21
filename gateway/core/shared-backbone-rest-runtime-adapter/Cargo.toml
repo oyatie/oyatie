@@ -1,0 +1,32 @@
+[package]
+name = "shared-backbone-rest-runtime-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[dependencies]
+community-post-store-api = { path = "../../../app/community/ports/post-store-api" }
+community-post-store-domain = { path = "../../../app/community/core/post-store-domain" }
+community-post-store-rest = { path = "../../../app/community/facade/post-store-rest" }
+http-middleware-kernel = { path = "../../../base/http-middleware-kernel" }
+http-router-kernel = { path = "../../../base/http-router-kernel" }
+http-runtime-hyper-adapter = { path = "../../../base/http-runtime-hyper-adapter" }
+comms-mail-mailbox-api = { path = "../../../comms/ports/mail-mailbox-api" }
+comms-mail-mailbox-rest = { path = "../../../comms/facade/mail-mailbox-rest" }
+comms-messenger-stream-api = { path = "../../../comms/ports/messenger-stream-api" }
+comms-messenger-stream-rest = { path = "../../../comms/facade/messenger-stream-rest" }
+community-social-post-composition-api = { path = "../../../app/community/ports/social-post-composition-api" }
+community-social-post-composition-rest = { path = "../../../app/community/facade/social-post-composition-rest" }
+shared-postgres-command-kernel = { path = "../../../base/shared-postgres-command-kernel" }
+serde_json.workspace = true
+tokio.workspace = true
+
+[lib]
+name = "shared_backbone_rest_runtime_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[lints]
+workspace = true

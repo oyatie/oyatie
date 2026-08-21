@@ -46,16 +46,16 @@ use audit_chain_domain::{
     Ed25519VerificationKeySet, Plane,
 };
 use audit_file_adapter::{FileAuditLedger, FileAuditLedgerError};
-use oya_data_boundary_kernel::{DataClass, Purpose};
+use data_boundary_kernel::{DataClass, Purpose};
 
-use oya_shared_pdp_kernel::{
+use shared_pdp_kernel::{
     CachedDecision, DecisionAuditRecord, DecisionCache, DecisionCacheKey, EntityRecord,
     EntitySlice, PdpError, PdpOutcome, PolicyBundle, PolicyDecisionPoint, request_fingerprint,
 };
-use oya_shared_platform_contracts_kernel::pdp::{
+use shared_platform_contracts_kernel::pdp::{
     AuthorizationRequest, AuthorizationResponse, Decision, EntityRef, Obligation, PolicyVersion,
 };
-use oya_shared_ulid_id_kernel::IdGenerator;
+use shared_ulid_id_kernel::IdGenerator;
 
 /// Annotation key whose value names the obligation a permit carries.
 /// PEPs MUST enforce obligations or fail closed (locked PDP contract).

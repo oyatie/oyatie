@@ -790,7 +790,7 @@
     {
       "name": "llm_tool_call_without_cedar_check",
       "why_forbidden": "privilege escalation",
-      "detection_lane": "oya-governance-cedar-coverage"
+      "detection_lane": "check-cedar-coverage"
     },
     {
       "name": "direct_cross_cell_db_access",

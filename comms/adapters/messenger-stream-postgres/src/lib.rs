@@ -5,7 +5,7 @@
 //! that can run in unit tests before a later sqlx/runtime adapter lands.
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 
-use oya_shared_postgres_command_kernel::{
+use shared_postgres_command_kernel::{
     SqlCommand, SqlCommandError, SqlParam, SqlWriteBatch, TenantSqlContext, required_field,
     text_array_values,
 };

@@ -46,7 +46,7 @@ use std::time::Instant;
 use futures_util::FutureExt as _;
 use futures_util::future::BoxFuture;
 use http::{Request, Response};
-use oya_shared_hyperscaler_metrics_kernel::{
+use shared_hyperscaler_metrics_kernel::{
     HyperscalerMetrics, MetricsContext, RequestTelemetryBinding, RequestTelemetryOutcome,
 };
 use serde::{Deserialize, Serialize};
@@ -374,7 +374,7 @@ where
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_hyperscaler_metrics_kernel::{CircuitState, MetricsError};
+    use shared_hyperscaler_metrics_kernel::{CircuitState, MetricsError};
     use std::future::Future;
     use std::pin::Pin;
     use std::sync::Mutex;
@@ -581,7 +581,7 @@ mod tests {
 
     #[test]
     fn operation_ids_are_canonical() {
-        use oya_shared_hyperscaler_metrics_kernel::is_valid_operation_id;
+        use shared_hyperscaler_metrics_kernel::is_valid_operation_id;
         for (method, template, expected) in [
             ("GET", "/users/{user_id}", "get.users-user-id"),
             ("POST", "/tenants", "post.tenants"),

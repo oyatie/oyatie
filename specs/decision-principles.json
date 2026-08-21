@@ -27,7 +27,7 @@
           "check-cohesion"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-cohesion-kernel"
+          "check-cohesion-kernel"
         ],
         "evidence": "PR-time cohesion-lane verdict"
       }
@@ -43,7 +43,7 @@
           "check-doc-catalog"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-pr-traceability-kernel"
+          "check-pr-traceability-kernel"
         ],
         "evidence": "doc-catalog lane refuses PRs that change a canonical surface without updating dependents the catalog names"
       }
@@ -80,7 +80,7 @@
       "enforcement": {
         "mode": "mechanical-deferred",
         "planned_enforcement_refs": [
-          "oya-governance-authoritative-tracked-kernel"
+          "check-authoritative-tracked-kernel"
         ],
         "evidence": "Planned authoritative-tracked lane will verify every doc cited as authoritative in docs/AGENTS.md is repo-tracked; current control is PR review."
       }
@@ -96,7 +96,7 @@
           "check-doc-catalog"
         ],
         "planned_enforcement_refs": [
-          "oya-governance-doc-style-kernel"
+          "check-doc-style-kernel"
         ],
         "evidence": "doc-style lane enforces length cap + frontmatter shape per doc_class"
       }

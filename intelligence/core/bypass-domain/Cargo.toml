@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 intelligence-capability-domain = { path = "../capability-domain" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../base/data-boundary-kernel" }
 
 [lib]
 name = "intelligence_bypass_domain"

@@ -9,12 +9,12 @@
 
 use std::{future::Future, pin::Pin, time::Duration};
 
-use oya_shared_transactional_outbox_poller_app::{
+use shared_transactional_outbox_poller_app::{
     OutboxPollerConfig, OutboxPollerError, OutboxPollerRunReport, OutboxPollerRunnerError,
     OutboxPollerStopReason, OutboxPollerTickOutcome, OutboxPollerTickReport,
     planned_error_backoff_ms,
 };
-use oya_shared_transactional_outbox_worker_app::OutboxWorkerCycleReport;
+use shared_transactional_outbox_worker_app::OutboxWorkerCycleReport;
 
 pub type BoxPollerFuture<'a, T> = Pin<Box<dyn Future<Output = T> + Send + 'a>>;
 
@@ -402,7 +402,7 @@ pub async fn run_tokio_outbox_service_loop(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_transactional_outbox_kernel::BackboneOutboxTable;
+    use shared_transactional_outbox_kernel::BackboneOutboxTable;
 
     #[derive(Clone, Debug)]
     enum ScriptStep {

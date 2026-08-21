@@ -18,7 +18,7 @@ pub use compute_resource::{BucketTier, FilesystemTier, VolumeTier};
 use compute_resource::{CloudResourceError, PrincipalId, ResourceId, ResourceKind};
 pub use network_residency::ResidencyClass;
 use network_residency::residency_class_allows_home_region_label;
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass};
 use secrets_kms_domain::{
     CiphertextRef, DestructionProofRef, KmsKeyId, KmsKeyOrigin, KmsPurpose, KmsUseEventId,
     MaterialRef,

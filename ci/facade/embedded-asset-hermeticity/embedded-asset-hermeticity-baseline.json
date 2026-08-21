@@ -28,9 +28,9 @@
     "skip_build_output_path": [],
     "skip_no_owning_target": [
       "os/core/init-app/tests/boot_config_address.rs:8",
-      "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:18",
-      "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:19",
-      "libs/oya-shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:20"
+      "base/shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:18",
+      "base/shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:19",
+      "base/shared-platform-contracts-kernel/tests/cedar_policy_validation.rs:20"
     ],
     "skip_buck_unparseable": []
   }

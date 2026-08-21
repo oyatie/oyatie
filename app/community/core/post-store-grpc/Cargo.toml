@@ -10,8 +10,8 @@ license = "Apache-2.0"
 community-post-store-api = { path = "../../ports/post-store-api" }
 community-post-store-app = { path = "../../facade/post-store-app" }
 community-post-store-domain = { path = "../post-store-domain" }
-oya-shared-postgres-command-kernel = { path = "../../../../libs/oya-shared-postgres-command-kernel" }
-oya-shared-protocol-transport-kernel = { path = "../../../../libs/oya-shared-protocol-transport-kernel" }
+shared-postgres-command-kernel = { path = "../../../../base/shared-postgres-command-kernel" }
+shared-protocol-transport-kernel = { path = "../../../../comms/core/shared-protocol-transport-kernel" }
 
 [lib]
 name = "community_post_store_grpc"

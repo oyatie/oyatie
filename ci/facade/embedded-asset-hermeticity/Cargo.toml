@@ -32,7 +32,7 @@ path = "src/main.rs"
 
 [dependencies]
 serde_json = { workspace = true }
-oya-buck-syntax-kernel = { path = "../../../libs/oya-buck-syntax-kernel" }
+buck-syntax-kernel = { path = "../../core/buck-syntax-kernel" }
 ci-scan-root-derivation-adapters = { path = "../../adapters/scan-root-derivation" }
 
 [lints]

@@ -12,7 +12,7 @@
 
 use std::collections::BTreeSet;
 
-use oya_shared_platform_contracts_kernel::shell_bff::{
+use shared_platform_contracts_kernel::shell_bff::{
     CapabilityRegistryEntry, ModuleRouteRegistration, NavigationSurface, validate_registry,
 };
 

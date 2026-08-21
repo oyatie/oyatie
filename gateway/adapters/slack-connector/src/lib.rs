@@ -2,14 +2,14 @@
 //!
 //! # Coverage
 //!
-//! Implements [`oya_shared_connector_kernel::Connector`] against the
+//! Implements [`shared_connector_kernel::Connector`] against the
 //! Slack Web API surface that ships in `specs/openapi.snapshot.yaml`:
 //!
 //! * Conversations (`conversations.history`, `conversations.replies`)
 //! * Messages (`chat.postMessage`)
 //! * Files (`files.upload`)
 //! * Events API subscription (webhook receiver — events delivered as
-//!   [`oya_shared_connector_kernel::EventStream`]).
+//!   [`shared_connector_kernel::EventStream`]).
 //!
 //! # Auth
 //!
@@ -32,7 +32,7 @@
 #![cfg_attr(test, allow(clippy::unwrap_used, clippy::expect_used, clippy::panic))]
 #![forbid(unsafe_code)]
 
-use oya_shared_connector_kernel::{
+use shared_connector_kernel::{
     AuthScheme, Connector, ConnectorCapabilities, ConnectorCtx, ConnectorError, Cursor, EntityDoc,
     EntityValue, Event, EventStream, HealthReport, IdempotencyKey, OntologyProjection, Page,
     PatchOp, RateLimitDescriptor, btree_keyset_page, connector_operation_audit_digest,
@@ -590,7 +590,7 @@ impl EventStream for VecStream {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use oya_shared_connector_kernel::{
+    use shared_connector_kernel::{
         AuditSealHandle, PrincipalId, SecretReference, TenantId, TraceContext,
     };
 

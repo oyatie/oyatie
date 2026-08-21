@@ -28,7 +28,7 @@
       "description": "Bounded context 'bundled-check-crate'",
       "crates": [
         "oya-check-data-class",
-        "oya-check-license-policy",
+        "check-license-policy",
         "oya-check-supply-chain"
       ]
     },

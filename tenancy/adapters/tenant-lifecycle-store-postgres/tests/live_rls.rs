@@ -19,10 +19,10 @@
 //!    durable effect (ON CONFLICT DO NOTHING).
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_shared_platform_contracts_kernel::tenancy::{
+use shared_platform_contracts_kernel::tenancy::{
     IsolationPosture, Tenant, TenantLifecycleState,
 };
-use oya_shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
+use shared_postgres_command_kernel::{SET_LOCAL_TENANT_SQL, split_migration_statements};
 use sqlx::{PgPool, Row, postgres::PgPoolOptions};
 use tenancy_tenant_lifecycle_kernel::{AppliedWriteRecord, TenantLifecycleStore};
 use tenancy_tenant_lifecycle_store_postgres::{

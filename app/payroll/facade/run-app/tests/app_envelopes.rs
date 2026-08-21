@@ -1,6 +1,6 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 use payroll_run_app::{close_trial_run, prepare_accounting_dispatch};
 use payroll_run_domain::{
     MoneyAmount, PayeeClass, PayeeInput, PayrollJournalInput, PayrollJournalLineInput,

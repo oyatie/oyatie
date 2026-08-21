@@ -5,8 +5,8 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-shared-backbone-grpc-generated-adapter:oya-shared-backbone-grpc-generated-adapter",
-        "//libs/oya-shared-postgres-command-kernel:oya-shared-postgres-command-kernel",
+        "//gateway/core/shared-backbone-grpc-generated-adapter:shared-backbone-grpc-generated-adapter",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
         "//app/community/core/post-store-domain:community-post-store-domain",
         "//comms/ports/mail-mailbox-api:comms-mail-mailbox-api",
         "third-party//:tokio",

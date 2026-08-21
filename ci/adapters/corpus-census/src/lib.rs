@@ -17,7 +17,7 @@
 //!
 //! Independent of the PRODUCER, deliberately, on three axes:
 //!
-//! * member resolution goes through the canonical `oya_workspace_members_kernel`, not the
+//! * member resolution goes through the canonical `workspace_members_kernel`, not the
 //!   producer's own tracked-`Cargo.toml` scan;
 //! * `[package] name` is re-parsed from scratch by [`independent_parse_package_name`], not by
 //!   calling the producer's parser — a bug in a shared parser must not be able to hide behind
@@ -42,7 +42,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
 
-use oya_ci_config_kernel::NamingConfig;
+use ci_config_kernel::NamingConfig;
 
 /// INDEPENDENT dynamic census of today's workspace member crates: repo-relative member directory
 /// -> the `[package] name` declared in that directory's `Cargo.toml`.
@@ -50,7 +50,7 @@ use oya_ci_config_kernel::NamingConfig;
 /// This is the primitive the two named-set censuses are built on; take it directly when a gate's
 /// own corpus is keyed by PATH rather than by crate name.
 ///
-/// Resolved via the canonical `oya_workspace_members_kernel::resolve_member_dirs` (NOT the
+/// Resolved via the canonical `workspace_members_kernel::resolve_member_dirs` (NOT the
 /// producer's own `collect_bnf_layer_suffix`/`collect_manifest_hygiene` path, and NOT applying
 /// `is_path_excluded` — that config-driven exclusion is itself a SECOND silent-drop vector the
 /// producer applies; a census that doesn't re-apply it will correctly MISMATCH if an exclusion
@@ -61,7 +61,7 @@ use oya_ci_config_kernel::NamingConfig;
 /// regression, silently dropping an eligible crate) a magic-number floor, or a bare non-empty
 /// check, could never catch.
 pub fn independent_member_manifests(root: &Path) -> BTreeMap<String, String> {
-    let mut member_dirs = oya_workspace_members_kernel::resolve_member_dirs(root)
+    let mut member_dirs = workspace_members_kernel::resolve_member_dirs(root)
         .expect("resolve_member_dirs must resolve the live workspace Cargo.toml");
     member_dirs.extend(resolve_nested_workspace_member_dirs(root));
     let mut manifests = BTreeMap::new();
@@ -128,7 +128,7 @@ fn resolve_nested_workspace_member_dirs(root: &Path) -> Vec<String> {
             continue; // excluded for a different reason (no Cargo.toml / not a workspace root).
         }
         let members =
-            oya_workspace_members_kernel::resolve_member_dirs_from_str(&nested_text, &nested_root)
+            workspace_members_kernel::resolve_member_dirs_from_str(&nested_text, &nested_root)
                 .expect("resolve nested workspace members");
         dirs.extend(members.into_iter().map(|m| format!("{excluded}/{m}")));
     }

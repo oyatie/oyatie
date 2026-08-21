@@ -38,7 +38,7 @@ use intelligence_rest::{
     ConfiguredBearerMapIngressAuthenticator, EventSinkFanout, IngressPrincipalAuthenticator,
     PoolRegistry, RestAdapterError, SecretProviderFuture, SecretProviderStore,
 };
-use oya_shared_olap_clickhouse_adapter::ClickHouseConfig;
+use shared_olap_clickhouse_adapter::ClickHouseConfig;
 use tracing::info;
 
 // ---------------------------------------------------------------------------

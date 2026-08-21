@@ -16,8 +16,8 @@ use hr_employment_infrastructure::{
     HrControlPlaneAuthorizationError, HrControlPlaneAuthorizer, HrControlPlaneResource,
     VerifiedPrincipal, dispatch_hr_request, hr_runtime_routes, hr_server_config,
 };
-use oya_http_middleware_kernel::HttpRequest;
-use oya_http_router_kernel::HttpMethod;
+use http_middleware_kernel::HttpRequest;
+use http_router_kernel::HttpMethod;
 
 const BEARER: &str = "hr-test-secret";
 

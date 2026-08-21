@@ -5,7 +5,7 @@ use iam_tenant_rbac_domain::{
     IncidentTrigger, plan_incident_rollback,
 };
 use iam_tenant_rbac_usecase::prepare_incident_rollback_envelope;
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn incident_envelope_is_metadata_only() {

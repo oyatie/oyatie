@@ -13,15 +13,15 @@ use community_post_store_api::{
 };
 use community_post_store_domain::{CommunityPost, VoteLedger};
 use community_post_store_usecase::{CommunityUsecaseError, cast_vote, create_post, moderate_post};
-use oya_shared_postgres_command_kernel::{
+use shared_postgres_command_kernel::{
     PostgresPoolConfig, SqlCommandError, SqlExecutionPlan, SqlWriteBatch, TenantSqlContext,
 };
-use oya_shared_protocol_parity_kernel::{ProtocolEventEnvelope, ProtocolParityError};
-use oya_shared_protocol_transport_kernel::{
+use shared_protocol_parity_kernel::{ProtocolEventEnvelope, ProtocolParityError};
+use shared_protocol_transport_kernel::{
     ProtocolTransportBudget, ProtocolTransportBundle, ProtocolTransportError,
     plan_transport_from_envelope,
 };
-use oya_shared_transactional_outbox_kernel::{
+use shared_transactional_outbox_kernel::{
     BackboneOutboxTable, TransactionalOutboxError, append_outbox_to_batch,
 };
 

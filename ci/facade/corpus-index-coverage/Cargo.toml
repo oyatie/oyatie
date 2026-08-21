@@ -12,7 +12,7 @@ license = "Apache-2.0"
 # debt, blocking on a NEW uncovered package. The kernel is pure; the live walk is in tests/.
 
 [dependencies]
-oya-buck-syntax-kernel = { path = "../../../libs/oya-buck-syntax-kernel" }
+buck-syntax-kernel = { path = "../../core/buck-syntax-kernel" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 

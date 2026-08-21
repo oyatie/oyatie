@@ -1,0 +1,13 @@
+rust_library(
+    name = "check-dependency-seam",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_dependency_seam",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//base/workspace-members-kernel:workspace-members-kernel",
+        "third-party//:serde",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)

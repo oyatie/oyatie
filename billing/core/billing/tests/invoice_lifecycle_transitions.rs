@@ -23,7 +23,7 @@ use billing_domain::{
     Money, TaxInvoiceFormat,
 };
 use billing_metering::{MeterUnit, MeterUnitKind};
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 // ---------------------------------------------------------------------------
 // Shared fixtures (mirror the in-crate helpers exactly so tests are

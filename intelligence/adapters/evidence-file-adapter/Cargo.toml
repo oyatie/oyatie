@@ -8,7 +8,7 @@ license = "Apache-2.0"
 
 [dependencies]
 intelligence-evidence-domain = { path = "../../core/evidence-domain" }
-oya-data-boundary-kernel = { path = "../../../libs/oya-data-boundary-kernel" }
+data-boundary-kernel = { path = "../../../base/data-boundary-kernel" }
 
 [lib]
 name = "intelligence_evidence_file_adapter"

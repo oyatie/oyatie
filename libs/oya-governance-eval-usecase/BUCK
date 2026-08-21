@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-governance-eval-domain:oya-governance-eval-domain",
+        "//governance/check/eval-domain:check-eval-domain",
     ],
 )
 
@@ -17,6 +17,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":oya-governance-eval-usecase",
-        "//libs/oya-governance-eval-domain:oya-governance-eval-domain",
+        "//governance/check/eval-domain:check-eval-domain",
     ],
 )

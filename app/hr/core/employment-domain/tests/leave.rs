@@ -4,7 +4,7 @@ use hr_employment_domain::{
     HrDomainError, LeaveDecision, LeavePayrollImpactInput, LeaveRoutingMode, PayrollImpactKind,
     plan_leave_payroll_impact,
 };
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 #[test]
 fn test_leave_approval_emits_payroll_impact() {

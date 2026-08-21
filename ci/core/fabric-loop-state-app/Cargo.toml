@@ -1,0 +1,30 @@
+[package]
+name = "fabric-loop-state-app"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+# ADR-0516 fabric two-plane drive-loop state behind cloud-ci-destination ports
+# (specs/fabric-drive-loop-state.json). Zero third-party dependencies: the
+# canonical-JSON persistence, the port traits, and the single-writer facade are
+# all owned code. The bundled filesystem stores are retirement-marked local
+# bridges (founder CLI directive 2026-06-09): they carry NO merge or plan
+# authority, and the named owned cutover target for both planes is the
+# cloud/cloud-ci-owned loop-state service `oya-cloud-ci-loop-state-service`
+# (destination home cloud/cloud-ci/crates/oya-cloud-ci-loop-state-app).
+
+[[bin]]
+name = "oya-fabric-loop-state"
+path = "src/main.rs"
+
+[lib]
+name = "fabric_loop_state_app"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+
+[lints]
+workspace = true

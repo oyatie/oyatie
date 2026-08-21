@@ -15,7 +15,7 @@ use iam_identity_domain::{
     CredentialRequest, CredentialRequestKind, IdentityError, MAX_TOKEN_TTL_SECONDS, Principal,
     issue_credential,
 };
-use oya_data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, Purpose};
+use data_boundary_kernel::{Classified, DataClass, PrivacyDataClass, Purpose};
 
 const IAM_PRINCIPAL_SCHEMA_VERSION: u32 = 1;
 const IAM_ROLE_SCHEMA_VERSION: u32 = 1;

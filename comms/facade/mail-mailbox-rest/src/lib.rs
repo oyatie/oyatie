@@ -10,10 +10,10 @@ use comms_mail_mailbox_api::{
 };
 use comms_mail_mailbox_app::{MailAppError, MailSubmissionPlan, plan_submit_message};
 use comms_mail_mailbox_usecase::{MailUsecaseError, submit_message};
-use oya_shared_hyperscaler_metrics_kernel::{
+use shared_hyperscaler_metrics_kernel::{
     MetricsContext, MetricsError, RequestTelemetryBinding,
 };
-use oya_shared_postgres_command_kernel::TenantSqlContext;
+use shared_postgres_command_kernel::TenantSqlContext;
 
 pub const SUBMIT_MESSAGE_ROUTE: &str = "/messages";
 pub const SUBMIT_MESSAGE_METHOD: &str = "POST";

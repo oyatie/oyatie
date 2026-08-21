@@ -9,8 +9,8 @@ use community_post_store_app::{
     plan_cast_vote, plan_create_post, plan_moderation_action,
 };
 use community_post_store_domain::{CommunityPost, VoteLedger};
-use oya_shared_postgres_command_kernel::TenantSqlContext;
-use oya_shared_protocol_transport_kernel::GrpcUnaryPlan;
+use shared_postgres_command_kernel::TenantSqlContext;
+use shared_protocol_transport_kernel::GrpcUnaryPlan;
 
 pub const COMMUNITY_PROTO_PACKAGE: &str = "oya.community.v1";
 pub const POST_STORE_SERVICE: &str = "PostStoreService";

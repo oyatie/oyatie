@@ -2,7 +2,7 @@
 // `.expect_err()` / `.unwrap_err()` to assert invariants — Tier 3 exemption.
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
-use oya_data_boundary_kernel::{DataClassification, OperationalDataClass};
+use data_boundary_kernel::{DataClassification, OperationalDataClass};
 use secrets_domain::{SecretError, SecretMaterial, SecretRef, SecretStatus, SecretVault};
 
 #[test]
@@ -31,7 +31,7 @@ fn secret_vault_versions_provider_secret_without_debug_leak() {
     );
     assert_eq!(
         version.material.legacy_data_class(),
-        oya_data_boundary_kernel::DataClass::Secret
+        data_boundary_kernel::DataClass::Secret
     );
     #[allow(deprecated)]
     {

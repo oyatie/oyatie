@@ -8,8 +8,8 @@
 //! in a follow-up slice.
 
 use iam_cloud_pdp_kernel::DecisionAuditSink;
-use oya_shared_pdp_kernel::DecisionAuditRecord;
-use oya_shared_platform_contracts_kernel::pdp::Decision;
+use shared_pdp_kernel::DecisionAuditRecord;
+use shared_platform_contracts_kernel::pdp::Decision;
 
 /// [`DecisionAuditSink`] that emits each sealed record as one structured
 /// tracing event. Emission cannot fail (tracing is fire-and-forget), so the

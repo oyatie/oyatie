@@ -6,8 +6,8 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//secrets/core/domain:secrets-domain",
-        "//libs/oya-check-cost-budget:oya-check-cost-budget",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//governance/check/cost-budget:check-cost-budget",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )
@@ -21,8 +21,8 @@ rust_test(
     deps = [
         ":intelligence-adapter-kernel",
         "//secrets/core/domain:secrets-domain",
-        "//libs/oya-check-cost-budget:oya-check-cost-budget",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//governance/check/cost-budget:check-cost-budget",
+        "//base/data-boundary-kernel:data-boundary-kernel",
         "//intelligence/core/capability-domain:intelligence-capability-domain",
     ],
 )

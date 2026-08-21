@@ -1,0 +1,35 @@
+[package]
+name = "shared-olap-clickhouse-adapter"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+description = "Adapter binding oya-shared-olap-client-kernel port to ClickHouse 26.3 LTS. Dependency-seam boundary: clickhouse client dep is ISOLATED to this crate per ADR-0092 / ADR-0193."
+
+[package.metadata.oya]
+microservice = "analytics"
+bounded_context = "olap-clickhouse"
+layer = "adapter"
+owner_team = "council-analytics"
+adr_anchors = ["ADR-0083", "ADR-0092", "ADR-0193"]
+ip_anchor = "IP-003"
+data_classification = "INTERNAL_ONLY"
+dependency_seam = "adapter-only: clickhouse crate isolated here"
+
+[lib]
+name = "shared_olap_clickhouse_adapter"
+path = "src/lib.rs"
+doctest = false
+
+[dependencies]
+shared-olap-client-kernel = { path = "../shared-olap-client-kernel" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+clickhouse = { workspace = true }
+
+[dev-dependencies]
+# In-memory path runs without ClickHouse; no network needed in CI.
+
+[lints]
+workspace = true

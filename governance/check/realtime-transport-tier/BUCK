@@ -1,0 +1,33 @@
+rust_library(
+    name = "check-realtime-transport-tier",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_realtime_transport_tier",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//comms/core/shared-realtime-transport-kernel:shared-realtime-transport-kernel",
+    ],
+)
+
+rust_test(
+    name = "check-realtime-transport-tier-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "check_realtime_transport_tier",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//comms/core/shared-realtime-transport-kernel:shared-realtime-transport-kernel",
+    ],
+)
+
+rust_test(
+    name = "check-realtime-transport-tier-tier-scenarios",
+    srcs = ["tests/tier_scenarios.rs"],
+    crate = "check_realtime_transport_tier_tier_scenarios",
+    crate_root = "tests/tier_scenarios.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":check-realtime-transport-tier",
+        "//comms/core/shared-realtime-transport-kernel:shared-realtime-transport-kernel",
+    ],
+)

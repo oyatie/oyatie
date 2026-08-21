@@ -1,0 +1,26 @@
+rust_library(
+    name = "data-sql-adapter-sqlx",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "data_sql_adapter_sqlx",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/data-sql-kernel:data-sql-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
+        "third-party//:sqlx",
+    ],
+)
+
+rust_test(
+    name = "data-sql-adapter-sqlx-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "data_sql_adapter_sqlx",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//data/core/data-sql-kernel:data-sql-kernel",
+        "//base/shared-postgres-command-kernel:shared-postgres-command-kernel",
+        "third-party//:sqlx",
+        "third-party//:tokio",
+    ],
+)

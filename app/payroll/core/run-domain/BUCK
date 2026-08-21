@@ -5,7 +5,7 @@ rust_library(
     crate_root = "src/lib.rs",
     visibility = ["PUBLIC"],
     deps = [
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -17,7 +17,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -29,7 +29,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -41,7 +41,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -53,7 +53,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -65,7 +65,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -77,7 +77,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -89,7 +89,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -101,7 +101,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -113,7 +113,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -125,7 +125,7 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )
 
@@ -137,6 +137,6 @@ rust_test(
     visibility = ["PUBLIC"],
     deps = [
         ":payroll-run-domain",
-        "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
+        "//base/data-boundary-kernel:data-boundary-kernel",
     ],
 )

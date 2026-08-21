@@ -1,0 +1,32 @@
+[package]
+name = "xtask-metadata-augment-app"
+edition.workspace = true
+version.workspace = true
+rust-version.workspace = true
+publish = false
+license = "Apache-2.0"
+
+[package.metadata.oya]
+vertical = "shared"
+bounded_context = "xtask"
+kind = "shared"
+layer = "app"
+purpose = "xtask CLI for metadata augmentation, lockfile rename, rename-map generation, and workspace registry checks."
+
+[[bin]]
+name = "oya-xtask-metadata-augment"
+path = "src/main.rs"
+
+[dependencies]
+anyhow = { workspace = true }
+clap = { workspace = true }
+cargo-lock-transform-kernel = { path = "../cargo-lock-transform-kernel" }
+workspace-members-kernel = { path = "../../base/workspace-members-kernel" }
+serde_json = { workspace = true }
+toml_edit = "0.22"
+
+[dev-dependencies]
+tempfile = { workspace = true }
+
+[lints]
+workspace = true

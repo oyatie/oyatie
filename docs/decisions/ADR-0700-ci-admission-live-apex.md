@@ -162,7 +162,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-538 residual
 
-**Globbed root workspace membership and coverage gate** — The root workspace uses globbed membership: ```toml members = [ "libs/oya-*", "cloud/*/crates/oya-*", "cloud/cloud-ci/gates/*", "oya/*/crates/oya-*", "oya/office/oya-*", "tools/oya-*", ] exclude = [ "cloud/cloud-kernel", "ci/facade/automation-language-policy", ] ``` Consumers requiring a Cargo-valid concrete member set MUST call `libs/oya-workspace-members-kernel::resolve_member_dirs(repo_root)`.
+**Globbed root workspace membership and coverage gate** — The root workspace uses globbed membership: ```toml members = [ "libs/oya-*", "cloud/*/crates/oya-*", "cloud/cloud-ci/gates/*", "oya/*/crates/oya-*", "oya/office/oya-*", "tools/oya-*", ] exclude = [ "cloud/cloud-kernel", "ci/facade/automation-language-policy", ] ``` Consumers requiring a Cargo-valid concrete member set MUST call `base/workspace-members-kernel::resolve_member_dirs(repo_root)`.
 
 ### ADR-44 residual
 
@@ -198,7 +198,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-605 residual
 
-**Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-supply-chain-audit` (`ci/facade/supply-chain-audit`), mirroring the kernel-purity (ADR-0547) / authz-coverage (ADR-0566) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding. The advisory parsing/normalization lives in a reusa
+**Supply-chain audit gate (owned RustSec advisory scan over a vendored mirror)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-supply-chain-audit` (`ci/facade/supply-chain-audit`), mirroring the kernel-purity (ADR-0547) / authz-coverage (ADR-0566) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `ci/core/ci-config-kernel` edit, no producer-face binding. The advisory parsing/normalization lives in a reusa
 
 ### ADR-348 residual
 
@@ -286,7 +286,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-566 residual
 
-**Authz-coverage gate (unauthenticated HTTP control-plane backstop)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-authz-coverage` (`ci/facade/endpoint-authorization-coverage`), mirroring the kernel-purity (ADR-0547) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding. The gate's neutral Rust engine lives in `ci/facade/endpoint-authorizat
+**Authz-coverage gate (unauthenticated HTTP control-plane backstop)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-authz-coverage` (`ci/facade/endpoint-authorization-coverage`), mirroring the kernel-purity (ADR-0547) registration footprint: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `ci/core/ci-config-kernel` edit, no producer-face binding. The gate's neutral Rust engine lives in `ci/facade/endpoint-authorizat
 
 ### ADR-616 residual
 
@@ -334,7 +334,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-608 residual
 
-**Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-cedar-deploy-parity` (`ci/facade/policy-deploy-parity`), mirroring the registration footprint of the supply-chain-audit (ADR-0605) and operator-secret-bootstrap (ADR-0606) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding. ### D1 — Pure, po
+**Cedar deploy-parity gate (deployed ConfigMap ⊆ authored policy; no action-agnostic blanket permit)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-cedar-deploy-parity` (`ci/facade/policy-deploy-parity`), mirroring the registration footprint of the supply-chain-audit (ADR-0605) and operator-secret-bootstrap (ADR-0606) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `ci/core/ci-config-kernel` edit, no producer-face binding. ### D1 — Pure, po
 
 ### ADR-624 residual
 
@@ -526,7 +526,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-606 residual
 
-**Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-operator-secret-bootstrap` (`ci/facade/operator-secret-rbac`), mirroring the registration footprint of the authz-coverage (ADR-0566) and supply-chain-audit (ADR-0605) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `libs/oya-ci-config` edit, no producer-face binding. ### D1 — Pure, policy-
+**Operator secret-bootstrap RBAC gate (least-privilege secrets + declarative join-token provisioning)** — Ship a **self-contained cloud-ci gate**, `cloud-ci-operator-secret-bootstrap` (`ci/facade/operator-secret-rbac`), mirroring the registration footprint of the authz-coverage (ADR-0566) and supply-chain-audit (ADR-0605) gates: own crate, own policy JSON, one appended matrix line in `.github/workflows/oya-ci-required.yml`, no `ci/core/ci-config-kernel` edit, no producer-face binding. ### D1 — Pure, policy-
 
 ### ADR-309 residual
 
@@ -550,7 +550,7 @@ Live resolution: prefer this apex; follow `supersedes` for provenance.
 
 ### ADR-549 residual
 
-**oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness** — Extract **`libs/oya-buck-syntax-kernel`**: the single shared, SOUND lexer/parser for the Starlark subset the gates consume, plus span-accurate safe-edit primitives and the fixer self-validation harness. Migrate the two cloud-ci gate consumers onto it. ### D1 — Sound parsing core (bespoke rowan-style; W2 doctrine) A hand-rolled lexer + recursive-descent parser, std-only, with byte-exact spans on ev
+**oya-buck-syntax-kernel: one sound BUCK/Starlark parsing oracle + fixer self-validation harness** — Extract **`ci/core/buck-syntax-kernel`**: the single shared, SOUND lexer/parser for the Starlark subset the gates consume, plus span-accurate safe-edit primitives and the fixer self-validation harness. Migrate the two cloud-ci gate consumers onto it. ### D1 — Sound parsing core (bespoke rowan-style; W2 doctrine) A hand-rolled lexer + recursive-descent parser, std-only, with byte-exact spans on ev
 
 ### ADR-204 residual
 

@@ -14,7 +14,7 @@ use std::io::ErrorKind;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
-use oya_ci_config_kernel::OyaCiConfig;
+use ci_config_kernel::OyaCiConfig;
 use serde_json::{Value, json};
 
 use ci_crate_name_prefix::{Verdict, evaluate, evaluate_keyed};
@@ -293,7 +293,7 @@ fn collect_cargo_prefix_face(
         .filter(|path| !is_path_excluded(path, config))
         .map(String::as_str)
         .collect::<BTreeSet<_>>();
-    let members = oya_workspace_members_kernel::scan_member_dirs(root)
+    let members = workspace_members_kernel::scan_member_dirs(root)
         .map_err(|error| format!("cargo-prefix scan member dirs: {error}"))?;
     let mut by_member = BTreeMap::new();
     for member_path in members.member_dirs {
@@ -541,7 +541,7 @@ fn independent_has_package_name(contents: &str) -> bool {
 }
 
 /// INDEPENDENT dynamic census of the root workspace's member directories, resolved via the
-/// canonical `oya_workspace_members_kernel::resolve_member_dirs` with its OWN from-scratch
+/// canonical `workspace_members_kernel::resolve_member_dirs` with its OWN from-scratch
 /// `[package] name` probe.
 ///
 /// Deliberately NOT the producer's `collect_cargo_prefix` path, and deliberately NOT
@@ -556,7 +556,7 @@ fn independent_has_package_name(contents: &str) -> bool {
 /// `[package] name` is a hard test failure, never a silent skip. Self-adjusts as crates are
 /// added and removed — the census moves in lockstep with the face and never needs a bump.
 fn independent_member_census(root: &Path) -> BTreeSet<String> {
-    let member_dirs = oya_workspace_members_kernel::resolve_member_dirs(root)
+    let member_dirs = workspace_members_kernel::resolve_member_dirs(root)
         .expect("resolve_member_dirs must resolve the live root workspace Cargo.toml");
     let mut census = BTreeSet::new();
     for dir in member_dirs {

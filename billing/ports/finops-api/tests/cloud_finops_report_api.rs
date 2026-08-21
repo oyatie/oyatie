@@ -23,7 +23,7 @@ use billing_finops_api::{
     generate_cloud_finops_report_from_api,
 };
 use billing_metering::{AxisId, MeterEvent, MeterEventCreate, MeterUnit, MeterUnitKind, PlaneTag};
-use oya_data_boundary_kernel::DataClass;
+use data_boundary_kernel::DataClass;
 
 const REPORT_ID: &str = "finr_kr_month";
 const TENANT: &str = "ten_alpha";
