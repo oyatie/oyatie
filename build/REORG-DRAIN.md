@@ -7597,3 +7597,31 @@ first's answer instead of deriving its own.
 
 Composed as a borrow of `[element]`, the way the pack already composes a borrowed sequence PARAMETER
 under `borrowed_sequence_is_a_slice`, rather than by naming a container the source never had.
+
+## R5d — what the `(T, bool)` extension actually needs, measured
+
+The Go-aware gate's largest surviving blocker is eight more functions that should answer `Option<T>`.
+`spells_an_option` accepts four and rejects these, and the rejection is CORRECT under what it can
+see: it requires the failing return to hand back a LITERAL, and `gjson`'s `valid*` family hands back
+the offset it stopped at, which is information `None` would discard.
+
+The reviewer's counter-claim is that the offset is never READ, and the call graph says so:
+
+    validpayload   call sites bind `_, ok`          <- the offset IS discarded, at both
+    validany       `i, ok = validany(json, i)`      <- reassigned, used on the SUCCESS path
+    validstring    `return validstring(data, i)`    <- forwarded whole, both results
+
+So the shape is a fixpoint rather than a local test. `Option<T>` keeps the SUCCESS offset — that is
+what `Some(i)` is — and loses only the FAILURE one, and the failure offset flows exclusively into
+other failure returns until `validpayload`'s callers drop it with the blank.
+
+WHAT THE RULE NEEDS, stated so it is not re-derived: a candidate's failure value is unobserved when
+every call site either binds it to the blank, or forwards the call whole through `return f(..)`, or
+binds it and reads it only in its own failing return — and the enclosing function is itself a
+candidate whose failure value is unobserved. That is a least-fixpoint over the package call graph.
+
+NOT BUILT HERE, deliberately. It is sound to want and easy to get subtly wrong — the third clause is
+a reaching-definitions question, not a syntactic one — and a wrong answer converts a function whose
+failure offset a caller does use, which is a silent behaviour change of exactly the kind the local
+rule exists to refuse. It is tractable because every one of these functions is PRIVATE, so the
+package call graph is the whole call graph; the snapshot already carries it.
