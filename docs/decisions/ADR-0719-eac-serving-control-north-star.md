@@ -40,6 +40,10 @@ deliverables:
     description: "Hyperscaler pipeline names: presubmit (merge-blocking, graph-aware), postsubmit (on merge to dev), nightly, weekly, promotion rungs dev-staging-canary-production, release train bundling. One required context. No oya- prefix. No per-capability required GitHub checks."
     exit_criteria: "This ADR defines those cadences; new workflows use those names; oya-ci-required remains a rename target with branch protection in the same follow-through change."
     verified_by: "presubmit"
+  - id: ADR-0719-D11
+    description: "Cloud-provider placement: the registered capabilities ARE the cloud. Repo root holds only directory names plus meta (kernel/os/base/build/third-party) and app/. Each capability owns one engine (core), ports, adapters, facade. 2+ capabilities compose in app/. No cloud/ folder. No packing the cloud into specs/ or a root IaaS dump."
+    exit_criteria: "This table is the placement reading; new engines go in an existing cap or a §7 registry split, not a new root dump; app/ is composition only."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -275,6 +279,61 @@ contexts. Do not resurrect merge-base **count** baselines as “affected set.”
 New workflow and context names: `presubmit`, `postsubmit`, `nightly`, `weekly`,
 `promotion-predecessor`, `release`. No `oya-` prefix. Today’s `oya-ci-required` is
 the **presubmit** rename target (branch protection in the same change).
+
+### D-11 — What the cloud is, and what each capability holds
+
+The cloud is **not** a root `cloud/` tree and **not** a JSON catalog. It is the
+**closed capability set** (registry). Repo root only **names** those directories
+(plus `kernel/` `os/` `base/` `build/` `third-party/` `app/` `packs/` `docs/`
+`governance/` as already in D-8). Everything a tenant or operator calls is a
+**facade** of one capability or an **`app/<product>/`** that wires 2+.
+
+**Inside every capability (D-8 children only):** `core/` = engine we run;
+`ports/` = traits + IDL; `adapters/` = transient AWS/OCI/etc.; `facade/` = sold
+API; `cedar/` = this cap’s unique Cedar; `observability/slos/` generated from IR;
+`iac/` = this cap’s IR desired state (what *this* engine needs in a cell). PEP
+calls `policy/` in-process; it does not embed a second PDP.
+
+**AWS/GCP analog → our cap** (coarse, for placement — not a product-mapping SKU list):
+
+| Cloud-provider concern | Capability | core / facade split |
+|---|---|---|
+| Regions / cells / hard caps | **cell** | core: topology, router, rebalance. Not tenant CRM. |
+| Accounts / orgs | **tenancy** | core: tenant lifecycle, home-cell. Enablement SKUs are IR apply, not a side console. |
+| IAM users/roles/IdP | **iam** | core: principals, passkeys, SCIM, tenant-RBAC **store**, workload identity **consumption**. Does **not** evaluate Cedar. |
+| IAM Access Analyzer / Zanzibar / Verified Permissions | **policy** | core: PDP + ReBAC tuple store (G + C0). Every other cap is a PEP. |
+| KMS / Secrets Manager / SPIFFE | **secrets** | core: keys, secrets, **SVID issuance**. |
+| CloudTrail | **audit** | core: Merkle log. Always on. Async seal on serving path (D-1). |
+| CloudWatch / Monarch | **observability** | core: telemetry + SLO **controller**. Per-cap SLOs are IR → generated OpenSLO, not this cap’s YAML novel. |
+| S3 / GCS / CAS | **storage** | core: blob/CAS. Drive/recordings = **facade**. Imaging waits a product, not a nest. |
+| RDS / Spanner / BigQuery / ontology | **data** | core: ontology, OLTP/OLAP, pipelines. Foundry-shaped data plane. Not S3. |
+| EC2 / GCE / Functions / GKE-on-VMs | **compute** | **One** engine: VM + k8s-on-compute + functions. Facades, not three caps. |
+| GKE / EKS control plane (sold) | **k8s** | core: owned apiserver. Facade: managed cluster. Store: cluster objects only (D-2). |
+| VPC / DNS / mesh | **network** | core: mesh, signed DNS snapshots, cell dataplane. |
+| Front door / GFE / API Gateway | **gateway** | core: the **one** public door (D-3/D-4). Rate/quota. Transcode is not a second API. |
+| Pub/Sub / Pulsar | **messaging** | core: bus, idempotency, outbox. Schema with the bus, not `specs/proto/`. |
+| SageMaker / internal AI | **intelligence** | core: model/agent substrate. AI Act registry is pack + this cap, not `capabilities/*.yaml` essays. |
+| Step Functions / Composer | **workflow** | core: engine. Studio is facade. Business sagas, **not** deploy orchestrator (D-1). |
+| CodeBuild / TAP / merge queue | **ci** | core: presubmit engines, controller, queue. Delivery fabric as product (ADR-0548). Gate **policy next to the gate**, not `specs/`. |
+| CloudFormation / Config reconciler | **iac** | core: IR unifier + reconcilers. `<cap>/iac/` is **this** cap’s desired state; `iac/` the cap owns the **engine**. |
+| Billing / Cost Explorer | **billing** | core: meter, rate, invoice, tax, FinOps. Sold-ness, not a drawer. |
+| Marketplace | **marketplace** | core: plugins, signed modules, SKU **engine**. Generated sell-catalog view is `build/`. |
+| Console | **console** | core: shell, token broker, nav. 2+ cap dashboards → `app/`. |
+| Artifact / evidence packs | **compliance** | core: pack evidence, data-class registry. Consumes **audit**. Not the Merkle log. |
+| SES / Chat / Meet | **comms** | core: mail, messenger, meet, notify, contact-center **engines**. End-user “Workspace” product → `app/` when it wires 2+. |
+| AppConfig / Feature flags | **flags** | core: flags, kill switches. Pack-gated overrides. |
+
+**Meta (not sold as a tenant API, still in-repo):** `kernel/` rung 0; `os/` node OS; `base/` (≥3 caps, below all); `build/` toolchains/images; `third-party/` vendored; `governance/` registry + check crates (off the runtime ladder).
+
+**`app/<product>/`:** composition only (hr, payroll, calendar, community, …). Wires 2+ of the table. **Does not** grow a 25th cloud engine. Interview `payments/` / `ledger/` become capabilities only via ADR-0562 §7 — they are **not** sneaked into `app/` or `billing/` as a junk drawer.
+
+**MUST (cloud lives in caps)**
+
+- **achieves:** one place for each cloud concern; `cloud/` and `specs/cloud-*` cannot return.
+- **origin:** `cloud/` was emptied; the cloud leaked into JSON specs and nested `oya-*` / `cloud-*` leftover dirs inside caps.
+- **rule:** a cloud-provider engine occupies exactly one registered capability’s `core/`; sold single-cap surface is `facade/`; 2+ is `app/`; repo root does not hold IaaS dumps.
+- **ensure:** new engines get a registry row or a face, never `cloud/` or `libs/`.
+- **overturn_when:** a §7 split/merge ADR with five fields lands same-wave.
 
 ## Rejected alternatives
 
