@@ -142,6 +142,19 @@ fn lower_stmt(statement: &RustStmt) -> Result<TokenStream, PortError> {
             };
             Ok(quote! { for #binding in #iter { #body } })
         }
+        RustStmt::Select { path, arms } => {
+            let path = crate::lower_parts::parse_path(path)?;
+            let arms = arms
+                .iter()
+                .map(|arm| {
+                    let binding = crate::lower_parts::parse_ident(&arm.binding)?;
+                    let future = lower_expr(&arm.future)?;
+                    let body = lower_block(&arm.body)?;
+                    Ok(quote! { #binding = #future => { #body } })
+                })
+                .collect::<Result<Vec<_>, PortError>>()?;
+            Ok(quote! { #path ! { #(#arms)* } })
+        }
         RustStmt::Break(None) => Ok(quote! { break; }),
         RustStmt::Break(Some(label)) => {
             let label = syn::Lifetime::new(&format!("'{label}"), proc_macro2::Span::call_site());

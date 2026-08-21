@@ -67,6 +67,10 @@ pub(crate) fn params_at(
     for child in &declaration.children {
         crate::body_wider::collect_assigned(child, resolver, &mut written);
     }
+    // A NAME A `go` HANDS TO A TASK cannot be borrowed by this signature: the task outlives the
+    // frame that spawned it, so what it is given has to be OWNED. Read off the statement rather
+    // than assumed, and asked here because this is where the borrow is decided.
+    let spawned = crate::channels::spawned_arguments(declaration);
     declaration
         .children_of_kind(CHILD_PARAM)
         .into_iter()
@@ -92,7 +96,7 @@ pub(crate) fn params_at(
                 channel_parameter(declaration, param, resolver)?
             } else if crate::index_params::indexes_only_parameter(declaration, param, resolver) {
                 RustType::path("usize")
-            } else if is_reference_kind(&param.type_ref) {
+            } else if is_reference_kind(&param.type_ref) && !spawned.contains(&param.name) {
                 RustType::path(reference_target(
                     param,
                     &borrowed_spelling(param, resolver, &declaration.name)?,
@@ -143,8 +147,14 @@ pub(crate) fn params_at(
                 // is gone, and a `mut` on it would be a mutability nothing uses. Read from what the
                 // fold DID rather than from what the recogniser predicted, because the two differ
                 // whenever a value arrives as opaque target text.
-                rebound: (param.has_flag(FLAG_REBOUND) || written.contains(&param.name))
-                    && !consumed.contains(&param.name),
+                // A RECEIVING END IS WRITTEN BY RECEIVING. Taking the next value advances the
+                // channel, so the target's receive takes an exclusive borrow and the binding it
+                // reaches through has to be mutable. The source says none of this -- its channel
+                // value is one thing and receiving does not look like a write -- so the fact comes
+                // from which end this parameter turned out to hold.
+                rebound: ((param.has_flag(FLAG_REBOUND) || written.contains(&param.name))
+                    && !consumed.contains(&param.name))
+                    || receives_here(declaration, param),
                 unread: param.has_flag(FLAG_UNREAD),
                 ty,
             })
@@ -210,10 +220,15 @@ pub(crate) fn borrowed_parameters(
     declaration: &Declaration,
     resolver: &Resolver<'_>,
 ) -> BTreeSet<String> {
+    // A NAME A `go` HANDS TO A TASK cannot be borrowed here: the task outlives this frame, so what
+    // it is given has to be OWNED. Read off the statement rather than assumed, and asked here
+    // because this is where the borrow would otherwise be decided.
+    let spawned = crate::channels::spawned_arguments(declaration);
     declaration
         .children_of_kind(CHILD_PARAM)
         .into_iter()
         .filter(|param| is_reference_kind(&param.type_ref))
+        .filter(|param| !spawned.contains(&param.name))
         .filter(|param| {
             let site = format!("{}({})", declaration.name, param.name);
             borrowed_spelling(param, resolver, &declaration.name)
@@ -311,7 +326,7 @@ fn channel_parameter(
                      this declaration has none"
                 .to_owned(),
         })?;
-    let form = match crate::channels::end_held(body, &param.name) {
+    let form = match crate::channels::end_held_or_passed(body, &param.name, resolver.signatures) {
         Some(crate::channels::End::Sender) => &forms.sender,
         Some(crate::channels::End::Receiver) => &forms.receiver,
         None => {
@@ -328,4 +343,18 @@ fn channel_parameter(
         }
     };
     Ok(RustType::path(form.replace("{0}", &element)))
+}
+
+/// Whether this parameter is the RECEIVING end of a channel in this body.
+fn receives_here(declaration: &Declaration, param: &Declaration) -> bool {
+    if param.type_ref.kind != crate::vocabulary::TYPE_CHANNEL {
+        return false;
+    }
+    declaration
+        .children_of_kind(crate::vocabulary::CHILD_BODY)
+        .first()
+        .copied()
+        .is_some_and(|body| {
+            crate::channels::end_held(body, &param.name) == Some(crate::channels::End::Receiver)
+        })
 }

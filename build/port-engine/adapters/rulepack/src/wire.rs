@@ -247,5 +247,7 @@ pub(crate) struct ChannelFormsRule {
     pub(crate) send: String,
     pub(crate) receive: String,
     pub(crate) spawn: String,
+    pub(crate) select: String,
+    pub(crate) zero_on_close: String,
     pub(crate) reason: String,
 }

@@ -66,6 +66,18 @@ pub(crate) struct SignatureTable {
     /// Held here because it is a fact about another declaration that a CALL SITE needs, which is
     /// what this table is for. A call to one of these is the call it wraps.
     eta: BTreeMap<String, crate::eta::EtaWrapper>,
+    /// Callees whose body COMMUNICATES, and whose target form is therefore an async function.
+    ///
+    /// A call site needs this and cannot derive it: whether a callee suspends is a property of that
+    /// callee's body, which the site does not have. Recorded here because this table is exactly
+    /// the facts about another declaration a call site needs.
+    suspending: BTreeSet<String>,
+    /// Per callee, which parameter POSITIONS are channel ends and which end each is.
+    ///
+    /// A channel a body only hands onward holds whichever end the callee holds — the source's one
+    /// value says nothing, and the site that uses it is somewhere else. This is that fact, carried
+    /// where a call site can reach it.
+    channel_ends: BTreeMap<String, BTreeMap<usize, crate::channels::End>>,
 }
 
 impl SignatureTable {
@@ -84,6 +96,16 @@ impl SignatureTable {
     }
 
     /// Whether this callee's last parameter is variadic in the source.
+    /// Which end of a channel this callee's parameter at `index` holds, when it is one.
+    pub(crate) fn channel_end(&self, callee: &str, index: usize) -> Option<crate::channels::End> {
+        self.channel_ends.get(callee)?.get(&index).copied()
+    }
+
+    /// Whether this callee's target form is an async function, and so must be awaited.
+    pub(crate) fn suspends(&self, callee: &str) -> bool {
+        self.suspending.contains(callee)
+    }
+
     pub(crate) fn is_variadic(&self, callee: &str) -> bool {
         self.variadic.contains(callee)
     }
@@ -102,6 +124,9 @@ impl SignatureTable {
         let mut by_callee = BTreeMap::new();
         let mut variadic = BTreeSet::new();
         let mut eta = BTreeMap::new();
+        let mut suspending = BTreeSet::new();
+        let mut channel_ends: BTreeMap<String, BTreeMap<usize, crate::channels::End>> =
+            BTreeMap::new();
         let mapped: BTreeSet<String> = semantics.function_map().keys().cloned().collect();
         // Every module the emitted crate will have, so a signature naming a package outside them
         // refuses here rather than producing a path that resolves to nothing.
@@ -176,6 +201,15 @@ impl SignatureTable {
                 signatures: &Self::default(),
             };
             for declaration in declarations.iter().filter(|d| d.kind == KIND_FUNC) {
+                // Whether this callee's target form is an async function, which only its own body
+                // says and which every call site to it needs.
+                if crate::channels::suspends(declaration) {
+                    suspending.insert(format!("{}.{}", unit.0, declaration.name));
+                }
+                let ends = crate::channels::parameter_ends(declaration);
+                if !ends.is_empty() {
+                    channel_ends.insert(format!("{}.{}", unit.0, declaration.name), ends);
+                }
                 // Keyed by the same IDENTITY a call site carries — the unit path and the name —
                 // because that is what the call names. Keyed by the bare name it matched nothing.
                 // Keyed by the same IDENTITY a call site carries, and only where nothing takes
@@ -220,6 +254,8 @@ impl SignatureTable {
             by_callee,
             variadic,
             eta,
+            suspending,
+            channel_ends,
         }
     }
 }

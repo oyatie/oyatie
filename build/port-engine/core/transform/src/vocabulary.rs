@@ -187,6 +187,9 @@ pub const TYPE_INTERFACE: &str = "interface";
 /// Attribute key classifying what an identifier resolves to.
 pub const ATTR_REF: &str = "ref";
 
+/// That a select arm is its  -- the arm taken when no communication is ready.
+pub const ATTR_DEFAULT: &str = "default";
+
 /// Attribute key holding a package identifier's IMPORT PATH.
 ///
 /// A rule keying on a package-qualified call keys on this rather than on the local name, because an
