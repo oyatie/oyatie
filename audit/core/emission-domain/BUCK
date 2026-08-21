@@ -8,3 +8,62 @@ rust_library(
         "//audit/ports/emission-kernel:audit-emission-kernel",
     ],
 )
+
+rust_test(
+    name = "audit-emission-domain-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "audit_emission_domain",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//audit/ports/emission-kernel:audit-emission-kernel",
+    ],
+)
+
+rust_test(
+    name = "audit-emission-domain-validated-construction",
+    srcs = ["tests/validated_construction.rs"],
+    crate = "audit_emission_domain_validated_construction",
+    crate_root = "tests/validated_construction.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-emission-domain",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
+    ],
+)
+
+rust_test(
+    name = "audit-emission-domain-canonical-preimage",
+    srcs = ["tests/canonical_preimage.rs"],
+    crate = "audit_emission_domain_canonical_preimage",
+    crate_root = "tests/canonical_preimage.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-emission-domain",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
+    ],
+)
+
+rust_test(
+    name = "audit-emission-domain-fingerprint-verification",
+    srcs = ["tests/fingerprint_verification.rs"],
+    crate = "audit_emission_domain_fingerprint_verification",
+    crate_root = "tests/fingerprint_verification.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-emission-domain",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
+    ],
+)
+
+rust_test(
+    name = "audit-emission-domain-period-bucketing",
+    srcs = ["tests/period_bucketing.rs"],
+    crate = "audit_emission_domain_period_bucketing",
+    crate_root = "tests/period_bucketing.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":audit-emission-domain",
+        "//audit/ports/emission-kernel:audit-emission-kernel",
+    ],
+)
