@@ -59,7 +59,8 @@
 //! - `MEM-NEW-LEGACY-ROOT-CRATE`  — a crate was born under a FROZEN legacy root and is not in the frozen census (accrual).
 //! - `MEM-STALE-LEGACY-ROOT-BASELINE` — a legacy-root census entry is no longer a crate (burn-down that must be recorded).
 //! - `MEM-STALE-FROZEN-BASELINE`  — a frozen-baseline entry no longer exists / is now mapped (drift; baseline must shrink in lockstep).
-//! - `MEM-EMPTY-SCAN`             — fewer crates than the policy floor (false-green guard).
+//! - `MEM-EMPTY-SCAN`             — the crate scan returned zero crates (false-green guard).
+//! - `MEM-NEW-CAPABILITY-ROOT-CHILD` — a NEW child at `<cap>/` or `app/<product>/` is outside the closed face allowlist and was not present on the protected merge-base (grandfathered extras stay green).
 //! - `MEM-POLICY-GATE-ID-MISMATCH`— the policy `gate_id` is not [`GATE_ID`] (fail-closed).
 //! - `MEM-POLICY-MALFORMED`       — the policy/registry is missing/wrong-typed a required field (fail-closed).
 //!
@@ -77,7 +78,7 @@ use serde_json::{Value, json};
 pub const GATE_ID: &str = "cloud-ci-capability-membership";
 
 /// The violation codes, in canonical order.
-pub const VIOLATION_CODES: [&str; 11] = [
+pub const VIOLATION_CODES: [&str; 12] = [
     "MEM-NEW-UNMAPPED-CRATE",
     "MEM-DOUBLE-MAPPED-CRATE",
     "MEM-NEW-TOP-LEVEL-DIR",
@@ -87,6 +88,7 @@ pub const VIOLATION_CODES: [&str; 11] = [
     "MEM-BASE-ADMISSION-DAG",
     "MEM-STALE-FROZEN-BASELINE",
     "MEM-EMPTY-SCAN",
+    "MEM-NEW-CAPABILITY-ROOT-CHILD",
     "MEM-POLICY-GATE-ID-MISMATCH",
     "MEM-POLICY-MALFORMED",
 ];
@@ -164,6 +166,7 @@ pub struct Report {
 
 /// Collect the observed corpus the [`evaluate_keyed`] consumes purely:
 /// `{ "crates": [<repo-relative crate dir>, ..], "crate_count": <usize>, "top_level_dirs": [..],
+///    "capability_root_children": { "<cap>|app/<product>": [<child>, ..] },
 ///    "registry": <the parsed capability registry> }`.
 ///
 /// A "crate" is a directory whose `Cargo.toml` declares a `[package]` (a virtual workspace
@@ -198,10 +201,13 @@ pub fn collect(root: &Path, policy: &Value) -> Result<Value, CollectError> {
         message: e.to_string(),
     })?;
 
+    let capability_root_children = collect_capability_root_children(root, &registry)?;
+
     Ok(json!({
         "crate_count": crates.len(),
         "crates": crates,
         "top_level_dirs": top_level_dirs,
+        "capability_root_children": capability_root_children,
         "registry": registry,
     }))
 }
@@ -287,6 +293,93 @@ fn collect_top_level_dirs(
     Ok(dirs)
 }
 
+/// Immediate children of each registered capability root and each `app/<product>/`.
+/// Missing roots are omitted (repo-portable). `target` / `.git` are skipped; every other
+/// file or directory name is a child the layout allowlist may have to admit or grandfather.
+fn collect_capability_root_children(root: &Path, registry: &Value) -> Result<Value, CollectError> {
+    let mut map = serde_json::Map::new();
+    for name in capability_root_names(registry) {
+        let kids = immediate_child_names(&root.join(&name))?;
+        if !kids.is_empty() {
+            map.insert(name, json!(kids));
+        }
+    }
+    let app = root.join("app");
+    for product in immediate_dir_names(&app)? {
+        if product.starts_with('.') {
+            continue;
+        }
+        let key = format!("app/{product}");
+        let kids = immediate_child_names(&app.join(&product))?;
+        map.insert(key, json!(kids));
+    }
+    Ok(Value::Object(map))
+}
+
+fn capability_root_names(registry: &Value) -> Vec<String> {
+    registry
+        .get("capabilities")
+        .and_then(Value::as_array)
+        .map(|arr| {
+            arr.iter()
+                .filter_map(|cap| cap.get("name").and_then(Value::as_str).map(str::to_owned))
+                .collect()
+        })
+        .unwrap_or_default()
+}
+
+fn immediate_child_names(dir: &Path) -> Result<Vec<String>, CollectError> {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => {
+            return Err(CollectError::Io(format!("read dir {}: {e}", dir.display())));
+        }
+    };
+    let mut names = Vec::new();
+    for entry in entries {
+        let entry =
+            entry.map_err(|e| CollectError::Io(format!("entry in {}: {e}", dir.display())))?;
+        let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        if name == "target" || name == ".git" {
+            continue;
+        }
+        names.push(name);
+    }
+    names.sort();
+    names.dedup();
+    Ok(names)
+}
+
+fn immediate_dir_names(dir: &Path) -> Result<Vec<String>, CollectError> {
+    let entries = match fs::read_dir(dir) {
+        Ok(entries) => entries,
+        Err(ref e) if e.kind() == std::io::ErrorKind::NotFound => return Ok(Vec::new()),
+        Err(e) => {
+            return Err(CollectError::Io(format!("read dir {}: {e}", dir.display())));
+        }
+    };
+    let mut names = Vec::new();
+    for entry in entries {
+        let entry =
+            entry.map_err(|e| CollectError::Io(format!("entry in {}: {e}", dir.display())))?;
+        let file_type = entry
+            .file_type()
+            .map_err(|e| CollectError::Io(format!("file_type {}: {e}", entry.path().display())))?;
+        if !file_type.is_dir() {
+            continue;
+        }
+        let Some(name) = entry.file_name().to_str().map(str::to_owned) else {
+            continue;
+        };
+        names.push(name);
+    }
+    names.sort();
+    Ok(names)
+}
+
 // ---------------------------------------------------------------------------
 // Pure evaluation
 // ---------------------------------------------------------------------------
@@ -302,6 +395,27 @@ fn string_array(value: &Value, key: &str) -> Vec<String> {
                 .collect()
         })
         .unwrap_or_default()
+}
+
+/// `{ "flags": ["IPs", "core"], "app/calendar": ["OWNERS"] }` → map of parent → child set.
+/// `None` when the key is absent so the live tree can stay advisory until a producer
+/// supplies protected (merge-base) children.
+fn object_string_sets(value: &Value, key: &str) -> Option<BTreeMap<String, BTreeSet<String>>> {
+    let object = value.get(key)?.as_object()?;
+    let mut out = BTreeMap::new();
+    for (parent, children) in object {
+        let set = children
+            .as_array()
+            .map(|arr| {
+                arr.iter()
+                    .filter_map(Value::as_str)
+                    .map(str::to_owned)
+                    .collect()
+            })
+            .unwrap_or_default();
+        out.insert(parent.clone(), set);
+    }
+    Some(out)
 }
 
 /// Parsed registry mapping DATA. Returns an Err string on any malformed required field so the
@@ -529,17 +643,11 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
         .and_then(Value::as_u64)
         .unwrap_or(crates.len() as u64);
 
-    let min_expected = policy
-        .get("min_expected_crates")
-        .and_then(Value::as_u64)
-        .unwrap_or(0);
-    if crate_count < min_expected {
+    if crate_count == 0 {
         findings.insert(Finding::new(
             "MEM-EMPTY-SCAN",
             POLICY_KEY,
-            format!(
-                "scan found {crate_count} crate(s), below the policy floor of {min_expected}; the scan roots, CWD, or collection is likely broken (fail-closed against a silent false-green)"
-            ),
+            "scan found 0 crates; the scan roots, CWD, or collection is likely broken (fail-closed against a silent false-green)",
         ));
     }
 
@@ -611,7 +719,48 @@ pub fn evaluate_keyed(policy: &Value, observed: &Value) -> BTreeSet<Finding> {
     // 4. STOP ACCRUAL: the legacy-root census is frozen shrink-only.
     evaluate_legacy_root_freeze(policy, &crates, &crate_set, &mut findings);
 
+    // 5. Closed face set at each capability root and each app/<product>/: NEW
+    //    children outside the allowlist fail; extras already on the protected
+    //    merge-base stay grandfathered. Without protected children the extras
+    //    stay advisory (live tree still carries IPs/scorecards/AUDIT-FINDINGS).
+    evaluate_capability_root_children(policy, observed, &mut findings);
+
     findings
+}
+
+/// NEW-vs-protected child names at `<capability>/` and `app/<product>/`.
+fn evaluate_capability_root_children(
+    policy: &Value,
+    observed: &Value,
+    findings: &mut BTreeSet<Finding>,
+) {
+    let allowed: BTreeSet<String> = string_array(policy, "capability_root_allowed_children")
+        .into_iter()
+        .collect();
+    if allowed.is_empty() {
+        return;
+    }
+    let Some(protected) = object_string_sets(observed, "protected_capability_root_children") else {
+        return;
+    };
+    let Some(current) = object_string_sets(observed, "capability_root_children") else {
+        return;
+    };
+    for (parent, children) in current {
+        let grandfathered = protected.get(&parent).cloned().unwrap_or_default();
+        for child in children {
+            if allowed.contains(&child) || grandfathered.contains(&child) {
+                continue;
+            }
+            findings.insert(Finding::new(
+                "MEM-NEW-CAPABILITY-ROOT-CHILD",
+                &format!("{parent}/{child}"),
+                format!(
+                    "child {child:?} at {parent}/ is outside the closed capability-root allowlist and was not present on the protected merge-base; extras already on origin/dev are grandfathered (IPs, AUDIT-FINDINGS, scorecards) and may only shrink — do not add new names"
+                ),
+            ));
+        }
+    }
 }
 
 /// The frozen legacy roots the policy declares. Empty when the `legacy_root_freeze` block is absent

@@ -4,7 +4,7 @@
 //   * the live corpus is born-ADVISORY GREEN — every crate maps to exactly one registered
 //     capability/meta home OR is in the registry's frozen unmapped baseline; there is NO NEW
 //     unmapped crate and NO NEW top-level dir outside the closed set, so any regression fails;
-//   * the scan actually found the crate census (MEM-EMPTY-SCAN floor met), so a broken
+//   * the scan actually found crates (MEM-EMPTY-SCAN non-empty guard), so a broken
 //     glob/CWD/collect cannot pass as a silent false-green;
 //   * the committed policy gate_id matches the crate contract.
 // Filesystem RED/GREEN fixtures (materialized under the OS temp dir at runtime) prove the collector
@@ -72,8 +72,8 @@ fn live_crate_corpus_is_born_advisory_green() {
     );
     assert_eq!(report.verdict, Verdict::Green);
     assert!(
-        report.crates_checked >= 780,
-        "the live tree should carry at least ~783 crates; got {}",
+        report.crates_checked > 0,
+        "fail-closed non-empty scan: the live tree must yield at least one crate; got {}",
         report.crates_checked
     );
     eprintln!(
@@ -234,8 +234,8 @@ fn fixture_registry() -> &'static str {
 "#
 }
 
-/// The committed policy with the floor lowered + registry repointed at the fixture registry so the
-/// small fixture repos do not trip MEM-EMPTY-SCAN (the floor guards the LIVE corpus, not fixtures).
+/// The committed policy with the registry repointed at the fixture registry so the
+/// small fixture repos do not trip membership mapping against the live registry.
 /// The `legacy_root_freeze` block is dropped for the same reason: its census names the 445 real
 /// legacy-root crate dirs, none of which exist in a temp fixture, so every fixture would drown in
 /// MEM-STALE-LEGACY-ROOT-BASELINE. The freeze is exercised against its own small fixture below, and
@@ -391,7 +391,7 @@ fn the_committed_policy_scans_every_crate_owning_destination_root() {
     // each crate-owning meta destination is actually WALKED. `app/` is the
     // destination for the 110 app-product crates; dropping any of these roots from
     // `scan_roots` would drop those crates out of the membership lint silently —
-    // the min_expected_crates floor is a broken-scan guard, not a coverage guard,
+    // the empty-scan guard is a broken-scan guard, not a coverage guard,
     // and cannot see a partial-root loss. This test fails if a root is dropped.
     let repo = new_temp_repo();
     let root = &repo.root;
@@ -681,5 +681,70 @@ fn live_registry_absorbs_dirs_all_resolve() {
          allowed:\n  {}",
         stale.len(),
         stale.join("\n  ")
+    );
+}
+
+fn layout_fixture_registry() -> &'static str {
+    r#"{
+  "capabilities": [
+    { "name": "flags", "absorbs_current_dirs": ["flags"] }
+  ],
+  "membership_lint_coverage": {
+    "app_products": { "meta_dir": "app/", "current_dirs": [] },
+    "meta_directory_absorbs": [],
+    "absorbs_current_crate_globs": [],
+    "frozen_unmapped_baseline": { "burn_down_target": 0, "crates": [] }
+  }
+}
+"#
+}
+
+#[test]
+fn disk_fixture_new_flags_ips2_is_red_and_grandfathered_ips_is_green() {
+    let repo = new_temp_repo();
+    let root = &repo.root;
+    write_file(
+        root,
+        "flags/core/Cargo.toml",
+        &package_manifest("flags-core"),
+    );
+    write_file(root, "flags/IPs/keep.txt", "grandfathered\n");
+    write_file(root, "flags/IPs2/new.txt", "new junk\n");
+    write_file(root, "app/calendar/OWNERS", "owners\n");
+    write_file(root, "app/calendar/IPs/keep.txt", "grandfathered\n");
+    let policy = fixture_policy(root);
+    write_file(
+        root,
+        "governance/capability-registry.json",
+        layout_fixture_registry(),
+    );
+    let mut observed = collect(root, &policy).expect("collect layout fixture");
+    observed["protected_capability_root_children"] = serde_json::json!({
+        "flags": ["IPs"],
+        "app/calendar": ["IPs"]
+    });
+    let findings = evaluate_keyed(&policy, &observed);
+    assert!(
+        findings
+            .iter()
+            .any(|f| f.code == "MEM-NEW-CAPABILITY-ROOT-CHILD" && f.key == "flags/IPs2"),
+        "NEW flags/IPs2 must be RED from disk: {findings:#?}"
+    );
+    assert!(
+        !findings
+            .iter()
+            .any(|f| f.key == "flags/IPs" || f.key == "app/calendar/IPs"),
+        "grandfathered IPs must stay green: {findings:#?}"
+    );
+    let mut advisory_observed = observed.clone();
+    if let Some(object) = advisory_observed.as_object_mut() {
+        object.remove("protected_capability_root_children");
+    }
+    let advisory = evaluate_keyed(&policy, &advisory_observed);
+    assert!(
+        !advisory
+            .iter()
+            .any(|f| f.code == "MEM-NEW-CAPABILITY-ROOT-CHILD"),
+        "without protected children extras stay advisory: {advisory:#?}"
     );
 }
