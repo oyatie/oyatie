@@ -61,6 +61,7 @@ pub struct Pack {
     pub trait_objects: BTreeMap<String, String>,
     pub failure: Option<FailureConvention>,
     pub functions: BTreeMap<String, FunctionMapping>,
+    pub values: BTreeMap<String, FunctionMapping>,
     /// Empty by default: these tests are not about overflow, and an empty table leaves the plain
     /// operator, which is what they assert on.
     pub arithmetic: IntegerArithmetic,
@@ -388,6 +389,11 @@ impl PackSemantics for Pack {
     }
     fn function_map(&self) -> &BTreeMap<String, FunctionMapping> {
         &self.functions
+    }
+    /// EMPTY, deliberately. These fixtures name no foreign package, so a pack that answered for one
+    /// would be answering a question they do not ask.
+    fn value_map(&self) -> &BTreeMap<String, FunctionMapping> {
+        &self.values
     }
     fn failure_convention(&self) -> Option<&FailureConvention> {
         self.failure.as_ref()

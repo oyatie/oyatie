@@ -62,6 +62,8 @@ pub(crate) struct RulepackDocument {
     #[serde(default)]
     pub(crate) function_map: BTreeMap<String, FunctionMappingRule>,
     #[serde(default)]
+    pub(crate) value_map: BTreeMap<String, FunctionMappingRule>,
+    #[serde(default)]
     pub(crate) format_calls: Option<FormatCallsRule>,
     #[serde(default)]
     pub(crate) target_imports: Option<TargetImportsRule>,
