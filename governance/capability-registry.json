@@ -310,7 +310,7 @@
       "substrate_dag_position": {
         "stratum": "S0"
       },
-      "charter": "Event/service bus (Pub/Sub + queues + outbox). Destination slug bus/ (git mv from messaging/ later). Not comms (mail/chat).",
+      "charter": "Owned event/service bus (Pub/Sub + SQS analog + outbox). Destination slug bus/ (git mv from messaging/ later). Kafka/Pulsar are adapters or a later SKU, not core. Not notify (SES) and not mailbox/chat apps.",
       "seed_domains": [
         "messaging"
       ],

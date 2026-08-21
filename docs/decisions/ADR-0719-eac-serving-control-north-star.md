@@ -470,7 +470,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | GKE / EKS control plane (sold) | **k8s** | core: owned apiserver. Facade: managed cluster. Store: cluster objects only (D-2). |
 | VPC / DNS / mesh | **network** | core: mesh, signed DNS snapshots, cell dataplane. |
 | Front door / GFE / API Gateway | **gateway** | core: the **one** public door (D-3/D-4). Rate/quota. Transcode is not a second API. |
-| Pub/Sub / Service Bus | **bus** (today’s dir `messaging/` until git mv) | core: bus, outbox, per-key order. Not `comms`. |
+| Pub/Sub / SQS | **bus** (today’s dir `messaging/` until git mv) | owned outbox + per-key order. Kafka/Pulsar = adapters. Not `notify`. |
 | SageMaker / internal AI | **intelligence** | core: model/agent substrate. AI Act registry is pack + this cap, not `capabilities/*.yaml` essays. |
 | Step Functions / Composer | **workflow** | core: engine. Studio is facade. Business sagas, **not** deploy orchestrator (D-1). |
 | Cloud Build / TAP / CodePipeline | **pipeline** (today’s dir `ci/` until git mv) | core: graph-aware execution, queue, controller. GitHub is an **adapter**, not the product. |
@@ -506,7 +506,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
 | **network** | VPC/DNS/mesh dataplane. | Public API door (`gateway`). Direct Connect/CDN = facade when sold. | Census. |
 | **gateway** | **One** public door, quota, proto/H3. | Mesh (`network`). Second REST API. | REST dual-stack; connector leftover if it’s a second door. |
-| **bus** | Outbox, order, pub/sub, queues. | Sagas (`workflow`). Human **inbox** (`app/` later). Kafka-as-source. | git mv `messaging/` later. |
+| **bus** | Owned queue/bus/stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Inbox (`app/`). **Kafka/Pulsar as `core/`**. | git mv `messaging/` later. Kafka/Pulsar = **adapters** or a later sold SKU, never SSOT. |
 | **intelligence** | Model/agent substrate. | Console. Workflow studio. AI Act essays as cap-root YAML. | `capabilities/*.yaml`; detection is a **facade** of this cap if sold. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
 | **pipeline** | TAP + Cloud Build engines, queue, controller. | This repo’s `.github/` GHA. Census gates. | GHA stays disjoint; census already D-17. git mv `ci/` → `pipeline/` later. |
@@ -543,7 +543,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
 | **network** | Connect inside the cloud. | VPC, DNS snapshots, mesh dataplane. | Public API door (`gateway`). CDN/Interconnect until sold as facades. |
 | **gateway** | **One** north-south door. | Proto/H3 edge, authn terminate, quota, Cedar on the call. | Mesh (`network`). Second connector door. Tenant SaaS APIs implemented here. |
-| **bus** | Move **events** (Pub/Sub / Service Bus). | Outbox, idempotency, per-key order, queues, streams. | Sagas (`workflow`). Mail/chat (`comms`). Kafka-as-source. |
+| **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: queue + fan-out bus + seekable stream; outbox; at-least-once; per-key order. Serving path never *is* a consume. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar/`core`**. MSK-class SKU only as a later facade. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **model/agent** substrate. | Inference/agent runtime, adapters to models, platform proof layer. | Console. Workflow studio. Vertical AI products. Cap-root autonomy YAML essays. |
 | **flags** | Dynamic config and kill switches. | Flag eval, targeting, kill switch. | App feature roadmaps. Census catalogs. |
@@ -679,7 +679,22 @@ workspace member; no shared crate with a capability; no `npm install` / `pip ins
 exception **dies with GHA**. It is not a license to grow `scripts/` or `tools/`.
 
 **`bus/`.** `messaging/` collides with human chat. Destination slug is **`bus/`**.
-git mv later.
+git mv later. Engine is **owned** (port already in `messaging/core/substrate-kernel`).
+Google Pub/Sub / AWS SQS+SNS — not Kafka. Kafka and Pulsar are **adapters** (or a
+later “bring Kafka” SKU). They are not `core/`, not the serving path, not the
+outbox store. D-1 still applies: Check/IR/tuples are not a broker log.
+
+**MUST (owned bus, not Kafka)**
+
+- **achieves:** async fabric matches cell-local serving; no consumer-group on Check.
+- **origin:** Kafka-as-default is industry cargo-cult; hyperscalers sell MSK, they
+  do not run Kafka as S3/IAM’s bus.
+- **rule:** `bus/` core is the owned queue/bus/stream + outbox; Kafka/Pulsar only
+  as `adapters/` or a later facade SKU; serving traffic is not a Kafka consume.
+- **ensure:** no new `core/` crate named kafka/pulsar; workflow Kafka dumps stay
+  deleted (D-18).
+- **overturn_when:** a five-field ADR sells Kafka-protocol as `core/` with
+  measured serving-path evidence.
 
 **`notify/` not `comms/`.** `comms/core` is mailbox, Meet, messenger, calendar,
 address book — Workspace/Slack, not a cloud send API. Those are **later `app/`**
@@ -750,6 +765,7 @@ for the apps discussion.
   is allowed. The exception is prefix-exact.
 - Keeping `comms/` as a cloud cap (mailbox/Meet/messenger/calendar). Those are
   apps. Cloud send is `notify/`.
+- Kafka (or Pulsar) as the `bus/` engine / serving consume path.
 
 ## Appendix — considerations (not implement authority)
 
