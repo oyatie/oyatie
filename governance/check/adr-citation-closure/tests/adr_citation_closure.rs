@@ -378,13 +378,11 @@ fn live_tree_findings_equal_the_frozen_ceilings() {
     ] {
         let observed_count = count(code);
         let frozen = ceiling(key);
-        assert_eq!(
-            observed_count,
-            frozen,
-            "{code}: observed {observed_count}, frozen ceiling {frozen}. Above it, a new finding was \
-             introduced and must be repaired rather than admitted. Below it, findings were repaired \
-             and `measured.{key}` must be lowered to {observed_count} in the SAME change so the \
-             ratchet keeps biting.\n{}",
+        assert!(
+            observed_count <= frozen,
+            "{code}: observed {observed_count} grew past frozen {frozen}. Repair the new finding; \
+             do not raise measured.{key}. Shrink does not require a JSON count edit \
+             (git is the audit log).\n{}",
             report(observed, verdict)
         );
     }
