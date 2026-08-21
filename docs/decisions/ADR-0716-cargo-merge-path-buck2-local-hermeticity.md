@@ -17,7 +17,7 @@ related: [ADR-0515, ADR-0532, ADR-0613]
 milestone: W0
 deliverables:
   - id: ADR-0716-D1
-    description: "Rewrite the required CI as a cargo-graph workflow: lint (fmt + clippy), test (materialize faces + cargo test --workspace), two live-postgres lanes, a soft cross-platform smoke, and the zero-build fan-in. All job/step names are self-explanatory, debranded, and carry no ADR or PR numbers."
+    description: "Rewrite the required CI as a cargo-graph workflow: lint (fmt + clippy), test (materialize faces + cargo test --workspace), two live-postgres lanes, and the zero-build fan-in. All job/step names are self-explanatory, debranded, and carry no ADR or PR numbers."
     exit_criteria: "The workflow contains no buck2 build/test verdict steps (buck2 appears only as the face materializer's internal helper, installed digest-pinned), no serial producer barrier, no affected-set baselines, and no artifact upload/download; swatinem/rust-cache with a shared key warms every lane. Warm PR wall clock is under 15 minutes (measured on two consecutive green runs), and the single protected oya-ci-required context is produced by the fan-in job only."
     verified_by: "oya-ci-required"
   - id: ADR-0716-D2
@@ -66,10 +66,11 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 ## Decision
 
 1. **The Cargo workspace graph is the CI merge path.** The required workflow runs lint, test,
-   live-postgres, and a soft cross-platform smoke, fanned in to the single protected
-   `oya-ci-required` context. No buck2 build/test verdict step (the face materializer keeps buck2 as an internal
-   helper via the digest-pinned installer), no producer artifact handoff, no affected-set
-   baselines, no daily-red canary.
+   and live-postgres, fanned in to the single protected `oya-ci-required` context. No
+   Windows/macOS job: production is Linux VMs (amd64 per-PR; arm64 is a nightly and
+   release-train gate, not a presubmit). No buck2 build/test verdict step (the face
+   materializer keeps buck2 as an internal helper via the digest-pinned installer), no
+   producer artifact handoff, no affected-set baselines, no daily-red canary.
 2. **buck2 remains a local hermeticity tool**, kept honest by a weekly non-blocking
    `buck2 build //...` smoke. A red smoke means BUCK/reindeer wiring rotted and must be
    fixed or buck2 retired — it never blocks a PR.
@@ -77,7 +78,7 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
    build-cache-policy gate crate are deleted; `specs/cache-warm-license.json` keeps
    `warm_reads_licensed: false` as the declarative kill-switch if a CAS is ever stood up.
 4. **CI names are self-explanatory and debranded.** Job and step names describe the work
-   (`lint`, `test`, `live-postgres-adapters`, `cross-platform-smoke`, `Fan-in verdict`) and
+   (`lint`, `test`, `live-postgres-adapters`, `Fan-in verdict`) and
    reference no ADR or PR numbers. The protected context name `oya-ci-required` is branch
    protection infrastructure, not branding; the dual-emit `merge-admission-required` job
    remains the forever-name mirror, and the protection flip stays founder-only.
@@ -91,8 +92,8 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
 
 ## Consequences
 
-- **Positive:** one CI file (~300 lines, 7 jobs), wall clock dominated by one cached cargo
-  build, no quota-coupled artifact handoff, no daily-red noise, self-explanatory checks.
+- **Positive:** one CI file, wall clock dominated by one cached cargo build, no
+  quota-coupled artifact handoff, no daily-red noise, self-explanatory checks.
 - **Negative:** cargo-green no longer implies buck2-green; the weekly smoke is the only
   guard against BUCK-graph rot. Losing the affected-set ratchet means pre-existing build
   debt on dev blocks PRs until fixed (accepted: the debt is retired by the same cleanup wave).
@@ -111,3 +112,19 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
   lens on new workflow steps.
 - **overturn_when:** a live buck2 remote cache is deployed and measured to beat cargo's
   wall clock on this fleet, with a recorded measurement and an ADR that re-adopts it.
+
+## Amendment 2026-08-21 — drop hosted Windows/macOS smoke
+
+A hyperscaler does not presubmit-test operating systems it does not run. Oyatie's
+cloud is Linux VMs (amd64 per-PR; arm64 nightly + weekly release-train per the
+2026-08-21 suite interview D88-amend). There is no consumer Windows, macOS, or
+Android binary to smoke. The previous "soft" `cross-platform-smoke` matrix
+(`windows-latest`, `macos-latest`) ran `cargo test -p ci-scm-facts-snapshot`
+(a git-facts crate, not a product), was skipped on `merge_group`, was
+`continue-on-error`, was absent from the fan-in, and the Windows leg was red
+on `dev` itself. That is cost without a merge signal: GitHub bills macOS 10×
+and Windows 2×, and the two legs were ~73 of ~90 billable minutes of a PR
+build. ADR-0718 already named this retirement as complementary to the
+five-minute wall clock. Native-app smoke (SwiftUI / Compose / later Windows
+shells, interview D24) is a different gate, added when those artifacts exist,
+on the release train — never as a per-PR cargo-workspace matrix.

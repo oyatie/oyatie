@@ -332,56 +332,10 @@ jobs:
           OYA_BACKBONE_POSTGRES_APP_URL: ${{ env.OYA_PG_APP_URL }}
         run: RUST_TEST_THREADS=1 cargo test --locked -p iam-identity-service -p tenancy-tenant-lifecycle-app
 
-  cross-platform-smoke:
-    name: cross-platform-smoke (${{ matrix.os }})
-    runs-on: ${{ matrix.os }}
-    # Portability signal only where it is actionable. On merge_group this job's result is
-    # structurally discarded: it is absent from the fan-in verdict below (which checks only
-    # lint/test/live-postgres-*) and carries continue-on-error, so it cannot affect
-    # admission. That is observable, not inferred -- dev merges green today with the
-    # windows leg red. The two legs are 73 of the 90 billable minutes a queue build costs
-    # (macOS bills 10x, Windows 2x), so running them where nothing can read the answer is
-    # 81% of that build spent for no merge signal.
-    #
-    # It stays on pull_request, which is the only event where an author can still change
-    # the diff in response, and on push to dev for post-merge detection.
-    if: github.event_name != 'merge_group'
-    continue-on-error: true
-    timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [windows-latest, macos-latest]
-    steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
-        with:
-          persist-credentials: false
-          fetch-depth: 0
-      - name: Configure MSVC toolchain
-        uses: ilammy/msvc-dev-cmd@0b201ec74fa43914dc39ae48a89fd1d8cb592756
-        if: matrix.os == 'windows-latest'
-      - uses: dtolnay/rust-toolchain@21dc36fb71dd22e3317045c0c31a3f4249868b17
-        with:
-          toolchain: "1.97.1"
-      - uses: swatinem/rust-cache@6323deb102c322ba6fcbdcafc7e3dddab59af2b6
-        with:
-          shared-key: cargo-ci-${{ matrix.os }}
-      - name: Install pinned buck2 (digest-verified)
-        shell: bash
-        run: infra/ci/install-buck2.sh
-      - name: Pre-provision pinned toolchain components
-        shell: bash
-        # Full default profile (rustc+cargo+std+clippy+rustfmt): the materializer's buck2
-        # build resolves the triple-named toolchain through rustup; pre-installing everything
-        # makes those rustup calls no-ops and avoids the concurrent-download race.
-        run: host=$(rustc -vV | awk '/^host/{print $2}') && for v in 1.97.1 1.96.0; do rustup component add --toolchain $v-$host cargo clippy rustfmt rust-std rustc; rustup component add --toolchain $v cargo clippy rustfmt rust-std rustc; done && rustup default 1.97.1 && rustc --version
-      - name: Materialize generated faces
-        run: cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event
-      - name: Cross-platform smoke tests
-        run: cargo test --locked -p ci-scm-facts-snapshot
-
   # Fan-in: the single required context. Green IFF lint, test, and both live-postgres
-  # lanes are green. The cross-platform lane is soft: its failure never blocks merge.
+  # lanes are green. Hosted production is Linux VMs (amd64 per-PR, arm64 on the
+  # nightly/release-train — D88-amend). There is no Windows/macOS/Android product
+  # binary to smoke, so those runners are not a merge-path or per-PR job.
   oya-ci-required:
     # The context string is the job's `name:`, not its id, so this renames the PUBLIC status
     # check while leaving the job id -- and therefore the rust-first inline-shell baseline key
@@ -390,11 +344,6 @@ jobs:
     name: merge-admission-required
     runs-on: ubuntu-latest
     if: ${{ always() }}
-    # cross-platform-smoke is deliberately NOT a dependency. The verdict below never reads
-    # its result, so listing it only made the fan-in WAIT on a lane it does not consult --
-    # and would make this required context's fate depend on that job's skip state. With
-    # enforce_admins on, a required context that fails to report blocks every merge, so the
-    # dependency is removed rather than reasoned about.
     needs: [lint, test, live-postgres-adapters, live-postgres-facades]
     steps:
       - name: Fan-in verdict

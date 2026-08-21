@@ -1311,8 +1311,8 @@ fn retirement_workflow_transports_the_provider_tuple_once_and_all_candidate_rege
         .collect::<Vec<_>>();
     assert_eq!(
         candidate_materializer_lines.len(),
-        2,
-        "test job and cross-platform smoke must both materialize faces; extra unbound invocations must be enumerated"
+        1,
+        "only the test job materializes faces on the merge path; extra unbound invocations must be enumerated"
     );
     for line in candidate_materializer_lines {
         assert!(
@@ -1376,10 +1376,7 @@ fn broad_workflow_consumers_require_the_producer_artifact_and_keep_the_merge_bas
 
     let materialize_step_name = "Materialize generated faces";
     let cargo_materializer = "cargo run --locked -p ci-generated-artifact-freshness --bin oya-cloud-ci-materialize-generated-faces -- --repo-root . --github-event";
-    for (job_name, broad_step) in [
-        ("test", "Workspace tests"),
-        ("cross-platform-smoke", "Cross-platform smoke tests"),
-    ] {
+    for (job_name, broad_step) in [("test", "Workspace tests")] {
         let job = workflow_job(&workflow, job_name);
         assert_occurs_exactly_once(job, &format!("- name: {materialize_step_name}"));
         assert!(

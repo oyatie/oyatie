@@ -127,11 +127,11 @@ back to the fan-in in that same change; this ADR does not pre-authorize that.
 
 The five-minute target may not be reachable by constant factors alone. That outcome is an
 expected result of D4, not a failure of it, and it is precisely the evidence D5 requires.
-The in-flight retirement of the per-PR cross-platform smoke is complementary and is tracked in
-its own decision record, not cited here by number because that record is not yet on the protected
-base and a citation to an unminted id is a phantom citation. It removes roughly 72% of a run's
-billable minutes and two of the six parallel jobs, reducing self-contention for runners, but it
-does not shorten the test job's own compile.
+The per-PR Windows/macOS smoke is retired (see ADR-0716 amendment 2026-08-21), not
+tracked in a separate unminted ADR. It removes two of the parallel jobs and most of
+a PR's billable minutes (macOS 10×, Windows 2×) and reduces self-contention for
+runners. It does not shorten the Linux `test` job's own compile — that remains
+the wall clock.
 
 ## Amendment 2026-08-18: measured step profile, and the linker deferred
 
@@ -222,3 +222,12 @@ D5 — affected-set selection on the cargo graph — remains the structural answ
 unauthorized. With larger runners off the table it is now the only lever that can plausibly reach
 five minutes for the common case, because it is the only one that stops compiling 885 members for
 a change that touches none of them.
+
+## Amendment 2026-08-21 — smoke retirement landed here, not a phantom ADR
+
+The paragraph that deferred Windows/macOS smoke retirement to "its own decision
+record, not cited here by number" is superseded. Minting a new live ADR to delete
+a job that already could not fail a merge fails the hyperscaler bar (more law for
+less work) and the corpus ratchet (`live_adr_files` is at ceiling). The deletion
+amends ADR-0716's merge-path job list; this record records that the complementary
+retirement it named has executed.
