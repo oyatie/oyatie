@@ -2204,6 +2204,135 @@ dependencies = [
 ]
 
 [[package]]
+name = "community-post-store-api"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-protocol-parity-kernel",
+]
+
+[[package]]
+name = "community-post-store-app"
+version = "0.1.0"
+dependencies = [
+ "community-post-store-api",
+ "community-post-store-domain",
+ "community-post-store-postgres",
+ "community-post-store-usecase",
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-protocol-parity-kernel",
+ "oya-shared-protocol-transport-kernel",
+ "oya-shared-transactional-outbox-kernel",
+]
+
+[[package]]
+name = "community-post-store-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "community-post-store-grpc"
+version = "0.1.0"
+dependencies = [
+ "community-post-store-api",
+ "community-post-store-app",
+ "community-post-store-domain",
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-protocol-transport-kernel",
+]
+
+[[package]]
+name = "community-post-store-postgres"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-postgres-command-kernel",
+]
+
+[[package]]
+name = "community-post-store-rest"
+version = "0.1.0"
+dependencies = [
+ "community-post-store-api",
+ "community-post-store-app",
+ "community-post-store-domain",
+ "community-post-store-usecase",
+ "oya-shared-hyperscaler-metrics-kernel",
+ "oya-shared-postgres-command-kernel",
+]
+
+[[package]]
+name = "community-post-store-usecase"
+version = "0.1.0"
+dependencies = [
+ "community-post-store-api",
+ "community-post-store-domain",
+]
+
+[[package]]
+name = "community-social-app"
+version = "0.1.0"
+dependencies = [
+ "community-social-post-composition-api",
+ "community-social-post-composition-postgres",
+ "community-social-post-composition-usecase",
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-protocol-parity-kernel",
+ "oya-shared-protocol-transport-kernel",
+ "oya-shared-transactional-outbox-kernel",
+]
+
+[[package]]
+name = "community-social-domain"
+version = "0.1.0"
+dependencies = [
+ "oya-data-boundary-kernel",
+]
+
+[[package]]
+name = "community-social-post-composition-api"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-protocol-parity-kernel",
+]
+
+[[package]]
+name = "community-social-post-composition-grpc"
+version = "0.1.0"
+dependencies = [
+ "community-social-app",
+ "community-social-post-composition-api",
+ "oya-shared-postgres-command-kernel",
+ "oya-shared-protocol-transport-kernel",
+]
+
+[[package]]
+name = "community-social-post-composition-postgres"
+version = "0.1.0"
+dependencies = [
+ "oya-shared-postgres-command-kernel",
+]
+
+[[package]]
+name = "community-social-post-composition-rest"
+version = "0.1.0"
+dependencies = [
+ "community-social-app",
+ "community-social-post-composition-api",
+ "community-social-post-composition-usecase",
+ "oya-shared-hyperscaler-metrics-kernel",
+ "oya-shared-postgres-command-kernel",
+]
+
+[[package]]
+name = "community-social-post-composition-usecase"
+version = "0.1.0"
+dependencies = [
+ "community-social-domain",
+ "community-social-post-composition-api",
+]
+
+[[package]]
 name = "compliance-dlp"
 version = "0.1.0"
 dependencies = [
@@ -5010,12 +5139,12 @@ dependencies = [
  "comms-messenger-stream-api",
  "comms-messenger-stream-postgres",
  "comms-messenger-stream-usecase",
- "community-post-store-postgres",
  "community-post-store-api",
  "community-post-store-domain",
+ "community-post-store-postgres",
  "community-post-store-usecase",
- "community-social-post-composition-postgres",
  "community-social-post-composition-api",
+ "community-social-post-composition-postgres",
  "community-social-post-composition-usecase",
  "oya-shared-postgres-command-adapter-sqlx",
  "oya-shared-postgres-command-kernel",
@@ -7881,135 +8010,6 @@ name = "oya-cloud-surface-domain"
 version = "0.1.0"
 dependencies = [
  "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "community-post-store-postgres"
-version = "0.1.0"
-dependencies = [
- "oya-shared-postgres-command-kernel",
-]
-
-[[package]]
-name = "community-post-store-api"
-version = "0.1.0"
-dependencies = [
- "oya-shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "community-post-store-app"
-version = "0.1.0"
-dependencies = [
- "community-post-store-postgres",
- "community-post-store-api",
- "community-post-store-domain",
- "community-post-store-usecase",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-protocol-transport-kernel",
- "oya-shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "community-post-store-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "community-post-store-grpc"
-version = "0.1.0"
-dependencies = [
- "community-post-store-api",
- "community-post-store-app",
- "community-post-store-domain",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-transport-kernel",
-]
-
-[[package]]
-name = "community-post-store-rest"
-version = "0.1.0"
-dependencies = [
- "community-post-store-api",
- "community-post-store-app",
- "community-post-store-domain",
- "community-post-store-usecase",
- "oya-shared-hyperscaler-metrics-kernel",
- "oya-shared-postgres-command-kernel",
-]
-
-[[package]]
-name = "community-post-store-usecase"
-version = "0.1.0"
-dependencies = [
- "community-post-store-api",
- "community-post-store-domain",
-]
-
-[[package]]
-name = "community-social-app"
-version = "0.1.0"
-dependencies = [
- "community-social-post-composition-postgres",
- "community-social-post-composition-api",
- "community-social-post-composition-usecase",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-parity-kernel",
- "oya-shared-protocol-transport-kernel",
- "oya-shared-transactional-outbox-kernel",
-]
-
-[[package]]
-name = "community-social-domain"
-version = "0.1.0"
-dependencies = [
- "oya-data-boundary-kernel",
-]
-
-[[package]]
-name = "community-social-post-composition-postgres"
-version = "0.1.0"
-dependencies = [
- "oya-shared-postgres-command-kernel",
-]
-
-[[package]]
-name = "community-social-post-composition-api"
-version = "0.1.0"
-dependencies = [
- "oya-shared-protocol-parity-kernel",
-]
-
-[[package]]
-name = "community-social-post-composition-grpc"
-version = "0.1.0"
-dependencies = [
- "community-social-app",
- "community-social-post-composition-api",
- "oya-shared-postgres-command-kernel",
- "oya-shared-protocol-transport-kernel",
-]
-
-[[package]]
-name = "community-social-post-composition-rest"
-version = "0.1.0"
-dependencies = [
- "community-social-app",
- "community-social-post-composition-api",
- "community-social-post-composition-usecase",
- "oya-shared-hyperscaler-metrics-kernel",
- "oya-shared-postgres-command-kernel",
-]
-
-[[package]]
-name = "community-social-post-composition-usecase"
-version = "0.1.0"
-dependencies = [
- "community-social-domain",
- "community-social-post-composition-api",
 ]
 
 [[package]]

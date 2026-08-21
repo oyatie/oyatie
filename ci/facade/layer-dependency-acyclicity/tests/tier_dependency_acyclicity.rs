@@ -100,6 +100,43 @@ fn live_tree_is_green_zero_regressions() {
 }
 
 #[test]
+fn app_community_crates_are_scanned_and_product_classified() {
+    // Absorb PRs rewrote the TDA baseline subjects to app/community/... via the
+    // move-plan bijection. If crate_root_globs omit app/ (or app is unclassified),
+    // those rows become TDA-STALE-BASELINE phantoms and the substrate-upward
+    // edges go unenforced. This pins both the scan and the product classification.
+    let root = repo_root();
+    let policy = load_json(&root, POLICY_PATH).expect("load policy");
+    let observed = collect_corpus(&root, &policy).expect("collect live corpus");
+    let crates = observed["crates"].as_array().expect("crates array");
+    let expected = [
+        "app/community/adapters/post-store-postgres",
+        "app/community/ports/post-store-api",
+        "app/community/core/post-store-domain",
+        "app/community/core/post-store-usecase",
+        "app/community/adapters/social-post-composition-postgres",
+        "app/community/ports/social-post-composition-api",
+        "app/community/core/social-post-composition-usecase",
+    ];
+    for dir in expected {
+        let crate_row = crates
+            .iter()
+            .find(|c| c["dir"].as_str() == Some(dir))
+            .unwrap_or_else(|| panic!("live TDA corpus missing {dir}"));
+        assert_eq!(
+            crate_row["service"].as_str(),
+            Some("app/community"),
+            "{dir} must be owned by the app/community product unit, not unclassified"
+        );
+    }
+    assert_eq!(
+        observed["service_tiers"]["app/community"]["tier"].as_str(),
+        Some("product"),
+        "app/community must declare tier=product so intelligence->community stays TDA-SUBSTRATE-UPWARD"
+    );
+}
+
+#[test]
 fn frozen_baseline_is_exactly_the_live_violation_set() {
     // The baseline must equal the CURRENT live violation set: every baselined entry is still observed
     // (not stale) AND there are no live violations missing from the baseline (no regression). This is
