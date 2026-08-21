@@ -390,25 +390,42 @@ admission, graph-aware work; promotion is not “the test job.”
 | **promotion** | explicit rung | `dev` → `staging` → `canary` → `production`; predecessor check | N/A (branch protection on the rung) |
 | **release / CD** | train (interview D63) | Bundle what’s on the promotion rung; **`cargo build --release`** (and buck2 if still local-honest) **here, not presubmit** | N/A |
 
-**Cargo verbs (closed).** `cargo nextest` is the only compile+test proof. `cargo check` is a local optional shortcut, never CI. `cargo test` (libtest) is not CI. `rustfmt` CLI is not CI — `cargo fmt` is. Windows/macOS per-PR smoke is not a cadence.
+**Cargo verbs (closed).** Hyperscaler TAP: cheap local, hermetic blocking presubmit, slow on a schedule, artifacts only on CD. `cargo nextest` is the only compile+test proof. `cargo check` is a local optional shortcut, never CI. `cargo test` (libtest) is not CI. `rustfmt` CLI is not CI — `cargo fmt` is. Windows/macOS per-PR smoke is not a cadence.
 
-| Verb | Local | Presubmit (PR / merge queue) | Nightly | CD / release |
-|---|---|---|---|---|
-| `cargo fmt` | touched files | `--all --check` | — | — |
-| `cargo clippy -D warnings` | touched / workspace | workspace `--all-targets` (blocking when clean) | — | — |
-| `cargo check` | optional, humans | **never** | **never** | **never** |
-| `cargo nextest` | `-p` affected | `--workspace --locked --no-fail-fast` linux/amd64 | arm64 workspace; long tests | — |
-| `cargo test` (libtest) | **never** (use nextest) | **never** | **never** | **never** |
-| `cargo build --release` | never required | **never** | **never** | **yes** |
-| `buck2 build //...` | local hermeticity | **never** | weekly honesty | optional CD |
+The “four-tier cargo blog” (fmt+clippy+check locally in <5s; nextest+doc-tests+deny+audit+semver on PR; mutants+machete+update+asan nightly; dist+bloat on CD) is the right **shape** and the wrong **tool list** for this repo.
+
+| Tool | Local | Presubmit | Nightly / weekly | CD | Ruling |
+|---|---|---|---|---|---|
+| `cargo fmt` | touched `--check` | `--all --check` | — | — | **Keep.** Merge bar is `--all`. Local is not `--all` (this workspace is not <5s). |
+| `cargo clippy -D warnings` | optional, touched | `--workspace --all-targets` (blocking when clean) | — | — | **Keep.** Local `--all-targets` is a lie on an 800-crate graph; it gets skipped. |
+| `cargo check` | optional | **never** | **never** | **never** | **Drop from CI.** Nextest already compiles. A check job is a second compile. |
+| `cargo nextest` | `-p` affected | `--workspace --locked --no-fail-fast` linux/amd64 | arm64 workspace; long / soak | — | **The proof.** Developers run affected; CI runs the workspace. |
+| `cargo test` / `--doc` | **never** | **never** | **never** | **never** | **Drop.** libtest is not the runner. Doctests are `doctest = false` here; an empty `--doc` job is vacant. If rustdoc tests return, they are nightly until nextest covers them. |
+| License / bans (`deny.toml`) | — | hermetic `cargo deny check licenses bans sources` **or** the owned license-policy — **one**, not both | — | — | **Keep one.** Dual deny+license-policy is bloat. Advisories are not this row. |
+| Advisories | — | **vendored** snapshot (owned supply-chain-audit). **No network.** | Network `cargo audit` / refresh snapshot as a **report**, not a lockfile mutate | — | **PR is hermetic.** TAP does not fetch rustsec.org to merge. |
+| `cargo-semver-checks` | — | **never** | — | — | **Drop.** Public surface is proto/H3 facades, not crates.io semver of internal crates. |
+| `cargo-mutants` | — | **never** | **sampled** / per-crate, not 800 crates | — | **Not whole-workspace nightly.** That is weeks. |
+| `cargo-machete` | — | **never** | weekly advisory | — | **Keep as signal.** Unused-dep cleanup is not merge-blocking. |
+| `cargo update` | — | **never** | scratch report; human PR | — | **Cron must not rewrite Cargo.lock.** |
+| ASan / TSan | — | **never** | subset of concurrent crates | — | **Keep as nightly subset.** Not the workspace. |
+| `cargo build --release` | — | **never** | **never** | **yes** | **Keep.** |
+| `cargo-dist` | — | — | — | **never** | **Drop.** CLI retirement; we ship images + promotion, not GitHub Release binaries. |
+| `cargo-bloat` | — | — | optional size log | not a ship gate | **Metric, not CD.** |
+| `buck2 build //...` | local hermeticity | **never** | weekly honesty | optional | Unchanged (ADR-0716). |
+| Live Postgres nextest | — | dedicated jobs (service) | — | — | **Keep.** Not a laptop default. |
+| Win/mac | — | **never** | — | — | **Drop.** D88-amend: amd64 per-PR, arm64 nightly. |
+
+Local pre-push is **fmt on touched files**, not a 5-second fantasy that also runs clippy `--all-targets` and `cargo check`. A hook that takes minutes is a hook people `--no-verify`. Tests the author cares about are `cargo nextest run -p <crate>`.
+
+No new `scripts/check.sh` / pre-push product. Rust-first: a three-line git hook may call `cargo fmt --check` on staged `*.rs`. Do not resurrect `oya verify` / `dev-cli`.
 
 **MUST (nextest is the proof)**
 
-- **achieves:** one compile+test signal; no double compile (`check` then `test`); no libtest dual.
-- **origin:** `cargo check` + `cargo test` compiled twice; win/mac smoke and `cargo test -p` were not merge evidence; nextest is already the workspace runner.
-- **rule:** nextest is the only compile+test proof in presubmit/postsubmit/nightly unit lanes; `cargo check` and `cargo test` are not CI; release binary is CD.
-- **ensure:** required workflow invokes nextest, not libtest; no `cargo check` job; no win/mac per-PR smoke.
-- **overturn_when:** a five-field ADR names a different runner that still compiles once.
+- **achieves:** one compile+test signal; no double compile; no libtest dual; PR hermetic.
+- **origin:** blog four-tier put `cargo check` and network `cargo-audit` on the merge path; `cargo-dist` assumes a CLI product; mutants-on-everything is not a nightly.
+- **rule:** nextest is the only compile+test proof in presubmit/postsubmit/nightly unit lanes; `cargo check` and `cargo test` are not CI; release binary is CD; advisory fetch on PR is vendored; one license/ban engine; no cargo-dist; no crates.io semver gate.
+- **ensure:** required workflow invokes nextest, not libtest; no `cargo check` job; no win/mac per-PR smoke; deny/audit are not two network tools on the PR.
+- **overturn_when:** a five-field ADR names a different runner that still compiles once and stays hermetic.
 
 Do **not** add one required GitHub check per capability (skipped-check failures, queue
 combinatorics). Lane isolation is **worktrees + non-overlapping paths**, not 24
@@ -657,6 +674,10 @@ coverage, `authz-tier-discipline` frozen leak **counts**, `event-schema-versioni
   and `expected_total` are the same anti-pattern.
 - `cargo check` as a CI job (nextest already compiles). `cargo test` (libtest) as
   the merge runner. Windows/macOS per-PR smoke. `rustfmt` CLI instead of `cargo fmt`.
+- `cargo test --doc` as a vacant merge job; `cargo-semver-checks` on internal crates;
+  network `cargo-audit` on presubmit; `cargo-dist` GitHub Release CLIs; whole-repo
+  `cargo-mutants` nightly; a cron that runs `cargo update` into `Cargo.lock`; a
+  local hook that runs clippy `--all-targets` and claims “<5 seconds.”
 
 ## Appendix — considerations (not implement authority)
 
