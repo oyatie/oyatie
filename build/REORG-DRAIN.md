@@ -7749,3 +7749,47 @@ shape instead.
 
 WHAT IT DOES NOT CHANGE: 18 of 973 is not the reason the blind gate says the crate is a skeleton.
 The cascade is 277 and the decisions are still the roots. This corrects a number, not a conclusion.
+
+## R5i — the mutex unit lands one method, and the reason is the same reason as everything else
+
+Before building the mutex-plus-`defer` unit, the same check that has now killed four candidates.
+
+`memberlist::awareness` is the best case in the corpus — ONE embedded mutex, and its methods use
+explicit `Lock()`/`Unlock()` with no `defer` anywhere, so it needs only the reshape:
+
+    func (a *awareness) GetHealthScore() int {
+        a.RLock()
+        score := a.score
+        a.RUnlock()
+        return score
+    }
+
+That method is genuinely clean and would translate. Its siblings do not:
+
+    ApplyDelta      needs `metrics.SetGaugeWithLabels`   -- foreign
+    ScaleTimeout    needs `time.Duration`                -- foreign
+    Keyring's five  need `bytes.Equal`                   -- foreign
+    gocache's       need `time.Duration`, `interface{}`  -- foreign and undecided
+
+`awareness` also shows the partition problem in miniature: `metricLabels` is read OUTSIDE the lock,
+so a whole-struct `Mutex<Inner>` would be wrong even at three fields. The analysis must decide per
+field, which is the same analysis `Memberlist` needs at thirty-three fields and seven locks.
+
+SO THE MUTEX WORK IS NOT BLOCKED BY THE MUTEX. Build the reshape, the lock-region analysis and the
+`defer`-as-RAII idiom in full and the corpus gains `awareness` and one method, because everything
+else those structs touch is a foreign type.
+
+### The foreign wall, split by what the pack can already do
+
+    FOREIGN FUNCTIONS   0 declarations blocked
+    FOREIGN TYPES      45 declarations blocked -- time 10, bytes 9, net/http 7, net 4,
+                                                  sync/atomic 3, reflect 3, io 2, sync 2
+
+The pack ALREADY maps foreign functions — `errors.New`, `os.Getenv`, `strings.LastIndex`,
+`math/bits.RotateLeft64` — so that kind of entry is established practice and is not what is missing.
+It maps ZERO foreign types, and every one of the 45 is a type.
+
+That is the whole shape, measured from every side now: the corpus is gated on foreign TYPE decisions
+and on the concurrency build, and no further rule the engine can prove by itself reaches past them.
+`bytes.Equal` to `==` is exact and needs no decision; `time.Duration` is signed in the source and
+unsigned in the target, and is one.
