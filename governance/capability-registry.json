@@ -301,20 +301,20 @@
       "dag_node": "api-gateway"
     },
     {
-      "name": "messaging",
+      "name": "bus",
       "tier": "substrate",
       "substrate_dag_position": {
         "stratum": "S0"
       },
-      "charter": "Owned event/service bus (Pub/Sub + SQS analog + outbox). Destination slug bus/ (git mv from messaging/ later). Kafka/Pulsar are adapters or a later SKU, not core. Not notify (SES) and not mailbox/chat apps.",
+      "charter": "Owned event/service bus (Pub/Sub + SQS analog + outbox). Kafka/Pulsar are adapters or a sold SKU facade, not core. Not notify (SES) and not mailbox/chat apps.",
       "seed_domains": [
         "messaging"
       ],
       "absorbs_current_dirs": [
-        "messaging"
+        "bus"
       ],
-      "dag_node": "messaging",
-      "boundary_note": "ADR-0719 D-18: sold name is bus/, not messaging/ (collides with comms). Directory git mv later."
+      "dag_node": "bus",
+      "boundary_note": "ADR-0719: capability is bus/. Path messaging/ is retired (git mv). Crate names messaging-* rename with KEEP+WORK, not as a live slug."}
     },
     {
       "name": "intelligence",

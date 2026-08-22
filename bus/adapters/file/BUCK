@@ -6,7 +6,7 @@ rust_library(
     visibility = ["PUBLIC"],
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//messaging/core/domain:messaging-domain",
+        "//bus/core/domain:messaging-domain",
     ],
 )
 
@@ -19,6 +19,6 @@ rust_test(
     deps = [
         ":messaging-file-adapter",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
-        "//messaging/core/domain:messaging-domain",
+        "//bus/core/domain:messaging-domain",
     ],
 )

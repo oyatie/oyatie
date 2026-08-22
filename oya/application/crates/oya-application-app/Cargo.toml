@@ -26,7 +26,7 @@ network-residency = { path = "../../../../network/core/residency" }
 data-ontology-domain = { path = "../../../../data/core/ontology-domain" }
 observability-domain = { path = "../../../../observability/core/domain" }
 iam-policy-cedar-domain = { path = "../../../../iam/core/policy-cedar-domain" }
-messaging-domain = { path = "../../../../messaging/core/domain" }
+messaging-domain = { path = "../../../../bus/core/domain" }
 secrets-domain = { path = "../../../../secrets/core/domain" }
 tenancy-domain = { path = "../../../../tenancy/core/domain" }
 

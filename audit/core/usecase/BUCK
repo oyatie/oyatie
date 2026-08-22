@@ -7,7 +7,7 @@ rust_library(
     deps = [
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
-        "//messaging/core/domain:messaging-domain",
+        "//bus/core/domain:messaging-domain",
     ],
 )
 
@@ -21,7 +21,7 @@ rust_test(
         ":audit-usecase",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
-        "//messaging/core/domain:messaging-domain",
+        "//bus/core/domain:messaging-domain",
     ],
 )
 
@@ -35,6 +35,6 @@ rust_test(
         ":audit-usecase",
         "//libs/oya-data-boundary-kernel:oya-data-boundary-kernel",
         "//audit/core/chain-domain:audit-chain-domain",
-        "//messaging/core/domain:messaging-domain",
+        "//bus/core/domain:messaging-domain",
     ],
 )

@@ -65,7 +65,7 @@ deliverables:
     exit_criteria: "ci/facade and governance/check contain only the D-17 keep set; cedar-deploy-parity and scan-root-liveness are gone; no new gate is a path/count freeze."
     verified_by: "presubmit"
   - id: ADR-0719-D18
-    description: "pipeline/ is TAP+Cloud Build; GHA disjoint; workflow/ and comms/ purged; rewrite workflow and notify; ci/ and messaging/ are retired names not live aliases; .github/scripts any-language glue."
+    description: "pipeline/ is TAP+Cloud Build; GHA disjoint; workflow/ and comms/ purged; rewrite workflow and notify; capability is bus/ not messaging/; ci/ is a retired path; .github/scripts any-language glue."
     exit_criteria: "ADR tables use pipeline/, bus/, notify/; workflow/ and comms/ trees absent; rust-first exclude_prefixes includes .github/scripts/; GHA YAML is not a face of pipeline/."
     verified_by: "presubmit"
   - id: ADR-0719-D19
@@ -445,7 +445,7 @@ privileged evidence; passkeys as L3; unpublished binary lock-in; EU-as-only-base
 cap-root census files; dual `cedar/`+`policy/` children; Istio/Linkerd as our
 mTLS identity; standing gRPC east-west; PQC/ECH as ADR prose with no crates;
 on-path QUIC MITM or ECH-off “enterprise mode”; a `firewall/` cap; `ci/` and
-`messaging/` as live aliases; new `cloud-*` crates or a `cloud/` root.
+`messaging/` as a live capability name; new `cloud-*` crates or a `cloud/` root.
 
 ### D-8 — Repo root and capability / app root (amends ADR-0701)
 
@@ -706,7 +706,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | GKE / EKS control plane (sold) | **k8s** | core: managed cluster (lifecycle, CP host, quota, CAPI). Adapter: upstream or owned apiserver when we run it (D-13). Store: cluster objects only (D-2). |
 | VPC / DNS / firewall / flow logs | **network** | core: dataplane, security groups (**allow** UDP/443), flow logs, QUIC metadata. Not Istio. Not a `firewall/` cap. |
 | Front door / GFE / WAF / IAP | **gateway** | core: one Connect contract (H3 default, H2 same framing), Maglev **per cell**. TLS port + WAF-after-decrypt + explicit-proxy crates. Transcode is not a second API. |
-| Pub/Sub / SQS | **bus** (retired tree name `messaging/`) | owned outbox + per-key order. Kafka/Pulsar = adapters. Not `notify`. |
+| Pub/Sub / SQS | **bus** | owned queue + fan-out + seekable stream + outbox; per-key order. Kafka/Pulsar = adapters. Not `notify`. |
 | Vertex / Bedrock | **intelligence** | core: inference + agent runtime + adapters. Not GuardDuty. Not a chat app. |
 | Step Functions / Composer | **workflow** | core: engine. Studio is facade. Business sagas, **not** deploy orchestrator (D-1). |
 | Cloud Build / TAP / CodePipeline | **pipeline** (retired tree name `ci/`) | core: graph-aware execution, queue, controller. GitHub is an **adapter**, not the product. |
@@ -742,7 +742,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
 | **network** | VPC/DNS/**dataplane**, security groups (allow UDP/443), `flow_log` + `quic_metadata` crates. Not Istio. | Public API door (`gateway`). A `firewall/` cap. Sidecar mesh as **our** identity. On-path QUIC decrypt. | Census. Istio/Linkerd as default. |
 | **gateway** | One Connect **contract** (H3 default, H2 same framing), N cell frontends, TLS + `waf` + `explicit_proxy` + `fingerprint` crates. Cloud IAP is this facade. | Mesh (`network`). Second REST/gRPC API. One global VIP. Transparent QUIC MITM. ECH-off “enterprise mode.” Per-pod IAP sidecar. Browser DLP as this cap’s core. | REST/gRPC dual-stack; connector leftover if it’s a second door. |
-| **bus** | Owned queue/bus/stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Inbox (`app/`). **Kafka/Pulsar as `core/`**. | Retired tree name `messaging/`: no new crates there. Kafka/Pulsar = **adapters** or a sold SKU facade, never SSOT. |
+| **bus** | Owned queue + fan-out bus + seekable stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar as `core/`**. Human chat. SES (`notify`). | Crate names still `messaging-*` (KEEP+WORK rename). Kafka/Pulsar = **adapters** only. |
 | **intelligence** | Vertex/Bedrock: inference + agent runtime. | Provider adapters, eval/proof, invoke facade. | GuardDuty (`detection/` **purged**). Chat copilot **app**. CLIs. Census YAML. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
 | **pipeline** | TAP + Cloud Build engines, queue, controller. | This repo’s `.github/` GHA. Census gates. | GHA stays disjoint; census already D-17. Retired tree name `ci/`: no new crates there. |
@@ -779,7 +779,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
 | **network** | Connect inside the cloud. | VPC, DNS snapshots, dataplane, security groups **allow UDP/443**, `flow_log`, `quic_metadata`. | Public API door (`gateway`). CDN/Interconnect as facades when sold. Istio/Linkerd as identity. A `firewall/` cap. Block QUIC. Payload decrypt. |
 | **gateway** | **One** north-south **contract**, many cell frontends. | Connect (H3 default, H2 same framing if UDP blocked), authn terminate, quota, Cedar, TLS port (hybrid ML-KEM, classical dying, ECH), `waf` after decrypt, `explicit_proxy` ZTNA, `fingerprint` (JA4 signal). Sold IAP = this facade. | Mesh (`network`). Second gRPC/REST door. One global VIP. Tenant SaaS APIs here. gRPC-Web operator UI. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. Endpoint DLP as core. |
-| **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: queue + fan-out bus + seekable stream; outbox; at-least-once; per-key order. Serving path never *is* a consume. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar/`core`**. MSK-class SKU only as a later facade. |
+| **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: **queue** (competing consumers), **bus** (fan-out subscriptions), **stream** (seekable cursor); transactional **outbox**; at-least-once; per-key order. Serving `Check` never *is* a consume. | Sagas (`workflow`). Mailbox / chat (`app/`). **Kafka or Pulsar as `core/`**. SES send (`notify`). A root named `messaging/`. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
 | **flags** | Dynamic config and kill switches. | Deterministic eval (`evaluation-domain`), targeting, kill switch, pack overlays. Connect facade. | App roadmaps. Census catalogs. **Clock adapter**. A/B experiment **product**. REST/gRPC/OpenAPI dual. OFREP as SSOT (OpenFeature may be an adapter). Helm source. |
@@ -817,45 +817,54 @@ Repo-root capabilities are the cloud provider. Every name is exactly one cell:
 
 |  | **DO** (should exist) | **DON'T** (must never exist) |
 |---|---|---|
-| **HAVE** (on this branch) | **DONE** — keep | **REMOVE** — delete or rewrite **here**; do not move |
+| **HAVE** (on this branch) | **DONE** — keep. If dump/ports remain: **KEEP+WORK** | **REMOVE** — delete or rewrite **here**; do not move |
 | **HAVE NOT** (absent) | **BUILD** — create in charter | **STAY GONE** — do not invent a home |
+
+**DONE** is not “finished product.” KEEP+WORK = engine stays; nested dump is REMOVE; missing ports are BUILD. Law names the **DO** root (`bus/`, `pipeline/`), never the retired path.
 
 No new `cloud-*` crates. REMOVE is not rehome.
 
-**DONE** (DO + HAVE)
+**DONE** (DO + HAVE, engine matches charter)
 
-- `cell/` engine + clock port
+- `cell/` engine + clock port (GNSS adapter still fail-closed — KEEP+WORK plant)
 - `tenancy/` engine
 - `iam/` who + `device_attestation` port
 - `secrets/`, `audit/`, `observability/` engines
-- `storage/` bytes engine; `data/` records engines (not `cloud-*`)
-- `compute/` (one cap); `k8s/` managed-cluster engine; `network/` dataplane
-- `intelligence/` inference (detection already gone)
+- `storage/` bytes; `data/` records (not `cloud-*`)
+- `compute/` (one cap); `k8s/` managed-cluster **engine**; `network/` dataplane
+- `bus/` kernels: queue + fan-out + stream + outbox (crate names `messaging-*` are KEEP+WORK rename, not a second slug)
+- `intelligence/` inference
 - `iac/` unifier; `billing/` platform meter; `marketplace/` plugin+SKU kernel; `compliance/`
 - `flags/core/evaluation-domain`
 - Meta: `docs/`, `governance/`, `build/`, `third-party/`, `packs/`, `app/` (composition only)
 
+**KEEP+WORK** (DO + HAVE, additional REMOVE or BUILD inside)
+
+- `iam/`: extract PDP → `policy/` (BUILD `policy/` same change)
+- `k8s/`, `data/`, `network/`: nested census REMOVE
+- `flags/`: cap-root dump + REST/gRPC `server` REMOVE; eval stays
+- `gateway/`: connector dump REMOVE; Connect door BUILD after
+- `pipeline/`: tree still `ci/` — git mv; census not product `core/`
+- `bus/`: rename `messaging-*` crate ids; Connect facade BUILD
+- `cell/`: PTP/GNSS bind when plant exists (adapters already named)
+
 **BUILD** (DO + HAVE NOT)
 
-- `policy/` — extract PDP crates from `iam/` in the same change as the directory
-- `gateway/` Connect/H3 door, TLS/WAF/IAP/fingerprint crates (after REMOVE of connectors)
-- `bus/` slug (tree is still `messaging/`)
-- `pipeline/` slug (tree is still `ci/`)
+- `policy/` — extract from `iam/` in the same change as the directory
+- `gateway/` Connect/H3 door, TLS/WAF/IAP/fingerprint/ECH crates **after** connector REMOVE
 - `workflow/` Step Functions — directory + `core/` in one PR
 - `notify/` SES send — directory + `core/` in one PR
-- `network/` `flow_log` + `quic_metadata`; `k8s/ports` `owned_journal`; `data/` `commit_wait` crate
-- `gateway/` TLS adapters (`tls13_hybrid_mlkem`, `tls13_x25519`, `ech`) after the dump is gone
+- `network/` `flow_log` + `quic_metadata`; `k8s/ports` `owned_journal`; `data/` `commit_wait`
 - `base/` only when the ≥3-caps rule admits the first crate
 
 **REMOVE** (DON'T + HAVE)
 
-- `gateway/` Workday/Slack/Salesforce/… connectors (iPaaS, second door)
-- `flags/` cap-root dump (catalog.yaml, IPs, Helm, REST+gRPC server, experiment dashboards)
-- Nested census in `k8s/`, `data/`, `iam/` (PDP files stay until BUILD `policy/`)
+- `gateway/` Workday/Slack/Salesforce/… connectors
+- `flags/` dump (catalog.yaml, IPs, Helm, REST+gRPC server, experiment dashboards)
+- Nested census; `ci/` as the live product name
 - Repo-root leftovers: `oya/`, `libs/`, `infra/`, `tools/`, `toolchains/`, `benchmarks/`, `evidence/`, `contracts/`, `registry/`, `scripts/`, `plan/`, `tasks/`, `specs/`, `kernel/`, `os/`
-- Retired names as **live** homes: new crates under `ci/` or `messaging/`
-- `cloud-*` crates still in tree; `CloudRegion`-class prefixes as a pattern
-- Cap-root IPs, AUDIT-FINDINGS, Helm source, OpenAPI product surfaces, `catalog.yaml`
+- A root named `messaging/` (retired; do not recreate)
+- `cloud-*` crates; cap-root IPs, AUDIT-FINDINGS, Helm source, OpenAPI product, `catalog.yaml`
 
 **STAY GONE** (DON'T + HAVE NOT)
 
@@ -863,15 +872,16 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - Island-class browser as a cloud root; `payments/` and `ledger/` as **caps** (products, §7)
 - Kafka as `bus/` core; GHA as `pipeline/` core; Istio as identity; on-path QUIC MITM
 - New `cloud-*` names; EU-as-world-floor; REST+gRPC as a standing product
+- Search/detection/GPU/CDN as **roots** (facades of `data/`/`compute/`/`network/` if sold)
 
-`app/hr` `app/payroll` `app/calendar` `app/community` `app/sheets` `app/global-trade` are HAVE and **not caps** — apps discussion, not D-19 BUILD.
+`app/hr` `app/payroll` `app/calendar` `app/community` `app/sheets` `app/global-trade` are HAVE and **not caps**. Apps ADR after the cloud set is settled.
 
-**MUST (DONE / BUILD / REMOVE / STAY GONE; no cloud-* debt)**
+**MUST (DONE / KEEP+WORK / BUILD / REMOVE / STAY GONE; no cloud-* debt)**
 
-- **achieves:** placement is a 2×2, not a vibe; dumps cannot “move to the right cap.”
-- **origin:** need/have/don't still let agents treat REMOVE as BUILD-elsewhere; `cloud-*` recreated `cloud/`.
-- **rule:** DO+HAVE = keep; DO+HAVE NOT = build in charter; DON'T+HAVE = remove here; DON'T+HAVE NOT = stay gone; no new `cloud-*`; REMOVE is not rehome.
-- **ensure:** new crates are BUILD or DONE; PRs that add STAY GONE names or rehome REMOVE dumps fail review.
+- **achieves:** placement is a 2×2; DONE is not finished; law never treats a retired slug as live.
+- **origin:** calling the bus `messaging/` in the ADR recreated the alias; dumps “moved” instead of dying.
+- **rule:** DO+HAVE = DONE or KEEP+WORK; DO+HAVE NOT = BUILD in charter; DON'T+HAVE = REMOVE here; DON'T+HAVE NOT = STAY GONE; capability id is `bus/` not `messaging/`; no new `cloud-*`; REMOVE is not rehome.
+- **ensure:** new crates land under the DO name (`bus/`, `pipeline/`); PRs that add STAY GONE names, a `messaging/` root, or rehome REMOVE dumps fail review.
 - **overturn_when:** a §7 split/merge changes DO/DON'T with five fields same-wave.
 
 ### D-16 — `console/` is not a capability; discard the pilot
@@ -977,13 +987,14 @@ workspace member; no shared crate with a capability; no `npm install` / `pip ins
 / `go get` on the presubmit path (pin a binary or a file in that directory). The
 exception **dies with GHA**. It is not a license to grow `scripts/` or `tools/`.
 
-**`bus/`.** `messaging/` collides with human chat. Live slug is **`bus/`**.
-Tree name `messaging/` is **retired**, not an alias: no new crates there.
-Engine is **owned**. Google Pub/Sub / AWS SQS+SNS — not Kafka. Kafka and
-Pulsar are **adapters** (or a sold “bring Kafka” facade crate — deleting
-the facade **name** is born-blocking; it is not `core/`). They are not
-the serving path, not the outbox store. D-1 still applies: Check/IR/tuples
-are not a broker log.
+**`bus/`.** Capability root is **`bus/`**. What goes here: owned **queue**
+(competing consumers), **fan-out bus**, **seekable stream**, plus
+transactional **outbox**. At-least-once; per-key order only. Analog:
+Google Pub/Sub, AWS SQS+SNS, Azure Service Bus. Kafka/Pulsar are
+**adapters** (or a sold protocol facade crate — not `core/`). Not the
+serving path, not the outbox store, not mailbox, not sagas, not SES.
+D-1: Check/IR/tuples are not a broker log. A directory named
+`messaging/` is **REMOVE**, not an alias.
 
 **MUST (owned bus, not Kafka)**
 
@@ -1007,7 +1018,7 @@ the send charter.
 **`workflow/`.** Current tree is n8n/SaaS/bus/forms/tasks, not Step Functions.
 **Purge** (`git rm -r workflow/`). Keep the **registry row** as the rewrite
 destination. No empty scaffold. Do **not** strangler event-bus crates into
-`bus/` from this junk — `messaging/` (→ `bus/`) already has kernels. Rewrite the
+`bus/` from this junk — `bus/` already has kernels. Rewrite the
 saga engine from the D-15 charter (proto/H3, studio as facade). Forms/tasks wait
 for the apps discussion.
 
@@ -1019,8 +1030,8 @@ for the apps discussion.
   disjoint; rust-first does not scan `.github/scripts/`; `workflow/` implementation
   is gone pending rewrite.
 - **ensure:** no new GHA glue outside `.github/scripts/` and workflow YAML; no
-  `workflow/` dump resurrection; no new crates under retired `ci/` or
-  `messaging/`; moving trees must not carry D-17 gates into product `core/`.
+  `workflow/` dump resurrection; no new crates under `ci/` (retired);
+  moving trees must not carry D-17 gates into product `core/`.
 - **overturn_when:** `pipeline/` runs this repo and GHA is deleted same-wave, or a
   five-field ADR names a different sold slug.
 
@@ -1075,7 +1086,8 @@ for the apps discussion.
   into a capability `core/`.
 - Strangler-moving `workflow/` event-bus/saas/forms into `bus/` or `app/`
   instead of purge+rewrite.
-- Keeping the slug `messaging/` (collides with `comms`).
+- Keeping the slug `messaging/` as a live capability name (collides with
+  `comms`). Law and registry are `bus/`.
 - Allowing shell/Python/Go under `scripts/` or `tools/` because `.github/scripts`
   is allowed. The exception is prefix-exact.
 - Keeping `comms/` as a cloud cap (mailbox/Meet/messenger/calendar). Those are
