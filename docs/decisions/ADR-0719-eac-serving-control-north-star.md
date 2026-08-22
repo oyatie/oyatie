@@ -416,13 +416,11 @@ store PII and does not sync-append every `Check`.
 - **origin:** “strictest common subset = EU” fails KR (CSAP, 본인인증, RRN, e-tax, K-GAAP
   retention) and fails CN localization; DORA/AI Act/eIDAS are not universal.
 - **rule:** jurisdiction law is **pack overlay** on the same IR/Cedar/ReBAC/cells.
-  A pack is a **jurisdiction**, not a country stamp. **EU is not a country**
-  (`packs/eu` = Union instruments: GDPR, DORA, NIS2, eIDAS, Data Act, CRA —
-  member states are not this pack’s id). **v1 packs:** `packs/us`, `packs/eu`,
-  `packs/jp`, `packs/kr` only. Other jurisdiction dirs are not v1. Structural
-  controls that help many regimes (crypto-shred, certified cells, purpose in
-  Cedar, two-class evidence, published proto + event-log export) live in the
-  platform; the rest lives in the pack.
+  **EU is not a country.** v1 **namespaces:** `us`, `eu`, `jp`, `kr`.
+  **Packages** inside a namespace are granular (instrument/program), not
+  the whole namespace. Binding is a **union** of package ids. Structural
+  controls that help many regimes live in the platform; the rest lives in
+  packages.
 - **ensure:** no PR encodes EU-only identity or worldwide ACL replica as default; cell
   placement refuses a pack that exceeds the cell’s certification (E18); no PR
   invents `packs/kr-eu` combinatoric ids; extra jurisdiction dirs beyond
@@ -433,43 +431,46 @@ store PII and does not sync-append every `Check`.
 EU next-decade instruments (GDPR tightening, DORA, NIS2, AI Act, Data Act, CRA, eIDAS 2)
 are **inputs to `packs/eu`**, not a reason to delete KR-shaped L3 or legal-retention
 classes. Data Act switching is a **control-plane dump** of the event log and proofs, not a
-JSON public API. Member states (DE, FR, …) **bind `packs/eu`** until a
-member-state pack exists. They are not `packs/eu`’s id.
+JSON public API. Member states (DE, FR, …) bind **`eu/*` packages**
+(at least `eu/gdpr` when GDPR attaches) until a member-state package
+exists. They are not `packs/eu` as one blob.
 
-**Cross-jurisdiction (no combinatoric pack).** Company A operating in
-jurisdiction B, customer C in jurisdiction D — three axes, not one
-tenant stamp:
+**Granular packages; union as the binding.** A namespace is not one blob.
+Packages inside it are the unit: `eu/gdpr`, `eu/dora`, `eu/eidas`,
+`kr/pipa`, `kr/csap`, `us/hipaa`. DORA does not attach because someone
+touched `packs/eu`. HIPAA is not “the US pack.”
 
-| Axis | Example | Pack binding |
-|---|---|---|
-| Operator establishment | A (KR-inc.) **operates in** B (JP) | `packs/jp` (and A’s home `packs/kr` if that law still attaches) |
-| Data subject | Customer C **of** D (DE) | D is an EU member → **`packs/eu`**, not a DE country pack in v1 |
-| Processing cell | Where the **bytes** live | Cell `certified_for` must be a **superset** of `required_packs` on those bytes |
+**Union:** `required` and `certified_for` are sets of **package ids**.
+Binding = union of packages that actually attach (establishment, data
+subject, purpose, sector). Placement: `required ⊆ certified_for` (cell
+covers the union). Do not mint `packs/kr-eu`. The union applies **all**
+selected constraints; contradiction on the **same bytes** fail-closes or
+splits by data-class — never “strictest common subset.”
 
-`required_packs` is on the **record / purpose / data-class**, not a single
-pack on the tenant. Tenant `{kr, jp, eu}` is a **set**. `{kr, eu}` is not
-`packs/kr-eu` (explosion). Placement: `required_packs ⊆ cell.certified_for`.
-Empty intersection → **fail closed**. If two packs contradict for the
-**same bytes** (KR-only AND EU-only residency), split by data-class
-(EU PII in an eu-certified cell, KR RRN in a kr-certified cell) or
-refuse the feature. No silent global replica (D-5). Cross-cell `Check`
-stays an explicit Cedar’d hop. Sector programs (HIPAA, PCI) compose the
-same way: extra ids in the set, not a country rename.
+**A in B, customer C from D.** KR company operating in JP, German
+customer: that customer’s personal data might union
+`{jp/appi, kr/pipa, eu/gdpr}` — not the entire `packs/jp` blob, not a
+DE country id (member state → `eu/*` packages). JP payroll for the
+company might be `{jp/appi}` only.
 
-**MUST (packs: jurisdiction set, not a country stamp)**
+Empty per-instrument directories are not v1. Package ids live in Cedar+IR
+the loader understands.
 
-- **achieves:** A-in-B-with-C-from-D without GDPR-floor or N² pack ids.
-- **origin:** markdown country trees; EU treated as a country; tenant had
-  one pack; combinatoric `kr-eu` packs.
-- **rule:** v1 packs are `us`, `eu`, `jp`, `kr` only; EU is Union law not
-  a country; composition is a **set** on record/purpose; cell must cover
-  the set; conflict on the same bytes fail-closes or splits; no
-  `packs/<a>-<b>` ids.
-- **ensure:** no new pack dir outside {us,eu,jp,kr} without a five-field
-  pack ADR; no PR that assigns one pack to a whole tenant as the only
-  law; loaders consume Cedar+IR, not README.
-- **overturn_when:** a five-field ADR adds a jurisdiction pack or a
-  member-state pack with a loader same-wave.
+**MUST (packs: granular union, not a country stamp)**
+
+- **achieves:** A-in-B-with-C-from-D without GDPR-floor, N² ids, or DORA
+  for every EU tenant.
+- **origin:** markdown country trees; EU as a country; one pack per
+  tenant; combinatoric `kr-eu`; namespace implied every instrument.
+- **rule:** v1 namespaces `us`, `eu`, `jp`, `kr`; EU is Union law not a
+  country; packages are granular; binding is **union** of package ids on
+  the record/purpose; cell covers that union; conflict fail-closes or
+  splits; no `packs/<a>-<b>` ids.
+- **ensure:** no new namespace outside {us,eu,jp,kr} without a five-field
+  pack ADR; no PR that assigns one blob to a whole tenant as the only
+  law; no empty per-instrument dirs; loaders consume Cedar+IR, not README.
+- **overturn_when:** a five-field ADR adds a namespace or member-state
+  package with a loader same-wave.
 
 ### D-7 — 3-year no-regret / regret
 
@@ -834,7 +835,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
 | **compliance** | Evidence **engine** for the platform. | Load packs, data-class registry, evidence export. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA files. |
 | **notify** | Transactional **delivery** (SES / SNS / FCM). | Send email/SMS/push; bounce/complaint; DKIM/SPF/DMARC; optional inbound **to the bus** (SES-receive analog). | **Mailbox** (IMAP/JMAP/webmail), Meet, Messenger, calendar, contact-center — later `app/`. Emergency clinical. Current `comms/` tree (purged). |
-| **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | v1: `us`, `eu` (Union, **not a country**), `jp`, `kr`. Cedar+IR; cell certification; **set composition** for A-in-B-with-C-from-D. | Copied into each cap. EU as world floor. EU as a country. Combinatoric `packs/kr-eu`. Extra v1 country dirs. Markdown as the pack. OVH/AWS provider YAML. |
+| **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | v1 namespaces `us`, `eu` (Union, **not a country**), `jp`, `kr`. **Granular packages**; binding = **union** of package ids; cell covers the union. Cedar+IR. | Copied into each cap. EU as world floor. EU as a country. Combinatoric `packs/kr-eu`. `packs/eu` implying DORA. Extra v1 namespaces. Markdown as the pack. Empty per-instrument dirs. OVH/AWS YAML. |
 
 **Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS), **`console/`** (D-16 — discarded pilot, not a shell engine). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
 
