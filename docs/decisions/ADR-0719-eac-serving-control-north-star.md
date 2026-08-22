@@ -45,7 +45,7 @@ deliverables:
     exit_criteria: "This table is the placement reading; new engines go in an existing cap or a §7 registry split, not a new root dump; app/ is composition only."
     verified_by: "presubmit"
   - id: ADR-0719-D13
-    description: "Fleet is stripped-minimum Linux guests on Cloud Hypervisor and/or Firecracker. Not Asterinas (never). Not Talos/kube as the cloud OS. Delete kernel/ and os/. compute/ agent is the Borglet analog."
+    description: "Fleet is stripped-minimum Linux on Cloud Hypervisor and/or Firecracker. Asterinas/Hermit are not plant today; reconsider only with a measured five-field ADR. Not Talos/kube as the cloud OS. Delete kernel/ and os/."
     exit_criteria: "kernel/ and os/ are absent from the tree and from the capability-registry meta_directories; AGENTS.md/CLAUDE.md no longer list them as production rungs; port-engine remains under build/."
     verified_by: "presubmit"
   - id: ADR-0719-D14
@@ -619,9 +619,10 @@ pre-created; it appears only when the first crate admitted under the ≥3-caps-b
 rule. `governance/` is a **capability** (checks + `capability-registry.json`).
 **No `kernel/` and no `os/` rungs.** Fleet is **stripped-minimum Linux**
 on **Cloud Hypervisor** and/or **Firecracker** (`compute/`). Not Talos,
-not kubelet, **not Asterinas**. Asterinas **will not work** as our kernel;
-do not vendor, evaluate, or pin it as destination. In-tree Talos/Asterinas
-output is **deleted**. `os/ports/kernel-abi` dies with `os/`.
+not kubelet, **not Asterinas/Hermit today**. Do not vendor or leave an
+evaluation tree. Reconsider Linux replacement only per D-13
+`overturn_when`. In-tree Talos/Asterinas output is **deleted**.
+`os/ports/kernel-abi` dies with `os/`.
 Composition: `app/`. One directory per **registered** capability (including `policy/`
 the **engine**). Jurisdiction: `packs/<id>/` one versioned bundle the engines load.
 `docs/` = ADRs + operating contract. **No catch-all `specs/`.** Machine contracts live
@@ -689,9 +690,12 @@ cloud OS. Google: Linux + **Borglet**. Meta: Linux + **Twine**. AWS:
 **Nitro** + **Firecracker** (Lambda/microVM) / KVM VMs — not Talos.
 Talos is a **Kubernetes node** OS. GKE nodes are COS/Ubuntu, not Talos.
 
-**Honest constraint: Asterinas will never work** as our node kernel.
-Delete `kernel/`. Do not vendor it. Do not leave an “evaluation” pin
-as a destination.
+**Honest constraint today: Asterinas is not a working node kernel for
+us.** Delete `kernel/`. Do not vendor it. Do not leave an evaluation
+tree as a destination. **Reconsider** replacing Linux **only when**
+Asterinas **or Hermit** (or an equally measured unikernel/kernel) is
+mature **and** a five-field ADR cuts over with plant evidence. That is
+not a vacant `kernel/` rung and not a pin “in case.”
 
 **Our fleet:** **stripped-to-minimum Linux** guests, scheduled by
 **`compute/` + `cell/`**, running on:
@@ -774,7 +778,7 @@ state), not into an `os/` keep.
 | `os/ports/kernel-abi` | none worth keeping | **Delete** with `os/`. |
 | `os/harness/*` | workspace glob | **Delete** with `os/` or fold into `k8s/` only if it tests k8s, not Talos-port. |
 | `infra/talos/**` | local kube bring-up | **`k8s/adapters`** only if we sell that worker image; else **delete**. Not fleet OS. |
-| `kernel/**` Asterinas | nested workspace only | **Delete.** Do not vendor. It will not be the node kernel. |
+| `kernel/**` Asterinas | nested workspace only | **Delete.** No pin. Reconsider only via D-13 overturn_when. |
 
 Census JSON (`registry/graph`, manifests) **regenerates or dies** with the dirs. It is
 not a destination.
@@ -785,15 +789,17 @@ not a destination.
   the cloud OS; no empty rungs.
 - **origin:** kuberos deleted; Talos port farm remained as if Sidero were the
   hyperscaler node story.
-- **rule:** in-tree `kernel/` and `os/` are gone; **Asterinas is never the
-  kernel**; fleet is **stripped Linux** on **Cloud Hypervisor and/or
-  Firecracker**; agent is `compute/`; Talos/kube are not operations plant;
-  sold `k8s/` may wrap upstream kube as a SKU.
-- **ensure:** registry has no `kernel/` or `os/`; no Asterinas pin; no PR
-  treats Talos as the fleet OS; new VM/microVM code is CH/Firecracker
-  adapters under `compute/`.
-- **overturn_when:** a five-field ADR names a different VMM or kernel
-  **other than Asterinas** with measured plant.
+- **rule:** in-tree `kernel/` and `os/` are gone; fleet is **stripped
+  Linux** on **Cloud Hypervisor and/or Firecracker**; agent is
+  `compute/`; Asterinas/Hermit are **not** plant today and not a git
+  pin; Talos/kube are not operations; sold `k8s/` may wrap upstream kube.
+- **ensure:** registry has no `kernel/` or `os/`; no Asterinas/Hermit
+  evaluation tree; no PR treats Talos as the fleet OS; new VM/microVM
+  code is CH/Firecracker adapters under `compute/`.
+- **overturn_when:** Asterinas **or Hermit** (or equal) is measured
+  mature **and** a five-field ADR replaces Linux as the guest kernel
+  same-wave, with CH/Firecracker still the VMM unless that ADR also
+  changes the VMM.
 
 **MUST (ADR override)**
 
@@ -967,7 +973,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO apply. | Hand OpenSLO novels. SIEM as a 25th cap. App product analytics. |
 | **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; drive/recordings as byte **facades**. Identity = digest/generation. | Any **query engine**. Spanner/Cockroach/RDS. BigQuery. Search. Clock as object identity. |
 | **data** | Durable **records** + query engines. | OLTP/OLAP/pipelines/ontology. Consumes cell `Now() → Interval`. Versionstamps as engine ordinal. `commit_wait` crate present, IR off without measured ε. | Bytes (`storage`). **BI product** (`app/`). **Web search / SERP**. **RAG** (`intelligence` facade if sold). **`cloud-*` crate names.** A second TrueTime. |
-| **compute** | Run **the fleet** (Borg/Twine/Nitro analog). | Stripped Linux on **Cloud Hypervisor** (VM) and **Firecracker** (microVM/functions). Agent is ours. Optional k8s-on-compute **SKU**. GPU as facade when sold. | GKE as the fleet. Talos as the fleet OS. Asterinas. QEMU as identity. One Raft. |
+| **compute** | Run **the fleet** (Borg/Twine/Nitro analog). | Stripped Linux on **Cloud Hypervisor** (VM) and **Firecracker** (microVM/functions). Agent is ours. Optional k8s-on-compute **SKU**. GPU as facade when sold. | GKE as the fleet. Talos as the fleet OS. Asterinas/Hermit **today**. QEMU as identity. One Raft. |
 | **k8s** | **Sold** GKE/EKS/AKS-class SKU. | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **upstream** kube adapter (EKS pattern). | Our Borg (`compute/`+`cell/`). A kubernetes.git port as operations. Node OS. Mesh. Public door. Empty `k8s-port/`. |
 | **network** | Connect inside the cloud. | VPC, DNS, **TCP-optimized** dataplane; UDP/443 **north-south**; `flow_log`, `quic_metadata`. | Public door (`gateway`). QUIC as the in-cell RPC plant. Istio. `firewall/` cap. Block public QUIC. Payload decrypt. |
 | **gateway** | **One** north-south **contract**, many cell frontends. | Public **H3/QUIC**; H2 if path cannot UDP. East-west is **not** this door’s plant (TCP in-cell). TLS/ECH/WAF/IAP/fingerprint as above. | Mesh. Second gRPC/REST door. QUIC-mandatory east-west. One global VIP. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. |
@@ -1287,8 +1293,9 @@ implementation is gone pending rewrite; no dump resurrection.
   fleet is `compute/`+`cell/`. Sold `k8s/` wraps **upstream**.
 - Talos (Sidero) as the fleet node OS. Hyperscalers do not run Talos.
   Talos is a kube-node OS; at most a sold-SKU worker image.
-- Asterinas as the node kernel (it will not work). QEMU as the compute
-  identity. Kubernetes as the cloud OS.
+- Asterinas or Hermit as **today’s** node kernel or a vacant `kernel/`
+  rung “until it matures.” QEMU as the compute identity. Kubernetes as
+  the cloud OS. Talos as the fleet OS.
 - CUE+Timoni or Haskell as EaC wrap.
 - Public JSON/REST as the destination codec.
 - Standing gRPC (public or east-west) because a mesh automates HTTP/2,
