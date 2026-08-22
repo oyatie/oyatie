@@ -482,6 +482,39 @@ no in-process PDP only we can call. CaS is a **facade of `compliance/`
 + `policy/` Check**, not a `packs/` capability and not a second door.
 `packs/` remains data the engines load.
 
+**Realization (adversarial — do not build a second PDP).**
+
+Hyperscalers do **not** recompute “GDPR ∪ APPI ∪ PIPA” as a custom
+algebra on every RPC. They split:
+
+| Plane | AWS / Google | Us |
+|---|---|---|
+| **Control** | Org policy, Assured Workloads, VPC-SC, region | Cell `certified_for` + pack IR placement. CSAP, DORA, FedRAMP-class packages live **here**. They are not a per-payment Check. |
+| **Serving** | IAM / Cedar on the call | In-process `policy/` Check. Pack **Cedar fragments** are already in the cell snapshot. |
+| **Evidence** | Artifact / Audit | `compliance/` CaS catalog, bind, export — **not** a DIY evaluator |
+
+**Challenges that fail if we ignore them:**
+
+1. **“Union” ≠ Cedar permit-OR.** Regulatory composition is **conjunction
+   of forbids/obligations**. A custom unioner beside Cedar is a second
+   PDP. Compile enabled fragments into the snapshot; Cedar’s forbid
+   wins. Do not implement pack-algebra on the hit path.
+2. **DORA/CSAP on a profile `Get` is a category error.** Package IR has
+   `plane: serving | control`. Control packages do not enter every
+   Check union.
+3. **“Any dimension” without schema is README.** A projection dimension
+   **is** a Cedar schema attribute (principal/action/resource/context)
+   already on the request. New dimension = schema+IR version, not a
+   free string.
+4. **CaS “evaluate packs” for apps is a second Check.** First-party and
+   third-party apps are **PEPs**: they call product RPCs that already
+   Check. CaS is bind/list/preview/evidence. Plugins do not re-implement
+   GDPR.
+5. **Fetching `packs/` on Check** violates D-1. Snapshot is compiled at
+   pack bind / cell certify. Request-time only supplies context.
+6. **Zanzibar tuples are not pack ids.** Do not encode `eu/gdpr` as a
+   ReBAC group. Packs overlay policy; tuples stay relationships.
+
 **MUST (packs: granular union, not a country stamp)**
 
 - **achieves:** A-in-B-with-C-from-D without GDPR-floor, N² ids, or DORA
@@ -489,20 +522,17 @@ no in-process PDP only we can call. CaS is a **facade of `compliance/`
 - **origin:** markdown country trees; EU as a country; one pack per
   tenant; combinatoric `kr-eu`; namespace implied every instrument.
 - **rule:** v1 namespaces `us`, `eu`, `jp`, `kr`; EU is Union law not a
-  country; packages are granular; each package **projects** onto
-  request dimensions (Principal, Action, Resource, Context — client,
-  transaction, record, routing, cell, purpose, acr, …); the set is not
-  closed: if compliance attaches, it is projectable; a Check **unions**
-  matching projections only; not blanket tenant apply; cell covers
-  packages that project onto those bytes; conflict fail-closes or
-  splits; no `packs/<a>-<b>` ids; packs are CaC; consume is CaS on the
-  public door; first-party and third-party apps use the same CaS;
-  `packs/` is not a cap.
+  country; packages are granular CaC (Cedar+IR); each **projects** via
+  Cedar schema (P/A/R/Ctx); Check evaluates compiled fragments in the
+  cell snapshot — no pack-algebra engine, no pack fetch on the hit path;
+  `plane: serving | control`; CaS is catalog/bind/evidence not a second
+  PDP; apps and marketplace plugins are PEPs of the same Check; no
+  `packs/<a>-<b>` ids; `packs/` is not a cap.
 - **ensure:** no new namespace outside {us,eu,jp,kr} without a five-field
-  pack ADR; no PR that assigns one blob to a whole tenant as the only
-  law; no PR that blanket-applies `eu/*` to every Check; no empty
-  per-instrument dirs; loaders consume Cedar+IR with projection, not
-  README; no private pack API for `app/`.
+  pack ADR; no PR that blanket-applies a namespace; no PR that loads
+  `packs/` on Check; no PR that adds a pack-unioner beside Cedar; no
+  private pack API for `app/`; control-plane packages are not serving
+  Check predicates.
 - **overturn_when:** a five-field ADR adds a namespace or member-state
   package with a loader same-wave.
 
@@ -1190,6 +1220,10 @@ implementation is gone pending rewrite; no dump resurrection.
 - EU GDPR as the sole compliance floor. EU as a country pack id. Combinatoric
   `packs/kr-eu` (or A×B×C×D pack ids) instead of a set on the record.
   Treating the tenant’s home country as the only pack.
+- A pack-union engine beside Cedar. Fetching packs on Check. CaS as a
+  DIY PDP for apps. DORA/CSAP as a per-RPC serving predicate. Encoding
+  pack ids as ReBAC groups. Projection dimensions as free strings
+  outside the Cedar schema.
 - Mega EaC orchestrator / remote PDP on the hit path.
 - Sync Merkle on every `Check`.
 - Cap-root `catalog.yaml` / `manifest.json` as allowlist debt.
