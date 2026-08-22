@@ -415,19 +415,61 @@ store PII and does not sync-append every `Check`.
 - **achieves:** sell KR and EU (and later US/others) without a fake global GDPR floor.
 - **origin:** “strictest common subset = EU” fails KR (CSAP, 본인인증, RRN, e-tax, K-GAAP
   retention) and fails CN localization; DORA/AI Act/eIDAS are not universal.
-- **rule:** jurisdiction law is **pack overlay** on the same IR/Cedar/ReBAC/cells. EU is
-  one pack (`packs/eu`). KR is one pack (`packs/kr`). Structural controls that help many
-  regimes (crypto-shred, certified cells, purpose in Cedar, two-class evidence, published
-  proto + event-log export) live in the platform; the rest lives in the pack.
+- **rule:** jurisdiction law is **pack overlay** on the same IR/Cedar/ReBAC/cells.
+  A pack is a **jurisdiction**, not a country stamp. **EU is not a country**
+  (`packs/eu` = Union instruments: GDPR, DORA, NIS2, eIDAS, Data Act, CRA —
+  member states are not this pack’s id). **v1 packs:** `packs/us`, `packs/eu`,
+  `packs/jp`, `packs/kr` only. Other jurisdiction dirs are not v1. Structural
+  controls that help many regimes (crypto-shred, certified cells, purpose in
+  Cedar, two-class evidence, published proto + event-log export) live in the
+  platform; the rest lives in the pack.
 - **ensure:** no PR encodes EU-only identity or worldwide ACL replica as default; cell
-  placement refuses a pack that exceeds the cell’s certification (E18).
+  placement refuses a pack that exceeds the cell’s certification (E18); no PR
+  invents `packs/kr-eu` combinatoric ids; extra jurisdiction dirs beyond
+  us/eu/jp/kr are not v1.
 - **overturn_when:** a single jurisdiction is the only remaining market AND a replacement
   ADR says so.
 
 EU next-decade instruments (GDPR tightening, DORA, NIS2, AI Act, Data Act, CRA, eIDAS 2)
 are **inputs to `packs/eu`**, not a reason to delete KR-shaped L3 or legal-retention
 classes. Data Act switching is a **control-plane dump** of the event log and proofs, not a
-JSON public API.
+JSON public API. Member states (DE, FR, …) **bind `packs/eu`** until a
+member-state pack exists. They are not `packs/eu`’s id.
+
+**Cross-jurisdiction (no combinatoric pack).** Company A operating in
+jurisdiction B, customer C in jurisdiction D — three axes, not one
+tenant stamp:
+
+| Axis | Example | Pack binding |
+|---|---|---|
+| Operator establishment | A (KR-inc.) **operates in** B (JP) | `packs/jp` (and A’s home `packs/kr` if that law still attaches) |
+| Data subject | Customer C **of** D (DE) | D is an EU member → **`packs/eu`**, not a DE country pack in v1 |
+| Processing cell | Where the **bytes** live | Cell `certified_for` must be a **superset** of `required_packs` on those bytes |
+
+`required_packs` is on the **record / purpose / data-class**, not a single
+pack on the tenant. Tenant `{kr, jp, eu}` is a **set**. `{kr, eu}` is not
+`packs/kr-eu` (explosion). Placement: `required_packs ⊆ cell.certified_for`.
+Empty intersection → **fail closed**. If two packs contradict for the
+**same bytes** (KR-only AND EU-only residency), split by data-class
+(EU PII in an eu-certified cell, KR RRN in a kr-certified cell) or
+refuse the feature. No silent global replica (D-5). Cross-cell `Check`
+stays an explicit Cedar’d hop. Sector programs (HIPAA, PCI) compose the
+same way: extra ids in the set, not a country rename.
+
+**MUST (packs: jurisdiction set, not a country stamp)**
+
+- **achieves:** A-in-B-with-C-from-D without GDPR-floor or N² pack ids.
+- **origin:** markdown country trees; EU treated as a country; tenant had
+  one pack; combinatoric `kr-eu` packs.
+- **rule:** v1 packs are `us`, `eu`, `jp`, `kr` only; EU is Union law not
+  a country; composition is a **set** on record/purpose; cell must cover
+  the set; conflict on the same bytes fail-closes or splits; no
+  `packs/<a>-<b>` ids.
+- **ensure:** no new pack dir outside {us,eu,jp,kr} without a five-field
+  pack ADR; no PR that assigns one pack to a whole tenant as the only
+  law; loaders consume Cedar+IR, not README.
+- **overturn_when:** a five-field ADR adds a jurisdiction pack or a
+  member-state pack with a loader same-wave.
 
 ### D-7 — 3-year no-regret / regret
 
@@ -792,7 +834,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
 | **compliance** | Evidence **engine** for the platform. | Load packs, data-class registry, evidence export. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA files. |
 | **notify** | Transactional **delivery** (SES / SNS / FCM). | Send email/SMS/push; bounce/complaint; DKIM/SPF/DMARC; optional inbound **to the bus** (SES-receive analog). | **Mailbox** (IMAP/JMAP/webmail), Meet, Messenger, calendar, contact-center — later `app/`. Emergency clinical. Current `comms/` tree (purged). |
-| **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | Cedar+ontology+constraints per region. | Copied into each cap. EU as world floor. |
+| **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | v1: `us`, `eu` (Union, **not a country**), `jp`, `kr`. Cedar+IR; cell certification; **set composition** for A-in-B-with-C-from-D. | Copied into each cap. EU as world floor. EU as a country. Combinatoric `packs/kr-eu`. Extra v1 country dirs. Markdown as the pack. OVH/AWS provider YAML. |
 
 **Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS), **`console/`** (D-16 — discarded pilot, not a shell engine). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
 
@@ -839,7 +881,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `intelligence/` inference
 - `iac/` unifier; `billing/` platform meter; `marketplace/` plugin+SKU kernel; `compliance/`
 - `flags/core/evaluation-domain`
-- Meta: `docs/`, `governance/`, `build/`, `third-party/`, `packs/`, `app/` (composition only)
+- Meta: `docs/`, `governance/`, `build/`, `third-party/`, `packs/` (v1: us, eu, jp, kr), `app/` (composition only)
 
 **KEEP+WORK** (DO + HAVE, additional REMOVE or BUILD inside)
 
@@ -850,6 +892,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `pipeline/`: path is `pipeline/`; contents are not the product (Prow/Tide/census). BUILD execute core; REMOVE JSON gates and Tide-as-core
 - `bus/`: rename `messaging-*` crate ids; Connect facade BUILD
 - `cell/`: PTP/GNSS bind when plant exists (adapters already named)
+- `packs/`: KEEP us/eu/jp/kr; BUILD Cedar+IR loader; REMOVE markdown/OVH YAML and extra jurisdiction dirs (`au br cn in ksa mx`)
 
 **BUILD** (DO + HAVE NOT)
 
@@ -874,7 +917,8 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `cloud/`, `console/`, `comms/`, `time/`, `firewall/`, `k8s-port/`, empty `kernel/`/`os/`/`policy/`/`workflow/`/`notify/` scaffolds
 - Island-class browser as a cloud root; `payments/` and `ledger/` as **caps** (products, §7)
 - Kafka as `bus/` core; GHA as `pipeline/` core; Istio as identity; on-path QUIC MITM
-- New `cloud-*` names; EU-as-world-floor; REST+gRPC as a standing product
+- New `cloud-*` names; EU-as-world-floor; EU as a country; combinatoric
+  pack ids; REST+gRPC as a standing product
 - Search/detection/GPU/CDN as **roots** (facades of `data/`/`compute/`/`network/` if sold)
 
 `app/hr` `app/payroll` `app/calendar` `app/community` `app/sheets` `app/global-trade` are HAVE and **not caps**. Apps ADR after the cloud set is settled.
@@ -1108,7 +1152,9 @@ implementation is gone pending rewrite; no dump resurrection.
   because the current home is wrong. Wrong-home burns or rewrites; it
   does not change address.
 - Zanzibar global tuple replica.
-- EU GDPR as the sole compliance floor.
+- EU GDPR as the sole compliance floor. EU as a country pack id. Combinatoric
+  `packs/kr-eu` (or A×B×C×D pack ids) instead of a set on the record.
+  Treating the tenant’s home country as the only pack.
 - Mega EaC orchestrator / remote PDP on the hit path.
 - Sync Merkle on every `Check`.
 - Cap-root `catalog.yaml` / `manifest.json` as allowlist debt.
