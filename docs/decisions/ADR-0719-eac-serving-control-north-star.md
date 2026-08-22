@@ -995,7 +995,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **bus** | Owned queue + fan-out bus + seekable stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar as `core/`**. Human chat. SES (`notify`). | Crate names still `messaging-*` (KEEP+WORK rename). Kafka/Pulsar = **adapters** only. |
 | **intelligence** | Vertex/Bedrock: **invoke**, endpoints, batch, quota. Hosted-agent **SKU**. GPUs **rented from `compute/`**. RAG = facade over `data/`. | Copilot UX. Chat CLI/SDK as core. GPU plant. GuardDuty. A vector store. | Claude/Codex/OpenAI-compat dumps; `authz-cedar-adapter`; CLIs. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
-| **pipeline** | One execute engine (graph, queue, workers, controller). | `.github/` GHA as the product. Prow/Tide as `core/`. JSON policy crates as the product. A root named `ci/`. | KEEP+WORK: today’s tree is not the product. Census/JSON gates REMOVE. Tide/webhook = GitHub adapter until cutover. |
+| **pipeline** | One execute engine (graph, queue, workers, controller). TAP / Cloud Build. | GHA as the product. **Foundry Pipeline Builder** (that UX is `app/foundry` calling `data/`). Prow/Tide as `core/`. JSON census. A root named `ci/`. | KEEP+WORK: today’s tree is not the product. Census/JSON gates REMOVE. Tide/webhook = GitHub adapter until cutover. |
 | **iac** | IR unifier + reconcilers that call **cap Connect APIs** (`compute/`/`network/`/`storage/`). | Argo/Helm/Tofu **source**. kubectl as operations. Merge queue (`pipeline`). | `tofu/`, Argo app-of-apps, IP-GITOPS, `ports/rest`. |
 | **billing** | **What you pay:** usage events from owning caps, rate, invoice, tax on platform SKUs, FOCUS/FinOps. Not scraped from observability. | Ledger (`ledger/`). Payments (`payments/`). SKU **catalog** (`marketplace`). | `accounting/`, `tax/` dump, `finops-portal/`, payment/subscription modules. |
 | **marketplace** | **What exists:** signed plugins, Cedar install envelope, SKU attach. | List price / invoice (`billing/`). KYC/escrow/payout. App/dataset store. `build/` price view. | Escrow/deals/mediation dumps; `developer-sdk/` + `plugin-app-store/`. |
@@ -1024,7 +1024,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **audit** | Tamper-evident **record**. | Merkle log, seal of principal+tenant, privileged-path durability, **tenant-exportable** access events (the CISO feed). | Pack evidence (`compliance`). Sync seal on every Check. DPIA markdown. On-path packet capture as the audit product. |
 | **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO. | The **bill**. Hand OpenSLO. SIEM. Diagnostics/lab product. App analytics. |
 | **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; S3 API; EBS-class block **when sold**. Pipeline CAS. Object DLP as SKU if sold. | Query engines. Drive/Meet/PACS apps. Search. Clock as identity. |
-| **data** | Durable **records** engines. | OLTP + OLAP + pipelines. Consumes cell `Now() → Interval`. Versionstamps = ordinal. `commit_wait` crate (IR off without measured ε). Vector search **facade SKU** if sold (Foundry may consume it). | Bytes. **Ontology / Pages / Grid** (`app/foundry`). Palantir Foundry as this cap. SERP. RAG. BI app. `cloud-*`. Private `Now()`. |
+| **data** | Durable **records** infrastructure (sold **without** Foundry). | OLTP + OLAP + pipeline **engines**. Consumes cell `Now() → Interval`. Versionstamps = ordinal. `commit_wait` crate (IR off without measured ε). Vector search **facade SKU** if sold. | Bytes (`storage/`). Ontology / Pages / Grid / Workshop (`app/foundry`). TAP (`pipeline/`). SERP. RAG. BI app. `cloud-*`. Private `Now()`. |
 | **compute** | Run **the fleet** (Borg/Twine/Nitro analog). | Two reconcilers: **CH VM** + **Firecracker functions**. Agent. GPU SKU. gVisor adapter. | GKE as fleet. **`k8s-on-compute`**. Talos. Kata as Borg. Asterinas today. QEMU as identity. GPU plant for intelligence. |
 | **k8s** | **Sold** GKE/EKS/AKS-class SKU. | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **upstream** kube adapter (EKS pattern). | Our Borg (`compute/`+`cell/`). A kubernetes.git port as operations. Node OS. Mesh. Public door. Empty `k8s-port/`. |
 | **network** | Connect inside the cloud. | VPC, **private DNS**, TCP dataplane, SG, flow logs, volumetric DDoS, UDP/443 allowed. | Public door, public door DNS, CDN, L7 WAF (`gateway`). QUIC-EW. Istio. `firewall/`. Payload decrypt. Cell picker. |
@@ -1033,7 +1033,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference** (Vertex / Bedrock). | Invoke, endpoints, batch, quota; hosted-agent **SKU**; adapters. GPUs from `compute/`. RAG facade over `data/`. | Copilot UX. Chat CLI/SDK core. GPU plant. GuardDuty. Vector store. Nested Cedar PDP. |
 | **flags** | Dynamic config and kill switches. | Deterministic eval (`evaluation-domain`), targeting, kill switch. Pack gates via **C0 Cedar context**, not a pack fetch. Connect facade. | Experiment product. Clock adapter. REST/gRPC dual. OFREP as SSOT (adapter only). Helm. Cell topology. |
-| **pipeline** | Productized execute (TAP internally, Cloud Build sold). | **One engine**, two facades: **polyglot** hermetic graph + queue (buck2 when CAS+RE live). Workers = `compute/`. Promotion graph execute. One required context `presubmit`. Tenant #0 is Rust-first; **customers are not**. | GHA as product. Cargo as sold runtime. Per-language CI SKUs. JSON check product. Prow/Tide as core. Owned worker cluster. `iac/` as CD engine. Second protected check. A `ci/` root. |
+| **pipeline** | Productized execute (TAP internally, Cloud Build sold). | **One engine**, two facades: **polyglot** hermetic graph + queue (buck2 when CAS+RE live). Workers = `compute/`. Promotion graph execute. One required context `presubmit`. Tenant #0 is Rust-first; **customers are not**. | GHA as product. **Foundry Pipeline Builder** (`app/foundry` UX on `data/` engines). Cargo as sold runtime. JSON check product. Prow/Tide as core. A `ci/` root. |
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch. Reconcilers call **cap APIs**, not kubectl. Helm/Tofu **adapters** only. | Merge queue. Sagas. Helm/Tofu as source. Argo as identity. |
 | **billing** | Charge for **cloud use**. | Usage **events** from owning caps; rate; invoice; tax adapter; FOCUS. | Scraped metrics as the bill. Catalog of what exists (`marketplace`). Ledger. Card rails. |
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar install envelope, SKU **attach** (what exists). | Invoice (`billing`). KYC/escrow/payout. App/dataset store. `build/` price view. |
@@ -1216,12 +1216,19 @@ Palantir’s own docs: Ontology is *the heart of Foundry*, an operational layer 
 
 **D41 did not retire docs/sheets.** Retired: notes, slides, office, sites, translate (D42). `app/sheets` and `oya/docs` are early dumps of Grid/Pages — KEEP+WORK toward Foundry primitives, not D41 kills. Registry “sheets = ontology spine” is **false**: Ontology is the spine; Grid is a view on object-sets.
 
-**`data/` vs Foundry vs intelligence**
+**Do not mix these five (founder 2026-08-22: `data/` is cloud records persistence, Foundry is the app).**
 
-| | `data/` | `app/foundry` | `intelligence/` |
+A tenant **can** buy `storage/` and `data/` **without** Foundry. Foundry **requires** them. Ontology is **not** implemented in `data/`.
+
+| | Layer | Sells | Must not be |
 |---|---|---|---|
-| Is | Records **engines** (OLTP, OLAP, pipelines) | Palantir Foundry **product**: ontology runtime + Pages + Grid + Workshop UX | Vertex invoke/endpoints (AIP **on** ontology, flag-off) |
-| Is not | Ontology kernel. Foundry. AIP. | A cloud cap. A `foundry/` root. RAG OpenAPI. | Foundry. Ontology store. |
+| **`storage/`** | Cloud cap | **Bytes** (S3 / GCS / CAS). Identity = digest. | SQL. Ontology. Drive app. Foundry. |
+| **`data/`** | Cloud cap | **Records infrastructure** (RDS / Spanner / BQ / Dataflow **engines**). Sold as IaaS/PaaS. | Bytes (`storage/`). Ontology kernel. Pages/Grid. Palantir Foundry. TAP (`pipeline/`). |
+| **`app/foundry`** | **App product** | Ontology (heart) + Pages + Grid + Workshop / Ontology Manager. Pipeline Builder **UX** that *calls* `data/` engines. | A cap. A `foundry/` root. `data/core`. Intelligence. TAP. |
+| **`pipeline/`** | Cloud cap | TAP / Cloud Build **execute**. | Foundry Pipeline Builder. Dataflow engine. |
+| **`intelligence/`** | Cloud cap | Vertex invoke (AIP **on** Foundry objects, flag-off). | Foundry. Ontology store. Dead RAG “foundry.” |
+
+Pipeline Builder ≠ `pipeline/`. Object Storage (Foundry) ≠ `storage/`. Google Vertex ≠ Palantir Vertex.
 
 No empty `app/foundry/` until the BUILD PR. Ontology crates today under `data/` **move** in that PR — they do not stay as `data/core` and they do not become a `foundry/` capability.
 
@@ -1229,8 +1236,8 @@ No empty `app/foundry/` until the BUILD PR. Ontology crates today under `data/` 
 
 - **achieves:** Palantir Foundry is one product; ontology is its heart; `data/` stays cloud records engines; intelligence Foundry stays dead.
 - **origin:** D5 named Palantir Foundry as the suite spine; D6 parked ontology in `data/`; D-20 parked it in a generic app; founder 2026-08-22 put ontology **in Foundry**, not in `data/`.
-- **rule:** `app/foundry` owns ontology + Pages + Grid; `data/` has no ontology kernel; no `foundry/` cap; no intelligence foundry/RAG; D41 list is notes/slides/sites/office only.
-- **ensure:** new ontology crates land under `app/foundry` (when it exists); PRs that add `foundry/` as a cap, revive intelligence foundry, or implement ontology in `data/core` fail review.
+- **rule:** `app/foundry` owns ontology + Pages + Grid; `data/` is sold records **engines** without Foundry; `storage/` is bytes; TAP is `pipeline/` not Foundry pipelines; AIP is `intelligence/` not Foundry; no `foundry/` cap; D41 list is notes/slides/sites/office only.
+- **ensure:** new ontology crates land under `app/foundry` (when it exists); PRs that implement ontology in `data/core`, merge `data/` into `storage/`, put Pipeline Builder in `pipeline/`, or revive intelligence foundry fail review.
 - **overturn_when:** a five-field ADR same-wave names a different Foundry home.
 
 ### D-22 — Apps: one shell; v1 People + Finance (shrunk)

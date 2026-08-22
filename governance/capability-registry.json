@@ -207,7 +207,7 @@
       "substrate_dag_position": {
         "stratum": "S3"
       },
-      "charter": "Records engines: Spanner/Cockroach/RDS-class OLTP, BigQuery/ClickHouse-class OLAP, Dataflow pipelines. Not Palantir Foundry. Not ontology/Pages/Grid (those are app/foundry). No cloud-* crates. Not S3. Not web search. RAG is intelligence facade over data if sold.",
+      "charter": "Sold records infrastructure (RDS/Spanner/BQ/Dataflow engines) without requiring Foundry. Not bytes (storage/). Not Palantir Foundry. Not ontology/Pages/Grid (app/foundry). Not TAP (pipeline/). No cloud-* crates. Not web search.",
       "seed_domains": [
         "data"
       ],
@@ -223,7 +223,7 @@
       "substrate_dag_position": {
         "stratum": "S2"
       },
-      "charter": "Durable bytes: object/CAS (S3/GCS analog) plus EBS-class block facade when sold. Pipeline CAS lives here. Drive/Meet/PACS are later app/, not storage facades.",
+      "charter": "Sold bytes (S3/GCS/CAS) plus EBS-class block when sold. Identity=digest. Not SQL (data/). Not Foundry ontology. Drive/Meet/PACS are later apps. Pipeline CAS for TAP lives here.",
       "seed_domains": [
         "storage/CAS"
       ],
