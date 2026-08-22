@@ -644,36 +644,24 @@ the audit log. Do not invent a destination for leftovers; many must **not exist*
 GitHub: `.github/`, `.gitignore`, `.gitattributes`. Hubs: `README.md`, `LICENSE`,
 `OWNERS`, `AGENTS.md`, `CLAUDE.md`. Meta: `build/`, `third-party/`. `base/` is **not**
 pre-created; it appears only when the first crate admitted under the ≥3-caps-below-all
-rule. `governance/` is a **capability** (checks + `capability-registry.json`).
-**No `kernel/` and no `os/` rungs.** Fleet is **stripped-minimum Linux**
-on **Cloud Hypervisor** and/or **Firecracker** (`compute/`). Not Talos,
-not kubelet, **not Asterinas/Hermit today**. Do not vendor or leave an
-evaluation tree. Reconsider Linux replacement only per D-13
-`overturn_when`. In-tree Talos/Asterinas output is **deleted**.
-`os/ports/kernel-abi` dies with `os/`.
-Composition: `app/`. One directory per **registered** capability (including `policy/`
-the **engine**). Jurisdiction: `packs/<id>/` one versioned bundle the engines load.
-`docs/` = ADRs + operating contract. **No catch-all `specs/`.** Machine contracts live
-next to the evaluator (gate `*-policy.json`, Cedar, IR proto). Agent entry is
-`AGENTS.md` / `CLAUDE.md`. `HANDOFF.md` is **deleted** (founder 2026-06-08 exception
-withdrawn); it was a redirect, not law.
+rule. `governance/` is gone (D-17). **No `kernel/` and no `os/` rungs** (D-13). Fleet is
+stripped Linux on Cloud Hypervisor and/or Firecracker (`compute/`).
+Composition: `app/`. One directory per capability (including BUILD `policy/`).
+`packs/` = install authority (D-24). `docs/` = ADRs + operating contract.
+Thin `templates/`: ADR skeleton + swarm ritual only. **No catch-all `specs/`.**
+Agent entry is `AGENTS.md` / `CLAUDE.md`.
 
-**Not repo-root:** `oya/`, `cloud/`, `libs/`, `infra/`, `tools/`, `toolchains/`
-(reorg_now); root `Makefile`; root `Dockerfile*` (→ `build/`); `oya-*.toml`; tracked
-agent dirs; `evidence/` dumps; `benchmarks/`; `scripts/`; `tasks/`/`plan/` as required
-corpora; `catalog.yaml` trees; root `contracts/` YAML as IDL; root `registry/`;
-root `specs/` as a JSON law corpus (delete with the gates that load contradicting
-files; do not scatter into cap/app). `HANDOFF.md`. `kernel/`. `os/`.
+**Not repo-root (gone this wave):** `contracts/`, `plan/`, `tasks/`, `scripts/`,
+`specs/`, `registry/`, `evidence/`, `governance/`, `oya/`, `cloud/`.
+**Shrink-only (DON'T+HAVE, not on the DO allowlist):** `libs/`, `tools/`, `infra/`,
+`kernel/`, `os/`. D-8 admission lists them separately; they must not grow; they
+must hit 0.
 
-**Capability root and `app/<product>/` (closed children):** `core/`, `ports/`,
-`adapters/`, `facade/`, `cedar/` (**.cedar unique to this cap** — schema and resource
-policies the PDP compiles; platform templates live under the `policy/` **capability**,
-not stamped here), `observability/slos/` (**generated OpenSLO from IR only** — hand-authored OpenSLO,
-including “unique” files, is debt; clones already forbidden), `iac/` (IR the reconciler
-applies, not Helm/Tofu source), `OWNERS`,
-short `README.md`, `BUCK`. `app/<product>/` may add `PRD.md`. No cap-root `contracts/`
-(IDL is Rust → proto on `ports/` / generated faces). No cap-root `policy/` (that name
-is the engine at repo root). Nested leftover service trees become faces or go.
+**Capability and `app/<product>/` (same closed children):** `core/`, `ports/`,
+`adapters/`, `facade/` (business logic in `core`, IO in adapters — D-25). Plus
+`cedar/`, `observability/slos/` (from IR), `iac/` (IR only), `OWNERS`, short
+`README.md`, `BUCK`. `app/<product>/` may add `PRD.md`. No cap-root `contracts/`
+or `policy/`. Apps do not import cloud `core/`/`ports/`. Nested leftover service trees become faces or go. Cedar here is unique to this cap; platform templates wait on `policy/` the capability. SLO YAML is generated from IR. `iac/` is IR the reconciler applies, not Helm/Tofu source. IDL is Rust → proto on `ports/`.
 
 **Must not exist at cap/app root:** `manifest.json` census, `catalog.yaml`, `IPs/`,
 `IP-journey-*.md`, `AUDIT-FINDINGS-*.json`, `REMEDIATION-NOTES-*.md`, `scorecards/`,
@@ -1102,7 +1090,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `intelligence/` inference
 - `iac/` unifier; `billing/` platform meter; `marketplace/` plugin+SKU kernel; `compliance/`
 - `flags/core/evaluation-domain`
-- Meta: `docs/`, `governance/`, `build/`, `third-party/`, `packs/` (v1: us, eu, jp, kr), `app/` (composition only)
+- Meta: `docs/`, `build/`, `third-party/`, `packs/` (install authority), `templates/` (ADR + ritual only), `app/` (composition)
 
 **KEEP+WORK** (DO + HAVE, additional REMOVE or BUILD inside)
 
@@ -1145,7 +1133,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `gateway/` Workday/Slack/Salesforce/… connectors
 - `flags/` dump (catalog.yaml, IPs, Helm, REST+gRPC server, experiment dashboards)
 - Nested census; a root named `ci/` (retired; do not recreate)
-- Repo-root leftovers: `oya/`, `libs/`, `infra/`, `tools/`, `toolchains/`, `benchmarks/`, `evidence/`, `contracts/`, `registry/`, `scripts/`, `plan/`, `tasks/`, `specs/`, `kernel/`, `os/`
+- Repo-root leftovers: `contracts/`, `plan/`, `tasks/`, `scripts/` **deleted this wave**. Shrink-only until 0: `libs/`, `infra/`, `tools/`, `kernel/`, `os/`. Already gone: `oya/`, `evidence/`, `registry/`, `specs/`, `governance/`.
 - A root named `messaging/` (retired; do not recreate)
 - `cloud-*` crates; cap-root IPs, AUDIT-FINDINGS, Helm source, OpenAPI product, `catalog.yaml`
 
@@ -1158,7 +1146,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
   pack ids; REST+gRPC as a standing product
 - Search/detection/GPU/CDN as **roots** (vector = `data/` facade SKU; GPU = `compute/` SKU; CDN = `gateway/` SKU; DLP object = `storage/` SKU; client DLP = endpoint)
 
-`app/hr` `app/payroll` `app/calendar` `app/community` `app/sheets` `app/global-trade` are HAVE and **not caps**. Apps ADR after the cloud set is settled.
+Apps: D-22/D-23. `app/sheets` → `app/foundry/grid`. `app/global-trade` deleted.
 
 **MUST (DONE / KEEP+WORK / BUILD / REMOVE / STAY GONE; no cloud-* debt)**
 

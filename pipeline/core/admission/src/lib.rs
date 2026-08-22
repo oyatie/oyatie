@@ -2,8 +2,7 @@
 //! OWNERS/README/BUCK). Unknown top-level names are RED. Absence of a listed
 //! name is not RED (BUILD vs DONE).
 
-/// Names allowed at the repository root. Not a census: new names fail; missing
-/// allowed names do not.
+/// DO roots (D-19). New names fail. Missing allowed names do not (BUILD).
 pub const ALLOWED_ROOT_DIRS: &[&str] = &[
     "app",
     "audit",
@@ -13,34 +12,29 @@ pub const ALLOWED_ROOT_DIRS: &[&str] = &[
     "cell",
     "compliance",
     "compute",
-    "contracts",
     "data",
     "docs",
     "flags",
     "gateway",
     "iac",
     "iam",
-    "infra",
     "intelligence",
     "k8s",
-    "kernel",
-    "libs",
     "marketplace",
     "network",
     "observability",
-    "os",
     "packs",
     "pipeline",
-    "plan",
-    "scripts",
     "secrets",
     "storage",
-    "tasks",
     "templates",
     "tenancy",
     "third-party",
-    "tools",
 ];
+
+/// DON'T+HAVE (D-19 REMOVE). Still on disk until empty. Not forever-allowed.
+/// Absence is GREEN (they should vanish). Presence is GREEN until gone.
+pub const SHRINK_ONLY_ROOT_DIRS: &[&str] = &["infra", "kernel", "libs", "os", "tools"];
 
 #[cfg(test)]
 mod tests {
@@ -57,7 +51,11 @@ mod tests {
 
     #[test]
     fn unknown_root_dir_is_red() {
-        let allowed: BTreeSet<&str> = ALLOWED_ROOT_DIRS.iter().copied().collect();
+        let allowed: BTreeSet<&str> = ALLOWED_ROOT_DIRS
+            .iter()
+            .chain(SHRINK_ONLY_ROOT_DIRS.iter())
+            .copied()
+            .collect();
         let mut unknown = Vec::new();
         for entry in std::fs::read_dir(repo_root()).expect("read root") {
             let entry = entry.expect("entry");
