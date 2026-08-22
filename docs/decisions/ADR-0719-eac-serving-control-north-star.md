@@ -72,6 +72,10 @@ deliverables:
     description: "Every repo-root name is DO or DON'T, and HAVE or HAVE NOT: DONE, BUILD, REMOVE, or STAY GONE. No new cloud-* crates. REMOVE is delete/rewrite in charter, not a move to another cap."
     exit_criteria: "New crates are DO+HAVE-NOT (BUILD) or DO+HAVE (DONE); PRs that add DON'T names or rehome REMOVE dumps fail review."
     verified_by: "presubmit"
+  - id: ADR-0719-D20
+    description: "Charter reconciliation (founder default A, 2026-08-22): two compute reconcilers not k8s-on-compute; ontology out of data/core; intelligence is Vertex not copilot; price is marketplace+billing not build/; iam consumes federation; Drive/PACS/Meet out of storage; marketplace plugins+SKU only; gateway is PEP; meters are usage events; port-engine frozen; quota split; DNS/CDN split."
+    exit_criteria: "D-11/D-14/D-15/D-19 and registry charters match D-20; no new crate uses k8s-on-compute, ontology-in-data-core, gateway Cedar engine, or build/ price view."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -940,7 +944,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | CloudWatch / Monarch | **observability** | core: telemetry + SLO **controller**. Per-cap SLOs are IR → generated OpenSLO, not this cap’s YAML novel. |
 | S3 / GCS / CAS | **storage** | core: **bytes** (object/CAS). Identity = digest/generation. Wall time is metadata, not TrueTime. Not SQL. |
 | Spanner / Cockroach / Cloud SQL / BigQuery / Dataflow | **data** | core: **records**. Consumes cell TrueTime interval. Versionstamps = engine commit ordinal, not a second clock. **No `cloud-*` crates.** |
-| EC2 / GCE / Functions / GKE-on-VMs | **compute** | **One** cap, **three reconcilers** (VM, k8s-on-compute, functions). Facades, not three caps, not one Raft. |
+| EC2 / GCE / Functions | **compute** | **One** cap, **two reconcilers** (CH VM, Firecracker functions). GPU = VM SKU. gVisor = adapter. Sold kube is `k8s/`, not a third reconciler. |
 | GKE / EKS control plane (sold) | **k8s** | core: managed cluster (lifecycle, CP host, quota, CAPI). Adapter: upstream or owned apiserver when we run it (D-13). Store: cluster objects only (D-2). |
 | VPC / DNS / firewall / flow logs | **network** | core: dataplane, security groups (**allow** UDP/443), flow logs, QUIC metadata. Not Istio. Not a `firewall/` cap. |
 | Front door / GFE / WAF / IAP | **gateway** | core: one Connect contract (H3 default, H2 same framing), Maglev **per cell**. TLS port + WAF-after-decrypt + explicit-proxy crates. Transcode is not a second API. |
@@ -950,12 +954,12 @@ calls `policy/` in-process; it does not embed a second PDP.
 | Cloud Build / TAP / CodePipeline | **pipeline** | **One** execute engine. Internal TAP = this repo as tenant #0. Sold Cloud Build = same engine, tenant graphs. GitHub is an adapter, not the product. JSON check fleets are not this cap. |
 | CloudFormation / Config reconciler | **iac** | core: IR unifier + reconcilers. `<cap>/iac/` is **this** cap’s desired state; `iac/` the cap owns the **engine**. |
 | Billing / Cost Explorer | **billing** | core: meter, rate, invoice, tax, FinOps. Sold-ness, not a drawer. |
-| Marketplace | **marketplace** | core: signed plugins + Cedar install envelope + SKU **engine**. Price list is `build/` view. Not KYC/escrow. |
+| Marketplace | **marketplace** | core: signed plugins + Cedar install envelope + SKU **engine** (what exists). Rate/invoice is `billing/`. Not a `build/` price list. Not KYC/escrow. |
 | Artifact / evidence packs | **compliance** | core: pack evidence, data-class registry. Consumes **audit**. Not the Merkle log. |
 | SES / SNS / FCM (send) | **notify** | core: transactional email/SMS/push **send**. Not Gmail/Meet/Slack. |
 | AppConfig / Feature flags | **flags** | core: flags, kill switches. Pack-gated overrides. |
 
-**Meta (not sold as a tenant API, still in-repo):** `base/` only when admitted (≥3 caps, below all); `build/` toolchains/images/port-engine; `third-party/` vendored; `governance/` registry + check crates (off the runtime ladder). No `kernel/` or `os/` rungs (D-13).
+**Meta (not sold as a tenant API, still in-repo):** `base/` only when admitted (≥3 caps, **non-domain** primitives; `TenantId`/`CellId` stay on their owner caps). `build/` toolchains/images/**frozen** port-engine (no destination corpus). `third-party/` vendored. `governance/` registry + off-ladder checks (D-17 default delete). No `kernel/` or `os/` rungs (D-13).
 
 **`app/<product>/`:** composition only (hr, payroll, calendar, community, …). Wires 2+ of the table. **Does not** grow a cloud engine.
 
@@ -967,35 +971,35 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 
 | Cap | **Is** (engine) | **Is not** | **Burns / move** |
 |---|---|---|---|
-| **cell** | Topology, hard caps, router, rebalance, **clock port** (ntp / ptp_phc / gnss_atomic). Borg/GCP-zone analog. | GKE product (`k8s/`). Tenant CRM. A `time/` cap. Clock via `flags/`. | Census, leftover lifecycle dirs once faces exist. |
-| **tenancy** | Tenant lifecycle, home-cell, org/account analog. | IdP (`iam`). PDP (`policy`). SKU catalog (`marketplace`). | Enablement side-effects; JSON tenant novels. |
-| **iam** | Principals, passkeys, SCIM, role **store**, workload identity **consume**, **`device_attestation` port**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). An Island-class browser. | PDP crates **move to `policy/`**. trustd deps **move to `secrets/`** with `os/` delete. |
+| **cell** | Topology, physical **capacity**, which-cell router, rebalance, **clock port**. | GKE. Tenant CRM. Pack **loader**. `time/` cap. Schedulable remainder (`compute`). | Nested lifecycle/rebalancer dumps; `core/regional-pack`; `cloud-*` names. |
+| **tenancy** | Tenant lifecycle, home-cell, org/account analog. Stores SKU **entitlement counts**; does **not** enforce them. | IdP (`iam`). PDP (`policy`). SKU catalog (`marketplace`). KYC/DSR/JWT. Numeric enforcer. | KYB/KYC, DSR cascade, nested PDP, JWT issuer, Citus/Helm, IP-journeys. |
+| **iam** | Principals, passkeys, SCIM, role **store** (compiles to Cedar), federation **consume**, workload identity **consume**, **`device_attestation`**. Cognito-class user-token **issue** is a facade SKU if sold — not the kernel. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). Zitadel-as-identity. SCIM creating tenants. Island browser. | PDP crates **move to `policy/`**. SVID issue **move to `secrets/`**. `consent-graph`, `cloud-iam/` dump, `tenant-rbac-*-evidence` farm. |
 | **policy** | Cedar + ReBAC PDP, G-face + C0 snapshots. | IdP. Empty dir forever. | **Extract crates from iam now.** Cap-root `<other>/policy/*.cedar` → `<other>/cedar/`. |
-| **secrets** | KMS, secret material, **SPIFFE issue**. | PDP. Cert spam as YAML. | Absorb `os-trustd-domain` consumers. |
-| **audit** | Tamper-evident log. Always on. | Compliance packs (`compliance`). Sync Merkle on every Check. | DPIA essays, scorecards. |
-| **observability** | Telemetry + SLO **controller**. | Per-cap hand OpenSLO. SIEM as a 25th cap. | Stamped OpenSLO. Detection is **not** this cap and **not** intelligence core. |
-| **storage** | Durable **bytes**: object/CAS. Identity = digest/generation. | SQL/Spanner/Cockroach (`data`). Search. Analytics query. TrueTime as object identity. | Imaging leftover; census. Block/file = facades **when sold**, no empty dirs. |
-| **data** | Durable **records**. **Consumes** cell TrueTime. Versionstamps = commit ordinal, not a second clock. `commit_wait` adapter crate (IR off on NTP ε). | S3/CAS (`storage`). Google Search / SERP. RAG. BI **app**. `cloud-*` names. A private `Now()`. | Nested dumps + `search-*` + `data-cloud-*` **purged**. ClickHouse/Postgres = **adapters**. |
-| **compute** | **One** cap: VM + k8s-on-compute + functions as **three reconcilers / facades**. | GKE product (`k8s/`). GPU = facade when sold. One Raft for all three. | Splitting into 3 caps. |
+| **secrets** | One cap, three facades: **KMS**, secret store, **SPIFFE/cert issue**. One crypto root. | PDP. OpenBao as identity. Nested `kms/` cap. | Nested `kms/` paperwork; OpenBao Helm as product; BYOK journey novels. |
+| **audit** | Tamper-evident emit/seal/verify/query. Async on serving path. Chain TTL. CISO export. | Packs. Sync Merkle on Check. DPIA. Fifth retention store. | Journey `.cedar` novels; Helm HSM/postgres; scorecards. |
+| **observability** | Telemetry + SLO **controller**. Not the billing meter. | Per-cap hand OpenSLO. SIEM as a 25th cap. Lab/diagnostics product. | Stamped OpenSLO. Nested `diagnostics/`. Helm Grafana/Loki/Mimir as identity. |
+| **storage** | Durable **bytes**: object/CAS. Identity = digest/generation. S3 API + EBS-class **block** facade when sold. Pipeline CAS lives here. | SQL (`data`). Search. Drive/Meet/PACS **apps**. TrueTime as object identity. | `drive/`, `recordings/`, `imaging/` **REMOVE** (later `app/`). Census. `cloud-storage-*` OpenAPI. |
+| **data** | Durable **records** engines: OLTP + OLAP + pipelines. **Consumes** cell TrueTime. Versionstamps = commit ordinal. `commit_wait` adapter (IR off on NTP ε). | S3/CAS (`storage`). **Ontology product** (later `app/`). SERP. RAG (`intelligence` facade). BI **app**. `cloud-*`. A private `Now()`. | Ontology/warehouse **product** trees; `search-*`; `data-cloud-*`. ClickHouse/Postgres = **adapters**. |
+| **compute** | **One** cap, **two reconcilers**: CH **VM** + Firecracker **functions**. Agent is ours. GPU = VM SKU. gVisor = adapter. | GKE (`k8s/`). **`k8s-on-compute`**. Kata as Borg. Talos. QEMU as identity. One Raft. | Phrase `k8s-on-compute`. Splitting into 3 caps. |
 | **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
-| **network** | VPC/DNS/**dataplane**, security groups (allow UDP/443), `flow_log` + `quic_metadata` crates. Not Istio. | Public API door (`gateway`). A `firewall/` cap. Sidecar mesh as **our** identity. On-path QUIC decrypt. | Census. Istio/Linkerd as default. |
-| **gateway** | One Connect **contract** (H3 default, H2 same framing), N cell frontends, TLS + `waf` + `explicit_proxy` + `fingerprint` crates. Cloud IAP is this facade. | Mesh (`network`). Second REST/gRPC API. One global VIP. Transparent QUIC MITM. ECH-off “enterprise mode.” Per-pod IAP sidecar. Browser DLP as this cap’s core. | REST/gRPC dual-stack; connector leftover if it’s a second door. |
+| **network** | VPC, **private DNS**, L3/L4 dataplane, SG (allow UDP/443), `flow_log` + `quic_metadata`. Volumetric DDoS. TCP-optimized. DPU destination adapter. | Public door, public zone for the door, CDN, L7 WAF (`gateway`). Istio. `firewall/` cap. Cell picker. | Nested `dns/` dump; mesh as identity; `cloud-network-*`. |
+| **gateway** | One Connect **contract**, Maglev **per cell**, TLS/ECH/WAF/IAP/fingerprint. **PEP only** (then `policy/` Check). Public DNS for the door + CDN/cache SKU. L7 bot/WAF. | Mesh. Second REST/gRPC API. Cedar **engine**. One global VIP. QUIC MITM. Connectors as the door. | Connector dump **REMOVE** then Connect door BUILD. `edge-cedar-eval`. |
 | **bus** | Owned queue + fan-out bus + seekable stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar as `core/`**. Human chat. SES (`notify`). | Crate names still `messaging-*` (KEEP+WORK rename). Kafka/Pulsar = **adapters** only. |
-| **intelligence** | Vertex/Bedrock: inference + agent runtime. | Provider adapters, eval/proof, invoke facade. | GuardDuty (`detection/` **purged**). Chat copilot **app**. CLIs. Census YAML. |
+| **intelligence** | Vertex/Bedrock: **invoke**, endpoints, batch, quota. Hosted-agent **SKU**. GPUs **rented from `compute/`**. RAG = facade over `data/`. | Copilot UX. Chat CLI/SDK as core. GPU plant. GuardDuty. A vector store. | Claude/Codex/OpenAI-compat dumps; `authz-cedar-adapter`; CLIs. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
 | **pipeline** | One execute engine (graph, queue, workers, controller). | `.github/` GHA as the product. Prow/Tide as `core/`. JSON policy crates as the product. A root named `ci/`. | KEEP+WORK: today’s tree is not the product. Census/JSON gates REMOVE. Tide/webhook = GitHub adapter until cutover. |
-| **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
-| **billing** | Meter, rate, invoice, tax, FinOps. | Ledger books (`ledger/`). Payments rails (`payments/`). | Nested accounting/tax leftover dirs. |
-| **marketplace** | Signed plugins, install envelope, SKU engine. | Price list (`build/` view). KYC/escrow/payout. App store UX. | **Purge** `developer-sdk/` + `plugin-app-store/`. |
-| **compliance** | Pack evidence, data-class registry, **CaS facade** (bind/project/export). | Merkle log (`audit`). Cloned `dpia.md`. Private pack API. | Those clones. |
+| **iac** | IR unifier + reconcilers that call **cap Connect APIs** (`compute/`/`network/`/`storage/`). | Argo/Helm/Tofu **source**. kubectl as operations. Merge queue (`pipeline`). | `tofu/`, Argo app-of-apps, IP-GITOPS, `ports/rest`. |
+| **billing** | **What you pay:** usage events from owning caps, rate, invoice, tax on platform SKUs, FOCUS/FinOps. Not scraped from observability. | Ledger (`ledger/`). Payments (`payments/`). SKU **catalog** (`marketplace`). | `accounting/`, `tax/` dump, `finops-portal/`, payment/subscription modules. |
+| **marketplace** | **What exists:** signed plugins, Cedar install envelope, SKU attach. | List price / invoice (`billing/`). KYC/escrow/payout. App/dataset store. `build/` price view. | Escrow/deals/mediation dumps; `developer-sdk/` + `plugin-app-store/`. |
+| **compliance** | **CaS** bind/project/export + evidence engine. Projects pack retention into `audit/`/`data/`/`storage/`. Does not store a fifth copy. | Merkle log. DLP core. Trust portal. eDiscovery product. Pack **data** (`packs/`). Second PDP. | `core/dlp`, `dsr`, `ediscovery`, `trust-portal`, DPIA clones. |
 | **notify** | Transactional send (SES/SNS/FCM). | Email/SMS/push **send API**. | Mailbox/Meet/Messenger/contact-center (`app/` later). Current `comms/` dump **purged**. |
 | **flags** | Deterministic **eval** (keep `evaluation-domain`), targeting, kill switch, pack-gated overrides. | Experiments product / p-value dashboards. OpenAPI+REST+gRPC dual. Clock adapter. OFREP as SSOT. | Cap-root dump (`catalog.yaml`, IPs, Helm, AUDIT-FINDINGS). REST/gRPC server dual. |
-| **governance/** | Registry + check **crates** (off ladder). | Org JSON `specs/` corpus. | Specs catch-all. |
-| **build/** | Toolchains, images, **port-engine**, SKU **view**. | Capability engines. | — |
+| **governance/** | Registry. Check crates **off ladder**; D-17 default **delete**. | Org JSON `specs/` corpus. Cloud product. | Census kernels (`no-template-stamping`, …). |
+| **build/** | Toolchains, images, CH/FC+kernel **pins**. Port-engine **frozen** until a named owned corpus is Accepted. | Capability engines. Price list. Fleet agent. | `evidence/` essays. Staffing port-engine as Borg. |
 | **third-party/** | Vendored pins when we need them. | Fake rungs (`kernel/`/`os/`). | Asterinas eval in `kernel/`. |
 | **app/** | 2+ cap products. | A cloud engine. | Absorbing D41 retirees; parking payments; **do not absorb the `console/` pilot**. |
 
-**Missed before, now closed:** GKE vs kube-port (`k8s/`); Talos vs `os/`; PDP vs iam; trustd vs secrets; payments/ledger not billing; no empty `base/`/`kernel/`/`os/`/`k8s-port/`; census `ci` gates are not the delivery fabric.
+**Missed before, now closed:** GKE vs kube-port (`k8s/`); Talos vs `os/`; PDP vs iam; trustd vs secrets; payments/ledger not billing; no empty `base/`/`kernel/`/`os/`/`k8s-port/`; census `ci` gates are not the delivery fabric. **D-20:** no `k8s-on-compute`; ontology not `data/core`; no gateway PDP; no `build/` price view.
 
 ### D-15 — Cloud-provider purpose and scope (not SaaS)
 
@@ -1004,28 +1008,28 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 
 | Cap | Purpose | In scope | Out of scope |
 |---|---|---|---|
-| **cell** | Bound failure domains and place load. | Topology, hard caps, router, rebalance, home-cell, **clock port** + adapters (`ntp` v1, `ptp_phc`, `gnss_atomic` destination). TrueTime interval is the API; plant only sets ε. | GKE product. Tenant CRM. Spanner ε as a v1 claim. Clock selection via `flags/`. A `time/` cap. |
-| **tenancy** | Tenant as the scoping primitive. | Create/suspend/delete tenant, home-cell binding, org/account tree. | IdP (`iam`). Authz eval (`policy`). Marketplace SKUs. HR orgs. |
-| **iam** | Prove **who** (and **device posture** as Cedar context). | Principals, credentials, passkeys, SCIM, role **store**, workload identity **consume**, `device_attestation` (WebAuthn / MDM / Chrome-Enterprise / SPIFFE adapters). | Cedar **eval** (`policy`). SVID **issue** (`secrets`). Tenant lifecycle (`tenancy`). Forking Chromium. |
+| **cell** | Bound failure domains and place load. | Topology, physical capacity, which-cell router, rebalance, home-cell **admit**, clock port + adapters. TrueTime interval is the API. | GKE. Tenant CRM. Pack loader. Schedulable remainder (`compute`). Spanner ε as v1. `time/` cap. |
+| **tenancy** | Tenant as the scoping primitive. | Create/suspend/delete, org/account tree, home-cell **bind**, store SKU entitlement **counts**. | IdP. PDP. Enforcing quotas. KYC. DSR execution. JWT. HR orgs. |
+| **iam** | Prove **who** (and **device posture** as Cedar context). | Principals, passkeys, SCIM into an **existing** tenant, role **store**, federation **consume**, workload **consume**, `device_attestation`. User-token **issue** only as Cognito-class **facade SKU**. | Cedar **eval**. SVID **issue**. Creating tenants via SCIM. Zitadel kernel. Forking Chromium. |
 | **policy** | Decide **may**. | Cedar PDP, ReBAC tuples, G-face distribute, C0 in-cell snapshot, in-process Check. | IdP. Writing every cap’s Cedar (caps own `<cap>/cedar/`). Global tuple replica. |
 | **secrets** | Crypto root and issuance. | KMS, secret material, SPIFFE **issue**, cert **issue** when sold. | PDP. Embedding secrets in app products. |
 | **audit** | Tamper-evident **record**. | Merkle log, seal of principal+tenant, privileged-path durability, **tenant-exportable** access events (the CISO feed). | Pack evidence (`compliance`). Sync seal on every Check. DPIA markdown. On-path packet capture as the audit product. |
-| **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO apply. | Hand OpenSLO novels. SIEM as a 25th cap. App product analytics. |
-| **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; drive/recordings as byte **facades**. Identity = digest/generation. | Any **query engine**. Spanner/Cockroach/RDS. BigQuery. Search. Clock as object identity. |
-| **data** | Durable **records** + query engines. | OLTP/OLAP/pipelines/ontology. Consumes cell `Now() → Interval`. Versionstamps as engine ordinal. `commit_wait` crate present, IR off without measured ε. | Bytes (`storage`). **BI product** (`app/`). **Web search / SERP**. **RAG** (`intelligence` facade if sold). **`cloud-*` crate names.** A second TrueTime. |
-| **compute** | Run **the fleet** (Borg/Twine/Nitro analog). | Stripped Linux on **Cloud Hypervisor** (VM) and **Firecracker** (microVM/functions). Agent is ours. Optional k8s-on-compute **SKU**. GPU as facade when sold. gVisor = optional **container-sandbox adapter** (Cloud Run analog), not the VMM. | GKE as the fleet. Talos as the fleet OS. Kata as Borg. gVisor as the hypervisor. Asterinas/Hermit **today**. QEMU as identity. One Raft. |
+| **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO. | The **bill**. Hand OpenSLO. SIEM. Diagnostics/lab product. App analytics. |
+| **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; S3 API; EBS-class block **when sold**. Pipeline CAS. Object DLP as SKU if sold. | Query engines. Drive/Meet/PACS apps. Search. Clock as identity. |
+| **data** | Durable **records** engines. | OLTP + OLAP + pipelines. Consumes cell `Now() → Interval`. Versionstamps = ordinal. `commit_wait` crate (IR off without measured ε). Vector search **facade SKU** if sold. | Bytes. **Ontology product** (later `app/`). SERP. RAG. BI app. `cloud-*`. Private `Now()`. |
+| **compute** | Run **the fleet** (Borg/Twine/Nitro analog). | Two reconcilers: **CH VM** + **Firecracker functions**. Agent. GPU SKU. gVisor adapter. | GKE as fleet. **`k8s-on-compute`**. Talos. Kata as Borg. Asterinas today. QEMU as identity. GPU plant for intelligence. |
 | **k8s** | **Sold** GKE/EKS/AKS-class SKU. | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **upstream** kube adapter (EKS pattern). | Our Borg (`compute/`+`cell/`). A kubernetes.git port as operations. Node OS. Mesh. Public door. Empty `k8s-port/`. |
-| **network** | Connect inside the cloud. | VPC, DNS, **TCP-optimized** dataplane; UDP/443 **north-south**; `flow_log`, `quic_metadata`. | Public door (`gateway`). QUIC as the in-cell RPC plant. Istio. `firewall/` cap. Block public QUIC. Payload decrypt. |
-| **gateway** | **One** north-south **contract**, many cell frontends. | Public **H3/QUIC**; H2 if path cannot UDP. East-west is **not** this door’s plant (TCP in-cell). TLS/ECH/WAF/IAP/fingerprint as above. | Mesh. Second gRPC/REST door. QUIC-mandatory east-west. One global VIP. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. |
+| **network** | Connect inside the cloud. | VPC, **private DNS**, TCP dataplane, SG, flow logs, volumetric DDoS, UDP/443 allowed. | Public door, public door DNS, CDN, L7 WAF (`gateway`). QUIC-EW. Istio. `firewall/`. Payload decrypt. Cell picker. |
+| **gateway** | **One** north-south **contract**, many cell frontends. | Public H3/QUIC (H2 fallback). Maglev per cell. TLS/ECH/WAF/IAP. **PEP** then `policy/` Check. Public names + CDN SKU. L7 bot. | Mesh. Cedar engine. Connectors as door. REST/gRPC second API. One global VIP. QUIC MITM. Per-pod IAP. |
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: **queue** (competing consumers), **bus** (fan-out subscriptions), **stream** (seekable cursor); transactional **outbox**; at-least-once; per-key order. Serving `Check` never *is* a consume. | Sagas (`workflow`). Mailbox / chat (`app/`). **Kafka or Pulsar as `core/`**. SES send (`notify`). A root named `messaging/`. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
-| **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
-| **flags** | Dynamic config and kill switches. | Deterministic eval (`evaluation-domain`), targeting, kill switch, pack overlays. Connect facade. | App roadmaps. Census catalogs. **Clock adapter**. A/B experiment **product**. REST/gRPC/OpenAPI dual. OFREP as SSOT (OpenFeature may be an adapter). Helm source. |
+| **intelligence** | Managed **inference** (Vertex / Bedrock). | Invoke, endpoints, batch, quota; hosted-agent **SKU**; adapters. GPUs from `compute/`. RAG facade over `data/`. | Copilot UX. Chat CLI/SDK core. GPU plant. GuardDuty. Vector store. Nested Cedar PDP. |
+| **flags** | Dynamic config and kill switches. | Deterministic eval (`evaluation-domain`), targeting, kill switch. Pack gates via **C0 Cedar context**, not a pack fetch. Connect facade. | Experiment product. Clock adapter. REST/gRPC dual. OFREP as SSOT (adapter only). Helm. Cell topology. |
 | **pipeline** | Productized execute (TAP internally, Cloud Build sold). | **One engine**, two facades: **polyglot** hermetic graph + queue (buck2 when CAS+RE live). Workers = `compute/`. Promotion graph execute. One required context `presubmit`. Tenant #0 is Rust-first; **customers are not**. | GHA as product. Cargo as sold runtime. Per-language CI SKUs. JSON check product. Prow/Tide as core. Owned worker cluster. `iac/` as CD engine. Second protected check. A `ci/` root. |
-| **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
-| **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
-| **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
-| **compliance** | Evidence **engine** + **CaS facade**. | Pack catalog, projection bind, evidence export. First-party and third-party apps consume this + `policy/` Check. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA. A private pack API for `app/`. |
+| **iac** | Apply **desired state**. | IR unify/preview/apply/watch. Reconcilers call **cap APIs**, not kubectl. Helm/Tofu **adapters** only. | Merge queue. Sagas. Helm/Tofu as source. Argo as identity. |
+| **billing** | Charge for **cloud use**. | Usage **events** from owning caps; rate; invoice; tax adapter; FOCUS. | Scraped metrics as the bill. Catalog of what exists (`marketplace`). Ledger. Card rails. |
+| **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar install envelope, SKU **attach** (what exists). | Invoice (`billing`). KYC/escrow/payout. App/dataset store. `build/` price view. |
+| **compliance** | Evidence **engine** + **CaS facade**. | Bind/project/export. Data-class registry. Projects pack retention into audit/data/storage. Apps are PEPs. | Merkle log. `packs/` data. DLP/eDiscovery/trust-portal products. Second PDP. Fetch-on-Check. |
 | **notify** | Transactional **delivery** (SES / SNS / FCM). | Send email/SMS/push; bounce/complaint; DKIM/SPF/DMARC; optional inbound **to the bus** (SES-receive analog). | **Mailbox** (IMAP/JMAP/webmail), Meet, Messenger, calendar, contact-center — later `app/`. Emergency clinical. Current `comms/` tree (purged). |
 | **packs/** (data, not a cap) | **CaC** — jurisdiction/program packages the engines load. | v1 namespaces `us`, `eu` (Union, **not a country**), `jp`, `kr`. Granular packages **projected** on any compliance dimension (Cedar Principal/Action/Resource/Context: client, action/txn, resource, routing/cell, purpose, acr, …). Check **unions** matching projections. CaS for first- and third-party apps. | A capability `core/`. Closed dimension catalog that cannot add routing/action. Blanket apply. Combinatoric ids. Markdown as CaC. Private pack path. |
 
@@ -1078,14 +1082,27 @@ No new `cloud-*` crates. REMOVE is not rehome.
 
 **KEEP+WORK** (DO + HAVE, additional REMOVE or BUILD inside)
 
-- `iam/`: extract PDP → `policy/` (BUILD `policy/` same change)
-- `k8s/`, `data/`, `network/`: nested census REMOVE
+- `iam/`: extract PDP → `policy/` (BUILD `policy/` same change); drop nested dumps; SVID issue → `secrets/`
+- `k8s/`, `network/`: nested census REMOVE
+- `data/`: ontology/warehouse **product** trees REMOVE from core (engines stay)
+- `intelligence/`: chat/CLI/SDK dumps REMOVE; invoke kernel stays
+- `storage/`: `drive/` `recordings/` `imaging/` REMOVE
+- `tenancy/`: KYC/DSR/JWT/nested PDP REMOVE
+- `secrets/`: nested `kms/` dump REMOVE; one crypto root
+- `audit/`: journey cedar novels REMOVE
+- `observability/`: `diagnostics/` + Helm-as-identity REMOVE
+- `billing/`: accounting/tax/portal/payment REMOVE
+- `marketplace/`: escrow/deals/app-store dumps REMOVE
+- `compliance/`: dlp/dsr/ediscovery/trust-portal REMOVE; BUILD CaS
+- `iac/`: Argo/Tofu/Helm source REMOVE; reconcilers call cap APIs
 - `flags/`: cap-root dump + REST/gRPC `server` REMOVE; eval stays
-- `gateway/`: connector dump REMOVE; Connect door BUILD after
+- `gateway/`: connector dump REMOVE; Connect door BUILD after; no Cedar engine
 - `pipeline/`: path is `pipeline/`; contents are not the product (Prow/Tide/census). BUILD execute core; REMOVE JSON gates and Tide-as-core
 - `bus/`: rename `messaging-*` crate ids; Connect facade BUILD
-- `cell/`: PTP/GNSS bind when plant exists (adapters already named)
+- `cell/`: PTP/GNSS bind when plant exists; `regional-pack` REMOVE
 - `packs/`: KEEP us/eu/jp/kr; BUILD Cedar+IR loader; REMOVE markdown/OVH YAML and extra jurisdiction dirs (`au br cn in ksa mx`)
+- `build/`: port-engine frozen; no price view
+- `governance/check`: D-17 default delete
 
 **BUILD** (DO + HAVE NOT)
 
@@ -1112,7 +1129,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - Kafka as `bus/` core; GHA as `pipeline/` core; Istio as identity; on-path QUIC MITM
 - New `cloud-*` names; EU-as-world-floor; EU as a country; combinatoric
   pack ids; REST+gRPC as a standing product
-- Search/detection/GPU/CDN as **roots** (facades of `data/`/`compute/`/`network/` if sold)
+- Search/detection/GPU/CDN as **roots** (vector = `data/` facade SKU; GPU = `compute/` SKU; CDN = `gateway/` SKU; DLP object = `storage/` SKU; client DLP = endpoint)
 
 `app/hr` `app/payroll` `app/calendar` `app/community` `app/sheets` `app/global-trade` are HAVE and **not caps**. Apps ADR after the cloud set is settled.
 
@@ -1123,6 +1140,48 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - **rule:** DO+HAVE = DONE or KEEP+WORK; DO+HAVE NOT = BUILD in charter; DON'T+HAVE = REMOVE here; DON'T+HAVE NOT = STAY GONE; capability id is `bus/` not `messaging/`; no new `cloud-*`; REMOVE is not rehome.
 - **ensure:** new crates land under the DO name (`bus/`, `pipeline/`); PRs that add STAY GONE names, a `messaging/` root, or rehome REMOVE dumps fail review.
 - **overturn_when:** a §7 split/merge changes DO/DON'T with five fields same-wave.
+
+### D-20 — Charter reconciliation (founder default A, 2026-08-22)
+
+Interview on remaining collisions. Unanswered picker; **A** is the recorded default.
+
+**Two reconcilers, not three.** `compute/` = Cloud Hypervisor VMs + Firecracker functions. Kill **`k8s-on-compute`**. GPU is a VM SKU. gVisor is an adapter. Sold kube is `k8s/` placing nodes **as** compute VMs (kubelet in the guest). AWS does not put EKS inside EC2.
+
+**Ontology is not `data/core`.** `data/` = OLTP + OLAP + pipelines (records engines). Palantir-class ontology is a later **product / `app/`** on those engines (tenant #0). Vector search, if sold, is a `data/` **facade SKU**, not a `search/` root.
+
+**Intelligence is Vertex, not Copilot.** Invoke + endpoints + batch + quota. Hosted-agent **SKU** allowed. GPUs rented from `compute/`. RAG is a facade over `data/`, not a store. Chat CLI/SDK dumps are not core.
+
+**Price has two owners.** `marketplace/` = **what exists** (plugin/SKU attach). `billing/` = **what you pay** (rate, invoice, FOCUS). `build/` is **not** a price list.
+
+**Meters are usage events.** Owning caps emit VM-hour / GB-month / invoke onto billing ingest / `bus/`. Observability may display; it is not the bill.
+
+**IAM consumes federation.** User-token issue is a Cognito-class **`iam/` facade SKU** if sold — not the kernel. Workload SVID **issue** stays `secrets/`. SCIM does not create tenants. Role store compiles to Cedar; `iam/` never Checks. No Zitadel-as-identity.
+
+**Storage facades are S3 and EBS-class.** `drive/`, `recordings/`, `imaging/` REMOVE (later `app/`). Pipeline CAS lives in `storage/`.
+
+**Marketplace is plugins + SKU attach.** No escrow, KYC, payout, app/dataset store.
+
+**Gateway is a PEP.** Authn, WAF, quota, then `policy/` Check. No Cedar engine in `gateway/` (nor in intelligence/tenancy nested PDPs).
+
+**Quota.** Cell = physical capacity. Compute = schedulable remainder. Marketplace SKU attach stored on tenancy; **owning cap enforces** (network refuses VPC 6). Billing = money. Tenancy does not enforce.
+
+**DNS / CDN / DDoS.** Private DNS = `network/`. Public door names + CDN/cache = `gateway/` SKU. Volumetric DDoS = `network/`; L7 WAF/bot = `gateway/`. No `cdn/` root.
+
+**Retention cascade.** `tenancy` sets deleting → `data` erases records → `storage` erases bytes → `audit` keeps what the pack requires → `compliance` **projects** via CaS. No fifth store.
+
+**`base/`:** domain IDs stay on the owner cap (`TenantId`, `CellId`). `base/` only for non-domain primitives if three caps share one.
+
+**`build/` port-engine:** frozen until a named owned corpus is Accepted. Not staffed as Borg.
+
+**`packs/`:** consumed only via `compliance` CaS + `policy` C0. `cell/` and `flags/` do not load packs.
+
+**MUST (D-20 reconciliation)**
+
+- **achieves:** stop over-claiming products inside cloud caps; one owner per collision.
+- **origin:** adversarial pass found k8s-on-compute vs EKS wrap, ontology-in-data, copilot-in-intelligence, three price lists, gateway PDP, meter-from-metrics.
+- **rule:** D-20 defaults above are live reading on conflict with earlier D-11/D-14/D-15 slogans; no `k8s-on-compute`; no ontology in `data/core`; no gateway Cedar engine; no `build/` price view.
+- **ensure:** new crates and registry charters match this section; PRs that reintroduce those phrases fail review.
+- **overturn_when:** a five-field ADR same-wave names a different owner for any row.
 
 ### D-16 — `console/` is not a capability; discard the pilot
 
@@ -1211,9 +1270,10 @@ two codebases.
 - **Internal:** this monorepo is **tenant #0**. D-10 cadences are that
   tenant’s graph. Same APIs a customer will call.
 - **Sold:** tenant submits a graph; same schedule/queue.
-- **Workers:** **`compute/` runs the work** (VM / k8s-on-compute /
+- **Workers:** **`compute/` runs the work** (CH VM / Firecracker
   functions). `pipeline/` does not own a second cluster or a Prow job
-  pool. Functions are one step type, not the only runner.
+  pool. Functions are one step type, not the only runner. Sold kube
+  workers, if any, are `k8s/` nodes that **are** compute VMs.
 - **Promotion / CD:** `pipeline/` **executes** the promotion graph
   (`dev` → `staging` → `canary` → `production`). `iac/` is desired
   state. `k8s/` is the cluster product. Images are `build/` artifacts in
@@ -1340,7 +1400,10 @@ implementation is gone pending rewrite; no dump resurrection.
   libraries are a kube-apiserver client. Sold `k8s/` adapters only.
 - Kata Containers as the fleet runtime (that is CRI/kube). gVisor as
   the fleet VMM (it is a container sandbox). Empty `kata/` / `gvisor/`
-  roots.
+  roots. **`k8s-on-compute` as a compute reconciler** (sold kube is `k8s/`).
+- Ontology kernel in `data/core`. Copilot/CLI as `intelligence/core`.
+  Drive/Meet/PACS as storage facades. `build/` as a price list.
+  Gateway (or nested cap) Cedar **engine**. Observability as the bill.
 - CUE+Timoni or Haskell as EaC wrap.
 - Public JSON/REST as the destination codec.
 - Standing gRPC (public or east-west) because a mesh automates HTTP/2,

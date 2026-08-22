@@ -110,7 +110,7 @@
     },
     {
       "name": "iam",
-      "charter": "Identity: IdP (principals/credentials/passkeys), product-shared identity, consent(-graph), tenant-RBAC (role store/assignments), and workload-identity consumption. Produces the verified principal that the policy capability's PDP evaluates; the PBAC+ReBAC decision plane is the separate policy capability (ADR-0615). RBAC+ABAC identity facet.",
+      "charter": "Who: principals, passkeys, SCIM into an existing tenant, role store (compiles to Cedar), federation consume, workload-identity consume, device_attestation. Does not evaluate Cedar (policy/). Does not issue SVIDs (secrets/). Cognito-class user-token issue is a facade SKU if sold. No Zitadel-as-identity.",
       "seed_domains": [
         "identity"
       ],
@@ -142,7 +142,7 @@
       "substrate_dag_position": {
         "stratum": "S2"
       },
-      "charter": "Tenant lifecycle + home-cell resolution + tenant-as-universal-scoping-primitive. The structural multi-tenancy substrate.",
+      "charter": "Tenant lifecycle, org/account tree, home-cell bind, store SKU entitlement counts. Does not enforce quotas (owning caps do). Not IdP, PDP, KYC, or DSR execution.",
       "seed_domains": [
         "control plane"
       ],
@@ -207,15 +207,15 @@
       "substrate_dag_position": {
         "stratum": "S3"
       },
-      "charter": "Records + query engines: Spanner/Cockroach/RDS-class OLTP, BigQuery/Redshift/ClickHouse-class OLAP, Dataflow pipelines, ontology. No cloud-* crates. Not S3. Not web search. RAG is intelligence if sold.",
+      "charter": "Records engines: Spanner/Cockroach/RDS-class OLTP, BigQuery/ClickHouse-class OLAP, Dataflow pipelines. No ontology product in core (later app/). No cloud-* crates. Not S3. Not web search. RAG is intelligence facade over data if sold.",
       "seed_domains": [
         "data"
       ],
       "absorbs_current_dirs": [
         "data"
       ],
-      "dag_node": "ontology",
-      "boundary_note": "ADR-0719: nested analytics/warehouse/pipeline/ontology/cloud-data dumps git rm. search-* purged (SERP is not RDS; RAG not strangler-moved). data-cloud-kernel/domain deleted — no cloud-* debt in this cap."
+      "dag_node": "data",
+      "boundary_note": "ADR-0719 D-20: data/ is records engines only. Ontology/warehouse product trees are later app/, not data/core. search-* purged. No cloud-* debt."
     },
     {
       "name": "storage",
@@ -223,7 +223,7 @@
       "substrate_dag_position": {
         "stratum": "S2"
       },
-      "charter": "Durable bytes: object/CAS (S3/GCS analog). Not SQL, not Spanner/Cockroach, not BigQuery, not search.",
+      "charter": "Durable bytes: object/CAS (S3/GCS analog) plus EBS-class block facade when sold. Pipeline CAS lives here. Drive/Meet/PACS are later app/, not storage facades.",
       "seed_domains": [
         "storage/CAS"
       ],
@@ -234,11 +234,11 @@
         "storage/recordings"
       ],
       "dag_node": "storage",
-      "boundary_note": "RESOLVED (ADR-0615, founder 2026-07-10): storage (substrate CAS/blob) vs data (ontology/OLTP) is a clean port seam. The landed storage/facade/{drive,recordings} domain crates (ADR-0562 §10.9) are CONFIRMED storage substrate product faces (single-capability, like the Q5 data facades); a future consumer Drive/Recordings product wiring storage+iam+comms+billing is app/. imaging (0 crates) awaits a later flat-product judgment (PACS); it is not an app/healthcare context. Its oya/imaging scaffold remains in this absorb until the storage Batch-5 move-plan can rehome it without orphaning. storage/facade also = the S3-analog CAS sold as infra (Amazon S3 the product, NOT ADR-0280 stratum S3 — the two spellings collide in this note). STRATUM (ADR-0631 floor test): the permitted range is S2..S5 — floor S2 from storage/core/domain -> cell/core/region (cell S2) and storage/facade/recordings -> comms/core/meet-domain (comms S2); nothing ranked consumes storage, so there is no ceiling. S2 is the FLOOR and is what is declared. The `tier_subtype: substrate-data` shared with cloud-data(S3)/ontology(S3) is NOT evidence for a mid-range S3: that subtype spans nine manifests which split 5x S3 (all data-capability services) and 4x forward-declared (cloud-storage, drive, recordings, imaging — precisely storage's own absorbs), so the subtype tracks the DATA capability's rank, not storage's. Declaring the floor also preserves headroom: every future ranked consumer of storage is legal at S2 and up."
+      "boundary_note": "ADR-0719 D-20: storage = bytes (object/CAS + optional block). drive/recordings/imaging dumps REMOVE as later app/. S3 API is the sold facade. STRATUM S2 floor unchanged."
     },
     {
       "name": "compute",
-      "charter": "Fleet orchestration (Borg analog): stripped Linux on Cloud Hypervisor (VM) and Firecracker (microVM/functions), plus our agent. Optional k8s-on-compute is a sold SKU facade, not how we operate.",
+      "charter": "Fleet orchestration (Borg analog): stripped Linux on Cloud Hypervisor (VM) and Firecracker (microVM/functions), plus our agent. Two reconcilers only. Sold kube is k8s/, not k8s-on-compute.",
       "seed_domains": [
         "compute"
       ],
@@ -246,7 +246,7 @@
         "compute"
       ],
       "dag_node": "compute",
-      "boundary_note": "Coarse per founder ruling: compute is ONE engine (vm + k8s-on-compute + functions) with facade sub-surfaces, NOT three capabilities."
+      "boundary_note": "ADR-0719 D-20: ONE engine, TWO reconcilers (CH VM + Firecracker functions). GPU is a VM SKU. gVisor is an adapter. k8s/ places nodes as compute VMs. NOT three capabilities and NOT k8s-on-compute."
     },
     {
       "name": "k8s",
@@ -274,7 +274,7 @@
       "substrate_dag_position": {
         "stratum": "S1"
       },
-      "charter": "Network + DNS substrate: service mesh, static-stable signed DNS snapshots, cell routing data plane.",
+      "charter": "VPC + private DNS + TCP dataplane + flow logs. Not Istio. Not the public door (gateway). Public door DNS and CDN are gateway SKUs.",
       "seed_domains": [
         "network/DNS"
       ],
@@ -290,7 +290,7 @@
       "substrate_dag_position": {
         "stratum": "S0"
       },
-      "charter": "API gateway / SSOT edge: Check/Report enforcement point, public API contract surface, rate/quota enforcement.",
+      "charter": "Public Connect/H3 door, Maglev per cell, TLS/WAF/IAP. PEP only — then policy/ Check. No Cedar engine. Connector dump is REMOVE.",
       "seed_domains": [
         "gateway/SSOT"
       ],
@@ -314,7 +314,7 @@
         "bus"
       ],
       "dag_node": "bus",
-      "boundary_note": "ADR-0719: capability is bus/. Path messaging/ is retired (git mv). Crate names messaging-* rename with KEEP+WORK, not as a live slug."}
+      "boundary_note": "ADR-0719: capability is bus/. Path messaging/ is retired (git mv). Crate names messaging-* rename with KEEP+WORK, not as a live slug."
     },
     {
       "name": "intelligence",
@@ -322,7 +322,7 @@
       "substrate_dag_position": {
         "stratum": "S4"
       },
-      "charter": "Managed inference + agent runtime (Vertex/Bedrock). Adapters to models, eval/proof, invoke facade. Not GuardDuty (detection purged ADR-0719). Not a chat app.",
+      "charter": "Managed inference (Vertex/Bedrock): invoke, endpoints, batch, quota. Hosted-agent SKU. GPUs from compute/. RAG facade over data/. Not GuardDuty. Not a chat/CLI copilot.",
       "seed_domains": [
         "control plane"
       ],
@@ -368,7 +368,7 @@
       "substrate_dag_position": {
         "stratum": "S0"
       },
-      "charter": "Infrastructure-as-code substrate + GitOps reconciliation surfaces. Declarative state for the owned stack.",
+      "charter": "IR unifier + reconcilers that call cap Connect APIs (compute/network/storage). Helm/Tofu/Argo are adapters, not source. Not kubectl-as-operations.",
       "seed_domains": [
         "control plane"
       ],
@@ -379,7 +379,7 @@
     },
     {
       "name": "billing",
-      "charter": "Metering + billing + pricing: three-clock accrual/rating/invoicing, tax, FinOps cost attribution. First-class sold-ness capability (NOT a product/ junk-drawer).",
+      "charter": "What you pay: usage events from owning caps, rate, invoice, tax adapter, FinOps/FOCUS. Not the SKU catalog (marketplace). Not scraped observability. Not ledger/payments.",
       "seed_domains": [
         "metering/billing"
       ],
@@ -393,7 +393,7 @@
     },
     {
       "name": "marketplace",
-      "charter": "Signed plugins, Cedar install envelope, SKU engine. Sell-catalog VIEW is build/. Not KYC, escrow, payout, or developer portal (ADR-0719).",
+      "charter": "What exists: signed plugins, Cedar install envelope, SKU attach. Rate/invoice is billing/. Not KYC, escrow, payout, app store, or a build/ price view.",
       "seed_domains": [
         "metering/billing"
       ],
@@ -409,7 +409,7 @@
       "substrate_dag_position": {
         "stratum": "S4"
       },
-      "charter": "Compliance + regulatory-evidence substrate: regulatory packs, data-class registry, DPIA/threat-model evidence, audit-pack generation. Governance-ENGINE surfaces are NOT here (see boundary_note + ADR-0615 §2 Q13).",
+      "charter": "CaS facade (bind/project/export) + evidence engine. Packs/ is CaC data. Does not evaluate Cedar (policy/). Does not own the Merkle log (audit/). DPIA clones are REMOVE.",
       "seed_domains": [
         "audit"
       ],
