@@ -719,6 +719,15 @@ compute/ agent (Borglet analog)  ──host Linux (KVM)──
 
 **Sold kube SKU** (optional): kubelet runs **inside a guest**, as a tenant. It is not the host agent.
 
+**What we build vs do not:**
+
+| Build (Rust) | Do **not** build |
+|---|---|
+| **Fleet orchestration** — `cell/` placement + `compute/` agent + CH/FC reconcilers. This **is** our Borg/Twine. Own proto, own agent, own VMM APIs. | A **Kubernetes engine** (apiserver, kubelet-as-host, kube-rs as Borg, etcd as the fleet store). Google did not Borg-on-kube. |
+| Sold **`k8s/`** SKU **if** customers want a kube API: wrap **upstream** kube (EKS/AKS pattern) — hosting, quota, SLA, CAPI. | A Go→Rust kubernetes.git port as a prerequisite to operate. |
+
+Two products only if we **sell** kube. One **operations** plane either way: CH/FC + stripped Linux.
+
 **kube-rs / k8s-openapi:** Kubernetes **client** libraries (OpenAPI types for
 Pod/Job/…). They talk to a **kube-apiserver**. That is **not Borg.** Do
 **not** use them as the fleet scheduler (`compute/` / `cell/`). Using
