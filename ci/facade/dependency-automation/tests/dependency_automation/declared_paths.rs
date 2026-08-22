@@ -11,9 +11,9 @@ use crate::helpers::{temp_root, write_minimal_candidate};
 // `validate_declared_paths` would have left the whole suite green. Each of these stales exactly
 // one declared artifact and asserts the specific code it must produce.
 
-/// Rewrite one `key = "value"` line inside the fixture's `oya-deps.toml`.
+/// Rewrite one `key = "value"` line inside the fixture's `deps.toml`.
 fn set_declared_path(root: &Path, key: &str, replacement: &str) {
-    let path = root.join("oya-deps.toml");
+    let path = root.join("deps.toml");
     let text = fs::read_to_string(&path).unwrap();
     let rewritten: String = text
         .lines()
@@ -80,7 +80,7 @@ fn a_declared_path_that_escapes_upward_is_red() {
     set_declared_path(
         &root,
         "stewardship_registry",
-        "stewardship_registry = \"../oya-deps.toml\"",
+        "stewardship_registry = \"../deps.toml\"",
     );
     let report = evaluate_repo(&root).expect("evaluate fixture");
     assert_eq!(report.verdict, Verdict::Red);
@@ -98,7 +98,7 @@ fn a_declared_path_that_escapes_upward_is_red() {
 fn removing_a_declared_path_key_is_red_rather_than_skipped() {
     let root = temp_root();
     write_minimal_candidate(&root, "1.96.0");
-    let path = root.join("oya-deps.toml");
+    let path = root.join("deps.toml");
     let text = fs::read_to_string(&path).unwrap();
     let stripped: String = text
         .lines()
@@ -122,7 +122,7 @@ fn removing_a_declared_path_key_is_red_rather_than_skipped() {
 fn the_freshness_kernel_declaration_is_validated() {
     let root = temp_root();
     write_minimal_candidate(&root, "1.96.0");
-    let path = root.join("oya-deps.toml");
+    let path = root.join("deps.toml");
     let text = fs::read_to_string(&path).unwrap();
     fs::write(
         &path,

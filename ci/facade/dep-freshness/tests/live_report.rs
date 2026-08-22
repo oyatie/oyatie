@@ -37,7 +37,7 @@ fn read(relative: &str) -> String {
 
 #[test]
 fn the_reporter_runs_against_the_committed_mirror() {
-    let policy = Policy::from_toml(&read("oya-deps.toml")).expect("[freshness] policy parses");
+    let policy = Policy::from_toml(&read("deps.toml")).expect("[freshness] policy parses");
     let manifest = manifest(&read(&policy.manifest)).expect("mirror manifest parses");
     let releases = mirror(&read(&policy.mirror)).expect("mirror parses");
 
@@ -78,14 +78,14 @@ fn the_reporter_runs_against_the_committed_mirror() {
 fn the_committed_policy_is_advisory() {
     // A blocking [freshness] policy would be refused by the gate rather than silently downgraded;
     // this pins the committed declaration so the refusal path is never reached by accident.
-    let policy = Policy::from_toml(&read("oya-deps.toml")).expect("policy parses");
+    let policy = Policy::from_toml(&read("deps.toml")).expect("policy parses");
     assert_eq!(policy.enforcement, "advisory");
     assert!(policy.stale_after_days > 0);
 }
 
 #[test]
 fn every_mirror_entry_has_a_usable_release_date() {
-    let policy = Policy::from_toml(&read("oya-deps.toml")).expect("policy parses");
+    let policy = Policy::from_toml(&read("deps.toml")).expect("policy parses");
     let releases = mirror(&read(&policy.mirror)).expect("mirror parses");
     let owners = BTreeMap::new();
     // A record whose date cannot be parsed silently drops out of the staleness computation, which

@@ -542,7 +542,7 @@ fn run() -> Result<(), CliError> {
 }
 
 /// Load the cloud-ci policy config. `repo_root` is the candidate corpus under test;
-/// `policy_root`, when present, is trusted control state carrying `oya-ci.toml`.
+/// `policy_root`, when present, is trusted control state carrying `ci.toml`.
 fn load_policy_config(
     repo_root: &Path,
     policy_root: Option<&Path>,
@@ -560,34 +560,41 @@ fn load_frozen_reference_policy_config(
     load_frozen_reference_config(policy_root.unwrap_or(repo_root))
 }
 
-/// Load a root's `oya-ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). When the file is present
+/// Load a root's `ci.toml` (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3). When the file is present
 /// it is parsed by the CLOSED-schema loader (a malformed file / unknown key is a hard error, so
 /// a broken config fails LOUDLY rather than silently reverting policy); when it is absent the
 /// compiled-in bundled default applies (zero-config = today's language-agnostic posture).
+/// Legacy `oya-ci.toml` is read only when `ci.toml` is missing (merge-base compatibility).
 fn load_config(config_root: &Path) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
-    let path = config_root.join("oya-ci.toml");
-    match std::fs::read_to_string(&path) {
-        Ok(text) => oya_ci_config_kernel::OyaCiConfig::from_toml_str(&text)
+    match read_ci_policy_text(config_root)? {
+        Some((path, text)) => oya_ci_config_kernel::OyaCiConfig::from_toml_str(&text)
             .map_err(|e| CliError::Io(format!("{}: {e}", path.display()))),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            Ok(oya_ci_config_kernel::OyaCiConfig::bundled_default())
-        }
-        Err(e) => Err(CliError::Io(format!("{}: {e}", path.display()))),
+        None => Ok(oya_ci_config_kernel::OyaCiConfig::bundled_default()),
     }
 }
 
 fn load_frozen_reference_config(
     config_root: &Path,
 ) -> Result<oya_ci_config_kernel::OyaCiConfig, CliError> {
-    let path = config_root.join("oya-ci.toml");
-    match std::fs::read_to_string(&path) {
-        Ok(text) => oya_ci_config_kernel::OyaCiConfig::from_frozen_reference_toml_str(&text)
-            .map_err(|e| CliError::Io(format!("{}: {e}", path.display()))),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            Ok(oya_ci_config_kernel::OyaCiConfig::frozen_reference_bundled_default())
+    match read_ci_policy_text(config_root)? {
+        Some((path, text)) => {
+            oya_ci_config_kernel::OyaCiConfig::from_frozen_reference_toml_str(&text)
+                .map_err(|e| CliError::Io(format!("{}: {e}", path.display())))
         }
-        Err(e) => Err(CliError::Io(format!("{}: {e}", path.display()))),
+        None => Ok(oya_ci_config_kernel::OyaCiConfig::frozen_reference_bundled_default()),
     }
+}
+
+fn read_ci_policy_text(config_root: &Path) -> Result<Option<(PathBuf, String)>, CliError> {
+    for name in oya_ci_config_kernel::CONFIG_SEARCH_ORDER {
+        let path = config_root.join(name);
+        match std::fs::read_to_string(&path) {
+            Ok(text) => return Ok(Some((path, text))),
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => return Err(CliError::Io(format!("{}: {e}", path.display()))),
+        }
+    }
+    Ok(None)
 }
 
 /// Config-driven repo-root discovery (ADR-0533 §Decision item 4 — the config-driven test/run
@@ -2045,7 +2052,7 @@ exempt_stems = ["alpha"]
         let root = unique_temp_repo();
         write_test_file(
             &root,
-            "oya-ci.toml",
+            "ci.toml",
             r#"
 [[vocab.forbidden_stems]]
 stem = "alpha"
@@ -2287,16 +2294,16 @@ value = "legacy-marker"
         fs::create_dir_all(&decisions).expect("create decisions dir");
         fs::write(
             decisions.join("ADR-9998-root-path-test.md"),
-            "The root dependency automation DATA contract is `oya-deps.toml`.\n",
+            "The root dependency automation DATA contract is `deps.toml`.\n",
         )
         .expect("write ADR");
 
         let cfg = oya_ci_config_kernel::OyaCiConfig::bundled_default();
-        let paths = vec!["oya-deps.toml".to_owned()];
+        let paths = vec!["deps.toml".to_owned()];
         let justifications = resolve_justifications(&root, &paths, &cfg);
 
         assert_eq!(
-            justifications.get("oya-deps.toml"),
+            justifications.get("deps.toml"),
             Some(&"ADR-9998".to_owned())
         );
 
@@ -3591,7 +3598,7 @@ status: Accepted
             }
         };
         let scm_facts = load_live_test_scm_facts(&root);
-        let cfg = load_config(&root).expect("repo oya-ci.toml loads");
+        let cfg = load_config(&root).expect("repo ci.toml loads");
         let resolution = resolve_owners(&root, &scm_facts.tracked_paths, &cfg);
         assert!(
             resolution.integrity.invalid.is_empty(),
@@ -3618,7 +3625,7 @@ status: Accepted
         let trusted_root = unique_temp_repo();
         fs::write(candidate_root.join("oya-ci.toml"), "profile = 'neutral'\n")
             .expect("write candidate policy");
-        fs::write(trusted_root.join("oya-ci.toml"), "profile = 'oyatie'\n")
+        fs::write(trusted_root.join("ci.toml"), "profile = 'oyatie'\n")
             .expect("write trusted policy");
 
         let cfg = load_policy_config(&candidate_root, Some(&trusted_root))
@@ -3632,13 +3639,22 @@ status: Accepted
     #[test]
     fn policy_root_defaults_to_candidate_oya_ci_config() {
         let candidate_root = unique_temp_repo();
-        fs::write(candidate_root.join("oya-ci.toml"), "profile = 'neutral'\n")
+        fs::write(candidate_root.join("ci.toml"), "profile = 'neutral'\n")
             .expect("write candidate policy");
 
         let cfg = load_policy_config(&candidate_root, None).expect("candidate policy root loads");
 
         assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Neutral);
         fs::remove_dir_all(candidate_root).expect("remove candidate temp repo");
+    }
+
+    #[test]
+    fn legacy_oya_ci_toml_loads_when_ci_toml_absent() {
+        let root = unique_temp_repo();
+        fs::write(root.join("oya-ci.toml"), "profile = 'neutral'\n").expect("write legacy policy");
+        let cfg = load_config(&root).expect("legacy oya-ci.toml loads");
+        assert_eq!(cfg.profile, oya_ci_config_kernel::Profile::Neutral);
+        fs::remove_dir_all(root).expect("remove temp repo");
     }
 }
 

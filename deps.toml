@@ -1,4 +1,5 @@
-# oya-deps.toml — closed-schema DATA contract for Oyatie dependency automation.
+# deps.toml — closed-schema DATA contract for owned dependency automation (not cargo-deny;
+# that lives in deny.toml). Formerly oya-deps.toml; filename is brand-free.
 # ADR-0535 rejects external dependency-bot adoption for the owned stack. The destination actuator is an
 # in-house Rust bump-bot that opens scm-facts ChangeSets and runs license/advisory/version gates
 # before proposing dependency changes. GitHub PRs are a transitional adapter, not the source of truth.

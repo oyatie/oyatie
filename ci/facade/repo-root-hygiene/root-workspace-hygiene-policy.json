@@ -99,16 +99,16 @@
       "reason": "root-level ownership marker for root DATA files"
     },
     {
-      "id": "oya-deps-toml",
+      "id": "deps-toml",
       "kind": "exact",
-      "value": "oya-deps.toml",
+      "value": "deps.toml",
       "reason": "owned dependency automation config (DATA)"
     },
     {
-      "id": "oya-ci-toml",
+      "id": "ci-toml",
       "kind": "exact",
-      "value": "oya-ci.toml",
-      "reason": "oya-ci enforcement config (DATA)"
+      "value": "ci.toml",
+      "reason": "portable oya-ci enforcement config (DATA)"
     },
     {
       "id": "gitignore",

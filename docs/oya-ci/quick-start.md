@@ -3,15 +3,15 @@
 Adopting the oya-ci conformance floor in a repo is three steps: drop a config, run the producer,
 wire the CI lanes. With no config you still get a valid, GREEN, empty-but-present baseline.
 
-## 1. Drop an `oya-ci.toml` at the repo root
+## 1. Drop a `ci.toml` at the repo root
 
 Start from the [config reference](./config-reference.md). The minimum useful config enables the
 language-agnostic gates; a Rust/Cargo repo also enables `bnf-layer-suffix`,
 `manifest-hygiene`, `cargo-prefix`, and `workspace-glob-coverage`. Repos with catalog records
-also enable `slo-coverage`. oyatie's own `oya-ci.toml` (at this repo's root) is a worked,
+also enable `slo-coverage`. oyatie's own `ci.toml` (at this repo's root) is a worked,
 complete example.
 
-Zero-config is valid: with no `oya-ci.toml` present the producer materializes the compiled-in
+Zero-config is valid: with no `ci.toml` present the producer materializes the compiled-in
 bundled default (language-agnostic gates on, empty policy tables, repo root = `.`), so a fresh repo
 gets a non-erroring baseline that names zero foreign paths.
 

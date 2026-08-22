@@ -48,6 +48,14 @@ const BUNDLED_TTL_JSON: &str = include_str!("bundled/ttl-policy.json");
 /// when a breaking schema change ships; additive (back-compatible) keys do NOT bump it.
 pub const SCHEMA_VERSION: u32 = 2;
 
+/// Portable pipeline-as-product CI policy filename. Adopters drop `ci.toml` at repo root.
+pub const CONFIG_FILENAME: &str = "ci.toml";
+/// Compatibility filename. Loaders read this only when [`CONFIG_FILENAME`] is absent
+/// (merge-base frozen-reference trees still carry `oya-ci.toml` until this rename is in `dev`).
+pub const CONFIG_FILENAME_LEGACY: &str = "oya-ci.toml";
+/// Filenames tried in order when locating the closed-schema CI policy.
+pub const CONFIG_SEARCH_ORDER: &[&str] = &[CONFIG_FILENAME, CONFIG_FILENAME_LEGACY];
+
 /// The published `$id` URL for the closed `oya-ci.toml` schema (ADR-0533 §Decision item 5).
 pub const SCHEMA_ID: &str = "https://oya-ci.dev/schema/oya-ci-config/v2";
 
@@ -617,9 +625,9 @@ fn default_vocab_carve_outs() -> Vec<VocabCarveOut> {
         ),
         (
             VocabCarveOutKind::PathExact,
-            "oya-ci.toml",
+            "ci.toml",
             &[],
-            "the repo-root oya-ci config IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
+            "the repo-root CI policy IS the deny-list (it declares the forbidden-stem table) — naming a stem here is the deny-list, not residue",
         ),
         (
             VocabCarveOutKind::PathExact,
@@ -1485,7 +1493,7 @@ mod tests {
             ]
         );
         // 9 carve-out rules, including the line-level palantir exemption + the oya-ci-config
-        // deny-list SSOT path carve-out + the repo-root oya-ci.toml deny-list carve-out.
+        // deny-list SSOT path carve-out + the repo-root ci.toml deny-list carve-out.
         assert_eq!(cfg.vocab.carve_outs.len(), 9);
         assert!(
             cfg.vocab

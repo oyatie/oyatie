@@ -2787,9 +2787,6 @@ fn build_merge_base_baseline_snapshot(
 //  4. STRICT NO-OP when there is no move-manifest or no renames. Per-(gate,code) injective;
 //     reject fail-closed on collisions (new key already a distinct frozen key).
 
-/// Repo-relative path of the oya-ci config (the LIVE VocabPolicy source — the deny-list table).
-const OYA_CI_CONFIG_PATH: &str = "oya-ci.toml";
-
 /// The gate ids whose key spaces are PATH-keyed and content-relabel-eligible.
 const GATE_BRAND_RESIDUE: &str = "cloud-ci-brand-residue";
 const GATE_TARGET_PARITY: &str = "cloud-ci-target-parity";
@@ -3333,14 +3330,23 @@ pub fn load_vocab_policy(repo_root: &Path) -> Result<VocabPolicy, String> {
     use oya_check_brand_residue::forbidden_vocab::{CarveOutKind, OwnedCarveOut, OwnedStem};
     use oya_ci_config_kernel::{OyaCiConfig, VocabCarveOutKind};
 
-    let path = repo_root.join(OYA_CI_CONFIG_PATH);
-    let cfg = match std::fs::read_to_string(&path) {
-        Ok(text) => OyaCiConfig::from_toml_str(&text)
-            .map_err(|e| format!("{}: {e} — refusing a silent VocabPolicy divergence (the producer's census fails loud on the same file; the relabel's P4 must use the IDENTICAL policy)", path.display()))?,
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
-            return Ok(VocabPolicy::bundled_default());
+    let mut cfg = None;
+    for name in oya_ci_config_kernel::CONFIG_SEARCH_ORDER {
+        let path = repo_root.join(name);
+        match std::fs::read_to_string(&path) {
+            Ok(text) => {
+                cfg = Some(OyaCiConfig::from_toml_str(&text).map_err(|e| {
+                    format!("{}: {e} — refusing a silent VocabPolicy divergence (the producer's census fails loud on the same file; the relabel's P4 must use the IDENTICAL policy)", path.display())
+                })?);
+                break;
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => return Err(format!("{}: {e}", path.display())),
         }
-        Err(e) => return Err(format!("{}: {e}", path.display())),
+    }
+    let cfg = match cfg {
+        Some(cfg) => cfg,
+        None => return Ok(VocabPolicy::bundled_default()),
     };
     Ok(VocabPolicy {
         stems: cfg

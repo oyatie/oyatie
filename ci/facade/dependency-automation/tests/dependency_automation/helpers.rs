@@ -61,7 +61,7 @@ pub(crate) fn write_minimal_candidate(root: &Path, pin: &str) {
     fs::write(root.join("deny.toml"), "[licenses]\n").unwrap();
     fs::create_dir_all(root.join("specs")).unwrap();
     fs::write(root.join("specs/oss-stewardship-registry.json"), "{}\n").unwrap();
-    fs::write(root.join("oya-deps.toml"), oya_deps(pin)).unwrap();
+    fs::write(root.join("deps.toml"), oya_deps(pin)).unwrap();
 }
 
 fn oya_deps(pin: &str) -> String {

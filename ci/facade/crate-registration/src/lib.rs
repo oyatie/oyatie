@@ -67,7 +67,7 @@ use ci_module_membership::{Mapping, homes_for, parse_mapping};
 // `evaluate_keyed` is driven over the POST-settle faces so the just-registered crate is validated
 // against the SAME gate logic CI runs (never a reimplementation). All three are cycle-free (they dep
 // only serde_json / a downward libs/ crate, never back to this orchestrator).
-use oya_ci_config_kernel::OyaCiConfig;
+use oya_ci_config_kernel::{CONFIG_SEARCH_ORDER, OyaCiConfig};
 use oya_crate_registrar_app::{
     WriterError, adr_governed_paths, capability_mapping, catalog_yaml, workspace_member_glob,
 };
@@ -1401,7 +1401,7 @@ fn dispatch_edit(
 
 // ───────────────────────────── loaders (repo I/O) ─────────────────────────────
 
-/// Load the repo's `oya-ci.toml` policy (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3), mirroring the
+/// Load the repo's `ci.toml` policy (OYA-CI-CONFORMANCE-FLOOR-PLAN §3.3), mirroring the
 /// producer's loader (`oya-cloud-ci-accounting-registry-app::main::load_config`) so the orchestrator
 /// honours the SAME profile/paths the producer bridges do. The file is parsed by the CLOSED-schema
 /// loader; a malformed file / unknown key is a HARD error (fail LOUD, never silently revert to the
@@ -1411,15 +1411,20 @@ fn dispatch_edit(
 /// hardcoded oyatie profile that `OyaCiConfig::default()` returned.
 ///
 /// # Errors
-/// [`RegisterError::Io`] on a malformed `oya-ci.toml` or a non-NotFound read failure.
+/// [`RegisterError::Io`] on a malformed `ci.toml` / legacy `oya-ci.toml` or a non-NotFound read failure.
 fn load_config(repo_root: &Path) -> Result<OyaCiConfig, RegisterError> {
-    let path = repo_root.join("oya-ci.toml");
-    match std::fs::read_to_string(&path) {
-        Ok(text) => OyaCiConfig::from_toml_str(&text)
-            .map_err(|e| RegisterError::Io(format!("{}: {e}", path.display()))),
-        Err(e) if e.kind() == std::io::ErrorKind::NotFound => Ok(OyaCiConfig::bundled_default()),
-        Err(e) => Err(RegisterError::Io(format!("{}: {e}", path.display()))),
+    for name in CONFIG_SEARCH_ORDER {
+        let path = repo_root.join(name);
+        match std::fs::read_to_string(&path) {
+            Ok(text) => {
+                return OyaCiConfig::from_toml_str(&text)
+                    .map_err(|e| RegisterError::Io(format!("{}: {e}", path.display())));
+            }
+            Err(e) if e.kind() == std::io::ErrorKind::NotFound => continue,
+            Err(e) => return Err(RegisterError::Io(format!("{}: {e}", path.display()))),
+        }
     }
+    Ok(OyaCiConfig::bundled_default())
 }
 
 /// Load the closed [`CapabilitySet`] from `governance/capability-registry.json`: the set of capability

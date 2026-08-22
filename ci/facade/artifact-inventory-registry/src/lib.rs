@@ -2618,7 +2618,7 @@ mod tests {
             &root,
             &tracked(&[
                 "OWNERS",
-                "oya-deps.toml",
+                "deps.toml",
                 "oya/BUCK",
                 "docs/doc.md",
                 "cloud/gate/app.rs",
@@ -2630,7 +2630,7 @@ mod tests {
             resolution.by_path,
             BTreeMap::from([
                 ("OWNERS".to_owned(), "OWNERS:".to_owned()),
-                ("oya-deps.toml".to_owned(), "OWNERS:".to_owned()),
+                ("deps.toml".to_owned(), "OWNERS:".to_owned()),
                 ("oya/BUCK".to_owned(), "OWNERS:".to_owned())
             ]),
             "root OWNERS should cover root DATA and direct top-level BUCK metadata, not blanket subtrees"

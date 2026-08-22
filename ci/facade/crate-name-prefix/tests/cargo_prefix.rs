@@ -14,7 +14,7 @@ use std::io::ErrorKind;
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 
-use oya_ci_config_kernel::OyaCiConfig;
+use oya_ci_config_kernel::{CONFIG_SEARCH_ORDER, OyaCiConfig};
 use serde_json::{Value, json};
 
 use ci_crate_name_prefix::{Verdict, evaluate, evaluate_keyed};
@@ -250,13 +250,18 @@ fn load_scm_tracked_paths(path: &Path) -> Result<Vec<String>, String> {
 }
 
 fn load_policy_config(root: &Path) -> Result<OyaCiConfig, String> {
-    let path = root.join("oya-ci.toml");
-    match fs::read_to_string(&path) {
-        Ok(text) => OyaCiConfig::from_toml_str(&text)
-            .map_err(|error| format!("parse {}: {error}", path.display())),
-        Err(error) if error.kind() == ErrorKind::NotFound => Ok(OyaCiConfig::bundled_default()),
-        Err(error) => Err(format!("read {}: {error}", path.display())),
+    for name in CONFIG_SEARCH_ORDER {
+        let path = root.join(name);
+        match fs::read_to_string(&path) {
+            Ok(text) => {
+                return OyaCiConfig::from_toml_str(&text)
+                    .map_err(|error| format!("parse {}: {error}", path.display()));
+            }
+            Err(error) if error.kind() == ErrorKind::NotFound => continue,
+            Err(error) => return Err(format!("read {}: {error}", path.display())),
+        }
     }
+    Ok(OyaCiConfig::bundled_default())
 }
 
 fn is_path_excluded(path: &str, config: &OyaCiConfig) -> bool {

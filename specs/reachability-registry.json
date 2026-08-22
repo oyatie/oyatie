@@ -98,6 +98,10 @@
       "prefix": "cell/"
     },
     {
+      "anchor": "ADR-0527/ADR-0533: root ci.toml is the portable closed-schema CI policy (pipeline-as-product; formerly oya-ci.toml).",
+      "prefix": "ci.toml"
+    },
+    {
       "anchor": "ADR-0562 migration inventory: reviewed CI controller legacy-root drain record.",
       "prefix": "ci/REORG-DRAIN.md"
     },
@@ -208,6 +212,10 @@
     {
       "anchor": "ADR-0139 + DATA-005/G003: contract-only data-substrate ops skeleton; static zero-replica operator and GitOps manifests, no runtime controller or live-sync claim.",
       "prefix": "data/ops/"
+    },
+    {
+      "anchor": "ADR-0535 §5: root deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate (formerly oya-deps.toml).",
+      "prefix": "deps.toml"
     },
     {
       "anchor": "ADR-0555: documentation entry hub. Registered directly now that DOC-CATALOG is no longer an index; the hub survives on its own terms rather than by an index row that must be maintained.",
@@ -656,10 +664,6 @@
     {
       "anchor": "ADR-0701 monorepo capability live-apex + Wave-2 cloud-os absorb (#1926): forever-home microservice manifest for the os/ capability root after cloud/cloud-os residual drain; declarative inventory only — not a live node runtime claim.",
       "prefix": "os/manifest.json"
-    },
-    {
-      "anchor": "ADR-0535 §5: root oya-deps.toml is the closed-schema DATA contract for the owned Rust dependency bump-bot and dependency-automation gate.",
-      "prefix": "oya-deps.toml"
     },
     {
       "anchor": "ADR-0632 hermetic input declaration: exact root BUCK file for the governed Oyatie manifest and internal Proto corpora consumed by the product-protocol gate.",

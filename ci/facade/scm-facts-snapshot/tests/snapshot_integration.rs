@@ -1125,7 +1125,7 @@ fn baseline_output_path_resolver_rejects_missing_move_manifest() {
 fn vocab_policy_loads_filesystem_carve_out() {
     let root = temp_repo_root("vocab-policy");
     std::fs::write(
-        root.join("oya-ci.toml"),
+        root.join("ci.toml"),
         "\n[[vocab.carve_outs]]\nkind = \"line_contains_ci\"\nvalue = \"structural-marker\"\nexempt_stems = [\"alpha\"]\n",
     )
     .expect("write config");
