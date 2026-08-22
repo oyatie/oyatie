@@ -464,8 +464,8 @@ calls `policy/` in-process; it does not embed a second PDP.
 | KMS / Secrets Manager / SPIFFE | **secrets** | core: keys, secrets, **SVID issuance**. |
 | CloudTrail | **audit** | core: Merkle log. Always on. Async seal on serving path (D-1). |
 | CloudWatch / Monarch | **observability** | core: telemetry + SLO **controller**. Per-cap SLOs are IR → generated OpenSLO, not this cap’s YAML novel. |
-| S3 / GCS / CAS | **storage** | core: blob/CAS. Drive/recordings = **facade**. Imaging waits a product, not a nest. |
-| RDS / Spanner / BigQuery / ontology | **data** | core: ontology, OLTP/OLAP, pipelines. Foundry-shaped data plane. Not S3. |
+| S3 / GCS / CAS | **storage** | core: **bytes** (object/CAS). Drive/recordings = byte **facade**. Not SQL. |
+| Spanner / Cockroach / Cloud SQL / BigQuery / Dataflow | **data** | core: **records** — OLTP (Spanner/Cockroach/RDS-class), OLAP (BigQuery/Redshift/ClickHouse-class), pipelines, ontology. **No `cloud-*` crates.** Postgres/Cockroach/Spanner are this cap’s **engines or adapters**, never `storage/`. |
 | EC2 / GCE / Functions / GKE-on-VMs | **compute** | **One** engine: VM + k8s-on-compute + functions. Facades, not three caps. |
 | GKE / EKS control plane (sold) | **k8s** | core: owned apiserver. Facade: managed cluster. Store: cluster objects only (D-2). |
 | VPC / DNS / mesh | **network** | core: mesh, signed DNS snapshots, cell dataplane. |
@@ -500,8 +500,8 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **secrets** | KMS, secret material, **SPIFFE issue**. | PDP. Cert spam as YAML. | Absorb `os-trustd-domain` consumers. |
 | **audit** | Tamper-evident log. Always on. | Compliance packs (`compliance`). Sync Merkle on every Check. | DPIA essays, scorecards. |
 | **observability** | Telemetry + SLO **controller**. | Per-cap hand OpenSLO. SIEM as a 25th cap. | Stamped OpenSLO. Detection is **not** this cap and **not** intelligence core. |
-| **storage** | Object/CAS. Drive/recordings **facade**. | Ontology DB (`data`). Block/file = **facades when sold**, no empty dirs. | Nested imaging leftover; census. |
-| **data** | Ontology, OLTP/OLAP, pipelines. | S3 (`storage`). Cache/search = facades **when sold**. | Nested ontology/analytics leftover trees; Postgres is **adapter**. |
+| **storage** | Durable **bytes**: object/CAS. | SQL/Spanner/Cockroach (`data`). Search. Analytics query. | Imaging leftover; census. Block/file = facades **when sold**, no empty dirs. |
+| **data** | Durable **records**: Spanner/Cockroach/RDS-class OLTP, BigQuery-class OLAP, Dataflow, ontology. | S3/CAS (`storage`). Google Search / SERP. RAG. BI **app**. `cloud-*` names. | Nested dumps + `search-*` + `data-cloud-*` **purged**. ClickHouse/Postgres = **adapters**. |
 | **compute** | **One** engine: VM + k8s-on-compute + functions. | GKE product (`k8s/`). GPU = facade when sold. | Splitting into 3 caps. |
 | **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
 | **network** | VPC/DNS/mesh dataplane. | Public API door (`gateway`). Direct Connect/CDN = facade when sold. | Census. |
@@ -537,8 +537,8 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **secrets** | Crypto root and issuance. | KMS, secret material, SPIFFE **issue**, cert **issue** when sold. | PDP. Embedding secrets in app products. |
 | **audit** | Tamper-evident **record**. | Merkle log, seal of principal+tenant, privileged-path durability. | Pack evidence (`compliance`). Sync seal on every Check. DPIA markdown. |
 | **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO apply. | Hand OpenSLO novels. SIEM as a 25th cap. App product analytics. |
-| **storage** | Durable **bytes**. | Object/CAS; drive/recordings as **byte facades**. | Tables/ontology (`data`). Block/file until sold as facades. Imaging product. |
-| **data** | Durable **records** and analytics engines. | Ontology/OLTP/OLAP/pipelines as **platform**. Postgres as adapter. | Object store (`storage`). Foundry **app**. Cache/search until sold as facades. |
+| **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; drive/recordings as byte **facades**. | Any **query engine**. Spanner/Cockroach/RDS. BigQuery. Search. |
+| **data** | Durable **records** + query engines. | OLTP: Spanner, Cockroach, Cloud SQL/Aurora-class. OLAP **engine**: BigQuery, Redshift, ClickHouse-class. Pipelines: Dataflow. Ontology. | Bytes (`storage`). **BI product** (Looker/Metabase — later `app/`). **Web search / SERP** (not a cloud cap). **RAG** (`intelligence` facade if sold). OpenSearch-class tenant search = **facade of data when sold**, not `core/` today. **`cloud-*` crate names.** |
 | **compute** | Run **workloads**. | One engine: VM + k8s-on-compute + functions. GPU as facade when sold. | GKE product (`k8s`). Cell topology (`cell`). |
 | **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
 | **network** | Connect inside the cloud. | VPC, DNS snapshots, mesh dataplane. | Public API door (`gateway`). CDN/Interconnect until sold as facades. |
@@ -768,6 +768,8 @@ for the apps discussion.
 - Kafka (or Pulsar) as the `bus/` engine / serving consume path.
 - `intelligence/detection/` as this cap’s core (GuardDuty ≠ Vertex). Copilot UX in `intelligence/core`.
 - Marketplace as KYC/escrow/app-store; strangler of `developer-sdk/` into billing.
+- `data/core/cloud-*` crates or a `cloud-data/` nest. Search/SERP/RAG in `data/core`.
+- Putting Spanner/Cockroach/RDS in `storage/`. Putting BigQuery in `storage/`. A `search/` capability for Google Search.
 
 ## Appendix — considerations (not implement authority)
 

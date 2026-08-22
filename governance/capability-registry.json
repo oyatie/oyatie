@@ -207,19 +207,15 @@
       "substrate_dag_position": {
         "stratum": "S3"
       },
-      "charter": "Data substrate: ontology graph, OLTP/OLAP storage engines, pipelines/warehouse, replication/residency. The owned data plane.",
+      "charter": "Records + query engines: Spanner/Cockroach/RDS-class OLTP, BigQuery/Redshift/ClickHouse-class OLAP, Dataflow pipelines, ontology. No cloud-* crates. Not S3. Not web search. RAG is intelligence if sold.",
       "seed_domains": [
         "data"
       ],
       "absorbs_current_dirs": [
-        "data",
-        "data/cloud-data",
-        "data/ontology",
-        "data/data-pipeline",
-        "data/data-warehouse",
-        "data/analytics"
+        "data"
       ],
-      "dag_node": "ontology"
+      "dag_node": "ontology",
+      "boundary_note": "ADR-0719: nested analytics/warehouse/pipeline/ontology/cloud-data dumps git rm. search-* purged (SERP is not RDS; RAG not strangler-moved). data-cloud-kernel/domain deleted — no cloud-* debt in this cap."
     },
     {
       "name": "storage",
@@ -227,7 +223,7 @@
       "substrate_dag_position": {
         "stratum": "S2"
       },
-      "charter": "Object/blob storage + content-addressed store (CAS / NativeLink). Crypto-shred-aware blob substrate.",
+      "charter": "Durable bytes: object/CAS (S3/GCS analog). Not SQL, not Spanner/Cockroach, not BigQuery, not search.",
       "seed_domains": [
         "storage/CAS"
       ],
