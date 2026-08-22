@@ -68,6 +68,10 @@ deliverables:
     description: "pipeline/ is TAP+Cloud Build; GHA disjoint; workflow/ and comms/ purged; rewrite workflow and notify; ci/ and messaging/ are retired names not live aliases; .github/scripts any-language glue."
     exit_criteria: "ADR tables use pipeline/, bus/, notify/; workflow/ and comms/ trees absent; rust-first exclude_prefixes includes .github/scripts/; GHA YAML is not a face of pipeline/."
     verified_by: "presubmit"
+  - id: ADR-0719-D19
+    description: "Need/have/don't for every repo-root name. Capabilities are the cloud provider. No new cloud-* crates, dirs, or registry rows. Wrong-home dumps burn or rewrite; they are not rehomed into another cap."
+    exit_criteria: "This table is the placement reading; new crates match Need; no PR adds a cloud-* path or crate; leftover roots in Don't are not used as destinations."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -441,7 +445,7 @@ privileged evidence; passkeys as L3; unpublished binary lock-in; EU-as-only-base
 cap-root census files; dual `cedar/`+`policy/` children; Istio/Linkerd as our
 mTLS identity; standing gRPC east-west; PQC/ECH as ADR prose with no crates;
 on-path QUIC MITM or ECH-off “enterprise mode”; a `firewall/` cap; `ci/` and
-`messaging/` as live aliases.
+`messaging/` as live aliases; new `cloud-*` crates or a `cloud/` root.
 
 ### D-8 — Repo root and capability / app root (amends ADR-0701)
 
@@ -803,9 +807,57 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 
 - **achieves:** one place for each cloud concern; `cloud/` and `specs/cloud-*` cannot return.
 - **origin:** `cloud/` was emptied; the cloud leaked into JSON specs and nested `oya-*` / `cloud-*` leftover dirs inside caps.
-- **rule:** a cloud-provider engine occupies exactly one registered capability’s `core/`; sold single-cap surface is `facade/`; 2+ is `app/`; repo root does not hold IaaS dumps.
-- **ensure:** new engines get a registry row or a face, never `cloud/` or `libs/`.
+- **rule:** a cloud-provider engine occupies exactly one registered capability’s `core/`; sold single-cap surface is `facade/`; 2+ is `app/`; repo root does not hold IaaS dumps; **no new `cloud-*` crate, dir, or type name** (existing `CloudRegion` fossils burn with their dump, they are not a pattern).
+- **ensure:** new engines get a registry row or a face, never `cloud/` or `libs/`; new crate names use the cap slug (`cell-clock-api`, not `cloud-clock`).
 - **overturn_when:** a §7 split/merge ADR with five fields lands same-wave.
+
+### D-19 — Need / have / don't (so dumps stop changing address)
+
+Repo-root **capabilities** are the cloud provider. If it is not in **Need**, it is not a cap root. If **Have** is a dump, do not move the dump into another cap — burn or rewrite in place. **Don't** is not a destination.
+
+**Need (closed cloud-provider set).** One root each. Engine in `core/`. No `cloud-*` names.
+
+| Root | Need | Have (this branch) | Don't | Do |
+|---|---|---|---|---|
+| `cell/` | Topology, clock port | Region/bind crates + **clock port** | CRM, `time/` cap, `cloud-cell` | Keep engine; clock port stays |
+| `tenancy/` | Tenant lifecycle, home-cell | Present | IdP, PDP | Keep engine; burn novels |
+| `iam/` | Who + `device_attestation` | Identity crates + attestation **port**; PDP still here | Cedar eval, browser, SVID issue | Extract PDP → `policy/`; keep attestation |
+| `policy/` | Cedar + ReBAC | **Absent** (crates still in `iam/`) | Empty scaffold, cap-root `<other>/policy/` | Extract; no vacant dir first |
+| `secrets/` | KMS, SPIFFE **issue** | Present | PDP | Absorb trustd with `os/` delete |
+| `audit/` | Merkle log + tenant export | Present | Pack DPIA, packet capture | Keep engine; burn essays |
+| `observability/` | Telemetry + SLO controller | Present | Hand OpenSLO, SIEM cap, GuardDuty | Keep engine; generated SLO only |
+| `storage/` | Bytes, digest/generation | Present | SQL, search, TrueTime identity, `cloud-storage` | Keep engine |
+| `data/` | Records; **consumes** cell clock | Ontology/analytics leftovers | `cloud-*`, SERP, BI app, private `Now()` | Keep engines; no `cloud-*` crates |
+| `compute/` | VM + k8s-on-compute + functions (3 reconcilers) | Present | One Raft, GKE product | Keep; do not split 3 caps |
+| `k8s/` | Managed cluster (GKE-class) | Present + dump | kube port as `core/`, `k8s-port/` | Dump burns; port = `build/port-engine` |
+| `network/` | VPC/DNS/dataplane; allow UDP/443 | Present | Istio identity, `firewall/`, block QUIC | Keep; `flow_log`/`quic_metadata` after dump |
+| `gateway/` | One Connect door, TLS/WAF/IAP | **Connector dump** (Workday/Slack/Salesforce/…) | Second door, iPaaS, `cloud-gateway`, Island browser | **Purge connectors**; rewrite door; no strangler |
+| `bus/` | Owned queue/bus/outbox | Tree still `messaging/` | Kafka core, mailbox | Retired name `messaging/`; no new crates there |
+| `intelligence/` | Vertex/Bedrock | Present; detection purged | GuardDuty, copilot app, `cloud-ml` | Keep inference; no detection |
+| `workflow/` | Step Functions | **Absent** (purged) | n8n, forms, bus, empty dir | Rewrite = dir + `core/` same PR |
+| `pipeline/` | TAP + Cloud Build | Tree still `ci/` + census leftovers | GHA as product, `cloud-ci` | Retired name `ci/`; D-17 keep only |
+| `iac/` | IR unifier | Present | Helm/Tofu **source** | Keep engine; Helm adapter only |
+| `billing/` | Meter/rate/invoice/tax on **platform SKUs** | Present | Payments rails, ledger books | Keep; do not absorb payroll |
+| `marketplace/` | Plugins + SKU engine | Thin after purge | KYC, app store, `cloud-marketplace` | Keep kernel |
+| `compliance/` | Pack evidence | Present | Merkle log, cloned DPIA | Keep |
+| `notify/` | SES-class send | **Absent** (comms purged) | Mailbox/Meet, empty dir, `cloud-mail` | Rewrite = dir + `core/` same PR |
+| `flags/` | Eval + kill switch | `evaluation-domain` **plus dump** | Experiments product, REST+gRPC, catalog.yaml, clock switch | Keep eval; burn dump |
+
+**Need (meta, not sold APIs):** `docs/` (ADRs), `governance/` (registry + D-17 checks), `build/` (toolchains, port-engine, SKU **view**), `third-party/` (pins), `packs/` (jurisdiction data), `app/` (2+ composition only), `base/` only when admitted. **No `kernel/` / `os/` rungs. No `cloud/`.**
+
+**Have and must not be repo-root (Don't = not a destination):** `oya/`, `libs/`, `infra/`, `tools/`, `toolchains/`, `benchmarks/`, `evidence/`, `contracts/`, `registry/`, `scripts/`, `plan/`, `tasks/`, `specs/`, `kernel/`, `os/`. Burn/rehome per existing rows — do not invent `cloud-*` homes for them.
+
+**Have in `app/` today:** calendar, community, global-trade, hr, payroll, sheets. These are **not** caps. They do not grow engines. Roster is not closed here (apps discussion).
+
+**Need, not this set (don't park in a cap):** `payments/` (rails **product**), `ledger/` (books **product**). Absent is correct until a §7 product ADR. Not `billing/core`. Not `cloud-payments`.
+
+**MUST (need/have/don't; no cloud-* debt)**
+
+- **achieves:** agents cannot use an unclear home as a reason to put iPaaS in `gateway/` or `cloud-*` in `data/`.
+- **origin:** dumps migrated instead of dying; `cloud-*` prefixes recreated the retired `cloud/` tree inside caps.
+- **rule:** Need is the only legal cap root; Have-dump is burned or rewritten in that charter, not moved; Don't is not a destination; no new `cloud-*` crate, directory, or registry row.
+- **ensure:** new crates match the Need column and the cap slug; PRs that add `cloud-*` or park connectors in `gateway/` fail review.
+- **overturn_when:** a §7 split/merge names a new Need root with five fields same-wave.
 
 ### D-16 — `console/` is not a capability; discard the pilot
 
@@ -973,6 +1025,9 @@ for the apps discussion.
 - Forking Chromium / shipping Island-class browser as a cloud v1
   requirement so that endpoint DLP exists. Attestation is the port;
   their browser is the client.
+- New `cloud-*` crates, `cloud/` root, or moving a dump into another cap
+  because the current home is wrong. Wrong-home burns or rewrites; it
+  does not change address.
 - Zanzibar global tuple replica.
 - EU GDPR as the sole compliance floor.
 - Mega EaC orchestrator / remote PDP on the hit path.
