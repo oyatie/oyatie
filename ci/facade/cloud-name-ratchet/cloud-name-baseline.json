@@ -402,8 +402,6 @@
     "dir:registry/catalog/oya-workspace-forms-api.yaml",
     "dir:registry/catalog/oya-workspace-meet-api.yaml",
     "dir:registry/catalog/oya-xtask-metadata-augment-app.yaml",
-    "dir:scripts/tests/cloud_observability_slo_evidence_check.py",
-    "dir:scripts/tests/cloud_production_quality_kit_evidence_backlog_check.py",
     "dir:secrets/benchmarks/cloud-secrets-vs-vault-vs-aws-sm-vs-azure-kv-vs-gcp-sm-vs-akeyless.md",
     "dir:secrets/contracts/asyncapi/cloud-secrets-events.yaml",
     "dir:secrets/contracts/openapi/cloud-secrets.yaml",
