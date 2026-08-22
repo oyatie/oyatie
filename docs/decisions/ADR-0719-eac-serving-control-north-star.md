@@ -21,7 +21,7 @@ deliverables:
     exit_criteria: "This ADR is Accepted; CLAUDE.md live apex list cites it; no implement PR treats etcd or a Kubernetes object store as the Check/IR/tuple store."
     verified_by: "presubmit"
   - id: ADR-0719-D2
-    description: "Record EaC as one protobuf IR plus per-plane reconcilers behind one gateway. No wrap language (CUE/Timoni/Haskell/Helm-as-source). JSON is not a product codec."
+    description: "Record EaC as one protobuf IR plus per-plane reconcilers behind one Connect/H3 gateway contract (N cell frontends). No wrap language. JSON is not a product codec. Gateway TLS port crates: hybrid ML-KEM public default, classical dying, ECH in tree. No Istio identity. No standing gRPC."
     exit_criteria: "New public product surfaces and IR apply/preview/watch are authored from the Rust/proto contract SSOT; Helm/Tofu/CUE are not sources of desired state."
     verified_by: "presubmit"
   - id: ADR-0719-D3
@@ -97,10 +97,11 @@ sell a **cloud** sharded by **cells**, not a 100k-node logo.
 
 ### D-1 — Serving vs control
 
-- **Serving path** (product RPC + `Check`, 10^8-class fleet): Maglev-class anycast, then
-  one logical L7 gateway, then **in-process PEP**, then **in-process PDP** on a **cell-local
+- **Serving path** (product RPC + `Check`, 10^8-class fleet): Maglev-class anycast
+  **per cell**, then the **one** L7 gateway **contract** (Connect/H3; many
+  frontends), then **in-process PEP**, then **in-process PDP** on a **cell-local
   RAM snapshot** (compiled Cedar + ReBAC shards + product cache). Lookups ≫ RPCs. RPC
-  `Check` is miss / recent-zookie / cross-cell only.
+  `Check` is miss / recent-zookie / cross-cell only. No sidecar hop.
 - **Control path** (IR apply, pack sign, tuple write, schedule, SLO, billing close):
   journaled, sharded, 10^3–10^5 class. First-party IR may live in git. Tenant IR lives on
   the gateway API.
@@ -222,13 +223,63 @@ Temporarily breaking callers is accepted; a dual REST+proto product API is not.
 
 ### D-4 — Protocol (no pre-2016 compatibility as destination)
 
-North star wire: HTTP/3 + protobuf, Connect-class HTTP (no gRPC trailers), WebTransport for
-watches. Identity on the channel: SPIFFE mTLS east-west; passkeys at L2; **step-up to L3/L4**
-(KR 본인인증 / eIDAS EUDI / passport+liveness per interview D58) via Cedar `acr_required`.
-PQC + ECH at the edge (ADR-0354). Public gRPC-Web is not an operator-UI protocol. FlatBuffers
-remain a measured adapter, never a second SSOT.
+**One contract.** Protobuf IDL is the SSOT. The RPC is **Connect-class HTTP**
+(no gRPC trailers) on **HTTP/3**, WebTransport for watches. That contract is
+**north-south and east-west**. `Check` on the hit path is **in-process** (D-1);
+it is not an RPC product. Cross-cell Check, control apply, and watches use the
+same Connect contract.
+
+**One door, many frontends.** One gateway **codebase and proto**. Maglev-class
+anycast **per cell**. Not one global VIP. Not a second REST/gRPC connector.
+
+**No mesh product.** Istio/Linkerd/sidecar is not how we run mTLS. SPIFFE mTLS
+is a **library** plus `gateway/` terminate and `network/` dataplane. A sidecar
+hop on serving or product RPC is forbidden. A sold “ASM-class” SKU, if it
+exists, is a `network/` facade IR module — it must not become our own Check
+path. Deleting the mesh-not-identity rule is born-blocking.
+
+**gRPC is leftover, not a mode.** Public gRPC-Web is not an operator-UI
+protocol. East-west gRPC is not the product because a mesh “automates HTTP/2.”
+Existing gRPC surfaces are **reorg_now deletion**, same class as leftover REST.
+No standing transcode. FlatBuffers remain a measured adapter, never a second
+SSOT.
+
+Identity on the channel: SPIFFE mTLS east-west; passkeys at L2; **step-up to
+L3/L4** (KR 본인인증 / eIDAS EUDI / passport+liveness per interview D58) via
+Cedar `acr_required`.
+
+**TLS port on `gateway/` (v1, not prose).** Closed adapters live as crates.
+Deleting an adapter without a five-field ADR is born-blocking (same anti-forget
+as GNSS on `cell/`):
+
+| Adapter | Role |
+|---|---|
+| `tls13_hybrid_mlkem` | **v1 default on the public door** (X25519 + ML-KEM). |
+| `tls13_x25519` | Classical-only. Dying adapter, not the destination. |
+| `ech` | Encrypted Client Hello on the public door. IR `ech=on` when the cell has a cover hostname; `ech=off` does not mean the crate is absent. |
+
+East-west SPIFFE certs use the same TLS port; ECH is a **public-door** adapter
+(SNI privacy), not an in-cell SPIFFE feature. ADR-0354 remains the crypto
+apex this amends.
 
 `Check` is never a public method. Product RPCs are. PEPs call the in-cell PDP.
+
+**MUST (one Connect wire; TLS adapters in tree)**
+
+- **achieves:** one generated SDK; PQC/ECH cannot vanish into chat; no sidecar
+  tax on the serving path.
+- **origin:** “gRPC+mesh vs protobuf+HTTP for middleboxes” is a tenant-on-AWS
+  playbook; we own the door. Prose-only PQC/ECH is defer and gets forgotten.
+- **rule:** Connect-class HTTP/3 + protobuf is the only product RPC; Check is
+  in-process; no Istio/Linkerd as identity; `gateway/` TLS port has hybrid
+  ML-KEM (public default), classical (dying), and ECH adapters as crates; no
+  standing gRPC or REST product.
+- **ensure:** new RPCs generate Connect; new TLS/ECH code implements the port;
+  layout/registry cannot drop those adapter names without OVERRULE; no new
+  gRPC service crates.
+- **overturn_when:** a measured serving path needs a different RPC **and** a
+  five-field ADR lands same-wave; TLS suite change is a new adapter plus IR,
+  not a second door.
 
 ### D-5 — Authz placement (ADR-0615 stands, topology corrected)
 
@@ -268,12 +319,15 @@ JSON public API.
 **Keep even if implementations swap:** cells; serving RAM vs control journal; Cedar+ReBAC
 in-cell; proto IDL; in-process `Check`; k8s store behind a port; apps as IR modules;
 two-class evidence; shreddable principals; eIDAS/KR step-up; owned cell journal; one
-gateway; packs; TrueTime interval API with a cell clock port (ntp/ptp/gnss adapters).
+gateway (one contract, N cell frontends); packs; TrueTime interval API with a
+cell clock port (ntp/ptp/gnss adapters); Connect-class one wire; gateway TLS
+port with hybrid-ML-KEM + ECH crates.
 
 **Regret:** etcd as product DB; AWS closed journal; JSON as product codec; Helm-as-source;
 Kyverno/Kubewarden as default; one global cluster; worldwide ACL replica; silent drop of
 privileged evidence; passkeys as L3; unpublished binary lock-in; EU-as-only-baseline;
-cap-root census files; dual `cedar/`+`policy/` children.
+cap-root census files; dual `cedar/`+`policy/` children; Istio/Linkerd as our
+mTLS identity; standing gRPC east-west; PQC/ECH as ADR prose with no crates.
 
 ### D-8 — Repo root and capability / app root (amends ADR-0701)
 
@@ -532,7 +586,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | EC2 / GCE / Functions / GKE-on-VMs | **compute** | **One** engine: VM + k8s-on-compute + functions. Facades, not three caps. |
 | GKE / EKS control plane (sold) | **k8s** | core: managed cluster (lifecycle, CP host, quota, CAPI). Adapter: upstream or owned apiserver when we run it (D-13). Store: cluster objects only (D-2). |
 | VPC / DNS / mesh | **network** | core: mesh, signed DNS snapshots, cell dataplane. |
-| Front door / GFE / API Gateway | **gateway** | core: the **one** public door (D-3/D-4). Rate/quota. Transcode is not a second API. |
+| Front door / GFE / API Gateway | **gateway** | core: one Connect/H3 **contract**, Maglev-class frontend **per cell**. TLS port: hybrid ML-KEM default, ECH adapter. Transcode is not a second API. |
 | Pub/Sub / SQS | **bus** (today’s dir `messaging/` until git mv) | owned outbox + per-key order. Kafka/Pulsar = adapters. Not `notify`. |
 | Vertex / Bedrock | **intelligence** | core: inference + agent runtime + adapters. Not GuardDuty. Not a chat app. |
 | Step Functions / Composer | **workflow** | core: engine. Studio is facade. Business sagas, **not** deploy orchestrator (D-1). |
@@ -567,8 +621,8 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **data** | Durable **records**: Spanner/Cockroach/RDS-class OLTP, BigQuery-class OLAP, Dataflow, ontology. | S3/CAS (`storage`). Google Search / SERP. RAG. BI **app**. `cloud-*` names. | Nested dumps + `search-*` + `data-cloud-*` **purged**. ClickHouse/Postgres = **adapters**. |
 | **compute** | **One** engine: VM + k8s-on-compute + functions. | GKE product (`k8s/`). GPU = facade when sold. | Splitting into 3 caps. |
 | **k8s** | **Managed cluster product** (lifecycle, CP host, quota, SLO, CAPI). | kube-apiserver port (`build/port-engine` → adapter when we run it). Node OS. Mesh. | Dump + nested `managed-*`. |
-| **network** | VPC/DNS/mesh dataplane. | Public API door (`gateway`). Direct Connect/CDN = facade when sold. | Census. |
-| **gateway** | **One** public door, quota, proto/H3. | Mesh (`network`). Second REST API. | REST dual-stack; connector leftover if it’s a second door. |
+| **network** | VPC/DNS/**dataplane**. Not Istio. | Public API door (`gateway`). Direct Connect/CDN = facade when sold. Sidecar mesh as **our** identity. | Census. Istio/Linkerd as default. |
+| **gateway** | One Connect/H3 **contract**, N cell frontends, quota, TLS port (hybrid ML-KEM + ECH crates). | Mesh (`network`). Second REST/gRPC API. One global VIP. | REST/gRPC dual-stack; connector leftover if it’s a second door. |
 | **bus** | Owned queue/bus/stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Inbox (`app/`). **Kafka/Pulsar as `core/`**. | git mv `messaging/` later. Kafka/Pulsar = **adapters** or a later sold SKU, never SSOT. |
 | **intelligence** | Vertex/Bedrock: inference + agent runtime. | Provider adapters, eval/proof, invoke facade. | GuardDuty (`detection/` **purged**). Chat copilot **app**. CLIs. Census YAML. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
@@ -604,8 +658,8 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **data** | Durable **records** + query engines. | OLTP: Spanner, Cockroach, Cloud SQL/Aurora-class. OLAP **engine**: BigQuery, Redshift, ClickHouse-class. Pipelines: Dataflow. Ontology. | Bytes (`storage`). **BI product** (Looker/Metabase — later `app/`). **Web search / SERP** (not a cloud cap). **RAG** (`intelligence` facade if sold). OpenSearch-class tenant search = **facade of data when sold**, not `core/` today. **`cloud-*` crate names.** |
 | **compute** | Run **workloads**. | One engine: VM + k8s-on-compute + functions. GPU as facade when sold. | GKE product (`k8s`). Cell topology (`cell`). |
 | **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
-| **network** | Connect inside the cloud. | VPC, DNS snapshots, mesh dataplane. | Public API door (`gateway`). CDN/Interconnect until sold as facades. |
-| **gateway** | **One** north-south door. | Proto/H3 edge, authn terminate, quota, Cedar on the call. | Mesh (`network`). Second connector door. Tenant SaaS APIs implemented here. |
+| **network** | Connect inside the cloud. | VPC, DNS snapshots, **dataplane** (not a sidecar control plane). | Public API door (`gateway`). CDN/Interconnect as facades when sold. Istio/Linkerd as identity. |
+| **gateway** | **One** north-south **contract**, many cell frontends. | Connect/H3, authn terminate, quota, Cedar on the call, TLS port: `tls13_hybrid_mlkem` public default, `tls13_x25519` dying, `ech` crate (IR on when cover-name exists). Same Connect east-west. | Mesh (`network`). Second gRPC/REST door. One global VIP. Tenant SaaS APIs implemented here. gRPC-Web operator UI. |
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: queue + fan-out bus + seekable stream; outbox; at-least-once; per-key order. Serving path never *is* a consume. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar/`core`**. MSK-class SKU only as a later facade. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
@@ -791,6 +845,11 @@ for the apps discussion.
 - AWS EKS etcd journal as our store.
 - CUE+Timoni or Haskell as EaC wrap.
 - Public JSON/REST as the destination codec.
+- Standing gRPC (public or east-west) because a mesh automates HTTP/2, or
+  because middleboxes break HTTP/2 — we own the door; leftover gRPC deletes.
+- Istio/Linkerd/sidecar as SPIFFE identity.
+- PQC/ECH only in prose (no `gateway/` TLS adapter crates). Classical TLS as
+  the destination suite. ECH “later” with no crate.
 - Zanzibar global tuple replica.
 - EU GDPR as the sole compliance floor.
 - Mega EaC orchestrator / remote PDP on the hit path.
