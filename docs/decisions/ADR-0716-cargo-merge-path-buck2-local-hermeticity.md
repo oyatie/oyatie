@@ -11,7 +11,7 @@ owner: council-architecture
 supersedes: [ADR-0560]
 superseded_by: []
 amends: [ADR-0700, ADR-0554, ADR-0556]
-amended_by: [ADR-0718]
+amended_by: [ADR-0718, ADR-0719]
 depends_on: []
 related: [ADR-0515, ADR-0532, ADR-0613]
 milestone: W0
@@ -111,8 +111,12 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
   reviewed replacement window.
 - **ensure:** this ADR + the workflow + automation-language-policy enforcement + reviewer
   lens on new workflow steps.
-- **overturn_when:** a live buck2 remote cache is deployed and measured to beat cargo's
-  wall clock on this fleet, with a recorded measurement and an ADR that re-adopts it.
+- **overturn_when:** ADR-0719: `pipeline/` schedules a **buck2** action graph
+  onto `compute/` with live **CAS** in `storage/` (REAPI), tenant #0
+  presubmit **is** that graph (not cargo nextest beside it), and a
+  recorded measurement exists. Same-wave ADR. CAS up or weekly buck2
+  smoke alone does not overturn. Dual cargo+buck2 merge proof is
+  forbidden.
 
 ## Amendment 2026-08-21 — Linux amd64 nextest on the PR; arm64 on the train
 
@@ -130,11 +134,9 @@ arch on a nightly + release train rather than doubling every PR.
   background `cargo build --workspace --tests` next to the materializer
   contended for Cargo's target lock and did not overlap. Product
   `cargo build --release` and image builds belong on the weekly train
-  (D63). The remaining `cargo build -p ci-artifact-inventory-registry
-  --bin …` is a test-fixture binary that gate tests exec; nextest does
-  not build unrelated bins.
+  (D63).
 - **`buck2 build //...` stays off the merge path** (weekly honesty job,
-  then the CD train). The face materializer still shells out to `buck2
-  build` of a handful of face-tool bins — that is an ADR-0716 leak to
-  cut in a follow-up by driving those bins through cargo. It is not a
-  product graph build.
+  then the CD train) **until** the overturn_when above. The face
+  materializer still shells out to `buck2 build` of a handful of face-tool
+  bins — that is an ADR-0716 leak to cut by driving those bins through
+  cargo. It is not a product graph build.

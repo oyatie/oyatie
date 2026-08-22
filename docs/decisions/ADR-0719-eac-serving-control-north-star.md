@@ -10,7 +10,7 @@ door: two-way
 owner: council-architecture
 supersedes: []
 superseded_by: []
-amends: [ADR-0701, ADR-0702, ADR-0704, ADR-0705, ADR-0708]
+amends: [ADR-0701, ADR-0702, ADR-0704, ADR-0705, ADR-0708, ADR-0716]
 amended_by: []
 depends_on: [ADR-0615, ADR-0701, ADR-0702, ADR-0704, ADR-0705]
 related: [ADR-0243, ADR-0280, ADR-0354, ADR-0049]
@@ -984,8 +984,18 @@ two codebases.
 - **Merge:** **one** required context: **presubmit**. GitHub merge queue
   is GitHub’s, via an adapter, then gone. No `merge-admission-required`
   as a second protected check. No owned Gerrit/submit-queue in v1.
+- **CAS + execute client:** CAS is **`storage/`** (REAPI/NativeLink-class),
+  not a pipeline blob store. Remote execution is **`compute/`**. The TAP
+  **client** that speaks that graph is **buck2** (action graph), not
+  cargo. Cargo nextest is tenant #0 **v1** while there is no live CAS+RE
+  (ADR-0716). Dual cargo+buck2 merge proof is forbidden.
+  **Overturn 0716 same-wave** when: `pipeline/` schedules a buck2 graph
+  onto compute with live CAS, tenant #0 presubmit **is** that graph, and
+  a measurement shows it; cargo nextest is then not the merge proof.
+  Standing up CAS does not by itself drop cargo. Adding buck2 *beside*
+  cargo on GHA does not.
 - **Not the product:** `.github/` GHA (adapter until the engine **runs**
-  tenant #0 nextest graph); Tide/webhook-gateway as `core/`; Prow
+  tenant #0); Tide/webhook-gateway as `core/`; Prow
   `GateRun` as `core/` (**REMOVE** — BUILD a clean graph+queue kernel;
   do not strangler GateRun into Cloud Build); JSON check fleets; a
   directory named `ci/`.
@@ -1118,6 +1128,8 @@ implementation is gone pending rewrite; no dump resurrection.
 - A second protected GitHub context (`merge-admission-required`) or per-cap
   checks. Prow `GateRun` / Tide as `pipeline/core`. A pipeline-owned worker
   cluster beside `compute/`. `iac/` as the CD engine.
+- Dual cargo+buck2 merge proof. Switching tenant #0 to buck2 because CAS
+  exists but pipeline does not yet run that graph. Cargo-as-destination TAP.
 - Strangler-moving `workflow/` event-bus/saas/forms into `bus/` or `app/`
   instead of purge+rewrite.
 - Keeping the slug `messaging/` as a live capability name (collides with
