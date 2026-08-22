@@ -111,12 +111,12 @@ remote cache, so buck2 in CI means full rebuilds per lane, while cargo has turnk
   reviewed replacement window.
 - **ensure:** this ADR + the workflow + automation-language-policy enforcement + reviewer
   lens on new workflow steps.
-- **overturn_when:** ADR-0719: `pipeline/` schedules a **buck2** action graph
-  onto `compute/` with live **CAS** in `storage/` (REAPI), tenant #0
-  presubmit **is** that graph (not cargo nextest beside it), and a
-  recorded measurement exists. Same-wave ADR. CAS up or weekly buck2
-  smoke alone does not overturn. Dual cargo+buck2 merge proof is
-  forbidden.
+- **overturn_when:** ADR-0719: the cloud **serves** `pipeline/` with
+  buck2 onto `compute/` and CAS in `storage/`. Tenant #0 presubmit **is**
+  that buck2 graph. Cargo execute is dropped from the merge path except
+  where buck2 cannot (manifest/reindeer, fmt until buck2 owns it).
+  Same-wave. CAS up or weekly smoke alone does not overturn. Dual
+  cargo+buck2 merge proof is forbidden.
 
 ## Amendment 2026-08-21 — Linux amd64 nextest on the PR; arm64 on the train
 

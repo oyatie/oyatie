@@ -984,16 +984,19 @@ two codebases.
 - **Merge:** **one** required context: **presubmit**. GitHub merge queue
   is GitHub’s, via an adapter, then gone. No `merge-admission-required`
   as a second protected check. No owned Gerrit/submit-queue in v1.
-- **CAS + execute client:** CAS is **`storage/`** (REAPI/NativeLink-class),
-  not a pipeline blob store. Remote execution is **`compute/`**. The TAP
-  **client** that speaks that graph is **buck2** (action graph), not
-  cargo. Cargo nextest is tenant #0 **v1** while there is no live CAS+RE
-  (ADR-0716). Dual cargo+buck2 merge proof is forbidden.
-  **Overturn 0716 same-wave** when: `pipeline/` schedules a buck2 graph
-  onto compute with live CAS, tenant #0 presubmit **is** that graph, and
-  a measurement shows it; cargo nextest is then not the merge proof.
-  Standing up CAS does not by itself drop cargo. Adding buck2 *beside*
-  cargo on GHA does not.
+- **CAS + execute client:** When the cloud can **serve** `pipeline/`
+  against `storage/` CAS and `compute/` RE, the execute client is
+  **buck2** (hermetic action graph). That is TAP/Cloud Build, not
+  `cargo nextest` with a cache. **Cargo is not a second pipeline
+  runtime.** Keep cargo only where buck2 cannot do the job (today:
+  `Cargo.toml` + reindeer as the crate **manifest** source; `cargo fmt`
+  as the rustfmt driver until buck2 owns format). rust-analyzer local
+  is not merge proof. Dual cargo+buck2 merge is forbidden.
+  **v1** until that cloud is serving: cargo nextest is tenant #0
+  presubmit (ADR-0716) because there is no live CAS+RE. **Overturn 0716
+  same-wave** when pipeline **serves** the buck2 graph; cargo execute
+  is then not needed. CAS up or weekly `buck2 build //...` alone does
+  not overturn.
 - **Not the product:** `.github/` GHA (adapter until the engine **runs**
   tenant #0); Tide/webhook-gateway as `core/`; Prow
   `GateRun` as `core/` (**REMOVE** — BUILD a clean graph+queue kernel;
@@ -1129,7 +1132,8 @@ implementation is gone pending rewrite; no dump resurrection.
   checks. Prow `GateRun` / Tide as `pipeline/core`. A pipeline-owned worker
   cluster beside `compute/`. `iac/` as the CD engine.
 - Dual cargo+buck2 merge proof. Switching tenant #0 to buck2 because CAS
-  exists but pipeline does not yet run that graph. Cargo-as-destination TAP.
+  exists but pipeline does not yet **serve** that graph. Cargo as a
+  standing second pipeline runtime after cutover. Cargo-as-destination TAP.
 - Strangler-moving `workflow/` event-bus/saas/forms into `bus/` or `app/`
   instead of purge+rewrite.
 - Keeping the slug `messaging/` as a live capability name (collides with
