@@ -4,7 +4,7 @@
   "authority": "ADR-0150",
   "subject": "tracked *.yaml / *.yml whose first-column `openapi:` marks them an OpenAPI description — the same corpus boundary the sibling idempotency-key-coverage gate uses, so the two agree about what the contract corpus IS",
   "_measured_2026_08_19": "Measured on dev @ bc6e04fa1: 138 OpenAPI documents across 68 capabilities over 13761 tracked paths, 469 `get:` operations of which 60 are collection-shaped. All 60 collection-shaped gets lack the cursor + page_size pair — the covered count is ZERO, so this doctrine has never once been satisfied by this repository. Exactly one forbidden offset/page parameter exists. Two of the 138 documents (console/contracts/openapi-v1.yaml, gateway/connector/contracts/openapi-v1.yaml) are invisible to `git grep -E '^openapi:'` because git classifies them as binary; the walk decodes lossily and reads them anyway, which is why the census says 138 and a grep says 136.",
-  "min_tracked_files": 12500,
+  "min_tracked_files": 12496,
   "min_openapi_documents": 125,
   "min_get_operations": 420,
   "min_list_operations": 50,

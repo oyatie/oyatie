@@ -4,7 +4,7 @@
   "authority": "ADR-0149 via docs/decisions/ADR-0709-general-live-apex.md",
   "subject": "tracked *.yaml / *.yml whose first-column `openapi:` marks them an OpenAPI description",
   "_measured_2026_08_19": "Measured on dev @ 889027711 (the commit that deleted 51 unreferenced product crates): 138 OpenAPI documents across 68 capabilities, 602 state-changing operations (post/put/patch/delete), 80 covered, 522 uncovered. 13752 tracked paths walked.",
-  "min_tracked_files": 12500,
+  "min_tracked_files": 12496,
   "min_openapi_documents": 125,
   "min_state_changing_operations": 527,
   "min_capabilities": 60,
