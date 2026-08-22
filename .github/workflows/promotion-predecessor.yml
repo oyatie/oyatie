@@ -1,0 +1,37 @@
+# Promotion rungs: staging ← dev, canary ← staging, production ← canary.
+# Feature work enters at `dev`. Skipping a rung is born-blocking.
+# uses-only (no inline shell) so rust-first workflow_inline_shell does not grow.
+name: promotion-predecessor
+
+on:
+  pull_request:
+    branches: [staging, canary, production]
+    types: [opened, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  promotion-predecessor:
+    name: promotion-predecessor
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require predecessor rung
+        # github-script v7.0.1 — SHA only; score-card:pre-push:github-action-sha rejects trailing comments.
+        uses: actions/github-script@60a0d83039c74a4aee543508d2ffcb1c3799cdea
+        with:
+          script: |
+            const pred = { staging: "dev", canary: "staging", production: "canary" };
+            const base = context.payload.pull_request.base.ref;
+            const head = context.payload.pull_request.head.ref;
+            const want = pred[base];
+            if (!want) {
+              core.setFailed(`unexpected promotion base '${base}'`);
+              return;
+            }
+            if (head !== want) {
+              core.setFailed(
+                `promote ${base} only from ${want} (head is '${head}'). ` +
+                  `dev is the integration trunk; do not skip rungs.`
+              );
+            }
