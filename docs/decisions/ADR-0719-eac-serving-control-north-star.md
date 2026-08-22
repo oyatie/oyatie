@@ -697,18 +697,29 @@ Asterinas **or Hermit** (or an equally measured unikernel/kernel) is
 mature **and** a five-field ADR cuts over with plant evidence. That is
 not a vacant `kernel/` rung and not a pin “in case.”
 
-**Our fleet:** **stripped-to-minimum Linux** guests, scheduled by
-**`compute/` + `cell/`**, running on:
+**How the plant actually runs** (Talos is not in this picture):
 
-| Adapter | Class | Analog |
+```
+cell/ places load
+        │
+        v
+compute/ agent (Borglet analog)  ──host Linux (KVM)──
+        │                              │
+        ├─ Cloud Hypervisor  ──►  stripped Linux guest (VM)
+        └─ Firecracker       ──►  stripped Linux guest (microVM / function)
+```
+
+| Piece | What we do | Who owns it |
 |---|---|---|
-| **Firecracker** | microVM / functions / dense isolation | Lambda, Fargate microVM |
-| **Cloud Hypervisor** | VM | rust VMM, virtio, full-ish guests |
+| **Host** | Minimum Linux **with KVM**. Runs the agent + VMM processes. Not Talos, not kubelet. | `compute/` + `build/` (host image) |
+| **VMM** | **Cloud Hypervisor** = VM class (virtio, full-ish machine). **Firecracker** = microVM/functions (jailer, dense). Both KVM. Not QEMU as identity. | `compute/` adapters |
+| **Guest kernel** | **Stripped-to-minimum upstream Linux** (Firecracker-class Kconfig / tiny guest). One kernel family, two configs (host vs guest). We **consume** stable LTS; we do not fork a distro under `os/`. | `build/` produces the artifacts |
+| **Guest userspace** | Bare min to run the workload + our agent/protocol (virtio-vsock). Not a distro, not Talos machined. | `compute/` + `build/` |
+| **Agent** | Ours, Borglet analog: place, health, attach net/disk. Host-side talks CH/FC APIs. | `compute/` core |
 
-Both are KVM. Not QEMU as identity. Not kubelet. The **agent** on the
-guest (or host) is ours — Borglet analog. `compute/` already has three
-reconcilers; Firecracker ≈ functions, Cloud Hypervisor ≈ VM.
-k8s-on-compute remains an **optional sold SKU**, not how we operate.
+**Sold kube SKU** (optional): kubelet runs **inside a guest**, as a tenant. It is not the host agent.
+
+`build/` ships: host image, guest kernel, CH/FC binaries (pinned). `storage/` holds images. `pipeline/` builds them when the graph says so. No `os/` farm. No Talos machine API.
 
 - **Delete `kernel/`.** Asterinas is gone. No third-party pin “in case.”
 - **Delete `os/`.** Talos farm is not the fleet OS.
@@ -795,7 +806,8 @@ not a destination.
   pin; Talos/kube are not operations; sold `k8s/` may wrap upstream kube.
 - **ensure:** registry has no `kernel/` or `os/`; no Asterinas/Hermit
   evaluation tree; no PR treats Talos as the fleet OS; new VM/microVM
-  code is CH/Firecracker adapters under `compute/`.
+  code is CH/Firecracker adapters under `compute/`; guest/host kernels
+  are `build/` artifacts from upstream Linux, not an `os/` capability.
 - **overturn_when:** Asterinas **or Hermit** (or equal) is measured
   mature **and** a five-field ADR replaces Linux as the guest kernel
   same-wave, with CH/Firecracker still the VMM unless that ADR also
