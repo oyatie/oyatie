@@ -260,6 +260,23 @@ Forcing H3 east-west because the public door is H3 is the same class as
 forcing gRPC because a mesh “automates HTTP/2.” UEC/RDMA is a later
 `network/` adapter, not a reason to skip TCP v1.
 
+**Why DCs run gRPC east-west — and what that is not.** They wanted
+**binary protobuf**, HTTP/2 multiplex/streaming, deadlines, generated
+stubs on **TCP**. That is not “gRPC so we can skip TLS.” Google still
+encrypts in-DC (**ALTS**, cheaper handshake than public TLS, still
+identity-bound). Plaintext-on-the-trusted-LAN is the old model; we do
+not take it. **Connect is already binary protobuf.** gRPC vs Connect is
+the **envelope** (trailers, `grpc-status`), not the codec. A standing
+gRPC east-west stack is a second SDK. Same-host hit path is in-process
+(no TLS). Same-host cross-process may be unix/vsock. Cross-host: TCP +
+SPIFFE mTLS. If handshake CPU is the issue, that is **kTLS / ALTS-class
+adapter on the TLS port**, not gRPC and not plaintext.
+
+**gRPC leftover still deletes.** No public gRPC-Web. No new east-west
+gRPC services. Overturn only with a measured EW path where the **gRPC
+envelope** (not protobuf, not TCP) beats Connect **and** a five-field
+ADR same-wave.
+
 **One door, many frontends.** One gateway **codebase and proto**. Maglev-class
 anycast **per cell**. Not one global VIP. Not a second REST/gRPC connector.
 
@@ -394,12 +411,11 @@ into `network/` as plugins, they do not become our door.
 - **origin:** “gRPC+mesh vs protobuf+HTTP for middleboxes” is a tenant-on-AWS
   playbook. “Inspect QUIC like a NGFW” is the same playbook applied to H3:
   visibility by weakening. Prose-only PQC/ECH/WAF is forgotten.
-- **rule:** one Connect contract; public door **H3/QUIC**; east-west
-  **TCP** (Connect on H2; hardware is TCP-optimized); Check in-process;
-  no QUIC-east-west because the door is H3; no Istio; TLS port crates as
-  above; ECH public-door only; no on-path QUIC MITM; no `firewall/` cap;
-  no standing gRPC or REST; dataplane **allows** UDP/443 north-south and
-  does not force UDP east-west.
+- **rule:** one Connect contract (protobuf **is** the binary); public
+  door **H3/QUIC**; east-west **TCP** + SPIFFE mTLS (Connect on H2);
+  Check in-process; no plaintext-LAN; no standing gRPC EW (envelope ≠
+  codec); TLS CPU → kTLS/ALTS-class adapter not gRPC; no QUIC-EW because
+  the door is H3; no Istio; ECH public-door only; no on-path QUIC MITM.
 - **ensure:** new RPCs generate Connect; new TLS/ECH/WAF/proxy/fingerprint/flow-log
   code implements those ports; layout/registry cannot drop those adapter
   names without OVERRULE; no new gRPC service crates; no PR that turns ECH
@@ -1237,8 +1253,10 @@ implementation is gone pending rewrite; no dump resurrection.
 - AWS EKS etcd journal as our store.
 - CUE+Timoni or Haskell as EaC wrap.
 - Public JSON/REST as the destination codec.
-- Standing gRPC (public or east-west) because a mesh automates HTTP/2, or
-  because middleboxes break HTTP/2 — we own the door; leftover gRPC deletes.
+- Standing gRPC (public or east-west) because a mesh automates HTTP/2,
+  because middleboxes break HTTP/2, or because “binary/gRPC skips TLS.”
+  Protobuf is already binary on Connect. TLS CPU is kTLS/ALTS-class, not
+  plaintext and not a second RPC envelope. Leftover gRPC deletes.
 - Istio/Linkerd/sidecar as SPIFFE identity.
 - PQC/ECH only in prose (no `gateway/` TLS adapter crates). Classical TLS as
   the destination suite. ECH with no crate.
