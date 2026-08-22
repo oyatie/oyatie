@@ -17,7 +17,7 @@ related: [ADR-0243, ADR-0280, ADR-0354, ADR-0049]
 milestone: W0
 deliverables:
   - id: ADR-0719-D1
-    description: "Record serving-path vs control-path split as live law: 10^8-class user/Check traffic is in-cell RAM snapshots; writes, IR apply, packs, and cluster objects are a journaled control plane. etcd is fenced to cell cluster objects behind k8s/ports. Product records, tuples, and IR are never etcd/CRDs. Time is HLC+uncertainty (Cockroach/ClockBound), cell-local, no TrueTime hardware claim."
+    description: "Record serving-path vs control-path split as live law: 10^8-class user/Check traffic is in-cell RAM snapshots; writes, IR apply, packs, and cluster objects are a journaled control plane. etcd is fenced to cell cluster objects behind k8s/ports. Product records, tuples, and IR are never etcd/CRDs. Time is our TrueTime: interval API always; cell clock port with NTP/PTP/GNSS-atomic adapters; works with or without hardware; no product flag; no ε claim until measured."
     exit_criteria: "This ADR is Accepted; CLAUDE.md live apex list cites it; no implement PR treats etcd or a Kubernetes object store as the Check/IR/tuple store."
     verified_by: "presubmit"
   - id: ADR-0719-D2
@@ -120,32 +120,62 @@ sell a **cloud** sharded by **cells**, not a 100k-node logo.
 - **overturn_when:** a measured serving path needs a different store AND a replacement ADR
   with five fields lands same-wave.
 
-**Time (no GPS/atomic TrueTime).** We do not own Spanner’s antenna farm. Do not
-claim Google commit-wait (~ms ε). Pattern: **Cockroach HLC** + **ClockBound-shaped
-uncertainty**; **Stripe**/Cockroach published commit-wait under NTP error as the
-benchmark, not Spanner’s brochure.
+**Time — our TrueTime, two layers, one API.** Hyperscalers who **are** the
+cloud install clocks in the DC. Software-only HLC is what you do when you
+**rent** someone else’s DC. We are the operator, so the **destination plant
+is GNSS + holdover atomic + PTP**. We do **not** wait for that hardware to
+exist before the API exists. Google TrueTime, AWS ClockBound, and Meta
+fbclock all return an **interval**; the antenna only **narrows** it.
 
-- **In a cell:** Raft/Paxos + HLC. Linearizability is **cell-local**. Exposed
-  timestamps carry `[earliest, latest]`. Commit-wait = wait out ε (NTP/PTP error
-  bound), or abort/retry on uncertainty collision.
-- **Across cells:** **no** global commit timestamp. Home-cell + async (same as
-  ReBAC D-5). Cross-cell “now” is not a product API.
-- **Who owns sync:** **`cell/`** (NTP/PTP to a cell time service). Not `storage/`,
-  not `data/core`, not a `time/` capability. AWS Time Sync as a **sold SKU** is a
-  later `cell` facade, not a new cap.
-- **`data/` engines** (Spanner/Cockroach-class OLTP) **use** that HLC; they do not
-  invent a second clock. Serving `Check` does not wait on commit-wait.
+- **API (always, from v1).** `Now() → Interval { earliest, latest }` plus
+  a hybrid logical counter inside the interval (Cockroach HLC shape).
+  Never a product `time.Now()` point. This **is** our TrueTime. Bound width
+  is **measured from the wired adapter**, not a brochure number. Do not
+  publish Spanner-class ε until GNSS/atomic is live **and** a measured
+  bound exists.
+- **Port (`cell/ports`).** Clock source is a port. Adapters (closed):
+  `ntp` (chrony, v1 default, wide ε), `ptp_phc` (NIC / hypervisor PHC —
+  AWS PHC, Azure VMIC), `gnss_atomic` (OCP Time Card + GNSS antenna +
+  holdover atomic; Meta 2022 / Google GPS+atomic plant). Same API on
+  every adapter. Without hardware the interval is wide; with hardware it
+  is tight. Callers do not branch.
+- **Not a product flag.** Adapter is **cell IR at bring-up** (like which
+  NTP peers), not `flags/` and not a runtime kill-switch that silently
+  shrinks ε under in-flight timestamps. Swapping NTP→PTP→GNSS is a
+  **control-plane cell mutation**. In-flight intervals keep the bound they
+  were issued with. `flags/` kill switches do not select the clock.
+- **Physical plant (`cell/` core + adapters).** Google TrueTime = GPS +
+  atomic in the DC. AWS Time Sync = satellite **and atomic clocks in each
+  region**, PTP PHC, ClockBound. Azure = hypervisor PTP. Meta 2020 NTP;
+  **2022 PTP** GNSS antenna + atomic Time Card (OCP) + NIC PHC + ptp4u;
+  still Window of Uncertainty (~100× better commit-wait vs NTP). v1 plant
+  is NTP/chrony. Skipping GNSS/PTP *forever* is not Meta/AWS/Google. Not
+  a `time/` cap. Sold Time Sync is a later `cell` facade.
+- **Use (`data/` and anyone who commit-stamps).** Linearizability is
+  **cell-local**. Cross-cell: no global commit timestamp (home-cell +
+  async, same as ReBAC). **FoundationDB versionstamps** (sequencer, not
+  wall clock) remain an allowed OLTP alternative that does not need ε.
+  Serving `Check` does not commit-wait. Control-path commit-wait, if any,
+  waits the **issued interval**, which is cheap on GNSS and expensive on
+  NTP — that is the point of one API.
 
-**MUST (time without TrueTime)**
+**MUST (time: our TrueTime, ported plant)**
 
-- **achieves:** Cockroach-class OLTP without lying about Google’s ε.
-- **origin:** no hardware clock; Spanner-copy would invent GPS in every cell.
-- **rule:** HLC + uncertainty; cell-local linearizability; no global commit time;
-  sync is `cell/`; no `time/` cap; serving path does not commit-wait.
-- **ensure:** no PR claims TrueTime or zero-ε external consistency; data engine
-  timestamps are intervals.
-- **overturn_when:** GPS/atomic (or equivalent) is deployed per cell AND a
-  five-field ADR tightens ε same-wave.
+- **achieves:** one interval API with or without atomic clocks; plant can
+  mature NTP→PTP→GNSS without a second clock product.
+- **origin:** first draft treated “no hardware” as identity; Meta/AWS/Google
+  as operators deploy GNSS/atomic + PTP and still expose WOU/ClockBound;
+  a flags switch would change ε under live timestamps.
+- **rule:** TrueTime API is always an interval; clock source is a `cell/`
+  port with ntp / ptp_phc / gnss_atomic adapters; v1 is ntp; GNSS/atomic
+  is destination plant not a later API; no `time/` cap; no `flags/` clock
+  switch; no global commit time; Check does not commit-wait; no ε claim
+  without measured plant.
+- **ensure:** new clock code implements the port; no PR requires GPS for
+  v1 merge; no PR forbids the GNSS adapter; no PR adds `Now() → Instant`
+  as the product clock; no PR wires clock selection through `flags/`.
+- **overturn_when:** a measured GNSS/atomic plant exists AND a five-field
+  ADR publishes ε (the API does not wait for that ADR).
 
 ### D-2 — k8s / etcd / “AWS journal”
 
@@ -233,7 +263,7 @@ JSON public API.
 **Keep even if implementations swap:** cells; serving RAM vs control journal; Cedar+ReBAC
 in-cell; proto IDL; in-process `Check`; k8s store behind a port; apps as IR modules;
 two-class evidence; shreddable principals; eIDAS/KR step-up; owned cell journal; one
-gateway; packs.
+gateway; packs; TrueTime interval API with a cell clock port (ntp/ptp/gnss adapters).
 
 **Regret:** etcd as product DB; AWS closed journal; JSON as product codec; Helm-as-source;
 Kyverno/Kubewarden as default; one global cluster; worldwide ACL replica; silent drop of
@@ -520,7 +550,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 
 | Cap | **Is** (engine) | **Is not** | **Burns / move** |
 |---|---|---|---|
-| **cell** | Topology, hard caps, router, rebalance. Borg/GCP-zone analog. | GKE product (`k8s/`). Tenant CRM. | Census, leftover lifecycle dirs once faces exist. |
+| **cell** | Topology, hard caps, router, rebalance, **clock port** (ntp / ptp_phc / gnss_atomic). Borg/GCP-zone analog. | GKE product (`k8s/`). Tenant CRM. A `time/` cap. Clock via `flags/`. | Census, leftover lifecycle dirs once faces exist. |
 | **tenancy** | Tenant lifecycle, home-cell, org/account analog. | IdP (`iam`). PDP (`policy`). SKU catalog (`marketplace`). | Enablement side-effects; JSON tenant novels. |
 | **iam** | Principals, passkeys, SCIM, role **store**, workload identity **consume**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). | PDP crates **move to `policy/`**. trustd deps **move to `secrets/`** with `os/` delete. |
 | **policy** | Cedar + ReBAC PDP, G-face + C0 snapshots. | IdP. Empty dir forever. | **Extract crates from iam now.** Cap-root `<other>/policy/*.cedar` → `<other>/cedar/`. |
@@ -542,7 +572,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **marketplace** | Signed plugins, install envelope, SKU engine. | Price list (`build/` view). KYC/escrow/payout. App store UX. | **Purge** `developer-sdk/` + `plugin-app-store/`. |
 | **compliance** | Pack evidence, data-class registry. | Merkle log (`audit`). Cloned `dpia.md`. | Those clones. |
 | **notify** | Transactional send (SES/SNS/FCM). | Email/SMS/push **send API**. | Mailbox/Meet/Messenger/contact-center (`app/` later). Current `comms/` dump **purged**. |
-| **flags** | Flags, kill switches. | Census `catalog.yaml` / IPs. | Cap-root junk. |
+| **flags** | Flags, kill switches. | Census `catalog.yaml` / IPs. Clock adapter (`cell/` IR). | Cap-root junk. |
 | **governance/** | Registry + check **crates** (off ladder). | Org JSON `specs/` corpus. | Specs catch-all. |
 | **build/** | Toolchains, images, **port-engine**, SKU **view**. | Capability engines. | — |
 | **third-party/** | Vendored pins when we need them. | Fake rungs (`kernel/`/`os/`). | Asterinas eval in `kernel/`. |
@@ -557,7 +587,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 
 | Cap | Purpose | In scope | Out of scope |
 |---|---|---|---|
-| **cell** | Bound failure domains and place load. | Topology, hard caps, router, rebalance, home-cell, **NTP/PTP time service** (HLC uncertainty bound). | GKE product. Tenant CRM. TrueTime GPS farm as a requirement for v1. |
+| **cell** | Bound failure domains and place load. | Topology, hard caps, router, rebalance, home-cell, **clock port** + adapters (`ntp` v1, `ptp_phc`, `gnss_atomic` destination). TrueTime interval is the API; plant only sets ε. | GKE product. Tenant CRM. Spanner ε as a v1 claim. Clock selection via `flags/`. A `time/` cap. |
 | **tenancy** | Tenant as the scoping primitive. | Create/suspend/delete tenant, home-cell binding, org/account tree. | IdP (`iam`). Authz eval (`policy`). Marketplace SKUs. HR orgs. |
 | **iam** | Prove **who**. | Principals, credentials, passkeys, SCIM, role **store**, workload identity **consume**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). Tenant lifecycle (`tenancy`). |
 | **policy** | Decide **may**. | Cedar PDP, ReBAC tuples, G-face distribute, C0 in-cell snapshot, in-process Check. | IdP. Writing every cap’s Cedar (caps own `<cap>/cedar/`). Global tuple replica. |
@@ -573,7 +603,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: queue + fan-out bus + seekable stream; outbox; at-least-once; per-key order. Serving path never *is* a consume. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar/`core`**. MSK-class SKU only as a later facade. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
-| **flags** | Dynamic config and kill switches. | Flag eval, targeting, kill switch. | App feature roadmaps. Census catalogs. |
+| **flags** | Dynamic config and kill switches. | Flag eval, targeting, kill switch. | App feature roadmaps. Census catalogs. **Clock adapter** (`cell/` IR). |
 | **pipeline** | Sold TAP + Cloud Build. | Graph-aware execute, queue, controller, SCM **adapter**. Tenant graphs. | `.github/` GHA. Census gates. Desired-state apply (`iac`). |
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
@@ -797,8 +827,12 @@ for the apps discussion.
 - Marketplace as KYC/escrow/app-store; strangler of `developer-sdk/` into billing.
 - `data/core/cloud-*` crates or a `cloud-data/` nest. Search/SERP/RAG in `data/core`.
 - Putting Spanner/Cockroach/RDS in `storage/`. Putting BigQuery in `storage/`. A `search/` capability for Google Search.
-- Claiming Spanner TrueTime / zero-ε external consistency without GPS/atomic per cell.
-  A `time/` capability. Commit-wait on the `Check` path.
+- Claiming Spanner TrueTime / zero-ε without a measured GNSS/atomic plant.
+  Waiting for GNSS hardware before the interval API exists. A product
+  `Now() → Instant`. Selecting the clock adapter through `flags/`.
+  Forbidding PTP/GNSS adapters because v1 is NTP. A `time/` capability.
+  Commit-wait on the `Check` path. Treating Cockroach-on-AWS as the
+  operator plant. Two APIs (software clock vs hardware clock).
 
 ## Appendix — considerations (not implement authority)
 
