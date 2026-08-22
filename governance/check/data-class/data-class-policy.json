@@ -4,7 +4,7 @@
   "authority": "MFL-0008",
   "subject": "`pub struct` fields in the tracked src/**.rs of every workspace member whose registry/catalog/<package>.yaml declares `role: kernel` — the same scan set marketplace/facade/dev-cli/src/data_class_gates.rs selects, replayed rather than reinvented",
   "_measured_2026_08_19": "Measured on dev @ bc6e04fa1: 150 kernel-tier workspace members, 221 tracked kernel sources over 13761 tracked paths, 2762 pub struct fields, 2029 annotated, 733 unannotated — 274 of them allowed by the 274-row ledger and 459 unallowed. Zero stale ledger rows and zero unscanned kernel catalogs, but only after this same change rewrote every ledger path `crates/...` -> `libs/...`: the 13 shared kernels the ledger covers had MOVED, so under the kernel's own rule all 274 rows were StaleLegacyAllowance and all 733 unannotated fields were unallowed. All 274 rows match an existing unannotated field after the rewrite and none is stale, which is the evidence that a move, not a deletion, is what happened.",
-  "min_tracked_files": 12496,
+  "min_tracked_files": 12493,
   "min_kernel_members": 128,
   "min_kernel_source_files": 197,
   "min_fields": 2476,
