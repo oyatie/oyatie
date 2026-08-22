@@ -362,12 +362,12 @@
       "prefix": "governance/policy/"
     },
     {
-      "anchor": "ADR-0339 IAC-001 shared OpenTofu module library: the iac capability architecture document, named verbatim by ADR-0339 in its governed-surfaces list and again in its landing-deliverables list (gains the module-library scope expansion description at landing), both at the pre-move path cloud/cloud-iac/ARCHITECTURE.md. The ADR-0562 capability move to iac/ relocated the file and both citations stayed at the old path. A capability doc is not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: iac/ already registers iac/modules/ separately.",
-      "prefix": "iac/ARCHITECTURE.md"
-    },
-    {
       "anchor": "ADR-0541: Buck package marker for the iac capability residual corpus target. This package keeps the capability's rehomed service docs, manifests, contracts and OpenSLO YAML inside the Buck2 corpus graph after the capability-first rehome; without it those files leave buck2-packaged space entirely (measured across nine roots: 996 YAML files, unpackaged 1069 -> 75).",
       "prefix": "iac/BUCK"
+    },
+    {
+      "anchor": "ADR-0339 IAC-001 shared OpenTofu module library: the iac capability architecture document, named verbatim by ADR-0339 in its governed-surfaces list and again in its landing-deliverables list (gains the module-library scope expansion description at landing), both at the pre-move path cloud/cloud-iac/ARCHITECTURE.md. The ADR-0562 capability move to iac/ relocated the file and both citations stayed at the old path. Dual ARCH.md/ARCHITECTURE.md paperwork was deleted; the surviving capability entry surface is iac/README.md (with iac/PRD.md). A capability doc is not crate-resident, so cargo-members cannot reach it. EXACT path, not a tree: iac/ already registers iac/modules/ separately.",
+      "prefix": "iac/README.md"
     },
     {
       "anchor": "Envelope prefix ownership (integ/iac → iac/governance/**): cedar helm reclaim (#1680 tip 183260087). Dir prefix — tip-free tax rejected as forever shape. iac/manifest.json remains separately registered.",
