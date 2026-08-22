@@ -152,12 +152,17 @@ fbclock all return an **interval**; the antenna only **narrows** it.
   is NTP/chrony. Skipping GNSS/PTP *forever* is not Meta/AWS/Google. Not
   a `time/` cap. Sold Time Sync is a later `cell` facade.
 - **Use (`data/` and anyone who commit-stamps).** Linearizability is
-  **cell-local**. Cross-cell: no global commit timestamp (home-cell +
-  async, same as ReBAC). **FoundationDB versionstamps** (sequencer, not
-  wall clock) remain an allowed OLTP alternative that does not need ε.
-  Serving `Check` does not commit-wait. Control-path commit-wait, if any,
-  waits the **issued interval**, which is cheap on GNSS and expensive on
-  NTP — that is the point of one API.
+  **cell-local** via Raft/Paxos (or a FoundationDB sequencer /
+  versionstamps). Cross-cell: no global commit timestamp (home-cell +
+  async, same as ReBAC). Serving `Check` does not commit-wait.
+  **Commit-wait is not v1 and is not implied by the interval API.**
+  Google waits because ε is ~ms and overlaps Paxos RTT. NTP ε is
+  100–250ms — baking that wait into every OLTP write is not “works
+  without hardware,” it is a product tax. v1 stamps come from the
+  consensus leader (or versionstamp). Cockroach-style **uncertainty
+  restart** is allowed on the control path. External-consistency
+  commit-wait is a later mode, on only when a measured bound exists
+  and an SLO says the wait is cheaper than a restart.
 
 **MUST (time: our TrueTime, ported plant)**
 
@@ -169,8 +174,8 @@ fbclock all return an **interval**; the antenna only **narrows** it.
 - **rule:** TrueTime API is always an interval; clock source is a `cell/`
   port with ntp / ptp_phc / gnss_atomic adapters; v1 is ntp; GNSS/atomic
   is destination plant not a later API; no `time/` cap; no `flags/` clock
-  switch; no global commit time; Check does not commit-wait; no ε claim
-  without measured plant.
+  switch; no global commit time; Check does not commit-wait; v1 OLTP
+  does not commit-wait NTP ε; no ε claim without measured plant.
 - **ensure:** new clock code implements the port; no PR requires GPS for
   v1 merge; no PR forbids the GNSS adapter; no PR adds `Now() → Instant`
   as the product clock; no PR wires clock selection through `flags/`.
@@ -500,9 +505,10 @@ the **presubmit** rename target (branch protection in the same change).
 
 The cloud is **not** a root `cloud/` tree and **not** a JSON catalog. It is the
 **closed capability set** (registry). Repo root only **names** those directories
-(plus `kernel/` `os/` `base/` `build/` `third-party/` `app/` `packs/` `docs/`
-`governance/` as already in D-8). Everything a tenant or operator calls is a
-**facade** of one capability or an **`app/<product>/`** that wires 2+.
+(plus `base/` when admitted, `build/`, `third-party/`, `app/`, `packs/`, `docs/`,
+`governance/` as already in D-8 — **not** `kernel/` or `os/`). Everything a
+tenant or operator calls is a **facade** of one capability or an
+**`app/<product>/`** that wires 2+.
 
 **Inside every capability (D-8 children only):** `core/` = engine we run;
 `ports/` = traits + IDL; `adapters/` = transient AWS/OCI/etc.; `facade/` = sold
@@ -524,7 +530,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | S3 / GCS / CAS | **storage** | core: **bytes** (object/CAS). Drive/recordings = byte **facade**. Not SQL. |
 | Spanner / Cockroach / Cloud SQL / BigQuery / Dataflow | **data** | core: **records** — OLTP (Spanner/Cockroach/RDS-class), OLAP (BigQuery/Redshift/ClickHouse-class), pipelines, ontology. **No `cloud-*` crates.** Postgres/Cockroach/Spanner are this cap’s **engines or adapters**, never `storage/`. |
 | EC2 / GCE / Functions / GKE-on-VMs | **compute** | **One** engine: VM + k8s-on-compute + functions. Facades, not three caps. |
-| GKE / EKS control plane (sold) | **k8s** | core: owned apiserver. Facade: managed cluster. Store: cluster objects only (D-2). |
+| GKE / EKS control plane (sold) | **k8s** | core: managed cluster (lifecycle, CP host, quota, CAPI). Adapter: upstream or owned apiserver when we run it (D-13). Store: cluster objects only (D-2). |
 | VPC / DNS / mesh | **network** | core: mesh, signed DNS snapshots, cell dataplane. |
 | Front door / GFE / API Gateway | **gateway** | core: the **one** public door (D-3/D-4). Rate/quota. Transcode is not a second API. |
 | Pub/Sub / SQS | **bus** (today’s dir `messaging/` until git mv) | owned outbox + per-key order. Kafka/Pulsar = adapters. Not `notify`. |
@@ -538,7 +544,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | SES / SNS / FCM (send) | **notify** | core: transactional email/SMS/push **send**. Not Gmail/Meet/Slack. |
 | AppConfig / Feature flags | **flags** | core: flags, kill switches. Pack-gated overrides. |
 
-**Meta (not sold as a tenant API, still in-repo):** `kernel/` rung 0; `os/` node OS; `base/` (≥3 caps, below all); `build/` toolchains/images; `third-party/` vendored; `governance/` registry + check crates (off the runtime ladder).
+**Meta (not sold as a tenant API, still in-repo):** `base/` only when admitted (≥3 caps, below all); `build/` toolchains/images/port-engine; `third-party/` vendored; `governance/` registry + check crates (off the runtime ladder). No `kernel/` or `os/` rungs (D-13).
 
 **`app/<product>/`:** composition only (hr, payroll, calendar, community, …). Wires 2+ of the table. **Does not** grow a cloud engine.
 
@@ -831,8 +837,9 @@ for the apps discussion.
   Waiting for GNSS hardware before the interval API exists. A product
   `Now() → Instant`. Selecting the clock adapter through `flags/`.
   Forbidding PTP/GNSS adapters because v1 is NTP. A `time/` capability.
-  Commit-wait on the `Check` path. Treating Cockroach-on-AWS as the
-  operator plant. Two APIs (software clock vs hardware clock).
+  Commit-wait on the `Check` path. Commit-wait of NTP ε on every v1
+  OLTP write. Treating Cockroach-on-AWS as the operator plant. Two
+  APIs (software clock vs hardware clock).
 
 ## Appendix — considerations (not implement authority)
 
