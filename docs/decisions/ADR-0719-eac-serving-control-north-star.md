@@ -93,8 +93,8 @@ deliverables:
     exit_criteria: "D-23 Foundry settle table does not send Pipeline Builder to pipeline/; packs/ is install authority not overlay novels; app crates persist through ports with a SQLite adapter; Drive/Foundry bytes share one blob port."
     verified_by: "presubmit"
   - id: ADR-0719-D25
-    description: "App business logic lives in core; IO only through ports. Cloud is one adapter family. If that adapter is unavailable the app keeps running on a durable local adapter (SQLite v1). Portability is swapping adapters without rewriting core — not a live petabyte cutover."
-    exit_criteria: "App crates: domain/use-case in core with no cloud/SQLite/HTTP types; one port per substrate need; at least SQLite + cloud-client adapters; no path-dep on cloud core/ports."
+    description: "App business logic lives in core; IO only through ports. Cloud SKUs are one adapter family among others (SQLite v1, S3, Postgres, IMAP, Stripe, on-prem). End of a cloud capability must not end the app without a rewrite. Not HA during our outage."
+    exit_criteria: "App crates: domain/use-case in core with no cloud/SQLite/HTTP types; one port per substrate need; adapters for our cloud and for commodity substitutes; no path-dep on cloud core/ports."
     verified_by: "presubmit"
 ---
 
@@ -1399,7 +1399,7 @@ On-prem / off-cloud / customer MinIO is **why** the port exists. Drive, Foundry 
 
 ### D-25 — Clean architecture: app core is portable; cloud is an adapter
 
-Founder 2026-08-22: maximize **business logic** behind ports. Cloud and apps are separate. If **our cloud** fails, the **app must not fail**. It must be **portable** to another adapter (SQLite, on-prem, another provider) without rewriting core.
+Founder 2026-08-22 (clarified): maximize **business logic** behind ports. Cloud and apps are separate. **“Instantly portable” is not HA during our downtime.** It is **end of service** of a cloud capability (we retire the SKU, the tenant leaves, or they never bought it): the **app must keep serving** by pointing the same ports at **existing technologies** (Postgres, S3/MinIO, IMAP, Stripe, on-prem) **without a significant rewrite**.
 
 **Shape (ADR-0562 faces, app edition).**
 
@@ -1407,22 +1407,20 @@ Founder 2026-08-22: maximize **business logic** behind ports. Cloud and apps are
 |---|---|---|
 | `app/<p>/core` | Domain + use cases (ontology rules, payroll calc, ledger postings, calendar recurrence, mail labels) | SQLite, HTTP, S3, IAM, `storage::`, `data::` |
 | `app/<p>/ports` | Traits: records, blob, mailbox, identity, notify, pack-id, payments, calendar-embed | Adapter impls |
-| `app/<p>/adapters` | SQLite v1; our-cloud Connect client; on-prem blob; Stripe; IMAP | Business rules |
+| `app/<p>/adapters` | SQLite v1; our-cloud Connect client; Postgres/S3/IMAP/Stripe/on-prem | Business rules |
 | `app/<p>/facade` | That product’s UX/API | Cloud SKU implementation |
 
-**One active adapter per port per tenant.** Not dual-write SQLite+cloud (split-brain). Failover = switch adapter to durable local (SQLite v1) or on-prem. Between apps (hr → calendar): **ports**, not `use calendar_core`.
+**One active adapter per port per tenant.** Not dual-write. Between apps (hr → calendar): **ports**, not `use calendar_core`.
 
-**“Instantly portable” (honest).** Core does not change when the substrate does. v1 proof: Foundry/hr/payroll tests run against SQLite with cloud adapters **unplugged**. Not a promise of zero-downtime petabyte migration, not 10^8 Checks on SQLite (D-1). Features that **are** the cloud (TAP build, live IdP) **degrade**; features that are the **app** continue.
-
-**If our cloud is down:** mailbox/drive/foundry/ledger still read/write the local adapter. Reconnect later is adapter sync, not a core rewrite.
+**Portable means.** Core source does not change when the substrate does. Proof: the same Foundry/hr/payroll tests run against SQLite and against a commodity adapter (Postgres, S3 API). Rewriting ontology/payroll because we stopped selling `storage/` is a D-25 fail. Live outage behavior is **not** this decision (that is SLO/cell failover of whatever adapter is selected).
 
 **MUST (portable app cores)**
 
-- **achieves:** tenant #0 is not glued to Oyatie cloud; on-prem/regulatory cutover is an adapter swap.
-- **origin:** in-process cloud cores; “just call storage/”; Foundry would die if CAS/IAM blipped.
-- **rule:** app business logic only in `core`; every IO through a port; SQLite adapter required v1 for each durable port; cloud client is another adapter; no `path =` cloud `core/`/`ports/` from `app/`; between-app composition is ports too.
-- **ensure:** new `app/<p>/core` crate that imports sqlx/reqwest/`storage-*`/`data-*`/`iam-*` fails review; each durable port has a SQLite adapter test with cloud unplugged.
-- **overturn_when:** a five-field ADR same-wave allows in-process cloud cores or drops the SQLite adapter requirement.
+- **achieves:** retiring or unbundling a cloud SKU does not kill tenant apps; they keep running on commodity adapters.
+- **origin:** in-process cloud cores; “just call storage/”; Foundry would die if we EOL’d a cap.
+- **rule:** app business logic only in `core`; every IO through a port; v1 SQLite adapter per durable port; our cloud is one adapter among Postgres/S3/IMAP/Stripe/on-prem; no `path =` cloud `core/`/`ports/` from `app/`; between-app composition is ports too. Not an HA-during-outage claim.
+- **ensure:** new `app/<p>/core` crate that imports sqlx/reqwest/`storage-*`/`data-*`/`iam-*` fails review; each durable port has a non-Oyatie adapter path in charter (SQLite and/or commodity).
+- **overturn_when:** a five-field ADR same-wave allows in-process cloud cores or makes an app require a living Oyatie SKU with no substitute adapter.
 
 ### D-16 — `console/` is not a capability; discard the pilot
 
