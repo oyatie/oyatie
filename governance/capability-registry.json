@@ -238,7 +238,7 @@
     },
     {
       "name": "compute",
-      "charter": "ONE compute engine: VM + k8s-on-compute + functions/serverless, with facade sub-surfaces. The owned compute plane.",
+      "charter": "Fleet orchestration (Borg analog): stripped Linux on Cloud Hypervisor (VM) and Firecracker (microVM/functions), plus our agent. Optional k8s-on-compute is a sold SKU facade, not how we operate.",
       "seed_domains": [
         "compute"
       ],
@@ -254,7 +254,7 @@
       "substrate_dag_position": {
         "stratum": "S1"
       },
-      "charter": "Owned Kubernetes control plane (core) + managed-k8s product (facade). ladder rung above os/ (formerly written kuberos->cloud-k8s; the kuberos rung was retired 2026-08-14).",
+      "charter": "Optional sold GKE/EKS-class SKU wrapping upstream kube (hosting, quota, SLA, CAPI). Not the fleet OS. Not a kubernetes.git port. Not Borg.",
       "seed_domains": [
         "control plane"
       ],
