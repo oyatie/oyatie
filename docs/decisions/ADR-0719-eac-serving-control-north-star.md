@@ -17,7 +17,7 @@ related: [ADR-0243, ADR-0280, ADR-0354, ADR-0049]
 milestone: W0
 deliverables:
   - id: ADR-0719-D1
-    description: "Record serving-path vs control-path split as live law: 10^8-class user/Check traffic is in-cell RAM snapshots; writes, IR apply, packs, and cluster objects are a journaled control plane. etcd is fenced to cell cluster objects behind k8s/ports. Product records, tuples, and IR are never etcd/CRDs."
+    description: "Record serving-path vs control-path split as live law: 10^8-class user/Check traffic is in-cell RAM snapshots; writes, IR apply, packs, and cluster objects are a journaled control plane. etcd is fenced to cell cluster objects behind k8s/ports. Product records, tuples, and IR are never etcd/CRDs. Time is HLC+uncertainty (Cockroach/ClockBound), cell-local, no TrueTime hardware claim."
     exit_criteria: "This ADR is Accepted; CLAUDE.md live apex list cites it; no implement PR treats etcd or a Kubernetes object store as the Check/IR/tuple store."
     verified_by: "presubmit"
   - id: ADR-0719-D2
@@ -119,6 +119,33 @@ sell a **cloud** sharded by **cells**, not a 100k-node logo.
 - **ensure:** no PR stores tuples, IR, or tenant documents as etcd keys or product CRDs.
 - **overturn_when:** a measured serving path needs a different store AND a replacement ADR
   with five fields lands same-wave.
+
+**Time (no GPS/atomic TrueTime).** We do not own Spanner’s antenna farm. Do not
+claim Google commit-wait (~ms ε). Pattern: **Cockroach HLC** + **ClockBound-shaped
+uncertainty**; **Stripe**/Cockroach published commit-wait under NTP error as the
+benchmark, not Spanner’s brochure.
+
+- **In a cell:** Raft/Paxos + HLC. Linearizability is **cell-local**. Exposed
+  timestamps carry `[earliest, latest]`. Commit-wait = wait out ε (NTP/PTP error
+  bound), or abort/retry on uncertainty collision.
+- **Across cells:** **no** global commit timestamp. Home-cell + async (same as
+  ReBAC D-5). Cross-cell “now” is not a product API.
+- **Who owns sync:** **`cell/`** (NTP/PTP to a cell time service). Not `storage/`,
+  not `data/core`, not a `time/` capability. AWS Time Sync as a **sold SKU** is a
+  later `cell` facade, not a new cap.
+- **`data/` engines** (Spanner/Cockroach-class OLTP) **use** that HLC; they do not
+  invent a second clock. Serving `Check` does not wait on commit-wait.
+
+**MUST (time without TrueTime)**
+
+- **achieves:** Cockroach-class OLTP without lying about Google’s ε.
+- **origin:** no hardware clock; Spanner-copy would invent GPS in every cell.
+- **rule:** HLC + uncertainty; cell-local linearizability; no global commit time;
+  sync is `cell/`; no `time/` cap; serving path does not commit-wait.
+- **ensure:** no PR claims TrueTime or zero-ε external consistency; data engine
+  timestamps are intervals.
+- **overturn_when:** GPS/atomic (or equivalent) is deployed per cell AND a
+  five-field ADR tightens ε same-wave.
 
 ### D-2 — k8s / etcd / “AWS journal”
 
@@ -530,7 +557,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 
 | Cap | Purpose | In scope | Out of scope |
 |---|---|---|---|
-| **cell** | Bound failure domains and place load. | Cell topology, hard caps, router, rebalance, home-cell **placement**. | Selling a k8s cluster (`k8s`). Tenant directory (`tenancy`). Mesh (`network`). |
+| **cell** | Bound failure domains and place load. | Topology, hard caps, router, rebalance, home-cell, **NTP/PTP time service** (HLC uncertainty bound). | GKE product. Tenant CRM. TrueTime GPS farm as a requirement for v1. |
 | **tenancy** | Tenant as the scoping primitive. | Create/suspend/delete tenant, home-cell binding, org/account tree. | IdP (`iam`). Authz eval (`policy`). Marketplace SKUs. HR orgs. |
 | **iam** | Prove **who**. | Principals, credentials, passkeys, SCIM, role **store**, workload identity **consume**. | Cedar **eval** (`policy`). SVID **issue** (`secrets`). Tenant lifecycle (`tenancy`). |
 | **policy** | Decide **may**. | Cedar PDP, ReBAC tuples, G-face distribute, C0 in-cell snapshot, in-process Check. | IdP. Writing every cap’s Cedar (caps own `<cap>/cedar/`). Global tuple replica. |
@@ -770,6 +797,8 @@ for the apps discussion.
 - Marketplace as KYC/escrow/app-store; strangler of `developer-sdk/` into billing.
 - `data/core/cloud-*` crates or a `cloud-data/` nest. Search/SERP/RAG in `data/core`.
 - Putting Spanner/Cockroach/RDS in `storage/`. Putting BigQuery in `storage/`. A `search/` capability for Google Search.
+- Claiming Spanner TrueTime / zero-ε external consistency without GPS/atomic per cell.
+  A `time/` capability. Commit-wait on the `Check` path.
 
 ## Appendix — considerations (not implement authority)
 
