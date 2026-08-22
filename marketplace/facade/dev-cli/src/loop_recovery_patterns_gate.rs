@@ -23,7 +23,6 @@ const REQUIRED_SCORE_CARD_FIELDS: &[&str] = &[
     "pass_criterion",
     "score",
     "severity_tier",
-    "empirical_evidence_path",
 ];
 
 const ALLOWED_PATTERN_STATUSES: &[&str] = &["active", "candidate", "retired"];
@@ -302,13 +301,7 @@ fn read_score_card_inventory(path: &Path) -> Result<ScoreCardInventoryReport, St
                 path.display()
             ));
         }
-        let evidence_path = required_str_in_object(check_object, "empirical_evidence_path", path)?;
-        if !Path::new(evidence_path).is_file() {
-            return Err(format!(
-                "{} score-card `{id}` empirical_evidence_path `{evidence_path}` is not readable",
-                path.display()
-            ));
-        }
+        // Git history is the audit log; committed evidence JSON is not required.
         let enforcement_status = check_object
             .get("enforcement_status")
             .and_then(Value::as_str)
