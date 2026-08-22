@@ -240,11 +240,25 @@ Temporarily breaking callers is accepted; a dual REST+proto product API is not.
 
 ### D-4 — Protocol (no pre-2016 compatibility as destination)
 
-**One contract.** Protobuf IDL is the SSOT. The RPC is **Connect-class HTTP**
-(no gRPC trailers) on **HTTP/3**, WebTransport for watches. That contract is
-**north-south and east-west**. `Check` on the hit path is **in-process** (D-1);
-it is not an RPC product. Cross-cell Check, control apply, and watches use the
-same Connect contract.
+**One contract, two transports.** Protobuf IDL is the SSOT. The RPC is
+**Connect-class HTTP** (no gRPC trailers). Same contract north-south and
+east-west. `Check` on the hit path is **in-process** (D-1) — no QUIC, no
+TCP, no RPC. Cross-cell Check, control apply, and watches use Connect.
+
+**Transport follows the plant.** DC NICs, kernel, Maglev, and in-cell
+path are **TCP-optimized** (TSO/GRO/RSS, DCTCP-class). Hyperscalers put
+QUIC on the **public door** (GFE/Cloudflare); east-west stays TCP
+(gRPC/H2-over-TCP in their fossil; we still do **Connect**, not gRPC).
+
+| Leg | Transport | Why |
+|---|---|---|
+| Hit-path Check | in-process | D-1 |
+| East-west (in-cell / cross-cell RPC) | **TCP** + TLS (SPIFFE). Connect on H2 (or H1 where needed). | Hardware offload. UDP/QUIC east-west is a tax. |
+| North-south public door | **HTTP/3 (QUIC)** + ECH/PQC. Connect. WebTransport watches. | Internet, ECH, one public contract. H2 same Connect if the path cannot UDP. |
+
+Forcing H3 east-west because the public door is H3 is the same class as
+forcing gRPC because a mesh “automates HTTP/2.” UEC/RDMA is a later
+`network/` adapter, not a reason to skip TCP v1.
 
 **One door, many frontends.** One gateway **codebase and proto**. Maglev-class
 anycast **per cell**. Not one global VIP. Not a second REST/gRPC connector.
@@ -275,9 +289,9 @@ as GNSS on `cell/`):
 | `tls13_x25519` | Classical-only. Dying adapter, not the destination. |
 | `ech` | Encrypted Client Hello on the public door. IR `ech=on` when the cell has a cover hostname; `ech=off` does not mean the crate is absent. |
 
-East-west SPIFFE certs use the same TLS port; ECH is a **public-door** adapter
-(SNI privacy), not an in-cell SPIFFE feature. ADR-0354 remains the crypto
-apex this amends.
+East-west SPIFFE is **TCP TLS** (same port crates; hybrid ML-KEM when the
+stack speaks it). ECH is a **public-door** adapter (SNI privacy), not an
+in-cell SPIFFE feature. ADR-0354 remains the crypto apex this amends.
 
 **Enterprise visibility = Zero Trust endpoint isolation, not a QUIC
 firewall.** A 2019 NGFW gets “visibility” by blocking UDP/443 or MITMing
@@ -380,14 +394,12 @@ into `network/` as plugins, they do not become our door.
 - **origin:** “gRPC+mesh vs protobuf+HTTP for middleboxes” is a tenant-on-AWS
   playbook. “Inspect QUIC like a NGFW” is the same playbook applied to H3:
   visibility by weakening. Prose-only PQC/ECH/WAF is forgotten.
-- **rule:** Connect-class HTTP (H3 default, H2 same contract if UDP is
-  blocked) is the only product RPC; Check is in-process; no Istio/Linkerd
-  as identity; `gateway/` TLS port has hybrid ML-KEM (public default),
-  classical (dying), and ECH adapters as crates; visibility is Zero Trust
-  **endpoint isolation**; browser DLP is the client end not `gateway/`
-  core; JA4/flow are signals not the PDP; IAP is the one north-south
-  door not a per-pod proxy; no on-path QUIC MITM; no `firewall/` cap;
-  no standing gRPC or REST product; our dataplane does not block UDP/443.
+- **rule:** one Connect contract; public door **H3/QUIC**; east-west
+  **TCP** (Connect on H2; hardware is TCP-optimized); Check in-process;
+  no QUIC-east-west because the door is H3; no Istio; TLS port crates as
+  above; ECH public-door only; no on-path QUIC MITM; no `firewall/` cap;
+  no standing gRPC or REST; dataplane **allows** UDP/443 north-south and
+  does not force UDP east-west.
 - **ensure:** new RPCs generate Connect; new TLS/ECH/WAF/proxy/fingerprint/flow-log
   code implements those ports; layout/registry cannot drop those adapter
   names without OVERRULE; no new gRPC service crates; no PR that turns ECH
@@ -567,7 +579,7 @@ two-class evidence; shreddable principals; eIDAS/KR step-up; owned cell journal;
 gateway (one contract, N cell frontends); packs; TrueTime interval API with a
 cell clock port (ntp/ptp/gnss adapters); Connect-class one wire; gateway TLS
 port with hybrid-ML-KEM + ECH crates; Zero Trust endpoint isolation (not
-on-path QUIC MITM).
+on-path QUIC MITM); Connect contract with H3 north-south and TCP east-west.
 
 **Regret:** etcd as product DB; AWS closed journal; JSON as product codec; Helm-as-source;
 Kyverno/Kubewarden as default; one global cluster; worldwide ACL replica; silent drop of
@@ -910,8 +922,8 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **data** | Durable **records** + query engines. | OLTP/OLAP/pipelines/ontology. Consumes cell `Now() → Interval`. Versionstamps as engine ordinal. `commit_wait` crate present, IR off without measured ε. | Bytes (`storage`). **BI product** (`app/`). **Web search / SERP**. **RAG** (`intelligence` facade if sold). **`cloud-*` crate names.** A second TrueTime. |
 | **compute** | Run **workloads**. | One cap, three reconcilers: VM, k8s-on-compute, functions. GPU as facade when sold. | GKE product (`k8s`). Cell topology (`cell`). One Raft / one scheduler for all three. |
 | **k8s** | **Managed Kubernetes product** (GKE/EKS/AKS). | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **adapter** to upstream or owned apiserver. | kube-apiserver **port** (`build/port-engine`). Node OS. Mesh. Public door. |
-| **network** | Connect inside the cloud. | VPC, DNS snapshots, dataplane, security groups **allow UDP/443**, `flow_log`, `quic_metadata`. | Public API door (`gateway`). CDN/Interconnect as facades when sold. Istio/Linkerd as identity. A `firewall/` cap. Block QUIC. Payload decrypt. |
-| **gateway** | **One** north-south **contract**, many cell frontends. | Connect (H3 default, H2 same framing if UDP blocked), authn terminate, quota, Cedar, TLS port (hybrid ML-KEM, classical dying, ECH), `waf` after decrypt, `explicit_proxy` ZTNA, `fingerprint` (JA4 signal). Sold IAP = this facade. | Mesh (`network`). Second gRPC/REST door. One global VIP. Tenant SaaS APIs here. gRPC-Web operator UI. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. Endpoint DLP as core. |
+| **network** | Connect inside the cloud. | VPC, DNS, **TCP-optimized** dataplane; UDP/443 **north-south**; `flow_log`, `quic_metadata`. | Public door (`gateway`). QUIC as the in-cell RPC plant. Istio. `firewall/` cap. Block public QUIC. Payload decrypt. |
+| **gateway** | **One** north-south **contract**, many cell frontends. | Public **H3/QUIC**; H2 if path cannot UDP. East-west is **not** this door’s plant (TCP in-cell). TLS/ECH/WAF/IAP/fingerprint as above. | Mesh. Second gRPC/REST door. QUIC-mandatory east-west. One global VIP. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. |
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: **queue** (competing consumers), **bus** (fan-out subscriptions), **stream** (seekable cursor); transactional **outbox**; at-least-once; per-key order. Serving `Check` never *is* a consume. | Sagas (`workflow`). Mailbox / chat (`app/`). **Kafka or Pulsar as `core/`**. SES send (`notify`). A root named `messaging/`. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
@@ -1230,9 +1242,9 @@ implementation is gone pending rewrite; no dump resurrection.
 - Istio/Linkerd/sidecar as SPIFFE identity.
 - PQC/ECH only in prose (no `gateway/` TLS adapter crates). Classical TLS as
   the destination suite. ECH with no crate.
-- On-path QUIC MITM, blocking UDP/443 in our dataplane, or turning ECH off
-  so a NGFW can read SNI. A `firewall/` capability. Visibility by weakening
-  cryptography.
+- On-path QUIC MITM, blocking UDP/443 on the **public** door, or turning
+  ECH off so a NGFW can read SNI. Forcing QUIC/H3 **east-west** because
+  the public door is H3 (DC plant is TCP-optimized). A `firewall/` cap.
 - Forking Chromium / shipping Island-class browser as a cloud v1
   requirement so that endpoint DLP exists. Attestation is the port;
   their browser is the client.
