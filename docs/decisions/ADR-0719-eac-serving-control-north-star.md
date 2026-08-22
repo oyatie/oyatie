@@ -719,6 +719,15 @@ compute/ agent (Borglet analog)  ──host Linux (KVM)──
 
 **Sold kube SKU** (optional): kubelet runs **inside a guest**, as a tenant. It is not the host agent.
 
+**gVisor and Kata — considered, not the fleet VMM.**
+
+| Tech | What it is | Hyperscaler | Us |
+|---|---|---|---|
+| **gVisor** | Userspace kernel (Sentry) sandboxing **containers** | GKE gVisor, Cloud Run, App Engine — **not** Borg’s VMM | Optional **`compute/` adapter** for a container-isolation SKU (Cloud Run analog). Not the host. Not a replacement for CH/FC. |
+| **Kata Containers** | VM-per-pod via CRI (QEMU/CH/FC underneath) | Kube **runtime class**, not Twine/Borg/Nitro | Allowed only as a **sold `k8s/` runtime class** (guest). Using Kata as our fleet scheduler **is** CRI-on-kube. |
+
+Fleet plant stays **CH + Firecracker + stripped Linux**. Kata sitting on Firecracker is still kube CRI. gVisor is a **sandbox**, not a hypervisor. Empty `gvisor/` / `kata/` dirs are STAY GONE. New adapter crates under `compute/` only when that SKU is sold.
+
 **What we build vs do not:**
 
 | Build (Rust) | Do **not** build |
@@ -1004,7 +1013,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **observability** | See and SLO-gate the platform. | Metrics/logs/traces **substrate**, SLO **controller**, generated OpenSLO apply. | Hand OpenSLO novels. SIEM as a 25th cap. App product analytics. |
 | **storage** | Durable **bytes** (S3 / GCS / Colossus / CAS). | Object/CAS; drive/recordings as byte **facades**. Identity = digest/generation. | Any **query engine**. Spanner/Cockroach/RDS. BigQuery. Search. Clock as object identity. |
 | **data** | Durable **records** + query engines. | OLTP/OLAP/pipelines/ontology. Consumes cell `Now() → Interval`. Versionstamps as engine ordinal. `commit_wait` crate present, IR off without measured ε. | Bytes (`storage`). **BI product** (`app/`). **Web search / SERP**. **RAG** (`intelligence` facade if sold). **`cloud-*` crate names.** A second TrueTime. |
-| **compute** | Run **the fleet** (Borg/Twine/Nitro analog). | Stripped Linux on **Cloud Hypervisor** (VM) and **Firecracker** (microVM/functions). Agent is ours. Optional k8s-on-compute **SKU**. GPU as facade when sold. | GKE as the fleet. Talos as the fleet OS. Asterinas/Hermit **today**. QEMU as identity. One Raft. |
+| **compute** | Run **the fleet** (Borg/Twine/Nitro analog). | Stripped Linux on **Cloud Hypervisor** (VM) and **Firecracker** (microVM/functions). Agent is ours. Optional k8s-on-compute **SKU**. GPU as facade when sold. gVisor = optional **container-sandbox adapter** (Cloud Run analog), not the VMM. | GKE as the fleet. Talos as the fleet OS. Kata as Borg. gVisor as the hypervisor. Asterinas/Hermit **today**. QEMU as identity. One Raft. |
 | **k8s** | **Sold** GKE/EKS/AKS-class SKU. | Cluster lifecycle, hosted CP, quota, SLA, CAPI, **upstream** kube adapter (EKS pattern). | Our Borg (`compute/`+`cell/`). A kubernetes.git port as operations. Node OS. Mesh. Public door. Empty `k8s-port/`. |
 | **network** | Connect inside the cloud. | VPC, DNS, **TCP-optimized** dataplane; UDP/443 **north-south**; `flow_log`, `quic_metadata`. | Public door (`gateway`). QUIC as the in-cell RPC plant. Istio. `firewall/` cap. Block public QUIC. Payload decrypt. |
 | **gateway** | **One** north-south **contract**, many cell frontends. | Public **H3/QUIC**; H2 if path cannot UDP. East-west is **not** this door’s plant (TCP in-cell). TLS/ECH/WAF/IAP/fingerprint as above. | Mesh. Second gRPC/REST door. QUIC-mandatory east-west. One global VIP. Transparent QUIC MITM. ECH-off enterprise mode. Per-pod IAP. |
@@ -1329,6 +1338,9 @@ implementation is gone pending rewrite; no dump resurrection.
   the cloud OS. Talos as the fleet OS.
 - kube-rs / k8s-openapi as the fleet (Borg) control plane. Those
   libraries are a kube-apiserver client. Sold `k8s/` adapters only.
+- Kata Containers as the fleet runtime (that is CRI/kube). gVisor as
+  the fleet VMM (it is a container sandbox). Empty `kata/` / `gvisor/`
+  roots.
 - CUE+Timoni or Haskell as EaC wrap.
 - Public JSON/REST as the destination codec.
 - Standing gRPC (public or east-west) because a mesh automates HTTP/2,
