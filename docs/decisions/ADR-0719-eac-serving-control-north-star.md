@@ -482,6 +482,28 @@ no in-process PDP only we can call. CaS is a **facade of `compliance/`
 + `policy/` Check**, not a `packs/` capability and not a second door.
 `packs/` remains data the engines load.
 
+**Where it belongs, and what it must not do.** `packs/` is **not** a
+capability. It is a **versioned CaC bundle** at repo root (like
+`third-party/`: data engines load, no `core/`). It stays at root so
+**one** bundle feeds three engines without those engines owning each
+other’s data:
+
+| Job | Owner | Packs do **not** |
+|---|---|---|
+| Evaluate Check | `policy/` (compiled Cedar in-cell) | No PDP, no pack-algebra, no fetch on the hit path |
+| ReBAC tuples | `policy/` | No `eu/gdpr` as a Zanzibar group |
+| Principals, attestation | `iam/` | No IdP, no passkeys |
+| Cell certify / place | `cell/` (`certified_for`) | No tenant CRM, no second placer |
+| Evidence, CaS catalog/bind | `compliance/` facade | No Merkle log (`audit/`) |
+| Tenant lifecycle | `tenancy/` | No “the tenant is pack X” as the only law |
+| Marketplace plugins | `marketplace/` (signed plugins) | Jurisdiction packages ≠ `vpack_` vertical plugin ids — different word |
+| i18n FTL, sticker packs | apps / copy | Not `packs/` |
+
+Folding the bundle under `policy/` makes `cell/` and `compliance/`
+depend on the PDP’s tree. Folding under `compliance/` makes Check
+compile from the evidence product. **Root `packs/` is the zip SSOT.**
+Today’s markdown under `packs/` is KEEP+WORK, not the job.
+
 **Realization (adversarial — do not build a second PDP).**
 
 Hyperscalers do **not** recompute “GDPR ∪ APPI ∪ PIPA” as a custom
@@ -522,17 +544,18 @@ algebra on every RPC. They split:
 - **origin:** markdown country trees; EU as a country; one pack per
   tenant; combinatoric `kr-eu`; namespace implied every instrument.
 - **rule:** v1 namespaces `us`, `eu`, `jp`, `kr`; EU is Union law not a
-  country; packages are granular CaC (Cedar+IR); each **projects** via
-  Cedar schema (P/A/R/Ctx); Check evaluates compiled fragments in the
-  cell snapshot — no pack-algebra engine, no pack fetch on the hit path;
-  `plane: serving | control`; CaS is catalog/bind/evidence not a second
-  PDP; apps and marketplace plugins are PEPs of the same Check; no
+  country; packages are granular CaC (Cedar+IR) in root `packs/` **data**;
+  each **projects** via Cedar schema (P/A/R/Ctx); Check is `policy/`;
+  placement is `cell/`; CaS is `compliance/` facade; `iam/` `tenancy/`
+  `audit/` `marketplace/` are not pack engines; no pack-algebra, no pack
+  fetch on Check; `plane: serving | control`; apps are PEPs; no
   `packs/<a>-<b>` ids; `packs/` is not a cap.
 - **ensure:** no new namespace outside {us,eu,jp,kr} without a five-field
   pack ADR; no PR that blanket-applies a namespace; no PR that loads
   `packs/` on Check; no PR that adds a pack-unioner beside Cedar; no
   private pack API for `app/`; control-plane packages are not serving
-  Check predicates.
+  Check predicates; no PR that puts a PDP, placer, or CaS core under
+  `packs/`; marketplace `vpack_` is not a jurisdiction package.
 - **overturn_when:** a five-field ADR adds a namespace or member-state
   package with a loader same-wave.
 
