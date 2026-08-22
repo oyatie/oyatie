@@ -476,7 +476,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | Cloud Build / TAP / CodePipeline | **pipeline** (today’s dir `ci/` until git mv) | core: graph-aware execution, queue, controller. GitHub is an **adapter**, not the product. |
 | CloudFormation / Config reconciler | **iac** | core: IR unifier + reconcilers. `<cap>/iac/` is **this** cap’s desired state; `iac/` the cap owns the **engine**. |
 | Billing / Cost Explorer | **billing** | core: meter, rate, invoice, tax, FinOps. Sold-ness, not a drawer. |
-| Marketplace | **marketplace** | core: plugins, signed modules, SKU **engine**. Generated sell-catalog view is `build/`. |
+| Marketplace | **marketplace** | core: signed plugins + Cedar install envelope + SKU **engine**. Price list is `build/` view. Not KYC/escrow. |
 | Artifact / evidence packs | **compliance** | core: pack evidence, data-class registry. Consumes **audit**. Not the Merkle log. |
 | SES / SNS / FCM (send) | **notify** | core: transactional email/SMS/push **send**. Not Gmail/Meet/Slack. |
 | AppConfig / Feature flags | **flags** | core: flags, kill switches. Pack-gated overrides. |
@@ -512,7 +512,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **pipeline** | TAP + Cloud Build engines, queue, controller. | This repo’s `.github/` GHA. Census gates. | GHA stays disjoint; census already D-17. git mv `ci/` → `pipeline/` later. |
 | **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
 | **billing** | Meter, rate, invoice, tax, FinOps. | Ledger books (`ledger/`). Payments rails (`payments/`). | Nested accounting/tax leftover dirs. |
-| **marketplace** | Plugins, signed modules, SKU **engine**. | Generated sell-catalog (**`build/` view**). | Dev-cli as merge authority. |
+| **marketplace** | Signed plugins, install envelope, SKU engine. | Price list (`build/` view). KYC/escrow/payout. App store UX. | **Purge** `developer-sdk/` + `plugin-app-store/`. |
 | **compliance** | Pack evidence, data-class registry. | Merkle log (`audit`). Cloned `dpia.md`. | Those clones. |
 | **notify** | Transactional send (SES/SNS/FCM). | Email/SMS/push **send API**. | Mailbox/Meet/Messenger/contact-center (`app/` later). Current `comms/` dump **purged**. |
 | **flags** | Flags, kill switches. | Census `catalog.yaml` / IPs. | Cap-root junk. |
@@ -550,7 +550,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **pipeline** | Sold TAP + Cloud Build. | Graph-aware execute, queue, controller, SCM **adapter**. Tenant graphs. | `.github/` GHA. Census gates. Desired-state apply (`iac`). |
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
-| **marketplace** | Third-party **modules** on the cloud. | Signed plugins, permission envelope, SKU **engine**. | Generated price list (**`build/` view**). The apps themselves. |
+| **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
 | **compliance** | Evidence **engine** for the platform. | Load packs, data-class registry, evidence export. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA files. |
 | **notify** | Transactional **delivery** (SES / SNS / FCM). | Send email/SMS/push; bounce/complaint; DKIM/SPF/DMARC; optional inbound **to the bus** (SES-receive analog). | **Mailbox** (IMAP/JMAP/webmail), Meet, Messenger, calendar, contact-center — later `app/`. Emergency clinical. Current `comms/` tree (purged). |
 | **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | Cedar+ontology+constraints per region. | Copied into each cap. EU as world floor. |
@@ -767,6 +767,7 @@ for the apps discussion.
   apps. Cloud send is `notify/`.
 - Kafka (or Pulsar) as the `bus/` engine / serving consume path.
 - `intelligence/detection/` as this cap’s core (GuardDuty ≠ Vertex). Copilot UX in `intelligence/core`.
+- Marketplace as KYC/escrow/app-store; strangler of `developer-sdk/` into billing.
 
 ## Appendix — considerations (not implement authority)
 

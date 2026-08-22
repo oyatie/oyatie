@@ -397,17 +397,15 @@
     },
     {
       "name": "marketplace",
-      "charter": "Marketplace + plugin/app store + SKU catalog data. First-class cross-cutting sold-ness capability.",
+      "charter": "Signed plugins, Cedar install envelope, SKU engine. Sell-catalog VIEW is build/. Not KYC, escrow, payout, or developer portal (ADR-0719).",
       "seed_domains": [
         "metering/billing"
       ],
       "absorbs_current_dirs": [
-        "marketplace",
-        "marketplace/plugin-app-store",
-        "marketplace/developer-sdk"
+        "marketplace"
       ],
       "dag_node": "marketplace",
-      "boundary_note": "First-class sold-ness capability per founder ruling. The generated SKU/pricing sell-catalog VIEW is materialized as build/ output over face:facade crates; marketplace owns the marketplace ENGINE, not the catalog view."
+      "boundary_note": "ADR-0719: developer-sdk/ and plugin-app-store/ dumps git rm. KYC/escrow/tax are payments/apps later. Engine is plugin-kernel + SKU, not a bazaar."
     },
     {
       "name": "compliance",
