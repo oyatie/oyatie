@@ -785,7 +785,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
 | **flags** | Dynamic config and kill switches. | Deterministic eval (`evaluation-domain`), targeting, kill switch, pack overlays. Connect facade. | App roadmaps. Census catalogs. **Clock adapter**. A/B experiment **product**. REST/gRPC/OpenAPI dual. OFREP as SSOT (OpenFeature may be an adapter). Helm source. |
-| **pipeline** | Productized execute (TAP internally, Cloud Build sold). | **One engine**, two facades: graph + queue. Workers = `compute/`. Promotion graph execute. One required context `presubmit`. Tenant #0. | GHA as product. JSON check product. Prow GateRun/Tide as core. Owned worker cluster. `iac/` as CD engine. Second protected check. A `ci/` root. |
+| **pipeline** | Productized execute (TAP internally, Cloud Build sold). | **One engine**, two facades: **polyglot** hermetic graph + queue (buck2 when CAS+RE live). Workers = `compute/`. Promotion graph execute. One required context `presubmit`. Tenant #0 is Rust-first; **customers are not**. | GHA as product. Cargo as sold runtime. Per-language CI SKUs. JSON check product. Prow/Tide as core. Owned worker cluster. `iac/` as CD engine. Second protected check. A `ci/` root. |
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
@@ -986,12 +986,17 @@ two codebases.
   as a second protected check. No owned Gerrit/submit-queue in v1.
 - **CAS + execute client:** When the cloud can **serve** `pipeline/`
   against `storage/` CAS and `compute/` RE, the execute client is
-  **buck2** (hermetic action graph). That is TAP/Cloud Build, not
-  `cargo nextest` with a cache. **Cargo is not a second pipeline
-  runtime.** Keep cargo only where buck2 cannot do the job (today:
-  `Cargo.toml` + reindeer as the crate **manifest** source; `cargo fmt`
-  as the rustfmt driver until buck2 owns format). rust-analyzer local
-  is not merge proof. Dual cargo+buck2 merge is forbidden.
+  **buck2** (hermetic **polyglot** action graph). Tenants are not
+  Rust-only: Cloud Build/TAP/CodeBuild run C++, Go, Java, Python, TS,
+  and Rust as **actions**, not as one runtime per language. The sold
+  graph IR is language-agnostic (D-3 protobuf). **Do not sell cargo.**
+  **Do not** grow one SKU per language (the Actions-matrix anti-pattern).
+  Tenant #0 is Rust-first **in this repo**; that is not the product
+  contract. Cargo is not a second pipeline runtime. Keep cargo only
+  where buck2 cannot for **this** repo (today: `Cargo.toml` + reindeer
+  as crate **manifest** input to buck2; `cargo fmt` until buck2 owns
+  format). rust-analyzer is not merge proof. Dual cargo+buck2 merge is
+  forbidden.
   **v1** until that cloud is serving: cargo nextest is tenant #0
   presubmit (ADR-0716) because there is no live CAS+RE. **Overturn 0716
   same-wave** when pipeline **serves** the buck2 graph; cargo execute
@@ -1134,6 +1139,8 @@ implementation is gone pending rewrite; no dump resurrection.
 - Dual cargo+buck2 merge proof. Switching tenant #0 to buck2 because CAS
   exists but pipeline does not yet **serve** that graph. Cargo as a
   standing second pipeline runtime after cutover. Cargo-as-destination TAP.
+  A sold per-language CI (cargo for Rust, go test for Go, npm for JS).
+  Requiring tenant graphs to be Cargo.toml.
 - Strangler-moving `workflow/` event-bus/saas/forms into `bus/` or `app/`
   instead of purge+rewrite.
 - Keeping the slug `messaging/` as a live capability name (collides with
