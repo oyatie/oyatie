@@ -96,6 +96,10 @@ deliverables:
     description: "App business logic lives in core; IO only through ports. Cloud SKUs are one adapter family among others (SQLite v1, S3, Postgres, IMAP, Stripe, on-prem). End of a cloud capability must not end the app without a rewrite. Not HA during our outage."
     exit_criteria: "App crates: domain/use-case in core with no cloud/SQLite/HTTP types; one port per substrate need; adapters for our cloud and for commodity substitutes; no path-dep on cloud core/ports."
     verified_by: "presubmit"
+  - id: ADR-0719-D26
+    description: "First-party apps prove the untrusted tenant path. Privilege is identity and placement on the same ports (SPIFFE, cell-local endpoint, quota), not a second API and not in-process cloud cores. Adapter binding is config; not a flag that compiles storage_core into Foundry."
+    exit_criteria: "No cfg(trusted)/flag that path-deps app cores onto cloud core; first-party principal is a PDP principal on the public facade; tests bind SQLite and untrusted cloud-client adapters."
+    verified_by: "presubmit"
 ---
 
 # ADR-0719: EaC north star — serving vs control, proto IR, packs
@@ -1422,7 +1426,33 @@ Founder 2026-08-22 (clarified): maximize **business logic** behind ports. Cloud 
 - **ensure:** new `app/<p>/core` crate that imports sqlx/reqwest/`storage-*`/`data-*`/`iam-*` fails review; each durable port has a non-Oyatie adapter path in charter (SQLite and/or commodity).
 - **overturn_when:** a five-field ADR same-wave allows in-process cloud cores or makes an app require a living Oyatie SKU with no substitute adapter.
 
-### D-16 — `console/` is not a capability; discard the pilot
+### D-26 — Trusted tenant is a principal, not a second stack
+
+Founder 2026-08-22: maybe a flag so first-party apps eventually get **privileged** cloud access (trusted vs untrusted) to **prove it works**.
+
+**Do not** `cfg` / feature-flag **in-process** cloud `core` into `app/`. That path becomes production, the untrusted adapter rots, D-25 is theatre. `flags/` dump is not this mechanism.
+
+**Prove it works:** bind the **same ports** to (1) SQLite, (2) **untrusted** cloud-client (public Connect, ordinary tenant principal, full PDP). That is the proof. Commodity adapters (S3/Postgres/IMAP) are the EOL proof.
+
+**Trusted** is allowed later as the **same facade**, different **principal and placement**:
+
+| | Untrusted tenant | First-party trusted |
+|---|---|---|
+| API | Same ports / Connect / proto | Same |
+| Authz | Cloud PDP | Cloud PDP (no skip) |
+| Who | Tenant customer | SPIFFE / device-attested first-party |
+| Where | Public H3 | May be cell-local TCP+SPIFFE (D-4) |
+| Quota | Noisy-neighbor limits | May be a first-party class, still metered |
+
+Adapter **which substrate** (sqlite | oyatie-cloud | s3 | postgres) is **tenant config**, not a privilege flag.
+
+**MUST**
+
+- **achieves:** dogfood proves the customer path; privilege cannot skip the port or the PDP.
+- **origin:** “trusted tenant” as a compile-time backdoor; flags product as architecture.
+- **rule:** no in-process cloud cores behind a flag; first-party privilege = principal + placement on the **same** ports; PDP always on; adapter selection is config; untrusted cloud-client + SQLite are the required proofs.
+- **ensure:** a PR that `path =` cloud `core` from `app/` under `cfg(trusted)` / a flag fails review.
+- **overturn_when:** a five-field ADR same-wave allows a distinct privileged cloud API or in-process cores for tenant #0.
 
 The tree at `console/` is **ops-dashboard-control-center**: a Wave-15 internal
 ops dashboard (incident-command, tenant-admin, pack-author, on-call-handoff, …).
