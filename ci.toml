@@ -219,6 +219,11 @@ kind = "path_prefix"
 value = "docs/decisions/ADR-07"
 reason = "live apex ADRs ADR-0700..ADR-0709 restate archived member gists; forbidden stems appear only as historical quotations of retired brand/substrate names, not product vocabulary (same class as docs/audit/ and _legacy-foundry/ carve-outs)"
 
+[[vocab.carve_outs]]
+kind = "path_exact"
+value = "plan/suite/INTERVIEW-LEDGER.md"
+reason = "append-only founder interview record (D1–D88). Names Palantir Foundry as a competitor thesis and Foundry-class as the founder spine; that is the interview, not resurrection of the retired foundry AI/RAG brand. Distinct from contracts/openapi/foundry."
+
 [manifest]
 required_flags = ["version_workspace", "rust_version_workspace", "publish_false", "license", "lints_workspace", "lib_doctest_false"]
 
