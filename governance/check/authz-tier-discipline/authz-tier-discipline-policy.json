@@ -4,7 +4,7 @@
   "authority": "ADR-0191",
   "subject": "tracked *.cedar (origin PDP policy) and tracked *.yaml / *.yml / *.json whose path names envoy (edge filter config)",
   "_measured_2026_08_19": "Measured on dev @ 889027711 (the commit that deleted 51 unreferenced product crates): 544 Cedar policies + 4 Envoy configs over 13752 tracked paths. 138 tier leaks across 60 (file, needle) keys, all on the Cedar side. The Envoy side is clean today; its floor pins the number of edge configs SCANNED, never a finding count, so the clean result stays evidence rather than an unread corpus.",
-  "min_tracked_files": 12493,
+  "min_tracked_files": 12492,
   "min_cedar_policies": 500,
   "min_envoy_configs": 3,
   "frozen_tier_leaks": {

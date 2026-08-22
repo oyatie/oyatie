@@ -5,7 +5,7 @@
   "subject": "every tracked *.sql file; every CREATE TABLE statement inside it",
   "_measured_2026_08_19": "Measured on dev @ 889027711, the commit that deleted 51 unreferenced product crates and moved every corpus in this repository: 20 tracked *.sql migrations over 13746 tracked paths, 34 CREATE TABLE statements, 0 carrying the `-- shardability: global` opt-out, exactly 1 unsharded. The corpus is small enough that a reviewer can open every subject file by hand, which is the point: this is a finding set that can be checked rather than trusted.",
   "_the_single_finding_and_its_repair": "The one finding is `classifier_model_versions` in oya/intelligence/iac/postgres/migrations/guardrails-001-init-schema.sql:117 — a registry of content-safety classifier model versions keyed PRIMARY KEY (model_id, version), with a `pack` column and no tenant dimension anywhere in it. It is genuinely cross-tenant: the same model version is served to every tenant in a pack, so the CORRECT repair is the one-line `-- shardability: global (<reason>)` opt-out marker above the statement, NOT a tenant_id column, which would be a fabricated dimension. That repair is DELIBERATELY NOT MADE HERE. This change connects the doctrine; editing the schema is a separate reviewable decision belonging to whoever owns oya/intelligence's guardrails migrations, and doing it in the same commit would have hidden the connection behind a schema edit. Making it later is a one-line diff plus deleting the one key below.",
-  "min_tracked_files": 12493,
+  "min_tracked_files": 12492,
   "min_sql_files": 16,
   "min_tables_seen": 28,
   "frozen_unsharded_tables": {
