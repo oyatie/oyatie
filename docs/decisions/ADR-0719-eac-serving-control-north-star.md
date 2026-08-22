@@ -435,26 +435,47 @@ JSON public API. Member states (DE, FR, …) bind **`eu/*` packages**
 (at least `eu/gdpr` when GDPR attaches) until a member-state package
 exists. They are not `packs/eu` as one blob.
 
-**Granular packages; union as the binding.** A namespace is not one blob.
-Packages inside it are the unit: `eu/gdpr`, `eu/dora`, `eu/eidas`,
-`kr/pipa`, `kr/csap`, `us/hipaa`. DORA does not attach because someone
-touched `packs/eu`. HIPAA is not “the US pack.”
+**Granular packages, projected, then unioned.** A namespace is not one
+blob. Packages are the unit (`eu/gdpr`, `eu/dora`, `kr/pipa`,
+`kr/csap`, `us/hipaa`). Selecting a package is **not** blanket
+application to the tenant.
 
-**Union:** `required` and `certified_for` are sets of **package ids**.
-Binding = union of packages that actually attach (establishment, data
-subject, purpose, sector). Placement: `required ⊆ certified_for` (cell
-covers the union). Do not mint `packs/kr-eu`. The union applies **all**
-selected constraints; contradiction on the **same bytes** fail-closes or
-splits by data-class — never “strictest common subset.”
+Each package **projects** onto named surfaces. IR declares the
+projection; Cedar is scoped to it. Closed v1 surfaces:
 
-**A in B, customer C from D.** KR company operating in JP, German
-customer: that customer’s personal data might union
-`{jp/appi, kr/pipa, eu/gdpr}` — not the entire `packs/jp` blob, not a
-DE country id (member state → `eu/*` packages). JP payroll for the
-company might be `{jp/appi}` only.
+| Projection | What it binds | Example |
+|---|---|---|
+| **client** | principal / data subject | `eu/gdpr` on customer C (DE), not on every principal in the tenant |
+| **transaction** | this call / business txn (RPC, workflow step, payment) | `eu/dora` on an operational posting, not on a profile read |
+| **record** | the bytes / resource | `kr/pipa` on RRN fields; `us/hipaa` on a clinical row |
+| **cell** | placement / certification | `kr/csap` on the cell, not copied onto each Check |
 
-Empty per-instrument directories are not v1. Package ids live in Cedar+IR
-the loader understands.
+A Check or commit **unions** only the packages whose projection
+**includes this** (principal, action, resource, cell). DORA does not
+run on a marketing Check because `packs/eu` was selected. HIPAA does
+not attach to a US anonymous download.
+
+**Placement:** packages that project onto **cell** or **record** still
+need `required ⊆ certified_for` for those bytes. Contradiction on the
+same bytes fail-closes or splits. Never “strictest common subset.”
+Never `packs/kr-eu`.
+
+**A in B, customer C from D.** KR company in JP, German customer:
+profile Check unions client-projected `{eu/gdpr, …}`; a JP payroll
+posting unions transaction/record `{jp/appi}` only. Same tenant, different
+projections.
+
+Empty per-instrument directories are not v1. Projection lives in Cedar+IR.
+
+**CaC in, CaS out.** Packs are **Compliance-as-Code**: versioned Cedar+IR
+packages, not markdown. They are **consumed as Compliance-as-a-Service**
+on the public contract (same Connect/H3 door): bind, project, evaluate
+which packages apply to this client / transaction / record / cell,
+export evidence. **First-party apps and third-party apps** (marketplace
+plugins) consume **that same CaS** as tenant #0 — no private pack path,
+no in-process PDP only we can call. CaS is a **facade of `compliance/`
++ `policy/` Check**, not a `packs/` capability and not a second door.
+`packs/` remains data the engines load.
 
 **MUST (packs: granular union, not a country stamp)**
 
@@ -463,12 +484,18 @@ the loader understands.
 - **origin:** markdown country trees; EU as a country; one pack per
   tenant; combinatoric `kr-eu`; namespace implied every instrument.
 - **rule:** v1 namespaces `us`, `eu`, `jp`, `kr`; EU is Union law not a
-  country; packages are granular; binding is **union** of package ids on
-  the record/purpose; cell covers that union; conflict fail-closes or
-  splits; no `packs/<a>-<b>` ids.
+  country; packages are granular; each package **projects** (client,
+  transaction, record, cell); a Check **unions** only projections that
+  include this principal/action/resource/cell; not blanket tenant apply;
+  cell covers packages that project onto those bytes; conflict
+  fail-closes or splits; no `packs/<a>-<b>` ids; packs are CaC; consume
+  is CaS on the public door; first-party and third-party apps use the
+  same CaS; `packs/` is not a cap.
 - **ensure:** no new namespace outside {us,eu,jp,kr} without a five-field
   pack ADR; no PR that assigns one blob to a whole tenant as the only
-  law; no empty per-instrument dirs; loaders consume Cedar+IR, not README.
+  law; no PR that blanket-applies `eu/*` to every Check; no empty
+  per-instrument dirs; loaders consume Cedar+IR with projection, not
+  README; no private pack API for `app/`.
 - **overturn_when:** a five-field ADR adds a namespace or member-state
   package with a loader same-wave.
 
@@ -795,7 +822,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
 | **billing** | Meter, rate, invoice, tax, FinOps. | Ledger books (`ledger/`). Payments rails (`payments/`). | Nested accounting/tax leftover dirs. |
 | **marketplace** | Signed plugins, install envelope, SKU engine. | Price list (`build/` view). KYC/escrow/payout. App store UX. | **Purge** `developer-sdk/` + `plugin-app-store/`. |
-| **compliance** | Pack evidence, data-class registry. | Merkle log (`audit`). Cloned `dpia.md`. | Those clones. |
+| **compliance** | Pack evidence, data-class registry, **CaS facade** (bind/project/export). | Merkle log (`audit`). Cloned `dpia.md`. Private pack API. | Those clones. |
 | **notify** | Transactional send (SES/SNS/FCM). | Email/SMS/push **send API**. | Mailbox/Meet/Messenger/contact-center (`app/` later). Current `comms/` dump **purged**. |
 | **flags** | Deterministic **eval** (keep `evaluation-domain`), targeting, kill switch, pack-gated overrides. | Experiments product / p-value dashboards. OpenAPI+REST+gRPC dual. Clock adapter. OFREP as SSOT. | Cap-root dump (`catalog.yaml`, IPs, Helm, AUDIT-FINDINGS). REST/gRPC server dual. |
 | **governance/** | Registry + check **crates** (off ladder). | Org JSON `specs/` corpus. | Specs catch-all. |
@@ -833,9 +860,9 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
-| **compliance** | Evidence **engine** for the platform. | Load packs, data-class registry, evidence export. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA files. |
+| **compliance** | Evidence **engine** + **CaS facade**. | Pack catalog, projection bind, evidence export. First-party and third-party apps consume this + `policy/` Check. | Merkle log (`audit`). Jurisdiction **data** (`packs/`). Cloned DPIA. A private pack API for `app/`. |
 | **notify** | Transactional **delivery** (SES / SNS / FCM). | Send email/SMS/push; bounce/complaint; DKIM/SPF/DMARC; optional inbound **to the bus** (SES-receive analog). | **Mailbox** (IMAP/JMAP/webmail), Meet, Messenger, calendar, contact-center — later `app/`. Emergency clinical. Current `comms/` tree (purged). |
-| **packs/** (data, not a cap) | Jurisdiction overlay on the cloud. | v1 namespaces `us`, `eu` (Union, **not a country**), `jp`, `kr`. **Granular packages**; binding = **union** of package ids; cell covers the union. Cedar+IR. | Copied into each cap. EU as world floor. EU as a country. Combinatoric `packs/kr-eu`. `packs/eu` implying DORA. Extra v1 namespaces. Markdown as the pack. Empty per-instrument dirs. OVH/AWS YAML. |
+| **packs/** (data, not a cap) | **CaC** — jurisdiction/program packages the engines load. | v1 namespaces `us`, `eu` (Union, **not a country**), `jp`, `kr`. Granular packages **projected** on client / transaction / record / cell; Check **unions** matching projections. Cedar+IR. Consumed via CaS (`compliance/` facade + `policy/` Check), including third-party apps. | A capability `core/`. Copied into each cap. EU as world floor. EU as a country. Combinatoric ids. Blanket apply. Empty per-instrument dirs. Markdown as CaC. OVH/AWS YAML. Private pack path for first-party apps. |
 
 **Not cloud-provider capabilities:** `payments` (money movement **product**), `ledger` (books **product**), `app/*` (SaaS), **`console/`** (D-16 — discarded pilot, not a shell engine). They must not live in `billing/` or in a cloud cap `core/`. If they ship, they are **product** placement (`app/` if 2+ cloud caps, or a later §7 **product** engine — not this cloud set).
 
