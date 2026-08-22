@@ -471,7 +471,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | VPC / DNS / mesh | **network** | core: mesh, signed DNS snapshots, cell dataplane. |
 | Front door / GFE / API Gateway | **gateway** | core: the **one** public door (D-3/D-4). Rate/quota. Transcode is not a second API. |
 | Pub/Sub / SQS | **bus** (today’s dir `messaging/` until git mv) | owned outbox + per-key order. Kafka/Pulsar = adapters. Not `notify`. |
-| SageMaker / internal AI | **intelligence** | core: model/agent substrate. AI Act registry is pack + this cap, not `capabilities/*.yaml` essays. |
+| Vertex / Bedrock | **intelligence** | core: inference + agent runtime + adapters. Not GuardDuty. Not a chat app. |
 | Step Functions / Composer | **workflow** | core: engine. Studio is facade. Business sagas, **not** deploy orchestrator (D-1). |
 | Cloud Build / TAP / CodePipeline | **pipeline** (today’s dir `ci/` until git mv) | core: graph-aware execution, queue, controller. GitHub is an **adapter**, not the product. |
 | CloudFormation / Config reconciler | **iac** | core: IR unifier + reconcilers. `<cap>/iac/` is **this** cap’s desired state; `iac/` the cap owns the **engine**. |
@@ -499,7 +499,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **policy** | Cedar + ReBAC PDP, G-face + C0 snapshots. | IdP. Empty dir forever. | **Extract crates from iam now.** Cap-root `<other>/policy/*.cedar` → `<other>/cedar/`. |
 | **secrets** | KMS, secret material, **SPIFFE issue**. | PDP. Cert spam as YAML. | Absorb `os-trustd-domain` consumers. |
 | **audit** | Tamper-evident log. Always on. | Compliance packs (`compliance`). Sync Merkle on every Check. | DPIA essays, scorecards. |
-| **observability** | Telemetry + SLO **controller**. | Per-cap hand OpenSLO. SIEM as a 25th cap. | Stamped OpenSLO; detection stays **intelligence** facade if sold. |
+| **observability** | Telemetry + SLO **controller**. | Per-cap hand OpenSLO. SIEM as a 25th cap. | Stamped OpenSLO. Detection is **not** this cap and **not** intelligence core. |
 | **storage** | Object/CAS. Drive/recordings **facade**. | Ontology DB (`data`). Block/file = **facades when sold**, no empty dirs. | Nested imaging leftover; census. |
 | **data** | Ontology, OLTP/OLAP, pipelines. | S3 (`storage`). Cache/search = facades **when sold**. | Nested ontology/analytics leftover trees; Postgres is **adapter**. |
 | **compute** | **One** engine: VM + k8s-on-compute + functions. | GKE product (`k8s/`). GPU = facade when sold. | Splitting into 3 caps. |
@@ -507,7 +507,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **network** | VPC/DNS/mesh dataplane. | Public API door (`gateway`). Direct Connect/CDN = facade when sold. | Census. |
 | **gateway** | **One** public door, quota, proto/H3. | Mesh (`network`). Second REST API. | REST dual-stack; connector leftover if it’s a second door. |
 | **bus** | Owned queue/bus/stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Inbox (`app/`). **Kafka/Pulsar as `core/`**. | git mv `messaging/` later. Kafka/Pulsar = **adapters** or a later sold SKU, never SSOT. |
-| **intelligence** | Model/agent substrate. | Console. Workflow studio. AI Act essays as cap-root YAML. | `capabilities/*.yaml`; detection is a **facade** of this cap if sold. |
+| **intelligence** | Vertex/Bedrock: inference + agent runtime. | Provider adapters, eval/proof, invoke facade. | GuardDuty (`detection/` **purged**). Chat copilot **app**. CLIs. Census YAML. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
 | **pipeline** | TAP + Cloud Build engines, queue, controller. | This repo’s `.github/` GHA. Census gates. | GHA stays disjoint; census already D-17. git mv `ci/` → `pipeline/` later. |
 | **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
@@ -545,7 +545,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **gateway** | **One** north-south door. | Proto/H3 edge, authn terminate, quota, Cedar on the call. | Mesh (`network`). Second connector door. Tenant SaaS APIs implemented here. |
 | **bus** | Move **events** (Pub/Sub / SQS / Service Bus). | Owned substrate: queue + fan-out bus + seekable stream; outbox; at-least-once; per-key order. Serving path never *is* a consume. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar/`core`**. MSK-class SKU only as a later facade. |
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
-| **intelligence** | Managed **model/agent** substrate. | Inference/agent runtime, adapters to models, platform proof layer. | Console. Workflow studio. Vertical AI products. Cap-root autonomy YAML essays. |
+| **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
 | **flags** | Dynamic config and kill switches. | Flag eval, targeting, kill switch. | App feature roadmaps. Census catalogs. |
 | **pipeline** | Sold TAP + Cloud Build. | Graph-aware execute, queue, controller, SCM **adapter**. Tenant graphs. | `.github/` GHA. Census gates. Desired-state apply (`iac`). |
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
@@ -766,6 +766,7 @@ for the apps discussion.
 - Keeping `comms/` as a cloud cap (mailbox/Meet/messenger/calendar). Those are
   apps. Cloud send is `notify/`.
 - Kafka (or Pulsar) as the `bus/` engine / serving consume path.
+- `intelligence/detection/` as this cap’s core (GuardDuty ≠ Vertex). Copilot UX in `intelligence/core`.
 
 ## Appendix — considerations (not implement authority)
 

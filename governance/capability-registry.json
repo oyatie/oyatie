@@ -326,15 +326,15 @@
       "substrate_dag_position": {
         "stratum": "S4"
       },
-      "charter": "AI/intelligence substrate: SDK adapters, request pipeline + proof layer, agentic capabilities. cloud-intelligence destination.",
+      "charter": "Managed inference + agent runtime (Vertex/Bedrock). Adapters to models, eval/proof, invoke facade. Not GuardDuty (detection purged ADR-0719). Not a chat app.",
       "seed_domains": [
         "control plane"
       ],
       "absorbs_current_dirs": [
-        "intelligence",
-        "intelligence/detection"
+        "intelligence"
       ],
-      "dag_node": "intelligence"
+      "dag_node": "intelligence",
+      "boundary_note": "ADR-0719: intelligence/detection/ dump git rm. Detection is a later product, not this core. CLIs burned."
     },
     {
       "name": "workflow",
