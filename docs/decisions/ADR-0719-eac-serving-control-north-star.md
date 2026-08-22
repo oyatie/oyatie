@@ -81,8 +81,8 @@ deliverables:
     exit_criteria: "data/ charter has no ontology kernel; no foundry/ capability root; no intelligence foundry surface; D41 list is notes/slides/sites/office/translate only."
     verified_by: "presubmit"
   - id: ADR-0719-D22
-    description: "Apps 2x2 start: one launchpad app/application; Foundry is a module in it. V1 People=hr+payroll; V1 Finance=accounting+payments. Not v1: FP&A, treasury, performance, learning."
-    exit_criteria: "No empty app dirs for treasury/financial-planning/performance-management/learning-management; shell is not console/; Foundry is not the only shell."
+    description: "Apps 2x2: one launchpad; Foundry module; v1 People=hr+payroll; v1 Finance=accounting+payments+ledger; community shrunk; messenger dual-context one dir; no SAP ghost dirs."
+    exit_criteria: "No empty app dirs for dropped modules or registry ghosts; app/ledger is the posting product not a cap; community has no SecureDrop v1; no app/social."
     verified_by: "presubmit"
 ---
 
@@ -1005,7 +1005,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **governance/** | Registry. Check crates **off ladder**; D-17 default **delete**. | Org JSON `specs/` corpus. Cloud product. | Census kernels (`no-template-stamping`, …). |
 | **build/** | Toolchains, images, CH/FC+kernel **pins**. Port-engine **frozen** until a named owned corpus is Accepted. | Capability engines. Price list. Fleet agent. | `evidence/` essays. Staffing port-engine as Borg. |
 | **third-party/** | Vendored pins when we need them. | Fake rungs (`kernel/`/`os/`). | Asterinas eval in `kernel/`. |
-| **app/** | 2+ cap products. One shell `application`; Foundry is a **module**. V1: foundry, hr, payroll, accounting, payments, calendar, mail, messenger, community. | A cloud engine. Ops console. D41 retirees. V1 treasury/FP&A/performance/learning. | Absorbing D41; parking payments as a **cap**; `console/` pilot; empty SAP ghosts. |
+| **app/** | 2+ cap products. One shell `application`; Foundry is a **module**. V1: foundry, hr, payroll, accounting, **ledger**, payments, calendar, mail, messenger, community (shrunk). | A cloud engine. Ops console. D41 retirees. V1 treasury/FP&A/performance/learning. `ledger/` **cap**. `app/social`. | Absorbing D41; parking payments as a **cap**; `console/` pilot; empty SAP ghosts; community SecureDrop. |
 
 **Missed before, now closed:** GKE vs kube-port (`k8s/`); Talos vs `os/`; PDP vs iam; trustd vs secrets; payments/ledger not billing; no empty `base/`/`kernel/`/`os/`/`k8s-port/`; census `ci` gates are not the delivery fabric. **D-20:** no `k8s-on-compute`; ontology not `data/core`; no gateway PDP; no `build/` price view.
 
@@ -1122,7 +1122,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `base/` only when the ≥3-caps rule admits the first crate
 - `app/foundry` — Palantir Foundry product (ontology + Pages + Grid + Workshop). No empty scaffold until that PR. Not a cap. Module of `app/application`.
 - `app/application` — suite launchpad (from `oya/application`). Not console.
-- `app/mail`, `app/messenger`, `app/payments`, `app/accounting` — v1 products; no empty scaffold until each PR
+- `app/mail`, `app/messenger`, `app/payments`, `app/accounting`, `app/ledger` — v1 products; no empty scaffold until each PR
 
 **REMOVE** (DON'T + HAVE)
 
@@ -1245,24 +1245,31 @@ Founder 2026-08-22: (1) **`app/application`** is the launchpad for the whole sui
 | `app/foundry` | Foundry module (ontology + Pages + Grid + Workshop) — D-21 |
 | `app/hr` | People |
 | `app/payroll` | People |
-| `app/accounting` | Finance UI (GL/close). Posting engine placement still open (ledger fork). |
-| `app/payments` | Payment **execution** product. Not `billing/`. Not a cap. |
-| `app/calendar` | D18/D32 — still v1 unless later overruled |
-| `app/mail` | D18 — mailbox. `notify/` is send only |
-| `app/messenger` | D18 — chat; meet **inside** (D20/D32) |
-| `app/community` | D18 — v1; SecureDrop shrink still open |
+| `app/accounting` | Finance **UI** (GL/close, statements, AR/AP). |
+| `app/ledger` | Posting **engine** product (universal journal). Not a cap. Not `billing/`. |
+| `app/payments` | Payment **execution**. Not `billing/`. Not a cap. |
+| `app/calendar` | D18/D32 v1 |
+| `app/mail` | Mailbox. `notify/` is send only |
+| `app/messenger` | Chat + meet **inside**. **One dir**, dual work/personal context (D38). Not `app/social`. |
+| `app/community` | Workplace social v1. **No** SecureDrop/whistleblower in v1. |
 
-**Not v1** (no dirs, not membership ghosts): `app/treasury`, `app/financial-planning`, `app/performance-management`, `app/learning-management`. D1 can grow them later.
+**Not v1** (no dirs, not membership ghosts): `app/treasury`, `app/financial-planning`, `app/performance-management`, `app/learning-management`, and every registry SAP ghost (`crm`, `itsm`, `warehouse`, …). D1 can grow them later. **Do not create empty `app/<ghost>/`.**
 
-**Still open (not recorded):** ledger as `app/ledger` vs inside accounting; community SecureDrop; personal messenger network (D38); registry SAP ghosts.
+**3A.** `app/ledger` = journal engine; `app/accounting` = accountant UI; cloud `billing/` invoices **cloud** SKUs (D37: Oyatie as tenant #0 later, then billing’s internal journal can die).
 
-**MUST (one shell; shrunk v1 People+Finance)**
+**4A.** Community KEEP+WORK **shrunk**: drop SecureDrop/whistleblower from v1.
 
-- **achieves:** one launchpad; Foundry is a module; v1 money/people set is small enough to staff.
-- **origin:** D23/D35 one shell vs D-16 no console; D1 full Finance+People vs founder 2026-08-22 drop of four modules.
-- **rule:** `app/application` is the only shell; `app/foundry` is a module in it; v1 People = hr+payroll; v1 Finance = accounting+payments; not v1 = treasury, FP&A, performance, learning.
-- **ensure:** no `app/ops-console`; no empty dirs for the four dropped modules; Foundry PRs do not replace the launchpad.
-- **overturn_when:** a five-field ADR same-wave changes the shell or the v1 roster.
+**5A.** Personal network is the same `app/messenger` engine (deny-default dual-context). No second product dir. D32 stands (`app/social` dead).
+
+**6A.** Drop SAP ghosts from membership. Live `oya/*` dumps that still exist stay mapped until REMOVE/move, then disappear — they are not a roadmap catalog.
+
+**MUST (one shell; shrunk v1 People+Finance; ledger product; no ghosts)**
+
+- **achieves:** one launchpad; Foundry is a module; v1 money/people set is small enough to staff; ledger is not billing and not a cap.
+- **origin:** D23/D35 one shell vs D-16 no console; D1 vs founder drop of four modules; D15/D37 two ledgers; D38 personal messenger; census-like app membership lists.
+- **rule:** `app/application` is the only shell; `app/foundry` is a module in it; v1 People = hr+payroll; v1 Finance = accounting + **ledger** + payments; community v1 has no SecureDrop; messenger is one dir dual-context; no empty ghost dirs; `ledger/` is not a cap.
+- **ensure:** membership `current_dirs` lists only live trees; no `app/ops-console` / `app/social` / empty `app/crm`; Foundry PRs do not replace the launchpad.
+- **overturn_when:** a five-field ADR same-wave changes the shell, v1 roster, or ledger home.
 
 ### D-16 — `console/` is not a capability; discard the pilot
 
