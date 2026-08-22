@@ -77,13 +77,13 @@ members = [
 
   # ci product services outside the four-face shape (ADR-0562 NORTH-STAR ci/<service>/).
   # Literals until a dedicated service-leaf glob is adopted; shrink with face migration if any.
-  "ci/tide/app",
-  "ci/tide/github-adapter",
-  "ci/tide/kernel",
-  "ci/controller/app",
-  "ci/controller/github-adapter",
-  "ci/controller/k8s-adapter",
-  "ci/controller/kernel",
+  "pipeline/tide/app",
+  "pipeline/tide/github-adapter",
+  "pipeline/tide/kernel",
+  "pipeline/controller/app",
+  "pipeline/controller/github-adapter",
+  "pipeline/controller/k8s-adapter",
+  "pipeline/controller/kernel",
 ]
 exclude = [
   # Workspace carve-outs and non-crate directories the layer globs over-match.
@@ -106,7 +106,7 @@ exclude = [
   # they existed solely because `<cap>/*/*` matched satellite directories, and the layer globs
   # above do not match them. That is the point of the change — a capability move no longer adds
   # an exclusion for satellite dirs outside the four faces.
-  "ci/facade/harness",
+  "pipeline/facade/harness",
   # os/harness/{attestation-relying-party,oci-executor-oracle} absorbed into
   # Cargo.lock sole-owner membership on #1934 (expires integ-os-cargo-lock-bridge).
   "kernel",

@@ -1,0 +1,81 @@
+rust_library(
+    name = "ci-generated-artifact-freshness",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_generated_artifact_freshness",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
+        "//pipeline/facade/planning-projection:ci-planning-projection",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-freshness-app-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-generated-artifact-freshness",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-face-settle-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-face-settle.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-generated-artifact-freshness",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-materialize-generated-faces-bin",
+    srcs = glob(["src/**/*.rs"]),
+    crate_root = "src/bin/oya-cloud-ci-materialize-generated-faces.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-generated-artifact-freshness",
+    ],
+)
+
+rust_test(
+    name = "ci-generated-artifact-freshness-unittest",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_generated_artifact_freshness",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/facade/cross-artifact-agreement:ci-cross-artifact-agreement",
+        "//pipeline/facade/planning-projection:ci-planning-projection",
+        "//libs/oya-workspace-members-kernel:oya-workspace-members-kernel",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "ci-generated-artifact-freshness-fixtures",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_generated_artifact_freshness_fixtures",
+    crate_root = "tests/freshness.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-generated-artifact-freshness",
+    ],
+)
+
+rust_test(
+    name = "oya-cloud-ci-face-settle-fixtures",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "oya_cloud_ci_face_settle_fixtures",
+    crate_root = "tests/face_settle.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-generated-artifact-freshness",
+    ],
+)

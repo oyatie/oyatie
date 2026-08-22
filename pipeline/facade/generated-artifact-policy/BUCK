@@ -1,0 +1,61 @@
+rust_library(
+    name = "ci-generated-artifact-policy",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_generated_artifact_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-generated-artifact-policy-unittest",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_generated_artifact_policy",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "third-party//:serde_json",
+    ],
+)
+
+# Productized generated-artifact control-plane gate. The gate reads the repo-authored manifest
+# and the firewall ratchet policy as declared inputs, plus the SCM facts snapshot. scm-facts is
+# the ADR-0604 de-commit class (NOT tracked in git, NOT a buck source member): the CI/local
+# materialize boundary (buck2 run //pipeline/facade/generated-artifact-freshness:oya-cloud-ci-materialize-generated-faces-bin) regenerates it on the
+# checked-out candidate tree before gates run, so the test reads it from the on-disk repo root
+# via the SCM_FACTS_ENV fallback (repo_root().join(path)) — mirroring how every other gate test
+# (e.g. the firewall) consumes the de-committed faces. No $(location) on scm-facts, because an
+# export_file on an untracked path makes the producer package fail to parse (the #828→#830
+# circular-deadlock class). It does not call git, cargo, network, or any host-local merge driver,
+# so the same gate shape works under buck2, GitHub Actions bridge CI, or future native cloud-ci runners.
+rust_test(
+    name = "ci-generated-artifact-policy-gate",
+    srcs = glob(["tests/**/*.rs"]),
+    crate = "ci_generated_artifact_policy_corpus",
+    crate_root = "tests/generated_artifact_control_plane.rs",
+    env = {
+        "OYA_CI_GENERATED_ARTIFACT_MANIFEST": "$(location //registry:generated-artifact-control-plane.json)",
+        # The firewall ratchet policy is the authoritative source of the frozen-reference set
+        # (ADR-0551 frozen_reference.face_path). The gate forbids declaring any frozen reference
+        # de-commit class (the #828 make-it-impossible guard).
+        "OYA_CI_GENERATED_ARTIFACT_RATCHET_POLICY": "$(location //pipeline/facade/baseline-ratchet:ratchet-policy.json)",
+    },
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-generated-artifact-policy",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-generated-output-diff-policy",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate_root = "src/diff_policy.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-generated-artifact-policy",
+        "third-party//:serde_json",
+    ],
+)

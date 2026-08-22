@@ -1,0 +1,68 @@
+rust_library(
+    name = "ci-supply-chain-audit",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_supply_chain_audit",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-advisory-mirror-kernel:oya-advisory-mirror-kernel",
+        "third-party//:semver",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+rust_binary(
+    name = "oya-cloud-ci-supply-chain-audit-app-bin",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate_root = "src/main.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-supply-chain-audit",
+        "//libs/oya-advisory-mirror-kernel:oya-advisory-mirror-kernel",
+        "third-party//:semver",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+rust_test(
+    name = "ci-supply-chain-audit-unittest",
+    srcs = glob(["src/**/*.rs", "**/*.json"]),
+    crate = "ci_supply_chain_audit",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//libs/oya-advisory-mirror-kernel:oya-advisory-mirror-kernel",
+        "third-party//:semver",
+        "third-party//:serde_json",
+        "third-party//:toml",
+    ],
+)
+
+# Owned RustSec advisory gate live self-test: a pure-Rust born-blocking self-test (synthetic
+# quinn-proto 0.11.14 + fixture advisory => SCA-VULN keyed to RUSTSEC-2026-0185; 0.11.15 => clean;
+# unmaintained absent from ignore => SCA-UNMAINTAINED, present => clean; tampered manifest =>
+# SCA-MIRROR-MALFORMED) PLUS live multi-lockfile corpus coverage, nested-only vulnerability,
+# legacy observed-shape compatibility, exact SCM-facts workspace-lock totality (including third-root
+# RED plus member/orphan exclusion), strict package-row rejection, underflow/path rejection,
+# symlink containment, and a live born-green run over the authoritative root + kernel lockfiles.
+# Buck consumes the workflow-declared SCM face unchanged. Direct Cargo tests alone may use the
+# linked official Rust emitter library to create a source-derived face in RAII temporary storage;
+# absent Buck input stays RED because Buck does not declare the Cargo-only capability signal.
+rust_test(
+    name = "ci-supply-chain-audit-gate",
+    srcs = glob(["tests/**/*.rs", "**/*.json"]),
+    crate = "ci_supply_chain_audit_gate",
+    crate_root = "tests/supply_chain_audit.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-supply-chain-audit",
+        "//pipeline/facade/scm-facts-snapshot:ci-scm-facts-snapshot-lib",
+        "//libs/oya-advisory-mirror-kernel:oya-advisory-mirror-kernel",
+        "third-party//:semver",
+        "third-party//:serde_json",
+        "third-party//:tempfile",
+        "third-party//:toml",
+    ],
+)

@@ -25,7 +25,7 @@ path = "src/main.rs"
 serde_json = { workspace = true, features = ["preserve_order"] }
 
 [dev-dependencies]
-ci-generated-artifact-freshness = { path = "../../ci/facade/generated-artifact-freshness" }
+ci-generated-artifact-freshness = { path = "../../pipeline/facade/generated-artifact-freshness" }
 tempfile = { workspace = true }
 
 [lints]

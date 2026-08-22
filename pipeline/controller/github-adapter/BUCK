@@ -1,0 +1,40 @@
+rust_library(
+    name = "ci-controller-github-adapter",
+    srcs = glob(["src/**/*.rs", "migrations/**/*.sql", "**/*.cedar", "**/*.sql", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml", "**/*.proto", "**/*.html", "**/*.css", "**/*.txt"]),
+    crate = "ci_controller_github_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/controller/kernel:ci-controller-kernel",
+        "third-party//:reqwest",
+        "third-party//:serde",
+    ],
+)
+
+rust_test(
+    name = "review-admission-tests",
+    srcs = ["tests/review_admission.rs"],
+    crate = "review_admission",
+    crate_root = "tests/review_admission.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-controller-github-adapter",
+        "//pipeline/controller/kernel:ci-controller-kernel",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "github-status-poster-tests",
+    srcs = ["tests/github_status_poster.rs"],
+    crate = "github_status_poster",
+    crate_root = "tests/github_status_poster.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        ":ci-controller-github-adapter",
+        "//pipeline/controller/kernel:ci-controller-kernel",
+        "//intelligence/testing/scripted-http-server:scripted-http-server",
+        "third-party//:serde_json",
+    ],
+)

@@ -1,0 +1,27 @@
+rust_library(
+    name = "ci-tide-github-adapter",
+    srcs = glob(["src/**/*.rs", "**/*.cedar", "**/*.json", "**/*.toml", "**/*.yaml", "**/*.yml"]),
+    crate = "ci_tide_github_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/tide/kernel:ci-tide-kernel",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)
+
+rust_test(
+    name = "ci-tide-github-adapter-tests",
+    srcs = glob(["src/**/*.rs"]),
+    crate = "ci_tide_github_adapter",
+    crate_root = "src/lib.rs",
+    visibility = ["PUBLIC"],
+    deps = [
+        "//pipeline/tide/kernel:ci-tide-kernel",
+        "third-party//:reqwest",
+        "third-party//:serde",
+        "third-party//:serde_json",
+    ],
+)

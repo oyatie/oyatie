@@ -347,17 +347,17 @@
       "boundary_note": "ADR-0719 D-18: git rm of the n8n/SaaS/bus dump. Registry row kept as rewrite destination. No empty workflow/ scaffold."
     },
     {
-      "name": "ci",
+      "name": "pipeline",
       "tier": "substrate",
       "substrate_dag_position": {
         "stratum": "S5"
       },
-      "charter": "Sold TAP + Cloud Build (destination slug pipeline/, git mv from ci/ later). Graph-aware execute, queue, controller. GitHub Actions is a disjoint temporary operator merge path (ADR-0719 D-18), not this product.",
+      "charter": "Productized execute: one graph engine. Internal TAP (this repo as tenant #0) and sold Cloud Build are two facades of the same engine. GitHub Actions is a disjoint operator adapter until the engine runs tenant #0. Not a JSON check product. Not Prow/Tide as core.",
       "seed_domains": [
         "delivery fabric"
       ],
       "absorbs_current_dirs": [
-        "ci"
+        "pipeline"
       ],
       "dag_node": "delivery-fabric",
       "boundary_note": "Coarse collapse per founder ruling: ci absorbs cloud-ci + ci-controller + ci-tide + ci-webhook-gateway as sub-modules. STRATUM (ADR-0631 floor test): range S4..S5 — floor S4 from ci/facade/crate-name-prefix -> intelligence/core/cargo-prefix-domain (intelligence S4), no ranked consumer so no ceiling. S5 is picked over the S4 floor on independent corroboration: this capability's dag_node `delivery-fabric` is ALREADY forward-declared under substrate_dag_canonical_ordering.tier2_and_meta_forward_declared.S5_meta in specs/platform-architecture.json, authored without reference to this edge. Two sources that never saw each other agree."

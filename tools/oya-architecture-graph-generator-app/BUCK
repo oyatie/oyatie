@@ -23,7 +23,7 @@ rust_binary(
 
 _TEST_DEPS = [
     ":oya-architecture-graph-generator-app",
-    "//ci/facade/generated-artifact-freshness:ci-generated-artifact-freshness",
+    "//pipeline/facade/generated-artifact-freshness:ci-generated-artifact-freshness",
     "third-party//:serde_json",
     "third-party//:tempfile",
 ]

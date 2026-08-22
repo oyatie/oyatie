@@ -65,7 +65,7 @@ deliverables:
     exit_criteria: "ci/facade and governance/check contain only the D-17 keep set; cedar-deploy-parity and scan-root-liveness are gone; no new gate is a path/count freeze."
     verified_by: "presubmit"
   - id: ADR-0719-D18
-    description: "pipeline/ is TAP+Cloud Build; GHA disjoint; workflow/ and comms/ purged; rewrite workflow and notify; capability is bus/ not messaging/; ci/ is a retired path; .github/scripts any-language glue."
+    description: "pipeline/ is one execute engine: TAP internally (tenant #0) and Cloud Build sold are two facades. GHA disjoint adapter. JSON/governance check fleets are not the product. ci/ is a retired path."
     exit_criteria: "ADR tables use pipeline/, bus/, notify/; workflow/ and comms/ trees absent; rust-first exclude_prefixes includes .github/scripts/; GHA YAML is not a face of pipeline/."
     verified_by: "presubmit"
   - id: ADR-0719-D19
@@ -709,7 +709,7 @@ calls `policy/` in-process; it does not embed a second PDP.
 | Pub/Sub / SQS | **bus** | owned queue + fan-out + seekable stream + outbox; per-key order. Kafka/Pulsar = adapters. Not `notify`. |
 | Vertex / Bedrock | **intelligence** | core: inference + agent runtime + adapters. Not GuardDuty. Not a chat app. |
 | Step Functions / Composer | **workflow** | core: engine. Studio is facade. Business sagas, **not** deploy orchestrator (D-1). |
-| Cloud Build / TAP / CodePipeline | **pipeline** (retired tree name `ci/`) | core: graph-aware execution, queue, controller. GitHub is an **adapter**, not the product. |
+| Cloud Build / TAP / CodePipeline | **pipeline** | **One** execute engine. Internal TAP = this repo as tenant #0. Sold Cloud Build = same engine, tenant graphs. GitHub is an adapter, not the product. JSON check fleets are not this cap. |
 | CloudFormation / Config reconciler | **iac** | core: IR unifier + reconcilers. `<cap>/iac/` is **this** cap’s desired state; `iac/` the cap owns the **engine**. |
 | Billing / Cost Explorer | **billing** | core: meter, rate, invoice, tax, FinOps. Sold-ness, not a drawer. |
 | Marketplace | **marketplace** | core: signed plugins + Cedar install envelope + SKU **engine**. Price list is `build/` view. Not KYC/escrow. |
@@ -745,7 +745,7 @@ Same split as `k8s/` (GKE product vs kube port). Nested leftover service dirs in
 | **bus** | Owned queue + fan-out bus + seekable stream + outbox; per-key order. Pub/Sub + SQS analog. | Sagas (`workflow`). Mailbox (`app/`). **Kafka/Pulsar as `core/`**. Human chat. SES (`notify`). | Crate names still `messaging-*` (KEEP+WORK rename). Kafka/Pulsar = **adapters** only. |
 | **intelligence** | Vertex/Bedrock: inference + agent runtime. | Provider adapters, eval/proof, invoke facade. | GuardDuty (`detection/` **purged**). Chat copilot **app**. CLIs. Census YAML. |
 | **workflow** | Step Functions analog (rewrite). | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). | **Purge current tree; rewrite.** Do not strangler. |
-| **pipeline** | TAP + Cloud Build engines, queue, controller. | This repo’s `.github/` GHA. Census gates. | GHA stays disjoint; census already D-17. Retired tree name `ci/`: no new crates there. |
+| **pipeline** | One execute engine (graph, queue, workers, controller). | `.github/` GHA as the product. Prow/Tide as `core/`. JSON policy crates as the product. A root named `ci/`. | KEEP+WORK: today’s tree is not the product. Census/JSON gates REMOVE. Tide/webhook = GitHub adapter until cutover. |
 | **iac** | IR unifier + reconcilers. | Argo-SHA observer as the engine. Helm/Tofu **source**. | Observer; `<cap>/iac` Helm dumps. |
 | **billing** | Meter, rate, invoice, tax, FinOps. | Ledger books (`ledger/`). Payments rails (`payments/`). | Nested accounting/tax leftover dirs. |
 | **marketplace** | Signed plugins, install envelope, SKU engine. | Price list (`build/` view). KYC/escrow/payout. App store UX. | **Purge** `developer-sdk/` + `plugin-app-store/`. |
@@ -783,7 +783,7 @@ This set is what we **sell and run as a hyperscale cloud**. Analog: AWS/GCP/Azur
 | **workflow** | Managed **sagas** (Step Functions / Cloud Workflows). | Rewrite: state machine, retries, timers, execution API; studio as authoring **facade**. | Bus (`bus`). Forms/tasks/SaaS. Deploy (`pipeline`/`iac`). Current tree (purged). |
 | **intelligence** | Managed **inference + agent runtime** (Vertex / Bedrock). | Model adapters, eval, invoke facade, quota. | `detection/` (GuardDuty — later product). Copilot **app**. CLIs. Cap-root YAML essays. |
 | **flags** | Dynamic config and kill switches. | Deterministic eval (`evaluation-domain`), targeting, kill switch, pack overlays. Connect facade. | App roadmaps. Census catalogs. **Clock adapter**. A/B experiment **product**. REST/gRPC/OpenAPI dual. OFREP as SSOT (OpenFeature may be an adapter). Helm source. |
-| **pipeline** | Sold TAP + Cloud Build. | Graph-aware execute, queue, controller, SCM **adapter**. Tenant graphs. | `.github/` GHA. Census gates. Desired-state apply (`iac`). |
+| **pipeline** | Productized execute (TAP internally, Cloud Build sold). | **One engine**, two facades. Graph, queue, workers, controller. This monorepo is tenant #0. | GHA as product. JSON check product. `governance/check` fleet. Helm/OpenAPI parity. Desired-state apply (`iac`). A `ci/` root. |
 | **iac** | Apply **desired state**. | IR unify/preview/apply/watch, reconcilers, Helm **adapter only**. | Merge queue (`pipeline`). Business sagas (`workflow`). Helm/Tofu as source. |
 | **billing** | Charge for **cloud use**. | Meter, rate, invoice, tax on **platform SKUs**, FinOps attribution. | Card rails as a bank (`payments` product). Universal accounting books (`ledger` product). |
 | **marketplace** | Third-party **modules** on the cloud. | Signed plugins, Cedar envelope at install, SKU **engine**. | Price list (`build/` view). KYC/escrow/SEPA/tax. Developer portal **app**. `developer-sdk/` + `plugin-app-store/` dumps (purged). |
@@ -844,7 +844,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 - `k8s/`, `data/`, `network/`: nested census REMOVE
 - `flags/`: cap-root dump + REST/gRPC `server` REMOVE; eval stays
 - `gateway/`: connector dump REMOVE; Connect door BUILD after
-- `pipeline/`: tree still `ci/` — git mv; census not product `core/`
+- `pipeline/`: path is `pipeline/`; contents are not the product (Prow/Tide/census). BUILD execute core; REMOVE JSON gates and Tide-as-core
 - `bus/`: rename `messaging-*` crate ids; Connect facade BUILD
 - `cell/`: PTP/GNSS bind when plant exists (adapters already named)
 
@@ -861,7 +861,7 @@ No new `cloud-*` crates. REMOVE is not rehome.
 
 - `gateway/` Workday/Slack/Salesforce/… connectors
 - `flags/` dump (catalog.yaml, IPs, Helm, REST+gRPC server, experiment dashboards)
-- Nested census; `ci/` as the live product name
+- Nested census; a root named `ci/` (retired; do not recreate)
 - Repo-root leftovers: `oya/`, `libs/`, `infra/`, `tools/`, `toolchains/`, `benchmarks/`, `evidence/`, `contracts/`, `registry/`, `scripts/`, `plan/`, `tasks/`, `specs/`, `kernel/`, `os/`
 - A root named `messaging/` (retired; do not recreate)
 - `cloud-*` crates; cap-root IPs, AUDIT-FINDINGS, Helm source, OpenAPI product, `catalog.yaml`
@@ -912,64 +912,90 @@ UI is `app/` **after** the apps discussion, as tenant #0, same public APIs.
 - **overturn_when:** a §7 ADR adds a real sold shell as `app/` (or a new cap) with
   five fields same-wave — not a resurrection of this directory.
 
-### D-17 — Presubmit is cargo plus a short admission set; census gates delete
+### D-17 — Presubmit is the graph, not a JSON product
 
-`ci/facade/*` and `governance/check/*` grew a second product: JSON policy files
-with `min_expected_*`, `expected_total`, frozen path lists, FNV signatures, and
-Helm/OpenAPI/OpenSLO corpora. That is observation-hardcode, not TAP. Trimming one
-stale path (e.g. `cedar-deploy-parity-policy.json`) keeps the anti-pattern.
+`pipeline/facade/*` (was `ci/facade`) and `governance/check/*` grew a **second
+product**: JSON policy files, frozen path lists, FNV signatures, Helm/OpenAPI
+parity. Hyperscaler TAP is **build + test the graph**. It is not ten crates
+that observe the tree. Trimming one stale JSON keeps the anti-pattern.
 
-**Keep (admission).** Workflow cargo fmt + nextest. Then only:
+**Merge proof (the TAP).** `cargo fmt --all --check`; clippy `-D warnings`
+when clean; **`cargo nextest`** (compile+test once). That is the product’s
+presubmit for tenant #0. Not `cargo check`. Not libtest. Not a JSON census.
 
-| Engine | Why it is TAP |
+**Still allowed as graph steps** (code in the execute graph, **not** a
+governance JSON product). Default is delete. Keep only if it is a **pattern**
+(new unauth HTTP, new GraphQL crate, new license, new non-Rust automation,
+hand-edit of generated faces, D-8 unknown root name):
+
+| Step | Why it is not census |
 |---|---|
-| `generated-artifact-freshness` / `generated-artifact-policy` | Generated faces are not merge surfaces. |
-| `license-policy` / `supply-chain-audit` | Legal + advisory activation. |
-| `automation-language-policy` | Rust-first automation. |
-| `repo-root-hygiene` | D-8 closed root names. |
-| `module-membership` | Closed capability registry. |
-| `endpoint-authorization-coverage` | New HTTP control plane is fail-closed authz. |
-| `graphql-usage-policy` | No GraphQL without a reversing ADR. |
-| `crypto-backend-policy` | No `ring` activation. |
-| `affected-target-set` | Graph + live hub-exclusivity binary the workflow runs. |
-| `no-template-stamping` | D-8 stamped docs. |
+| One license/ban engine (`deny.toml` **or** one crate, not both) | Legal. |
+| Generated-face freshness | Generated files are not merge surfaces. |
+| Rust-first (`automation-language-policy`) | Founder invariant. `.github/scripts/` excluded. |
+| D-8 unknown-name (one engine, not two of hygiene + membership + frozen lists) | Closed root set. Fails on **unknown names**, never `expected_total`. |
+| `affected-target-set` | This **is** TAP graph. Belongs in `pipeline/` **core**, not a JSON gate. |
 
-Support crates those engines import (`planning-projection`,
-`cross-artifact-agreement`, `path-resolver`, `corpus-census`, Tide/webhook,
-`dependency-automation`, toolchain proposer) stay as **libraries/tools**, not as
-extra required predicates. The accounting-registry / scm-facts producer is
-**deleted with the census fleet**; generated-face materialize is cargo-lock +
-diff-policy until a producer that does not fan-in census gates exists.
+**Not needed** as crates, JSON dirs, or merge predicates: corpus-census,
+planning-projection as a required check, cross-artifact-agreement as a
+required check, endpoint-authorization-coverage (that is tests + PDP
+fail-closed), graphql/crypto as standalone census crates (encode in
+clippy/tests), `governance/check` fleet, `governance/corpus`, cap-root
+`*-policy.json` path lists, Helm/OpenAPI/OpenSLO parity, Tide/webhook as
+**product core**, Prow `GateRun` as Cloud Build.
 
-**Delete.** Every other `ci/facade/*` and `governance/check/*` crate, including
-`policy-deploy-parity` (Helm Cedar census), `scan-root-liveness` (`min_expected_roots`),
-`corpus-index-coverage`, `product-protocol-policy` (`expected_total`),
-`crate-catalog-coverage`, `slo-coverage`, `helm-chart-shape`, `gitops-chart-license`,
-`baseline-ratchet`, `gate-self-conformance`, docs/glossary/runbook/RACI/OpenAPI
-coverage, `authz-tier-discipline` frozen leak **counts**, `event-schema-versioning`
-`min_*` floors. Do not re-freeze numbers to make a delete green.
+`governance/` **is** needed for `capability-registry.json`, packs, and
+Cedar the PDP compiles. It is **not** a CI product. `check/` crates that
+are not a D-8 unknown-name step **REMOVE**.
 
-**MUST (no census gates)**
+**MUST (graph, not JSON gates)**
 
-- **achieves:** merge admission cannot be a hand-maintained observation of the tree.
-- **origin:** GH #16 Helm Cedar parity; `min_expected_roots`; `expected_total` pins;
-  two-sided frozen path lists that must be edited on every `git rm`.
-- **rule:** a gate is born-blocking on a **pattern** (new path, new unauth route,
-  new license, new GraphQL crate) or it does not exist. Path/count freeze JSON is
-  not a gate.
-- **ensure:** new `ci/facade/*` crates match the keep table or they are not merged.
-- **overturn_when:** a five-field ADR adds one engine that evaluates IR/Cedar/cargo
-  graph without a frozen corpus.
+- **achieves:** merge is TAP execute, not a policy-file farm.
+- **origin:** census JSON and `governance/check` became the product; Cloud
+  Build never shipped.
+- **rule:** presubmit is fmt + clippy + nextest plus the short pattern-step
+  table; path/count freeze JSON is not a gate; `governance/` is registry
+  not CI; new check crates are born-blocking unless they are a pattern
+  step in the `pipeline/` graph.
+- **ensure:** no new `*-policy.json` freeze; no new `governance/check/*`
+  census crate; GHA must not grow predicates this ADR deleted.
+- **overturn_when:** a five-field ADR adds one engine that evaluates
+  IR/Cedar/cargo graph without a frozen corpus.
 
 ### D-18 — `pipeline/` product vs GHA operator; purge `workflow/`; `.github/scripts` glue
 
-**Product.** Analog: Google **TAP** (internal graph-aware execute) + **Cloud Build**
-(sold). Live slug is **`pipeline/`**. Tree name `ci/` is **retired**, not an
-alias: no new crates under `ci/` except moving D-17 admission into
-`governance/` or deleting it. GitHub is an **adapter**, not the engine.
-Tenant pipelines (including first-party apps as tenant #0) run **here**.
-D-17 crates still under `ci/facade/` are **operator admission**, not
-`pipeline/` core — they do not become the TAP product.
+**Product.** One execute engine: graph, queue, workers, controller.
+Analog: Google **TAP** (internal) + **Cloud Build** (sold). Those are
+**two facades of the same engine**, not two codebases.
+
+- **Internal:** this monorepo is **tenant #0**. Cadences in D-10
+  (presubmit / postsubmit / nightly / weekly / promotion / release) are
+  that tenant’s graph. Same APIs a customer will call.
+- **Sold:** tenant submits a graph; same controller, queue, workers.
+- **Not the product:** `.github/` GHA (disjoint adapter until the engine
+  **runs** tenant #0); Prow/Tide/webhook-gateway as `core/`; JSON check
+  fleets; a directory named `ci/`.
+
+Today’s tree under `pipeline/` is **KEEP+WORK**: it is GitHub Jobs +
+census + a Prow-shaped `GateRun` kernel. That is **not** Cloud Build.
+Do not pretend a rename finished the product. BUILD the execute engine
+in `pipeline/core/` (queue + graph + worker). REMOVE census, Tide as
+core, webhook as core. GitHub stays an **adapter**.
+
+**MUST (one pipeline engine; GHA ≠ product)**
+
+- **achieves:** sold TAP/Cloud Build cannot be Actions YAML or a JSON
+  gate farm; internal and sold cannot drift into two pipelines.
+- **origin:** `ci/` mixed census, GHA glue, Prow, and the name of a
+  product we did not build.
+- **rule:** capability is `pipeline/`; one execute engine; tenant #0 and
+  customers share it; GHA is a temporary adapter; JSON/census/`governance/check`
+  fleets are not the product; no root named `ci/`.
+- **ensure:** no new crates under `ci/`; no new GHA glue outside
+  `.github/scripts/` and workflow YAML; git mv of dumps does not make
+  them `pipeline/core`.
+- **overturn_when:** `pipeline/` runs tenant #0 and GHA is deleted
+  same-wave, or a five-field ADR names a different sold slug.
 
 **Operator GHA.** `.github/workflows` is a **temporary** merge path for *this*
 monorepo. Completely **disjoint** from `pipeline/`: no YAML copied into cap
@@ -1022,18 +1048,8 @@ destination. No empty scaffold. Do **not** strangler event-bus crates into
 saga engine from the D-15 charter (proto/H3, studio as facade). Forms/tasks wait
 for the apps discussion.
 
-**MUST (GHA ≠ pipeline product)**
-
-- **achieves:** sold TAP/Cloud Build cannot be this repo’s Actions YAML.
-- **origin:** `ci/` mixed census gates, GHA glue, and the delivery-fabric product.
-- **rule:** product slug is `pipeline/`; `.github/` is temporary operator merge,
-  disjoint; rust-first does not scan `.github/scripts/`; `workflow/` implementation
-  is gone pending rewrite.
-- **ensure:** no new GHA glue outside `.github/scripts/` and workflow YAML; no
-  `workflow/` dump resurrection; no new crates under `ci/` (retired);
-  moving trees must not carry D-17 gates into product `core/`.
-- **overturn_when:** `pipeline/` runs this repo and GHA is deleted same-wave, or a
-  five-field ADR names a different sold slug.
+**MUST (GHA ≠ pipeline product)** — see D-18 one-engine MUST above. `workflow/`
+implementation is gone pending rewrite; no dump resurrection.
 
 ## Rejected alternatives
 
