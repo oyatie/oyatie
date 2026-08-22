@@ -9,9 +9,8 @@ rust_library(
     ],
 )
 
-# Pure-kernel unit tests: coverage verdict, baseline tolerance, the MOVE case
-# (a renamed crate must not inherit the old name's baseline slack), stale-entry
-# detection, and the false-green corpus floor — all proven WITHOUT a filesystem.
+# Pure-kernel unit tests: optional catalog YAML, extra YAML ignored, and the
+# false-green corpus floor — all proven WITHOUT a filesystem.
 rust_test(
     name = "ci-crate-catalog-coverage-unittest",
     srcs = glob(["src/**/*.rs", "**/*.json"]),
@@ -23,10 +22,9 @@ rust_test(
     ],
 )
 
-# Live-corpus gate: collects the real crate set from every tracked Cargo.toml and the
-# real catalog row set from registry/catalog/, evaluates against the frozen baseline,
-# and asserts GREEN. Also carries the RED fixture (an uncatalogued crate MUST fail) so
-# the gate is proven to be capable of failing, not merely observed passing.
+# Live-corpus gate: collects the real crate set from every tracked Cargo.toml.
+# Missing catalog YAML is not born-blocking. The RED fixture is an implausibly
+# small crate corpus so the gate is proven capable of failing.
 rust_test(
     name = "ci-crate-catalog-coverage-gate",
     srcs = glob(["tests/**/*.rs", "**/*.json"]),

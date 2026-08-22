@@ -6,12 +6,10 @@ rust-version.workspace = true
 publish = false
 license = "Apache-2.0"
 
-# cloud-ci-catalog-liveness: portable conformance gate enforcing the founder
-# "live-OR-explicitly-marked" catalog policy. The producer owns registry/catalog I/O and the
-# in-process live-crate-id resolution; it emits {"rows":[{"crate_id","source_path","is_live",
-# "marker"}]}; this gate keeps the evaluator pure and hermetic (no cargo metadata / buck2
-# shell-out). A catalog record is RED iff it names no live workspace crate AND carries no
-# explicit non-live marker.
+# cloud-ci-catalog-liveness: portable conformance gate. Catalog YAML is optional census
+# metadata. A record is RED iff it names no live workspace crate AND carries no explicit
+# non-live marker. A live crate without a row is not a finding. The producer owns
+# registry/catalog I/O and in-process live-crate-id resolution.
 
 [lib]
 name = "ci_service_catalog_parity"
