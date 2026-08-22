@@ -519,7 +519,8 @@ still speak REST may go red until they speak proto — that break is in-scope hy
 - `policy/` extraction and IR proto are implementation follow-through, not optional sketch.
 - Admission remains VAP/CEL+PSA as cited from ADR-0704 / ADR-0700. Proposed
   0710-range ids are not `depends_on`.
-- Merge-blocking CI is **presubmit**. Pair with **merge-admission**. See D-10.
+- Merge-blocking CI is **presubmit** only (D-10). No second protected
+  `merge-admission-required` context.
 - Node OS/kernel: D-13. Do not re-create `kernel/` or `os/` as empty rungs.
 
 ### D-13 — Node is upstream Talos/Linux; generated ports are not kept
