@@ -287,9 +287,9 @@
       "frozen_from_commit": "ADR-0716 cargo-merge-path PR",
       "keys_by_file": {
         ".github/workflows/buck2-weekly-smoke.yml": 3,
-        ".github/workflows/oya-ci-required.yml": 21
+        ".github/workflows/oya-ci-required.yml": 14
       },
-      "keys_total": 22
+      "keys_total": 17
     },
     "replacement_window": {
       "schema_version": 2,
@@ -308,26 +308,6 @@
         },
         {
           "key": ".github/workflows/buck2-weekly-smoke.yml::buck2-weekly-smoke::Provision pinned Rust toolchain",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::clippy::Clippy, warnings denied",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Cross-platform smoke tests",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Install pinned buck2 (digest-verified)",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Materialize generated faces",
-          "shell_lines": 1
-        },
-        {
-          "key": ".github/workflows/oya-ci-required.yml::cross-platform-smoke::Pre-provision pinned toolchain components",
           "shell_lines": 1
         },
         {
@@ -372,7 +352,7 @@
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::test::Materialize generated faces",
-          "shell_lines": 4
+          "shell_lines": 1
         },
         {
           "key": ".github/workflows/oya-ci-required.yml::test::Pre-provision pinned toolchain components",

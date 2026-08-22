@@ -485,7 +485,7 @@ fn retirement_event_transport_delegates_provider_tuple_to_rust_materializer_with
 }
 
 #[test]
-fn lint_format_gate_is_differential_blocking_on_changed_files() {
+fn lint_format_gate_is_cargo_fmt_all_check() {
     let root = repo_root();
     let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
     let workflow = fs::read_to_string(&workflow_path)
@@ -496,23 +496,73 @@ fn lint_format_gate_is_differential_blocking_on_changed_files() {
     let fmt = named_workflow_step(&workflow_doc, "lint", "Check formatting");
     assert!(
         fmt.get("continue-on-error").is_none(),
-        "new rustfmt drift on changed files must fail the lint job"
+        "format drift must fail the lint job"
     );
     let run = fmt
         .get("run")
         .and_then(YamlValue::as_str)
         .expect("format gate must be an inline run step");
     assert!(
-        run.contains("--diff-filter=ACMR"),
-        "deleted files are not rustfmt inputs; got {run}"
+        run.contains("cargo fmt") && run.contains("--all") && run.contains("--check"),
+        "merge-bar format gate is `cargo fmt --all --check` (Cargo owns discovery); got {run}"
     );
     assert!(
-        run.contains("skip_children=true"),
-        "crate-root paths must not re-check untouched sibling modules; got {run}"
+        !run.contains("rustfmt --check"),
+        "do not invoke the rustfmt binary; cargo fmt is the interface; got {run}"
+    );
+}
+
+#[test]
+fn linux_arm64_nextest_is_not_a_per_pr_fan_in_leg() {
+    // D88-amend: amd64 nextest is the merge-path compile proof. Arm64 is not a
+    // fan-in input. GitHub rejects job-level `if:` that reads `matrix.*`, so a
+    // two-element os matrix cannot be event-gated and must not live on this job.
+    let root = repo_root();
+    let workflow_path = root.join(".github/workflows/oya-ci-required.yml");
+    let workflow = fs::read_to_string(&workflow_path)
+        .unwrap_or_else(|e| panic!("read {}: {e}", workflow_path.display()));
+    let workflow_doc: YamlValue = serde_yaml::from_str(&workflow)
+        .unwrap_or_else(|e| panic!("parse {}: {e}", workflow_path.display()));
+
+    let test = workflow_doc
+        .get("jobs")
+        .and_then(|jobs| jobs.get("test"))
+        .expect("test job");
+    assert!(
+        test.get("strategy")
+            .and_then(|strategy| strategy.get("matrix"))
+            .is_none(),
+        "do not put ubuntu-24.04-arm on a per-PR os matrix; GitHub rejects job-level if: matrix.*"
+    );
+    let runs_on = test
+        .get("runs-on")
+        .and_then(YamlValue::as_str)
+        .unwrap_or_default();
+    assert_eq!(
+        runs_on, "ubuntu-24.04",
+        "per-PR nextest is native Linux amd64; got {runs_on}"
     );
     assert!(
-        run.contains("rustfmt --check"),
-        "format gate must invoke rustfmt --check; got {run}"
+        !workflow.contains("ubuntu-24.04-arm"),
+        "arm64 nextest must not be a merge-path job in this workflow (no matrix.if); got arm runner"
+    );
+
+    let fan_in_needs = workflow_doc
+        .get("jobs")
+        .and_then(|jobs| jobs.get("oya-ci-required"))
+        .and_then(|job| job.get("needs"))
+        .and_then(YamlValue::as_sequence)
+        .expect("fan-in needs");
+    let needed: Vec<&str> = fan_in_needs.iter().filter_map(YamlValue::as_str).collect();
+    assert_eq!(
+        needed,
+        [
+            "lint",
+            "test",
+            "live-postgres-adapters",
+            "live-postgres-facades"
+        ],
+        "arm64 nextest is not a per-PR fan-in input; got {needed:?}"
     );
 }
 
