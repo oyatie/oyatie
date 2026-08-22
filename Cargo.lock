@@ -8310,47 +8310,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "shared-backbone-grpc-generated-adapter"
-version = "0.1.0"
-dependencies = [
- "community-post-store-api",
- "community-post-store-app",
- "community-post-store-domain",
- "community-post-store-grpc",
- "community-social-app",
- "community-social-post-composition-api",
- "community-social-post-composition-grpc",
- "prost",
- "protoc-bin-vendored",
- "shared-backbone-proto-contracts-kernel",
- "shared-postgres-command-kernel",
- "tonic",
- "tonic-prost",
- "tonic-prost-build",
-]
-
-[[package]]
-name = "shared-backbone-proto-contracts-kernel"
-version = "0.1.0"
-
-[[package]]
-name = "shared-backbone-rest-runtime-adapter"
-version = "0.1.0"
-dependencies = [
- "community-post-store-api",
- "community-post-store-domain",
- "community-post-store-rest",
- "community-social-post-composition-api",
- "community-social-post-composition-rest",
- "http-middleware-kernel",
- "http-router-kernel",
- "http-runtime-hyper-adapter",
- "serde_json",
- "shared-postgres-command-kernel",
- "tokio",
-]
-
-[[package]]
 name = "shared-backup-kernel"
 version = "0.1.0"
 
